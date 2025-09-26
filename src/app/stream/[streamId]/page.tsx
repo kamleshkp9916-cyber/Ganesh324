@@ -102,6 +102,7 @@ import { WithdrawForm } from "@/components/settings-forms";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 
 const emojis = [
@@ -171,22 +172,16 @@ const PlayerSettingsDialog = () => {
                 </DialogTitle>
             </DialogHeader>
             <div className="grid grid-cols-4">
-                <Tabs defaultValue="playback" className="col-span-4 grid grid-cols-4">
-                    <TabsList className="col-span-1 flex flex-col h-auto bg-transparent p-2 gap-1 self-start">
+                <Tabs defaultValue="playback" className="col-span-4 grid grid-cols-4 p-4">
+                    <TabsList className="col-span-1 flex flex-col h-auto bg-transparent p-0 gap-1 self-start">
                         <TabsTrigger value="playback" className="w-full justify-start gap-2 data-[state=active]:bg-white/10 data-[state=active]:text-white">
                             <Play className="h-5 w-5" /> Playback
                         </TabsTrigger>
                         <TabsTrigger value="quality" className="w-full justify-start gap-2 data-[state=active]:bg-white/10 data-[state=active]:text-white">
                             <SlidersHorizontal className="h-5 w-5" /> Quality
                         </TabsTrigger>
-                        <TabsTrigger value="captions" className="w-full justify-start gap-2 data-[state=active]:bg-white/10 data-[state=active]:text-white">
-                            <Subtitles className="h-5 w-5" /> Captions
-                        </TabsTrigger>
-                        <TabsTrigger value="dvr" className="w-full justify-start gap-2 data-[state=active]:bg-white/10 data-[state=active]:text-white">
-                            <History className="h-5 w-5" /> DVR
-                        </TabsTrigger>
                     </TabsList>
-                    <div className="col-span-3 p-4">
+                    <div className="col-span-3 pl-4">
                         <TabsContent value="playback" className="mt-0 space-y-4">
                             <div className="p-4 rounded-lg bg-white/5 space-y-4">
                                 <div className="flex items-center justify-between">
@@ -258,6 +253,69 @@ const PlayerSettingsDialog = () => {
                                 </div>
                             </div>
                         </TabsContent>
+                        <TabsContent value="quality" className="mt-0 space-y-4">
+                             <div className="p-4 rounded-lg bg-white/5">
+                                <Label className="font-semibold">Streaming quality</Label>
+                                <p className="text-xs text-gray-400 mb-4">Optimize for network or pick a fixed resolution</p>
+                                <RadioGroup defaultValue="auto">
+                                    <div className="space-y-2">
+                                        <Label className="flex items-center justify-between p-3 rounded-md has-[:checked]:bg-white/10 has-[:checked]:border-blue-500 border border-transparent hover:bg-white/5 cursor-pointer">
+                                            <div>
+                                                <p>Auto <Badge className="ml-2 bg-blue-600">LIVE</Badge></p>
+                                                <p className="text-xs text-gray-400">Adaptive bitrate (recommended)</p>
+                                            </div>
+                                            <RadioGroupItem value="auto" />
+                                        </Label>
+                                        <Label className="flex items-center justify-between p-3 rounded-md has-[:checked]:bg-white/10 has-[:checked]:border-blue-500 border border-transparent hover:bg-white/5 cursor-pointer">
+                                            <p>1080p • High</p>
+                                            <RadioGroupItem value="1080p" />
+                                        </Label>
+                                         <Label className="flex items-center justify-between p-3 rounded-md has-[:checked]:bg-white/10 has-[:checked]:border-blue-500 border border-transparent hover:bg-white/5 cursor-pointer">
+                                            <p>720p • Medium</p>
+                                            <RadioGroupItem value="720p" />
+                                        </Label>
+                                         <Label className="flex items-center justify-between p-3 rounded-md has-[:checked]:bg-white/10 has-[:checked]:border-blue-500 border border-transparent hover:bg-white/5 cursor-pointer">
+                                            <p>480p • Data saver</p>
+                                            <RadioGroupItem value="480p" />
+                                        </Label>
+                                    </div>
+                                </RadioGroup>
+                            </div>
+                             <div className="p-4 rounded-lg bg-white/5 space-y-4">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <Label className="font-semibold">Data saver mode</Label>
+                                        <p className="text-xs text-gray-400">Reduce bitrate to minimize usage</p>
+                                    </div>
+                                    <Switch />
+                                </div>
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <Label className="font-semibold">HDR</Label>
+                                        <p className="text-xs text-gray-400">Enable if display supports HDR</p>
+                                    </div>
+                                    <Switch />
+                                </div>
+                            </div>
+                             <div className="p-4 rounded-lg bg-white/5">
+                                 <div className="flex items-center justify-between">
+                                    <div>
+                                        <Label className="font-semibold">Max resolution on mobile data</Label>
+                                        <p className="text-xs text-gray-400">Applies when not on Wi-Fi</p>
+                                    </div>
+                                    <Select defaultValue="720p">
+                                        <SelectTrigger className="w-28 bg-[#1f1f1f] border-gray-600">
+                                            <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="1080p">1080p</SelectItem>
+                                            <SelectItem value="720p">720p</SelectItem>
+                                            <SelectItem value="480p">480p</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                            </div>
+                        </TabsContent>
                     </div>
                 </Tabs>
             </div>
@@ -265,7 +323,7 @@ const PlayerSettingsDialog = () => {
                 <DialogClose asChild>
                     <Button variant="ghost" className="text-white hover:bg-white/10 hover:text-white">Cancel</Button>
                 </DialogClose>
-                <Button className="bg-green-600 hover:bg-green-700 text-white">Save settings</Button>
+                <Button className="bg-blue-600 hover:bg-blue-700 text-white">Save settings</Button>
             </DialogFooter>
         </DialogContent>
     );
@@ -516,7 +574,7 @@ export default function StreamPage() {
             </header>
 
              <div className="flex flex-1 overflow-hidden">
-                <div className="flex-1 flex flex-col overflow-hidden">
+                <ScrollArea className="flex-1">
                     <div className="w-full aspect-video bg-black relative group flex-shrink-0" ref={playerRef}>
                         <video ref={videoRef} src={streamData.streamUrl || "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"} className="w-full h-full object-cover" loop />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-black/60 flex flex-col p-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
@@ -555,87 +613,85 @@ export default function StreamPage() {
                             </div>
                         </div>
                     </div>
-                     <ScrollArea className="flex-1 bg-background text-foreground">
-                         <div className="p-4">
-                            <div className="mb-4">
-                                <h2 className="font-bold text-xl">{streamData.title || "Live Stream"}</h2>
-                                <p className="text-sm text-muted-foreground">{renderContentWithHashtags(streamData.description) || "Welcome to the live stream!"}</p>
-                            </div>
-                            <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-3">
-                                {seller && (
-                                    <>
-                                    <Avatar>
-                                        <AvatarImage src={seller.avatarUrl} />
-                                        <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
-                                    </Avatar>
-                                    <h3 className="font-semibold">{seller.name}</h3>
-                                    <Button variant="secondary" size="sm" className="h-7">
-                                        <UserPlus className="mr-1.5 h-4 w-4" /> Follow
-                                    </Button>
-                                    </>
-                                )}
-                                </div>
-                            </div>
-                            <div className="mt-6">
-                                <h4 className="font-semibold mb-4">Products by {seller?.name}</h4>
-                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                                {sellerProducts.map(p => (
-                                    <Link key={p.key} href={`/product/${p.key}`} className="group">
-                                    <Card className="overflow-hidden">
-                                        <div className="aspect-square bg-muted relative">
-                                        <Image src={p.images[0]} alt={p.name} fill sizes="80px" className="object-cover group-hover:scale-105 transition-transform" />
-                                        </div>
-                                        <div className="p-2">
-                                        <p className="text-xs font-semibold truncate">{p.name}</p>
-                                        <p className="font-bold text-base">{p.price}</p>
-                                        </div>
-                                    </Card>
-                                    </Link>
-                                ))}
-                                {sellerProducts.length === 0 && <p className="text-sm text-muted-foreground col-span-full text-center py-4">This seller has no active products.</p>}
-                                </div>
-                            </div>
-                            
-                            <div className="mt-8">
-                                <h4 className="font-semibold mb-4">Related Streams</h4>
-                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                                {relatedStreams.map((s: any) => (
-                                    <Link href={`/stream/${s.id}`} key={s.id} className="group">
-                                    <div className="relative rounded-lg overflow-hidden aspect-[16/9] bg-muted">
-                                        <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
-                                        <div className="absolute top-2 right-2 z-10">
-                                            <Badge variant="secondary" className="bg-background/60 backdrop-blur-sm gap-1.5">
-                                                <Users className="h-3 w-3"/>
-                                                {s.viewers}
-                                            </Badge>
-                                        </div>
-                                    </div>
-                                    <div className="flex items-start gap-2 mt-2">
-                                        <Avatar className="w-7 h-7">
-                                        <AvatarImage src={s.avatarUrl} />
-                                        <AvatarFallback>{s.name.charAt(0)}</AvatarFallback>
-                                        </Avatar>
-                                        <div className="flex-1">
-                                        <div className="flex items-center gap-1.5">
-                                            <p className="font-semibold text-xs group-hover:underline truncate">{s.name}</p>
-                                            {s.hasAuction && (
-                                            <Badge variant="purple" className="text-xs font-bold px-1.5 py-0">
-                                                Auction
-                                            </Badge>
-                                            )}
-                                        </div>
-                                        <p className="text-xs text-muted-foreground">{s.category}</p>
-                                        <p className="text-xs text-primary font-semibold mt-0.5 sm:hidden lg:block">#{s.category.toLowerCase()}</p>
-                                        </div>
-                                    </div>
-                                    </Link>
-                                ))}
-                                </div>
+                     <div className="p-4">
+                        <div className="mb-4">
+                            <h2 className="font-bold text-xl">{streamData.title || "Live Stream"}</h2>
+                            <p className="text-sm text-muted-foreground">{renderContentWithHashtags(streamData.description) || "Welcome to the live stream!"}</p>
+                        </div>
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                            {seller && (
+                                <>
+                                <Avatar>
+                                    <AvatarImage src={seller.avatarUrl} />
+                                    <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
+                                </Avatar>
+                                <h3 className="font-semibold">{seller.name}</h3>
+                                <Button variant="secondary" size="sm" className="h-7">
+                                    <UserPlus className="mr-1.5 h-4 w-4" /> Follow
+                                </Button>
+                                </>
+                            )}
                             </div>
                         </div>
-                    </ScrollArea>
-                </div>
+                        <div className="mt-6">
+                            <h4 className="font-semibold mb-4">Products by {seller?.name}</h4>
+                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                            {sellerProducts.map(p => (
+                                <Link key={p.key} href={`/product/${p.key}`} className="group">
+                                <Card className="overflow-hidden">
+                                    <div className="aspect-square bg-muted relative">
+                                    <Image src={p.images[0]} alt={p.name} fill sizes="80px" className="object-cover group-hover:scale-105 transition-transform" />
+                                    </div>
+                                    <div className="p-2">
+                                    <p className="text-xs font-semibold truncate">{p.name}</p>
+                                    <p className="font-bold text-base">{p.price}</p>
+                                    </div>
+                                </Card>
+                                </Link>
+                            ))}
+                            {sellerProducts.length === 0 && <p className="text-sm text-muted-foreground col-span-full text-center py-4">This seller has no active products.</p>}
+                            </div>
+                        </div>
+                        
+                        <div className="mt-8">
+                            <h4 className="font-semibold mb-4">Related Streams</h4>
+                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                            {relatedStreams.map((s: any) => (
+                                <Link href={`/stream/${s.id}`} key={s.id} className="group">
+                                <div className="relative rounded-lg overflow-hidden aspect-[16/9] bg-muted">
+                                    <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
+                                    <div className="absolute top-2 right-2 z-10">
+                                        <Badge variant="secondary" className="bg-background/60 backdrop-blur-sm gap-1.5">
+                                            <Users className="h-3 w-3"/>
+                                            {s.viewers}
+                                        </Badge>
+                                    </div>
+                                </div>
+                                <div className="flex items-start gap-2 mt-2">
+                                    <Avatar className="w-7 h-7">
+                                    <AvatarImage src={s.avatarUrl} />
+                                    <AvatarFallback>{s.name.charAt(0)}</AvatarFallback>
+                                    </Avatar>
+                                    <div className="flex-1">
+                                    <div className="flex items-center gap-1.5">
+                                        <p className="font-semibold text-xs group-hover:underline truncate">{s.name}</p>
+                                        {s.hasAuction && (
+                                        <Badge variant="purple" className="text-xs font-bold px-1.5 py-0">
+                                            Auction
+                                        </Badge>
+                                        )}
+                                    </div>
+                                    <p className="text-xs text-muted-foreground">{s.category}</p>
+                                    <p className="text-xs text-primary font-semibold mt-0.5 sm:hidden lg:block">#{s.category.toLowerCase()}</p>
+                                    </div>
+                                </div>
+                                </Link>
+                            ))}
+                            </div>
+                        </div>
+                    </div>
+                </ScrollArea>
                  <div className="hidden lg:flex w-[340px] flex-shrink-0 bg-background text-foreground h-full flex-col border-l border-border">
                     <div className="p-4 border-b flex items-center justify-between z-10 flex-shrink-0 h-16">
                         <h3 className="font-bold text-lg">Live Chat</h3>
@@ -783,7 +839,7 @@ export default function StreamPage() {
                         </DropdownMenu>
                         </div>
                     </div>
-                     <div ref={chatContainerRef} className="flex-1 overflow-y-auto p-4 space-y-2">
+                     <ScrollArea ref={chatContainerRef} className="flex-1 overflow-y-auto p-4 space-y-2">
                         {chatMessages.map((msg, index) => (
                         <div key={msg.id || index} className="text-sm group relative">
                             {msg.type === 'system' ? (
@@ -830,7 +886,7 @@ export default function StreamPage() {
                         </div>
                         ))}
                          <div ref={messagesEndRef} />
-                    </div>
+                    </ScrollArea>
                     <div className="p-3 border-t bg-background flex-shrink-0">
                         {isProductListVisible && (
                         <div className="relative mb-2">
@@ -915,4 +971,3 @@ export default function StreamPage() {
         </Dialog>
     );
 }
-
