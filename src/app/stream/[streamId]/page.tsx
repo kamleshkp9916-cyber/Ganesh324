@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import {
@@ -643,7 +642,7 @@ export default function StreamPage() {
                     : [...prev, msg]
             );
             toast({
-                title: prevPinned => prevPinned.some(p => p.id === msgId) ? "Message Unpinned" : "Message Pinned",
+                title: pinnedMessages.some(p => p.id === msgId) ? "Message Unpinned" : "Message Pinned",
                 description: "The message has been updated in the pinned items."
             });
         }
@@ -755,7 +754,7 @@ export default function StreamPage() {
                                         </Button>
                                     </CollapsibleTrigger>
                                      {seller.hasAuction && (
-                                         <Badge variant="secondary" className="flex items-center gap-1.5">
+                                        <Badge variant="secondary" className="flex items-center gap-1.5">
                                             <Gavel className="h-3 w-3" /> Featured Auction
                                         </Badge>
                                     )}
@@ -843,7 +842,7 @@ export default function StreamPage() {
                         </div>
                     </div>
                 </div>
-                 <div className="hidden lg:flex w-[340px] flex-shrink-0 bg-background text-foreground h-full flex-col border-l border-border no-scrollbar">
+                 <div className="hidden lg:flex w-[340px] flex-shrink-0 h-full flex-col border-l border-border no-scrollbar">
                     <div className="p-4 flex items-center justify-between z-10 flex-shrink-0 h-16">
                         <h3 className="font-bold text-lg">Live Chat</h3>
                         <div className="flex items-center gap-1">
