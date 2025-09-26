@@ -55,11 +55,12 @@ import {
   SlidersHorizontal,
   Subtitles,
   History,
+  Ticket,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardFooter, CardContent } from "@/components/ui/card";
+import { Card, CardFooter, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import Image from 'next/image';
 import Link from "next/link";
@@ -359,9 +360,9 @@ export default function StreamPage() {
     const [bankAccounts, setBankAccounts] = useState([
         { id: 1, bankName: 'HDFC Bank', accountNumber: 'XXXX-XXXX-XX12-3456' },
     ]);
-    const [pinnedMessages, setPinnedMessages] = useState<any[]>([
-        { id: 999, user: 'FashionFinds', isSeller: true, text: '🎉 Special Offer! Use code LIVE10 for 10% off your entire order, only during this stream!' },
-        { id: 998, user: 'FashionFinds', isSeller: true, text: 'Featured Product: Vintage Camera. Ask me anything about it!' },
+     const [pinnedMessages, setPinnedMessages] = useState<any[]>([
+        { id: 999, user: 'FashionFinds', isSeller: true, text: '🎉 Special Offer! Use code LIVE10 for 10% off your entire order, only during this stream!', type: 'offer' },
+        { id: 998, user: 'FashionFinds', isSeller: true, text: 'Featured Product: Vintage Camera. Ask me anything about it!', type: 'product', product: productDetails['prod_1'] },
     ]);
 
     const mockStreamData = {
@@ -915,21 +916,53 @@ export default function StreamPage() {
                                     {pinnedMessages.length > 0 && <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-primary" />}
                                 </Button>
                             </PopoverTrigger>
-                             <PopoverContent align="end" className="w-80">
-                                <div className="p-3">
-                                    <h4 className="font-semibold mb-2">Pinned Messages</h4>
-                                    <ScrollArea className="h-48">
-                                        <div className="space-y-2">
-                                            {pinnedMessages.length > 0 ? pinnedMessages.map(msg => (
-                                                <div key={msg.id} className="text-xs p-2 bg-muted/50 rounded-md">
-                                                    <p className="font-semibold">{msg.user}: <span className="font-normal text-muted-foreground">{msg.text}</span></p>
-                                                </div>
-                                            )) : (
-                                                <p className="text-sm text-center text-muted-foreground py-4">No pinned messages yet.</p>
-                                            )}
-                                        </div>
-                                    </ScrollArea>
+                             <PopoverContent align="end" className="w-80 p-0">
+                                <div className="p-3 border-b">
+                                    <h4 className="font-semibold">Pinned Items</h4>
                                 </div>
+                                <ScrollArea className="h-64">
+                                    <div className="p-3 space-y-3">
+                                        {pinnedMessages.length > 0 ? pinnedMessages.map(msg => (
+                                             msg.type === 'offer' ? (
+                                                <Card key={msg.id} className="bg-primary/10 border-primary/20">
+                                                    <CardContent className="p-3">
+                                                        <div className="flex items-start gap-3">
+                                                            <Ticket className="h-5 w-5 text-primary flex-shrink-0 mt-1" />
+                                                            <div>
+                                                                <p className="text-xs font-semibold">🎉 Special Offer!</p>
+                                                                <p className="text-sm">Use code <span className="font-bold text-primary">LIVE10</span> for 10% off your entire order.</p>
+                                                            </div>
+                                                        </div>
+                                                    </CardContent>
+                                                </Card>
+                                             ) : (
+                                                <Card key={msg.id} className="overflow-hidden">
+                                                    <CardContent className="p-0">
+                                                        <div className="p-3">
+                                                            <p className="text-xs text-muted-foreground font-semibold">Featured Product</p>
+                                                            <div className="flex items-center gap-3 mt-1">
+                                                                <div className="w-12 h-12 bg-muted rounded-md relative overflow-hidden flex-shrink-0">
+                                                                    <Image src={msg.product.images[0]} alt={msg.product.name} fill className="object-cover" />
+                                                                </div>
+                                                                <div className="flex-grow">
+                                                                    <h4 className="font-semibold leading-tight text-sm">{msg.product.name}</h4>
+                                                                    <p className="text-sm font-bold">{msg.product.price}</p>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <CardFooter className="p-0">
+                                                            <Button asChild variant="secondary" className="w-full rounded-none rounded-b-lg h-9">
+                                                                <Link href={`/product/${msg.product.key}`}>View Product</Link>
+                                                            </Button>
+                                                        </CardFooter>
+                                                    </CardContent>
+                                                </Card>
+                                             )
+                                        )) : (
+                                            <p className="text-sm text-center text-muted-foreground py-4">No pinned messages yet.</p>
+                                        )}
+                                    </div>
+                                </ScrollArea>
                             </PopoverContent>
                         </Popover>
                         <DropdownMenu>
@@ -1071,4 +1104,3 @@ export default function StreamPage() {
         </Dialog>
     );
 }
-
