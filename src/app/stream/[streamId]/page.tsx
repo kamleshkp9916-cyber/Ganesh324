@@ -173,7 +173,7 @@ const PlayerSettingsDialog = () => {
             </DialogHeader>
             <div className="grid grid-cols-4">
                 <Tabs defaultValue="playback" className="col-span-4 grid grid-cols-4">
-                    <TabsList className="col-span-1 flex flex-col h-auto bg-transparent p-2 items-start gap-1 self-start">
+                    <TabsList className="col-span-1 flex flex-col h-auto bg-transparent p-2 gap-1 self-start">
                         <TabsTrigger value="playback" className="w-full justify-start gap-2 data-[state=active]:bg-white/10 data-[state=active]:text-white">
                             <Play className="h-5 w-5" /> Playback
                         </TabsTrigger>
@@ -181,7 +181,7 @@ const PlayerSettingsDialog = () => {
                             <SlidersHorizontal className="h-5 w-5" /> Quality
                         </TabsTrigger>
                     </TabsList>
-                    <div className="col-span-3 p-4 pl-0">
+                    <div className="col-span-3 p-4">
                         <TabsContent value="playback" className="mt-0 space-y-4">
                             <div className="p-4 rounded-lg bg-white/5 space-y-4">
                                 <div className="flex items-center justify-between">
@@ -825,7 +825,7 @@ export default function StreamPage() {
                         </DropdownMenu>
                         </div>
                     </div>
-                     <div className="flex-1 overflow-y-auto p-4 space-y-2" ref={chatContainerRef}>
+                     <div className="flex-1 overflow-y-auto p-4 space-y-2 no-scrollbar" ref={chatContainerRef}>
                         {chatMessages.map((msg, index) => (
                         <div key={msg.id || index} className="text-sm group relative">
                             {msg.type === 'system' ? (
