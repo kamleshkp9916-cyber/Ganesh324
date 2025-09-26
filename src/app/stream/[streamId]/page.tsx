@@ -360,6 +360,7 @@ export default function StreamPage() {
     const [bankAccounts, setBankAccounts] = useState([
         { id: 1, bankName: 'HDFC Bank', accountNumber: 'XXXX-XXXX-XX12-3456' },
     ]);
+    const [pinnedMessages, setPinnedMessages] = useState<any[]>([]);
 
     const mockStreamData = {
         id: streamId,
@@ -630,6 +631,26 @@ export default function StreamPage() {
     
     const handleShare = () => {};
 
+     const handleTogglePinMessage = (msgId: number) => {
+        setChatMessages(prevMessages =>
+            prevMessages.map(msg =>
+                msg.id === msgId ? { ...msg, isPinned: !msg.isPinned } : msg
+            )
+        );
+        const msg = chatMessages.find(m => m.id === msgId);
+        if (msg) {
+            setPinnedMessages(prev =>
+                prev.some(p => p.id === msgId)
+                    ? prev.filter(p => p.id !== msgId)
+                    : [...prev, msg]
+            );
+            toast({
+                title: msg.isPinned ? "Message Unpinned" : "Message Pinned",
+                description: "The message has been updated in the pinned items."
+            })
+        }
+    };
+
     return (
         <Dialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
         <div className="h-dvh w-full flex flex-col bg-black text-white">
@@ -745,7 +766,7 @@ export default function StreamPage() {
                                 </div>
                                 <CollapsibleContent className="mt-4">
                                     <div className="relative">
-                                        <Carousel opts={{ align: "start", dragFree: true }} className="w-full">
+                                        <Carousel opts={{ align: "start" }} className="w-full">
                                             <CarouselContent className="-ml-2">
                                                 {(sellerProducts.length > 0 ? sellerProducts : [productDetails['prod_1'], productDetails['prod_2']]).map((product: any, index: number) => (
                                                 <CarouselItem key={index} className="pl-2 basis-auto">
@@ -885,6 +906,30 @@ export default function StreamPage() {
                                 </div>
                             </PopoverContent>
                         </Popover>
+                        <Popover>
+                            <PopoverTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-8 w-8 relative">
+                                    <Pin className="h-5 w-5 text-muted-foreground" />
+                                    {pinnedMessages.length > 0 && <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-primary" />}
+                                </Button>
+                            </PopoverTrigger>
+                             <PopoverContent align="end" className="w-80">
+                                <div className="p-3">
+                                    <h4 className="font-semibold mb-2">Pinned Messages</h4>
+                                    <ScrollArea className="h-48">
+                                        <div className="space-y-2">
+                                            {pinnedMessages.length > 0 ? pinnedMessages.map(msg => (
+                                                <div key={msg.id} className="text-xs p-2 bg-muted/50 rounded-md">
+                                                    <p className="font-semibold">{msg.user}: <span className="font-normal text-muted-foreground">{msg.text}</span></p>
+                                                </div>
+                                            )) : (
+                                                <p className="text-sm text-center text-muted-foreground py-4">No pinned messages yet.</p>
+                                            )}
+                                        </div>
+                                    </ScrollArea>
+                                </div>
+                            </PopoverContent>
+                        </Popover>
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                             <Button variant="ghost" size="icon" className="h-8 w-8">
@@ -964,21 +1009,17 @@ export default function StreamPage() {
                                     </span>
                                     <span className={cn("text-muted-foreground break-words", msg.isBid && "font-bold text-lg text-primary")}>{renderContentWithHashtags(msg.text)}</span>
                                 </div>
-                                <DropdownMenu>
+                                 <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
-                                    <button className="text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity">
-                                        <MoreVertical className="w-4 h-4" />
-                                    </button>
+                                        <button className="text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <MoreVertical className="w-4 h-4" />
+                                        </button>
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent align="end">
-                                    {user?.uid !== msg.userId && (
-                                        <DropdownMenuItem onSelect={() => handleReply({ name: msg.user, id: msg.userId })}>
-                                        Reply
-                                        </DropdownMenuItem>
-                                    )}
-                                    <DropdownMenuItem onSelect={() => handleReportMessage(msg.id)}>
-                                        <Flag className="mr-2 h-4 w-4" /> Report
-                                    </DropdownMenuItem>
+                                        <DropdownMenuItem onSelect={() => handleReply({ name: msg.user, id: msg.userId })}>Reply</DropdownMenuItem>
+                                        {msg.isSeller && <DropdownMenuItem onSelect={() => handleTogglePinMessage(msg.id)}><Pin className="mr-2 h-4 w-4" />{msg.isPinned ? "Unpin" : "Pin"} Message</DropdownMenuItem>}
+                                        <DropdownMenuSeparator />
+                                        <DropdownMenuItem onSelect={() => handleReportMessage(msg.id)} className="text-destructive"><Flag className="mr-2 h-4 w-4" />Report</DropdownMenuItem>
                                     </DropdownMenuContent>
                                 </DropdownMenu>
                                 </div>
