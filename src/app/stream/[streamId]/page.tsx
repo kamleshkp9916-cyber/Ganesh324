@@ -61,7 +61,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardFooter, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import Image from "next/image";
+import Image from 'next/image';
 import Link from "next/link";
 import { useRouter, useParams } from "next/navigation";
 import React, { useEffect, useState, useRef, useMemo, useCallback } from "react";
@@ -177,7 +177,7 @@ const PlayerSettingsDialog = ({ playbackRate, onPlaybackRateChange, skipInterval
                 </DialogTitle>
             </DialogHeader>
             <div className="grid grid-cols-4">
-                <Tabs defaultValue="playback" className="col-span-4 grid grid-cols-4 gap-4">
+                <Tabs defaultValue="playback" className="col-span-4 grid grid-cols-4">
                     <TabsList className="col-span-1 flex flex-col h-auto bg-transparent p-2 gap-1 self-start">
                         <TabsTrigger value="playback" className="w-full justify-start gap-2 data-[state=active]:bg-white/10 data-[state=active]:text-white">
                             <Play className="h-5 w-5" /> Playback
@@ -328,7 +328,9 @@ const PlayerSettingsDialog = ({ playbackRate, onPlaybackRateChange, skipInterval
                 <DialogClose asChild>
                     <Button variant="ghost" className="text-white hover:bg-white/10 hover:text-white">Cancel</Button>
                 </DialogClose>
-                <Button className="bg-blue-600 hover:bg-blue-700 text-white">Save settings</Button>
+                <DialogClose asChild>
+                    <Button className="bg-blue-600 hover:bg-blue-700 text-white">Save settings</Button>
+                </DialogClose>
             </DialogFooter>
         </DialogContent>
     );
@@ -435,7 +437,6 @@ export default function StreamPage() {
         if (video) {
             const updateProgress = () => {
                 setCurrentTime(video.currentTime);
-                // If we get close to the live edge, reset playback rate
                 if (duration - video.currentTime < 5) {
                     video.playbackRate = 1;
                     setPlaybackRate(1);
@@ -859,7 +860,7 @@ export default function StreamPage() {
                         </DropdownMenu>
                         </div>
                     </div>
-                     <ScrollArea className="flex-1 overflow-y-auto p-4 space-y-2 no-scrollbar" ref={chatContainerRef}>
+                     <div className="flex-1 overflow-y-auto p-4 space-y-2 no-scrollbar" ref={chatContainerRef}>
                         {chatMessages.map((msg, index) => (
                         <div key={msg.id || index} className="text-sm group relative">
                             {msg.type === 'system' ? (
@@ -906,7 +907,7 @@ export default function StreamPage() {
                         </div>
                         ))}
                          <div ref={messagesEndRef} />
-                    </ScrollArea>
+                    </div>
                     <div className="p-3 border-t bg-background flex-shrink-0">
                         {isProductListVisible && (
                         <div className="relative mb-2">
