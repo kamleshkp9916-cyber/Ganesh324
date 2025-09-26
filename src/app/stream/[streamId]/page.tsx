@@ -172,7 +172,7 @@ const PlayerSettingsDialog = () => {
             </DialogHeader>
             <div className="grid grid-cols-4">
                 <Tabs defaultValue="playback" className="col-span-4 grid grid-cols-4">
-                    <TabsList className="col-span-1 flex flex-col h-auto bg-transparent p-2 items-start gap-1">
+                    <TabsList className="col-span-1 flex flex-col h-auto bg-transparent p-2 gap-1 self-start">
                         <TabsTrigger value="playback" className="w-full justify-start gap-2 data-[state=active]:bg-white/10 data-[state=active]:text-white">
                             <Play className="h-5 w-5" /> Playback
                         </TabsTrigger>
@@ -261,7 +261,7 @@ const PlayerSettingsDialog = () => {
                     </div>
                 </Tabs>
             </div>
-            <DialogFooter className="p-4 border-t border-gray-700 bg-[#1f1f1f]">
+            <DialogFooter className="p-4 border-t border-gray-700">
                 <DialogClose asChild>
                     <Button variant="ghost" className="text-white hover:bg-white/10 hover:text-white">Cancel</Button>
                 </DialogClose>
@@ -296,6 +296,7 @@ export default function StreamPage() {
     const streamData = mockStreamData;
     const videoRef = useRef<HTMLVideoElement>(null);
     const playerRef = useRef<HTMLDivElement>(null);
+    const chatContainerRef = useRef<HTMLDivElement>(null);
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     
@@ -400,9 +401,7 @@ export default function StreamPage() {
     };
     
     useEffect(() => {
-        if (messagesEndRef.current) {
-            messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
-        }
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [chatMessages]);
 
     const handleNewMessageSubmit = (e: React.FormEvent) => {
@@ -516,8 +515,8 @@ export default function StreamPage() {
                 </div>
             </header>
 
-            <div className="flex flex-1 overflow-hidden">
-                <ScrollArea className="flex-1">
+             <div className="flex flex-1 overflow-hidden">
+                <div className="flex-1 flex flex-col overflow-hidden">
                     <div className="w-full aspect-video bg-black relative group flex-shrink-0" ref={playerRef}>
                         <video ref={videoRef} src={streamData.streamUrl || "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"} className="w-full h-full object-cover" loop />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-black/60 flex flex-col p-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
@@ -556,85 +555,87 @@ export default function StreamPage() {
                             </div>
                         </div>
                     </div>
-                     <div className="bg-background text-foreground p-4">
-                        <div className="mb-4">
-                            <h2 className="font-bold text-xl">{streamData.title || "Live Stream"}</h2>
-                            <p className="text-sm text-muted-foreground">{renderContentWithHashtags(streamData.description) || "Welcome to the live stream!"}</p>
-                        </div>
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                            {seller && (
-                                <>
-                                <Avatar>
-                                    <AvatarImage src={seller.avatarUrl} />
-                                    <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
-                                </Avatar>
-                                <h3 className="font-semibold">{seller.name}</h3>
-                                <Button variant="secondary" size="sm" className="h-7">
-                                    <UserPlus className="mr-1.5 h-4 w-4" /> Follow
-                                </Button>
-                                </>
-                            )}
+                     <ScrollArea className="flex-1 bg-background text-foreground">
+                         <div className="p-4">
+                            <div className="mb-4">
+                                <h2 className="font-bold text-xl">{streamData.title || "Live Stream"}</h2>
+                                <p className="text-sm text-muted-foreground">{renderContentWithHashtags(streamData.description) || "Welcome to the live stream!"}</p>
                             </div>
-                        </div>
-                        <div className="mt-6">
-                            <h4 className="font-semibold mb-4">Products by {seller?.name}</h4>
-                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                            {sellerProducts.map(p => (
-                                <Link key={p.key} href={`/product/${p.key}`} className="group">
-                                <Card className="overflow-hidden">
-                                    <div className="aspect-square bg-muted relative">
-                                    <Image src={p.images[0]} alt={p.name} fill sizes="80px" className="object-cover group-hover:scale-105 transition-transform" />
-                                    </div>
-                                    <div className="p-2">
-                                    <p className="text-xs font-semibold truncate">{p.name}</p>
-                                    <p className="font-bold text-base">{p.price}</p>
-                                    </div>
-                                </Card>
-                                </Link>
-                            ))}
-                            {sellerProducts.length === 0 && <p className="text-sm text-muted-foreground col-span-full text-center py-4">This seller has no active products.</p>}
-                            </div>
-                        </div>
-                        
-                        <div className="mt-8">
-                            <h4 className="font-semibold mb-4">Related Streams</h4>
-                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                            {relatedStreams.map((s: any) => (
-                                <Link href={`/stream/${s.id}`} key={s.id} className="group">
-                                <div className="relative rounded-lg overflow-hidden aspect-[16/9] bg-muted">
-                                    <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
-                                    <div className="absolute top-2 right-2 z-10">
-                                        <Badge variant="secondary" className="bg-background/60 backdrop-blur-sm gap-1.5">
-                                            <Users className="h-3 w-3"/>
-                                            {s.viewers}
-                                        </Badge>
-                                    </div>
-                                </div>
-                                <div className="flex items-start gap-2 mt-2">
-                                    <Avatar className="w-7 h-7">
-                                    <AvatarImage src={s.avatarUrl} />
-                                    <AvatarFallback>{s.name.charAt(0)}</AvatarFallback>
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                {seller && (
+                                    <>
+                                    <Avatar>
+                                        <AvatarImage src={seller.avatarUrl} />
+                                        <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
                                     </Avatar>
-                                    <div className="flex-1">
-                                    <div className="flex items-center gap-1.5">
-                                        <p className="font-semibold text-xs group-hover:underline truncate">{s.name}</p>
-                                        {s.hasAuction && (
-                                        <Badge variant="purple" className="text-xs font-bold px-1.5 py-0">
-                                            Auction
-                                        </Badge>
-                                        )}
-                                    </div>
-                                    <p className="text-xs text-muted-foreground">{s.category}</p>
-                                    <p className="text-xs text-primary font-semibold mt-0.5 sm:hidden lg:block">#{s.category.toLowerCase()}</p>
-                                    </div>
+                                    <h3 className="font-semibold">{seller.name}</h3>
+                                    <Button variant="secondary" size="sm" className="h-7">
+                                        <UserPlus className="mr-1.5 h-4 w-4" /> Follow
+                                    </Button>
+                                    </>
+                                )}
                                 </div>
-                                </Link>
-                            ))}
+                            </div>
+                            <div className="mt-6">
+                                <h4 className="font-semibold mb-4">Products by {seller?.name}</h4>
+                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                                {sellerProducts.map(p => (
+                                    <Link key={p.key} href={`/product/${p.key}`} className="group">
+                                    <Card className="overflow-hidden">
+                                        <div className="aspect-square bg-muted relative">
+                                        <Image src={p.images[0]} alt={p.name} fill sizes="80px" className="object-cover group-hover:scale-105 transition-transform" />
+                                        </div>
+                                        <div className="p-2">
+                                        <p className="text-xs font-semibold truncate">{p.name}</p>
+                                        <p className="font-bold text-base">{p.price}</p>
+                                        </div>
+                                    </Card>
+                                    </Link>
+                                ))}
+                                {sellerProducts.length === 0 && <p className="text-sm text-muted-foreground col-span-full text-center py-4">This seller has no active products.</p>}
+                                </div>
+                            </div>
+                            
+                            <div className="mt-8">
+                                <h4 className="font-semibold mb-4">Related Streams</h4>
+                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                                {relatedStreams.map((s: any) => (
+                                    <Link href={`/stream/${s.id}`} key={s.id} className="group">
+                                    <div className="relative rounded-lg overflow-hidden aspect-[16/9] bg-muted">
+                                        <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
+                                        <div className="absolute top-2 right-2 z-10">
+                                            <Badge variant="secondary" className="bg-background/60 backdrop-blur-sm gap-1.5">
+                                                <Users className="h-3 w-3"/>
+                                                {s.viewers}
+                                            </Badge>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-start gap-2 mt-2">
+                                        <Avatar className="w-7 h-7">
+                                        <AvatarImage src={s.avatarUrl} />
+                                        <AvatarFallback>{s.name.charAt(0)}</AvatarFallback>
+                                        </Avatar>
+                                        <div className="flex-1">
+                                        <div className="flex items-center gap-1.5">
+                                            <p className="font-semibold text-xs group-hover:underline truncate">{s.name}</p>
+                                            {s.hasAuction && (
+                                            <Badge variant="purple" className="text-xs font-bold px-1.5 py-0">
+                                                Auction
+                                            </Badge>
+                                            )}
+                                        </div>
+                                        <p className="text-xs text-muted-foreground">{s.category}</p>
+                                        <p className="text-xs text-primary font-semibold mt-0.5 sm:hidden lg:block">#{s.category.toLowerCase()}</p>
+                                        </div>
+                                    </div>
+                                    </Link>
+                                ))}
+                                </div>
                             </div>
                         </div>
-                    </div>
-                </ScrollArea>
+                    </ScrollArea>
+                </div>
                  <div className="hidden lg:flex w-[340px] flex-shrink-0 bg-background text-foreground h-full flex-col border-l border-border">
                     <div className="p-4 border-b flex items-center justify-between z-10 flex-shrink-0 h-16">
                         <h3 className="font-bold text-lg">Live Chat</h3>
@@ -782,56 +783,54 @@ export default function StreamPage() {
                         </DropdownMenu>
                         </div>
                     </div>
-                    <ScrollArea className="flex-1">
-                        <div className="p-4 space-y-2">
-                            {chatMessages.map((msg, index) => (
-                            <div key={msg.id || index} className="text-sm group relative">
-                                {msg.type === 'system' ? (
-                                <p className="text-xs text-muted-foreground text-center italic">{msg.text}</p>
-                                ) : msg.user ? (
-                                <>
-                                    <div className="flex items-start gap-2">
-                                    <Avatar className="w-8 h-8">
-                                        <AvatarImage src={msg.avatar} />
-                                        <AvatarFallback>{msg.user.charAt(0)}</AvatarFallback>
-                                    </Avatar>
-                                    <div className="flex-1">
-                                        <span className={cn("font-semibold pr-1 text-xs", msg.isSeller && "text-amber-400")}>
-                                        {msg.user.split(' ')[0]}
-                                        {msg.isSeller && (
-                                            <Badge variant="secondary" className="ml-1 text-amber-400 border-amber-400/50">
-                                            <ShieldCheck className="h-3 w-3 mr-1" />
-                                            Admin
-                                            </Badge>
-                                        )}
-                                        </span>
-                                        <span className={cn("text-muted-foreground break-words", msg.isBid && "font-bold text-lg text-primary")}>{renderContentWithHashtags(msg.text)}</span>
-                                    </div>
-                                    <DropdownMenu>
-                                        <DropdownMenuTrigger asChild>
-                                        <button className="text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity">
-                                            <MoreVertical className="w-4 h-4" />
-                                        </button>
-                                        </DropdownMenuTrigger>
-                                        <DropdownMenuContent align="end">
-                                        {user?.uid !== msg.userId && (
-                                            <DropdownMenuItem onSelect={() => handleReply({ name: msg.user, id: msg.userId })}>
-                                            Reply
-                                            </DropdownMenuItem>
-                                        )}
-                                        <DropdownMenuItem onSelect={() => handleReportMessage(msg.id)}>
-                                            <Flag className="mr-2 h-4 w-4" /> Report
+                     <div ref={chatContainerRef} className="flex-1 overflow-y-auto p-4 space-y-2">
+                        {chatMessages.map((msg, index) => (
+                        <div key={msg.id || index} className="text-sm group relative">
+                            {msg.type === 'system' ? (
+                            <p className="text-xs text-muted-foreground text-center italic">{msg.text}</p>
+                            ) : msg.user ? (
+                            <>
+                                <div className="flex items-start gap-2">
+                                <Avatar className="w-8 h-8">
+                                    <AvatarImage src={msg.avatar} />
+                                    <AvatarFallback>{msg.user.charAt(0)}</AvatarFallback>
+                                </Avatar>
+                                <div className="flex-1">
+                                    <span className={cn("font-semibold pr-1 text-xs", msg.isSeller && "text-amber-400")}>
+                                    {msg.user.split(' ')[0]}
+                                    {msg.isSeller && (
+                                        <Badge variant="secondary" className="ml-1 text-amber-400 border-amber-400/50">
+                                        <ShieldCheck className="h-3 w-3 mr-1" />
+                                        Admin
+                                        </Badge>
+                                    )}
+                                    </span>
+                                    <span className={cn("text-muted-foreground break-words", msg.isBid && "font-bold text-lg text-primary")}>{renderContentWithHashtags(msg.text)}</span>
+                                </div>
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                    <button className="text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <MoreVertical className="w-4 h-4" />
+                                    </button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end">
+                                    {user?.uid !== msg.userId && (
+                                        <DropdownMenuItem onSelect={() => handleReply({ name: msg.user, id: msg.userId })}>
+                                        Reply
                                         </DropdownMenuItem>
-                                        </DropdownMenuContent>
-                                    </DropdownMenu>
-                                    </div>
-                                </>
-                                ) : null}
-                            </div>
-                            ))}
-                             <div ref={messagesEndRef} />
+                                    )}
+                                    <DropdownMenuItem onSelect={() => handleReportMessage(msg.id)}>
+                                        <Flag className="mr-2 h-4 w-4" /> Report
+                                    </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
+                                </div>
+                            </>
+                            ) : null}
                         </div>
-                    </ScrollArea>
+                        ))}
+                         <div ref={messagesEndRef} />
+                    </div>
                     <div className="p-3 border-t bg-background flex-shrink-0">
                         {isProductListVisible && (
                         <div className="relative mb-2">
@@ -916,3 +915,4 @@ export default function StreamPage() {
         </Dialog>
     );
 }
+
