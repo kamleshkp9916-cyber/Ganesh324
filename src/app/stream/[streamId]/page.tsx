@@ -399,8 +399,10 @@ export default function StreamPage() {
         }
     };
     
-     useEffect(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    useEffect(() => {
+        if (messagesEndRef.current) {
+            messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+        }
     }, [chatMessages]);
 
     const handleNewMessageSubmit = (e: React.FormEvent) => {
@@ -484,6 +486,8 @@ export default function StreamPage() {
        });
         setIsWithdrawOpen(false);
      };
+    
+    const handleShare = () => {};
 
     return (
         <Dialog>
@@ -513,7 +517,7 @@ export default function StreamPage() {
             </header>
 
             <div className="flex flex-1 overflow-hidden">
-                <div className="flex-1 flex flex-col overflow-y-auto">
+                <ScrollArea className="flex-1">
                     <div className="w-full aspect-video bg-black relative group flex-shrink-0" ref={playerRef}>
                         <video ref={videoRef} src={streamData.streamUrl || "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"} className="w-full h-full object-cover" loop />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-black/60 flex flex-col p-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
@@ -630,7 +634,7 @@ export default function StreamPage() {
                             </div>
                         </div>
                     </div>
-                </div>
+                </ScrollArea>
                  <div className="hidden lg:flex w-[340px] flex-shrink-0 bg-background text-foreground h-full flex-col border-l border-border">
                     <div className="p-4 border-b flex items-center justify-between z-10 flex-shrink-0 h-16">
                         <h3 className="font-bold text-lg">Live Chat</h3>
@@ -778,7 +782,7 @@ export default function StreamPage() {
                         </DropdownMenu>
                         </div>
                     </div>
-                    <div className="flex-1 overflow-y-auto" ref={messagesEndRef}>
+                    <ScrollArea className="flex-1">
                         <div className="p-4 space-y-2">
                             {chatMessages.map((msg, index) => (
                             <div key={msg.id || index} className="text-sm group relative">
@@ -827,7 +831,7 @@ export default function StreamPage() {
                             ))}
                              <div ref={messagesEndRef} />
                         </div>
-                    </div>
+                    </ScrollArea>
                     <div className="p-3 border-t bg-background flex-shrink-0">
                         {isProductListVisible && (
                         <div className="relative mb-2">
