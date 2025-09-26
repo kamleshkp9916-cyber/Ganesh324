@@ -163,7 +163,12 @@ const mockChatMessages: any[] = [
     { id: 30, user: 'Sophia', text: 'Great stream! Thanks!', avatar: 'https://placehold.co/40x40.png?text=S', userColor: '#16a085', userId: 'user15' }
 ];
 
-const PlayerSettingsDialog = () => {
+const PlayerSettingsDialog = ({ playbackRate, onPlaybackRateChange, skipInterval, onSkipIntervalChange }: {
+    playbackRate: number,
+    onPlaybackRateChange: (rate: number) => void,
+    skipInterval: number,
+    onSkipIntervalChange: (interval: number) => void,
+}) => {
     return (
         <DialogContent className="max-w-2xl bg-[#1f1f1f] text-white border-gray-700 p-0">
             <DialogHeader className="p-4 border-b border-gray-700">
@@ -171,7 +176,7 @@ const PlayerSettingsDialog = () => {
                     <Settings2 className="h-5 w-5" /> Player Settings
                 </DialogTitle>
             </DialogHeader>
-            <div className="grid grid-cols-4 p-4">
+            <div className="grid grid-cols-4 p-2">
                 <Tabs defaultValue="playback" className="col-span-4 grid grid-cols-4 gap-4">
                     <TabsList className="col-span-1 flex flex-col h-auto bg-transparent p-0 gap-1 self-start">
                         <TabsTrigger value="playback" className="w-full justify-start gap-2 data-[state=active]:bg-white/10 data-[state=active]:text-white">
@@ -189,15 +194,15 @@ const PlayerSettingsDialog = () => {
                                         <Label className="font-semibold">Playback speed</Label>
                                         <div className="text-xs text-gray-400">Adjust speed for time-shifted viewing</div>
                                     </div>
-                                    <Select defaultValue="1.0x">
+                                    <Select defaultValue={`${playbackRate}x`} onValueChange={(val) => onPlaybackRateChange(parseFloat(val))}>
                                         <SelectTrigger className="w-28 bg-[#1f1f1f] border-gray-600">
                                             <SelectValue />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value="0.5x">0.5x</SelectItem>
-                                            <SelectItem value="1.0x">1.0x</SelectItem>
-                                            <SelectItem value="1.5x">1.5x</SelectItem>
-                                            <SelectItem value="2.0x">2.0x</SelectItem>
+                                            <SelectItem value="0.5">0.5x</SelectItem>
+                                            <SelectItem value="1">1.0x</SelectItem>
+                                            <SelectItem value="1.5">1.5x</SelectItem>
+                                            <SelectItem value="2">2.0x</SelectItem>
                                         </SelectContent>
                                     </Select>
                                 </div>
@@ -206,15 +211,15 @@ const PlayerSettingsDialog = () => {
                                         <Label className="font-semibold">Skip intervals</Label>
                                         <div className="text-xs text-gray-400">Controls skip forward/back duration</div>
                                     </div>
-                                    <Select defaultValue="10 sec">
+                                    <Select defaultValue={`${skipInterval} sec`} onValueChange={(val) => onSkipIntervalChange(parseInt(val))}>
                                         <SelectTrigger className="w-28 bg-[#1f1f1f] border-gray-600">
                                             <SelectValue />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value="5 sec">5 sec</SelectItem>
-                                            <SelectItem value="10 sec">10 sec</SelectItem>
-                                            <SelectItem value="15 sec">15 sec</SelectItem>
-                                            <SelectItem value="30 sec">30 sec</SelectItem>
+                                            <SelectItem value="5">5 sec</SelectItem>
+                                            <SelectItem value="10">10 sec</SelectItem>
+                                            <SelectItem value="15">15 sec</SelectItem>
+                                            <SelectItem value="30">30 sec</SelectItem>
                                         </SelectContent>
                                     </Select>
                                 </div>
@@ -253,7 +258,7 @@ const PlayerSettingsDialog = () => {
                                 </div>
                             </div>
                         </TabsContent>
-                        <TabsContent value="quality" className="mt-0 space-y-4">
+                         <TabsContent value="quality" className="mt-0 space-y-4">
                              <div className="p-4 rounded-lg bg-white/5">
                                 <Label className="font-semibold">Streaming quality</Label>
                                 <div className="text-xs text-gray-400 mb-4">Optimize for network or pick a fixed resolution</div>
@@ -361,6 +366,8 @@ export default function StreamPage() {
     const [currentTime, setCurrentTime] = useState(0);
     const [duration, setDuration] = useState(0);
     const [volume, setVolume] = useState(0.5);
+    const [playbackRate, setPlaybackRate] = useState(1);
+    const [skipInterval, setSkipInterval] = useState(10);
     const [isFullscreen, setIsFullscreen] = useState(false);
     const [chatMessages, setChatMessages] = useState(mockChatMessages);
     const [newMessage, setNewMessage] = useState("");
@@ -419,14 +426,21 @@ export default function StreamPage() {
     const handleSeek = (direction: 'forward' | 'backward') => {
         const video = videoRef.current;
         if (!video) return;
-        const newTime = direction === 'forward' ? video.currentTime + 10 : video.currentTime - 10;
+        const newTime = direction === 'forward' ? video.currentTime + skipInterval : video.currentTime - skipInterval;
         video.currentTime = Math.max(0, Math.min(duration, newTime));
     };
     
     useEffect(() => {
         const video = videoRef.current;
         if (video) {
-            const updateProgress = () => setCurrentTime(video.currentTime);
+            const updateProgress = () => {
+                setCurrentTime(video.currentTime);
+                // If we get close to the live edge, reset playback rate
+                if (duration - video.currentTime < 5) {
+                    video.playbackRate = 1;
+                    setPlaybackRate(1);
+                }
+            };
             const setVideoDuration = () => setDuration(video.duration);
             const onPlay = () => setIsPaused(false);
             const onPause = () => setIsPaused(true);
@@ -449,6 +463,23 @@ export default function StreamPage() {
             };
         }
     }, [duration]);
+    
+    const handlePlaybackRateChange = (rate: number) => {
+        const video = videoRef.current;
+        if (video) {
+            // Only allow changing speed if not at the live edge
+            if (duration - video.currentTime > 5) {
+                video.playbackRate = rate;
+                setPlaybackRate(rate);
+            } else {
+                toast({
+                    title: "Live Playback",
+                    description: "Playback speed can only be changed when you are behind the live broadcast.",
+                });
+            }
+        }
+    };
+
 
     const handleReply = (msgUser: { name: string; id: string }) => {
         if(user?.uid === msgUser.id) return;
@@ -953,7 +984,13 @@ export default function StreamPage() {
                 </div>
             </div>
         </div>
-        <PlayerSettingsDialog />
+        <PlayerSettingsDialog
+            playbackRate={playbackRate}
+            onPlaybackRateChange={handlePlaybackRateChange}
+            skipInterval={skipInterval}
+            onSkipIntervalChange={setSkipInterval}
+        />
         </Dialog>
     );
 }
+
