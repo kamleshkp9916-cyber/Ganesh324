@@ -176,9 +176,9 @@ const PlayerSettingsDialog = ({ playbackRate, onPlaybackRateChange, skipInterval
                     <Settings2 className="h-5 w-5" /> Player Settings
                 </DialogTitle>
             </DialogHeader>
-            <div className="grid grid-cols-4 p-2">
+            <div className="grid grid-cols-4">
                 <Tabs defaultValue="playback" className="col-span-4 grid grid-cols-4 gap-4">
-                    <TabsList className="col-span-1 flex flex-col h-auto bg-transparent p-0 gap-1 self-start">
+                    <TabsList className="col-span-1 flex flex-col h-auto bg-transparent p-2 gap-1 self-start">
                         <TabsTrigger value="playback" className="w-full justify-start gap-2 data-[state=active]:bg-white/10 data-[state=active]:text-white">
                             <Play className="h-5 w-5" /> Playback
                         </TabsTrigger>
@@ -186,7 +186,7 @@ const PlayerSettingsDialog = ({ playbackRate, onPlaybackRateChange, skipInterval
                             <SlidersHorizontal className="h-5 w-5" /> Quality
                         </TabsTrigger>
                     </TabsList>
-                    <div className="col-span-3">
+                    <div className="col-span-3 p-2">
                         <TabsContent value="playback" className="mt-0 space-y-4">
                             <div className="p-4 rounded-lg bg-white/5 space-y-4">
                                 <div className="flex items-center justify-between">
@@ -194,7 +194,7 @@ const PlayerSettingsDialog = ({ playbackRate, onPlaybackRateChange, skipInterval
                                         <Label className="font-semibold">Playback speed</Label>
                                         <div className="text-xs text-gray-400">Adjust speed for time-shifted viewing</div>
                                     </div>
-                                    <Select defaultValue={`${playbackRate}x`} onValueChange={(val) => onPlaybackRateChange(parseFloat(val))}>
+                                    <Select defaultValue={`${playbackRate}`} onValueChange={(val) => onPlaybackRateChange(parseFloat(val))}>
                                         <SelectTrigger className="w-28 bg-[#1f1f1f] border-gray-600">
                                             <SelectValue />
                                         </SelectTrigger>
@@ -211,7 +211,7 @@ const PlayerSettingsDialog = ({ playbackRate, onPlaybackRateChange, skipInterval
                                         <Label className="font-semibold">Skip intervals</Label>
                                         <div className="text-xs text-gray-400">Controls skip forward/back duration</div>
                                     </div>
-                                    <Select defaultValue={`${skipInterval} sec`} onValueChange={(val) => onSkipIntervalChange(parseInt(val))}>
+                                    <Select defaultValue={`${skipInterval}`} onValueChange={(val) => onSkipIntervalChange(parseInt(val))}>
                                         <SelectTrigger className="w-28 bg-[#1f1f1f] border-gray-600">
                                             <SelectValue />
                                         </SelectTrigger>
@@ -467,7 +467,6 @@ export default function StreamPage() {
     const handlePlaybackRateChange = (rate: number) => {
         const video = videoRef.current;
         if (video) {
-            // Only allow changing speed if not at the live edge
             if (duration - video.currentTime > 5) {
                 video.playbackRate = rate;
                 setPlaybackRate(rate);
@@ -478,6 +477,10 @@ export default function StreamPage() {
                 });
             }
         }
+    };
+    
+    const handleSkipIntervalChange = (interval: number) => {
+        setSkipInterval(interval);
     };
 
 
@@ -988,9 +991,8 @@ export default function StreamPage() {
             playbackRate={playbackRate}
             onPlaybackRateChange={handlePlaybackRateChange}
             skipInterval={skipInterval}
-            onSkipIntervalChange={setSkipInterval}
+            onSkipIntervalChange={handleSkipIntervalChange}
         />
         </Dialog>
     );
 }
-
