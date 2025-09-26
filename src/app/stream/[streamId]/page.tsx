@@ -327,10 +327,7 @@ const PlayerSettingsDialog = ({ playbackRate, onPlaybackRateChange, skipInterval
             </div>
             <DialogFooter className="p-4 border-t border-gray-700">
                 <DialogClose asChild>
-                    <Button variant="ghost" className="text-white hover:bg-white/10 hover:text-white">Cancel</Button>
-                </DialogClose>
-                 <DialogClose asChild>
-                     <Button className="bg-blue-600 hover:bg-blue-700 text-white" onClick={onClose}>Save settings</Button>
+                    <Button variant="ghost" className="text-white hover:bg-white/10 hover:text-white" onClick={onClose}>Done</Button>
                 </DialogClose>
             </DialogFooter>
         </DialogContent>
@@ -620,8 +617,13 @@ export default function StreamPage() {
     const handleShare = () => {};
 
     const auctionableProducts = useMemo(() => {
-        return Object.values(productDetails).filter(p => p.isAuctionItem);
-    }, []);
+        if (!seller) return [];
+        // Use the brand property as a proxy for the seller's name
+        return Object.values(productDetails).filter(
+            (p) => p.isAuctionItem && p.brand === seller.name
+        );
+    }, [seller]);
+
 
     return (
         <Dialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
@@ -1033,6 +1035,7 @@ export default function StreamPage() {
                                                 <Button size="sm">Start Auction</Button>
                                             </div>
                                         ))}
+                                        {auctionableProducts.length === 0 && <p className="text-center text-muted-foreground py-8">This seller has no products marked for auction.</p>}
                                     </div>
                                 </ScrollArea>
                             </DialogContent>
@@ -1080,5 +1083,6 @@ export default function StreamPage() {
 
 
     
+
 
 
