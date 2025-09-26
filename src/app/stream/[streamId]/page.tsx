@@ -177,8 +177,8 @@ const PlayerSettingsDialog = ({ playbackRate, onPlaybackRateChange, skipInterval
                 </DialogTitle>
             </DialogHeader>
             <div className="grid grid-cols-4">
-                <Tabs defaultValue="playback" className="col-span-4 grid grid-cols-4 p-2">
-                    <TabsList className="col-span-1 flex flex-col h-auto bg-transparent p-0 gap-1 self-start">
+                <Tabs defaultValue="playback" className="col-span-4 grid grid-cols-4">
+                    <TabsList className="col-span-1 flex flex-col h-auto bg-transparent p-2 items-start gap-1 self-start">
                         <TabsTrigger value="playback" className="w-full justify-start gap-2 data-[state=active]:bg-white/10 data-[state=active]:text-white">
                             <Play className="h-5 w-5" /> Playback
                         </TabsTrigger>
@@ -187,7 +187,7 @@ const PlayerSettingsDialog = ({ playbackRate, onPlaybackRateChange, skipInterval
                         </TabsTrigger>
                     </TabsList>
                     <div className="col-span-3 p-2">
-                        <TabsContent value="playback" className="mt-0 space-y-4">
+                        <TabsContent value="playback" className="mt-0 space-y-2">
                             <div className="p-4 rounded-lg bg-white/5 space-y-4">
                                 <div className="flex items-center justify-between">
                                     <div>
@@ -258,7 +258,7 @@ const PlayerSettingsDialog = ({ playbackRate, onPlaybackRateChange, skipInterval
                                 </div>
                             </div>
                         </TabsContent>
-                         <TabsContent value="quality" className="mt-0 space-y-4">
+                         <TabsContent value="quality" className="mt-0 space-y-2">
                              <div className="p-4 rounded-lg bg-white/5">
                                 <Label className="font-semibold">Streaming quality</Label>
                                 <div className="text-xs text-gray-400 mb-4">Optimize for network or pick a fixed resolution</div>
@@ -368,6 +368,7 @@ export default function StreamPage() {
     const [isMuted, setIsMuted] = useState(true);
     const [currentTime, setCurrentTime] = useState(0);
     const [duration, setDuration] = useState(0);
+    const [buffered, setBuffered] = useState(0);
     const [volume, setVolume] = useState(0.5);
     const [playbackRate, setPlaybackRate] = useState(1);
     const [skipInterval, setSkipInterval] = useState(10);
@@ -452,6 +453,9 @@ export default function StreamPage() {
         if (video) {
             const updateProgress = () => {
                 setCurrentTime(video.currentTime);
+                if (video.buffered.length > 0) {
+                    setBuffered(video.buffered.end(video.buffered.length - 1));
+                }
                 if (duration - video.currentTime < 5) {
                     if(video.playbackRate !== 1) {
                         video.playbackRate = 1;
@@ -464,6 +468,7 @@ export default function StreamPage() {
             const onPause = () => setIsPaused(true);
 
             video.addEventListener("timeupdate", updateProgress);
+            video.addEventListener("progress", updateProgress);
             video.addEventListener("loadedmetadata", setVideoDuration);
             video.addEventListener("play", onPlay);
             video.addEventListener("pause", onPause);
@@ -475,6 +480,7 @@ export default function StreamPage() {
 
             return () => {
                 video.removeEventListener("timeupdate", updateProgress);
+                video.removeEventListener("progress", updateProgress);
                 video.removeEventListener("loadedmetadata", setVideoDuration);
                 video.removeEventListener("play", onPlay);
                 video.removeEventListener("pause", onPause);
@@ -543,8 +549,6 @@ export default function StreamPage() {
             description: "The message has been reported and will be reviewed by our moderation team.",
         });
     };
-    
-    const elapsedTime = streamData?.startedAt ? (Date.now() - (streamData.startedAt as Timestamp).toDate().getTime()) / 1000 : currentTime;
     
     const handleAddToCart = (product: any) => {
       if (product) {
@@ -650,7 +654,7 @@ export default function StreamPage() {
                             </div>
                             <div className="space-y-3">
                                 <div className="w-full cursor-pointer py-1" ref={progressContainerRef} onClick={handleProgressClick}>
-                                    <Progress value={(currentTime / duration) * 100} className="h-2" />
+                                    <Progress value={(currentTime / duration) * 100} valueBuffer={(buffered / duration) * 100} className="h-2" />
                                 </div>
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-2 sm:gap-4">
@@ -658,7 +662,7 @@ export default function StreamPage() {
                                         <Button variant="ghost" size="icon" onClick={() => setIsMuted(prev => !prev)}>
                                             {isMuted ? <VolumeX /> : <Volume2 />}
                                         </Button>
-                                        <p className="text-sm font-mono">{formatTime(elapsedTime)}</p>
+                                        <p className="text-sm font-mono">{formatTime(currentTime)} / {formatTime(duration)}</p>
                                     </div>
                                     <div className="flex items-center gap-1 sm:gap-2">
                                         <Button variant="ghost" size="icon"><PictureInPicture /></Button>
@@ -1019,3 +1023,6 @@ export default function StreamPage() {
     );
 }
 
+
+
+    
