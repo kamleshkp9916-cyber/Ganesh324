@@ -690,7 +690,7 @@ export default function StreamPage() {
                                         <Button variant="ghost" size="icon"><PictureInPicture /></Button>
                                         <Button variant="ghost" size="icon"><Share2 /></Button>
                                         <DialogTrigger asChild>
-                                            <Button variant="ghost" size="icon"><Settings /></Button>
+                                            <Button variant="ghost" size="icon" onClick={() => setIsSettingsOpen(true)}><Settings /></Button>
                                         </DialogTrigger>
                                         <Button variant="ghost" size="icon"><Maximize /></Button>
                                     </div>
@@ -1073,3 +1073,4 @@ export default function StreamPage() {
         </Dialog>
     );
 }
+
