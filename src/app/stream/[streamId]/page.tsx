@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import {
@@ -749,8 +750,8 @@ export default function StreamPage() {
                                         <UserPlus className="mr-1.5 h-4 w-4" /> Follow
                                     </Button>
                                      <CollapsibleTrigger asChild>
-                                        <Button variant="outline" size="sm" className="h-7">
-                                            <ShoppingBag className="mr-1.5 h-4 w-4" /> View Products
+                                        <Button variant="outline" size="sm" className="h-7 gap-1.5">
+                                            <ShoppingBag className="w-4 h-4"/> View Products
                                         </Button>
                                     </CollapsibleTrigger>
                                      {seller.hasAuction && (
@@ -842,8 +843,8 @@ export default function StreamPage() {
                         </div>
                     </div>
                 </div>
-                 <div className="hidden lg:flex w-[340px] flex-shrink-0 h-full flex-col border-l border-border no-scrollbar">
-                    <div className="p-4 flex items-center justify-between z-10 flex-shrink-0 h-16">
+                 <div className="hidden lg:flex w-[340px] flex-shrink-0 h-full flex-col border-l border-border no-scrollbar bg-transparent">
+                    <div className="p-4 flex items-center justify-between z-10 flex-shrink-0 h-16 bg-transparent">
                         <h3 className="font-bold text-lg">Live Chat</h3>
                         <div className="flex items-center gap-1">
                         <Popover>
@@ -1100,3 +1101,4 @@ export default function StreamPage() {
 }
 
     
+
