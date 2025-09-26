@@ -163,11 +163,12 @@ const mockChatMessages: any[] = [
     { id: 30, user: 'Sophia', text: 'Great stream! Thanks!', avatar: 'https://placehold.co/40x40.png?text=S', userColor: '#16a085', userId: 'user15' }
 ];
 
-const PlayerSettingsDialog = ({ playbackRate, onPlaybackRateChange, skipInterval, onSkipIntervalChange }: {
+const PlayerSettingsDialog = ({ playbackRate, onPlaybackRateChange, skipInterval, onSkipIntervalChange, onClose }: {
     playbackRate: number,
     onPlaybackRateChange: (rate: number) => void,
     skipInterval: number,
     onSkipIntervalChange: (interval: number) => void,
+    onClose: () => void;
 }) => {
     return (
         <DialogContent className="max-w-2xl bg-[#1f1f1f] text-white border-gray-700 p-0">
@@ -178,7 +179,7 @@ const PlayerSettingsDialog = ({ playbackRate, onPlaybackRateChange, skipInterval
             </DialogHeader>
             <div className="grid grid-cols-4">
                 <Tabs defaultValue="playback" className="col-span-4 grid grid-cols-4">
-                    <TabsList className="col-span-1 flex flex-col h-auto bg-transparent p-2 items-start gap-1 self-start">
+                     <TabsList className="col-span-1 flex flex-col h-auto bg-transparent p-2 gap-1 self-start">
                         <TabsTrigger value="playback" className="w-full justify-start gap-2 data-[state=active]:bg-white/10 data-[state=active]:text-white">
                             <Play className="h-5 w-5" /> Playback
                         </TabsTrigger>
@@ -329,7 +330,7 @@ const PlayerSettingsDialog = ({ playbackRate, onPlaybackRateChange, skipInterval
                     <Button variant="ghost" className="text-white hover:bg-white/10 hover:text-white">Cancel</Button>
                 </DialogClose>
                  <DialogClose asChild>
-                    <Button className="bg-blue-600 hover:bg-blue-700 text-white">Save settings</Button>
+                     <Button className="bg-blue-600 hover:bg-blue-700 text-white" onClick={onClose}>Save settings</Button>
                 </DialogClose>
             </DialogFooter>
         </DialogContent>
@@ -344,6 +345,7 @@ export default function StreamPage() {
     const { toast } = useToast();
     const [walletBalance, setWalletBalance] = useState(42580.22);
     const [isWithdrawOpen, setIsWithdrawOpen] = useState(false);
+    const [isSettingsOpen, setIsSettingsOpen] = useState(false);
     const [bankAccounts, setBankAccounts] = useState([
         { id: 1, bankName: 'HDFC Bank', accountNumber: 'XXXX-XXXX-XX12-3456' },
     ]);
@@ -373,6 +375,7 @@ export default function StreamPage() {
     const [playbackRate, setPlaybackRate] = useState(1);
     const [skipInterval, setSkipInterval] = useState(10);
     const [isFullscreen, setIsFullscreen] = useState(false);
+    const [isLive, setIsLive] = useState(true);
     const [chatMessages, setChatMessages] = useState(mockChatMessages);
     const [newMessage, setNewMessage] = useState("");
     const [isProductListVisible, setIsProductListVisible] = useState(false);
@@ -410,6 +413,7 @@ export default function StreamPage() {
     }, [product]);
     
     const formatTime = (timeInSeconds: number) => {
+        if (isNaN(timeInSeconds) || timeInSeconds < 0) return '00:00';
         const date = new Date(0);
         date.setSeconds(timeInSeconds);
         const timeString = date.toISOString().substr(11, 8);
@@ -434,6 +438,13 @@ export default function StreamPage() {
         video.currentTime = Math.max(0, Math.min(duration, newTime));
     }, [duration, skipInterval]);
     
+    const handleGoLive = () => {
+        const video = videoRef.current;
+        if (video) {
+            video.currentTime = duration;
+        }
+    };
+    
     const handleProgressClick = (e: React.MouseEvent<HTMLDivElement>) => {
         const video = videoRef.current;
         const progressContainer = progressContainerRef.current;
@@ -456,11 +467,12 @@ export default function StreamPage() {
                 if (video.buffered.length > 0) {
                     setBuffered(video.buffered.end(video.buffered.length - 1));
                 }
-                if (duration - video.currentTime < 5) {
-                    if(video.playbackRate !== 1) {
-                        video.playbackRate = 1;
-                        setPlaybackRate(1);
-                    }
+                const isCurrentlyLive = (duration - video.currentTime) < 2;
+                setIsLive(isCurrentlyLive);
+                
+                if (isCurrentlyLive && video.playbackRate !== 1) {
+                    video.playbackRate = 1;
+                    setPlaybackRate(1);
                 }
             };
             const setVideoDuration = () => setDuration(video.duration);
@@ -491,7 +503,7 @@ export default function StreamPage() {
     const handlePlaybackRateChange = (rate: number) => {
         const video = videoRef.current;
         if (video) {
-            if (duration - video.currentTime > 5) {
+            if (!isLive) {
                 video.playbackRate = rate;
                 setPlaybackRate(rate);
             } else {
@@ -608,7 +620,7 @@ export default function StreamPage() {
     const handleShare = () => {};
 
     return (
-        <Dialog>
+        <Dialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
         <div className="h-dvh w-full flex flex-col bg-black text-white">
             <header className="flex-shrink-0 h-16 bg-background/80 backdrop-blur-sm border-b border-border text-foreground flex items-center justify-between px-4 z-40">
                 <div className="flex items-center gap-2">
@@ -654,11 +666,24 @@ export default function StreamPage() {
                             </div>
                             <div className="space-y-3">
                                 <div className="w-full cursor-pointer py-1" ref={progressContainerRef} onClick={handleProgressClick}>
-                                    <Progress value={(currentTime / duration) * 100} valueBuffer={(buffered / duration) * 100} className="h-2" />
+                                    <Progress value={(currentTime / duration) * 100} valueBuffer={(buffered / duration) * 100} isLive={isLive} className="h-2" />
                                 </div>
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-2 sm:gap-4">
-                                        <Badge variant="destructive" className="gap-1.5"><div className="h-2 w-2 rounded-full bg-white animate-pulse" /> LIVE</Badge>
+                                        <Button 
+                                            variant="destructive" 
+                                            className="gap-1.5 h-8 text-xs sm:text-sm"
+                                            onClick={handleGoLive}
+                                            disabled={isLive}
+                                        >
+                                            <div className={cn("h-2 w-2 rounded-full bg-white", !isLive && "animate-pulse")} />
+                                             LIVE
+                                        </Button>
+                                         {!isLive && (
+                                            <div className="text-xs text-yellow-400 font-semibold">
+                                                You are {formatTime(duration - currentTime)} behind
+                                            </div>
+                                        )}
                                         <Button variant="ghost" size="icon" onClick={() => setIsMuted(prev => !prev)}>
                                             {isMuted ? <VolumeX /> : <Volume2 />}
                                         </Button>
@@ -1018,6 +1043,7 @@ export default function StreamPage() {
             onPlaybackRateChange={handlePlaybackRateChange}
             skipInterval={skipInterval}
             onSkipIntervalChange={handleSkipIntervalChange}
+            onClose={() => setIsSettingsOpen(false)}
         />
         </Dialog>
     );
