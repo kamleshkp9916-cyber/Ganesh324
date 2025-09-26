@@ -23,17 +23,17 @@ const Progress = React.forwardRef<
       style={{ transform: `translateX(-${100 - (valueBuffer || 0)}%)` }}
     />
      <ProgressPrimitive.Indicator
-      className={cn("absolute h-full w-full flex-1 bg-primary transition-all", isLive && "pr-2")}
+      className={cn("h-full w-full flex-1 bg-primary transition-all")}
       style={{ transform: `translateX(-${100 - (value || 0)}%)` }}
-    >
-        {isLive && (
-            <div className="absolute right-0 top-1/2 -translate-y-1/2 h-4 w-4 rounded-full bg-primary ring-2 ring-background live-pulse-beam" />
-        )}
-     </ProgressPrimitive.Indicator>
+    />
+    {isLive && (
+      <div 
+        className="absolute top-1/2 -translate-y-1/2 h-4 w-4 rounded-full bg-primary ring-2 ring-background live-pulse-beam"
+        style={{ left: `calc(${value || 0}% - 8px)`}}
+      />
+    )}
   </ProgressPrimitive.Root>
 ))
 Progress.displayName = ProgressPrimitive.Root.displayName
 
 export { Progress }
-
-    
