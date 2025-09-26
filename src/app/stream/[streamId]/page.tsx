@@ -130,6 +130,19 @@ const liveSellers = [
     { id: '10', name: 'GamerGuild', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Gaming', viewers: 4200, buyers: 102, rating: 4.9, reviews: 80, hint: 'esports competition', productId: 'prod_10', hasAuction: true },
 ];
 
+const productToSellerMapping: { [key: string]: { name: string; avatarUrl: string, uid: string } } = {
+    'prod_1': { name: 'FashionFinds', avatarUrl: 'https://placehold.co/80x80.png', uid: 'FashionFinds' },
+    'prod_2': { name: 'GadgetGuru', avatarUrl: 'https://placehold.co/80x80.png', uid: 'GadgetGuru' },
+    'prod_3': { name: 'HomeHaven', avatarUrl: 'https://placehold.co/80x80.png', uid: 'HomeHaven' },
+    'prod_4': { name: 'BeautyBox', avatarUrl: 'https://placehold.co/80x80.png', uid: 'BeautyBox' },
+    'prod_5': { name: 'KitchenWiz', avatarUrl: 'https://placehold.co/80x80.png', uid: 'KitchenWiz' },
+    'prod_6': { name: 'FitFlow', avatarUrl: 'https://placehold.co/80x80.png', uid: 'FitFlow' },
+    'prod_7': { name: 'ArtisanAlley', avatarUrl: 'https://placehold.co/80x80.png', uid: 'ArtisanAlley' },
+    'prod_8': { name: 'PetPalace', avatarUrl: 'https://placehold.co/80x80.png', uid: 'PetPalace' },
+    'prod_9': { name: 'BookNook', avatarUrl: 'https://placehold.co/80x80.png', uid: 'BookNook' },
+    'prod_10': { name: 'GamerGuild', avatarUrl: 'https://placehold.co/80x80.png', uid: 'GamerGuild' },
+};
+
 const mockChatMessages: any[] = [
     { id: 1, user: 'Ganesh', text: 'This looks amazing! 🔥 #newpurchase', avatar: 'https://placehold.co/40x40.png', userColor: '#3498db', userId: 'user1' },
     { id: 2, user: 'Alex', text: 'What is the material?', avatar: 'https://placehold.co/40x40.png', userColor: '#e74c3c', userId: 'user2' },
@@ -160,7 +173,8 @@ const mockChatMessages: any[] = [
     { id: 27, user: 'Ava', text: 'Can you show a close-up of the stitching?', avatar: 'https://placehold.co/40x40.png?text=A', userColor: '#7f8c8d', userId: 'user13' },
     { id: 28, user: 'Noah', text: 'BID ₹9,100', avatar: 'https://placehold.co/40x40.png?text=N', userColor: '#2c3e50', userId: 'user14', isBid: true },
     { id: 29, type: 'system', text: 'The auction for the Vintage Camera has ended.' },
-    { id: 30, user: 'Sophia', text: 'Great stream! Thanks!', avatar: 'https://placehold.co/40x40.png?text=S', userColor: '#16a085', userId: 'user15' }
+    { id: 30, user: 'Sophia', text: 'Great stream! Thanks!', avatar: 'https://placehold.co/40x40.png?text=S', userColor: '#16a085', userId: 'user15' },
+    { id: 31, type: 'auction', productId: 'prod_1' },
 ];
 
 const PlayerSettingsDialog = ({ playbackRate, onPlaybackRateChange, skipInterval, onSkipIntervalChange, onClose }: {
@@ -386,7 +400,7 @@ export default function StreamPage() {
 
      const sellerProducts = useMemo(() => {
         if (!seller) return [];
-        return Object.values(productDetails).filter(p => p.brand === seller.name && p.stock > 0);
+        return Object.values(productDetails).filter(p => productToSellerMapping[p.key]?.name === seller.name && p.stock > 0);
     }, [seller]);
     
     const relatedStreams = useMemo(() => {
@@ -716,7 +730,7 @@ export default function StreamPage() {
                                     <Button variant="secondary" size="sm" className="h-7">
                                         <UserPlus className="mr-1.5 h-4 w-4" /> Follow
                                     </Button>
-                                    {seller.hasAuction && (
+                                     {seller.hasAuction && (
                                         <Badge variant="secondary" className="flex items-center gap-1.5">
                                             <Gavel className="h-3 w-3" /> Featured Auction
                                         </Badge>
@@ -730,30 +744,44 @@ export default function StreamPage() {
                                 )}
                                 </div>
                                 <CollapsibleContent className="mt-4">
-                                     <Card className="overflow-hidden">
-                                        <CardContent className="p-0">
-                                            <div className="flex items-center gap-3 p-2">
-                                            <Image src={product.images[0]} alt={product.name} width={60} height={60} className="rounded-md" />
-                                            <div className="flex-1">
-                                                <p className="text-sm font-semibold truncate">{product.name}</p>
-                                                <p className="font-bold text-base">{product.price.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })}</p>
-                                            </div>
-                                            </div>
-                                        </CardContent>
-                                        <CardFooter className="p-1 grid grid-cols-2 gap-1">
-                                            {product.stock > 0 ? (
-                                            <>
-                                                <Button size="xs" className="w-full text-[10px] h-7" variant="secondary" onClick={() => handleAddToCart(product)}>Add to Cart</Button>
-                                                <Button size="xs" className="w-full text-[10px] h-7" onClick={() => handleBuyNow(product)}>
-                                                <Zap className="w-3 h-3 mr-1" />
-                                                Buy Now
-                                                </Button>
-                                            </>
-                                            ) : (
-                                            <Button size="xs" className="w-full text-[10px] h-7 col-span-2" variant="outline" disabled>Out of Stock</Button>
-                                            )}
-                                        </CardFooter>
-                                    </Card>
+                                    <div className="relative">
+                                        <Carousel opts={{ align: "start", dragFree: true }} className="w-full">
+                                            <CarouselContent className="-ml-2">
+                                                {(sellerProducts.length > 0 ? sellerProducts : [productDetails['prod_1'], productDetails['prod_2']]).map((product: any, index: number) => (
+                                                <CarouselItem key={index} className="pl-2 basis-auto">
+                                                    <div className="w-32">
+                                                        <Card className="h-full flex flex-col overflow-hidden">
+                                                            <Link href={`/product/${product.key}`} className="block">
+                                                            <div className="aspect-square bg-muted rounded-t-lg relative">
+                                                                <Image src={product.images[0].preview || product.images[0]} alt={product.name} fill className="object-cover" />
+                                                                {product.stock === 0 && (
+                                                                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                                                                        <Badge variant="destructive">Out of Stock</Badge>
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                            <div className="p-1.5">
+                                                                <p className="text-[11px] font-semibold truncate leading-tight">{product.name}</p>
+                                                                <p className="text-xs font-bold">{product.price.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })}</p>
+                                                            </div>
+                                                            </Link>
+                                                            <CardFooter className="p-1.5 mt-auto grid grid-cols-2 gap-1">
+                                                            {product.stock > 0 ? (
+                                                                <>
+                                                                <Button size="xs" className="w-full text-[10px] h-7" variant="secondary" onClick={() => handleAddToCart(product)}>Add</Button>
+                                                                <Button size="xs" className="w-full text-[10px] h-7" onClick={() => handleBuyNow(product)}>Buy</Button>
+                                                                </>
+                                                            ) : (
+                                                                <Button size="xs" className="w-full text-[10px] h-7 col-span-2" variant="outline" disabled>Out of Stock</Button>
+                                                            )}
+                                                            </CardFooter>
+                                                        </Card>
+                                                    </div>
+                                                </CarouselItem>
+                                                ))}
+                                            </CarouselContent>
+                                        </Carousel>
+                                    </div>
                                 </CollapsibleContent>
                             </Collapsible>
                         </div>
@@ -857,57 +885,6 @@ export default function StreamPage() {
                                 </div>
                             </PopoverContent>
                         </Popover>
-                        <Popover>
-                            <PopoverTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-8 w-8">
-                                <Pin className="h-5 w-5 text-muted-foreground" />
-                            </Button>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-80 p-0" align="end">
-                            <div className="p-3 bg-muted/50 space-y-2 rounded-lg border backdrop-blur-sm">
-                                <div>
-                                <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
-                                    <Pin className="w-3 h-3" />
-                                    <span>Pinned by {seller?.name}</span>
-                                </div>
-                                <div className="p-2 rounded-md bg-background border">
-                                    <div className="flex items-center gap-2">
-                                    <Avatar className="h-6 w-6">
-                                        <AvatarImage src={seller?.avatarUrl} />
-                                        <AvatarFallback>{seller?.name.charAt(0)}</AvatarFallback>
-                                    </Avatar>
-                                    <span className="font-semibold text-xs">{seller?.name}:</span>
-                                    </div>
-                                    <p className="text-sm pl-8 mt-1">Welcome everyone! Don't forget to use code LIVE15 for 15% off!</p>
-                                </div>
-                                </div>
-                                <Card className="overflow-hidden">
-                                <CardContent className="p-0">
-                                    <div className="flex items-center gap-3 p-2">
-                                    <Image src={product.images[0]} alt={product.name} width={50} height={50} className="rounded-md" />
-                                    <div className="flex-1">
-                                        <p className="text-sm font-semibold truncate">{product.name}</p>
-                                        <p className="font-bold text-base">{product.price.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })}</p>
-                                    </div>
-                                    </div>
-                                </CardContent>
-                                <CardFooter className="p-1 grid grid-cols-2 gap-1">
-                                    {product.stock > 0 ? (
-                                    <>
-                                        <Button size="xs" className="w-full text-[10px] h-7" variant="secondary" onClick={() => handleAddToCart(product)}>Add to Cart</Button>
-                                        <Button size="xs" className="w-full text-[10px] h-7" onClick={() => handleBuyNow(product)}>
-                                        <Zap className="w-3 h-3 mr-1" />
-                                        Buy Now
-                                        </Button>
-                                    </>
-                                    ) : (
-                                    <Button size="xs" className="w-full text-[10px] h-7 col-span-2" variant="outline" disabled>Out of Stock</Button>
-                                    )}
-                                </CardFooter>
-                                </Card>
-                            </div>
-                            </PopoverContent>
-                        </Popover>
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                             <Button variant="ghost" size="icon" className="h-8 w-8">
@@ -947,7 +924,26 @@ export default function StreamPage() {
                         <div className="p-4 space-y-2">
                         {chatMessages.map((msg, index) => (
                         <div key={msg.id || index} className="text-sm group relative">
-                            {msg.type === 'system' ? (
+                             {msg.type === 'auction' ? (
+                                <Card className="bg-primary/10 border-primary/20">
+                                    <CardContent className="p-3">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-16 h-16 bg-muted rounded-md relative overflow-hidden flex-shrink-0">
+                                                <Image src={productDetails['prod_1'].images[0]} alt={productDetails['prod_1'].name} fill className="object-cover" />
+                                            </div>
+                                            <div className="flex-grow">
+                                                <Badge variant="destructive" className="mb-1 text-xs animate-pulse">AUCTION STARTED</Badge>
+                                                <h4 className="font-bold leading-tight">{productDetails['prod_1'].name}</h4>
+                                                <p className="text-sm">Starting Bid: <span className="font-bold">₹8,000</span></p>
+                                            </div>
+                                        </div>
+                                         <Button className="w-full mt-2 h-8">
+                                            <Gavel className="w-4 h-4 mr-2"/>
+                                            Place Your Bid
+                                        </Button>
+                                    </CardContent>
+                                </Card>
+                            ) : msg.type === 'system' ? (
                             <p className="text-xs text-muted-foreground text-center italic">{msg.text}</p>
                             ) : msg.user ? (
                             <>
@@ -994,47 +990,6 @@ export default function StreamPage() {
                         </div>
                     </ScrollArea>
                     <div className="p-3 border-t bg-background flex-shrink-0">
-                        {isProductListVisible && (
-                        <div className="relative mb-2">
-                            <Carousel opts={{ align: "start", dragFree: true }} className="w-full">
-                                <CarouselContent className="-ml-2">
-                                    {(sellerProducts.length > 0 ? sellerProducts : [productDetails['prod_1'], productDetails['prod_2'], { ...productDetails['prod_3'], stock: 0 }]).map((product, index) => (
-                                    <CarouselItem key={index} className="pl-2 basis-auto">
-                                        <div className="w-28">
-                                        <Card className="h-full flex flex-col overflow-hidden">
-                                            <Link href={`/product/${product.key}`} className="block">
-                                            <div className="aspect-square bg-muted rounded-t-lg relative">
-                                                <Image src={product.images[0].preview || product.images[0]} alt={product.name} fill className="object-cover" />
-                                                <div className="absolute bottom-1 right-1 flex flex-col gap-1 text-right">
-                                                <Badge variant="secondary" className="text-xs backdrop-blur-sm bg-background/50">Stock: {product.stock}</Badge>
-                                                <Badge variant="secondary" className="text-xs backdrop-blur-sm bg-background/50">Sold: {Math.floor(Math.random() * product.stock)}</Badge>
-                                                </div>
-                                            </div>
-                                            <div className="p-1.5">
-                                                <p className="text-[11px] font-semibold truncate leading-tight">{product.name}</p>
-                                                <p className="text-xs font-bold">{product.price.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })}</p>
-                                            </div>
-                                            </Link>
-                                            <CardFooter className="p-1.5 mt-auto grid grid-cols-2 gap-1">
-                                            {product.stock > 0 ? (
-                                                <>
-                                                <Button size="xs" className="w-full text-[10px] h-6" variant="secondary" onClick={() => handleAddToCart(product)}>Add</Button>
-                                                <Button size="xs" className="w-full text-[10px] h-6" onClick={() => handleBuyNow(product)}>Buy</Button>
-                                                </>
-                                            ) : (
-                                                <Button size="xs" className="w-full text-[10px] h-6 col-span-2" variant="outline" disabled>Out of Stock</Button>
-                                            )}
-                                            </CardFooter>
-                                        </Card>
-                                        </div>
-                                    </CarouselItem>
-                                    ))}
-                                </CarouselContent>
-                                <CarouselPrevious className="absolute -left-3 top-1/2 -translate-y-1/2 hidden sm:flex" />
-                                <CarouselNext className="absolute -right-3 top-1/2 -translate-y-1/2 hidden sm:flex" />
-                            </Carousel>
-                        </div>
-                        )}
                         <form onSubmit={handleNewMessageSubmit} className="flex items-center gap-3">
                         <div className="relative flex-grow">
                             <Textarea ref={textareaRef} placeholder={replyingTo ? `@${replyingTo.name} ` : "Send a message..."} value={newMessage} onChange={(e) => setNewMessage(e.target.value)} className="resize-none pr-10 rounded-2xl bg-muted border-transparent focus:border-primary focus:bg-background h-10 min-h-[40px] pt-2.5 text-sm" rows={1} onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleNewMessageSubmit(e); } }} />
@@ -1073,4 +1028,3 @@ export default function StreamPage() {
         </Dialog>
     );
 }
-
