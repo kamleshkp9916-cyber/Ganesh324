@@ -326,7 +326,7 @@ const PlayerSettingsDialog = ({ playbackRate, onPlaybackRateChange, skipInterval
                 </Tabs>
             </div>
             <DialogFooter className="p-4 border-t border-gray-700">
-                <DialogClose asChild>
+                 <DialogClose asChild>
                     <Button variant="ghost" className="text-white hover:bg-white/10 hover:text-white" onClick={onClose}>Done</Button>
                 </DialogClose>
             </DialogFooter>
@@ -377,6 +377,9 @@ export default function StreamPage() {
     const [newMessage, setNewMessage] = useState("");
     const [isProductListVisible, setIsProductListVisible] = useState(false);
     const [replyingTo, setReplyingTo] = useState<{ name: string; id: string } | null>(null);
+    const [activeAuctionProduct, setActiveAuctionProduct] = useState<any | null>(null);
+    const [currentBid, setCurrentBid] = useState(0);
+    const [highestBidder, setHighestBidder] = useState<string | null>(null);
     
     const seller = useMemo(() => liveSellers.find(s => s.id === streamId), [streamId]);
     const product = productDetails[seller?.productId as keyof typeof productDetails];
@@ -564,7 +567,7 @@ export default function StreamPage() {
         addToCart({ ...product, quantity: 1 });
         toast({
           title: "Added to Cart!",
-          description: `'${product.name}' has been added to your cart.`,
+          description: `'${product.name}' has been added to your shopping cart.`,
         });
       }
     };
@@ -615,12 +618,34 @@ export default function StreamPage() {
      };
     
     const handleShare = () => {};
+    
+    const handleStartAuction = (product: any) => {
+        setActiveAuctionProduct(product);
+        const startingBid = parseFloat(product.price.replace(/[^0-9.-]+/g, '')) || 0;
+        setCurrentBid(startingBid);
+        setHighestBidder(null);
+    };
+
+    const handleEndAuction = () => {
+        if (highestBidder) {
+            toast({
+                title: "Auction Ended!",
+                description: `${activeAuctionProduct.name} sold to ${highestBidder} for ₹${currentBid.toLocaleString()}`
+            });
+        } else {
+             toast({
+                title: "Auction Ended",
+                description: "No bids were placed on the item.",
+            });
+        }
+        setActiveAuctionProduct(null);
+    };
 
     const auctionableProducts = useMemo(() => {
         if (!seller) return [];
         // Use the brand property as a proxy for the seller's name
         return Object.values(productDetails).filter(
-            (p) => p.isAuctionItem && p.brand === seller.name
+            (p: any) => p.isAuctionItem && p.brand === seller.name
         );
     }, [seller]);
 
@@ -676,7 +701,7 @@ export default function StreamPage() {
                                 </div>
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-2 sm:gap-4">
-                                        <Button 
+                                         <Button 
                                             variant="destructive" 
                                             className="gap-1.5 h-8 text-xs sm:text-sm"
                                             onClick={handleGoLive}
@@ -1020,24 +1045,42 @@ export default function StreamPage() {
                             </DialogTrigger>
                              <DialogContent className="max-w-lg">
                                 <DialogHeader>
-                                    <DialogTitle>Auctionable Products</DialogTitle>
-                                    <DialogDescription>Select a product to start an auction.</DialogDescription>
+                                    <DialogTitle>Auction Management</DialogTitle>
+                                    <DialogDescription>
+                                        {activeAuctionProduct ? 'Auction in progress.' : 'Select a product to start an auction.'}
+                                    </DialogDescription>
                                 </DialogHeader>
-                                <ScrollArea className="max-h-96">
-                                    <div className="space-y-3 pr-4 py-2">
-                                        {auctionableProducts.map(p => (
-                                            <div key={p.key} className="flex items-center gap-4 p-2 rounded-lg border">
-                                                <Image src={p.images[0]} alt={p.name} width={50} height={50} className="rounded-md" />
-                                                <div className="flex-grow">
-                                                    <p className="font-semibold">{p.name}</p>
-                                                    <p className="text-sm text-muted-foreground">{p.price}</p>
+                                {activeAuctionProduct ? (
+                                    <div className="space-y-4 py-4">
+                                        <Card>
+                                            <CardContent className="p-4 flex items-center gap-4">
+                                                <Image src={activeAuctionProduct.images[0].preview || activeAuctionProduct.images[0]} alt={activeAuctionProduct.name} width={80} height={80} className="rounded-md" />
+                                                <div>
+                                                    <h4 className="font-bold">{activeAuctionProduct.name}</h4>
+                                                    <p className="text-sm text-muted-foreground">Current Bid: <span className="font-bold text-primary text-lg">₹{currentBid.toLocaleString()}</span></p>
+                                                    <p className="text-sm text-muted-foreground">Highest Bidder: <span className="font-semibold">{highestBidder || 'None'}</span></p>
                                                 </div>
-                                                <Button size="sm">Start Auction</Button>
-                                            </div>
-                                        ))}
-                                        {auctionableProducts.length === 0 && <p className="text-center text-muted-foreground py-8">This seller has no products marked for auction.</p>}
+                                            </CardContent>
+                                        </Card>
+                                        <Button variant="destructive" className="w-full" onClick={handleEndAuction}>End Auction</Button>
                                     </div>
-                                </ScrollArea>
+                                ) : (
+                                    <ScrollArea className="max-h-96">
+                                        <div className="space-y-3 pr-4 py-2">
+                                            {auctionableProducts.map(p => (
+                                                <div key={p.key} className="flex items-center gap-4 p-2 rounded-lg border">
+                                                    <Image src={p.images[0]} alt={p.name} width={50} height={50} className="rounded-md" />
+                                                    <div className="flex-grow">
+                                                        <p className="font-semibold">{p.name}</p>
+                                                        <p className="text-sm text-muted-foreground">{p.price}</p>
+                                                    </div>
+                                                    <Button size="sm" onClick={() => handleStartAuction(p)}>Start Auction</Button>
+                                                </div>
+                                            ))}
+                                            {auctionableProducts.length === 0 && <p className="text-center text-muted-foreground py-8">This seller has no products marked for auction.</p>}
+                                        </div>
+                                    </ScrollArea>
+                                )}
                             </DialogContent>
                         </Dialog>
                         </div>
@@ -1083,6 +1126,7 @@ export default function StreamPage() {
 
 
     
+
 
 
 
