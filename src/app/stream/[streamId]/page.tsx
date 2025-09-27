@@ -363,6 +363,9 @@ export default function StreamPage() {
     ]);
      const [pinnedMessages, setPinnedMessages] = useState<any[]>([]);
     const [auctionTime, setAuctionTime] = useState<number | null>(null);
+    const [highestBid, setHighestBid] = useState<number>(9100);
+    const [totalBids, setTotalBids] = useState<number>(3);
+
 
     const mockStreamData = {
         id: streamId,
@@ -404,7 +407,7 @@ export default function StreamPage() {
      const sellerProducts = useMemo(() => {
         if (!seller) return [];
         const allProducts = Object.values(productDetails)
-        return allProducts.filter(p => p.brand === seller.name && p.stock > 0)
+        return allProducts.filter(p => productToSellerMapping[p.key]?.name === seller.name && p.stock > 0)
     }, [seller]);
     
     const relatedStreams = useMemo(() => {
@@ -660,23 +663,51 @@ export default function StreamPage() {
 
      const handleTogglePinMessage = (msgId: number) => {
         const msg = chatMessages.find(m => m.id === msgId);
-        if (msg) {
-            setPinnedMessages(prev =>
-                prev.some(p => p.id === msgId)
-                    ? prev.filter(p => p.id !== msgId)
-                    : [...prev, msg]
-            );
-            toast({
-                title: pinnedMessages.some(p => p.id === msgId) ? "Message Unpinned" : "Message Pinned",
-                description: "The message has been updated in the pinned items."
-            });
+        if (!msg) return;
+
+        const isProductPin = msg.type === 'product_pin';
+        const isOfferPin = msg.type === 'offer_pin';
+
+        let itemToPin = {};
+
+        if (isProductPin) {
+             itemToPin = { 
+                id: msg.id, 
+                type: 'product',
+                product: productDetails['prod_1']
+            };
+        } else if (isOfferPin) {
+             itemToPin = { 
+                id: msg.id,
+                type: 'offer',
+                title: '🎉 Special Offer!',
+                description: 'Use code LIVE10 for 10% off your entire order.'
+            };
+        } else {
+             itemToPin = { 
+                id: msg.id,
+                type: 'message',
+                user: msg.user,
+                text: msg.text
+            };
         }
+        
+        setPinnedMessages(prev =>
+            prev.some(p => p.id === msgId)
+                ? prev.filter(p => p.id !== msgId)
+                : [...prev, itemToPin]
+        );
+
+        toast({
+            title: pinnedMessages.some(p => p.id === msgId) ? "Message Unpinned" : "Message Pinned",
+            description: "The message has been updated in the pinned items."
+        });
     };
     
     const handlePlaceBid = () => {
         const bidValue = Number(bidAmount);
-        if (bidValue <= 0) {
-            toast({ variant: 'destructive', title: 'Invalid Bid', description: 'Please enter a valid bid amount.' });
+        if (bidValue <= highestBid) {
+            toast({ variant: 'destructive', title: 'Invalid Bid', description: `Your bid must be higher than the current bid of ₹${highestBid.toLocaleString()}.` });
             return;
         }
         if (bidValue > walletBalance) {
@@ -690,11 +721,13 @@ export default function StreamPage() {
             userId: user?.uid,
             text: `BID ₹${bidValue.toLocaleString()}`,
             avatar: user?.photoURL || 'https://placehold.co/40x40.png',
-            userColor: user?.color || '#ffffff',
+            userColor: '#ffffff',
             isBid: true,
         };
 
         setChatMessages(prev => [...prev, newMsg]);
+        setHighestBid(bidValue);
+        setTotalBids(prev => prev + 1);
         setBidAmount("");
         document.getElementById('closeBidDialog')?.click();
         
@@ -804,28 +837,23 @@ export default function StreamPage() {
                                     </Button>
                                      <CollapsibleTrigger asChild>
                                         <Button variant="outline" size="sm" className="h-7 gap-1.5">
-                                            <ShoppingBag className="w-4 h-4"/> View Products
+                                            <ShoppingBag className="w-4 h-4"/> View Products ({sellerProducts.length})
                                         </Button>
                                     </CollapsibleTrigger>
-                                     {seller.hasAuction && (
-                                        <Badge variant="secondary" className="flex items-center gap-1.5">
-                                            <Gavel className="h-3 w-3" /> Featured Auction
-                                        </Badge>
-                                    )}
                                     </>
                                 )}
                                 </div>
                                 <CollapsibleContent className="mt-4">
                                      <div className="relative">
-                                        <Carousel opts={{ align: "start" }} className="w-full">
+                                        <Carousel opts={{ align: "start", dragFree: true }} className="w-full">
                                             <CarouselContent className="-ml-2">
                                                 {sellerProducts.map((p, index) => (
                                                 <CarouselItem key={index} className="pl-2 basis-auto">
                                                     <div className="w-32">
-                                                        <Card className="h-full flex flex-col overflow-hidden">
+                                                        <Card className="h-full flex flex-col overflow-hidden bg-card text-card-foreground">
                                                             <Link href={`/product/${p.key}`}>
                                                             <div className="aspect-square bg-muted rounded-t-lg relative">
-                                                                <Image src={p.images[0].preview || p.images[0]} alt={p.name} fill className="object-cover" />
+                                                                <Image src={(p.images && p.images[0]?.preview) || p.images[0]} alt={p.name} fill className="object-cover" />
                                                                 {p.stock === 0 && (
                                                                     <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
                                                                         <Badge variant="destructive">Out of Stock</Badge>
@@ -834,7 +862,7 @@ export default function StreamPage() {
                                                             </div>
                                                             <div className="p-1.5">
                                                                 <p className="text-[11px] font-semibold truncate leading-tight">{p.name}</p>
-                                                                <p className="text-xs font-bold">{p.price.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })}</p>
+                                                                <p className="text-xs font-bold">₹{p.price.toLocaleString()}</p>
                                                             </div>
                                                             </Link>
                                                             <CardFooter className="p-1.5 mt-auto grid grid-cols-2 gap-1">
@@ -977,13 +1005,13 @@ export default function StreamPage() {
                                                         <div className="flex items-start gap-3">
                                                             <Ticket className="h-5 w-5 text-primary flex-shrink-0 mt-1" />
                                                             <div>
-                                                                <p className="text-xs font-semibold">🎉 Special Offer!</p>
-                                                                <p className="text-sm">Use code <span className="font-bold text-primary">LIVE10</span> for 10% off your entire order.</p>
+                                                                <p className="text-xs font-semibold">{msg.title}</p>
+                                                                <p className="text-sm">{msg.description}</p>
                                                             </div>
                                                         </div>
                                                     </CardContent>
                                                 </Card>
-                                            ) : (
+                                            ) : msg.type === 'product' ? (
                                                 <Card key={msg.id} className="overflow-hidden">
                                                     <CardContent className="p-0">
                                                         <div className="p-3">
@@ -1005,9 +1033,9 @@ export default function StreamPage() {
                                                         </CardFooter>
                                                     </CardContent>
                                                 </Card>
-                                            )
+                                            ) : null
                                         )) : (
-                                            <p className="text-sm text-center text-muted-foreground py-4">No pinned messages yet.</p>
+                                            <p className="text-sm text-center text-muted-foreground py-4">No pinned items yet.</p>
                                         )}
                                     </div>
                                 </ScrollArea>
@@ -1034,8 +1062,8 @@ export default function StreamPage() {
                         </DropdownMenu>
                         </div>
                     </div>
-                    {auctionTime !== null && (
-                        <div className="p-4 border-b">
+                     {auctionTime !== null && (
+                        <div className="p-4 border-y border-border/50">
                             <Card className="bg-primary/10 border-primary/20">
                                 <CardContent className="p-3">
                                     <div className="flex items-center gap-3">
@@ -1048,7 +1076,10 @@ export default function StreamPage() {
                                                 <Badge variant="secondary" className="font-mono">{formatAuctionTime(auctionTime)}</Badge>
                                             </div>
                                             <h4 className="font-bold leading-tight mt-1">{productDetails['prod_1'].name}</h4>
-                                            <p className="text-sm">Starting Bid: <span className="font-bold">₹8,000</span></p>
+                                            <div className="grid grid-cols-2 gap-x-2 text-xs mt-1">
+                                                <div className="text-muted-foreground">Current Bid: <span className="font-bold text-foreground">₹{highestBid.toLocaleString()}</span></div>
+                                                <div className="text-muted-foreground">Bids: <span className="font-bold text-foreground">{totalBids}</span></div>
+                                            </div>
                                         </div>
                                     </div>
                                      <Dialog>
@@ -1061,23 +1092,29 @@ export default function StreamPage() {
                                         <DialogContent>
                                             <DialogHeader>
                                                 <DialogTitle>Place a Bid for {productDetails['prod_1'].name}</DialogTitle>
-                                                <DialogDescription>
+                                                 <DialogDescription>
                                                     Your current wallet balance is <strong className="text-foreground">₹{walletBalance.toFixed(2)}</strong>. 
                                                     Your bid amount will be held and automatically refunded if you do not win the auction.
                                                 </DialogDescription>
                                             </DialogHeader>
-                                            <div className="py-4 space-y-2">
-                                                <Label htmlFor="bid-amount">Bid Amount</Label>
-                                                <div className="relative">
-                                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">₹</span>
-                                                    <Input 
-                                                        id="bid-amount" 
-                                                        type="number" 
-                                                        placeholder="Enter your bid" 
-                                                        className="pl-6"
-                                                        value={bidAmount}
-                                                        onChange={(e) => setBidAmount(e.target.value)}
-                                                    />
+                                            <div className="py-4 space-y-4">
+                                                <div className="p-3 rounded-lg bg-muted text-center">
+                                                    <p className="text-sm text-muted-foreground">Current Highest Bid</p>
+                                                    <p className="text-2xl font-bold">₹{highestBid.toLocaleString()}</p>
+                                                </div>
+                                                <div>
+                                                    <Label htmlFor="bid-amount">Your Bid</Label>
+                                                    <div className="relative mt-1">
+                                                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">₹</span>
+                                                        <Input 
+                                                            id="bid-amount" 
+                                                            type="number" 
+                                                            placeholder={`Enter amount > ₹${highestBid.toLocaleString()}`}
+                                                            className="pl-6"
+                                                            value={bidAmount}
+                                                            onChange={(e) => setBidAmount(e.target.value)}
+                                                        />
+                                                    </div>
                                                 </div>
                                             </div>
                                             <DialogFooter>
