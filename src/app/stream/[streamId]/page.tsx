@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import {
@@ -1089,22 +1090,19 @@ export default function StreamPage() {
                                             </Button>
                                         </DialogTrigger>
                                         <DialogContent className="sm:max-w-md bg-gray-900 border-gray-800 text-white">
-                                            <DialogHeader className="text-left">
+                                            <DialogHeader>
                                                 <DialogTitle>Place a Bid for {productDetails['prod_1'].name}</DialogTitle>
-                                                <DialogDescription className="text-gray-400">
-                                                    Your bid amount will be held and automatically refunded if you do not win the auction.
-                                                </DialogDescription>
                                             </DialogHeader>
                                             <div className="py-4 space-y-6">
-                                                <div className="p-4 rounded-lg bg-gray-800/50 border border-gray-700">
-                                                    <div className="flex justify-between items-center text-sm text-gray-400">
-                                                        <span>Wallet Balance</span>
-                                                        <span>Current Bid</span>
-                                                    </div>
-                                                    <div className="flex justify-between items-center mt-1">
-                                                        <span className="text-xl font-bold">₹{walletBalance.toFixed(2)}</span>
-                                                        <span className="text-xl font-bold text-primary">₹{highestBid.toLocaleString()}</span>
-                                                    </div>
+                                                <div className="p-4 rounded-lg bg-gray-800/50 border border-gray-700 grid grid-cols-2 gap-4">
+                                                     <div>
+                                                        <Label className="text-xs text-gray-400">Wallet Balance</Label>
+                                                        <p className="text-xl font-bold">₹{walletBalance.toFixed(2)}</p>
+                                                     </div>
+                                                     <div className="text-right">
+                                                        <Label className="text-xs text-gray-400">Current Bid</Label>
+                                                        <p className="text-xl font-bold text-primary">₹{highestBid.toLocaleString()}</p>
+                                                     </div>
                                                 </div>
                                                 <div>
                                                     <Label htmlFor="bid-amount" className="text-gray-400">Your Bid (must be > ₹{highestBid.toLocaleString()})</Label>
@@ -1126,6 +1124,9 @@ export default function StreamPage() {
                                                     <Button variant="outline" className="bg-gray-800 border-gray-700" onClick={() => setBidAmount(prev => Number(prev || highestBid) + 1000)}>+1000</Button>
                                                 </div>
                                             </div>
+                                             <DialogDescription className="text-xs text-center text-gray-500 pt-4">
+                                                Your bid amount will be held and automatically refunded if you do not win the auction.
+                                            </DialogDescription>
                                             <DialogFooter className="sm:justify-between">
                                                  <DialogClose asChild>
                                                     <Button variant="ghost" id="closeBidDialog" className="hover:bg-gray-800">Cancel</Button>
@@ -1245,5 +1246,3 @@ export default function StreamPage() {
         </Dialog>
     );
 }
-
-    
