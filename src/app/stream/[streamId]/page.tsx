@@ -1409,28 +1409,20 @@ export default function StreamPage() {
                                 </div>
                                 
                                 <div className="relative flex-1 flex flex-col overflow-hidden">
-                                    <AnimatePresence>
-                                        {showPinnedAuction && activeAuction && (
-                                            <motion.div
-                                                className="p-4 border-b border-border/50 sticky top-0 bg-card z-20 shadow-lg"
-                                                initial={{ y: -100, opacity: 0 }}
-                                                animate={{ y: 0, opacity: 1 }}
-                                                exit={{ y: -100, opacity: 0 }}
-                                                transition={{ duration: 0.3 }}
-                                            >
-                                                <AuctionCard
-                                                    auction={activeAuction}
-                                                    auctionTime={auctionTime}
-                                                    highestBid={highestBid}
-                                                    totalBids={totalBids}
-                                                    handlePlaceBid={handlePlaceBid}
-                                                    walletBalance={walletBalance}
-                                                    bidAmount={bidAmount}
-                                                    setBidAmount={setBidAmount}
-                                                />
-                                            </motion.div>
-                                        )}
-                                    </AnimatePresence>
+                                     {showPinnedAuction && activeAuction && (
+                                        <div className="p-4 border-b border-border/50 sticky top-0 bg-card z-20 shadow-lg">
+                                            <AuctionCard
+                                                auction={activeAuction}
+                                                auctionTime={auctionTime}
+                                                highestBid={highestBid}
+                                                totalBids={totalBids}
+                                                handlePlaceBid={handlePlaceBid}
+                                                walletBalance={walletBalance}
+                                                bidAmount={bidAmount}
+                                                setBidAmount={setBidAmount}
+                                            />
+                                        </div>
+                                    )}
                                     <ScrollArea className="flex-1" ref={chatContainerRef}>
                                         <div className="p-4 space-y-4">
                                             {memoizedChatMessages}
@@ -1493,3 +1485,4 @@ export default function StreamPage() {
         </React.Fragment>
     );
 }
+
