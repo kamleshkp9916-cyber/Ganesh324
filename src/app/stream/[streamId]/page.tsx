@@ -740,7 +740,7 @@ export default function StreamPage() {
         <>
       <Dialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
         <AlertDialog>
-          <div className="h-dvh w-full flex flex-col bg-background text-foreground">
+        <div className="h-dvh w-full flex flex-col bg-background text-foreground">
             <header className="flex-shrink-0 h-16 bg-background border-b border-border flex items-center justify-between px-4 z-40">
               <div className="flex items-center gap-2">
                 <Button variant="ghost" size="icon" onClick={() => router.back()}>
@@ -1061,7 +1061,7 @@ export default function StreamPage() {
                 {auctionTime !== null && (
                   <div className="p-4 border-y border-border/50">
                     <Collapsible>
-                      <Card className="bg-blue-900/20 border-blue-500/30 text-blue-200">
+                      <Card className="bg-green-900/20 border-green-500/30 text-green-200">
                         <CardContent className="p-3">
                           <div className="flex items-center gap-3">
                             <div className="w-16 h-16 bg-muted rounded-md relative overflow-hidden flex-shrink-0">
@@ -1069,65 +1069,65 @@ export default function StreamPage() {
                             </div>
                             <div className="flex-grow">
                               <div className="flex justify-between items-center">
-                                <Badge className="bg-blue-500 text-white text-xs animate-pulse">AUCTION</Badge>
-                                <Badge variant="secondary" className="font-mono text-blue-200">{formatAuctionTime(auctionTime)}</Badge>
+                                <Badge className="bg-green-500 text-white text-xs animate-pulse">AUCTION</Badge>
+                                <Badge variant="secondary" className="font-mono text-green-200">{formatAuctionTime(auctionTime)}</Badge>
                               </div>
                               <h4 className="font-bold leading-tight mt-1 text-white">{productDetails['prod_1'].name}</h4>
                               <div className="grid grid-cols-2 gap-x-2 text-xs mt-1">
-                                <div className="text-blue-300">Current Bid: <span className="font-bold text-white">₹{highestBid.toLocaleString()}</span></div>
-                                <div className="text-blue-300">Bids: <span className="font-bold text-white">{totalBids}</span></div>
+                                <div className="text-green-300">Current Bid: <span className="font-bold text-white">₹{highestBid.toLocaleString()}</span></div>
+                                <div className="text-green-300">Bids: <span className="font-bold text-white">{totalBids}</span></div>
                               </div>
                             </div>
                           </div>
-                          <div className="grid grid-cols-2 gap-2 mt-2">
+                          <div className="mt-2 flex items-center gap-2">
                              <Dialog>
                                 <DialogTrigger asChild>
-                                    <Button className="w-full h-8 bg-blue-600 hover:bg-blue-700 text-white">
+                                    <Button className="w-full h-8 bg-green-600 hover:bg-green-700 text-white">
                                         <Gavel className="w-4 h-4 mr-2"/>
                                         Place Your Bid
                                     </Button>
                                 </DialogTrigger>
-                                <DialogContent className="sm:max-w-md bg-black border-gray-800 text-white">
+                                 <DialogContent className="sm:max-w-md bg-background text-foreground">
                                     <DialogHeader>
                                         <DialogTitle className="text-xl font-bold">Place a Bid for {productDetails['prod_1'].name}</DialogTitle>
                                     </DialogHeader>
                                     <div className="py-4 space-y-4">
-                                        <div className="flex items-center gap-4 p-4 rounded-lg bg-gray-800">
+                                        <div className="flex items-center gap-4 p-4 rounded-lg bg-muted">
                                             <Image src={productDetails['prod_1'].images[0]} alt={productDetails['prod_1'].name} width={64} height={64} className="rounded-md" />
                                             <div className="flex-grow">
-                                                <h4 className="font-semibold text-white">{productDetails['prod_1'].name}</h4>
-                                                <p className="text-sm text-gray-400">by {productToSellerMapping['prod_1'].name}</p>
+                                                <h4 className="font-semibold text-foreground">{productDetails['prod_1'].name}</h4>
+                                                <p className="text-sm text-muted-foreground">by {productToSellerMapping['prod_1'].name}</p>
                                             </div>
                                         </div>
 
                                         <div className="grid grid-cols-2 gap-4 text-center">
                                             <div>
-                                                <Label className="text-xs text-gray-400">Wallet Balance</Label>
+                                                <Label className="text-xs text-muted-foreground">Wallet Balance</Label>
                                                 <p className="text-lg font-bold flex items-center justify-center gap-1"><Wallet className="h-4 w-4" />₹{walletBalance.toFixed(2)}</p>
                                             </div>
                                             <div>
-                                                <Label className="text-xs text-gray-400">Current Highest Bid</Label>
+                                                <Label className="text-xs text-muted-foreground">Current Highest Bid</Label>
                                                 <p className="text-lg font-bold">₹{highestBid.toLocaleString()}</p>
                                             </div>
                                         </div>
                                         <div>
                                             <Label htmlFor="bid-amount" className="text-sm font-medium">Your Bid (must be > ₹{highestBid.toLocaleString()})</Label>
                                             <div className="relative mt-1">
-                                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">₹</span>
+                                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">₹</span>
                                                 <Input
                                                     id="bid-amount"
                                                     type="number"
                                                     placeholder="Enter your bid"
-                                                    className="pl-7 h-11 text-base bg-gray-800 border-gray-700"
+                                                    className="pl-7 h-11 text-base bg-muted border-border"
                                                     value={bidAmount}
                                                     onChange={(e) => setBidAmount(e.target.value)}
                                                 />
                                             </div>
                                         </div>
                                          <div className="grid grid-cols-3 gap-2">
-                                            <Button variant="outline" className="bg-gray-800 border-gray-700 hover:bg-gray-700" onClick={() => setBidAmount(prev => Number(prev || highestBid) + 100)}>+100</Button>
-                                            <Button variant="outline" className="bg-gray-800 border-gray-700 hover:bg-gray-700" onClick={() => setBidAmount(prev => Number(prev || highestBid) + 500)}>+500</Button>
-                                            <Button variant="outline" className="bg-gray-800 border-gray-700 hover:bg-gray-700" onClick={() => setBidAmount(prev => Number(prev || highestBid) + 1000)}>+1000</Button>
+                                            <Button variant="outline" onClick={() => setBidAmount(prev => Number(prev || highestBid) + 100)}>+100</Button>
+                                            <Button variant="outline" onClick={() => setBidAmount(prev => Number(prev || highestBid) + 500)}>+500</Button>
+                                            <Button variant="outline" onClick={() => setBidAmount(prev => Number(prev || highestBid) + 1000)}>+1000</Button>
                                         </div>
                                     </div>
                                     <DialogFooter className="flex-col gap-2">
@@ -1135,22 +1135,22 @@ export default function StreamPage() {
                                             <Gavel className="mr-2 h-4 w-4" />
                                             Confirm Bid
                                         </Button>
-                                         <p className="text-xs text-left text-gray-400 pt-2">Note: Your bid amount will be held and automatically refunded if you do not win the auction.</p>
+                                        <p className="text-xs text-left text-muted-foreground pt-2">Note: Your bid amount will be held and automatically refunded if you do not win the auction.</p>
                                     </DialogFooter>
                                     <DialogClose asChild>
                                         <button id="closeBidDialog" className="hidden"></button>
                                     </DialogClose>
                                 </DialogContent>
                             </Dialog>
-                             <CollapsibleTrigger asChild>
-                                <Button variant="outline" className="w-full h-8 border-blue-500/50 text-blue-300 hover:bg-blue-900/40 hover:text-blue-200">
-                                    View Bids
+                            <CollapsibleTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0 text-green-300 hover:bg-green-900/40 hover:text-green-200">
+                                    <ChevronDown className="w-5 h-5"/>
                                 </Button>
                              </CollapsibleTrigger>
                           </div>
                         </CardContent>
                          <CollapsibleContent>
-                            <div className="p-3 border-t border-blue-500/30">
+                            <div className="p-3 border-t border-green-500/30">
                                 <h5 className="font-semibold text-xs mb-2">Recent Bids</h5>
                                 <div className="space-y-2 max-h-24 overflow-y-auto thin-scrollbar">
                                     {chatMessages.filter(m => m.isBid).reverse().map(bid => (
@@ -1213,7 +1213,7 @@ export default function StreamPage() {
                                     </Badge>
                                   )}
                                 </span>
-                                <span className={cn("text-muted-foreground break-words")}>{renderContentWithHashtags(msg.text)}</span>
+                                <span className={cn("text-foreground break-words")}>{renderContentWithHashtags(msg.text)}</span>
                               </div>
                               <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
