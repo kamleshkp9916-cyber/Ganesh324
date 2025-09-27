@@ -490,7 +490,6 @@ const formatAuctionTime = (seconds: number | null) => {
 };
 
 const AuctionCard = React.memo(({
-    isPinned,
     auctionCardRef,
     isAuctionActive,
     auctionTime,
@@ -502,7 +501,6 @@ const AuctionCard = React.memo(({
     bidAmount,
     setBidAmount,
 }: {
-    isPinned?: boolean,
     auctionCardRef: React.RefObject<HTMLDivElement>,
     isAuctionActive: boolean,
     auctionTime: number | null,
@@ -515,7 +513,7 @@ const AuctionCard = React.memo(({
     setBidAmount: (value: number | string) => void,
 }) => {
     return (
-        <div ref={isPinned ? null : auctionCardRef}>
+        <div ref={auctionCardRef}>
             <Collapsible>
                 <Card className="bg-blue-900/20 border-blue-500/30 text-blue-200">
                     <CardContent className="p-3">
@@ -524,7 +522,7 @@ const AuctionCard = React.memo(({
                                 <Image src={productDetails['prod_1'].images[0]} alt={productDetails['prod_1'].name} fill className="object-cover" />
                                 {!isAuctionActive && (
                                     <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-                                        <p className="font-bold text-white text-lg -rotate-12">ENDED</p>
+                                        <p className="font-bold text-white text-xl -rotate-12 transform">Timed Out</p>
                                     </div>
                                 )}
                             </div>
@@ -1033,8 +1031,10 @@ export default function StreamPage() {
     };
 
     const memoizedChatMessages = useMemo(() => {
+        let auctionCardRendered = false;
         return chatMessages.map((msg, index) => {
-            if (msg.type === 'auction') {
+            if (msg.type === 'auction' && !auctionCardRendered) {
+                auctionCardRendered = true;
                 return (
                     <AuctionCard
                         key={msg.id || index}
@@ -1051,6 +1051,8 @@ export default function StreamPage() {
                     />
                 );
             }
+            if(msg.type === 'auction' && auctionCardRendered) return null;
+
             return (
                 <ChatMessageContent
                     key={msg.id || index}
@@ -1066,20 +1068,7 @@ export default function StreamPage() {
                 />
             );
         });
-    }, [
-        chatMessages, 
-        auctionCardRef, 
-        isAuctionActive, 
-        auctionTime, 
-        highestBid, 
-        totalBids, 
-        handlePlaceBid, 
-        walletBalance, 
-        bidAmount, 
-        setBidAmount,
-        pinnedMessages,
-        seller
-    ]);
+    }, [chatMessages, auctionCardRef, isAuctionActive, auctionTime, highestBid, totalBids, handlePlaceBid, walletBalance, bidAmount, pinnedMessages, seller]);
     
     return (
         <React.Fragment>
@@ -1406,9 +1395,8 @@ export default function StreamPage() {
                                 
                                 <div className="relative flex-1 flex flex-col overflow-hidden">
                                     {showPinnedAuction && (
-                                        <div className="p-4 border-y border-border/50 sticky top-0 bg-card z-20 shadow-lg">
+                                        <div className="p-4 border-b border-border/50 sticky top-0 bg-card z-20 shadow-lg">
                                             <AuctionCard
-                                                isPinned
                                                 auctionCardRef={auctionCardRef}
                                                 isAuctionActive={isAuctionActive}
                                                 auctionTime={auctionTime}
@@ -1471,13 +1459,15 @@ export default function StreamPage() {
                         </AlertDialogFooter>
                     </AlertDialogContent>
                 </AlertDialog>
-                <PlayerSettingsDialog
-                    playbackRate={playbackRate}
-                    onPlaybackRateChange={handlePlaybackRateChange}
-                    skipInterval={skipInterval}
-                    onSkipIntervalChange={handleSkipIntervalChange}
-                    onClose={() => setIsSettingsOpen(false)}
-                />
+                 <DialogContent className="max-w-2xl bg-black border-gray-800 text-white p-0">
+                    <PlayerSettingsDialog
+                        playbackRate={playbackRate}
+                        onPlaybackRateChange={handlePlaybackRateChange}
+                        skipInterval={skipInterval}
+                        onSkipIntervalChange={handleSkipIntervalChange}
+                        onClose={() => setIsSettingsOpen(false)}
+                    />
+                </DialogContent>
             </Dialog>
         </React.Fragment>
     );
