@@ -643,7 +643,8 @@ export default function StreamPage() {
 
     const handleWithdraw = (amount: number, bankAccountId: string) => {
         const selectedAccount = bankAccounts.find(acc => String(acc.id) === bankAccountId);
-        if (amount > walletBalance) {
+        const cashAvailable = walletBalance - 2640; // Mock blocked margin
+        if (amount > cashAvailable) {
            toast({
                variant: 'destructive',
                title: 'Insufficient Balance',
@@ -728,7 +729,6 @@ export default function StreamPage() {
         setChatMessages(prev => [...prev, newMsg]);
         setHighestBid(bidValue);
         setTotalBids(prev => prev + 1);
-        setWalletBalance(prev => prev - bidValue);
         setBidAmount("");
         document.getElementById('closeBidDialog')?.click();
         
@@ -736,9 +736,9 @@ export default function StreamPage() {
     };
 
     return (
+      <>
         <Dialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
             <AlertDialog>
-                <>
                 <div className="h-dvh w-full flex flex-col bg-background text-foreground">
                     <header className="flex-shrink-0 h-16 bg-background border-b border-border flex items-center justify-between px-4 z-40">
                         <div className="flex items-center gap-2">
@@ -980,7 +980,7 @@ export default function StreamPage() {
                                                             <DialogTitle>Withdraw Funds</DialogTitle>
                                                             <DialogDescription>Select an account and enter the amount you wish to withdraw.</DialogDescription>
                                                         </DialogHeader>
-                                                        <WithdrawForm cashAvailable={walletBalance} bankAccounts={bankAccounts} onWithdraw={handleWithdraw} onAddAccount={(newAccount) => { setBankAccounts(prev => [...prev, { ...newAccount, id: Date.now() }]); toast({ title: "Bank Account Added!", description: "You can now select it for withdrawals." }); }} />
+                                                        <WithdrawForm cashAvailable={walletBalance-2640} bankAccounts={bankAccounts} onWithdraw={handleWithdraw} onAddAccount={(newAccount) => { setBankAccounts(prev => [...prev, { ...newAccount, id: Date.now() }]); toast({ title: "Bank Account Added!", description: "You can now select it for withdrawals." }); }} />
                                                     </DialogContent>
                                                 </Dialog>
                                             </div>
@@ -1057,9 +1057,9 @@ export default function StreamPage() {
                                 </DropdownMenu>
                                 </div>
                             </div>
-                             {auctionTime !== null && (
+                            {auctionTime !== null && (
                                 <div className="p-4 border-y border-border/50">
-                                     <Card className="bg-blue-500/10 border-blue-500/20 text-blue-200">
+                                     <Card className="bg-blue-900/20 border-blue-500/30 text-blue-200">
                                         <CardContent className="p-3">
                                             <div className="flex items-center gap-3">
                                                 <div className="w-16 h-16 bg-muted rounded-md relative overflow-hidden flex-shrink-0">
@@ -1084,18 +1084,18 @@ export default function StreamPage() {
                                                         Place Your Bid
                                                     </Button>
                                                 </DialogTrigger>
-                                                 <DialogContent className="sm:max-w-md bg-gray-900 border-gray-800 text-white">
+                                                 <DialogContent className="sm:max-w-md">
                                                     <DialogHeader>
-                                                         <DialogTitle className="text-white">Place a Bid for {productDetails['prod_1'].name}</DialogTitle>
+                                                         <DialogTitle>Place a Bid for {productDetails['prod_1'].name}</DialogTitle>
                                                     </DialogHeader>
                                                     <div className="py-4 space-y-6">
-                                                         <div className="p-4 rounded-lg bg-gray-800/50 border border-gray-700 grid grid-cols-2 gap-4">
-                                                            <div>
-                                                                <Label className="text-xs text-gray-400">Wallet Balance</Label>
+                                                         <div className="grid grid-cols-2 gap-4 text-center">
+                                                            <div className="p-3 rounded-lg bg-muted border">
+                                                                <Label className="text-xs text-muted-foreground">Wallet Balance</Label>
                                                                 <p className="text-lg font-bold">₹{walletBalance.toFixed(2)}</p>
                                                             </div>
-                                                            <div>
-                                                                <Label className="text-xs text-gray-400">Current Bid</Label>
+                                                            <div className="p-3 rounded-lg bg-muted border">
+                                                                <Label className="text-xs text-muted-foreground">Current Bid</Label>
                                                                 <p className="text-lg font-bold">₹{highestBid.toLocaleString()}</p>
                                                             </div>
                                                         </div>
@@ -1103,35 +1103,33 @@ export default function StreamPage() {
                                                         <div>
                                                              <Label htmlFor="bid-amount">Your Bid (must be > ₹{highestBid.toLocaleString()})</Label>
                                                             <div className="relative mt-2">
-                                                                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">₹</span>
+                                                                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground">₹</span>
                                                                 <Input
                                                                     id="bid-amount"
                                                                     type="number"
                                                                     placeholder="Enter your bid"
-                                                                    className="pl-8 h-12 text-lg bg-gray-800 border-gray-700"
+                                                                    className="pl-8 h-12 text-lg"
                                                                     value={bidAmount}
                                                                     onChange={(e) => setBidAmount(e.target.value)}
                                                                 />
                                                             </div>
                                                         </div>
                                                         <div className="grid grid-cols-3 gap-2">
-                                                             <Button variant="outline" className="bg-gray-800 border-gray-700 hover:bg-gray-700" onClick={() => setBidAmount(prev => Number(prev || highestBid) + 100)}>+100</Button>
-                                                             <Button variant="outline" className="bg-gray-800 border-gray-700 hover:bg-gray-700" onClick={() => setBidAmount(prev => Number(prev || highestBid) + 500)}>+500</Button>
-                                                             <Button variant="outline" className="bg-gray-800 border-gray-700 hover:bg-gray-700" onClick={() => setBidAmount(prev => Number(prev || highestBid) + 1000)}>+1000</Button>
+                                                             <Button variant="outline" onClick={() => setBidAmount(prev => Number(prev || highestBid) + 100)}>+100</Button>
+                                                             <Button variant="outline" onClick={() => setBidAmount(prev => Number(prev || highestBid) + 500)}>+500</Button>
+                                                             <Button variant="outline" onClick={() => setBidAmount(prev => Number(prev || highestBid) + 1000)}>+1000</Button>
                                                         </div>
                                                     </div>
-                                                     <p className="text-xs text-center text-gray-400 pt-2">
-                                                        Note: Your bid amount will be held and automatically refunded if you do not win the auction.
-                                                    </p>
-                                                    <DialogFooter className="pt-4">
-                                                        <DialogClose asChild>
-                                                            <Button variant="ghost" className="hover:bg-gray-800" id="closeBidDialog">Cancel</Button>
-                                                        </DialogClose>
-                                                         <Button onClick={handlePlaceBid} className="bg-blue-500 hover:bg-blue-600">
+                                                    <DialogFooter className="flex-col gap-2">
+                                                         <Button onClick={handlePlaceBid} className="w-full">
                                                             <Gavel className="mr-2 h-4 w-4" />
                                                             Confirm Bid
                                                         </Button>
+                                                         <p className="text-xs text-muted-foreground pt-2">Note: Your bid amount will be held and automatically refunded if you do not win the auction.</p>
                                                     </DialogFooter>
+                                                    <DialogClose asChild>
+                                                        <button id="closeBidDialog" className="hidden"></button>
+                                                    </DialogClose>
                                                 </DialogContent>
                                             </Dialog>
                                         </CardContent>
@@ -1147,7 +1145,7 @@ export default function StreamPage() {
                                     ) : msg.type === 'system' ? (
                                     <p className="text-xs text-muted-foreground text-center italic">{msg.text}</p>
                                     ) : msg.isBid ? (
-                                        <Card className="bg-blue-500/10 border-blue-500/20 my-2 text-blue-300">
+                                        <Card className="bg-blue-900/20 border-blue-500/30 my-2 text-blue-200">
                                             <CardContent className="p-3">
                                                 <div className="flex items-center gap-3">
                                                     <Avatar className="h-8 w-8">
@@ -1231,15 +1229,20 @@ export default function StreamPage() {
                         </div>
                     </div>
                 </div>
-                </>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Report Stream</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Please let us know why you are reporting this stream. Your feedback helps us keep the community safe.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction>Submit Report</AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
             </AlertDialog>
-            <PlayerSettingsDialog
-                playbackRate={playbackRate}
-                onPlaybackRateChange={handlePlaybackRateChange}
-                skipInterval={skipInterval}
-                onSkipIntervalChange={handleSkipIntervalChange}
-                onClose={() => setIsSettingsOpen(false)}
-            />
         </Dialog>
+      </>
     );
 }
