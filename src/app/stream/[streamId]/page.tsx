@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import {
@@ -483,8 +484,8 @@ const ChatMessageContent = React.memo(({ msg, index, handlers, post, pinnedMessa
 ChatMessageContent.displayName = 'ChatMessageContent';
 
 const formatAuctionTime = (seconds: number | null) => {
-    if (seconds === null) return '00:00';
-    if (seconds <= 0) return 'Ended';
+    if (seconds === null || seconds < 0) return '00:00';
+    if (seconds === 0) return 'Ended';
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
@@ -662,20 +663,19 @@ export default function StreamPage() {
     ]);
     const [pinnedMessages, setPinnedMessages] = useState<any[]>([]);
 
-    const [activeAuction, setActiveAuction] = useState<any | null>(null);
     const [auctionTime, setAuctionTime] = useState<number | null>(null);
     
     const [highestBid, setHighestBid] = useState<number>(9600);
     const [totalBids, setTotalBids] = useState<number>(4);
     
     const [showPinnedAuction, setShowPinnedAuction] = useState(false);
-    const auctionCardRef = useRef<HTMLDivElement>(null);
-
+    const [auctionCardRef, auctionCardInView] = useInView({ threshold: 0.5 });
+    
     const isAuctionActive = useMemo(() => auctionTime !== null && auctionTime > 0, [auctionTime]);
-
-    const handleAuctionCardInView = (inView: boolean) => {
-        setShowPinnedAuction(!inView && isAuctionActive);
-    };
+    
+    useEffect(() => {
+        setShowPinnedAuction(!auctionCardInView && isAuctionActive);
+    }, [auctionCardInView, isAuctionActive]);
 
     const mockStreamData = {
         id: streamId,
@@ -748,16 +748,15 @@ export default function StreamPage() {
         return timeString.startsWith('00:') ? timeString.substr(3) : timeString;
     };
     
+    const activeAuction = useMemo(() => chatMessages.find(msg => msg.type === 'auction' && msg.active), [chatMessages]);
+
     useEffect(() => {
-        const activeAuctionInChat = chatMessages.find(msg => msg.type === 'auction' && msg.active);
-        if (activeAuctionInChat) {
-            setActiveAuction(activeAuctionInChat);
-            setAuctionTime(activeAuctionInChat.initialTime);
+        if (activeAuction) {
+            setAuctionTime(activeAuction.initialTime);
         } else {
-            setActiveAuction(null);
             setAuctionTime(null);
         }
-    }, [chatMessages]);
+    }, [activeAuction]);
     
     useEffect(() => {
         if (auctionTime !== null && auctionTime > 0) {
@@ -786,7 +785,7 @@ export default function StreamPage() {
                  setChatMessages(prev => [...prev, noWinnerMessage]);
              }
              setAuctionTime(null);
-             setActiveAuction(prev => prev ? {...prev, active: false} : null);
+             setChatMessages(prev => prev.map(msg => msg.id === activeAuction.id ? {...msg, active: false} : msg));
         }
     }, [auctionTime, activeAuction, chatMessages]);
 
@@ -1052,27 +1051,40 @@ export default function StreamPage() {
         toast({ title: 'Bid Placed!', description: `Your bid of ₹${bidValue.toLocaleString()} has been placed.` });
     };
 
-    const chatMessagesWithoutAuction = useMemo(() => {
-        return chatMessages.filter(msg => msg.type !== 'auction');
-    }, [chatMessages]);
-    
+    const handlers = { onReply: handleReply, onTogglePinMessage: handleTogglePinMessage, onReportMessage: handleReportMessage };
+
     const memoizedChatMessages = useMemo(() => {
-        return chatMessagesWithoutAuction.map((msg, index) => (
-            <ChatMessageContent
-                key={msg.id || index}
-                msg={msg}
-                index={index}
-                handlers={{
-                    onReply: handleReply,
-                    onTogglePinMessage: handleTogglePinMessage,
-                    onReportMessage: handleReportMessage,
-                }}
-                post={{ sellerId: seller?.id, avatarUrl: seller?.avatarUrl, sellerName: seller?.name }}
-                pinnedMessages={pinnedMessages}
-            />
-        ));
-    }, [chatMessagesWithoutAuction, seller, pinnedMessages]);
-    
+        return chatMessages.map((msg, index) => {
+            if (msg.type === 'auction') {
+                return (
+                    <div key={msg.id} ref={auctionCardRef} className="my-2">
+                        <AuctionCard
+                            auction={msg}
+                            auctionTime={auctionTime}
+                            highestBid={highestBid}
+                            totalBids={totalBids}
+                            handlePlaceBid={handlePlaceBid}
+                            walletBalance={walletBalance}
+                            bidAmount={bidAmount}
+                            setBidAmount={setBidAmount}
+                        />
+                    </div>
+                );
+            }
+            return (
+                <ChatMessageContent
+                    key={msg.id || index}
+                    msg={msg}
+                    index={index}
+                    handlers={handlers}
+                    post={{ sellerId: seller?.id, avatarUrl: seller?.avatarUrl, sellerName: seller?.name }}
+                    pinnedMessages={pinnedMessages}
+                />
+            );
+        });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [chatMessages, seller, pinnedMessages, auctionTime, highestBid, totalBids, bidAmount, walletBalance]);
+
     return (
         <React.Fragment>
             <Dialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
@@ -1397,20 +1409,28 @@ export default function StreamPage() {
                                 </div>
                                 
                                 <div className="relative flex-1 flex flex-col overflow-hidden">
-                                     {showPinnedAuction && activeAuction && (
-                                        <div className="p-4 border-b border-border/50 sticky top-0 bg-card z-20 shadow-lg">
-                                            <AuctionCard
-                                                auction={activeAuction}
-                                                auctionTime={auctionTime}
-                                                highestBid={highestBid}
-                                                totalBids={totalBids}
-                                                handlePlaceBid={handlePlaceBid}
-                                                walletBalance={walletBalance}
-                                                bidAmount={bidAmount}
-                                                setBidAmount={setBidAmount}
-                                            />
-                                        </div>
-                                    )}
+                                    <AnimatePresence>
+                                        {showPinnedAuction && activeAuction && (
+                                            <motion.div
+                                                className="p-4 border-b border-border/50 sticky top-0 bg-card z-20 shadow-lg"
+                                                initial={{ y: -100, opacity: 0 }}
+                                                animate={{ y: 0, opacity: 1 }}
+                                                exit={{ y: -100, opacity: 0 }}
+                                                transition={{ duration: 0.3 }}
+                                            >
+                                                <AuctionCard
+                                                    auction={activeAuction}
+                                                    auctionTime={auctionTime}
+                                                    highestBid={highestBid}
+                                                    totalBids={totalBids}
+                                                    handlePlaceBid={handlePlaceBid}
+                                                    walletBalance={walletBalance}
+                                                    bidAmount={bidAmount}
+                                                    setBidAmount={setBidAmount}
+                                                />
+                                            </motion.div>
+                                        )}
+                                    </AnimatePresence>
                                     <ScrollArea className="flex-1" ref={chatContainerRef}>
                                         <div className="p-4 space-y-4">
                                             {memoizedChatMessages}
@@ -1460,7 +1480,7 @@ export default function StreamPage() {
                         </AlertDialogFooter>
                     </AlertDialogContent>
                 </AlertDialog>
-                 <DialogContent className="max-w-2xl bg-black border-gray-800 text-white p-0">
+                <DialogContent className="max-w-2xl bg-black border-gray-800 text-white p-0">
                     <PlayerSettingsDialog
                         playbackRate={playbackRate}
                         onPlaybackRateChange={handlePlaybackRateChange}
