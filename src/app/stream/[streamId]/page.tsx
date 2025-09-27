@@ -393,8 +393,9 @@ export default function StreamPage() {
     const [auctionTime, setAuctionTime] = useState<number | null>(null);
     const [highestBid, setHighestBid] = useState<number>(9100);
     const [totalBids, setTotalBids] = useState<number>(3);
-    const [isAuctionCardVisible, setIsAuctionCardVisible] = useState(true);
     const [auctionCardRef, auctionCardInView] = useInView({ threshold: 0.5 });
+    const isAuctionActive = auctionTime !== null && auctionTime > 0;
+    const showPinnedAuction = !auctionCardInView && isAuctionActive;
 
 
     const mockStreamData = {
@@ -785,127 +786,228 @@ export default function StreamPage() {
         
         toast({ title: 'Bid Placed!', description: `Your bid of ₹${bidValue.toLocaleString()} has been placed.` });
     };
+    
+    const AuctionCard = useMemo(() => {
+      const Comp = ({ isPinned }: { isPinned?: boolean }) => (
+          <div ref={isPinned ? null : auctionCardRef}>
+              <Collapsible>
+                  <Card className="bg-blue-900/20 border-blue-500/30 text-blue-200">
+                      <CardContent className="p-3">
+                          <div className="flex items-center gap-3">
+                              <div className="w-16 h-16 bg-muted rounded-md relative overflow-hidden flex-shrink-0">
+                                  <Image src={productDetails['prod_1'].images[0]} alt={productDetails['prod_1'].name} fill className="object-cover" />
+                              </div>
+                              <div className="flex-grow">
+                                  <div className="flex justify-between items-center">
+                                      <Badge className="bg-blue-500 text-white text-xs animate-pulse">AUCTION</Badge>
+                                      <Badge variant="secondary" className="font-mono text-blue-200">{formatAuctionTime(auctionTime)}</Badge>
+                                  </div>
+                                  <h4 className="font-bold leading-tight mt-1 text-white">{productDetails['prod_1'].name}</h4>
+                                  <div className="grid grid-cols-2 gap-x-2 text-xs mt-1">
+                                      <div className="text-blue-300">Current Bid: <span className="font-bold text-white">₹{highestBid.toLocaleString()}</span></div>
+                                      <div className="text-blue-300">Bids: <span className="font-bold text-white">{totalBids}</span></div>
+                                  </div>
+                              </div>
+                          </div>
+                          <div className="mt-2 flex items-center gap-2">
+                              <Dialog>
+                                  <DialogTrigger asChild>
+                                      <Button className="w-full h-8 bg-blue-600 hover:bg-blue-700 text-white">
+                                          <Gavel className="w-4 h-4 mr-2"/>
+                                          Place Your Bid
+                                      </Button>
+                                  </DialogTrigger>
+                                  <DialogContent className="sm:max-w-md bg-black border-gray-800 text-white">
+                                      <DialogHeader>
+                                          <DialogTitle className="text-xl font-bold">Place a Bid for {productDetails['prod_1'].name}</DialogTitle>
+                                      </DialogHeader>
+                                      <div className="py-4 space-y-4">
+                                          <div className="flex items-center gap-4 p-4 rounded-lg bg-gray-900">
+                                              <Image src={productDetails['prod_1'].images[0]} alt={productDetails['prod_1'].name} width={64} height={64} className="rounded-md" />
+                                              <div className="flex-grow">
+                                                  <h4 className="font-semibold text-white">{productDetails['prod_1'].name}</h4>
+                                                  <p className="text-sm text-gray-400">by {productToSellerMapping['prod_1'].name}</p>
+                                              </div>
+                                          </div>
+                                          <div className="grid grid-cols-2 gap-4 text-center">
+                                              <div>
+                                                  <Label className="text-xs text-gray-400">Wallet Balance</Label>
+                                                  <p className="text-lg font-bold flex items-center justify-center gap-1"><Wallet className="h-4 w-4" />₹{(walletBalance).toFixed(2)}</p>
+                                              </div>
+                                              <div>
+                                                  <Label className="text-xs text-gray-400">Current Highest Bid</Label>
+                                                  <p className="text-lg font-bold">₹{highestBid.toLocaleString()}</p>
+                                              </div>
+                                          </div>
+                                          <div>
+                                              <Label htmlFor="bid-amount" className="text-sm font-medium">Your Bid (must be > ₹{highestBid.toLocaleString()})</Label>
+                                              <div className="relative mt-1">
+                                                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">₹</span>
+                                                  <Input
+                                                      id="bid-amount"
+                                                      type="number"
+                                                      placeholder="Enter your bid"
+                                                      className="pl-7 h-11 text-base bg-gray-800 border-gray-700 text-white"
+                                                      value={bidAmount}
+                                                      onChange={(e) => setBidAmount(e.target.value)}
+                                                  />
+                                              </div>
+                                          </div>
+                                          <div className="grid grid-cols-3 gap-2">
+                                              <Button variant="outline" onClick={() => setBidAmount(prev => Number(prev || highestBid) + 100)}>+100</Button>
+                                              <Button variant="outline" onClick={() => setBidAmount(prev => Number(prev || highestBid) + 500)}>+500</Button>
+                                              <Button variant="outline" onClick={() => setBidAmount(prev => Number(prev || highestBid) + 1000)}>+1000</Button>
+                                          </div>
+                                      </div>
+                                      <DialogFooter>
+                                          <div className="flex flex-col gap-2 w-full">
+                                               <div className="flex justify-between gap-2">
+                                                  <DialogClose asChild>
+                                                      <Button type="button" variant="ghost" className="w-full">Cancel</Button>
+                                                  </DialogClose>
+                                                  <Button onClick={handlePlaceBid} className="w-full bg-blue-600 hover:bg-blue-700">
+                                                      <Gavel className="mr-2 h-4 w-4" />
+                                                      Confirm Bid
+                                                  </Button>
+                                              </div>
+                                              <p className="text-xs text-left text-gray-400 pt-2">Note: Your bid amount will be held and automatically refunded if you do not win the auction.</p>
+                                          </div>
+                                      </DialogFooter>
+                                      <DialogClose asChild>
+                                          <button id="closeBidDialog" className="hidden"></button>
+                                      </DialogClose>
+                                  </DialogContent>
+                              </Dialog>
+                              <CollapsibleTrigger asChild>
+                                  <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0 text-blue-300 hover:bg-blue-900/40 hover:text-blue-200">
+                                      <ChevronDown className="w-5 h-5"/>
+                                  </Button>
+                              </CollapsibleTrigger>
+                          </div>
+                      </CardContent>
+                      <CollapsibleContent>
+                          <div className="p-3 border-t border-blue-500/30">
+                              <h5 className="font-semibold text-xs mb-2">Recent Bids</h5>
+                              <div className="space-y-2 max-h-24 overflow-y-auto thin-scrollbar">
+                                  {chatMessages.filter(m => m.isBid).reverse().map(bid => (
+                                      <div key={bid.id} className="flex justify-between items-center text-xs">
+                                          <div className="flex items-center gap-2">
+                                              <Avatar className="w-5 h-5">
+                                                  <AvatarImage src={bid.avatar} />
+                                                  <AvatarFallback>{bid.user.charAt(0)}</AvatarFallback>
+                                              </Avatar>
+                                              <span>{bid.user}</span>
+                                          </div>
+                                          <span className="font-bold text-white">{bid.text.replace('BID ', '')}</span>
+                                      </div>
+                                  ))}
+                              </div>
+                          </div>
+                      </CollapsibleContent>
+                  </Card>
+              </Collapsible>
+          </div>
+      );
+      Comp.displayName = 'AuctionCard';
+      return Comp;
+  }, [auctionCardRef, auctionTime, highestBid, totalBids, walletBalance, bidAmount, chatMessages]);
 
-    const AuctionCard = ({ isPinned }: { isPinned?: boolean }) => (
-        <div ref={isPinned ? null : auctionCardRef}>
-            <Collapsible>
-                <Card className="bg-blue-900/20 border-blue-500/30 text-blue-200">
-                    <CardContent className="p-3">
-                        <div className="flex items-center gap-3">
-                            <div className="w-16 h-16 bg-muted rounded-md relative overflow-hidden flex-shrink-0">
-                                <Image src={productDetails['prod_1'].images[0]} alt={productDetails['prod_1'].name} fill className="object-cover" />
-                            </div>
-                            <div className="flex-grow">
-                                <div className="flex justify-between items-center">
-                                    <Badge className="bg-blue-500 text-white text-xs animate-pulse">AUCTION</Badge>
-                                    <Badge variant="secondary" className="font-mono text-blue-200">{formatAuctionTime(auctionTime)}</Badge>
-                                </div>
-                                <h4 className="font-bold leading-tight mt-1 text-white">{productDetails['prod_1'].name}</h4>
-                                <div className="grid grid-cols-2 gap-x-2 text-xs mt-1">
-                                    <div className="text-blue-300">Current Bid: <span className="font-bold text-white">₹{highestBid.toLocaleString()}</span></div>
-                                    <div className="text-blue-300">Bids: <span className="font-bold text-white">{totalBids}</span></div>
-                                </div>
-                            </div>
-                        </div>
-                        <div className="mt-2 flex items-center gap-2">
-                            <Dialog>
-                                <DialogTrigger asChild>
-                                    <Button className="w-full h-8 bg-blue-600 hover:bg-blue-700 text-white">
-                                        <Gavel className="w-4 h-4 mr-2"/>
-                                        Place Your Bid
-                                    </Button>
-                                </DialogTrigger>
-                                <DialogContent className="sm:max-w-md bg-black border-gray-800 text-white">
-                                    <DialogHeader>
-                                        <DialogTitle className="text-xl font-bold">Place a Bid for {productDetails['prod_1'].name}</DialogTitle>
-                                    </DialogHeader>
-                                    <div className="py-4 space-y-4">
-                                        <div className="flex items-center gap-4 p-4 rounded-lg bg-gray-900">
-                                            <Image src={productDetails['prod_1'].images[0]} alt={productDetails['prod_1'].name} width={64} height={64} className="rounded-md" />
-                                            <div className="flex-grow">
-                                                <h4 className="font-semibold text-white">{productDetails['prod_1'].name}</h4>
-                                                <p className="text-sm text-gray-400">by {productToSellerMapping['prod_1'].name}</p>
-                                            </div>
-                                        </div>
-                                        <div className="grid grid-cols-2 gap-4 text-center">
-                                            <div>
-                                                <Label className="text-xs text-gray-400">Wallet Balance</Label>
-                                                <p className="text-lg font-bold flex items-center justify-center gap-1"><Wallet className="h-4 w-4" />₹{(walletBalance).toFixed(2)}</p>
-                                            </div>
-                                            <div>
-                                                <Label className="text-xs text-gray-400">Current Highest Bid</Label>
-                                                <p className="text-lg font-bold">₹{highestBid.toLocaleString()}</p>
-                                            </div>
-                                        </div>
-                                        <div>
-                                            <Label htmlFor="bid-amount" className="text-sm font-medium">Your Bid (must be > ₹{highestBid.toLocaleString()})</Label>
-                                            <div className="relative mt-1">
-                                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">₹</span>
-                                                <Input
-                                                    id="bid-amount"
-                                                    type="number"
-                                                    placeholder="Enter your bid"
-                                                    className="pl-7 h-11 text-base bg-gray-800 border-gray-700 text-white"
-                                                    value={bidAmount}
-                                                    onChange={(e) => setBidAmount(e.target.value)}
-                                                />
-                                            </div>
-                                        </div>
-                                        <div className="grid grid-cols-3 gap-2">
-                                            <Button variant="outline" onClick={() => setBidAmount(prev => Number(prev || highestBid) + 100)}>+100</Button>
-                                            <Button variant="outline" onClick={() => setBidAmount(prev => Number(prev || highestBid) + 500)}>+500</Button>
-                                            <Button variant="outline" onClick={() => setBidAmount(prev => Number(prev || highestBid) + 1000)}>+1000</Button>
-                                        </div>
-                                    </div>
-                                    <DialogFooter>
-                                        <div className="flex flex-col gap-2 w-full">
-                                             <div className="flex justify-between gap-2">
-                                                <DialogClose asChild>
-                                                    <Button type="button" variant="ghost" className="w-full">Cancel</Button>
-                                                </DialogClose>
-                                                <Button onClick={handlePlaceBid} className="w-full bg-blue-600 hover:bg-blue-700">
-                                                    <Gavel className="mr-2 h-4 w-4" />
-                                                    Confirm Bid
-                                                </Button>
-                                            </div>
-                                            <p className="text-xs text-left text-gray-400 pt-2">Note: Your bid amount will be held and automatically refunded if you do not win the auction.</p>
-                                        </div>
-                                    </DialogFooter>
-                                    <DialogClose asChild>
-                                        <button id="closeBidDialog" className="hidden"></button>
-                                    </DialogClose>
-                                </DialogContent>
-                            </Dialog>
-                            <CollapsibleTrigger asChild>
-                                <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0 text-blue-300 hover:bg-blue-900/40 hover:text-blue-200">
-                                    <ChevronDown className="w-5 h-5"/>
-                                </Button>
-                            </CollapsibleTrigger>
-                        </div>
-                    </CardContent>
-                    <CollapsibleContent>
-                        <div className="p-3 border-t border-blue-500/30">
-                            <h5 className="font-semibold text-xs mb-2">Recent Bids</h5>
-                            <div className="space-y-2 max-h-24 overflow-y-auto thin-scrollbar">
-                                {chatMessages.filter(m => m.isBid).reverse().map(bid => (
-                                    <div key={bid.id} className="flex justify-between items-center text-xs">
-                                        <div className="flex items-center gap-2">
-                                            <Avatar className="w-5 h-5">
-                                                <AvatarImage src={bid.avatar} />
-                                                <AvatarFallback>{bid.user.charAt(0)}</AvatarFallback>
-                                            </Avatar>
-                                            <span>{bid.user}</span>
-                                        </div>
-                                        <span className="font-bold text-white">{bid.text.replace('BID ', '')}</span>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    </CollapsibleContent>
-                </Card>
-            </Collapsible>
-        </div>
-    );
+  const ChatContent = useMemo(() => {
+      const activeAuctionMessage = chatMessages.find(msg => msg.type === 'auction');
+      
+      const renderableMessages = chatMessages.map((msg, index) => {
+          if (msg.type === 'auction') {
+              // Render the AuctionCard inline only if the auction is active
+              if (isAuctionActive) {
+                  return <AuctionCard key={msg.id || index} />;
+              }
+              // If auction is not active (ended), render nothing inline
+              return null;
+          }
+          if (msg.type === 'auction_end') {
+              return (
+                  <Card key={msg.id || index} className="bg-green-600/10 border-green-500/30 text-green-200">
+                      <CardContent className="p-3">
+                          <div className="flex items-center gap-3">
+                              <Avatar className="h-10 w-10 border-2 border-green-400">
+                                  <AvatarImage src={msg.winnerAvatar} />
+                                  <AvatarFallback>{msg.winner.charAt(0)}</AvatarFallback>
+                              </Avatar>
+                              <div className="flex-grow">
+                                  <p className="text-xs font-semibold">AUCTION ENDED</p>
+                                  <p className="font-bold text-lg text-white">{msg.winner}</p>
+                                  <p className="text-sm">won <span className="font-semibold">{msg.productName}</span> for <span className="font-bold text-white">{msg.winningBid}</span></p>
+                              </div>
+                              <Gavel className="h-6 w-6 text-green-400" />
+                          </div>
+                      </CardContent>
+                  </Card>
+              );
+          }
+          if (msg.type === 'system') {
+              return <p key={msg.id || index} className="text-xs text-muted-foreground text-center italic">{msg.text}</p>;
+          }
+          if (msg.isBid) {
+              return (
+                   <Card key={msg.id || index} className="bg-green-900/20 border-green-500/30 my-2 text-green-200">
+                      <CardContent className="p-3">
+                          <div className="flex items-center gap-3">
+                              <Avatar className="h-8 w-8">
+                                  <AvatarImage src={msg.avatar} />
+                                  <AvatarFallback>{msg.user.charAt(0)}</AvatarFallback>
+                              </Avatar>
+                              <div className="flex-grow">
+                                  <p className="text-xs">{msg.user} placed a bid!</p>
+                                  <p className="font-bold text-lg text-white">{msg.text.replace('BID ', '')}</p>
+                              </div>
+                              <Gavel className="h-6 w-6 text-green-400" />
+                          </div>
+                      </CardContent>
+                  </Card>
+              );
+          }
+          if (msg.user) {
+              return (
+                  <div key={msg.id || index} className="text-sm group relative">
+                      <div className="flex items-start gap-2 w-full group">
+                          <Avatar className="w-8 h-8">
+                              <AvatarImage src={msg.avatar} />
+                              <AvatarFallback>{msg.user.charAt(0)}</AvatarFallback>
+                          </Avatar>
+                          <div className="flex-1">
+                              <span className={cn("font-semibold pr-1 text-xs", msg.isSeller && "text-amber-400")}>
+                                  {msg.user.split(' ')[0]}
+                                  {msg.isSeller && (
+                                      <Badge variant="secondary" className="ml-1 text-amber-400 border-amber-400/50">
+                                          <ShieldCheck className="h-3 w-3 mr-1" />
+                                          Admin
+                                      </Badge>
+                                  )}
+                              </span>
+                              <span className={cn("text-foreground break-words")}>{renderContentWithHashtags(msg.text)}</span>
+                          </div>
+                          <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                  <button className="text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity">
+                                      <MoreVertical className="w-4 h-4" />
+                                  </button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                  <DropdownMenuItem onSelect={() => handleReply({ name: msg.user, id: msg.userId })}>Reply</DropdownMenuItem>
+                                  {msg.isSeller && <DropdownMenuItem onSelect={() => handleTogglePinMessage(msg.id)}><Pin className="mr-2 h-4 w-4" />{pinnedMessages.some(p => p.id === msg.id) ? "Unpin" : "Pin"} Message</DropdownMenuItem>}
+                                  <DropdownMenuSeparator />
+                                  <DropdownMenuItem onSelect={() => handleReportMessage(msg.id)} className="text-destructive"><Flag className="mr-2 h-4 w-4" />Report</DropdownMenuItem>
+                              </DropdownMenuContent>
+                          </DropdownMenu>
+                      </div>
+                  </div>
+              );
+          }
+          return null;
+      });
+      return renderableMessages;
+  }, [chatMessages, isAuctionActive, AuctionCard, renderContentWithHashtags, handleReply, handleTogglePinMessage, handleReportMessage, pinnedMessages]);
+
 
     return (
         <Dialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
@@ -1229,7 +1331,7 @@ export default function StreamPage() {
                                 </div>
                             </div>
                             
-                            {!auctionCardInView && auctionTime !== null && auctionTime > 0 && (
+                            {showPinnedAuction && (
                                 <div className="p-4 border-y border-border/50 sticky top-16 bg-card z-20 shadow-lg">
                                     <AuctionCard isPinned />
                                 </div>
@@ -1237,88 +1339,7 @@ export default function StreamPage() {
 
                             <ScrollArea className="flex-1" ref={chatContainerRef}>
                                 <div className="p-4 space-y-2">
-                                    {(() => {
-                                        let auctionRendered = false;
-                                        return chatMessages.map((msg, index) => (
-                                            <div key={msg.id || index} className="text-sm group relative">
-                                                {msg.type === 'auction_end' ? (
-                                                    <Card className="bg-green-600/10 border-green-500/30 text-green-200">
-                                                        <CardContent className="p-3">
-                                                            <div className="flex items-center gap-3">
-                                                                <Avatar className="h-10 w-10 border-2 border-green-400">
-                                                                    <AvatarImage src={msg.winnerAvatar} />
-                                                                    <AvatarFallback>{msg.winner.charAt(0)}</AvatarFallback>
-                                                                </Avatar>
-                                                                <div className="flex-grow">
-                                                                    <p className="text-xs font-semibold">AUCTION ENDED</p>
-                                                                    <p className="font-bold text-lg text-white">{msg.winner}</p>
-                                                                    <p className="text-sm">won <span className="font-semibold">{msg.productName}</span> for <span className="font-bold text-white">{msg.winningBid}</span></p>
-                                                                </div>
-                                                                <Gavel className="h-6 w-6 text-green-400" />
-                                                            </div>
-                                                        </CardContent>
-                                                    </Card>
-                                                ) : msg.type === 'auction' ? (
-                                                    !auctionRendered && auctionTime !== null && (() => {
-                                                        auctionRendered = true;
-                                                        return <AuctionCard />;
-                                                    })()
-                                                ) : msg.type === 'system' ? (
-                                                    <p className="text-xs text-muted-foreground text-center italic">{msg.text}</p>
-                                                ) : msg.isBid ? (
-                                                    <Card className="bg-green-900/20 border-green-500/30 my-2 text-green-200">
-                                                        <CardContent className="p-3">
-                                                            <div className="flex items-center gap-3">
-                                                                <Avatar className="h-8 w-8">
-                                                                    <AvatarImage src={msg.avatar} />
-                                                                    <AvatarFallback>{msg.user.charAt(0)}</AvatarFallback>
-                                                                </Avatar>
-                                                                <div className="flex-grow">
-                                                                    <p className="text-xs">{msg.user} placed a bid!</p>
-                                                                    <p className="font-bold text-lg text-white">{msg.text.replace('BID ', '')}</p>
-                                                                </div>
-                                                                <Gavel className="h-6 w-6 text-green-400" />
-                                                            </div>
-                                                        </CardContent>
-                                                    </Card>
-                                                ) : msg.user ? (
-                                                    <>
-                                                        <div className="flex items-start gap-2 w-full group">
-                                                            <Avatar className="w-8 h-8">
-                                                                <AvatarImage src={msg.avatar} />
-                                                                <AvatarFallback>{msg.user.charAt(0)}</AvatarFallback>
-                                                            </Avatar>
-                                                            <div className="flex-1">
-                                                                <span className={cn("font-semibold pr-1 text-xs", msg.isSeller && "text-amber-400")}>
-                                                                    {msg.user.split(' ')[0]}
-                                                                    {msg.isSeller && (
-                                                                        <Badge variant="secondary" className="ml-1 text-amber-400 border-amber-400/50">
-                                                                            <ShieldCheck className="h-3 w-3 mr-1" />
-                                                                            Admin
-                                                                        </Badge>
-                                                                    )}
-                                                                </span>
-                                                                <span className={cn("text-foreground break-words")}>{renderContentWithHashtags(msg.text)}</span>
-                                                            </div>
-                                                            <DropdownMenu>
-                                                                <DropdownMenuTrigger asChild>
-                                                                    <button className="text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity">
-                                                                        <MoreVertical className="w-4 h-4" />
-                                                                    </button>
-                                                                </DropdownMenuTrigger>
-                                                                <DropdownMenuContent align="end">
-                                                                    <DropdownMenuItem onSelect={() => handleReply({ name: msg.user, id: msg.userId })}>Reply</DropdownMenuItem>
-                                                                    {msg.isSeller && <DropdownMenuItem onSelect={() => handleTogglePinMessage(msg.id)}><Pin className="mr-2 h-4 w-4" />{pinnedMessages.some(p => p.id === msg.id) ? "Unpin" : "Pin"} Message</DropdownMenuItem>}
-                                                                    <DropdownMenuSeparator />
-                                                                    <DropdownMenuItem onSelect={() => handleReportMessage(msg.id)} className="text-destructive"><Flag className="mr-2 h-4 w-4" />Report</DropdownMenuItem>
-                                                                </DropdownMenuContent>
-                                                            </DropdownMenu>
-                                                        </div>
-                                                    </>
-                                                ) : null}
-                                            </div>
-                                        ));
-                                    })()}
+                                    {ChatContent}
                                     <div ref={messagesEndRef} />
                                 </div>
                             </ScrollArea>
