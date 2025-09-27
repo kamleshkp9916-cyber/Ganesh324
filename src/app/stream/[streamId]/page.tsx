@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import {
@@ -375,6 +374,87 @@ const useInView = (options?: IntersectionObserverInit) => {
     return [ref, isInView] as const;
 };
 
+const renderContentWithHashtags = (text: string) => {
+    if (!text) return text;
+    const parts = text.split(/(@\w+|#\w+)/g);
+    return parts.map((part, index) => {
+        if (part.startsWith('#')) {
+            return <Link key={index} href={`/feed?hashtag=${part.substring(1)}`} className="text-primary hover:underline">{part}</Link>;
+        }
+        if (part.startsWith('@')) {
+             return <span key={index} className="text-blue-500 font-semibold">{part}</span>;
+        }
+        return part;
+    });
+};
+
+const ChatMessageContent = React.memo(({ msg, index, handlers, post, pinnedMessages }: { msg: any; index: number, handlers: any, post: any, pinnedMessages: any[] }) => {
+    const { user } = useAuth();
+    if (msg.type === 'system') {
+        return <p key={msg.id || index} className="text-xs text-muted-foreground text-center italic">{msg.text}</p>;
+    }
+    if (msg.isBid) {
+        return (
+             <Card key={msg.id || index} className="bg-green-900/20 border-green-500/30 my-2 text-green-200">
+                <CardContent className="p-3">
+                    <div className="flex items-center gap-3">
+                        <Avatar className="h-8 w-8">
+                            <AvatarImage src={msg.avatar} />
+                            <AvatarFallback>{msg.user.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                        <div className="flex-grow">
+                            <p className="text-xs">{msg.user} placed a bid!</p>
+                            <p className="font-bold text-lg text-white">{msg.text.replace('BID ', '')}</p>
+                        </div>
+                        <Gavel className="h-6 w-6 text-green-400" />
+                    </div>
+                </CardContent>
+            </Card>
+        );
+    }
+    if (msg.user) {
+        const isPostAuthor = user?.uid === post.sellerId;
+
+        return (
+            <div key={msg.id || index} className="text-sm group relative">
+                <div className="flex items-start gap-2 w-full group">
+                    <Avatar className="w-8 h-8">
+                        <AvatarImage src={msg.avatar} />
+                        <AvatarFallback>{msg.user.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1">
+                        <span className={cn("font-semibold pr-1 text-xs", msg.isSeller && "text-amber-400")}>
+                            {msg.user.split(' ')[0]}
+                            {msg.isSeller && (
+                                <Badge variant="secondary" className="ml-1 text-amber-400 border-amber-400/50">
+                                    <ShieldCheck className="h-3 w-3 mr-1" />
+                                    Admin
+                                </Badge>
+                            )}
+                        </span>
+                        <span className={cn("text-foreground break-words")}>{renderContentWithHashtags(msg.text)}</span>
+                    </div>
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <button className="text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity">
+                                <MoreVertical className="w-4 h-4" />
+                            </button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                            <DropdownMenuItem onSelect={() => handlers.onReply({ name: msg.user, id: msg.userId })}>Reply</DropdownMenuItem>
+                            {isPostAuthor && <DropdownMenuItem onSelect={() => handlers.onTogglePinMessage(msg.id)}><Pin className="mr-2 h-4 w-4" />{pinnedMessages.some(p => p.id === msg.id) ? "Unpin" : "Pin"} Message</DropdownMenuItem>}
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem onSelect={() => handlers.onReportMessage(msg.id)} className="text-destructive"><Flag className="mr-2 h-4 w-4" />Report</DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                </div>
+            </div>
+        );
+    }
+    return null;
+});
+ChatMessageContent.displayName = 'ChatMessageContent';
+
 
 export default function StreamPage() {
     const router = useRouter();
@@ -670,20 +750,6 @@ export default function StreamPage() {
       }
     };
     
-    const renderContentWithHashtags = (text: string) => {
-        if (!text) return text;
-        const parts = text.split(/(@\w+|#\w+)/g);
-        return parts.map((part, index) => {
-            if (part.startsWith('#')) {
-                return <Link key={index} href={`/feed?hashtag=${part.substring(1)}`} className="text-primary hover:underline">{part}</Link>;
-            }
-            if (part.startsWith('@')) {
-                 return <span key={index} className="text-blue-500 font-semibold">{part}</span>;
-            }
-            return part;
-        });
-    };
-
     const addEmoji = (emoji: string) => {
         setNewMessage(prev => prev + emoji);
     };
@@ -915,106 +981,22 @@ export default function StreamPage() {
         );
         Comp.displayName = 'AuctionCard';
         return Comp;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [auctionCardRef, auctionTime, highestBid, totalBids, walletBalance, bidAmount, chatMessages, isAuctionActive]);
     
-    const ChatMessageContent = React.memo(({ msg, index }: { msg: any; index: number }) => {
-        if (msg.type === 'auction') {
-            return isAuctionActive ? <AuctionCard key={msg.id || index} /> : null;
-        }
-        if (msg.type === 'auction_end') {
-            return (
-                <Card key={msg.id || index} className="bg-green-600/10 border-green-500/30 text-green-200">
-                    <CardContent className="p-3">
-                        <div className="flex items-center gap-3">
-                            <Avatar className="h-10 w-10 border-2 border-green-400">
-                                <AvatarImage src={msg.winnerAvatar} />
-                                <AvatarFallback>{msg.winner.charAt(0)}</AvatarFallback>
-                            </Avatar>
-                            <div className="flex-grow">
-                                <p className="text-xs font-semibold">AUCTION ENDED</p>
-                                <p className="font-bold text-lg text-white">{msg.winner}</p>
-                                <p className="text-sm">won <span className="font-semibold">{msg.productName}</span> for <span className="font-bold text-white">{msg.winningBid}</span></p>
-                            </div>
-                            <Gavel className="h-6 w-6 text-green-400" />
-                        </div>
-                    </CardContent>
-                </Card>
-            );
-        }
-        if (msg.type === 'system') {
-            return <p key={msg.id || index} className="text-xs text-muted-foreground text-center italic">{msg.text}</p>;
-        }
-        if (msg.isBid) {
-            return (
-                 <Card key={msg.id || index} className="bg-green-900/20 border-green-500/30 my-2 text-green-200">
-                    <CardContent className="p-3">
-                        <div className="flex items-center gap-3">
-                            <Avatar className="h-8 w-8">
-                                <AvatarImage src={msg.avatar} />
-                                <AvatarFallback>{msg.user.charAt(0)}</AvatarFallback>
-                            </Avatar>
-                            <div className="flex-grow">
-                                <p className="text-xs">{msg.user} placed a bid!</p>
-                                <p className="font-bold text-lg text-white">{msg.text.replace('BID ', '')}</p>
-                            </div>
-                            <Gavel className="h-6 w-6 text-green-400" />
-                        </div>
-                    </CardContent>
-                </Card>
-            );
-        }
-        if (msg.user) {
-            return (
-                <div key={msg.id || index} className="text-sm group relative">
-                    <div className="flex items-start gap-2 w-full group">
-                        <Avatar className="w-8 h-8">
-                            <AvatarImage src={msg.avatar} />
-                            <AvatarFallback>{msg.user.charAt(0)}</AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1">
-                            <span className={cn("font-semibold pr-1 text-xs", msg.isSeller && "text-amber-400")}>
-                                {msg.user.split(' ')[0]}
-                                {msg.isSeller && (
-                                    <Badge variant="secondary" className="ml-1 text-amber-400 border-amber-400/50">
-                                        <ShieldCheck className="h-3 w-3 mr-1" />
-                                        Admin
-                                    </Badge>
-                                )}
-                            </span>
-                            <span className={cn("text-foreground break-words")}>{renderContentWithHashtags(msg.text)}</span>
-                        </div>
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <button className="text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <MoreVertical className="w-4 h-4" />
-                                </button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                                <DropdownMenuItem onSelect={() => handleReply({ name: msg.user, id: msg.userId })}>Reply</DropdownMenuItem>
-                                {msg.isSeller && <DropdownMenuItem onSelect={() => handleTogglePinMessage(msg.id)}><Pin className="mr-2 h-4 w-4" />{pinnedMessages.some(p => p.id === msg.id) ? "Unpin" : "Pin"} Message</DropdownMenuItem>}
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem onSelect={() => handleReportMessage(msg.id)} className="text-destructive"><Flag className="mr-2 h-4 w-4" />Report</DropdownMenuItem>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
-                    </div>
-                </div>
-            );
-        }
-        return null;
-    });
-    ChatMessageContent.displayName = 'ChatMessageContent';
-
-    const firstActiveAuction = useMemo(() => chatMessages.find(m => m.type === 'auction'), [chatMessages]);
+    
+    const firstActiveAuction = useMemo(() => {
+        return chatMessages.find(m => m.type === 'auction');
+    }, [chatMessages]);
 
     const ChatContent = useMemo(() => {
-        return (
-            <>
-                {chatMessages.filter(m => m.type !== 'auction').map((msg, index) => (
-                    <ChatMessageContent key={msg.id || index} msg={msg} index={index} />
-                ))}
-            </>
-        );
-    }, [chatMessages, ChatMessageContent]);
+        const handlers = { onReply: handleReply, onTogglePinMessage: handleTogglePinMessage, onReportMessage: handleReportMessage };
+        const otherMessages = chatMessages.filter(m => m.type !== 'auction');
+        return otherMessages.map((msg, index) => (
+            <ChatMessageContent key={msg.id || index} msg={msg} index={index} handlers={handlers} post={{sellerId: seller?.id, avatarUrl: seller?.avatarUrl, sellerName: seller?.name}} pinnedMessages={pinnedMessages} />
+        ));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [chatMessages, seller, pinnedMessages]);
     
     return (
         <React.Fragment>
@@ -1347,7 +1329,7 @@ export default function StreamPage() {
 
                                 <ScrollArea className="flex-1" ref={chatContainerRef}>
                                     <div className="p-4 space-y-4">
-                                        {firstActiveAuction && <ChatMessageContent msg={firstActiveAuction} index={-1} />}
+                                        {firstActiveAuction && isAuctionActive && <AuctionCard />}
                                         {ChatContent}
                                         <div ref={messagesEndRef} />
                                     </div>
@@ -1394,7 +1376,7 @@ export default function StreamPage() {
                         </AlertDialogFooter>
                     </AlertDialogContent>
                 </AlertDialog>
-                 <PlayerSettingsDialog
+                <PlayerSettingsDialog
                     playbackRate={playbackRate}
                     onPlaybackRateChange={handlePlaybackRateChange}
                     skipInterval={skipInterval}
