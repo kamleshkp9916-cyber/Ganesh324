@@ -481,8 +481,6 @@ export default function StreamPage() {
             }, 1000);
             return () => clearInterval(timer);
         } else if (auctionTime === 0) {
-            setAuctionTime(null);
-            
             const winningBid = [...chatMessages].reverse().find(m => m.isBid);
             if (winningBid) {
                 const winnerMessage = {
@@ -502,12 +500,13 @@ export default function StreamPage() {
                 };
                 setChatMessages(prev => [...prev, noWinnerMessage]);
             }
-            
+            setAuctionTime(null);
         }
     }, [auctionTime, chatMessages]);
 
     const formatAuctionTime = (seconds: number | null) => {
         if (seconds === null) return '00:00';
+        if (seconds <= 0) return 'Ended';
         const mins = Math.floor(seconds / 60);
         const secs = seconds % 60;
         return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
@@ -858,12 +857,16 @@ export default function StreamPage() {
                                             <Button variant="outline" onClick={() => setBidAmount(prev => Number(prev || highestBid) + 1000)}>+1000</Button>
                                         </div>
                                     </div>
-                                    <DialogFooter className="flex-col gap-2">
-                                        <Button onClick={handlePlaceBid} className="w-full bg-blue-600 hover:bg-blue-700">
-                                            <Gavel className="mr-2 h-4 w-4" />
-                                            Confirm Bid
-                                        </Button>
-                                         <p className="text-xs text-left text-gray-400 pt-2">Note: Your bid amount will be held and automatically refunded if you do not win the auction.</p>
+                                    <DialogFooter>
+                                        <div className="flex flex-col gap-2 w-full">
+                                            <Button onClick={handlePlaceBid} className="w-full bg-blue-600 hover:bg-blue-700">
+                                                <Gavel className="mr-2 h-4 w-4" />
+                                                Confirm Bid
+                                            </Button>
+                                            <p className="text-xs text-left text-gray-400">
+                                                Note: Your bid amount will be held and automatically refunded if you do not win the auction.
+                                            </p>
+                                        </div>
                                     </DialogFooter>
                                     <DialogClose asChild>
                                         <button id="closeBidDialog" className="hidden"></button>
@@ -1224,7 +1227,7 @@ export default function StreamPage() {
                     </div>
                   </div>
 
-                  {!auctionCardInView && auctionTime !== null && (
+                  {!auctionCardInView && auctionTime !== null && auctionTime > 0 && (
                     <div className="p-4 border-y border-border/50 sticky top-16 bg-card z-20 shadow-lg">
                         <AuctionCard isPinned />
                     </div>
@@ -1252,7 +1255,7 @@ export default function StreamPage() {
                                     </CardContent>
                                 </Card>
                             ) : msg.type === 'auction' ? (
-                                <AuctionCard />
+                                auctionTime !== null && <AuctionCard />
                             ) : msg.type === 'system' ? (
                             <p className="text-xs text-muted-foreground text-center italic">{msg.text}</p>
                           ) : msg.isBid ? (
