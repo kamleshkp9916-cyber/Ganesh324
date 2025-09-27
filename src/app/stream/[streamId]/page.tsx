@@ -703,6 +703,7 @@ export default function StreamPage() {
 
     return (
         <Dialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
+            <AlertDialog>
         <div className="h-dvh w-full flex flex-col bg-black text-white">
             <header className="flex-shrink-0 h-16 bg-transparent border-b border-border text-foreground flex items-center justify-between px-4 z-40">
                 <div className="flex items-center gap-2">
@@ -895,7 +896,7 @@ export default function StreamPage() {
                         </div>
                     </div>
                 </div>
-                 <div className="hidden lg:flex w-[340px] flex-shrink-0 h-full flex-col border-l border-border bg-transparent">
+                 <div className="hidden lg:flex w-[340px] flex-shrink-0 h-full flex-col border-l bg-transparent">
                     <div className="p-4 flex items-center justify-between z-10 flex-shrink-0 h-16 bg-transparent">
                         <h3 className="font-bold text-lg">Live Chat</h3>
                         <div className="flex items-center gap-1">
@@ -1024,25 +1025,11 @@ export default function StreamPage() {
                                 <MessageCircle className="mr-2 h-4 w-4" /> Feedback
                                 </DropdownMenuItem>
                             </FeedbackDialog>
-                            <AlertDialog>
-                                <AlertDialogTrigger asChild>
+                            <AlertDialogTrigger asChild>
                                 <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive focus:text-destructive">
                                     <Flag className="mr-2 h-4 w-4" /> Report Stream
                                 </DropdownMenuItem>
-                                </AlertDialogTrigger>
-                                <AlertDialogContent>
-                                <AlertDialogHeader>
-                                    <AlertDialogTitle>Report Stream?</AlertDialogTitle>
-                                    <AlertDialogDescription>
-                                    If this stream violates our community guidelines, please report it. Our team will review it shortly.
-                                    </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                    <AlertDialogAction>Report</AlertDialogAction>
-                                </AlertDialogFooter>
-                                </AlertDialogContent>
-                            </AlertDialog>
+                            </AlertDialogTrigger>
                             </DropdownMenuContent>
                         </DropdownMenu>
                         </div>
@@ -1113,6 +1100,22 @@ export default function StreamPage() {
                                null
                             ) : msg.type === 'system' ? (
                             <p className="text-xs text-muted-foreground text-center italic">{msg.text}</p>
+                            ) : msg.isBid ? (
+                                <Card className="bg-gradient-to-r from-yellow-500/10 to-yellow-400/10 border-yellow-500/30 my-2">
+                                    <CardContent className="p-3">
+                                        <div className="flex items-center gap-3">
+                                            <Avatar className="h-8 w-8">
+                                                <AvatarImage src={msg.avatar} />
+                                                <AvatarFallback>{msg.user.charAt(0)}</AvatarFallback>
+                                            </Avatar>
+                                            <div className="flex-grow">
+                                                <p className="text-xs">{msg.user} placed a bid!</p>
+                                                <p className="font-bold text-lg text-yellow-400">{msg.text.replace('BID ', '')}</p>
+                                            </div>
+                                            <Gavel className="h-6 w-6 text-yellow-500" />
+                                        </div>
+                                    </CardContent>
+                                </Card>
                             ) : msg.user ? (
                             <>
                                 <div className="flex items-start gap-2">
@@ -1130,7 +1133,7 @@ export default function StreamPage() {
                                         </Badge>
                                     )}
                                     </span>
-                                    <span className={cn("text-muted-foreground break-words", msg.isBid && "font-bold text-lg text-primary")}>{renderContentWithHashtags(msg.text)}</span>
+                                    <span className={cn("text-muted-foreground break-words")}>{renderContentWithHashtags(msg.text)}</span>
                                 </div>
                                  <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
@@ -1182,6 +1185,19 @@ export default function StreamPage() {
                 </div>
             </div>
         </div>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Report Stream?</AlertDialogTitle>
+            <AlertDialogDescription>
+              If this stream violates our community guidelines, please report it. Our team will review it shortly.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction>Report</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
         <PlayerSettingsDialog
             playbackRate={playbackRate}
             onPlaybackRateChange={handlePlaybackRateChange}
@@ -1192,5 +1208,3 @@ export default function StreamPage() {
         </Dialog>
     );
 }
-
-    
