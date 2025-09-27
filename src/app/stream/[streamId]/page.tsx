@@ -510,7 +510,7 @@ const AuctionCard = React.memo(({
     bidAmount: number | string,
     setBidAmount: (value: number | string) => void,
 }) => {
-    const isAuctionActive = auctionTime !== null && auctionTime > 0;
+    const isAuctionActive = auction.active && auctionTime !== null && auctionTime > 0;
     const product = productDetails[auction.productId as keyof typeof productDetails];
     
     if (!product) return null;
@@ -1060,7 +1060,7 @@ export default function StreamPage() {
                     <div key={msg.id} ref={auctionCardRef} className="my-2">
                         <AuctionCard
                             auction={msg}
-                            auctionTime={auctionTime}
+                            auctionTime={activeAuction?.id === msg.id ? auctionTime : null}
                             highestBid={highestBid}
                             totalBids={totalBids}
                             handlePlaceBid={handlePlaceBid}
@@ -1409,20 +1409,8 @@ export default function StreamPage() {
                                 </div>
                                 
                                 <div className="relative flex-1 flex flex-col overflow-hidden">
-                                     {showPinnedAuction && activeAuction && (
-                                        <div className="p-4 border-b border-border/50 sticky top-0 bg-card z-20 shadow-lg">
-                                            <AuctionCard
-                                                auction={activeAuction}
-                                                auctionTime={auctionTime}
-                                                highestBid={highestBid}
-                                                totalBids={totalBids}
-                                                handlePlaceBid={handlePlaceBid}
-                                                walletBalance={walletBalance}
-                                                bidAmount={bidAmount}
-                                                setBidAmount={setBidAmount}
-                                            />
-                                        </div>
-                                    )}
+                                     <div className="p-4 border-b border-border/50 sticky top-0 bg-card z-20 shadow-lg">
+                                      </div>
                                     <ScrollArea className="flex-1" ref={chatContainerRef}>
                                         <div className="p-4 space-y-4">
                                             {memoizedChatMessages}
