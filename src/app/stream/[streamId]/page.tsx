@@ -739,512 +739,512 @@ export default function StreamPage() {
     return (
         <>
             <Dialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
-                <AlertDialog>
-                    <div className="h-dvh w-full flex flex-col bg-background text-foreground">
-                        <header className="flex-shrink-0 h-16 bg-background border-b border-border flex items-center justify-between px-4 z-40">
-                            <div className="flex items-center gap-2">
-                                <Button variant="ghost" size="icon" onClick={() => router.back()}>
-                                    <ArrowLeft />
-                                </Button>
-                                <Link href="/live-selling" className="flex items-center gap-2">
-                                    <Logo className="h-7 w-7" />
-                                    <span className="font-bold text-lg hidden sm:inline-block">StreamCart</span>
+             <AlertDialog>
+                <div className="h-dvh w-full flex flex-col bg-background text-foreground">
+                    <header className="flex-shrink-0 h-16 bg-background border-b border-border flex items-center justify-between px-4 z-40">
+                        <div className="flex items-center gap-2">
+                            <Button variant="ghost" size="icon" onClick={() => router.back()}>
+                                <ArrowLeft />
+                            </Button>
+                            <Link href="/live-selling" className="flex items-center gap-2">
+                                <Logo className="h-7 w-7" />
+                                <span className="font-bold text-lg hidden sm:inline-block">StreamCart</span>
+                            </Link>
+                        </div>
+                        <div className="relative w-full max-w-md mx-4 hidden lg:block">
+                            <Input placeholder="Search..." className="rounded-full bg-muted pr-10" />
+                            <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <Button asChild variant="ghost">
+                                <Link href="/cart">
+                                    <ShoppingCart className="mr-2"/>
+                                    My Cart
                                 </Link>
-                            </div>
-                            <div className="relative w-full max-w-md mx-4 hidden lg:block">
-                                <Input placeholder="Search..." className="rounded-full bg-muted pr-10" />
-                                <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <Button asChild variant="ghost">
-                                    <Link href="/cart">
-                                        <ShoppingCart className="mr-2"/>
-                                        My Cart
-                                    </Link>
-                                </Button>
-                            </div>
-                        </header>
-            
-                         <div className="flex flex-1 overflow-hidden">
-                            <div className="flex-1 overflow-y-auto no-scrollbar">
-                                <div className="w-full aspect-video bg-black relative group flex-shrink-0" ref={playerRef}>
-                                    <video ref={videoRef} src={streamData.streamUrl || "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"} className="w-full h-full object-cover" loop />
-                                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-black/60 flex flex-col p-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                                        <div className="flex items-center justify-between">
-                                            <h1 className="font-bold text-lg hidden sm:block text-white">{streamData.title || "Live Event"}</h1>
-                                            <Badge variant="secondary" className="gap-1.5">
-                                                <Users className="h-3 w-3" /> {Math.round(streamData.viewerCount / 1000)}K watching
-                                            </Badge>
-                                        </div>
-                                        <div className="flex-1 flex items-center justify-center gap-4 sm:gap-8 text-white">
-                                            <Button variant="ghost" size="icon" className="w-14 h-14" onClick={() => handleSeek('backward')}><Rewind className="w-8 h-8" /></Button>
-                                            <Button variant="ghost" size="icon" className="w-20 h-20" onClick={handlePlayPause}>
-                                                {isPaused ? <Play className="w-12 h-12 fill-current" /> : <Pause className="w-12 h-12 fill-current" />}
-                                            </Button>
-                                            <Button variant="ghost" size="icon" className="w-14 h-14" onClick={() => handleSeek('forward')}><FastForward className="w-8 h-8" /></Button>
-                                        </div>
-                                        <div className="space-y-3 text-white">
-                                            <div className="w-full cursor-pointer py-1" ref={progressContainerRef} onClick={handleProgressClick}>
-                                                <Progress value={(currentTime / duration) * 100} valueBuffer={(buffered / duration) * 100} isLive={isLive} className="h-2" />
-                                            </div>
-                                            <div className="flex items-center justify-between">
-                                                <div className="flex items-center gap-2 sm:gap-4">
-                                                     <Button 
-                                                        variant="destructive" 
-                                                        className="gap-1.5 h-8 text-xs sm:text-sm"
-                                                        onClick={handleGoLive}
-                                                        disabled={isLive}
-                                                    >
-                                                        <div className={cn("h-2 w-2 rounded-full bg-white", !isLive && "animate-pulse")} />
-                                                         LIVE
-                                                    </Button>
-                                                     {!isLive && (
-                                                        <div className="text-xs text-yellow-400 font-semibold">
-                                                            You are {formatTime(duration - currentTime)} behind
-                                                        </div>
-                                                    )}
-                                                    <Button variant="ghost" size="icon" onClick={() => setIsMuted(prev => !prev)}>
-                                                        {isMuted ? <VolumeX /> : <Volume2 />}
-                                                    </Button>
-                                                    <p className="text-sm font-mono">{formatTime(currentTime)}</p>
-                                                </div>
-                                                <div className="flex items-center gap-1 sm:gap-2">
-                                                    <Button variant="ghost" size="icon" onClick={() => videoRef.current?.requestPictureInPicture()}><PictureInPicture /></Button>
-                                                    <Button variant="ghost" size="icon" onClick={handleShare}><Share2 /></Button>
-                                                    <DialogTrigger asChild>
-                                                        <Button variant="ghost" size="icon"><Settings /></Button>
-                                                    </DialogTrigger>
-                                                    <Button variant="ghost" size="icon" onClick={() => playerRef.current?.requestFullscreen()}><Maximize /></Button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                 <div className="p-4">
-                                    <div className="mb-4">
-                                        <h2 className="font-bold text-xl">{streamData.title || "Live Stream"}</h2>
-                                        <div className="text-sm text-muted-foreground">{renderContentWithHashtags(streamData.description) || "Welcome to the live stream!"}</div>
-                                    </div>
+                            </Button>
+                        </div>
+                    </header>
+        
+                     <div className="flex flex-1 overflow-hidden">
+                        <div className="flex-1 overflow-y-auto no-scrollbar">
+                            <div className="w-full aspect-video bg-black relative group flex-shrink-0" ref={playerRef}>
+                                <video ref={videoRef} src={streamData.streamUrl || "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"} className="w-full h-full object-cover" loop />
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-black/60 flex flex-col p-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                                     <div className="flex items-center justify-between">
-                                        <Collapsible className="w-full">
-                                            <div className="flex items-center gap-3">
-                                            {seller && (
-                                                <>
-                                                <Avatar>
-                                                    <AvatarImage src={seller.avatarUrl} />
-                                                    <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
-                                                </Avatar>
-                                                <h3 className="font-semibold">{seller.name}</h3>
-                                                <Button variant="secondary" size="sm" className="h-7">
-                                                    <UserPlus className="mr-1.5 h-4 w-4" /> Follow
-                                                </Button>
-                                                 <CollapsibleTrigger asChild>
-                                                    <Button variant="outline" size="sm" className="h-7 gap-1.5">
-                                                        <ShoppingBag className="w-4 h-4"/> View Products ({sellerProducts.length})
-                                                    </Button>
-                                                </CollapsibleTrigger>
-                                                </>
-                                            )}
-                                            </div>
-                                            <CollapsibleContent className="mt-4">
-                                                 <div className="relative">
-                                                    <Carousel opts={{ align: "start", dragFree: true }} className="w-full">
-                                                        <CarouselContent className="-ml-2">
-                                                            {sellerProducts.map((p, index) => (
-                                                            <CarouselItem key={index} className="pl-2 basis-auto">
-                                                                <div className="w-32">
-                                                                    <Card className="h-full flex flex-col overflow-hidden bg-card text-card-foreground">
-                                                                        <Link href={`/product/${p.key}`}>
-                                                                        <div className="aspect-square bg-muted rounded-t-lg relative">
-                                                                            <Image src={(p.images && p.images[0]?.preview) || p.images[0]} alt={p.name} fill className="object-cover" />
-                                                                            {p.stock === 0 && (
-                                                                                <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                                                                                    <Badge variant="destructive">Out of Stock</Badge>
-                                                                                </div>
-                                                                            )}
-                                                                        </div>
-                                                                        <div className="p-1.5">
-                                                                            <p className="text-[11px] font-semibold truncate leading-tight">{p.name}</p>
-                                                                            <p className="text-xs font-bold">₹{p.price.toLocaleString()}</p>
-                                                                        </div>
-                                                                        </Link>
-                                                                        <CardFooter className="p-1.5 mt-auto grid grid-cols-2 gap-1">
-                                                                        {p.stock > 0 ? (
-                                                                            <>
-                                                                            <Button size="xs" className="w-full text-[10px] h-7" variant="secondary" onClick={() => handleAddToCart(p)}>Add</Button>
-                                                                            <Button size="xs" className="w-full text-[10px] h-7" onClick={() => handleBuyNow(p)}>Buy</Button>
-                                                                            </>
-                                                                        ) : (
-                                                                            <Button size="xs" className="w-full text-[10px] h-7 col-span-2" variant="outline" disabled>Out of Stock</Button>
-                                                                        )}
-                                                                        </CardFooter>
-                                                                    </Card>
-                                                                </div>
-                                                            </CarouselItem>
-                                                            ))}
-                                                        </CarouselContent>
-                                                    </Carousel>
-                                                </div>
-                                            </CollapsibleContent>
-                                        </Collapsible>
+                                        <h1 className="font-bold text-lg hidden sm:block text-white">{streamData.title || "Live Event"}</h1>
+                                        <Badge variant="secondary" className="gap-1.5">
+                                            <Users className="h-3 w-3" /> {Math.round(streamData.viewerCount / 1000)}K watching
+                                        </Badge>
                                     </div>
-                                    
-                                    <div className="mt-8">
-                                        <h4 className="font-semibold mb-4">Related Streams</h4>
-                                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                                        {relatedStreams.map((s: any) => (
-                                            <Link href={`/stream/${s.id}`} key={s.id} className="group">
-                                            <div className="relative rounded-lg overflow-hidden aspect-[16/9] bg-muted">
-                                                <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
-                                                <div className="absolute top-2 right-2 z-10">
-                                                    <Badge variant="secondary" className="bg-background/60 backdrop-blur-sm gap-1.5">
-                                                        <Users className="h-3 w-3"/>
-                                                        {s.viewers}
-                                                    </Badge>
-                                                </div>
+                                    <div className="flex-1 flex items-center justify-center gap-4 sm:gap-8 text-white">
+                                        <Button variant="ghost" size="icon" className="w-14 h-14" onClick={() => handleSeek('backward')}><Rewind className="w-8 h-8" /></Button>
+                                        <Button variant="ghost" size="icon" className="w-20 h-20" onClick={handlePlayPause}>
+                                            {isPaused ? <Play className="w-12 h-12 fill-current" /> : <Pause className="w-12 h-12 fill-current" />}
+                                        </Button>
+                                        <Button variant="ghost" size="icon" className="w-14 h-14" onClick={() => handleSeek('forward')}><FastForward className="w-8 h-8" /></Button>
+                                    </div>
+                                    <div className="space-y-3 text-white">
+                                        <div className="w-full cursor-pointer py-1" ref={progressContainerRef} onClick={handleProgressClick}>
+                                            <Progress value={(currentTime / duration) * 100} valueBuffer={(buffered / duration) * 100} isLive={isLive} className="h-2" />
+                                        </div>
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-2 sm:gap-4">
+                                                 <Button 
+                                                    variant="destructive" 
+                                                    className="gap-1.5 h-8 text-xs sm:text-sm"
+                                                    onClick={handleGoLive}
+                                                    disabled={isLive}
+                                                >
+                                                    <div className={cn("h-2 w-2 rounded-full bg-white", !isLive && "animate-pulse")} />
+                                                     LIVE
+                                                </Button>
+                                                 {!isLive && (
+                                                    <div className="text-xs text-yellow-400 font-semibold">
+                                                        You are {formatTime(duration - currentTime)} behind
+                                                    </div>
+                                                )}
+                                                <Button variant="ghost" size="icon" onClick={() => setIsMuted(prev => !prev)}>
+                                                    {isMuted ? <VolumeX /> : <Volume2 />}
+                                                </Button>
+                                                <p className="text-sm font-mono">{formatTime(currentTime)}</p>
                                             </div>
-                                            <div className="flex items-start gap-2 mt-2">
-                                                <Avatar className="w-7 h-7">
-                                                <AvatarImage src={s.avatarUrl} alt={s.name} />
-                                                <AvatarFallback>{s.name.charAt(0)}</AvatarFallback>
-                                                </Avatar>
-                                                <div className="flex-1">
-                                                <div className="flex items-center gap-1.5">
-                                                    <p className="font-semibold text-xs group-hover:underline truncate">{s.name}</p>
-                                                    {s.hasAuction && (
-                                                    <Badge variant="purple" className="text-xs font-bold px-1.5 py-0">
-                                                        Auction
-                                                    </Badge>
-                                                    )}
-                                                </div>
-                                                <p className="text-xs text-muted-foreground">{s.category}</p>
-                                                <p className="text-xs text-primary font-semibold mt-0.5 sm:hidden lg:block">#{s.category.toLowerCase()}</p>
-                                                </div>
+                                            <div className="flex items-center gap-1 sm:gap-2">
+                                                <Button variant="ghost" size="icon" onClick={() => videoRef.current?.requestPictureInPicture()}><PictureInPicture /></Button>
+                                                <Button variant="ghost" size="icon" onClick={handleShare}><Share2 /></Button>
+                                                <DialogTrigger asChild>
+                                                    <Button variant="ghost" size="icon"><Settings /></Button>
+                                                </DialogTrigger>
+                                                <Button variant="ghost" size="icon" onClick={() => playerRef.current?.requestFullscreen()}><Maximize /></Button>
                                             </div>
-                                            </Link>
-                                        ))}
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                             <div className="hidden lg:flex w-[340px] flex-shrink-0 h-full flex-col bg-card">
-                                 <div className="p-4 flex items-center justify-between z-10 flex-shrink-0 h-16">
-                                    <h3 className="font-bold text-lg">Live Chat</h3>
-                                    <div className="flex items-center gap-1">
-                                    <Popover>
-                                        <PopoverTrigger asChild>
-                                        <Button variant="ghost" size="icon" className="h-8 w-8">
-                                            <Wallet className="h-5 w-5 text-muted-foreground" />
-                                        </Button>
-                                        </PopoverTrigger>
-                                        <PopoverContent align="end" className="w-80">
-                                            <div className="p-3">
-                                                <div className="flex items-center justify-between mb-2">
-                                                    <h4 className="font-semibold">My Wallet</h4>
-                                                    <Button variant="link" size="sm" asChild className="p-0 h-auto">
-                                                        <Link href="/wallet">More Details</Link>
-                                                    </Button>
-                                                </div>
-                                                <div className="p-3 rounded-lg bg-muted/50 border">
-                                                    <p className="text-xs text-muted-foreground">Available Balance</p>
-                                                    <p className="text-2xl font-bold">₹{walletBalance.toFixed(2)}</p>
-                                                </div>
-                                                <div className="text-xs text-muted-foreground space-y-1 mt-2">
-                                                    <div className="flex justify-between"><span>Blocked Margin:</span> <span className="font-medium text-foreground">₹2,640.00</span></div>
-                                                    <div className="flex justify-between"><span>StreamCart Coins:</span> <span className="font-medium text-foreground">1,250</span></div>
-                                                </div>
-                                                <div className="grid grid-cols-2 gap-2 pt-4">
-                                                    <Dialog>
-                                                        <DialogTrigger asChild>
-                                                            <Button variant="outline" size="sm"><Plus className="mr-1.5 h-4 w-4" /> Deposit</Button>
-                                                        </DialogTrigger>
-                                                        <DialogContent>
-                                                            <DialogHeader>
-                                                                <DialogTitle>Add Funds via UPI</DialogTitle>
-                                                                <DialogDescription>Scan the QR code with any UPI app to add funds to your wallet.</DialogDescription>
-                                                            </DialogHeader>
-                                                            <div className="flex flex-col items-center gap-4 py-4">
-                                                                <div className="bg-white p-4 rounded-lg">
-                                                                    <Image src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=upi://pay?pa=streamcart@mock" alt="UPI QR Code" width={200} height={200} />
-                                                                </div>
-                                                                <p className="text-sm text-muted-foreground">or pay to UPI ID:</p>
-                                                                <p className="font-semibold">streamcart@mock</p>
-                                                            </div>
-                                                        </DialogContent>
-                                                    </Dialog>
-                                                    <Dialog open={isWithdrawOpen} onOpenChange={setIsWithdrawOpen}>
-                                                        <DialogTrigger asChild>
-                                                            <Button variant="outline" size="sm"><Download className="mr-1.5 h-4 w-4" /> Withdraw</Button>
-                                                        </DialogTrigger>
-                                                        <DialogContent>
-                                                            <DialogHeader>
-                                                                <DialogTitle>Withdraw Funds</DialogTitle>
-                                                                <DialogDescription>Select an account and enter the amount you wish to withdraw.</DialogDescription>
-                                                            </DialogHeader>
-                                                            <WithdrawForm cashAvailable={walletBalance-2640} bankAccounts={bankAccounts} onWithdraw={handleWithdraw} onAddAccount={(newAccount) => { setBankAccounts(prev => [...prev, { ...newAccount, id: Date.now() }]); toast({ title: "Bank Account Added!", description: "You can now select it for withdrawals." }); }} />
-                                                        </DialogContent>
-                                                    </Dialog>
-                                                </div>
-                                            </div>
-                                        </PopoverContent>
-                                    </Popover>
-                                     <Popover>
-                                        <PopoverTrigger asChild>
-                                            <Button variant="ghost" size="icon" className="h-8 w-8 relative">
-                                                <Pin className="h-5 w-5 text-muted-foreground" />
-                                                {pinnedMessages.length > 0 && <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-primary" />}
-                                            </Button>
-                                        </PopoverTrigger>
-                                         <PopoverContent align="end" className="w-80 p-0">
-                                            <div className="p-3 border-b">
-                                                <h4 className="font-semibold">Pinned Items</h4>
-                                            </div>
-                                            <ScrollArea className="h-64">
-                                                <div className="p-3 space-y-3">
-                                                     <Card className="bg-primary/10 border-primary/20">
-                                                        <CardContent className="p-3">
-                                                            <div className="flex items-start gap-3">
-                                                                <Ticket className="h-5 w-5 text-primary flex-shrink-0 mt-1" />
-                                                                <div>
-                                                                    <p className="text-xs font-semibold">🎉 Special Offer!</p>
-                                                                    <p className="text-sm">Use code <span className="font-bold text-primary">LIVE10</span> for 10% off your entire order.</p>
-                                                                </div>
-                                                            </div>
-                                                        </CardContent>
-                                                    </Card>
-                                                    <Card className="overflow-hidden">
-                                                        <CardContent className="p-0">
-                                                            <div className="p-3">
-                                                                <p className="text-xs text-muted-foreground font-semibold">Featured Product</p>
-                                                                <div className="flex items-center gap-3 mt-1">
-                                                                    <div className="w-12 h-12 bg-muted rounded-md relative overflow-hidden flex-shrink-0">
-                                                                        <Image src={productDetails['prod_1'].images[0]} alt={productDetails['prod_1'].name} fill className="object-cover" />
-                                                                    </div>
-                                                                    <div className="flex-grow">
-                                                                        <h4 className="font-semibold leading-tight text-sm">{productDetails['prod_1'].name}</h4>
-                                                                        <p className="text-sm font-bold">{productDetails['prod_1'].price}</p>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                            <CardFooter className="p-0">
-                                                                <Button asChild variant="secondary" className="w-full rounded-none rounded-b-lg h-9">
-                                                                    <Link href={`/product/${productDetails['prod_1'].key}`}>View Product</Link>
-                                                                </Button>
-                                                            </CardFooter>
-                                                        </CardContent>
-                                                    </Card>
-                                                </div>
-                                            </ScrollArea>
-                                        </PopoverContent>
-                                    </Popover>
-                                    <DropdownMenu>
-                                        <DropdownMenuTrigger asChild>
-                                        <Button variant="ghost" size="icon" className="h-8 w-8">
-                                            <MoreVertical className="h-5 w-5" />
-                                        </Button>
-                                        </DropdownMenuTrigger>
-                                        <DropdownMenuContent align="end">
-                                        <FeedbackDialog>
-                                            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                                            <MessageCircle className="mr-2 h-4 w-4" /> Feedback
-                                            </DropdownMenuItem>
-                                        </FeedbackDialog>
-                                        <AlertDialogTrigger asChild>
-                                            <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive focus:text-destructive">
-                                                <Flag className="mr-2 h-4 w-4" /> Report Stream
-                                            </DropdownMenuItem>
-                                        </AlertDialogTrigger>
-                                        </DropdownMenuContent>
-                                    </DropdownMenu>
-                                    </div>
+                             <div className="p-4">
+                                <div className="mb-4">
+                                    <h2 className="font-bold text-xl">{streamData.title || "Live Stream"}</h2>
+                                    <div className="text-sm text-muted-foreground">{renderContentWithHashtags(streamData.description) || "Welcome to the live stream!"}</div>
                                 </div>
-                                {auctionTime !== null && (
-                                    <div className="p-4 border-y border-border/50">
-                                         <Card className="bg-green-900/20 border-green-500/30 text-green-200">
-                                            <CardContent className="p-3">
-                                                <div className="flex items-center gap-3">
-                                                    <div className="w-16 h-16 bg-muted rounded-md relative overflow-hidden flex-shrink-0">
-                                                        <Image src={productDetails['prod_1'].images[0]} alt={productDetails['prod_1'].name} fill className="object-cover" />
-                                                    </div>
-                                                    <div className="flex-grow">
-                                                        <div className="flex justify-between items-center">
-                                                             <Badge className="bg-green-500 text-white text-xs animate-pulse">AUCTION</Badge>
-                                                             <Badge variant="secondary" className="font-mono text-green-200">{formatAuctionTime(auctionTime)}</Badge>
-                                                        </div>
-                                                         <h4 className="font-bold leading-tight mt-1 text-white">{productDetails['prod_1'].name}</h4>
-                                                        <div className="grid grid-cols-2 gap-x-2 text-xs mt-1">
-                                                             <div className="text-green-300">Current Bid: <span className="font-bold text-white">₹{highestBid.toLocaleString()}</span></div>
-                                                             <div className="text-green-300">Bids: <span className="font-bold text-white">{totalBids}</span></div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                 <Dialog>
-                                                    <DialogTrigger asChild>
-                                                         <Button className="w-full mt-2 h-8 bg-green-600 hover:bg-green-700 text-white">
-                                                            <Gavel className="w-4 h-4 mr-2"/>
-                                                            Place Your Bid
-                                                        </Button>
-                                                    </DialogTrigger>
-                                                    <DialogContent className="sm:max-w-md">
-                                                        <DialogHeader>
-                                                            <DialogTitle>Place a Bid for {productDetails['prod_1'].name}</DialogTitle>
-                                                            <DialogDescription>
-                                                                Your bid amount will be held and automatically refunded if you do not win the auction.
-                                                            </DialogDescription>
-                                                        </DialogHeader>
-                                                        <div className="py-4 space-y-4">
-                                                            <div className="p-4 rounded-lg bg-muted border flex items-center justify-between">
-                                                                <div>
-                                                                    <Label className="text-xs text-muted-foreground">Wallet Balance</Label>
-                                                                    <p className="text-lg font-bold">₹{walletBalance.toFixed(2)}</p>
-                                                                </div>
-                                                                <div className="text-right">
-                                                                    <Label className="text-xs text-muted-foreground">Current Bid</Label>
-                                                                    <p className="text-lg font-bold">₹{highestBid.toLocaleString()}</p>
-                                                                </div>
+                                <div className="flex items-center justify-between">
+                                    <Collapsible className="w-full">
+                                        <div className="flex items-center gap-3">
+                                        {seller && (
+                                            <>
+                                            <Avatar>
+                                                <AvatarImage src={seller.avatarUrl} />
+                                                <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
+                                            </Avatar>
+                                            <h3 className="font-semibold">{seller.name}</h3>
+                                            <Button variant="secondary" size="sm" className="h-7">
+                                                <UserPlus className="mr-1.5 h-4 w-4" /> Follow
+                                            </Button>
+                                             <CollapsibleTrigger asChild>
+                                                <Button variant="outline" size="sm" className="h-7 gap-1.5">
+                                                    <ShoppingBag className="w-4 h-4"/> View Products ({sellerProducts.length})
+                                                </Button>
+                                            </CollapsibleTrigger>
+                                            </>
+                                        )}
+                                        </div>
+                                        <CollapsibleContent className="mt-4">
+                                             <div className="relative">
+                                                <Carousel opts={{ align: "start", dragFree: true }} className="w-full">
+                                                    <CarouselContent className="-ml-2">
+                                                        {sellerProducts.map((p, index) => (
+                                                        <CarouselItem key={index} className="pl-2 basis-auto">
+                                                            <div className="w-32">
+                                                                <Card className="h-full flex flex-col overflow-hidden bg-card text-card-foreground">
+                                                                    <Link href={`/product/${p.key}`}>
+                                                                    <div className="aspect-square bg-muted rounded-t-lg relative">
+                                                                        <Image src={(p.images && p.images[0]?.preview) || p.images[0]} alt={p.name} fill className="object-cover" />
+                                                                        {p.stock === 0 && (
+                                                                            <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                                                                                <Badge variant="destructive">Out of Stock</Badge>
+                                                                            </div>
+                                                                        )}
+                                                                    </div>
+                                                                    <div className="p-1.5">
+                                                                        <p className="text-[11px] font-semibold truncate leading-tight">{p.name}</p>
+                                                                        <p className="text-xs font-bold">₹{p.price.toLocaleString()}</p>
+                                                                    </div>
+                                                                    </Link>
+                                                                    <CardFooter className="p-1.5 mt-auto grid grid-cols-2 gap-1">
+                                                                    {p.stock > 0 ? (
+                                                                        <>
+                                                                        <Button size="xs" className="w-full text-[10px] h-7" variant="secondary" onClick={() => handleAddToCart(p)}>Add</Button>
+                                                                        <Button size="xs" className="w-full text-[10px] h-7" onClick={() => handleBuyNow(p)}>Buy</Button>
+                                                                        </>
+                                                                    ) : (
+                                                                        <Button size="xs" className="w-full text-[10px] h-7 col-span-2" variant="outline" disabled>Out of Stock</Button>
+                                                                    )}
+                                                                    </CardFooter>
+                                                                </Card>
                                                             </div>
-                                                            <div>
-                                                                <Label htmlFor="bid-amount">Your Bid (must be > ₹{highestBid.toLocaleString()})</Label>
-                                                                <div className="relative mt-1">
-                                                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">₹</span>
-                                                                    <Input
-                                                                        id="bid-amount"
-                                                                        type="number"
-                                                                        placeholder="Enter your bid"
-                                                                        className="pl-7 h-11 text-base"
-                                                                        value={bidAmount}
-                                                                        onChange={(e) => setBidAmount(e.target.value)}
-                                                                    />
-                                                                </div>
-                                                            </div>
-                                                             <div className="grid grid-cols-3 gap-2">
-                                                                <Button variant="outline" onClick={() => setBidAmount(prev => Number(prev || highestBid) + 100)}>+100</Button>
-                                                                <Button variant="outline" onClick={() => setBidAmount(prev => Number(prev || highestBid) + 500)}>+500</Button>
-                                                                <Button variant="outline" onClick={() => setBidAmount(prev => Number(prev || highestBid) + 1000)}>+1000</Button>
-                                                            </div>
-                                                        </div>
-                                                        <DialogFooter>
-                                                             <DialogClose asChild><Button type="button" variant="ghost">Cancel</Button></DialogClose>
-                                                             <Button onClick={handlePlaceBid}>
-                                                                <Gavel className="mr-2 h-4 w-4" />
-                                                                Confirm Bid
-                                                            </Button>
-                                                        </DialogFooter>
-                                                        <DialogClose asChild>
-                                                            <button id="closeBidDialog" className="hidden"></button>
-                                                        </DialogClose>
-                                                    </DialogContent>
-                                                </Dialog>
-                                            </CardContent>
-                                        </Card>
-                                    </div>
-                                )}
-                                 <ScrollArea className="flex-1" ref={chatContainerRef}>
-                                    <div className="p-4 space-y-2">
-                                    {chatMessages.map((msg, index) => (
-                                    <div key={msg.id || index} className="text-sm group relative">
-                                         {msg.type === 'auction' ? (
-                                           null
-                                        ) : msg.type === 'system' ? (
-                                        <p className="text-xs text-muted-foreground text-center italic">{msg.text}</p>
-                                        ) : msg.isBid ? (
-                                            <Card className="bg-green-900/20 border-green-500/30 my-2 text-green-200">
-                                                <CardContent className="p-3">
-                                                    <div className="flex items-center gap-3">
-                                                        <Avatar className="h-8 w-8">
-                                                            <AvatarImage src={msg.avatar} />
-                                                            <AvatarFallback>{msg.user.charAt(0)}</AvatarFallback>
-                                                        </Avatar>
-                                                        <div className="flex-grow">
-                                                            <p className="text-xs">{msg.user} placed a bid!</p>
-                                                            <p className="font-bold text-lg text-white">{msg.text.replace('BID ', '')}</p>
-                                                        </div>
-                                                        <Gavel className="h-6 w-6 text-green-400" />
-                                                    </div>
-                                                </CardContent>
-                                            </Card>
-                                        ) : msg.user ? (
-                                        <>
-                                            <div className="flex items-start gap-2 w-full group">
-                                            <Avatar className="w-8 h-8">
-                                                <AvatarImage src={msg.avatar} />
-                                                <AvatarFallback>{msg.user.charAt(0)}</AvatarFallback>
+                                                        </CarouselItem>
+                                                        ))}
+                                                    </CarouselContent>
+                                                </Carousel>
+                                            </div>
+                                        </CollapsibleContent>
+                                    </Collapsible>
+                                </div>
+                                
+                                <div className="mt-8">
+                                    <h4 className="font-semibold mb-4">Related Streams</h4>
+                                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                                    {relatedStreams.map((s: any) => (
+                                        <Link href={`/stream/${s.id}`} key={s.id} className="group">
+                                        <div className="relative rounded-lg overflow-hidden aspect-[16/9] bg-muted">
+                                            <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
+                                            <div className="absolute top-2 right-2 z-10">
+                                                <Badge variant="secondary" className="bg-background/60 backdrop-blur-sm gap-1.5">
+                                                    <Users className="h-3 w-3"/>
+                                                    {s.viewers}
+                                                </Badge>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-start gap-2 mt-2">
+                                            <Avatar className="w-7 h-7">
+                                            <AvatarImage src={s.avatarUrl} alt={s.name} />
+                                            <AvatarFallback>{s.name.charAt(0)}</AvatarFallback>
                                             </Avatar>
                                             <div className="flex-1">
-                                                <span className={cn("font-semibold pr-1 text-xs", msg.isSeller && "text-amber-400")}>
-                                                {msg.user.split(' ')[0]}
-                                                {msg.isSeller && (
-                                                    <Badge variant="secondary" className="ml-1 text-amber-400 border-amber-400/50">
-                                                    <ShieldCheck className="h-3 w-3 mr-1" />
-                                                    Admin
-                                                    </Badge>
+                                            <div className="flex items-center gap-1.5">
+                                                <p className="font-semibold text-xs group-hover:underline truncate">{s.name}</p>
+                                                {s.hasAuction && (
+                                                <Badge variant="purple" className="text-xs font-bold px-1.5 py-0">
+                                                    Auction
+                                                </Badge>
                                                 )}
-                                                </span>
-                                                <span className={cn("text-muted-foreground break-words")}>{renderContentWithHashtags(msg.text)}</span>
                                             </div>
-                                             <DropdownMenu>
-                                                <DropdownMenuTrigger asChild>
-                                                    <button className="text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity">
-                                                        <MoreVertical className="w-4 h-4" />
-                                                    </button>
-                                                </DropdownMenuTrigger>
-                                                <DropdownMenuContent align="end">
-                                                    <DropdownMenuItem onSelect={() => handleReply({ name: msg.user, id: msg.userId })}>Reply</DropdownMenuItem>
-                                                    {msg.isSeller && <DropdownMenuItem onSelect={() => handleTogglePinMessage(msg.id)}><Pin className="mr-2 h-4 w-4" />{pinnedMessages.some(p => p.id === msg.id) ? "Unpin" : "Pin"} Message</DropdownMenuItem>}
-                                                    <DropdownMenuSeparator />
-                                                    <DropdownMenuItem onSelect={() => handleReportMessage(msg.id)} className="text-destructive"><Flag className="mr-2 h-4 w-4" />Report</DropdownMenuItem>
-                                                </DropdownMenuContent>
-                                            </DropdownMenu>
+                                            <p className="text-xs text-muted-foreground">{s.category}</p>
+                                            <p className="text-xs text-primary font-semibold mt-0.5 sm:hidden lg:block">#{s.category.toLowerCase()}</p>
                                             </div>
-                                        </>
-                                        ) : null}
-                                    </div>
+                                        </div>
+                                        </Link>
                                     ))}
-                                     <div ref={messagesEndRef} />
                                     </div>
-                                </ScrollArea>
-                                <div className="p-3 border-t bg-background flex-shrink-0">
-                                    <form onSubmit={handleNewMessageSubmit} className="flex items-center gap-3">
-                                    <div className="relative flex-grow">
-                                        <Textarea ref={textareaRef} placeholder={replyingTo ? `@${replyingTo.name} ` : "Send a message..."} value={newMessage} onChange={(e) => setNewMessage(e.target.value)} className="resize-none pr-10 rounded-2xl bg-muted border-transparent focus:border-primary focus:bg-background h-10 min-h-[40px] pt-2.5 text-sm" rows={1} onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleNewMessageSubmit(e); } }} />
-                                        <Popover>
-                                        <PopoverTrigger asChild>
-                                            <Button variant="ghost" size="icon" type="button" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full text-muted-foreground">
-                                            <Smile className="h-5 w-5" />
-                                            </Button>
-                                        </PopoverTrigger>
-                                        <PopoverContent className="w-80 h-64 p-2">
-                                            <div className="grid grid-cols-8 gap-1 h-full overflow-y-auto no-scrollbar">
-                                            {emojis.map((emoji, index) => (
-                                                <Button key={index} variant="ghost" size="icon" onClick={() => addEmoji(emoji)} className="text-xl">
-                                                {emoji}
-                                                </Button>
-                                            ))}
-                                            </div>
-                                        </PopoverContent>
-                                        </Popover>
-                                    </div>
-                                    <Button type="submit" size="icon" disabled={!newMessage.trim()} className="rounded-full flex-shrink-0 h-10 w-10">
-                                        <Send className="h-4 w-4" />
-                                    </Button>
-                                    </form>
                                 </div>
                             </div>
                         </div>
+                         <div className="hidden lg:flex w-[340px] flex-shrink-0 h-full flex-col bg-card">
+                             <div className="p-4 flex items-center justify-between z-10 flex-shrink-0 h-16">
+                                <h3 className="font-bold text-lg">Live Chat</h3>
+                                <div className="flex items-center gap-1">
+                                <Popover>
+                                    <PopoverTrigger asChild>
+                                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                                        <Wallet className="h-5 w-5 text-muted-foreground" />
+                                    </Button>
+                                    </PopoverTrigger>
+                                    <PopoverContent align="end" className="w-80">
+                                        <div className="p-3">
+                                            <div className="flex items-center justify-between mb-2">
+                                                <h4 className="font-semibold">My Wallet</h4>
+                                                <Button variant="link" size="sm" asChild className="p-0 h-auto">
+                                                    <Link href="/wallet">More Details</Link>
+                                                </Button>
+                                            </div>
+                                            <div className="p-3 rounded-lg bg-muted/50 border">
+                                                <p className="text-xs text-muted-foreground">Available Balance</p>
+                                                <p className="text-2xl font-bold">₹{walletBalance.toFixed(2)}</p>
+                                            </div>
+                                            <div className="text-xs text-muted-foreground space-y-1 mt-2">
+                                                <div className="flex justify-between"><span>Blocked Margin:</span> <span className="font-medium text-foreground">₹2,640.00</span></div>
+                                                <div className="flex justify-between"><span>StreamCart Coins:</span> <span className="font-medium text-foreground">1,250</span></div>
+                                            </div>
+                                            <div className="grid grid-cols-2 gap-2 pt-4">
+                                                <Dialog>
+                                                    <DialogTrigger asChild>
+                                                        <Button variant="outline" size="sm"><Plus className="mr-1.5 h-4 w-4" /> Deposit</Button>
+                                                    </DialogTrigger>
+                                                    <DialogContent>
+                                                        <DialogHeader>
+                                                            <DialogTitle>Add Funds via UPI</DialogTitle>
+                                                            <DialogDescription>Scan the QR code with any UPI app to add funds to your wallet.</DialogDescription>
+                                                        </DialogHeader>
+                                                        <div className="flex flex-col items-center gap-4 py-4">
+                                                            <div className="bg-white p-4 rounded-lg">
+                                                                <Image src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=upi://pay?pa=streamcart@mock" alt="UPI QR Code" width={200} height={200} />
+                                                            </div>
+                                                            <p className="text-sm text-muted-foreground">or pay to UPI ID:</p>
+                                                            <p className="font-semibold">streamcart@mock</p>
+                                                        </div>
+                                                    </DialogContent>
+                                                </Dialog>
+                                                <Dialog open={isWithdrawOpen} onOpenChange={setIsWithdrawOpen}>
+                                                    <DialogTrigger asChild>
+                                                        <Button variant="outline" size="sm"><Download className="mr-1.5 h-4 w-4" /> Withdraw</Button>
+                                                    </DialogTrigger>
+                                                    <DialogContent>
+                                                        <DialogHeader>
+                                                            <DialogTitle>Withdraw Funds</DialogTitle>
+                                                            <DialogDescription>Select an account and enter the amount you wish to withdraw.</DialogDescription>
+                                                        </DialogHeader>
+                                                        <WithdrawForm cashAvailable={walletBalance-2640} bankAccounts={bankAccounts} onWithdraw={handleWithdraw} onAddAccount={(newAccount) => { setBankAccounts(prev => [...prev, { ...newAccount, id: Date.now() }]); toast({ title: "Bank Account Added!", description: "You can now select it for withdrawals." }); }} />
+                                                    </DialogContent>
+                                                </Dialog>
+                                            </div>
+                                        </div>
+                                    </PopoverContent>
+                                </Popover>
+                                 <Popover>
+                                    <PopoverTrigger asChild>
+                                        <Button variant="ghost" size="icon" className="h-8 w-8 relative">
+                                            <Pin className="h-5 w-5 text-muted-foreground" />
+                                            {pinnedMessages.length > 0 && <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-primary" />}
+                                        </Button>
+                                    </PopoverTrigger>
+                                     <PopoverContent align="end" className="w-80 p-0">
+                                        <div className="p-3 border-b">
+                                            <h4 className="font-semibold">Pinned Items</h4>
+                                        </div>
+                                        <ScrollArea className="h-64">
+                                            <div className="p-3 space-y-3">
+                                                 <Card className="bg-primary/10 border-primary/20">
+                                                    <CardContent className="p-3">
+                                                        <div className="flex items-start gap-3">
+                                                            <Ticket className="h-5 w-5 text-primary flex-shrink-0 mt-1" />
+                                                            <div>
+                                                                <p className="text-xs font-semibold">🎉 Special Offer!</p>
+                                                                <p className="text-sm">Use code <span className="font-bold text-primary">LIVE10</span> for 10% off your entire order.</p>
+                                                            </div>
+                                                        </div>
+                                                    </CardContent>
+                                                </Card>
+                                                <Card className="overflow-hidden">
+                                                    <CardContent className="p-0">
+                                                        <div className="p-3">
+                                                            <p className="text-xs text-muted-foreground font-semibold">Featured Product</p>
+                                                            <div className="flex items-center gap-3 mt-1">
+                                                                <div className="w-12 h-12 bg-muted rounded-md relative overflow-hidden flex-shrink-0">
+                                                                    <Image src={productDetails['prod_1'].images[0]} alt={productDetails['prod_1'].name} fill className="object-cover" />
+                                                                </div>
+                                                                <div className="flex-grow">
+                                                                    <h4 className="font-semibold leading-tight text-sm">{productDetails['prod_1'].name}</h4>
+                                                                    <p className="text-sm font-bold">{productDetails['prod_1'].price}</p>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <CardFooter className="p-0">
+                                                            <Button asChild variant="secondary" className="w-full rounded-none rounded-b-lg h-9">
+                                                                <Link href={`/product/${productDetails['prod_1'].key}`}>View Product</Link>
+                                                            </Button>
+                                                        </CardFooter>
+                                                    </CardContent>
+                                                </Card>
+                                            </div>
+                                        </ScrollArea>
+                                    </PopoverContent>
+                                </Popover>
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                                        <MoreVertical className="h-5 w-5" />
+                                    </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end">
+                                    <FeedbackDialog>
+                                        <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                                        <MessageCircle className="mr-2 h-4 w-4" /> Feedback
+                                        </DropdownMenuItem>
+                                    </FeedbackDialog>
+                                    <AlertDialogTrigger asChild>
+                                        <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive focus:text-destructive">
+                                            <Flag className="mr-2 h-4 w-4" /> Report Stream
+                                        </DropdownMenuItem>
+                                    </AlertDialogTrigger>
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
+                                </div>
+                            </div>
+                            {auctionTime !== null && (
+                                <div className="p-4 border-y border-border/50">
+                                     <Card className="bg-blue-900/20 border-blue-500/30 text-blue-200">
+                                        <CardContent className="p-3">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-16 h-16 bg-muted rounded-md relative overflow-hidden flex-shrink-0">
+                                                    <Image src={productDetails['prod_1'].images[0]} alt={productDetails['prod_1'].name} fill className="object-cover" />
+                                                </div>
+                                                <div className="flex-grow">
+                                                    <div className="flex justify-between items-center">
+                                                         <Badge className="bg-blue-500 text-white text-xs animate-pulse">AUCTION</Badge>
+                                                         <Badge variant="secondary" className="font-mono text-blue-200">{formatAuctionTime(auctionTime)}</Badge>
+                                                    </div>
+                                                     <h4 className="font-bold leading-tight mt-1 text-white">{productDetails['prod_1'].name}</h4>
+                                                    <div className="grid grid-cols-2 gap-x-2 text-xs mt-1">
+                                                         <div className="text-blue-300">Current Bid: <span className="font-bold text-white">₹{highestBid.toLocaleString()}</span></div>
+                                                         <div className="text-blue-300">Bids: <span className="font-bold text-white">{totalBids}</span></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                             <Dialog>
+                                                <DialogTrigger asChild>
+                                                     <Button className="w-full mt-2 h-8 bg-blue-600 hover:bg-blue-700 text-white">
+                                                        <Gavel className="w-4 h-4 mr-2"/>
+                                                        Place Your Bid
+                                                    </Button>
+                                                </DialogTrigger>
+                                                 <DialogContent className="sm:max-w-md bg-gray-900 border-gray-800 text-white">
+                                                    <DialogHeader>
+                                                        <DialogTitle className="text-center text-2xl font-bold">Place a Bid for {productDetails['prod_1'].name}</DialogTitle>
+                                                    </DialogHeader>
+                                                    <div className="py-4 space-y-4">
+                                                        <div className="grid grid-cols-2 gap-4 text-center">
+                                                            <div>
+                                                                <Label className="text-xs text-gray-400">Wallet Balance</Label>
+                                                                <p className="text-lg font-bold">₹{walletBalance.toFixed(2)}</p>
+                                                            </div>
+                                                            <div>
+                                                                <Label className="text-xs text-gray-400">Current Highest Bid</Label>
+                                                                <p className="text-lg font-bold">₹{highestBid.toLocaleString()}</p>
+                                                            </div>
+                                                        </div>
+                                                        <div>
+                                                            <Label htmlFor="bid-amount" className="text-sm font-medium">Your Bid (must be > ₹{highestBid.toLocaleString()})</Label>
+                                                            <div className="relative mt-1">
+                                                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">₹</span>
+                                                                <Input
+                                                                    id="bid-amount"
+                                                                    type="number"
+                                                                    placeholder="Enter your bid"
+                                                                    className="pl-7 h-11 text-base bg-gray-800 border-gray-700"
+                                                                    value={bidAmount}
+                                                                    onChange={(e) => setBidAmount(e.target.value)}
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                         <div className="grid grid-cols-3 gap-2">
+                                                            <Button variant="outline" className="bg-gray-800 border-gray-700 hover:bg-gray-700" onClick={() => setBidAmount(prev => Number(prev || highestBid) + 100)}>+100</Button>
+                                                            <Button variant="outline" className="bg-gray-800 border-gray-700 hover:bg-gray-700" onClick={() => setBidAmount(prev => Number(prev || highestBid) + 500)}>+500</Button>
+                                                            <Button variant="outline" className="bg-gray-800 border-gray-700 hover:bg-gray-700" onClick={() => setBidAmount(prev => Number(prev || highestBid) + 1000)}>+1000</Button>
+                                                        </div>
+                                                    </div>
+                                                    <DialogFooter className="sm:justify-between">
+                                                        <DialogClose asChild>
+                                                            <Button type="button" variant="ghost" className="text-gray-400 hover:text-white">Cancel</Button>
+                                                        </DialogClose>
+                                                        <Button onClick={handlePlaceBid} className="bg-blue-600 hover:bg-blue-700">
+                                                            <Gavel className="mr-2 h-4 w-4" />
+                                                            Confirm Bid
+                                                        </Button>
+                                                    </DialogFooter>
+                                                    <p className="text-xs text-left text-gray-400 pt-2">Note: Your bid amount will be held and automatically refunded if you do not win the auction.</p>
+                                                    <DialogClose asChild>
+                                                        <button id="closeBidDialog" className="hidden"></button>
+                                                    </DialogClose>
+                                                </DialogContent>
+                                            </Dialog>
+                                        </CardContent>
+                                    </Card>
+                                </div>
+                            )}
+                             <ScrollArea className="flex-1" ref={chatContainerRef}>
+                                <div className="p-4 space-y-2">
+                                {chatMessages.map((msg, index) => (
+                                <div key={msg.id || index} className="text-sm group relative">
+                                     {msg.type === 'auction' ? (
+                                       null
+                                    ) : msg.type === 'system' ? (
+                                    <p className="text-xs text-muted-foreground text-center italic">{msg.text}</p>
+                                    ) : msg.isBid ? (
+                                        <Card className="bg-green-900/20 border-green-500/30 my-2 text-green-200">
+                                            <CardContent className="p-3">
+                                                <div className="flex items-center gap-3">
+                                                    <Avatar className="h-8 w-8">
+                                                        <AvatarImage src={msg.avatar} />
+                                                        <AvatarFallback>{msg.user.charAt(0)}</AvatarFallback>
+                                                    </Avatar>
+                                                    <div className="flex-grow">
+                                                        <p className="text-xs">{msg.user} placed a bid!</p>
+                                                        <p className="font-bold text-lg text-white">{msg.text.replace('BID ', '')}</p>
+                                                    </div>
+                                                    <Gavel className="h-6 w-6 text-green-400" />
+                                                </div>
+                                            </CardContent>
+                                        </Card>
+                                    ) : msg.user ? (
+                                    <>
+                                        <div className="flex items-start gap-2 w-full group">
+                                        <Avatar className="w-8 h-8">
+                                            <AvatarImage src={msg.avatar} />
+                                            <AvatarFallback>{msg.user.charAt(0)}</AvatarFallback>
+                                        </Avatar>
+                                        <div className="flex-1">
+                                            <span className={cn("font-semibold pr-1 text-xs", msg.isSeller && "text-amber-400")}>
+                                            {msg.user.split(' ')[0]}
+                                            {msg.isSeller && (
+                                                <Badge variant="secondary" className="ml-1 text-amber-400 border-amber-400/50">
+                                                <ShieldCheck className="h-3 w-3 mr-1" />
+                                                Admin
+                                                </Badge>
+                                            )}
+                                            </span>
+                                            <span className={cn("text-muted-foreground break-words")}>{renderContentWithHashtags(msg.text)}</span>
+                                        </div>
+                                         <DropdownMenu>
+                                            <DropdownMenuTrigger asChild>
+                                                <button className="text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity">
+                                                    <MoreVertical className="w-4 h-4" />
+                                                </button>
+                                            </DropdownMenuTrigger>
+                                            <DropdownMenuContent align="end">
+                                                <DropdownMenuItem onSelect={() => handleReply({ name: msg.user, id: msg.userId })}>Reply</DropdownMenuItem>
+                                                {msg.isSeller && <DropdownMenuItem onSelect={() => handleTogglePinMessage(msg.id)}><Pin className="mr-2 h-4 w-4" />{pinnedMessages.some(p => p.id === msg.id) ? "Unpin" : "Pin"} Message</DropdownMenuItem>}
+                                                <DropdownMenuSeparator />
+                                                <DropdownMenuItem onSelect={() => handleReportMessage(msg.id)} className="text-destructive"><Flag className="mr-2 h-4 w-4" />Report</DropdownMenuItem>
+                                            </DropdownMenuContent>
+                                        </DropdownMenu>
+                                        </div>
+                                    </>
+                                    ) : null}
+                                </div>
+                                ))}
+                                 <div ref={messagesEndRef} />
+                                </div>
+                            </ScrollArea>
+                            <div className="p-3 border-t bg-background flex-shrink-0">
+                                <form onSubmit={handleNewMessageSubmit} className="flex items-center gap-3">
+                                <div className="relative flex-grow">
+                                    <Textarea ref={textareaRef} placeholder={replyingTo ? `@${replyingTo.name} ` : "Send a message..."} value={newMessage} onChange={(e) => setNewMessage(e.target.value)} className="resize-none pr-10 rounded-2xl bg-muted border-transparent focus:border-primary focus:bg-background h-10 min-h-[40px] pt-2.5 text-sm" rows={1} onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleNewMessageSubmit(e); } }} />
+                                    <Popover>
+                                    <PopoverTrigger asChild>
+                                        <Button variant="ghost" size="icon" type="button" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full text-muted-foreground">
+                                        <Smile className="h-5 w-5" />
+                                        </Button>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-80 h-64 p-2">
+                                        <div className="grid grid-cols-8 gap-1 h-full overflow-y-auto no-scrollbar">
+                                        {emojis.map((emoji, index) => (
+                                            <Button key={index} variant="ghost" size="icon" onClick={() => addEmoji(emoji)} className="text-xl">
+                                            {emoji}
+                                            </Button>
+                                        ))}
+                                        </div>
+                                    </PopoverContent>
+                                    </Popover>
+                                </div>
+                                <Button type="submit" size="icon" disabled={!newMessage.trim()} className="rounded-full flex-shrink-0 h-10 w-10">
+                                    <Send className="h-4 w-4" />
+                                </Button>
+                                </form>
+                            </div>
+                        </div>
                     </div>
-                    <AlertDialogContent>
-                        <AlertDialogHeader>
-                            <AlertDialogTitle>Report Stream</AlertDialogTitle>
-                            <AlertDialogDescription>
-                                Please let us know why you are reporting this stream. Your feedback helps us keep the community safe.
-                            </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                            <AlertDialogAction>Submit Report</AlertDialogAction>
-                        </AlertDialogFooter>
-                    </AlertDialogContent>
-                </AlertDialog>
+                </div>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Report Stream</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Please let us know why you are reporting this stream. Your feedback helps us keep the community safe.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction>Submit Report</AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
             </Dialog>
         </>
     );
