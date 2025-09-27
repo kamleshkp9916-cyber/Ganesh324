@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import {
@@ -392,7 +391,7 @@ export default function StreamPage() {
     const [playbackRate, setPlaybackRate] = useState(1);
     const [skipInterval, setSkipInterval] = useState(10);
     const [isFullscreen, setIsFullscreen] = useState(false);
-    const [isLive, setIsLive] = useState(true);
+    const [isLive, setIsLive] = useState(false);
     const [chatMessages, setChatMessages] = useState(mockChatMessages);
     const [newMessage, setNewMessage] = useState("");
     const [isProductListVisible, setIsProductListVisible] = useState(false);
@@ -668,7 +667,7 @@ export default function StreamPage() {
         const isProductPin = msg.type === 'product_pin';
         const isOfferPin = msg.type === 'offer_pin';
 
-        let itemToPin = {};
+        let itemToPin:any = {};
 
         if (isProductPin) {
              itemToPin = { 
@@ -695,7 +694,7 @@ export default function StreamPage() {
         setPinnedMessages(prev =>
             prev.some(p => p.id === msgId)
                 ? prev.filter(p => p.id !== msgId)
-                : [...prev, itemToPin]
+                : [itemToPin, ...prev]
         );
 
         toast({
@@ -809,7 +808,7 @@ export default function StreamPage() {
                                         <Button variant="ghost" size="icon" onClick={() => videoRef.current?.requestPictureInPicture()}><PictureInPicture /></Button>
                                         <Button variant="ghost" size="icon" onClick={handleShare}><Share2 /></Button>
                                         <DialogTrigger asChild>
-                                            <Button variant="ghost" size="icon" onClick={() => setIsSettingsOpen(true)}><Settings /></Button>
+                                            <Button variant="ghost" size="icon"><Settings /></Button>
                                         </DialogTrigger>
                                         <Button variant="ghost" size="icon" onClick={() => playerRef.current?.requestFullscreen()}><Maximize /></Button>
                                     </div>
@@ -924,8 +923,8 @@ export default function StreamPage() {
                         </div>
                     </div>
                 </div>
-                 <div className="hidden lg:flex w-[340px] flex-shrink-0 h-full flex-col border-l bg-transparent">
-                    <div className="p-4 flex items-center justify-between z-10 flex-shrink-0 h-16 bg-transparent">
+                 <div className="hidden lg:flex w-[340px] flex-shrink-0 h-full flex-col bg-transparent">
+                    <div className="p-4 flex items-center justify-between z-10 flex-shrink-0 h-16">
                         <h3 className="font-bold text-lg">Live Chat</h3>
                         <div className="flex items-center gap-1">
                         <Popover>
@@ -1089,39 +1088,52 @@ export default function StreamPage() {
                                                 Place Your Bid
                                             </Button>
                                         </DialogTrigger>
-                                        <DialogContent>
-                                            <DialogHeader>
+                                        <DialogContent className="sm:max-w-md bg-gray-900 border-gray-800 text-white">
+                                            <DialogHeader className="text-left">
                                                 <DialogTitle>Place a Bid for {productDetails['prod_1'].name}</DialogTitle>
-                                                 <DialogDescription>
-                                                    Your current wallet balance is <strong className="text-foreground">₹{walletBalance.toFixed(2)}</strong>. 
+                                                <DialogDescription className="text-gray-400">
                                                     Your bid amount will be held and automatically refunded if you do not win the auction.
                                                 </DialogDescription>
                                             </DialogHeader>
-                                            <div className="py-4 space-y-4">
-                                                <div className="p-3 rounded-lg bg-muted text-center">
-                                                    <p className="text-sm text-muted-foreground">Current Highest Bid</p>
-                                                    <p className="text-2xl font-bold">₹{highestBid.toLocaleString()}</p>
+                                            <div className="py-4 space-y-6">
+                                                <div className="p-4 rounded-lg bg-gray-800/50 border border-gray-700">
+                                                    <div className="flex justify-between items-center text-sm text-gray-400">
+                                                        <span>Wallet Balance</span>
+                                                        <span>Current Bid</span>
+                                                    </div>
+                                                    <div className="flex justify-between items-center mt-1">
+                                                        <span className="text-xl font-bold">₹{walletBalance.toFixed(2)}</span>
+                                                        <span className="text-xl font-bold text-primary">₹{highestBid.toLocaleString()}</span>
+                                                    </div>
                                                 </div>
                                                 <div>
-                                                    <Label htmlFor="bid-amount">Your Bid</Label>
-                                                    <div className="relative mt-1">
-                                                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">₹</span>
-                                                        <Input 
-                                                            id="bid-amount" 
-                                                            type="number" 
-                                                            placeholder={`Enter amount > ₹${highestBid.toLocaleString()}`}
-                                                            className="pl-6"
+                                                    <Label htmlFor="bid-amount" className="text-gray-400">Your Bid (must be > ₹{highestBid.toLocaleString()})</Label>
+                                                    <div className="relative mt-2">
+                                                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">₹</span>
+                                                        <Input
+                                                            id="bid-amount"
+                                                            type="number"
+                                                            placeholder={`Enter your bid`}
+                                                            className="pl-8 h-12 text-lg bg-gray-800 border-gray-700 focus:ring-primary"
                                                             value={bidAmount}
                                                             onChange={(e) => setBidAmount(e.target.value)}
                                                         />
                                                     </div>
                                                 </div>
+                                                <div className="grid grid-cols-3 gap-2">
+                                                    <Button variant="outline" className="bg-gray-800 border-gray-700" onClick={() => setBidAmount(prev => Number(prev || highestBid) + 100)}>+100</Button>
+                                                    <Button variant="outline" className="bg-gray-800 border-gray-700" onClick={() => setBidAmount(prev => Number(prev || highestBid) + 500)}>+500</Button>
+                                                    <Button variant="outline" className="bg-gray-800 border-gray-700" onClick={() => setBidAmount(prev => Number(prev || highestBid) + 1000)}>+1000</Button>
+                                                </div>
                                             </div>
-                                            <DialogFooter>
-                                                <DialogClose asChild>
-                                                    <Button variant="outline" id="closeBidDialog">Cancel</Button>
+                                            <DialogFooter className="sm:justify-between">
+                                                 <DialogClose asChild>
+                                                    <Button variant="ghost" id="closeBidDialog" className="hover:bg-gray-800">Cancel</Button>
                                                 </DialogClose>
-                                                <Button onClick={handlePlaceBid}>Confirm Bid</Button>
+                                                <Button onClick={handlePlaceBid} className="bg-primary hover:bg-primary/90">
+                                                    <Gavel className="mr-2 h-4 w-4" />
+                                                    Confirm Bid
+                                                </Button>
                                             </DialogFooter>
                                         </DialogContent>
                                     </Dialog>
@@ -1222,19 +1234,7 @@ export default function StreamPage() {
                 </div>
             </div>
         </div>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Report Stream?</AlertDialogTitle>
-            <AlertDialogDescription>
-              If this stream violates our community guidelines, please report it. Our team will review it shortly.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction>Report</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+        </AlertDialog>
         <PlayerSettingsDialog
             playbackRate={playbackRate}
             onPlaybackRateChange={handlePlaybackRateChange}
@@ -1245,3 +1245,5 @@ export default function StreamPage() {
         </Dialog>
     );
 }
+
+    
