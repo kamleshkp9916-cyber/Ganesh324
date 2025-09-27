@@ -739,7 +739,7 @@ export default function StreamPage() {
     return (
         <>
             <Dialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
-             <AlertDialog>
+            <AlertDialog>
                 <div className="h-dvh w-full flex flex-col bg-background text-foreground">
                     <header className="flex-shrink-0 h-16 bg-background border-b border-border flex items-center justify-between px-4 z-40">
                         <div className="flex items-center gap-2">
@@ -1085,15 +1085,15 @@ export default function StreamPage() {
                                                         Place Your Bid
                                                     </Button>
                                                 </DialogTrigger>
-                                                 <DialogContent className="sm:max-w-md bg-gray-900 border-gray-800 text-white">
-                                                    <DialogHeader>
-                                                        <DialogTitle className="text-center text-2xl font-bold">Place a Bid for {productDetails['prod_1'].name}</DialogTitle>
+                                                 <DialogContent className="sm:max-w-md bg-black border-gray-800 text-white">
+                                                    <DialogHeader className="text-center">
+                                                        <DialogTitle className="text-xl font-bold">Place a Bid for {productDetails['prod_1'].name}</DialogTitle>
                                                     </DialogHeader>
                                                     <div className="py-4 space-y-4">
                                                         <div className="grid grid-cols-2 gap-4 text-center">
                                                             <div>
                                                                 <Label className="text-xs text-gray-400">Wallet Balance</Label>
-                                                                <p className="text-lg font-bold">₹{walletBalance.toFixed(2)}</p>
+                                                                <p className="text-lg font-bold flex items-center justify-center gap-1"><Wallet className="h-4 w-4" />₹{walletBalance.toFixed(2)}</p>
                                                             </div>
                                                             <div>
                                                                 <Label className="text-xs text-gray-400">Current Highest Bid</Label>
