@@ -256,7 +256,7 @@ const PlayerSettingsDialog = ({ playbackRate, onPlaybackRateChange, skipInterval
                                 </div>
                             </div>
                             <div className="p-4 rounded-lg bg-white/5">
-                                <div className="flex items-center justify-between">
+                                 <div className="flex items-center justify-between">
                                     <div>
                                         <Label className="font-semibold">Audio output</Label>
                                         <div className="text-xs text-gray-400">Choose output device</div>
@@ -364,6 +364,7 @@ export default function StreamPage() {
         { id: 999, user: 'FashionFinds', isSeller: true, text: '🎉 Special Offer! Use code LIVE10 for 10% off your entire order, only during this stream!', type: 'offer' },
         { id: 998, user: 'FashionFinds', isSeller: true, text: 'Featured Product: Vintage Camera. Ask me anything about it!', type: 'product', product: productDetails['prod_1'] },
     ]);
+    const [auctionTime, setAuctionTime] = useState<number | null>(null);
 
     const mockStreamData = {
         id: streamId,
@@ -433,6 +434,30 @@ export default function StreamPage() {
         date.setSeconds(timeInSeconds);
         const timeString = date.toISOString().substr(11, 8);
         return timeString.startsWith('00:') ? timeString.substr(3) : timeString;
+    };
+    
+    useEffect(() => {
+        if (auctionTime === null && chatMessages.some(msg => msg.type === 'auction')) {
+            setAuctionTime(180); // 3 minutes
+        }
+    }, [chatMessages, auctionTime]);
+    
+    useEffect(() => {
+        if (auctionTime !== null && auctionTime > 0) {
+            const timer = setInterval(() => {
+                setAuctionTime(prev => (prev ? prev - 1 : null));
+            }, 1000);
+            return () => clearInterval(timer);
+        } else if (auctionTime === 0) {
+            setAuctionTime(null); // Reset or handle auction end
+        }
+    }, [auctionTime]);
+
+    const formatAuctionTime = (seconds: number | null) => {
+        if (seconds === null) return '00:00';
+        const mins = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
     };
 
     const handlePlayPause = useCallback(() => {
@@ -652,7 +677,7 @@ export default function StreamPage() {
     return (
         <Dialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
         <div className="h-dvh w-full flex flex-col bg-black text-white">
-            <header className="flex-shrink-0 h-16 bg-background/80 backdrop-blur-sm border-b border-border text-foreground flex items-center justify-between px-4 z-40">
+            <header className="flex-shrink-0 h-16 bg-transparent border-b border-border text-foreground flex items-center justify-between px-4 z-40">
                 <div className="flex items-center gap-2">
                     <Button variant="ghost" size="icon" onClick={() => router.back()}>
                         <ArrowLeft />
@@ -843,7 +868,7 @@ export default function StreamPage() {
                         </div>
                     </div>
                 </div>
-                 <div className="hidden lg:flex w-[340px] flex-shrink-0 h-full flex-col border-l border-border no-scrollbar bg-transparent">
+                 <div className="hidden lg:flex w-[340px] flex-shrink-0 h-full flex-col border-l border-border bg-transparent">
                     <div className="p-4 flex items-center justify-between z-10 flex-shrink-0 h-16 bg-transparent">
                         <h3 className="font-bold text-lg">Live Chat</h3>
                         <div className="flex items-center gap-1">
@@ -918,7 +943,7 @@ export default function StreamPage() {
                                 <ScrollArea className="h-64">
                                     <div className="p-3 space-y-3">
                                         {pinnedMessages.length > 0 ? pinnedMessages.map(msg => (
-                                             msg.type === 'offer' ? (
+                                            msg.type === 'offer' ? (
                                                 <Card key={msg.id} className="bg-primary/10 border-primary/20">
                                                     <CardContent className="p-3">
                                                         <div className="flex items-start gap-3">
@@ -930,7 +955,7 @@ export default function StreamPage() {
                                                         </div>
                                                     </CardContent>
                                                 </Card>
-                                             ) : (
+                                            ) : (
                                                 <Card key={msg.id} className="overflow-hidden">
                                                     <CardContent className="p-0">
                                                         <div className="p-3">
@@ -952,7 +977,7 @@ export default function StreamPage() {
                                                         </CardFooter>
                                                     </CardContent>
                                                 </Card>
-                                             )
+                                            )
                                         )) : (
                                             <p className="text-sm text-center text-muted-foreground py-4">No pinned messages yet.</p>
                                         )}
@@ -1007,8 +1032,13 @@ export default function StreamPage() {
                                                 <Image src={productDetails['prod_1'].images[0]} alt={productDetails['prod_1'].name} fill className="object-cover" />
                                             </div>
                                             <div className="flex-grow">
-                                                <Badge variant="destructive" className="mb-1 text-xs animate-pulse">AUCTION STARTED</Badge>
-                                                <h4 className="font-bold leading-tight">{productDetails['prod_1'].name}</h4>
+                                                <div className="flex justify-between items-center">
+                                                    <Badge variant="destructive" className="text-xs animate-pulse">AUCTION</Badge>
+                                                    {auctionTime !== null && (
+                                                        <Badge variant="secondary" className="font-mono">{formatAuctionTime(auctionTime)}</Badge>
+                                                    )}
+                                                </div>
+                                                <h4 className="font-bold leading-tight mt-1">{productDetails['prod_1'].name}</h4>
                                                 <p className="text-sm">Starting Bid: <span className="font-bold">₹8,000</span></p>
                                             </div>
                                         </div>
@@ -1060,7 +1090,7 @@ export default function StreamPage() {
                          <div ref={messagesEndRef} />
                         </div>
                     </ScrollArea>
-                    <div className="p-3 border-t bg-background flex-shrink-0">
+                    <div className="p-3 border-t bg-transparent flex-shrink-0">
                         <form onSubmit={handleNewMessageSubmit} className="flex items-center gap-3">
                         <div className="relative flex-grow">
                             <Textarea ref={textareaRef} placeholder={replyingTo ? `@${replyingTo.name} ` : "Send a message..."} value={newMessage} onChange={(e) => setNewMessage(e.target.value)} className="resize-none pr-10 rounded-2xl bg-muted border-transparent focus:border-primary focus:bg-background h-10 min-h-[40px] pt-2.5 text-sm" rows={1} onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleNewMessageSubmit(e); } }} />
@@ -1101,4 +1131,5 @@ export default function StreamPage() {
 }
 
     
+
 
