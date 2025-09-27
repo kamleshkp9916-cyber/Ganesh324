@@ -1394,14 +1394,14 @@ export default function StreamPage() {
                         </AlertDialogFooter>
                     </AlertDialogContent>
                 </AlertDialog>
+                 <PlayerSettingsDialog
+                    playbackRate={playbackRate}
+                    onPlaybackRateChange={handlePlaybackRateChange}
+                    skipInterval={skipInterval}
+                    onSkipIntervalChange={handleSkipIntervalChange}
+                    onClose={() => setIsSettingsOpen(false)}
+                />
             </Dialog>
-            <PlayerSettingsDialog
-                playbackRate={playbackRate}
-                onPlaybackRateChange={handlePlaybackRateChange}
-                skipInterval={skipInterval}
-                onSkipIntervalChange={handleSkipIntervalChange}
-                onClose={() => setIsSettingsOpen(false)}
-            />
         </React.Fragment>
     );
 }
