@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import {
@@ -155,11 +154,12 @@ const mockChatMessages: any[] = [
     { id: 7, user: 'David', text: 'Do you ship to the US?', avatar: 'https://placehold.co/40x40.png', userColor: '#2ecc71', userId: 'user4' },
     { id: 8, user: 'FashionFinds', text: 'Yes David, we offer international shipping!', avatar: 'https://placehold.co/40x40.png', userColor: '#f1c40f', isSeller: true, userId: 'FashionFinds' },
     { id: 9, user: 'Sarah', text: 'This is my first time here, loving the vibe!', avatar: 'https://placehold.co/40x40.png', userColor: '#e67e22', userId: 'user5' },
-    { id: 10, type: 'auction', productId: 'prod_1' },
+    { id: 10, type: 'auction', productId: 'prod_1', active: false, initialTime: 0 },
     { id: 11, user: 'Mike', text: 'BID ₹8,500', avatar: 'https://placehold.co/40x40.png', userColor: '#1abc9c', userId: 'user6', isBid: true },
     { id: 12, user: 'Laura', text: 'BID ₹9,000', avatar: 'https://placehold.co/40x40.png', userColor: '#d35400', userId: 'user7', isBid: true },
     { id: 13, user: 'FashionFinds', text: 'Laura with a bid of ₹9,000! Going once...', avatar: 'https://placehold.co/40x40.png', userColor: '#f1c40f', isSeller: true, userId: 'FashionFinds' },
     { id: 14, user: 'Emily', text: 'How long does the battery last on the light meter?', avatar: 'https://placehold.co/40x40.png', userColor: '#8e44ad', userId: 'user8' },
+    { id: 15, type: 'auction', productId: 'prod_4', active: true, initialTime: 180 },
     { id: 16, user: 'FashionFinds', text: '@Emily It lasts for about a year with average use!', avatar: 'https://placehold.co/40x40.png', userColor: '#f1c40f', isSeller: true, userId: 'FashionFinds' },
     { id: 17, type: 'system', text: 'Robert purchased Wireless Headphones.' },
     { id: 18, user: 'Ganesh', text: 'Can you show the back of the camera?', avatar: 'https://placehold.co/40x40.png', userColor: '#3498db', userId: 'user1' },
@@ -173,6 +173,7 @@ const mockChatMessages: any[] = [
     { id: 26, user: 'FashionFinds', text: '@Liam shipping is a flat rate of ₹50 anywhere in India!', avatar: 'https://placehold.co/40x40.png', userColor: '#f1c40f', isSeller: true, userId: 'FashionFinds' },
     { id: 27, user: 'Ava', text: 'Can you show a close-up of the stitching?', avatar: 'https://placehold.co/40x40.png?text=A', userColor: '#7f8c8d', userId: 'user13' },
     { id: 28, user: 'Noah', text: 'BID ₹9,100', avatar: 'https://placehold.co/40x40.png?text=N', userColor: '#2c3e50', userId: 'user14', isBid: true },
+    { id: 29, user: 'Noah', text: 'BID ₹9,600', avatar: 'https://placehold.co/40x40.png?text=N', userColor: '#2c3e50', userId: 'user14', isBid: true },
     { id: 30, user: 'Sophia', text: 'Great stream! Thanks!', avatar: 'https://placehold.co/40x40.png?text=S', userColor: '#16a085', userId: 'user15' },
 ];
 
@@ -490,51 +491,56 @@ const formatAuctionTime = (seconds: number | null) => {
 };
 
 const AuctionCard = React.memo(({
-    auctionCardRef,
-    isAuctionActive,
+    auction,
     auctionTime,
     highestBid,
     totalBids,
-    chatMessages,
     handlePlaceBid,
     walletBalance,
     bidAmount,
     setBidAmount,
 }: {
-    auctionCardRef: React.RefObject<HTMLDivElement>,
-    isAuctionActive: boolean,
+    auction: any,
     auctionTime: number | null,
     highestBid: number,
     totalBids: number,
-    chatMessages: any[],
     handlePlaceBid: () => void,
     walletBalance: number,
     bidAmount: number | string,
     setBidAmount: (value: number | string) => void,
 }) => {
+    const isAuctionActive = auctionTime !== null && auctionTime > 0;
+    const product = productDetails[auction.productId as keyof typeof productDetails];
+    
+    if (!product) return null;
+
+    const recentBids = useMemo(() => {
+        return mockChatMessages.filter(m => m.isBid && m.type !== 'auction_end').reverse();
+    }, []);
+
     return (
-        <div ref={auctionCardRef}>
-            <Collapsible>
-                <Card className="bg-blue-900/20 border-blue-500/30 text-blue-200">
+        <div>
+            <Collapsible defaultOpen>
+                <Card className={cn("text-white", isAuctionActive ? "bg-blue-900/20 border-blue-500/30" : "bg-gray-800/20 border-gray-700/50")}>
                     <CardContent className="p-3">
                         <div className="flex items-center gap-3">
                             <div className="w-16 h-16 bg-muted rounded-md relative overflow-hidden flex-shrink-0">
-                                <Image src={productDetails['prod_1'].images[0]} alt={productDetails['prod_1'].name} fill className="object-cover" />
+                                <Image src={product.images[0]} alt={product.name} fill className="object-cover" />
                                 {!isAuctionActive && (
                                     <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-                                        <p className="font-bold text-white text-xl -rotate-12 transform">Timed Out</p>
+                                        <p className="font-bold text-white text-lg -rotate-12 transform">Timed Out</p>
                                     </div>
                                 )}
                             </div>
                             <div className="flex-grow">
                                 <div className="flex justify-between items-center">
-                                    <Badge className="bg-blue-500 text-white text-xs animate-pulse">AUCTION</Badge>
-                                    <Badge variant="secondary" className="font-mono text-blue-200">{formatAuctionTime(auctionTime)}</Badge>
+                                    <Badge className={cn("text-xs", isAuctionActive ? "bg-blue-500 animate-pulse" : "bg-gray-500")}>AUCTION</Badge>
+                                    <Badge variant="secondary" className="font-mono text-white">{formatAuctionTime(auctionTime)}</Badge>
                                 </div>
-                                <h4 className="font-bold leading-tight mt-1 text-white">{productDetails['prod_1'].name}</h4>
+                                <h4 className="font-bold leading-tight mt-1 text-white">{product.name}</h4>
                                 <div className="grid grid-cols-2 gap-x-2 text-xs mt-1">
-                                    <div className="text-blue-300">Current Bid: <span className="font-bold text-white">₹{highestBid.toLocaleString()}</span></div>
-                                    <div className="text-blue-300">Bids: <span className="font-bold text-white">{totalBids}</span></div>
+                                    <div className="text-gray-300">Current Bid: <span className="font-bold text-white">₹{highestBid.toLocaleString()}</span></div>
+                                    <div className="text-gray-300">Bids: <span className="font-bold text-white">{totalBids}</span></div>
                                 </div>
                             </div>
                         </div>
@@ -548,14 +554,14 @@ const AuctionCard = React.memo(({
                                 </DialogTrigger>
                                 <DialogContent className="sm:max-w-md bg-background border-border">
                                     <DialogHeader>
-                                        <DialogTitle className="text-xl font-bold">Place a Bid for {productDetails['prod_1'].name}</DialogTitle>
+                                        <DialogTitle className="text-xl font-bold">Place a Bid for {product.name}</DialogTitle>
                                     </DialogHeader>
                                     <div className="py-4 space-y-4">
                                         <div className="flex items-center gap-4 p-4 rounded-lg bg-muted">
-                                            <Image src={productDetails['prod_1'].images[0]} alt={productDetails['prod_1'].name} width={64} height={64} className="rounded-md" />
+                                            <Image src={product.images[0]} alt={product.name} width={64} height={64} className="rounded-md" />
                                             <div className="flex-grow">
-                                                <h4 className="font-semibold">{productDetails['prod_1'].name}</h4>
-                                                <p className="text-sm text-muted-foreground">by {productToSellerMapping['prod_1'].name}</p>
+                                                <h4 className="font-semibold">{product.name}</h4>
+                                                <p className="text-sm text-muted-foreground">by {productToSellerMapping[product.key as keyof typeof productToSellerMapping]?.name}</p>
                                             </div>
                                         </div>
                                         <div className="grid grid-cols-2 gap-4 text-center">
@@ -618,7 +624,7 @@ const AuctionCard = React.memo(({
                         <div className="p-3 border-t border-blue-500/30">
                             <h5 className="font-semibold text-xs mb-2">Recent Bids</h5>
                             <div className="space-y-2 max-h-24 overflow-y-auto thin-scrollbar">
-                                {chatMessages.filter(m => m.isBid).reverse().map(bid => (
+                                {recentBids.map(bid => (
                                     <div key={bid.id} className="flex justify-between items-center text-xs">
                                         <div className="flex items-center gap-2">
                                             <Avatar className="w-5 h-5">
@@ -654,14 +660,22 @@ export default function StreamPage() {
     const [bankAccounts, setBankAccounts] = useState([
         { id: 1, bankName: 'HDFC Bank', accountNumber: 'XXXX-XXXX-XX12-3456' },
     ]);
-     const [pinnedMessages, setPinnedMessages] = useState<any[]>([]);
-    const [auctionTime, setAuctionTime] = useState<number | null>(null);
-    const [highestBid, setHighestBid] = useState<number>(9100);
-    const [totalBids, setTotalBids] = useState<number>(3);
-    const [auctionCardRef, auctionCardInView] = useInView({ threshold: 0.5 });
-    const isAuctionActive = auctionTime !== null && auctionTime > 0;
-    const showPinnedAuction = !auctionCardInView && isAuctionActive;
+    const [pinnedMessages, setPinnedMessages] = useState<any[]>([]);
 
+    const [activeAuction, setActiveAuction] = useState<any | null>(null);
+    const [auctionTime, setAuctionTime] = useState<number | null>(null);
+    
+    const [highestBid, setHighestBid] = useState<number>(9600);
+    const [totalBids, setTotalBids] = useState<number>(4);
+    
+    const [showPinnedAuction, setShowPinnedAuction] = useState(false);
+    const auctionCardRef = useRef<HTMLDivElement>(null);
+
+    const isAuctionActive = useMemo(() => auctionTime !== null && auctionTime > 0, [auctionTime]);
+
+    const handleAuctionCardInView = (inView: boolean) => {
+        setShowPinnedAuction(!inView && isAuctionActive);
+    };
 
     const mockStreamData = {
         id: streamId,
@@ -735,10 +749,15 @@ export default function StreamPage() {
     };
     
     useEffect(() => {
-        if (auctionTime === null && chatMessages.some(msg => msg.type === 'auction')) {
-            setAuctionTime(180); // 3 minutes
+        const activeAuctionInChat = chatMessages.find(msg => msg.type === 'auction' && msg.active);
+        if (activeAuctionInChat) {
+            setActiveAuction(activeAuctionInChat);
+            setAuctionTime(activeAuctionInChat.initialTime);
+        } else {
+            setActiveAuction(null);
+            setAuctionTime(null);
         }
-    }, [chatMessages, auctionTime]);
+    }, [chatMessages]);
     
     useEffect(() => {
         if (auctionTime !== null && auctionTime > 0) {
@@ -746,29 +765,30 @@ export default function StreamPage() {
                 setAuctionTime(prev => (prev ? prev - 1 : null));
             }, 1000);
             return () => clearInterval(timer);
-        } else if (auctionTime === 0) {
-            const winningBid = [...chatMessages].reverse().find(m => m.isBid);
-            if (winningBid) {
-                const winnerMessage = {
-                    id: Date.now(),
-                    type: 'auction_end',
-                    winner: winningBid.user,
-                    winnerAvatar: winningBid.avatar,
-                    winningBid: winningBid.text.replace('BID ', ''),
-                    productName: productDetails['prod_1'].name,
-                };
-                setChatMessages(prev => [...prev, winnerMessage]);
-            } else {
-                 const noWinnerMessage = {
-                    id: Date.now(),
-                    type: 'system',
-                    text: `The auction for ${productDetails['prod_1'].name} has ended with no bids.`,
-                };
-                setChatMessages(prev => [...prev, noWinnerMessage]);
-            }
-            setAuctionTime(null);
+        } else if (auctionTime === 0 && activeAuction) {
+             const winningBid = [...chatMessages].reverse().find(m => m.isBid);
+             if (winningBid) {
+                 const winnerMessage = {
+                     id: Date.now(),
+                     type: 'auction_end',
+                     winner: winningBid.user,
+                     winnerAvatar: winningBid.avatar,
+                     winningBid: winningBid.text.replace('BID ', ''),
+                     productName: productDetails[activeAuction.productId as keyof typeof productDetails].name,
+                 };
+                 setChatMessages(prev => [...prev, winnerMessage]);
+             } else {
+                  const noWinnerMessage = {
+                     id: Date.now(),
+                     type: 'system',
+                     text: `The auction for ${productDetails[activeAuction.productId as keyof typeof productDetails].name} has ended with no bids.`,
+                 };
+                 setChatMessages(prev => [...prev, noWinnerMessage]);
+             }
+             setAuctionTime(null);
+             setActiveAuction(prev => prev ? {...prev, active: false} : null);
         }
-    }, [auctionTime, chatMessages]);
+    }, [auctionTime, activeAuction, chatMessages]);
 
     const handlePlayPause = useCallback(() => {
         const video = videoRef.current;
@@ -1000,6 +1020,8 @@ export default function StreamPage() {
     };
     
     const handlePlaceBid = () => {
+        if (!activeAuction) return;
+
         const bidValue = Number(bidAmount);
         if (bidValue <= highestBid) {
             toast({ variant: 'destructive', title: 'Invalid Bid', description: `Your bid must be higher than the current bid of ₹${highestBid.toLocaleString()}.` });
@@ -1030,45 +1052,26 @@ export default function StreamPage() {
         toast({ title: 'Bid Placed!', description: `Your bid of ₹${bidValue.toLocaleString()} has been placed.` });
     };
 
+    const chatMessagesWithoutAuction = useMemo(() => {
+        return chatMessages.filter(msg => msg.type !== 'auction');
+    }, [chatMessages]);
+    
     const memoizedChatMessages = useMemo(() => {
-        let auctionCardRendered = false;
-        return chatMessages.map((msg, index) => {
-            if (msg.type === 'auction' && !auctionCardRendered) {
-                auctionCardRendered = true;
-                return (
-                    <AuctionCard
-                        key={msg.id || index}
-                        auctionCardRef={auctionCardRef}
-                        isAuctionActive={isAuctionActive}
-                        auctionTime={auctionTime}
-                        highestBid={highestBid}
-                        totalBids={totalBids}
-                        chatMessages={chatMessages}
-                        handlePlaceBid={handlePlaceBid}
-                        walletBalance={walletBalance}
-                        bidAmount={bidAmount}
-                        setBidAmount={setBidAmount}
-                    />
-                );
-            }
-            if(msg.type === 'auction' && auctionCardRendered) return null;
-
-            return (
-                <ChatMessageContent
-                    key={msg.id || index}
-                    msg={msg}
-                    index={index}
-                    handlers={{
-                        onReply: handleReply,
-                        onTogglePinMessage: handleTogglePinMessage,
-                        onReportMessage: handleReportMessage,
-                    }}
-                    post={{ sellerId: seller?.id, avatarUrl: seller?.avatarUrl, sellerName: seller?.name }}
-                    pinnedMessages={pinnedMessages}
-                />
-            );
-        });
-    }, [chatMessages, auctionCardRef, isAuctionActive, auctionTime, highestBid, totalBids, handlePlaceBid, walletBalance, bidAmount, pinnedMessages, seller]);
+        return chatMessagesWithoutAuction.map((msg, index) => (
+            <ChatMessageContent
+                key={msg.id || index}
+                msg={msg}
+                index={index}
+                handlers={{
+                    onReply: handleReply,
+                    onTogglePinMessage: handleTogglePinMessage,
+                    onReportMessage: handleReportMessage,
+                }}
+                post={{ sellerId: seller?.id, avatarUrl: seller?.avatarUrl, sellerName: seller?.name }}
+                pinnedMessages={pinnedMessages}
+            />
+        ));
+    }, [chatMessagesWithoutAuction, seller, pinnedMessages]);
     
     return (
         <React.Fragment>
@@ -1394,15 +1397,13 @@ export default function StreamPage() {
                                 </div>
                                 
                                 <div className="relative flex-1 flex flex-col overflow-hidden">
-                                    {showPinnedAuction && (
+                                     {showPinnedAuction && activeAuction && (
                                         <div className="p-4 border-b border-border/50 sticky top-0 bg-card z-20 shadow-lg">
                                             <AuctionCard
-                                                auctionCardRef={auctionCardRef}
-                                                isAuctionActive={isAuctionActive}
+                                                auction={activeAuction}
                                                 auctionTime={auctionTime}
                                                 highestBid={highestBid}
                                                 totalBids={totalBids}
-                                                chatMessages={chatMessages}
                                                 handlePlaceBid={handlePlaceBid}
                                                 walletBalance={walletBalance}
                                                 bidAmount={bidAmount}
