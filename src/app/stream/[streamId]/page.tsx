@@ -728,6 +728,7 @@ export default function StreamPage() {
         setChatMessages(prev => [...prev, newMsg]);
         setHighestBid(bidValue);
         setTotalBids(prev => prev + 1);
+        setWalletBalance(prev => prev - bidValue);
         setBidAmount("");
         document.getElementById('closeBidDialog')?.click();
         
@@ -737,7 +738,8 @@ export default function StreamPage() {
     return (
         <Dialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
             <AlertDialog>
-                 <div className="h-dvh w-full flex flex-col bg-background text-foreground">
+                <>
+                <div className="h-dvh w-full flex flex-col bg-background text-foreground">
                     <header className="flex-shrink-0 h-16 bg-background border-b border-border flex items-center justify-between px-4 z-40">
                         <div className="flex items-center gap-2">
                             <Button variant="ghost" size="icon" onClick={() => router.back()}>
@@ -1057,7 +1059,7 @@ export default function StreamPage() {
                             </div>
                              {auctionTime !== null && (
                                 <div className="p-4 border-y border-border/50">
-                                    <Card className="bg-primary/10 border-primary/20">
+                                     <Card className="bg-blue-500/10 border-blue-500/20 text-blue-200">
                                         <CardContent className="p-3">
                                             <div className="flex items-center gap-3">
                                                 <div className="w-16 h-16 bg-muted rounded-md relative overflow-hidden flex-shrink-0">
@@ -1065,73 +1067,67 @@ export default function StreamPage() {
                                                 </div>
                                                 <div className="flex-grow">
                                                     <div className="flex justify-between items-center">
-                                                        <Badge variant="destructive" className="text-xs animate-pulse">AUCTION</Badge>
-                                                        <Badge variant="secondary" className="font-mono">{formatAuctionTime(auctionTime)}</Badge>
+                                                         <Badge className="bg-blue-500 text-white text-xs animate-pulse">AUCTION</Badge>
+                                                         <Badge variant="secondary" className="font-mono text-blue-200">{formatAuctionTime(auctionTime)}</Badge>
                                                     </div>
-                                                    <h4 className="font-bold leading-tight mt-1">{productDetails['prod_1'].name}</h4>
+                                                     <h4 className="font-bold leading-tight mt-1 text-white">{productDetails['prod_1'].name}</h4>
                                                     <div className="grid grid-cols-2 gap-x-2 text-xs mt-1">
-                                                        <div className="text-muted-foreground">Current Bid: <span className="font-bold text-foreground">₹{highestBid.toLocaleString()}</span></div>
-                                                        <div className="text-muted-foreground">Bids: <span className="font-bold text-foreground">{totalBids}</span></div>
+                                                         <div className="text-blue-300">Current Bid: <span className="font-bold text-white">₹{highestBid.toLocaleString()}</span></div>
+                                                         <div className="text-blue-300">Bids: <span className="font-bold text-white">{totalBids}</span></div>
                                                     </div>
                                                 </div>
                                             </div>
                                              <Dialog>
                                                 <DialogTrigger asChild>
-                                                    <Button className="w-full mt-2 h-8">
+                                                     <Button className="w-full mt-2 h-8 bg-blue-500 hover:bg-blue-600 text-white">
                                                         <Gavel className="w-4 h-4 mr-2"/>
                                                         Place Your Bid
                                                     </Button>
                                                 </DialogTrigger>
-                                                 <DialogContent className="sm:max-w-md">
+                                                 <DialogContent className="sm:max-w-md bg-gray-900 border-gray-800 text-white">
                                                     <DialogHeader>
-                                                        <DialogTitle>Place a Bid for {productDetails['prod_1'].name}</DialogTitle>
+                                                         <DialogTitle className="text-white">Place a Bid for {productDetails['prod_1'].name}</DialogTitle>
                                                     </DialogHeader>
                                                     <div className="py-4 space-y-6">
-                                                        <div className="flex items-center gap-3">
-                                                            <div className="w-20 h-20 bg-muted rounded-md relative overflow-hidden flex-shrink-0">
-                                                                <Image src={productDetails['prod_1'].images[0]} alt={productDetails['prod_1'].name} fill className="object-cover" />
-                                                            </div>
-                                                            <div className="flex-grow">
-                                                                <h4 className="font-semibold leading-tight">{productDetails['prod_1'].name}</h4>
-                                                                <p className="text-sm text-muted-foreground">Current Bid: <span className="font-bold text-primary">₹{highestBid.toLocaleString()}</span></p>
-                                                            </div>
-                                                        </div>
-
-                                                        <div className="p-4 rounded-lg bg-muted/50 border grid grid-cols-2 gap-4">
+                                                         <div className="p-4 rounded-lg bg-gray-800/50 border border-gray-700 grid grid-cols-2 gap-4">
                                                             <div>
-                                                                <Label className="text-xs text-muted-foreground">Wallet Balance</Label>
+                                                                <Label className="text-xs text-gray-400">Wallet Balance</Label>
                                                                 <p className="text-lg font-bold">₹{walletBalance.toFixed(2)}</p>
+                                                            </div>
+                                                            <div>
+                                                                <Label className="text-xs text-gray-400">Current Bid</Label>
+                                                                <p className="text-lg font-bold">₹{highestBid.toLocaleString()}</p>
                                                             </div>
                                                         </div>
 
                                                         <div>
-                                                            <Label htmlFor="bid-amount">Your Bid (must be > ₹{highestBid.toLocaleString()})</Label>
+                                                             <Label htmlFor="bid-amount">Your Bid (must be > ₹{highestBid.toLocaleString()})</Label>
                                                             <div className="relative mt-2">
-                                                                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground">₹</span>
+                                                                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">₹</span>
                                                                 <Input
                                                                     id="bid-amount"
                                                                     type="number"
                                                                     placeholder="Enter your bid"
-                                                                    className="pl-8 h-12 text-lg"
+                                                                    className="pl-8 h-12 text-lg bg-gray-800 border-gray-700"
                                                                     value={bidAmount}
                                                                     onChange={(e) => setBidAmount(e.target.value)}
                                                                 />
                                                             </div>
                                                         </div>
                                                         <div className="grid grid-cols-3 gap-2">
-                                                            <Button variant="outline" onClick={() => setBidAmount(prev => Number(prev || highestBid) + 100)}>+100</Button>
-                                                            <Button variant="outline" onClick={() => setBidAmount(prev => Number(prev || highestBid) + 500)}>+500</Button>
-                                                            <Button variant="outline" onClick={() => setBidAmount(prev => Number(prev || highestBid) + 1000)}>+1000</Button>
+                                                             <Button variant="outline" className="bg-gray-800 border-gray-700 hover:bg-gray-700" onClick={() => setBidAmount(prev => Number(prev || highestBid) + 100)}>+100</Button>
+                                                             <Button variant="outline" className="bg-gray-800 border-gray-700 hover:bg-gray-700" onClick={() => setBidAmount(prev => Number(prev || highestBid) + 500)}>+500</Button>
+                                                             <Button variant="outline" className="bg-gray-800 border-gray-700 hover:bg-gray-700" onClick={() => setBidAmount(prev => Number(prev || highestBid) + 1000)}>+1000</Button>
                                                         </div>
                                                     </div>
-                                                    <DialogDescription className="text-xs text-center text-muted-foreground pt-4">
-                                                        Your bid amount will be held and automatically refunded if you do not win the auction.
-                                                    </DialogDescription>
-                                                    <DialogFooter>
+                                                     <p className="text-xs text-center text-gray-400 pt-2">
+                                                        Note: Your bid amount will be held and automatically refunded if you do not win the auction.
+                                                    </p>
+                                                    <DialogFooter className="pt-4">
                                                         <DialogClose asChild>
-                                                            <Button variant="ghost" id="closeBidDialog">Cancel</Button>
+                                                            <Button variant="ghost" className="hover:bg-gray-800" id="closeBidDialog">Cancel</Button>
                                                         </DialogClose>
-                                                        <Button onClick={handlePlaceBid}>
+                                                         <Button onClick={handlePlaceBid} className="bg-blue-500 hover:bg-blue-600">
                                                             <Gavel className="mr-2 h-4 w-4" />
                                                             Confirm Bid
                                                         </Button>
@@ -1151,7 +1147,7 @@ export default function StreamPage() {
                                     ) : msg.type === 'system' ? (
                                     <p className="text-xs text-muted-foreground text-center italic">{msg.text}</p>
                                     ) : msg.isBid ? (
-                                        <Card className="bg-primary/10 border-primary/20 my-2">
+                                        <Card className="bg-blue-500/10 border-blue-500/20 my-2 text-blue-300">
                                             <CardContent className="p-3">
                                                 <div className="flex items-center gap-3">
                                                     <Avatar className="h-8 w-8">
@@ -1160,9 +1156,9 @@ export default function StreamPage() {
                                                     </Avatar>
                                                     <div className="flex-grow">
                                                         <p className="text-xs">{msg.user} placed a bid!</p>
-                                                        <p className="font-bold text-lg text-primary">{msg.text.replace('BID ', '')}</p>
+                                                        <p className="font-bold text-lg text-white">{msg.text.replace('BID ', '')}</p>
                                                     </div>
-                                                    <Gavel className="h-6 w-6 text-primary" />
+                                                    <Gavel className="h-6 w-6 text-blue-400" />
                                                 </div>
                                             </CardContent>
                                         </Card>
@@ -1235,6 +1231,7 @@ export default function StreamPage() {
                         </div>
                     </div>
                 </div>
+                </>
             </AlertDialog>
             <PlayerSettingsDialog
                 playbackRate={playbackRate}
