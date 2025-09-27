@@ -367,6 +367,7 @@ const useInView = (options?: IntersectionObserverInit) => {
 
         return () => {
             if (ref.current) {
+                // eslint-disable-next-line react-hooks/exhaustive-deps
                 observer.unobserve(ref.current);
             }
         };
@@ -394,6 +395,29 @@ const ChatMessageContent = React.memo(({ msg, index, handlers, post, pinnedMessa
     if (msg.type === 'system') {
         return <p key={msg.id || index} className="text-xs text-muted-foreground text-center italic">{msg.text}</p>;
     }
+    
+    if (msg.type === 'auction_end') {
+         return (
+            <Card key={msg.id || index} className="bg-yellow-500/10 border-yellow-500/30 my-2 text-yellow-200">
+                <CardContent className="p-3">
+                    <div className="flex items-center gap-3">
+                         <Avatar className="h-8 w-8">
+                            <AvatarImage src={msg.winnerAvatar} />
+                            <AvatarFallback>{msg.winner.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                        <div className="flex-grow">
+                            <p className="text-xs font-bold text-yellow-400">Auction Ended!</p>
+                            <p className="font-semibold text-white">
+                                {msg.winner} won {msg.productName} for {msg.winningBid}!
+                            </p>
+                        </div>
+                        <Award className="h-6 w-6 text-yellow-400" />
+                    </div>
+                </CardContent>
+            </Card>
+        );
+    }
+    
     if (msg.isBid) {
         return (
              <Card key={msg.id || index} className="bg-green-900/20 border-green-500/30 my-2 text-green-200">
@@ -1007,7 +1031,6 @@ export default function StreamPage() {
         toast({ title: 'Bid Placed!', description: `Your bid of ₹${bidValue.toLocaleString()} has been placed.` });
     };
     
-    
     const firstActiveAuction = useMemo(() => {
         return chatMessages.find(m => m.type === 'auction');
     }, [chatMessages]);
@@ -1360,25 +1383,24 @@ export default function StreamPage() {
                                 <ScrollArea className="flex-1" ref={chatContainerRef}>
                                     <div className="p-4 space-y-4">
                                         {otherMessages.map((msg, index) => {
-                                            if (msg.type === 'auction' && msg.id === firstActiveAuction?.id) {
-                                                return (
-                                                     <AuctionCard 
-                                                        key={msg.id}
-                                                        auctionCardRef={auctionCardRef}
-                                                        isAuctionActive={isAuctionActive}
-                                                        auctionTime={auctionTime}
-                                                        highestBid={highestBid}
-                                                        totalBids={totalBids}
-                                                        chatMessages={chatMessages}
-                                                        handlePlaceBid={handlePlaceBid}
-                                                        walletBalance={walletBalance}
-                                                        bidAmount={bidAmount}
-                                                        setBidAmount={setBidAmount}
-                                                    />
-                                                );
-                                            }
-                                            if (msg.type === 'auction') return null; // Don't render subsequent auction cards
-                                            return <ChatMessageContent key={msg.id || index} msg={msg} index={index} handlers={{ onReply: handleReply, onTogglePinMessage: handleTogglePinMessage, onReportMessage: handleReportMessage }} post={{sellerId: seller?.id, avatarUrl: seller?.avatarUrl, sellerName: seller?.name}} pinnedMessages={pinnedMessages} />
+                                            const isFirstActiveAuction = msg.id === firstActiveAuction?.id;
+                                            return isFirstActiveAuction ? (
+                                                <AuctionCard 
+                                                    key={msg.id}
+                                                    auctionCardRef={auctionCardRef}
+                                                    isAuctionActive={isAuctionActive}
+                                                    auctionTime={auctionTime}
+                                                    highestBid={highestBid}
+                                                    totalBids={totalBids}
+                                                    chatMessages={chatMessages}
+                                                    handlePlaceBid={handlePlaceBid}
+                                                    walletBalance={walletBalance}
+                                                    bidAmount={bidAmount}
+                                                    setBidAmount={setBidAmount}
+                                                />
+                                            ) : (
+                                                <ChatMessageContent key={msg.id || index} msg={msg} index={index} handlers={{ onReply: handleReply, onTogglePinMessage: handleTogglePinMessage, onReportMessage: handleReportMessage }} post={{sellerId: seller?.id, avatarUrl: seller?.avatarUrl, sellerName: seller?.name}} pinnedMessages={pinnedMessages} />
+                                            );
                                         })}
                                         <div ref={messagesEndRef} />
                                     </div>
