@@ -56,6 +56,7 @@ import {
   Subtitles,
   History,
   Ticket,
+  Award,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -1030,14 +1031,55 @@ export default function StreamPage() {
         
         toast({ title: 'Bid Placed!', description: `Your bid of ₹${bidValue.toLocaleString()} has been placed.` });
     };
-    
-    const firstActiveAuction = useMemo(() => {
-        return chatMessages.find(m => m.type === 'auction');
-    }, [chatMessages]);
 
-    const otherMessages = useMemo(() => {
-        return chatMessages.filter(m => m.type !== 'auction');
-    }, [chatMessages]);
+    const memoizedChatMessages = useMemo(() => {
+        return chatMessages.map((msg, index) => {
+            if (msg.type === 'auction') {
+                return (
+                    <AuctionCard
+                        key={msg.id || index}
+                        auctionCardRef={auctionCardRef}
+                        isAuctionActive={isAuctionActive}
+                        auctionTime={auctionTime}
+                        highestBid={highestBid}
+                        totalBids={totalBids}
+                        chatMessages={chatMessages}
+                        handlePlaceBid={handlePlaceBid}
+                        walletBalance={walletBalance}
+                        bidAmount={bidAmount}
+                        setBidAmount={setBidAmount}
+                    />
+                );
+            }
+            return (
+                <ChatMessageContent
+                    key={msg.id || index}
+                    msg={msg}
+                    index={index}
+                    handlers={{
+                        onReply: handleReply,
+                        onTogglePinMessage: handleTogglePinMessage,
+                        onReportMessage: handleReportMessage,
+                    }}
+                    post={{ sellerId: seller?.id, avatarUrl: seller?.avatarUrl, sellerName: seller?.name }}
+                    pinnedMessages={pinnedMessages}
+                />
+            );
+        });
+    }, [
+        chatMessages, 
+        auctionCardRef, 
+        isAuctionActive, 
+        auctionTime, 
+        highestBid, 
+        totalBids, 
+        handlePlaceBid, 
+        walletBalance, 
+        bidAmount, 
+        setBidAmount,
+        pinnedMessages,
+        seller
+    ]);
     
     return (
         <React.Fragment>
@@ -1362,74 +1404,56 @@ export default function StreamPage() {
                                     </div>
                                 </div>
                                 
-                                {showPinnedAuction && (
-                                    <div className="p-4 border-y border-border/50 sticky top-16 bg-card z-20 shadow-lg">
-                                        <AuctionCard 
-                                            isPinned 
-                                            auctionCardRef={auctionCardRef}
-                                            isAuctionActive={isAuctionActive}
-                                            auctionTime={auctionTime}
-                                            highestBid={highestBid}
-                                            totalBids={totalBids}
-                                            chatMessages={chatMessages}
-                                            handlePlaceBid={handlePlaceBid}
-                                            walletBalance={walletBalance}
-                                            bidAmount={bidAmount}
-                                            setBidAmount={setBidAmount}
-                                        />
-                                    </div>
-                                )}
-
-                                <ScrollArea className="flex-1" ref={chatContainerRef}>
-                                    <div className="p-4 space-y-4">
-                                        {otherMessages.map((msg, index) => {
-                                            const isFirstActiveAuction = msg.id === firstActiveAuction?.id;
-                                            return isFirstActiveAuction ? (
-                                                <AuctionCard 
-                                                    key={msg.id}
-                                                    auctionCardRef={auctionCardRef}
-                                                    isAuctionActive={isAuctionActive}
-                                                    auctionTime={auctionTime}
-                                                    highestBid={highestBid}
-                                                    totalBids={totalBids}
-                                                    chatMessages={chatMessages}
-                                                    handlePlaceBid={handlePlaceBid}
-                                                    walletBalance={walletBalance}
-                                                    bidAmount={bidAmount}
-                                                    setBidAmount={setBidAmount}
-                                                />
-                                            ) : (
-                                                <ChatMessageContent key={msg.id || index} msg={msg} index={index} handlers={{ onReply: handleReply, onTogglePinMessage: handleTogglePinMessage, onReportMessage: handleReportMessage }} post={{sellerId: seller?.id, avatarUrl: seller?.avatarUrl, sellerName: seller?.name}} pinnedMessages={pinnedMessages} />
-                                            );
-                                        })}
-                                        <div ref={messagesEndRef} />
-                                    </div>
-                                </ScrollArea>
-                                <div className="p-3 border-t bg-background flex-shrink-0">
-                                    <form onSubmit={handleNewMessageSubmit} className="flex items-center gap-3">
-                                        <div className="relative flex-grow">
-                                            <Textarea ref={textareaRef} placeholder={replyingTo ? `@${replyingTo.name} ` : "Send a message..."} value={newMessage} onChange={(e) => setNewMessage(e.target.value)} className="resize-none pr-10 rounded-2xl bg-muted border-transparent focus:border-primary focus:bg-background h-10 min-h-[40px] pt-2.5 text-sm" rows={1} onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleNewMessageSubmit(e); } }} />
-                                            <Popover>
-                                                <PopoverTrigger asChild>
-                                                    <Button variant="ghost" size="icon" type="button" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full text-muted-foreground">
-                                                        <Smile className="h-5 w-5" />
-                                                    </Button>
-                                                </PopoverTrigger>
-                                                <PopoverContent className="w-80 h-64 p-2">
-                                                    <div className="grid grid-cols-8 gap-1 h-full overflow-y-auto no-scrollbar">
-                                                        {emojis.map((emoji, index) => (
-                                                            <Button key={index} variant="ghost" size="icon" onClick={() => addEmoji(emoji)} className="text-xl">
-                                                                {emoji}
-                                                            </Button>
-                                                        ))}
-                                                    </div>
-                                                </PopoverContent>
-                                            </Popover>
+                                <div className="relative flex-1 flex flex-col overflow-hidden">
+                                    {showPinnedAuction && (
+                                        <div className="p-4 border-y border-border/50 sticky top-0 bg-card z-20 shadow-lg">
+                                            <AuctionCard
+                                                isPinned
+                                                auctionCardRef={auctionCardRef}
+                                                isAuctionActive={isAuctionActive}
+                                                auctionTime={auctionTime}
+                                                highestBid={highestBid}
+                                                totalBids={totalBids}
+                                                chatMessages={chatMessages}
+                                                handlePlaceBid={handlePlaceBid}
+                                                walletBalance={walletBalance}
+                                                bidAmount={bidAmount}
+                                                setBidAmount={setBidAmount}
+                                            />
                                         </div>
-                                        <Button type="submit" size="icon" disabled={!newMessage.trim()} className="rounded-full flex-shrink-0 h-10 w-10">
-                                            <Send className="h-4 w-4" />
-                                        </Button>
-                                    </form>
+                                    )}
+                                    <ScrollArea className="flex-1" ref={chatContainerRef}>
+                                        <div className="p-4 space-y-4">
+                                            {memoizedChatMessages}
+                                            <div ref={messagesEndRef} />
+                                        </div>
+                                    </ScrollArea>
+                                    <div className="p-3 border-t bg-background flex-shrink-0">
+                                        <form onSubmit={handleNewMessageSubmit} className="flex items-center gap-3">
+                                            <div className="relative flex-grow">
+                                                <Textarea ref={textareaRef} placeholder={replyingTo ? `@${replyingTo.name} ` : "Send a message..."} value={newMessage} onChange={(e) => setNewMessage(e.target.value)} className="resize-none pr-10 rounded-2xl bg-muted border-transparent focus:border-primary focus:bg-background h-10 min-h-[40px] pt-2.5 text-sm" rows={1} onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleNewMessageSubmit(e); } }} />
+                                                <Popover>
+                                                    <PopoverTrigger asChild>
+                                                        <Button variant="ghost" size="icon" type="button" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full text-muted-foreground">
+                                                            <Smile className="h-5 w-5" />
+                                                        </Button>
+                                                    </PopoverTrigger>
+                                                    <PopoverContent className="w-80 h-64 p-2">
+                                                        <div className="grid grid-cols-8 gap-1 h-full overflow-y-auto no-scrollbar">
+                                                            {emojis.map((emoji, index) => (
+                                                                <Button key={index} variant="ghost" size="icon" onClick={() => addEmoji(emoji)} className="text-xl">
+                                                                    {emoji}
+                                                                </Button>
+                                                            ))}
+                                                        </div>
+                                                    </PopoverContent>
+                                                </Popover>
+                                            </div>
+                                            <Button type="submit" size="icon" disabled={!newMessage.trim()} className="rounded-full flex-shrink-0 h-10 w-10">
+                                                <Send className="h-4 w-4" />
+                                            </Button>
+                                        </form>
+                                    </div>
                                 </div>
                             </div>
                         </div>
