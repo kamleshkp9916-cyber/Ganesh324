@@ -340,7 +340,7 @@ const PlayerSettingsDialog = ({ playbackRate, onPlaybackRateChange, skipInterval
                 </Tabs>
             </div>
              <DialogFooter className="p-4 border-t border-gray-700">
-                 <DialogClose asChild>
+                <DialogClose asChild>
                     <Button variant="ghost" className="text-white hover:bg-white/10 hover:text-white" onClick={onClose}>Done</Button>
                 </DialogClose>
             </DialogFooter>
@@ -355,15 +355,13 @@ export default function StreamPage() {
     const { user } = useAuth();
     const { toast } = useToast();
     const [walletBalance, setWalletBalance] = useState(42580.22);
+    const [bidAmount, setBidAmount] = useState<number | string>("");
     const [isWithdrawOpen, setIsWithdrawOpen] = useState(false);
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
     const [bankAccounts, setBankAccounts] = useState([
         { id: 1, bankName: 'HDFC Bank', accountNumber: 'XXXX-XXXX-XX12-3456' },
     ]);
-     const [pinnedMessages, setPinnedMessages] = useState<any[]>([
-        { id: 999, user: 'FashionFinds', isSeller: true, text: '🎉 Special Offer! Use code LIVE10 for 10% off your entire order, only during this stream!', type: 'offer' },
-        { id: 998, user: 'FashionFinds', isSeller: true, text: 'Featured Product: Vintage Camera. Ask me anything about it!', type: 'product', product: productDetails['prod_1'] },
-    ]);
+     const [pinnedMessages, setPinnedMessages] = useState<any[]>([]);
     const [auctionTime, setAuctionTime] = useState<number | null>(null);
 
     const mockStreamData = {
@@ -674,6 +672,34 @@ export default function StreamPage() {
             });
         }
     };
+    
+    const handlePlaceBid = () => {
+        const bidValue = Number(bidAmount);
+        if (bidValue <= 0) {
+            toast({ variant: 'destructive', title: 'Invalid Bid', description: 'Please enter a valid bid amount.' });
+            return;
+        }
+        if (bidValue > walletBalance) {
+            toast({ variant: 'destructive', title: 'Insufficient Funds', description: 'Your bid exceeds your wallet balance.' });
+            return;
+        }
+
+        const newMsg: any = {
+            id: Date.now(),
+            user: user?.displayName?.split(' ')[0] || 'You',
+            userId: user?.uid,
+            text: `BID ₹${bidValue.toLocaleString()}`,
+            avatar: user?.photoURL || 'https://placehold.co/40x40.png',
+            userColor: user?.color || '#ffffff',
+            isBid: true,
+        };
+
+        setChatMessages(prev => [...prev, newMsg]);
+        setBidAmount("");
+        document.getElementById('closeBidDialog')?.click();
+        
+        toast({ title: 'Bid Placed!', description: `Your bid of ₹${bidValue.toLocaleString()} has been placed.` });
+    };
 
     return (
         <Dialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
@@ -869,7 +895,7 @@ export default function StreamPage() {
                         </div>
                     </div>
                 </div>
-                 <div className="hidden lg:flex w-[340px] flex-shrink-0 h-full flex-col border-l border-border bg-background">
+                 <div className="hidden lg:flex w-[340px] flex-shrink-0 h-full flex-col border-l border-border bg-transparent">
                     <div className="p-4 flex items-center justify-between z-10 flex-shrink-0 h-16 bg-transparent">
                         <h3 className="font-bold text-lg">Live Chat</h3>
                         <div className="flex items-center gap-1">
@@ -930,7 +956,7 @@ export default function StreamPage() {
                                 </div>
                             </PopoverContent>
                         </Popover>
-                        <Popover>
+                         <Popover>
                             <PopoverTrigger asChild>
                                 <Button variant="ghost" size="icon" className="h-8 w-8 relative">
                                     <Pin className="h-5 w-5 text-muted-foreground" />
@@ -1021,9 +1047,9 @@ export default function StreamPage() {
                         </DropdownMenu>
                         </div>
                     </div>
-                     <div className="p-4 border-b">
-                        {auctionTime !== null && (
-                             <Card className="bg-primary/10 border-primary/20">
+                    {auctionTime !== null && (
+                        <div className="p-4 border-b">
+                            <Card className="bg-primary/10 border-primary/20">
                                 <CardContent className="p-3">
                                     <div className="flex items-center gap-3">
                                         <div className="w-16 h-16 bg-muted rounded-md relative overflow-hidden flex-shrink-0">
@@ -1038,14 +1064,47 @@ export default function StreamPage() {
                                             <p className="text-sm">Starting Bid: <span className="font-bold">₹8,000</span></p>
                                         </div>
                                     </div>
-                                        <Button className="w-full mt-2 h-8">
-                                        <Gavel className="w-4 h-4 mr-2"/>
-                                        Place Your Bid
-                                    </Button>
+                                     <Dialog>
+                                        <DialogTrigger asChild>
+                                            <Button className="w-full mt-2 h-8">
+                                                <Gavel className="w-4 h-4 mr-2"/>
+                                                Place Your Bid
+                                            </Button>
+                                        </DialogTrigger>
+                                        <DialogContent>
+                                            <DialogHeader>
+                                                <DialogTitle>Place a Bid for {productDetails['prod_1'].name}</DialogTitle>
+                                                <DialogDescription>
+                                                    Your current wallet balance is <strong className="text-foreground">₹{walletBalance.toFixed(2)}</strong>. 
+                                                    Your bid amount will be held and automatically refunded if you do not win the auction.
+                                                </DialogDescription>
+                                            </DialogHeader>
+                                            <div className="py-4 space-y-2">
+                                                <Label htmlFor="bid-amount">Bid Amount</Label>
+                                                <div className="relative">
+                                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">₹</span>
+                                                    <Input 
+                                                        id="bid-amount" 
+                                                        type="number" 
+                                                        placeholder="Enter your bid" 
+                                                        className="pl-6"
+                                                        value={bidAmount}
+                                                        onChange={(e) => setBidAmount(e.target.value)}
+                                                    />
+                                                </div>
+                                            </div>
+                                            <DialogFooter>
+                                                <DialogClose asChild>
+                                                    <Button variant="outline" id="closeBidDialog">Cancel</Button>
+                                                </DialogClose>
+                                                <Button onClick={handlePlaceBid}>Confirm Bid</Button>
+                                            </DialogFooter>
+                                        </DialogContent>
+                                    </Dialog>
                                 </CardContent>
                             </Card>
-                        )}
-                    </div>
+                        </div>
+                    )}
                      <ScrollArea className="flex-1" ref={chatContainerRef}>
                         <div className="p-4 space-y-2">
                         {chatMessages.map((msg, index) => (
@@ -1135,6 +1194,3 @@ export default function StreamPage() {
 }
 
     
-
-
-
