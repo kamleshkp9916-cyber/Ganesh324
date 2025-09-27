@@ -105,6 +105,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { motion, AnimatePresence } from "framer-motion";
 
 
 const emojis = [
@@ -663,20 +664,26 @@ export default function StreamPage() {
     ]);
     const [pinnedMessages, setPinnedMessages] = useState<any[]>([]);
 
+    const [chatMessages, setChatMessages] = useState(mockChatMessages);
     const [auctionTime, setAuctionTime] = useState<number | null>(null);
-    
     const [highestBid, setHighestBid] = useState<number>(9600);
     const [totalBids, setTotalBids] = useState<number>(4);
     
     const [showPinnedAuction, setShowPinnedAuction] = useState(false);
     const [auctionCardRef, auctionCardInView] = useInView({ threshold: 0.5 });
     
+    const activeAuction = useMemo(() => chatMessages.find(msg => msg.type === 'auction' && msg.active), [chatMessages]);
+
+    useEffect(() => {
+        if (!auctionCardInView && activeAuction) {
+            setShowPinnedAuction(true);
+        } else {
+            setShowPinnedAuction(false);
+        }
+    }, [auctionCardInView, activeAuction]);
+
     const isAuctionActive = useMemo(() => auctionTime !== null && auctionTime > 0, [auctionTime]);
     
-    useEffect(() => {
-        setShowPinnedAuction(!auctionCardInView && isAuctionActive);
-    }, [auctionCardInView, isAuctionActive]);
-
     const mockStreamData = {
         id: streamId,
         title: "Live Shopping Event",
@@ -703,7 +710,6 @@ export default function StreamPage() {
     const [skipInterval, setSkipInterval] = useState(10);
     const [isFullscreen, setIsFullscreen] = useState(false);
     const [isLive, setIsLive] = useState(false);
-    const [chatMessages, setChatMessages] = useState(mockChatMessages);
     const [newMessage, setNewMessage] = useState("");
     const [isProductListVisible, setIsProductListVisible] = useState(false);
     const [replyingTo, setReplyingTo] = useState<{ name: string; id: string } | null>(null);
@@ -748,8 +754,6 @@ export default function StreamPage() {
         return timeString.startsWith('00:') ? timeString.substr(3) : timeString;
     };
     
-    const activeAuction = useMemo(() => chatMessages.find(msg => msg.type === 'auction' && msg.active), [chatMessages]);
-
     useEffect(() => {
         if (activeAuction) {
             setAuctionTime(activeAuction.initialTime);
@@ -1277,7 +1281,7 @@ export default function StreamPage() {
                                 </div>
                             </div>
                             <div className="hidden lg:flex w-[340px] flex-shrink-0 h-full flex-col bg-card">
-                                <div className="p-4 flex items-center justify-between z-10 flex-shrink-0 h-16">
+                                <div className="p-4 flex items-center justify-between z-10 flex-shrink-0 h-16 border-b">
                                     <h3 className="font-bold text-lg">Live Chat</h3>
                                     <div className="flex items-center gap-1">
                                         <Popover>
@@ -1409,8 +1413,28 @@ export default function StreamPage() {
                                 </div>
                                 
                                 <div className="relative flex-1 flex flex-col overflow-hidden">
-                                     <div className="p-4 border-b border-border/50 sticky top-0 bg-card z-20 shadow-lg">
-                                      </div>
+                                     <AnimatePresence>
+                                        {showPinnedAuction && activeAuction && (
+                                            <motion.div
+                                                className="p-4 border-b border-border/50 sticky top-0 bg-card z-20 shadow-lg"
+                                                initial={{ y: -100 }}
+                                                animate={{ y: 0 }}
+                                                exit={{ y: -100 }}
+                                                transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                                            >
+                                                <AuctionCard
+                                                    auction={activeAuction}
+                                                    auctionTime={auctionTime}
+                                                    highestBid={highestBid}
+                                                    totalBids={totalBids}
+                                                    handlePlaceBid={handlePlaceBid}
+                                                    walletBalance={walletBalance}
+                                                    bidAmount={bidAmount}
+                                                    setBidAmount={setBidAmount}
+                                                />
+                                            </motion.div>
+                                        )}
+                                    </AnimatePresence>
                                     <ScrollArea className="flex-1" ref={chatContainerRef}>
                                         <div className="p-4 space-y-4">
                                             {memoizedChatMessages}
@@ -1473,4 +1497,5 @@ export default function StreamPage() {
         </React.Fragment>
     );
 }
+
 
