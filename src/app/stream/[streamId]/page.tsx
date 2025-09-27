@@ -405,7 +405,8 @@ export default function StreamPage() {
 
      const sellerProducts = useMemo(() => {
         if (!seller) return [];
-        return Object.values(productDetails).filter(p => productToSellerMapping[p.key]?.name === seller.name && p.stock > 0);
+        const allProducts = Object.values(productDetails)
+        return allProducts.filter(p => p.brand === seller.name && p.stock > 0)
     }, [seller]);
     
     const relatedStreams = useMemo(() => {
@@ -791,29 +792,29 @@ export default function StreamPage() {
                                      <div className="relative">
                                         <Carousel opts={{ align: "start" }} className="w-full">
                                             <CarouselContent className="-ml-2">
-                                                {(sellerProducts.length > 0 ? sellerProducts : [productDetails['prod_1'], productDetails['prod_2']]).map((product: any, index: number) => (
+                                                {sellerProducts.map((p, index) => (
                                                 <CarouselItem key={index} className="pl-2 basis-auto">
                                                     <div className="w-32">
                                                         <Card className="h-full flex flex-col overflow-hidden">
-                                                            <Link href={`/product/${product.key}`} className="block">
+                                                            <Link href={`/product/${p.key}`}>
                                                             <div className="aspect-square bg-muted rounded-t-lg relative">
-                                                                <Image src={product.images[0].preview || product.images[0]} alt={product.name} fill className="object-cover" />
-                                                                {product.stock === 0 && (
+                                                                <Image src={p.images[0].preview || p.images[0]} alt={p.name} fill className="object-cover" />
+                                                                {p.stock === 0 && (
                                                                     <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
                                                                         <Badge variant="destructive">Out of Stock</Badge>
                                                                     </div>
                                                                 )}
                                                             </div>
                                                             <div className="p-1.5">
-                                                                <p className="text-[11px] font-semibold truncate leading-tight">{product.name}</p>
-                                                                <p className="text-xs font-bold">{product.price.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })}</p>
+                                                                <p className="text-[11px] font-semibold truncate leading-tight">{p.name}</p>
+                                                                <p className="text-xs font-bold">{p.price.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })}</p>
                                                             </div>
                                                             </Link>
                                                             <CardFooter className="p-1.5 mt-auto grid grid-cols-2 gap-1">
-                                                            {product.stock > 0 ? (
+                                                            {p.stock > 0 ? (
                                                                 <>
-                                                                <Button size="xs" className="w-full text-[10px] h-7" variant="secondary" onClick={() => handleAddToCart(product)}>Add</Button>
-                                                                <Button size="xs" className="w-full text-[10px] h-7" onClick={() => handleBuyNow(product)}>Buy</Button>
+                                                                <Button size="xs" className="w-full text-[10px] h-7" variant="secondary" onClick={() => handleAddToCart(p)}>Add</Button>
+                                                                <Button size="xs" className="w-full text-[10px] h-7" onClick={() => handleBuyNow(p)}>Buy</Button>
                                                                 </>
                                                             ) : (
                                                                 <Button size="xs" className="w-full text-[10px] h-7 col-span-2" variant="outline" disabled>Out of Stock</Button>
@@ -868,7 +869,7 @@ export default function StreamPage() {
                         </div>
                     </div>
                 </div>
-                 <div className="hidden lg:flex w-[340px] flex-shrink-0 h-full flex-col border-l border-border bg-transparent">
+                 <div className="hidden lg:flex w-[340px] flex-shrink-0 h-full flex-col border-l border-border bg-background">
                     <div className="p-4 flex items-center justify-between z-10 flex-shrink-0 h-16 bg-transparent">
                         <h3 className="font-bold text-lg">Live Chat</h3>
                         <div className="flex items-center gap-1">
@@ -1020,34 +1021,37 @@ export default function StreamPage() {
                         </DropdownMenu>
                         </div>
                     </div>
+                     <div className="p-4 border-b">
+                        {auctionTime !== null && (
+                             <Card className="bg-primary/10 border-primary/20">
+                                <CardContent className="p-3">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-16 h-16 bg-muted rounded-md relative overflow-hidden flex-shrink-0">
+                                            <Image src={productDetails['prod_1'].images[0]} alt={productDetails['prod_1'].name} fill className="object-cover" />
+                                        </div>
+                                        <div className="flex-grow">
+                                            <div className="flex justify-between items-center">
+                                                <Badge variant="destructive" className="text-xs animate-pulse">AUCTION</Badge>
+                                                <Badge variant="secondary" className="font-mono">{formatAuctionTime(auctionTime)}</Badge>
+                                            </div>
+                                            <h4 className="font-bold leading-tight mt-1">{productDetails['prod_1'].name}</h4>
+                                            <p className="text-sm">Starting Bid: <span className="font-bold">₹8,000</span></p>
+                                        </div>
+                                    </div>
+                                        <Button className="w-full mt-2 h-8">
+                                        <Gavel className="w-4 h-4 mr-2"/>
+                                        Place Your Bid
+                                    </Button>
+                                </CardContent>
+                            </Card>
+                        )}
+                    </div>
                      <ScrollArea className="flex-1" ref={chatContainerRef}>
                         <div className="p-4 space-y-2">
                         {chatMessages.map((msg, index) => (
                         <div key={msg.id || index} className="text-sm group relative">
                              {msg.type === 'auction' ? (
-                                <Card className="bg-primary/10 border-primary/20">
-                                    <CardContent className="p-3">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-16 h-16 bg-muted rounded-md relative overflow-hidden flex-shrink-0">
-                                                <Image src={productDetails['prod_1'].images[0]} alt={productDetails['prod_1'].name} fill className="object-cover" />
-                                            </div>
-                                            <div className="flex-grow">
-                                                <div className="flex justify-between items-center">
-                                                    <Badge variant="destructive" className="text-xs animate-pulse">AUCTION</Badge>
-                                                    {auctionTime !== null && (
-                                                        <Badge variant="secondary" className="font-mono">{formatAuctionTime(auctionTime)}</Badge>
-                                                    )}
-                                                </div>
-                                                <h4 className="font-bold leading-tight mt-1">{productDetails['prod_1'].name}</h4>
-                                                <p className="text-sm">Starting Bid: <span className="font-bold">₹8,000</span></p>
-                                            </div>
-                                        </div>
-                                         <Button className="w-full mt-2 h-8">
-                                            <Gavel className="w-4 h-4 mr-2"/>
-                                            Place Your Bid
-                                        </Button>
-                                    </CardContent>
-                                </Card>
+                               null
                             ) : msg.type === 'system' ? (
                             <p className="text-xs text-muted-foreground text-center italic">{msg.text}</p>
                             ) : msg.user ? (
@@ -1131,5 +1135,6 @@ export default function StreamPage() {
 }
 
     
+
 
 
