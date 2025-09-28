@@ -416,7 +416,7 @@ const ChatMessageContent = React.memo(({ msg, index, handlers, post, pinnedMessa
         const isPostAuthor = user?.uid === post.sellerId;
 
         return (
-            <div key={msg.id || index} className="text-xs group relative">
+            <div key={msg.id || index} className="text-xs group relative py-0.5">
                 <div className="flex items-start gap-2 w-full group">
                     <Avatar className="w-8 h-8">
                         <AvatarImage src={msg.avatar} />
@@ -497,7 +497,7 @@ const AuctionCard = React.memo(({
         <div ref={cardRef}>
              <Card
                 className={cn(
-                    "text-white border-2 bg-black/60 backdrop-blur-sm", 
+                    "text-white border-2 bg-black/80 backdrop-blur-sm", 
                     isAuctionActive ? "border-primary/50" : "border-gray-700/50",
                     isPinned && "cursor-pointer"
                 )}
@@ -1496,3 +1496,4 @@ export default function StreamPage() {
         </React.Fragment>
     );
 }
+
