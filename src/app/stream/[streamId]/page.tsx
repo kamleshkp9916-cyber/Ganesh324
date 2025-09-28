@@ -57,6 +57,12 @@ import {
   History,
   Ticket,
   Award,
+  Instagram,
+  Twitter,
+  Youtube,
+  Twitch,
+  Facebook,
+  Reddit,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -121,16 +127,16 @@ const emojis = [
 ];
 
 const liveSellers = [
-    { id: '1', name: 'FashionFinds', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Fashion', viewers: 1200, buyers: 25, rating: 4.8, reviews: 12, hint: 'woman posing stylish outfit', productId: 'prod_1', hasAuction: true },
-    { id: '2', name: 'GadgetGuru', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Electronics', viewers: 2500, buyers: 42, rating: 4.9, reviews: 28, hint: 'unboxing new phone', productId: 'prod_2', hasAuction: false },
-    { id: '3', name: 'HomeHaven', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Home Goods', viewers: 850, buyers: 15, rating: 4.7, reviews: 9, hint: 'modern living room decor', productId: 'prod_3', hasAuction: false },
-    { id: '4', name: 'BeautyBox', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Beauty', viewers: 3100, buyers: 78, rating: 4.9, reviews: 55, hint: 'makeup tutorial', productId: 'prod_4', hasAuction: true },
-    { id: '5', name: 'KitchenWiz', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Kitchenware', viewers: 975, buyers: 0, rating: 0, reviews: 0, hint: 'cooking demonstration', productId: 'prod_5', hasAuction: false },
-    { id: '6', name: 'FitFlow', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Fitness', viewers: 1500, buyers: 33, rating: 4.6, reviews: 18, hint: 'yoga session', productId: 'prod_6', hasAuction: false },
-    { id: '7', name: 'ArtisanAlley', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Handmade', viewers: 450, buyers: 8, rating: 5.0, reviews: 6, hint: 'pottery making', productId: 'prod_7', hasAuction: true },
-    { id: '8', name: 'PetPalace', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Pet Supplies', viewers: 1800, buyers: 50, rating: 4.8, reviews: 30, hint: 'playing with puppy', productId: 'prod_8', hasAuction: false },
-    { id: '9', name: 'BookNook', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Books', viewers: 620, buyers: 12, rating: 4.9, reviews: 10, hint: 'reading book cozy', productId: 'prod_9', hasAuction: false },
-    { id: '10', name: 'GamerGuild', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Gaming', viewers: 4200, buyers: 102, rating: 4.9, reviews: 80, hint: 'esports competition', productId: 'prod_10', hasAuction: true },
+    { id: '1', name: 'FashionFinds', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Fashion', viewers: 1200, buyers: 25, rating: 4.8, reviews: 12, hint: 'woman posing stylish outfit', productId: 'prod_1', hasAuction: true, instagram: '#', twitter: '#', youtube: '#' },
+    { id: '2', name: 'GadgetGuru', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Electronics', viewers: 2500, buyers: 42, rating: 4.9, reviews: 28, hint: 'unboxing new phone', productId: 'prod_2', hasAuction: false, instagram: '#', twitter: '#', youtube: '#' },
+    { id: '3', name: 'HomeHaven', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Home Goods', viewers: 850, buyers: 15, rating: 4.7, reviews: 9, hint: 'modern living room decor', productId: 'prod_3', hasAuction: false, instagram: '#', twitter: '#', youtube: '#' },
+    { id: '4', name: 'BeautyBox', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Beauty', viewers: 3100, buyers: 78, rating: 4.9, reviews: 55, hint: 'makeup tutorial', productId: 'prod_4', hasAuction: true, instagram: '#', twitter: '#', youtube: '#' },
+    { id: '5', name: 'KitchenWiz', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Kitchenware', viewers: 975, buyers: 0, rating: 0, reviews: 0, hint: 'cooking demonstration', productId: 'prod_5', hasAuction: false, instagram: '#', twitter: '#', youtube: '#' },
+    { id: '6', name: 'FitFlow', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Fitness', viewers: 1500, buyers: 33, rating: 4.6, reviews: 18, hint: 'yoga session', productId: 'prod_6', hasAuction: false, instagram: '#', twitter: '#', youtube: '#' },
+    { id: '7', name: 'ArtisanAlley', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Handmade', viewers: 450, buyers: 8, rating: 5.0, reviews: 6, hint: 'pottery making', productId: 'prod_7', hasAuction: true, instagram: '#', twitter: '#', youtube: '#' },
+    { id: '8', name: 'PetPalace', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Pet Supplies', viewers: 1800, buyers: 50, rating: 4.8, reviews: 30, hint: 'playing with puppy', productId: 'prod_8', hasAuction: false, instagram: '#', twitter: '#', youtube: '#' },
+    { id: '9', name: 'BookNook', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Books', viewers: 620, buyers: 12, rating: 4.9, reviews: 10, hint: 'reading book cozy', productId: 'prod_9', hasAuction: false, instagram: '#', twitter: '#', youtube: '#' },
+    { id: '10', name: 'GamerGuild', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Gaming', viewers: 4200, buyers: 102, rating: 4.9, reviews: 80, hint: 'esports competition', productId: 'prod_10', hasAuction: true, instagram: '#', twitter: '#', youtube: '#' },
 ];
 
 const productToSellerMapping: { [key: string]: { name: string; avatarUrl: string, uid: string } } = {
@@ -372,14 +378,16 @@ const ChatMessageContent = React.memo(({ msg, index, handlers, post, pinnedMessa
     
      if (msg.type === 'auction_end') {
         return (
-             <Card key={msg.id || index} className="my-2 text-white shadow-lg bg-gradient-to-br from-yellow-500/20 via-yellow-900/10 to-transparent border-l-4 border-yellow-400">
+             <Card key={msg.id || index} className="my-2 text-black shadow-lg bg-gradient-to-br from-gold-400 via-yellow-200 to-amber-100 border-l-4 border-gold-500">
                 <CardContent className="p-3">
                     <div className="flex items-center gap-3">
-                        <Award className="h-10 w-10 text-yellow-300" />
+                        <div className="p-2 bg-white/50 rounded-full">
+                            <Award className="h-8 w-8 text-gold-600" />
+                        </div>
                         <div className="flex-grow">
-                            <p className="text-sm font-bold text-yellow-300">AUCTION ENDED</p>
-                            <p className="text-white text-lg">
-                                <span className="font-semibold">{msg.winner}</span> won with a bid of <span className="font-bold">{msg.winningBid}!</span>
+                            <p className="text-sm font-bold text-amber-800">AUCTION ENDED</p>
+                            <p className="text-black text-lg">
+                                <span className="font-semibold">{msg.winner}</span> won <span className="font-bold">{msg.productName}</span> with a bid of <span className="font-bold">{msg.winningBid}!</span>
                             </p>
                         </div>
                     </div>
@@ -390,16 +398,16 @@ const ChatMessageContent = React.memo(({ msg, index, handlers, post, pinnedMessa
     
     if (msg.isBid) {
         return (
-             <div key={msg.id || index} className="my-1 flex items-center gap-2 p-2 rounded-lg bg-black/30 border border-primary/20">
+             <div key={msg.id || index} className="my-1 flex items-center gap-2 p-1.5 rounded-lg bg-black/30 border border-primary/20">
                 <Gavel className="h-4 w-4 text-primary flex-shrink-0" />
                 <Avatar className="h-6 w-6">
                     <AvatarImage src={msg.avatar} />
                     <AvatarFallback>{msg.user.charAt(0)}</AvatarFallback>
                 </Avatar>
-                <p className="text-sm">
+                <p className="text-xs">
                     <span className="font-semibold" style={{ color: msg.userColor }}>{msg.user.split(' ')[0]}</span>
                     <span className="text-muted-foreground"> placed a bid: </span>
-                    <span className="font-bold text-lg text-primary">{msg.text.replace('BID ', '')}</span>
+                    <span className="font-bold text-sm text-primary">{msg.text.replace('BID ', '')}</span>
                 </p>
             </div>
         );
@@ -415,7 +423,7 @@ const ChatMessageContent = React.memo(({ msg, index, handlers, post, pinnedMessa
                         <AvatarFallback>{msg.user.charAt(0)}</AvatarFallback>
                     </Avatar>
                     <div className="flex-1">
-                        <span className={cn("font-semibold pr-1 text-xs", msg.isSeller && "text-amber-400")}>
+                        <span className={cn("font-semibold pr-1 text-[11px]", msg.isSeller && "text-amber-400")}>
                             {msg.user.split(' ')[0]}
                             {msg.isSeller && (
                                 <Badge variant="secondary" className="ml-1 text-amber-400 border-amber-400/50">
@@ -424,7 +432,7 @@ const ChatMessageContent = React.memo(({ msg, index, handlers, post, pinnedMessa
                                 </Badge>
                             )}
                         </span>
-                        <span className={cn("text-foreground break-words")}>{renderContentWithHashtags(msg.text)}</span>
+                        <span className={cn("text-foreground break-words text-xs")}>{renderContentWithHashtags(msg.text)}</span>
                     </div>
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
@@ -493,28 +501,28 @@ const AuctionCard = React.memo(({
         <div ref={cardRef}>
              <Card
                 className={cn(
-                    "text-white border-2", 
-                    isAuctionActive ? "bg-black/70 border-primary/50" : "bg-gray-800/50 border-gray-700/50",
+                    "text-white border-2 bg-black/80 backdrop-blur-sm", 
+                    isAuctionActive ? "border-primary/50" : "border-gray-700/50",
                     isPinned && "cursor-pointer"
                 )}
                 onClick={onClick}
             >
                 <CardContent className="p-3">
                     <div className="flex items-center gap-3">
-                        <div className="w-16 h-16 bg-black rounded-md relative overflow-hidden flex-shrink-0">
-                            <Image src={product.images[0]} alt={product.name} fill className="object-cover" />
+                        <Link href={`/product/${product.key}`} className="w-16 h-16 bg-black rounded-md relative overflow-hidden flex-shrink-0 group">
+                            <Image src={product.images[0]} alt={product.name} fill className="object-cover group-hover:scale-105 transition-transform" />
                             {!isAuctionActive && (
                                 <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
                                     <p className="font-bold text-white text-lg -rotate-12 transform">Timed Out</p>
                                 </div>
                             )}
-                        </div>
+                        </Link>
                         <div className="flex-grow">
                             <div className="flex justify-between items-center">
                                 <Badge className={cn("text-xs", isAuctionActive ? "bg-primary text-primary-foreground" : "bg-gray-700 text-gray-300")}>AUCTION</Badge>
                                 <Badge variant="secondary" className="font-mono text-white bg-black">{formatAuctionTime(auctionTime)}</Badge>
                             </div>
-                            <h4 className="font-bold leading-tight mt-1 text-white">{product.name}</h4>
+                            <Link href={`/product/${product.key}`} className="hover:underline"><h4 className="font-bold leading-tight mt-1 text-white">{product.name}</h4></Link>
                             <div className="grid grid-cols-2 gap-x-2 text-xs mt-1">
                                 <div className="text-gray-300">Current Bid: <span className="font-bold text-white">₹{highestBid.toLocaleString()}</span></div>
                                 <div className="text-gray-300">Bids: <span className="font-bold text-white">{totalBids}</span></div>
@@ -523,17 +531,41 @@ const AuctionCard = React.memo(({
                     </div>
                      <div className="mt-2 flex items-center gap-2">
                         {!isPinned && (
-                            <Button className="h-8 text-xs" variant="outline" onClick={onToggleHistory}>
-                                <History className="w-4 h-4 mr-2" />
-                                {isHistoryVisible ? 'Hide Bids' : 'View Bids'}
-                            </Button>
+                             <Dialog>
+                                <DialogTrigger asChild>
+                                    <Button className="h-8 text-xs" variant="outline">
+                                        <History className="w-4 h-4 mr-2" /> View Bids
+                                    </Button>
+                                </DialogTrigger>
+                                <DialogContent>
+                                    <DialogHeader>
+                                        <DialogTitle>Bid History for {product.name}</DialogTitle>
+                                    </DialogHeader>
+                                    <ScrollArea className="h-64">
+                                        <div className="p-2 space-y-2">
+                                            {mockChatMessages.filter(m => m.isBid).reverse().map(bid => (
+                                                <div key={bid.id} className="flex justify-between items-center text-sm p-2 bg-muted/50 rounded-md">
+                                                    <div className="flex items-center gap-2">
+                                                        <Avatar className="w-6 h-6">
+                                                            <AvatarImage src={bid.avatar} />
+                                                            <AvatarFallback>{bid.user.charAt(0)}</AvatarFallback>
+                                                        </Avatar>
+                                                        <span>{bid.user}</span>
+                                                    </div>
+                                                    <span className="font-bold">{bid.text.replace('BID ', '')}</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </ScrollArea>
+                                </DialogContent>
+                            </Dialog>
                         )}
                         <Dialog>
                             <DialogTrigger asChild>
                                  <Button 
                                     className="w-full h-8 bg-primary hover:bg-primary/90 text-primary-foreground" 
                                     disabled={!isAuctionActive}
-                                    onClick={(e) => e.stopPropagation()}
+                                    onClick={(e) => { if (isPinned) e.stopPropagation() }}
                                 >
                                     <Gavel className="w-4 h-4 mr-2"/>
                                     Place Your Bid
@@ -621,11 +653,18 @@ export default function StreamPage() {
     const [auctionTime, setAuctionTime] = useState<number | null>(null);
     const [highestBid, setHighestBid] = useState<number>(9600);
     const [totalBids, setTotalBids] = useState<number>(4);
-    const [visibleBidHistory, setVisibleBidHistory] = useState<string | null>(null);
     
     const { ref: auctionCardRef, inView: auctionCardInView } = useInView({ threshold: 0.5 });
     
-    const activeAuction = useMemo(() => chatMessages.find(msg => msg.type === 'auction' && msg.active), [chatMessages]);
+    const activeAuction = useMemo(() => {
+        const found = chatMessages.find(msg => msg.type === 'auction' && msg.active);
+        if (!found && auctionTime === 0) {
+            // This is a check to ensure we don't keep showing the card after a page refresh if it ended
+            return null;
+        }
+        return found;
+    }, [chatMessages, auctionTime]);
+    
     const showPinnedAuction = !auctionCardInView && activeAuction;
     
     const mockStreamData = {
@@ -658,6 +697,7 @@ export default function StreamPage() {
     const [newMessage, setNewMessage] = useState("");
     const [isProductListVisible, setIsProductListVisible] = useState(false);
     const [replyingTo, setReplyingTo] = useState<{ name: string; id: string } | null>(null);
+    const [showScrollToBottom, setShowScrollToBottom] = useState(false);
     
     const seller = useMemo(() => liveSellers.find(s => s.id === streamId), [streamId]);
     const product = productDetails[seller?.productId as keyof typeof productDetails];
@@ -858,6 +898,13 @@ export default function StreamPage() {
     const handleAutoScroll = useCallback(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, []);
+
+    const handleManualScroll = (e: React.UIEvent<HTMLDivElement>) => {
+        const target = e.currentTarget;
+        // Show button if user is scrolled up more than a certain threshold
+        const isScrolledUp = target.scrollHeight - target.scrollTop > target.clientHeight + 200;
+        setShowScrollToBottom(isScrolledUp);
+    };
 
     useEffect(() => {
         handleAutoScroll();
@@ -1109,22 +1156,33 @@ export default function StreamPage() {
                                     </div>
                                     <div className="flex items-center justify-between">
                                         <Collapsible className="w-full">
-                                            <div className="flex items-center gap-3">
+                                            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
                                                 {seller && (
                                                     <>
-                                                        <Avatar>
-                                                            <AvatarImage src={seller.avatarUrl} />
-                                                            <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
-                                                        </Avatar>
-                                                        <h3 className="font-semibold">{seller.name}</h3>
-                                                        <Button variant="secondary" size="sm" className="h-7">
-                                                            <UserPlus className="mr-1.5 h-4 w-4" /> Follow
-                                                        </Button>
-                                                        <CollapsibleTrigger asChild>
-                                                            <Button variant="outline" size="sm" className="h-7 gap-1.5">
-                                                                <ShoppingBag className="w-4 h-4" /> View Products ({sellerProducts.length})
+                                                        <div className="flex items-center gap-3 flex-grow">
+                                                            <Avatar>
+                                                                <AvatarImage src={seller.avatarUrl} />
+                                                                <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
+                                                            </Avatar>
+                                                            <div>
+                                                                <h3 className="font-semibold">{seller.name}</h3>
+                                                                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                                                     {seller.instagram && <a href={seller.instagram} target="_blank" rel="noopener noreferrer"><Instagram className="h-4 w-4 hover:text-primary" /></a>}
+                                                                    {seller.twitter && <a href={seller.twitter} target="_blank" rel="noopener noreferrer"><Twitter className="h-4 w-4 hover:text-primary" /></a>}
+                                                                    {seller.youtube && <a href={seller.youtube} target="_blank" rel="noopener noreferrer"><Youtube className="h-4 w-4 hover:text-primary" /></a>}
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div className="flex items-center gap-2 flex-shrink-0">
+                                                            <Button variant="secondary" size="sm" className="h-7">
+                                                                <UserPlus className="mr-1.5 h-4 w-4" /> Follow
                                                             </Button>
-                                                        </CollapsibleTrigger>
+                                                            <CollapsibleTrigger asChild>
+                                                                <Button variant="outline" size="sm" className="h-7 gap-1.5">
+                                                                    <ShoppingBag className="w-4 h-4" /> View Products ({sellerProducts.length})
+                                                                </Button>
+                                                            </CollapsibleTrigger>
+                                                        </div>
                                                     </>
                                                 )}
                                             </div>
@@ -1360,7 +1418,7 @@ export default function StreamPage() {
                                             />
                                         </div>
                                     )}
-                                    <ScrollArea className="flex-1" ref={chatContainerRef}>
+                                    <ScrollArea className="flex-1" ref={chatContainerRef} onScroll={handleManualScroll}>
                                         <div className="p-4 space-y-4">
                                              {chatMessages.map((msg, index) => {
                                                 if (msg.type === 'auction') {
@@ -1377,34 +1435,9 @@ export default function StreamPage() {
                                                                 bidAmount={bidAmount}
                                                                 setBidAmount={setBidAmount}
                                                                 cardRef={msg.active ? auctionCardRef : undefined}
-                                                                isHistoryVisible={visibleBidHistory === msg.id}
-                                                                onToggleHistory={() => setVisibleBidHistory(prev => prev === msg.id ? null : msg.id)}
+                                                                isHistoryVisible={false}
+                                                                onToggleHistory={() => {}}
                                                             />
-                                                             {visibleBidHistory === msg.id && (
-                                                                <Dialog defaultOpen onOpenChange={(open) => !open && setVisibleBidHistory(null)}>
-                                                                    <DialogContent>
-                                                                        <DialogHeader>
-                                                                            <DialogTitle>Bid History for {productDetails[msg.productId as keyof typeof productDetails].name}</DialogTitle>
-                                                                        </DialogHeader>
-                                                                        <ScrollArea className="h-64">
-                                                                            <div className="p-2 space-y-2">
-                                                                                {recentBids.map(bid => (
-                                                                                    <div key={bid.id} className="flex justify-between items-center text-sm p-2 bg-muted/50 rounded-md">
-                                                                                        <div className="flex items-center gap-2">
-                                                                                            <Avatar className="w-6 h-6">
-                                                                                                <AvatarImage src={bid.avatar} />
-                                                                                                <AvatarFallback>{bid.user.charAt(0)}</AvatarFallback>
-                                                                                            </Avatar>
-                                                                                            <span>{bid.user}</span>
-                                                                                        </div>
-                                                                                        <span className="font-bold">{bid.text.replace('BID ', '')}</span>
-                                                                                    </div>
-                                                                                ))}
-                                                                            </div>
-                                                                        </ScrollArea>
-                                                                    </DialogContent>
-                                                                </Dialog>
-                                                            )}
                                                         </div>
                                                     )
                                                 }
@@ -1413,6 +1446,18 @@ export default function StreamPage() {
                                             <div ref={messagesEndRef} />
                                         </div>
                                     </ScrollArea>
+                                    {showScrollToBottom && (
+                                        <div className="absolute bottom-20 right-1/2 translate-x-1/2 z-20">
+                                            <Button
+                                                variant="secondary"
+                                                size="sm"
+                                                className="rounded-full shadow-lg"
+                                                onClick={handleAutoScroll}
+                                            >
+                                                <ChevronDown className="mr-1 h-4 w-4" /> New Messages
+                                            </Button>
+                                        </div>
+                                    )}
                                     <div className="p-3 border-t bg-background flex-shrink-0">
                                         <form onSubmit={handleNewMessageSubmit} className="flex items-center gap-3">
                                             <div className="relative flex-grow">
