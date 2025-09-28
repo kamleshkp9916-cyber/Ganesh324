@@ -378,15 +378,15 @@ const ChatMessageContent = React.memo(({ msg, index, handlers, post, pinnedMessa
     
      if (msg.type === 'auction_end') {
         return (
-             <Card key={msg.id || index} className="my-2 text-black shadow-lg bg-gradient-to-br from-gold-400 via-yellow-200 to-amber-100 border-l-4 border-gold-500">
+             <Card key={msg.id || index} className="my-2 text-black shadow-lg bg-gradient-to-br from-yellow-300 via-amber-200 to-yellow-100 border-l-4 border-yellow-500 dark:from-yellow-700 dark:via-yellow-800 dark:to-yellow-900 dark:text-yellow-100 dark:border-yellow-500">
                 <CardContent className="p-3">
                     <div className="flex items-center gap-3">
                         <div className="p-2 bg-white/50 rounded-full">
-                            <Award className="h-8 w-8 text-gold-600" />
+                            <Award className="h-8 w-8 text-yellow-600 dark:text-yellow-400" />
                         </div>
                         <div className="flex-grow">
-                            <p className="text-sm font-bold text-amber-800">AUCTION ENDED</p>
-                            <p className="text-black text-lg">
+                            <p className="text-sm font-bold text-amber-800 dark:text-yellow-300">AUCTION ENDED</p>
+                            <p className="text-black dark:text-white text-lg">
                                 <span className="font-semibold">{msg.winner}</span> won <span className="font-bold">{msg.productName}</span> with a bid of <span className="font-bold">{msg.winningBid}!</span>
                             </p>
                         </div>
@@ -416,14 +416,14 @@ const ChatMessageContent = React.memo(({ msg, index, handlers, post, pinnedMessa
         const isPostAuthor = user?.uid === post.sellerId;
 
         return (
-            <div key={msg.id || index} className="text-sm group relative">
+            <div key={msg.id || index} className="text-xs group relative">
                 <div className="flex items-start gap-2 w-full group">
                     <Avatar className="w-8 h-8">
                         <AvatarImage src={msg.avatar} />
                         <AvatarFallback>{msg.user.charAt(0)}</AvatarFallback>
                     </Avatar>
                     <div className="flex-1">
-                        <span className={cn("font-semibold pr-1 text-[11px]", msg.isSeller && "text-amber-400")}>
+                        <span className={cn("font-semibold pr-1", msg.isSeller && "text-amber-400")}>
                             {msg.user.split(' ')[0]}
                             {msg.isSeller && (
                                 <Badge variant="secondary" className="ml-1 text-amber-400 border-amber-400/50">
@@ -432,7 +432,7 @@ const ChatMessageContent = React.memo(({ msg, index, handlers, post, pinnedMessa
                                 </Badge>
                             )}
                         </span>
-                        <span className={cn("text-foreground break-words text-xs")}>{renderContentWithHashtags(msg.text)}</span>
+                        <span className={cn("text-foreground break-words")}>{renderContentWithHashtags(msg.text)}</span>
                     </div>
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
@@ -475,22 +475,18 @@ const AuctionCard = React.memo(({
     isPinned = false,
     onClick,
     cardRef,
-    isHistoryVisible,
-    onToggleHistory,
 }: {
     auction: any,
     auctionTime: number | null,
     highestBid: number,
     totalBids: number,
-    handlePlaceBid: () => void,
+    handlePlaceBid: (e: React.MouseEvent) => void,
     walletBalance: number,
     bidAmount: number | string,
     setBidAmount: (value: number | string) => void,
     isPinned?: boolean,
     onClick?: () => void;
     cardRef?: React.Ref<HTMLDivElement>;
-    isHistoryVisible: boolean;
-    onToggleHistory: () => void;
 }) => {
     const isAuctionActive = auction.active && auctionTime !== null && auctionTime > 0;
     const product = productDetails[auction.productId as keyof typeof productDetails];
@@ -501,7 +497,7 @@ const AuctionCard = React.memo(({
         <div ref={cardRef}>
              <Card
                 className={cn(
-                    "text-white border-2 bg-black/80 backdrop-blur-sm", 
+                    "text-white border-2 bg-black/60 backdrop-blur-sm", 
                     isAuctionActive ? "border-primary/50" : "border-gray-700/50",
                     isPinned && "cursor-pointer"
                 )}
@@ -513,7 +509,7 @@ const AuctionCard = React.memo(({
                             <Image src={product.images[0]} alt={product.name} fill className="object-cover group-hover:scale-105 transition-transform" />
                             {!isAuctionActive && (
                                 <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-                                    <p className="font-bold text-white text-lg -rotate-12 transform">Timed Out</p>
+                                    <p className="font-bold text-white text-lg -rotate-12 transform">Ended</p>
                                 </div>
                             )}
                         </Link>
@@ -612,7 +608,7 @@ const AuctionCard = React.memo(({
                                             <DialogClose asChild>
                                                 <Button type="button" variant="ghost" className="w-full">Cancel</Button>
                                             </DialogClose>
-                                            <Button onClick={handlePlaceBid} className="w-full">
+                                            <Button onClick={(e) => handlePlaceBid(e)} className="w-full">
                                                 <Gavel className="mr-2 h-4 w-4" />
                                                 Confirm Bid
                                             </Button>
@@ -654,16 +650,9 @@ export default function StreamPage() {
     const [highestBid, setHighestBid] = useState<number>(9600);
     const [totalBids, setTotalBids] = useState<number>(4);
     
-    const { ref: auctionCardRef, inView: auctionCardInView } = useInView({ threshold: 0.5 });
-    
-    const activeAuction = useMemo(() => {
-        const found = chatMessages.find(msg => msg.type === 'auction' && msg.active);
-        if (!found && auctionTime === 0) {
-            // This is a check to ensure we don't keep showing the card after a page refresh if it ended
-            return null;
-        }
-        return found;
-    }, [chatMessages, auctionTime]);
+    const { ref: auctionCardRef, inView: auctionCardInView } = useInView({ threshold: 0.99, initialInView: true });
+
+    const [activeAuction, setActiveAuction] = useState<any | null>(() => chatMessages.find(msg => msg.type === 'auction' && msg.active));
     
     const showPinnedAuction = !auctionCardInView && activeAuction;
     
@@ -740,12 +729,17 @@ export default function StreamPage() {
     };
     
     useEffect(() => {
-        if (activeAuction) {
-            setAuctionTime(activeAuction.initialTime);
+        const currentActiveAuction = chatMessages.find(msg => msg.type === 'auction' && msg.active);
+        if (currentActiveAuction) {
+            setAuctionTime(currentActiveAuction.initialTime);
+            setActiveAuction(currentActiveAuction);
         } else {
             setAuctionTime(null);
+            if (auctionTime === 0) { // Check if it just ended
+                setActiveAuction(null);
+            }
         }
-    }, [activeAuction]);
+    }, [chatMessages, auctionTime]);
     
     useEffect(() => {
         let timer: NodeJS.Timeout | undefined;
@@ -781,6 +775,7 @@ export default function StreamPage() {
                 setChatMessages(prev => [...prev, noWinnerMessage]);
             }
             setChatMessages(prev => prev.map(msg => msg.id === activeAuction.id ? { ...msg, active: false } : msg));
+            setActiveAuction(null); // This will hide the pinned card
             setAuctionTime(null);
         }
         return () => { if (timer) clearInterval(timer) };
@@ -1022,7 +1017,8 @@ export default function StreamPage() {
         });
     };
     
-    const handlePlaceBid = () => {
+    const handlePlaceBid = (e: React.MouseEvent) => {
+        e.stopPropagation();
         if (!activeAuction) return;
 
         const bidValue = Number(bidAmount);
@@ -1400,7 +1396,7 @@ export default function StreamPage() {
                                 </div>
                                 
                                 <div className="relative flex-1 flex flex-col overflow-hidden">
-                                     {showPinnedAuction && activeAuction && (
+                                     {showPinnedAuction && (
                                          <div className="p-4 border-b border-border/50 bg-card z-20 shadow-lg">
                                             <AuctionCard
                                                 auction={activeAuction}
@@ -1413,16 +1409,13 @@ export default function StreamPage() {
                                                 setBidAmount={setBidAmount}
                                                 isPinned={true}
                                                 onClick={() => scrollToAuction(activeAuction.id)}
-                                                isHistoryVisible={false}
-                                                onToggleHistory={() => {}}
                                             />
                                         </div>
                                     )}
                                     <ScrollArea className="flex-1" ref={chatContainerRef} onScroll={handleManualScroll}>
-                                        <div className="p-4 space-y-4">
+                                        <div className="p-4 space-y-3">
                                              {chatMessages.map((msg, index) => {
                                                 if (msg.type === 'auction') {
-                                                    const cardRefProp = msg.active ? { ref: auctionCardRef } : {};
                                                     return (
                                                         <div key={msg.id} className="my-2" ref={el => inlineAuctionCardRefs.current[msg.id] = el}>
                                                             <AuctionCard
@@ -1435,8 +1428,6 @@ export default function StreamPage() {
                                                                 bidAmount={bidAmount}
                                                                 setBidAmount={setBidAmount}
                                                                 cardRef={msg.active ? auctionCardRef : undefined}
-                                                                isHistoryVisible={false}
-                                                                onToggleHistory={() => {}}
                                                             />
                                                         </div>
                                                     )
