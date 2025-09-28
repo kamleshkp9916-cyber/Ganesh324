@@ -373,7 +373,7 @@ const renderContentWithHashtags = (text: string) => {
 const ChatMessageContent = React.memo(({ msg, index, handlers, post, pinnedMessages }: { msg: any; index: number, handlers: any, post: any, pinnedMessages: any[] }) => {
     const { user } = useAuth();
     if (msg.type === 'system') {
-        return <p key={msg.id || index} className="text-xs text-muted-foreground text-center italic">{msg.text}</p>;
+        return <p key={msg.id || index} className="text-xs text-muted-foreground text-center italic my-2">{msg.text}</p>;
     }
     
      if (msg.type === 'auction_end') {
@@ -417,7 +417,7 @@ const ChatMessageContent = React.memo(({ msg, index, handlers, post, pinnedMessa
 
         return (
             <div key={msg.id || index} className="text-sm group relative py-0.5">
-                <div className="flex items-start gap-2 w-full group">
+                <div className="flex items-center gap-2 w-full group">
                     <Avatar className="w-8 h-8">
                         <AvatarImage src={msg.avatar} />
                         <AvatarFallback>{msg.user.charAt(0)}</AvatarFallback>
@@ -505,7 +505,7 @@ const AuctionCard = React.memo(({
             >
                 <CardContent className="p-3">
                     <div className="flex items-center gap-3">
-                        <Link href={`/product/${product.key}`} className="w-16 h-16 bg-black rounded-md relative overflow-hidden flex-shrink-0 group">
+                         <Link href={`/product/${product.key}`} className="w-16 h-16 bg-black rounded-md relative overflow-hidden flex-shrink-0 group">
                             <Image src={product.images[0]} alt={product.name} fill className="object-cover group-hover:scale-105 transition-transform" />
                             {!isAuctionActive && (
                                 <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
@@ -526,42 +526,40 @@ const AuctionCard = React.memo(({
                         </div>
                     </div>
                      <div className="mt-2 flex items-center gap-2">
-                        {!isPinned && (
-                             <Dialog>
-                                <DialogTrigger asChild>
-                                    <Button className="h-8 text-xs" variant="outline">
-                                        <History className="w-4 h-4 mr-2" /> View Bids
-                                    </Button>
-                                </DialogTrigger>
-                                <DialogContent>
-                                    <DialogHeader>
-                                        <DialogTitle>Bid History for {product.name}</DialogTitle>
-                                    </DialogHeader>
-                                    <ScrollArea className="h-64">
-                                        <div className="p-2 space-y-2">
-                                            {mockChatMessages.filter(m => m.isBid).reverse().map(bid => (
-                                                <div key={bid.id} className="flex justify-between items-center text-sm p-2 bg-muted/50 rounded-md">
-                                                    <div className="flex items-center gap-2">
-                                                        <Avatar className="w-6 h-6">
-                                                            <AvatarImage src={bid.avatar} />
-                                                            <AvatarFallback>{bid.user.charAt(0)}</AvatarFallback>
-                                                        </Avatar>
-                                                        <span>{bid.user}</span>
-                                                    </div>
-                                                    <span className="font-bold">{bid.text.replace('BID ', '')}</span>
+                         <Dialog>
+                            <DialogTrigger asChild>
+                                <Button className="h-8 text-xs" variant="outline">
+                                    <History className="w-4 h-4 mr-2" /> View Bids
+                                </Button>
+                            </DialogTrigger>
+                             <DialogContent>
+                                <DialogHeader>
+                                    <DialogTitle>Bid History for {product.name}</DialogTitle>
+                                </DialogHeader>
+                                <ScrollArea className="h-64">
+                                    <div className="p-2 space-y-2">
+                                        {mockChatMessages.filter(m => m.isBid).reverse().map(bid => (
+                                            <div key={bid.id} className="flex justify-between items-center text-sm p-2 bg-muted/50 rounded-md">
+                                                <div className="flex items-center gap-2">
+                                                    <Avatar className="w-6 h-6">
+                                                        <AvatarImage src={bid.avatar} />
+                                                        <AvatarFallback>{bid.user.charAt(0)}</AvatarFallback>
+                                                    </Avatar>
+                                                    <span>{bid.user}</span>
                                                 </div>
-                                            ))}
-                                        </div>
-                                    </ScrollArea>
-                                </DialogContent>
-                            </Dialog>
-                        )}
+                                                <span className="font-bold">{bid.text.replace('BID ', '')}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </ScrollArea>
+                            </DialogContent>
+                        </Dialog>
                         <Dialog>
                             <DialogTrigger asChild>
                                  <Button 
                                     className="w-full h-8 bg-primary hover:bg-primary/90 text-primary-foreground" 
                                     disabled={!isAuctionActive}
-                                    onClick={(e) => { if (isPinned) e.stopPropagation() }}
+                                    onClick={(e) => { e.stopPropagation(); }}
                                 >
                                     <Gavel className="w-4 h-4 mr-2"/>
                                     Place Your Bid
@@ -1390,7 +1388,7 @@ export default function StreamPage() {
                                 
                                 <div className="relative flex-1 flex flex-col overflow-hidden">
                                      {showPinnedAuction && (
-                                        <div className="absolute top-4 left-4 right-4 z-20">
+                                         <div className="absolute top-4 left-4 right-4 z-20">
                                             <AuctionCard
                                                 auction={activeAuction}
                                                 auctionTime={auctionTime}
@@ -1430,7 +1428,7 @@ export default function StreamPage() {
                                             <div ref={messagesEndRef} />
                                         </div>
                                     </ScrollArea>
-                                    {showScrollToBottom && (
+                                     {showScrollToBottom && (
                                         <div className="absolute bottom-20 right-1/2 translate-x-1/2 z-20">
                                             <Button
                                                 variant="secondary"
