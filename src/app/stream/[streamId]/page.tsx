@@ -370,9 +370,9 @@ const ChatMessageContent = React.memo(({ msg, index, handlers, post, pinnedMessa
         return <p key={msg.id || index} className="text-xs text-muted-foreground text-center italic">{msg.text}</p>;
     }
     
-    if (msg.type === 'auction_end') {
+     if (msg.type === 'auction_end') {
         return (
-            <Card key={msg.id || index} className="my-2 text-white shadow-lg bg-gradient-to-br from-yellow-500/20 via-yellow-900/10 to-transparent border-l-4 border-yellow-400">
+             <Card key={msg.id || index} className="my-2 text-white shadow-lg bg-gradient-to-br from-yellow-500/20 via-yellow-900/10 to-transparent border-l-4 border-yellow-400">
                 <CardContent className="p-3">
                     <div className="flex items-center gap-3">
                         <Award className="h-10 w-10 text-yellow-300" />
@@ -390,7 +390,7 @@ const ChatMessageContent = React.memo(({ msg, index, handlers, post, pinnedMessa
     
     if (msg.isBid) {
         return (
-            <div key={msg.id || index} className="my-1 flex items-center gap-2 p-2 rounded-lg bg-black/30 border border-primary/20">
+             <div key={msg.id || index} className="my-1 flex items-center gap-2 p-2 rounded-lg bg-black/30 border border-primary/20">
                 <Gavel className="h-4 w-4 text-primary flex-shrink-0" />
                 <Avatar className="h-6 w-6">
                     <AvatarImage src={msg.avatar} />
@@ -491,7 +491,7 @@ const AuctionCard = React.memo(({
 
     return (
         <div ref={cardRef}>
-            <Card
+             <Card
                 className={cn(
                     "text-white border-2", 
                     isAuctionActive ? "bg-black/70 border-primary/50" : "bg-gray-800/50 border-gray-700/50",
@@ -530,7 +530,11 @@ const AuctionCard = React.memo(({
                         )}
                         <Dialog>
                             <DialogTrigger asChild>
-                                <Button className="w-full h-8 bg-primary hover:bg-primary/90 text-primary-foreground" disabled={!isAuctionActive}>
+                                 <Button 
+                                    className="w-full h-8 bg-primary hover:bg-primary/90 text-primary-foreground" 
+                                    disabled={!isAuctionActive}
+                                    onClick={(e) => e.stopPropagation()}
+                                >
                                     <Gavel className="w-4 h-4 mr-2"/>
                                     Place Your Bid
                                 </Button>
@@ -619,7 +623,7 @@ export default function StreamPage() {
     const [totalBids, setTotalBids] = useState<number>(4);
     const [visibleBidHistory, setVisibleBidHistory] = useState<string | null>(null);
     
-    const [auctionCardRef, auctionCardInView] = useInView({ threshold: 0.5 });
+    const { ref: auctionCardRef, inView: auctionCardInView } = useInView({ threshold: 0.5 });
     
     const activeAuction = useMemo(() => chatMessages.find(msg => msg.type === 'auction' && msg.active), [chatMessages]);
     const showPinnedAuction = !auctionCardInView && activeAuction;
@@ -1019,7 +1023,7 @@ export default function StreamPage() {
             <Dialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
                 <AlertDialog>
                     <div className="h-dvh w-full flex flex-col bg-background text-foreground">
-                        <header className="flex-shrink-0 h-16 bg-background border-b border-border flex items-center justify-between px-4 z-40">
+                         <header className="flex-shrink-0 h-16 bg-background border-b border-border flex items-center justify-between px-4 z-40">
                             <div className="flex items-center gap-2">
                                 <Button variant="ghost" size="icon" onClick={() => router.back()}>
                                     <ArrowLeft />
@@ -1206,7 +1210,7 @@ export default function StreamPage() {
                                 </div>
                             </div>
                             <div className="hidden lg:flex w-[340px] flex-shrink-0 h-full flex-col bg-card">
-                                <div className="p-4 flex items-center justify-between z-10 flex-shrink-0 h-16 border-b">
+                                 <div className="p-4 flex items-center justify-between z-10 flex-shrink-0 h-16 border-b">
                                     <h3 className="font-bold text-lg">Live Chat</h3>
                                     <div className="flex items-center gap-1">
                                         <Popover>
@@ -1339,7 +1343,7 @@ export default function StreamPage() {
                                 
                                 <div className="relative flex-1 flex flex-col overflow-hidden">
                                      {showPinnedAuction && activeAuction && (
-                                        <div className="p-4 border-b border-border/50 bg-card z-20 shadow-lg">
+                                         <div className="p-4 border-b border-border/50 bg-card z-20 shadow-lg">
                                             <AuctionCard
                                                 auction={activeAuction}
                                                 auctionTime={auctionTime}
@@ -1465,9 +1469,3 @@ export default function StreamPage() {
         </React.Fragment>
     );
 }
-
-    
-
-
-
-    
