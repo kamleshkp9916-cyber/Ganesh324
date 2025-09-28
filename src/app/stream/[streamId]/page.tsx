@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import {
@@ -350,38 +349,6 @@ const PlayerSettingsDialog = ({ playbackRate, onPlaybackRateChange, skipInterval
     );
 };
 
-const useInView = (options?: IntersectionObserverInit) => {
-    const [isInView, setIsInView] = useState(false);
-    const ref = useRef<HTMLDivElement>(null);
-
-    useEffect(() => {
-        const observer = new IntersectionObserver(
-            ([entry]) => {
-                setIsInView(entry.isIntersecting);
-            },
-            {
-                root: null,
-                rootMargin: "0px",
-                threshold: 1.0, // Trigger when 100% of the element is visible
-                ...options,
-            }
-        );
-
-        if (ref.current) {
-            observer.observe(ref.current);
-        }
-
-        return () => {
-            if (ref.current) {
-                // eslint-disable-next-line react-hooks/exhaustive-deps
-                observer.unobserve(ref.current);
-            }
-        };
-    }, [options]);
-
-    return [ref, isInView] as const;
-};
-
 const renderContentWithHashtags = (text: string) => {
     if (!text) return text;
     const parts = text.split(/(@\w+|#\w+)/g);
@@ -503,6 +470,7 @@ const AuctionCard = React.memo(({
     walletBalance,
     bidAmount,
     setBidAmount,
+    isPinned = false,
 }: {
     auction: any,
     auctionTime: number | null,
@@ -512,6 +480,7 @@ const AuctionCard = React.memo(({
     walletBalance: number,
     bidAmount: number | string,
     setBidAmount: (value: number | string) => void,
+    isPinned?: boolean,
 }) => {
     const isAuctionActive = auction.active && auctionTime !== null && auctionTime > 0;
     const product = productDetails[auction.productId as keyof typeof productDetails];
@@ -524,8 +493,11 @@ const AuctionCard = React.memo(({
 
     return (
         <div>
-            <Collapsible defaultOpen>
-                <Card className={cn("text-white", isAuctionActive ? "bg-blue-900/20 border-blue-500/30" : "bg-gray-800/20 border-gray-700/50")}>
+            <Collapsible defaultOpen={isPinned}>
+                <Card className={cn(
+                    "text-white", 
+                    isAuctionActive ? "bg-blue-900/20 border-blue-500/30" : "bg-gray-800/20 border-gray-700/50"
+                )}>
                     <CardContent className="p-3">
                         <div className="flex items-center gap-3">
                             <div className="w-16 h-16 bg-muted rounded-md relative overflow-hidden flex-shrink-0">
@@ -617,32 +589,36 @@ const AuctionCard = React.memo(({
                                     </DialogClose>
                                 </DialogContent>
                             </Dialog>
-                            <CollapsibleTrigger asChild>
-                                <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0 text-blue-300 hover:bg-blue-900/40 hover:text-blue-200">
-                                    <ChevronDown className="w-5 h-5"/>
-                                </Button>
-                            </CollapsibleTrigger>
+                            {!isPinned && (
+                                <CollapsibleTrigger asChild>
+                                    <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0 text-blue-300 hover:bg-blue-900/40 hover:text-blue-200">
+                                        <ChevronDown className="w-5 h-5"/>
+                                    </Button>
+                                </CollapsibleTrigger>
+                            )}
                         </div>
                     </CardContent>
-                    <CollapsibleContent>
-                        <div className="p-3 border-t border-blue-500/30">
-                            <h5 className="font-semibold text-xs mb-2">Recent Bids</h5>
-                            <div className="space-y-2 max-h-24 overflow-y-auto thin-scrollbar">
-                                {recentBids.map(bid => (
-                                    <div key={bid.id} className="flex justify-between items-center text-xs">
-                                        <div className="flex items-center gap-2">
-                                            <Avatar className="w-5 h-5">
-                                                <AvatarImage src={bid.avatar} />
-                                                <AvatarFallback>{bid.user.charAt(0)}</AvatarFallback>
-                                            </Avatar>
-                                            <span>{bid.user}</span>
+                    {!isPinned && (
+                        <CollapsibleContent>
+                            <div className="p-3 border-t border-blue-500/30">
+                                <h5 className="font-semibold text-xs mb-2">Recent Bids</h5>
+                                <div className="space-y-2 max-h-24 overflow-y-auto thin-scrollbar">
+                                    {recentBids.map(bid => (
+                                        <div key={bid.id} className="flex justify-between items-center text-xs">
+                                            <div className="flex items-center gap-2">
+                                                <Avatar className="w-5 h-5">
+                                                    <AvatarImage src={bid.avatar} />
+                                                    <AvatarFallback>{bid.user.charAt(0)}</AvatarFallback>
+                                                </Avatar>
+                                                <span>{bid.user}</span>
+                                            </div>
+                                            <span className="font-bold text-white">{bid.text.replace('BID ', '')}</span>
                                         </div>
-                                        <span className="font-bold text-white">{bid.text.replace('BID ', '')}</span>
-                                    </div>
-                                ))}
+                                    ))}
+                                </div>
                             </div>
-                        </div>
-                    </CollapsibleContent>
+                        </CollapsibleContent>
+                    )}
                 </Card>
             </Collapsible>
         </div>
@@ -671,14 +647,7 @@ export default function StreamPage() {
     const [highestBid, setHighestBid] = useState<number>(9600);
     const [totalBids, setTotalBids] = useState<number>(4);
     
-    const [showPinnedAuction, setShowPinnedAuction] = useState(false);
-    const [auctionCardRef, auctionCardInView] = useInView({ threshold: 0.1 });
-    
     const activeAuction = useMemo(() => chatMessages.find(msg => msg.type === 'auction' && msg.active), [chatMessages]);
-
-    useEffect(() => {
-        setShowPinnedAuction(!auctionCardInView && !!activeAuction);
-    }, [auctionCardInView, activeAuction]);
 
     const isAuctionActive = useMemo(() => auctionTime !== null && auctionTime > 0, [auctionTime]);
     
@@ -1059,7 +1028,7 @@ export default function StreamPage() {
         return chatMessages.map((msg, index) => {
             if (msg.type === 'auction') {
                 return (
-                    <div key={msg.id} ref={msg.active ? auctionCardRef : null} className="my-2">
+                    <div key={msg.id} className="my-2">
                         <AuctionCard
                             auction={msg}
                             auctionTime={activeAuction?.id === msg.id ? auctionTime : 0}
@@ -1411,28 +1380,21 @@ export default function StreamPage() {
                                 </div>
                                 
                                 <div className="relative flex-1 flex flex-col overflow-hidden">
-                                     <AnimatePresence>
-                                        {showPinnedAuction && (
-                                            <motion.div
-                                                className="p-4 border-b border-border/50 sticky top-0 bg-card z-20 shadow-lg"
-                                                initial={{ y: -100 }}
-                                                animate={{ y: 0 }}
-                                                exit={{ y: -100 }}
-                                                transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-                                            >
-                                                <AuctionCard
-                                                    auction={activeAuction}
-                                                    auctionTime={auctionTime}
-                                                    highestBid={highestBid}
-                                                    totalBids={totalBids}
-                                                    handlePlaceBid={handlePlaceBid}
-                                                    walletBalance={walletBalance}
-                                                    bidAmount={bidAmount}
-                                                    setBidAmount={setBidAmount}
-                                                />
-                                            </motion.div>
-                                        )}
-                                    </AnimatePresence>
+                                     {isAuctionActive && (
+                                        <div className="p-4 border-b border-border/50 bg-card z-20 shadow-lg">
+                                            <AuctionCard
+                                                auction={activeAuction}
+                                                auctionTime={auctionTime}
+                                                highestBid={highestBid}
+                                                totalBids={totalBids}
+                                                handlePlaceBid={handlePlaceBid}
+                                                walletBalance={walletBalance}
+                                                bidAmount={bidAmount}
+                                                setBidAmount={setBidAmount}
+                                                isPinned={true}
+                                            />
+                                        </div>
+                                    )}
                                     <ScrollArea className="flex-1" ref={chatContainerRef}>
                                         <div className="p-4 space-y-4">
                                             {memoizedChatMessages}
@@ -1496,5 +1458,4 @@ export default function StreamPage() {
     );
 }
 
-
-
+    
