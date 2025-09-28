@@ -378,15 +378,15 @@ const ChatMessageContent = React.memo(({ msg, index, handlers, post, pinnedMessa
     
      if (msg.type === 'auction_end') {
         return (
-             <Card key={msg.id || index} className="my-2 text-black shadow-lg bg-gradient-to-br from-yellow-300 via-amber-200 to-yellow-100 border-l-4 border-yellow-500 dark:from-yellow-700 dark:via-yellow-800 dark:to-yellow-900 dark:text-yellow-100 dark:border-yellow-500">
+            <Card key={msg.id || index} className="my-2 text-gold-foreground shadow-lg bg-gradient-to-br from-yellow-300 via-amber-200 to-yellow-100 border-l-4 border-yellow-500 dark:from-yellow-900 dark:via-yellow-800 dark:to-yellow-950 dark:text-yellow-100 dark:border-yellow-500">
                 <CardContent className="p-3">
                     <div className="flex items-center gap-3">
-                        <div className="p-2 bg-white/50 rounded-full">
+                        <div className="p-2 bg-yellow-500/20 dark:bg-yellow-400/10 rounded-full">
                             <Award className="h-8 w-8 text-yellow-600 dark:text-yellow-400" />
                         </div>
                         <div className="flex-grow">
                             <p className="text-sm font-bold text-amber-800 dark:text-yellow-300">AUCTION ENDED</p>
-                            <p className="text-black dark:text-white text-lg">
+                            <p className="text-foreground text-lg">
                                 <span className="font-semibold">{msg.winner}</span> won <span className="font-bold">{msg.productName}</span> with a bid of <span className="font-bold">{msg.winningBid}!</span>
                             </p>
                         </div>
@@ -485,7 +485,7 @@ const AuctionCard = React.memo(({
     bidAmount: number | string,
     setBidAmount: (value: number | string) => void,
     isPinned?: boolean,
-    onClick?: () => void;
+    onClick?: (e: React.MouseEvent<HTMLDivElement>) => void;
     cardRef?: React.Ref<HTMLDivElement>;
 }) => {
     const isAuctionActive = auction.active && auctionTime !== null && auctionTime > 0;
@@ -608,7 +608,7 @@ const AuctionCard = React.memo(({
                                             <DialogClose asChild>
                                                 <Button type="button" variant="ghost" className="w-full">Cancel</Button>
                                             </DialogClose>
-                                            <Button onClick={(e) => handlePlaceBid(e)} className="w-full">
+                                            <Button onClick={(e) => { e.stopPropagation(); handlePlaceBid(e); }} className="w-full">
                                                 <Gavel className="mr-2 h-4 w-4" />
                                                 Confirm Bid
                                             </Button>
@@ -650,9 +650,9 @@ export default function StreamPage() {
     const [highestBid, setHighestBid] = useState<number>(9600);
     const [totalBids, setTotalBids] = useState<number>(4);
     
-    const { ref: auctionCardRef, inView: auctionCardInView } = useInView({ threshold: 0.99, initialInView: true });
-
-    const [activeAuction, setActiveAuction] = useState<any | null>(() => chatMessages.find(msg => msg.type === 'auction' && msg.active));
+    const [activeAuction, setActiveAuction] = useState<any | null>(null);
+    
+    const { ref: auctionCardRef, inView: auctionCardInView } = useInView({ threshold: 0.99 });
     
     const showPinnedAuction = !auctionCardInView && activeAuction;
     
@@ -730,16 +730,11 @@ export default function StreamPage() {
     
     useEffect(() => {
         const currentActiveAuction = chatMessages.find(msg => msg.type === 'auction' && msg.active);
-        if (currentActiveAuction) {
-            setAuctionTime(currentActiveAuction.initialTime);
+        if (currentActiveAuction && (!activeAuction || activeAuction.id !== currentActiveAuction.id)) {
             setActiveAuction(currentActiveAuction);
-        } else {
-            setAuctionTime(null);
-            if (auctionTime === 0) { // Check if it just ended
-                setActiveAuction(null);
-            }
+            setAuctionTime(currentActiveAuction.initialTime);
         }
-    }, [chatMessages, auctionTime]);
+    }, [chatMessages, activeAuction]);
     
     useEffect(() => {
         let timer: NodeJS.Timeout | undefined;
@@ -774,8 +769,9 @@ export default function StreamPage() {
                 };
                 setChatMessages(prev => [...prev, noWinnerMessage]);
             }
+            
             setChatMessages(prev => prev.map(msg => msg.id === activeAuction.id ? { ...msg, active: false } : msg));
-            setActiveAuction(null); // This will hide the pinned card
+            setActiveAuction(null);
             setAuctionTime(null);
         }
         return () => { if (timer) clearInterval(timer) };
@@ -896,7 +892,6 @@ export default function StreamPage() {
 
     const handleManualScroll = (e: React.UIEvent<HTMLDivElement>) => {
         const target = e.currentTarget;
-        // Show button if user is scrolled up more than a certain threshold
         const isScrolledUp = target.scrollHeight - target.scrollTop > target.clientHeight + 200;
         setShowScrollToBottom(isScrolledUp);
     };
@@ -1056,10 +1051,6 @@ export default function StreamPage() {
     const scrollToAuction = (auctionId: string) => {
         inlineAuctionCardRefs.current[auctionId]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     };
-    
-    const recentBids = useMemo(() => {
-        return mockChatMessages.filter(m => m.isBid && m.type !== 'auction_end').reverse();
-    }, []);
 
     return (
         <React.Fragment>
@@ -1397,7 +1388,7 @@ export default function StreamPage() {
                                 
                                 <div className="relative flex-1 flex flex-col overflow-hidden">
                                      {showPinnedAuction && (
-                                         <div className="p-4 border-b border-border/50 bg-card z-20 shadow-lg">
+                                        <div className="p-4 border-b border-border/50 bg-card z-20 shadow-lg">
                                             <AuctionCard
                                                 auction={activeAuction}
                                                 auctionTime={auctionTime}
@@ -1413,7 +1404,7 @@ export default function StreamPage() {
                                         </div>
                                     )}
                                     <ScrollArea className="flex-1" ref={chatContainerRef} onScroll={handleManualScroll}>
-                                        <div className="p-4 space-y-3">
+                                        <div className="p-4 space-y-1">
                                              {chatMessages.map((msg, index) => {
                                                 if (msg.type === 'auction') {
                                                     return (
