@@ -378,15 +378,15 @@ const ChatMessageContent = React.memo(({ msg, index, handlers, post, pinnedMessa
     
      if (msg.type === 'auction_end') {
         return (
-            <Card key={msg.id || index} className="my-2 text-gold-foreground shadow-lg bg-gradient-to-br from-yellow-300 via-amber-200 to-yellow-100 border-l-4 border-yellow-500 dark:from-yellow-900 dark:via-yellow-800 dark:to-yellow-950 dark:text-yellow-100 dark:border-yellow-500">
+            <Card key={msg.id || index} className="my-2 text-foreground shadow-lg bg-gradient-to-br from-gold/20 via-gold/5 to-gold/20 border-l-4 border-gold">
                 <CardContent className="p-3">
                     <div className="flex items-center gap-3">
-                        <div className="p-2 bg-yellow-500/20 dark:bg-yellow-400/10 rounded-full">
-                            <Award className="h-8 w-8 text-yellow-600 dark:text-yellow-400" />
+                        <div className="p-2 bg-gold/20 rounded-full">
+                            <Award className="h-8 w-8 text-gold" />
                         </div>
                         <div className="flex-grow">
-                            <p className="text-sm font-bold text-amber-800 dark:text-yellow-300">AUCTION ENDED</p>
-                            <p className="text-foreground text-lg">
+                            <p className="text-sm font-bold text-gold">AUCTION ENDED</p>
+                            <p className="text-foreground text-base">
                                 <span className="font-semibold">{msg.winner}</span> won <span className="font-bold">{msg.productName}</span> with a bid of <span className="font-bold">{msg.winningBid}!</span>
                             </p>
                         </div>
@@ -416,7 +416,7 @@ const ChatMessageContent = React.memo(({ msg, index, handlers, post, pinnedMessa
         const isPostAuthor = user?.uid === post.sellerId;
 
         return (
-            <div key={msg.id || index} className="text-xs group relative py-0.5">
+            <div key={msg.id || index} className="text-sm group relative py-0.5">
                 <div className="flex items-start gap-2 w-full group">
                     <Avatar className="w-8 h-8">
                         <AvatarImage src={msg.avatar} />
@@ -518,7 +518,7 @@ const AuctionCard = React.memo(({
                                 <Badge className={cn("text-xs", isAuctionActive ? "bg-primary text-primary-foreground" : "bg-gray-700 text-gray-300")}>AUCTION</Badge>
                                 <Badge variant="secondary" className="font-mono text-white bg-black">{formatAuctionTime(auctionTime)}</Badge>
                             </div>
-                            <Link href={`/product/${product.key}`} className="hover:underline"><h4 className="font-bold leading-tight mt-1 text-white">{product.name}</h4></Link>
+                             <Link href={`/product/${product.key}`} className="hover:underline"><h4 className="font-bold leading-tight mt-1 text-white">{product.name}</h4></Link>
                             <div className="grid grid-cols-2 gap-x-2 text-xs mt-1">
                                 <div className="text-gray-300">Current Bid: <span className="font-bold text-white">₹{highestBid.toLocaleString()}</span></div>
                                 <div className="text-gray-300">Bids: <span className="font-bold text-white">{totalBids}</span></div>
@@ -733,6 +733,8 @@ export default function StreamPage() {
         if (currentActiveAuction && (!activeAuction || activeAuction.id !== currentActiveAuction.id)) {
             setActiveAuction(currentActiveAuction);
             setAuctionTime(currentActiveAuction.initialTime);
+        } else if (!currentActiveAuction && activeAuction) {
+            setActiveAuction(null);
         }
     }, [chatMessages, activeAuction]);
     
@@ -1388,7 +1390,7 @@ export default function StreamPage() {
                                 
                                 <div className="relative flex-1 flex flex-col overflow-hidden">
                                      {showPinnedAuction && (
-                                        <div className="p-4 border-b border-border/50 bg-card z-20 shadow-lg">
+                                        <div className="absolute top-4 left-4 right-4 z-20">
                                             <AuctionCard
                                                 auction={activeAuction}
                                                 auctionTime={auctionTime}
@@ -1496,4 +1498,3 @@ export default function StreamPage() {
         </React.Fragment>
     );
 }
-
