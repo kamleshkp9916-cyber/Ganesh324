@@ -360,7 +360,9 @@ const useInView = (options?: IntersectionObserverInit) => {
                 setIsInView(entry.isIntersecting);
             },
             {
-                threshold: 0.1,
+                root: null,
+                rootMargin: "0px",
+                threshold: 1.0, // Trigger when 100% of the element is visible
                 ...options,
             }
         );
@@ -663,23 +665,19 @@ export default function StreamPage() {
         { id: 1, bankName: 'HDFC Bank', accountNumber: 'XXXX-XXXX-XX12-3456' },
     ]);
     const [pinnedMessages, setPinnedMessages] = useState<any[]>([]);
-
+    
     const [chatMessages, setChatMessages] = useState(mockChatMessages);
     const [auctionTime, setAuctionTime] = useState<number | null>(null);
     const [highestBid, setHighestBid] = useState<number>(9600);
     const [totalBids, setTotalBids] = useState<number>(4);
     
     const [showPinnedAuction, setShowPinnedAuction] = useState(false);
-    const [auctionCardRef, auctionCardInView] = useInView({ threshold: 0.5 });
+    const [auctionCardRef, auctionCardInView] = useInView({ threshold: 0.1 });
     
     const activeAuction = useMemo(() => chatMessages.find(msg => msg.type === 'auction' && msg.active), [chatMessages]);
 
     useEffect(() => {
-        if (!auctionCardInView && activeAuction) {
-            setShowPinnedAuction(true);
-        } else {
-            setShowPinnedAuction(false);
-        }
+        setShowPinnedAuction(!auctionCardInView && !!activeAuction);
     }, [auctionCardInView, activeAuction]);
 
     const isAuctionActive = useMemo(() => auctionTime !== null && auctionTime > 0, [auctionTime]);
@@ -1061,10 +1059,10 @@ export default function StreamPage() {
         return chatMessages.map((msg, index) => {
             if (msg.type === 'auction') {
                 return (
-                    <div key={msg.id} ref={auctionCardRef} className="my-2">
+                    <div key={msg.id} ref={msg.active ? auctionCardRef : null} className="my-2">
                         <AuctionCard
                             auction={msg}
-                            auctionTime={activeAuction?.id === msg.id ? auctionTime : null}
+                            auctionTime={activeAuction?.id === msg.id ? auctionTime : 0}
                             highestBid={highestBid}
                             totalBids={totalBids}
                             handlePlaceBid={handlePlaceBid}
@@ -1087,7 +1085,7 @@ export default function StreamPage() {
             );
         });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [chatMessages, seller, pinnedMessages, auctionTime, highestBid, totalBids, bidAmount, walletBalance]);
+    }, [chatMessages, seller, pinnedMessages, auctionTime, highestBid, totalBids, bidAmount, walletBalance, activeAuction]);
 
     return (
         <React.Fragment>
@@ -1414,7 +1412,7 @@ export default function StreamPage() {
                                 
                                 <div className="relative flex-1 flex flex-col overflow-hidden">
                                      <AnimatePresence>
-                                        {showPinnedAuction && activeAuction && (
+                                        {showPinnedAuction && (
                                             <motion.div
                                                 className="p-4 border-b border-border/50 sticky top-0 bg-card z-20 shadow-lg"
                                                 initial={{ y: -100 }}
@@ -1497,5 +1495,6 @@ export default function StreamPage() {
         </React.Fragment>
     );
 }
+
 
 
