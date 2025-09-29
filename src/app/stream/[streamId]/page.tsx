@@ -523,7 +523,7 @@ const AuctionCard = React.memo(({
                             </div>
                         </div>
                     </div>
-                     <div className="mt-2 flex items-center gap-2">
+                     <div className="mt-3 flex items-center gap-2">
                         <Button className="h-8 text-xs" variant="outline" onClick={onViewBids}>
                             <History className="w-4 h-4 mr-2" /> View Bids
                         </Button>
@@ -1434,3 +1434,4 @@ export default function StreamPage() {
         </React.Fragment>
     );
 }
+
