@@ -1213,7 +1213,12 @@ export default function StreamPage() {
                                     </div>
 
                                     <div className="mt-8">
-                                        <h4 className="font-semibold mb-4">Related Streams</h4>
+                                      <div className="mb-4 flex items-center justify-between">
+                                        <h4 className="font-semibold">Related Streams</h4>
+                                        <Button asChild variant="link" size="sm" className="text-xs">
+                                            <Link href="/live-selling">More</Link>
+                                        </Button>
+                                      </div>
                                         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
                                             {relatedStreams.map((s: any) => (
                                                 <Link href={`/stream/${s.id}`} key={s.id} className="group">
@@ -1435,4 +1440,3 @@ export default function StreamPage() {
         </React.Fragment>
     );
 }
-
