@@ -417,7 +417,7 @@ const ChatMessageContent = React.memo(({ msg, index, handlers, post, pinnedMessa
 
         return (
             <div key={msg.id || index} className="text-sm group relative py-0.5">
-                <div className="flex items-center gap-2 w-full group">
+                <div className="flex items-start gap-3 w-full group">
                     <Avatar className="w-8 h-8">
                         <AvatarImage src={msg.avatar} />
                         <AvatarFallback>{msg.user.charAt(0)}</AvatarFallback>
@@ -483,7 +483,7 @@ const AuctionCard = React.memo(({
     isPinned?: boolean,
     onClick?: (e: React.MouseEvent<HTMLDivElement>) => void;
     cardRef?: React.Ref<HTMLDivElement>;
-    onBid: (e: React.MouseEvent) => void;
+    onBid: () => void;
     onViewBids: (e: React.MouseEvent) => void;
 }) => {
     const isAuctionActive = auction.active && auctionTime !== null && auctionTime > 0;
@@ -501,7 +501,7 @@ const AuctionCard = React.memo(({
                 )}
                 onClick={onClick}
             >
-                <CardContent className="p-4 space-y-4">
+                <div className="p-4 space-y-4">
                     <div className="flex items-center gap-3">
                         <Link href={`/product/${product.key}`} className="w-16 h-16 bg-black rounded-md relative overflow-hidden flex-shrink-0 group" onClick={(e) => e.stopPropagation()}>
                             <Image src={product.images[0]} alt={product.name} fill className="object-cover group-hover:scale-105 transition-transform" />
@@ -528,7 +528,8 @@ const AuctionCard = React.memo(({
                             <History className="w-4 h-4 mr-2" /> View Bids
                         </Button>
                          <Button 
-                            className="w-full h-8 bg-primary hover:bg-primary/90 text-primary-foreground" 
+                            size="sm"
+                            className="w-full text-xs"
                             disabled={!isAuctionActive}
                             onClick={onBid}
                         >
@@ -536,7 +537,7 @@ const AuctionCard = React.memo(({
                             Place Your Bid
                         </Button>
                     </div>
-                </CardContent>
+                </div>
             </Card>
         </div>
     );
@@ -1261,7 +1262,7 @@ export default function StreamPage() {
                                                 walletBalance={walletBalance}
                                                 isPinned={true}
                                                 onClick={() => scrollToAuction(activeAuction.id)}
-                                                onBid={(e) => { e.stopPropagation(); setIsBidDialogOpen(true); }}
+                                                onBid={() => setIsBidDialogOpen(true)}
                                                 onViewBids={(e) => { e.stopPropagation(); setIsBidHistoryOpen(true); }}
                                             />
                                         </div>
