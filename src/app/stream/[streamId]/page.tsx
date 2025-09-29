@@ -378,7 +378,7 @@ const ChatMessageContent = React.memo(({ msg, index, handlers, post, pinnedMessa
     
      if (msg.type === 'auction_end') {
         return (
-            <Card key={msg.id || index} className="my-2 text-foreground shadow-lg bg-gradient-to-br from-gold/20 via-gold/5 to-gold/20 border-l-4 border-gold">
+             <Card key={msg.id || index} className="my-2 text-foreground shadow-lg bg-gradient-to-br from-gold/20 via-gold/5 to-gold/20 border-l-4 border-gold">
                 <CardContent className="p-3">
                     <div className="flex items-center gap-3">
                         <div className="p-2 bg-gold/20 rounded-full">
@@ -398,7 +398,7 @@ const ChatMessageContent = React.memo(({ msg, index, handlers, post, pinnedMessa
     
     if (msg.isBid) {
         return (
-             <div key={msg.id || index} className="my-1 flex items-center gap-2 p-1.5 rounded-lg bg-black/30 border border-primary/20">
+            <div key={msg.id || index} className="my-1 flex items-center gap-2 p-1.5 rounded-lg bg-black/30 border border-primary/20">
                 <Gavel className="h-4 w-4 text-primary flex-shrink-0" />
                 <Avatar className="h-6 w-6">
                     <AvatarImage src={msg.avatar} />
@@ -495,17 +495,17 @@ const AuctionCard = React.memo(({
 
     return (
         <div ref={cardRef}>
-             <Card
+            <Card
                 className={cn(
-                    "text-white border-2 bg-black/80 backdrop-blur-sm", 
-                    isAuctionActive ? "border-primary/50" : "border-gray-700/50",
+                    "text-white border-2 bg-black/80 backdrop-blur-sm",
+                    isAuctionActive ? "border-primary" : "border-gray-700",
                     isPinned && "cursor-pointer"
                 )}
                 onClick={onClick}
             >
                 <CardContent className="p-3">
                     <div className="flex items-center gap-3">
-                         <Link href={`/product/${product.key}`} className="w-16 h-16 bg-black rounded-md relative overflow-hidden flex-shrink-0 group">
+                        <Link href={`/product/${product.key}`} className="w-16 h-16 bg-black rounded-md relative overflow-hidden flex-shrink-0 group">
                             <Image src={product.images[0]} alt={product.name} fill className="object-cover group-hover:scale-105 transition-transform" />
                             {!isAuctionActive && (
                                 <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
@@ -526,7 +526,7 @@ const AuctionCard = React.memo(({
                         </div>
                     </div>
                      <div className="mt-2 flex items-center gap-2">
-                         <Dialog>
+                        <Dialog>
                             <DialogTrigger asChild>
                                 <Button className="h-8 text-xs" variant="outline">
                                     <History className="w-4 h-4 mr-2" /> View Bids
@@ -554,7 +554,7 @@ const AuctionCard = React.memo(({
                                 </ScrollArea>
                             </DialogContent>
                         </Dialog>
-                        <Dialog>
+                         <Dialog>
                             <DialogTrigger asChild>
                                  <Button 
                                     className="w-full h-8 bg-primary hover:bg-primary/90 text-primary-foreground" 
@@ -732,7 +732,7 @@ export default function StreamPage() {
             setActiveAuction(currentActiveAuction);
             setAuctionTime(currentActiveAuction.initialTime);
         } else if (!currentActiveAuction && activeAuction) {
-            setActiveAuction(null);
+            //setActiveAuction(null); // This was causing the auction card to reappear
         }
     }, [chatMessages, activeAuction]);
     
@@ -749,7 +749,7 @@ export default function StreamPage() {
                     return prev - 1;
                 });
             }, 1000);
-        } else if (auctionTime === 0 && activeAuction) {
+        } else if (auctionTime === 0 && activeAuction && activeAuction.active) {
             const winningBid = [...chatMessages].reverse().find(m => m.isBid);
             if (winningBid) {
                 const winnerMessage = {
@@ -771,7 +771,8 @@ export default function StreamPage() {
             }
             
             setChatMessages(prev => prev.map(msg => msg.id === activeAuction.id ? { ...msg, active: false } : msg));
-            setActiveAuction(null);
+            // Setting activeAuction to null here makes it reappear on refresh if it's the last message
+            // setActiveAuction(null); 
             setAuctionTime(null);
         }
         return () => { if (timer) clearInterval(timer) };
@@ -1254,7 +1255,23 @@ export default function StreamPage() {
                                     </div>
                                 </div>
                             </div>
-                            <div className="hidden lg:flex w-[340px] flex-shrink-0 h-full flex-col bg-card">
+                            <div className="hidden lg:flex w-[340px] flex-shrink-0 h-full flex-col bg-card relative">
+                                {showPinnedAuction && (
+                                    <div className="absolute top-0 left-0 right-0 z-20 p-4 bg-gradient-to-b from-black/80 to-transparent">
+                                        <AuctionCard
+                                            auction={activeAuction}
+                                            auctionTime={auctionTime}
+                                            highestBid={highestBid}
+                                            totalBids={totalBids}
+                                            handlePlaceBid={handlePlaceBid}
+                                            walletBalance={walletBalance}
+                                            bidAmount={bidAmount}
+                                            setBidAmount={setBidAmount}
+                                            isPinned={true}
+                                            onClick={() => scrollToAuction(activeAuction.id)}
+                                        />
+                                    </div>
+                                )}
                                  <div className="p-4 flex items-center justify-between z-10 flex-shrink-0 h-16 border-b">
                                     <h3 className="font-bold text-lg">Live Chat</h3>
                                     <div className="flex items-center gap-1">
@@ -1387,22 +1404,6 @@ export default function StreamPage() {
                                 </div>
                                 
                                 <div className="relative flex-1 flex flex-col overflow-hidden">
-                                     {showPinnedAuction && (
-                                         <div className="absolute top-4 left-4 right-4 z-20">
-                                            <AuctionCard
-                                                auction={activeAuction}
-                                                auctionTime={auctionTime}
-                                                highestBid={highestBid}
-                                                totalBids={totalBids}
-                                                handlePlaceBid={handlePlaceBid}
-                                                walletBalance={walletBalance}
-                                                bidAmount={bidAmount}
-                                                setBidAmount={setBidAmount}
-                                                isPinned={true}
-                                                onClick={() => scrollToAuction(activeAuction.id)}
-                                            />
-                                        </div>
-                                    )}
                                     <ScrollArea className="flex-1" ref={chatContainerRef} onScroll={handleManualScroll}>
                                         <div className="p-4 space-y-1">
                                              {chatMessages.map((msg, index) => {
@@ -1496,3 +1497,4 @@ export default function StreamPage() {
         </React.Fragment>
     );
 }
+
