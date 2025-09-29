@@ -483,8 +483,8 @@ const AuctionCard = React.memo(({
     isPinned?: boolean,
     onClick?: (e: React.MouseEvent<HTMLDivElement>) => void;
     cardRef?: React.Ref<HTMLDivElement>;
-    onBid: () => void;
-    onViewBids: () => void;
+    onBid: (e: React.MouseEvent) => void;
+    onViewBids: (e: React.MouseEvent) => void;
 }) => {
     const isAuctionActive = auction.active && auctionTime !== null && auctionTime > 0;
     const product = productDetails[auction.productId as keyof typeof productDetails];
@@ -1077,23 +1077,6 @@ export default function StreamPage() {
                         </header>
 
                         <div className="flex flex-1 overflow-hidden">
-                             <div className="absolute top-16 left-0 right-0 z-20 p-4 bg-transparent pointer-events-none">
-                                {showPinnedAuction && (
-                                    <div className="w-full lg:w-[340px] ml-auto pointer-events-auto">
-                                        <AuctionCard
-                                            auction={activeAuction}
-                                            auctionTime={auctionTime}
-                                            highestBid={highestBid}
-                                            totalBids={totalBids}
-                                            walletBalance={walletBalance}
-                                            isPinned={true}
-                                            onClick={() => scrollToAuction(activeAuction.id)}
-                                            onBid={(e) => { e.stopPropagation(); setIsBidDialogOpen(true); }}
-                                            onViewBids={(e) => { e.stopPropagation(); setIsBidHistoryOpen(true); }}
-                                        />
-                                    </div>
-                                )}
-                            </div>
                             <div className="flex-1 overflow-y-auto no-scrollbar">
                                 <div className="w-full aspect-video bg-black relative group flex-shrink-0" ref={playerRef}>
                                     <video ref={videoRef} src={streamData.streamUrl || "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"} className="w-full h-full object-cover" loop />
@@ -1267,6 +1250,23 @@ export default function StreamPage() {
                                 </div>
                             </div>
                             <div className="hidden lg:flex w-[340px] flex-shrink-0 h-full flex-col bg-card relative">
+                                {showPinnedAuction && (
+                                    <div className="absolute top-16 left-0 right-0 z-20 p-4 pointer-events-none">
+                                        <div className="w-full pointer-events-auto">
+                                            <AuctionCard
+                                                auction={activeAuction}
+                                                auctionTime={auctionTime}
+                                                highestBid={highestBid}
+                                                totalBids={totalBids}
+                                                walletBalance={walletBalance}
+                                                isPinned={true}
+                                                onClick={() => scrollToAuction(activeAuction.id)}
+                                                onBid={(e) => { e.stopPropagation(); setIsBidDialogOpen(true); }}
+                                                onViewBids={(e) => { e.stopPropagation(); setIsBidHistoryOpen(true); }}
+                                            />
+                                        </div>
+                                    </div>
+                                )}
                                 <div className="p-4 flex items-center justify-between z-10 flex-shrink-0 h-16 border-b">
                                     <h3 className="font-bold text-lg">Live Chat</h3>
                                     <div className="flex items-center gap-1">
@@ -1343,7 +1343,7 @@ export default function StreamPage() {
                                 
                                 <div className="relative flex-1 flex flex-col overflow-hidden">
                                     <ScrollArea className="flex-1" ref={chatContainerRef} onScroll={handleManualScroll}>
-                                        <div className="p-4 space-y-1">
+                                        <div className="p-4 space-y-0.5">
                                              {chatMessages.map((msg, index) => {
                                                 if (msg.type === 'auction') {
                                                     return (
@@ -1434,5 +1434,3 @@ export default function StreamPage() {
         </React.Fragment>
     );
 }
-
-
