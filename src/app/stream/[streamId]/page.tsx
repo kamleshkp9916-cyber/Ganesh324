@@ -417,14 +417,14 @@ const ChatMessageContent = React.memo(({ msg, index, handlers, post, pinnedMessa
 
         return (
             <div key={msg.id || index} className="text-sm group relative py-0.5">
-                <div className="flex items-start gap-3 w-full group">
+                <div className="flex items-center gap-3 w-full group">
                     <Avatar className="w-8 h-8">
                         <AvatarImage src={msg.avatar} />
                         <AvatarFallback>{msg.user.charAt(0)}</AvatarFallback>
                     </Avatar>
                     <div className="flex-1">
-                        <span className={cn("font-semibold pr-1", msg.isSeller && "text-amber-400")}>
-                            {msg.user.split(' ')[0]}
+                        <span className={cn("font-semibold pr-1 text-sm", msg.isSeller && "text-amber-400")}>
+                            {msg.user.split(' ')[0]}:
                             {msg.isSeller && (
                                 <Badge variant="secondary" className="ml-1 text-amber-400 border-amber-400/50">
                                     <ShieldCheck className="h-3 w-3 mr-1" />
@@ -432,7 +432,7 @@ const ChatMessageContent = React.memo(({ msg, index, handlers, post, pinnedMessa
                                 </Badge>
                             )}
                         </span>
-                        <span className={cn("text-foreground break-words")}>{renderContentWithHashtags(msg.text)}</span>
+                        <span className={cn("text-foreground break-words text-xs")}>{renderContentWithHashtags(msg.text)}</span>
                     </div>
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
@@ -1435,3 +1435,4 @@ export default function StreamPage() {
         </React.Fragment>
     );
 }
+
