@@ -468,25 +468,23 @@ const AuctionCard = React.memo(({
     auctionTime,
     highestBid,
     totalBids,
-    handlePlaceBid,
     walletBalance,
-    bidAmount,
-    setBidAmount,
     isPinned = false,
     onClick,
     cardRef,
+    onBid,
+    onViewBids
 }: {
     auction: any,
     auctionTime: number | null,
     highestBid: number,
     totalBids: number,
-    handlePlaceBid: (e: React.MouseEvent) => void,
     walletBalance: number,
-    bidAmount: number | string,
-    setBidAmount: (value: number | string) => void,
     isPinned?: boolean,
     onClick?: (e: React.MouseEvent<HTMLDivElement>) => void;
     cardRef?: React.Ref<HTMLDivElement>;
+    onBid: () => void;
+    onViewBids: () => void;
 }) => {
     const isAuctionActive = auction.active && auctionTime !== null && auctionTime > 0;
     const product = productDetails[auction.productId as keyof typeof productDetails];
@@ -505,7 +503,7 @@ const AuctionCard = React.memo(({
             >
                 <CardContent className="p-3">
                     <div className="flex items-center gap-3">
-                        <Link href={`/product/${product.key}`} className="w-16 h-16 bg-black rounded-md relative overflow-hidden flex-shrink-0 group">
+                        <Link href={`/product/${product.key}`} className="w-16 h-16 bg-black rounded-md relative overflow-hidden flex-shrink-0 group" onClick={(e) => e.stopPropagation()}>
                             <Image src={product.images[0]} alt={product.name} fill className="object-cover group-hover:scale-105 transition-transform" />
                             {!isAuctionActive && (
                                 <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
@@ -518,7 +516,7 @@ const AuctionCard = React.memo(({
                                 <Badge className={cn("text-xs", isAuctionActive ? "bg-primary text-primary-foreground" : "bg-gray-700 text-gray-300")}>AUCTION</Badge>
                                 <Badge variant="secondary" className="font-mono text-white bg-black">{formatAuctionTime(auctionTime)}</Badge>
                             </div>
-                             <Link href={`/product/${product.key}`} className="hover:underline"><h4 className="font-bold leading-tight mt-1 text-white">{product.name}</h4></Link>
+                             <Link href={`/product/${product.key}`} className="hover:underline" onClick={(e) => e.stopPropagation()}><h4 className="font-bold leading-tight mt-1 text-white">{product.name}</h4></Link>
                             <div className="grid grid-cols-2 gap-x-2 text-xs mt-1">
                                 <div className="text-gray-300">Current Bid: <span className="font-bold text-white">₹{highestBid.toLocaleString()}</span></div>
                                 <div className="text-gray-300">Bids: <span className="font-bold text-white">{totalBids}</span></div>
@@ -526,99 +524,17 @@ const AuctionCard = React.memo(({
                         </div>
                     </div>
                      <div className="mt-2 flex items-center gap-2">
-                        <Dialog>
-                            <DialogTrigger asChild>
-                                <Button className="h-8 text-xs" variant="outline">
-                                    <History className="w-4 h-4 mr-2" /> View Bids
-                                </Button>
-                            </DialogTrigger>
-                             <DialogContent>
-                                <DialogHeader>
-                                    <DialogTitle>Bid History for {product.name}</DialogTitle>
-                                </DialogHeader>
-                                <ScrollArea className="h-64">
-                                    <div className="p-2 space-y-2">
-                                        {mockChatMessages.filter(m => m.isBid).reverse().map(bid => (
-                                            <div key={bid.id} className="flex justify-between items-center text-sm p-2 bg-muted/50 rounded-md">
-                                                <div className="flex items-center gap-2">
-                                                    <Avatar className="w-6 h-6">
-                                                        <AvatarImage src={bid.avatar} />
-                                                        <AvatarFallback>{bid.user.charAt(0)}</AvatarFallback>
-                                                    </Avatar>
-                                                    <span>{bid.user}</span>
-                                                </div>
-                                                <span className="font-bold">{bid.text.replace('BID ', '')}</span>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </ScrollArea>
-                            </DialogContent>
-                        </Dialog>
-                         <Dialog>
-                            <DialogTrigger asChild>
-                                 <Button 
-                                    className="w-full h-8 bg-primary hover:bg-primary/90 text-primary-foreground" 
-                                    disabled={!isAuctionActive}
-                                    onClick={(e) => { e.stopPropagation(); }}
-                                >
-                                    <Gavel className="w-4 h-4 mr-2"/>
-                                    Place Your Bid
-                                </Button>
-                            </DialogTrigger>
-                             <DialogContent className="sm:max-w-md bg-background border-border">
-                                <DialogHeader>
-                                    <DialogTitle className="text-xl font-bold">Place a Bid for {product.name}</DialogTitle>
-                                </DialogHeader>
-                                <div className="py-4 space-y-4">
-                                     <div className="grid grid-cols-2 gap-4 text-center">
-                                        <div>
-                                            <Label className="text-xs text-muted-foreground">Wallet Balance</Label>
-                                            <p className="text-lg font-bold flex items-center justify-center gap-1"><Wallet className="h-4 w-4" />₹{(walletBalance).toFixed(2)}</p>
-                                        </div>
-                                        <div>
-                                            <Label className="text-xs text-muted-foreground">Current Highest Bid</Label>
-                                            <p className="text-lg font-bold">₹{highestBid.toLocaleString()}</p>
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <Label htmlFor="bid-amount" className="text-sm font-medium">Your Bid (must be > ₹{highestBid.toLocaleString()})</Label>
-                                        <div className="relative mt-1">
-                                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">₹</span>
-                                            <Input
-                                                id="bid-amount"
-                                                type="number"
-                                                placeholder="Enter your bid"
-                                                className="pl-7 h-11 text-base"
-                                                value={bidAmount}
-                                                onChange={(e) => setBidAmount(e.target.value)}
-                                            />
-                                        </div>
-                                    </div>
-                                    <div className="grid grid-cols-3 gap-2">
-                                        <Button variant="outline" onClick={() => setBidAmount(prev => Number(prev || highestBid) + 100)}>+100</Button>
-                                        <Button variant="outline" onClick={() => setBidAmount(prev => Number(prev || highestBid) + 500)}>+500</Button>
-                                        <Button variant="outline" onClick={() => setBidAmount(prev => Number(prev || highestBid) + 1000)}>+1000</Button>
-                                    </div>
-                                </div>
-                                <DialogFooter>
-                                    <div className="flex flex-col gap-2 w-full">
-                                        <div className="flex justify-between gap-2">
-                                            <DialogClose asChild>
-                                                <Button type="button" variant="ghost" className="w-full">Cancel</Button>
-                                            </DialogClose>
-                                            <Button onClick={(e) => { e.stopPropagation(); handlePlaceBid(e); }} className="w-full">
-                                                <Gavel className="mr-2 h-4 w-4" />
-                                                Confirm Bid
-                                            </Button>
-                                        </div>
-                                        <p className="text-xs text-left text-muted-foreground pt-2">Note: Your bid amount will be held and automatically refunded if you do not win the auction.</p>
-                                    </div>
-                                </DialogFooter>
-                                <DialogClose asChild>
-                                    <button id="closeBidDialog" className="hidden"></button>
-                                </DialogClose>
-                            </DialogContent>
-                        </Dialog>
+                        <Button className="h-8 text-xs" variant="outline" onClick={onViewBids}>
+                            <History className="w-4 h-4 mr-2" /> View Bids
+                        </Button>
+                         <Button 
+                            className="w-full h-8 bg-primary hover:bg-primary/90 text-primary-foreground" 
+                            disabled={!isAuctionActive}
+                            onClick={onBid}
+                        >
+                            <Gavel className="w-4 h-4 mr-2"/>
+                            Place Your Bid
+                        </Button>
                     </div>
                 </CardContent>
             </Card>
@@ -649,6 +565,8 @@ export default function StreamPage() {
     const [totalBids, setTotalBids] = useState<number>(4);
     
     const [activeAuction, setActiveAuction] = useState<any | null>(null);
+    const [isBidDialogOpen, setIsBidDialogOpen] = useState(false);
+    const [isBidHistoryOpen, setIsBidHistoryOpen] = useState(false);
     
     const { ref: auctionCardRef, inView: auctionCardInView } = useInView({ threshold: 0.99 });
     
@@ -731,8 +649,10 @@ export default function StreamPage() {
         if (currentActiveAuction && (!activeAuction || activeAuction.id !== currentActiveAuction.id)) {
             setActiveAuction(currentActiveAuction);
             setAuctionTime(currentActiveAuction.initialTime);
-        } else if (!currentActiveAuction && activeAuction) {
-            //setActiveAuction(null); // This was causing the auction card to reappear
+        } else if (!currentActiveAuction && activeAuction && activeAuction.active === true) {
+            // Handle case where active auction is removed from chat messages
+            const endedAuction = {...activeAuction, active: false};
+            setActiveAuction(endedAuction);
         }
     }, [chatMessages, activeAuction]);
     
@@ -771,8 +691,6 @@ export default function StreamPage() {
             }
             
             setChatMessages(prev => prev.map(msg => msg.id === activeAuction.id ? { ...msg, active: false } : msg));
-            // Setting activeAuction to null here makes it reappear on refresh if it's the last message
-            // setActiveAuction(null); 
             setAuctionTime(null);
         }
         return () => { if (timer) clearInterval(timer) };
@@ -1042,7 +960,7 @@ export default function StreamPage() {
         setTotalBids(prev => prev + 1);
         setWalletBalance(prev => prev - bidValue);
         setBidAmount("");
-        document.getElementById('closeBidDialog')?.click();
+        setIsBidDialogOpen(false);
         
         toast({ title: 'Bid Placed!', description: `Your bid of ₹${bidValue.toLocaleString()} has been placed.` });
     };
@@ -1055,6 +973,82 @@ export default function StreamPage() {
 
     return (
         <React.Fragment>
+            <Dialog open={isBidDialogOpen} onOpenChange={setIsBidDialogOpen}>
+                <DialogContent className="sm:max-w-md bg-background border-border">
+                    <DialogHeader>
+                        <DialogTitle className="text-xl font-bold">Place a Bid for {productDetails[activeAuction?.productId as keyof typeof productDetails]?.name}</DialogTitle>
+                    </DialogHeader>
+                    <div className="py-4 space-y-4">
+                            <div className="grid grid-cols-2 gap-4 text-center">
+                            <div>
+                                <Label className="text-xs text-muted-foreground">Wallet Balance</Label>
+                                <p className="text-lg font-bold flex items-center justify-center gap-1"><Wallet className="h-4 w-4" />₹{(walletBalance).toFixed(2)}</p>
+                            </div>
+                            <div>
+                                <Label className="text-xs text-muted-foreground">Current Highest Bid</Label>
+                                <p className="text-lg font-bold">₹{highestBid.toLocaleString()}</p>
+                            </div>
+                        </div>
+                        <div>
+                            <Label htmlFor="bid-amount" className="text-sm font-medium">Your Bid (must be > ₹{highestBid.toLocaleString()})</Label>
+                            <div className="relative mt-1">
+                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">₹</span>
+                                <Input
+                                    id="bid-amount"
+                                    type="number"
+                                    placeholder="Enter your bid"
+                                    className="pl-7 h-11 text-base"
+                                    value={bidAmount}
+                                    onChange={(e) => setBidAmount(e.target.value)}
+                                />
+                            </div>
+                        </div>
+                        <div className="grid grid-cols-3 gap-2">
+                            <Button variant="outline" onClick={() => setBidAmount(prev => Number(prev || highestBid) + 100)}>+100</Button>
+                            <Button variant="outline" onClick={() => setBidAmount(prev => Number(prev || highestBid) + 500)}>+500</Button>
+                            <Button variant="outline" onClick={() => setBidAmount(prev => Number(prev || highestBid) + 1000)}>+1000</Button>
+                        </div>
+                    </div>
+                    <DialogFooter>
+                        <div className="flex flex-col gap-2 w-full">
+                            <div className="flex justify-between gap-2">
+                                 <Button type="button" variant="ghost" className="w-full" onClick={() => setIsBidDialogOpen(false)}>Cancel</Button>
+                                <Button onClick={handlePlaceBid} className="w-full">
+                                    <Gavel className="mr-2 h-4 w-4" />
+                                    Confirm Bid
+                                </Button>
+                            </div>
+                            <p className="text-xs text-left text-muted-foreground pt-2">Note: Your bid amount will be held and automatically refunded if you do not win the auction.</p>
+                        </div>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+             <Dialog open={isBidHistoryOpen} onOpenChange={setIsBidHistoryOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Bid History for {productDetails[activeAuction?.productId as keyof typeof productDetails]?.name}</DialogTitle>
+                    </DialogHeader>
+                    <ScrollArea className="h-64">
+                        <div className="p-2 space-y-2">
+                            {mockChatMessages.filter(m => m.isBid).reverse().map(bid => (
+                                <div key={bid.id} className="flex justify-between items-center text-sm p-2 bg-muted/50 rounded-md">
+                                    <div className="flex items-center gap-2">
+                                        <Avatar className="w-6 h-6">
+                                            <AvatarImage src={bid.avatar} />
+                                            <AvatarFallback>{bid.user.charAt(0)}</AvatarFallback>
+                                        </Avatar>
+                                        <span>{bid.user}</span>
+                                    </div>
+                                    <span className="font-bold">{bid.text.replace('BID ', '')}</span>
+                                </div>
+                            ))}
+                        </div>
+                    </ScrollArea>
+                </DialogContent>
+            </Dialog>
+
+
             <Dialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
                 <AlertDialog>
                     <div className="h-dvh w-full flex flex-col bg-background text-foreground">
@@ -1083,6 +1077,23 @@ export default function StreamPage() {
                         </header>
 
                         <div className="flex flex-1 overflow-hidden">
+                             <div className="absolute top-16 left-0 right-0 z-20 p-4 bg-transparent pointer-events-none">
+                                {showPinnedAuction && (
+                                    <div className="w-full lg:w-[340px] ml-auto pointer-events-auto">
+                                        <AuctionCard
+                                            auction={activeAuction}
+                                            auctionTime={auctionTime}
+                                            highestBid={highestBid}
+                                            totalBids={totalBids}
+                                            walletBalance={walletBalance}
+                                            isPinned={true}
+                                            onClick={() => scrollToAuction(activeAuction.id)}
+                                            onBid={(e) => { e.stopPropagation(); setIsBidDialogOpen(true); }}
+                                            onViewBids={(e) => { e.stopPropagation(); setIsBidHistoryOpen(true); }}
+                                        />
+                                    </div>
+                                )}
+                            </div>
                             <div className="flex-1 overflow-y-auto no-scrollbar">
                                 <div className="w-full aspect-video bg-black relative group flex-shrink-0" ref={playerRef}>
                                     <video ref={videoRef} src={streamData.streamUrl || "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"} className="w-full h-full object-cover" loop />
@@ -1256,82 +1267,9 @@ export default function StreamPage() {
                                 </div>
                             </div>
                             <div className="hidden lg:flex w-[340px] flex-shrink-0 h-full flex-col bg-card relative">
-                                {showPinnedAuction && (
-                                    <div className="absolute top-0 left-0 right-0 z-20 p-4 bg-gradient-to-b from-black/80 to-transparent">
-                                        <AuctionCard
-                                            auction={activeAuction}
-                                            auctionTime={auctionTime}
-                                            highestBid={highestBid}
-                                            totalBids={totalBids}
-                                            handlePlaceBid={handlePlaceBid}
-                                            walletBalance={walletBalance}
-                                            bidAmount={bidAmount}
-                                            setBidAmount={setBidAmount}
-                                            isPinned={true}
-                                            onClick={() => scrollToAuction(activeAuction.id)}
-                                        />
-                                    </div>
-                                )}
-                                 <div className="p-4 flex items-center justify-between z-10 flex-shrink-0 h-16 border-b">
+                                <div className="p-4 flex items-center justify-between z-10 flex-shrink-0 h-16 border-b">
                                     <h3 className="font-bold text-lg">Live Chat</h3>
                                     <div className="flex items-center gap-1">
-                                        <Popover>
-                                            <PopoverTrigger asChild>
-                                                <Button variant="ghost" size="icon" className="h-8 w-8">
-                                                    <Wallet className="h-5 w-5 text-muted-foreground" />
-                                                </Button>
-                                            </PopoverTrigger>
-                                            <PopoverContent align="end" className="w-80">
-                                                <div className="p-3">
-                                                    <div className="flex items-center justify-between mb-2">
-                                                        <h4 className="font-semibold">My Wallet</h4>
-                                                        <Button variant="link" size="sm" asChild className="p-0 h-auto">
-                                                            <Link href="/wallet">More Details</Link>
-                                                        </Button>
-                                                    </div>
-                                                    <div className="p-3 rounded-lg bg-muted/50 border">
-                                                        <p className="text-xs text-muted-foreground">Available Balance</p>
-                                                        <p className="text-2xl font-bold">₹{walletBalance.toFixed(2)}</p>
-                                                    </div>
-                                                    <div className="text-xs text-muted-foreground space-y-1 mt-2">
-                                                        <div className="flex justify-between"><span>Blocked Margin:</span> <span className="font-medium text-foreground">₹2,640.00</span></div>
-                                                        <div className="flex justify-between"><span>StreamCart Coins:</span> <span className="font-medium text-foreground">1,250</span></div>
-                                                    </div>
-                                                    <div className="grid grid-cols-2 gap-2 pt-4">
-                                                        <Dialog>
-                                                            <DialogTrigger asChild>
-                                                                <Button variant="outline" size="sm"><Plus className="mr-1.5 h-4 w-4" /> Deposit</Button>
-                                                            </DialogTrigger>
-                                                            <DialogContent>
-                                                                <DialogHeader>
-                                                                    <DialogTitle>Add Funds via UPI</DialogTitle>
-                                                                    <DialogDescription>Scan the QR code with any UPI app to add funds to your wallet.</DialogDescription>
-                                                                </DialogHeader>
-                                                                <div className="flex flex-col items-center gap-4 py-4">
-                                                                    <div className="bg-white p-4 rounded-lg">
-                                                                        <Image src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=upi://pay?pa=streamcart@mock" alt="UPI QR Code" width={200} height={200} />
-                                                                    </div>
-                                                                    <p className="text-sm text-muted-foreground">or pay to UPI ID:</p>
-                                                                    <p className="font-semibold">streamcart@mock</p>
-                                                                </div>
-                                                            </DialogContent>
-                                                        </Dialog>
-                                                        <Dialog open={isWithdrawOpen} onOpenChange={setIsWithdrawOpen}>
-                                                            <DialogTrigger asChild>
-                                                                <Button variant="outline" size="sm"><Download className="mr-1.5 h-4 w-4" /> Withdraw</Button>
-                                                            </DialogTrigger>
-                                                            <DialogContent>
-                                                                <DialogHeader>
-                                                                    <DialogTitle>Withdraw Funds</DialogTitle>
-                                                                    <DialogDescription>Select an account and enter the amount you wish to withdraw.</DialogDescription>
-                                                                </DialogHeader>
-                                                                <WithdrawForm cashAvailable={walletBalance - 2640} bankAccounts={bankAccounts} onWithdraw={handleWithdraw} onAddAccount={(newAccount) => { setBankAccounts(prev => [...prev, { ...newAccount, id: Date.now() }]); toast({ title: "Bank Account Added!", description: "You can now select it for withdrawals." }); }} />
-                                                            </DialogContent>
-                                                        </Dialog>
-                                                    </div>
-                                                </div>
-                                            </PopoverContent>
-                                        </Popover>
                                         <Popover>
                                             <PopoverTrigger asChild>
                                                 <Button variant="ghost" size="icon" className="h-8 w-8 relative">
@@ -1415,11 +1353,10 @@ export default function StreamPage() {
                                                                 auctionTime={activeAuction?.id === msg.id ? auctionTime : 0}
                                                                 highestBid={highestBid}
                                                                 totalBids={totalBids}
-                                                                handlePlaceBid={handlePlaceBid}
                                                                 walletBalance={walletBalance}
-                                                                bidAmount={bidAmount}
-                                                                setBidAmount={setBidAmount}
                                                                 cardRef={msg.active ? auctionCardRef : undefined}
+                                                                onBid={() => setIsBidDialogOpen(true)}
+                                                                onViewBids={() => setIsBidHistoryOpen(true)}
                                                             />
                                                         </div>
                                                     )
@@ -1497,4 +1434,5 @@ export default function StreamPage() {
         </React.Fragment>
     );
 }
+
 
