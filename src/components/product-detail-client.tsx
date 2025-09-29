@@ -790,12 +790,14 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                 {/* Related Streams Section */}
                 {relatedStreams.length > 0 && (
                     <div className="mt-8 py-4 border-t">
-                        <CardHeader className="p-0 mb-4 flex-row items-center justify-between">
-                            <CardTitle>Related Live Streams</CardTitle>
+                        <div className="mb-4 flex items-center justify-between">
+                            <h3 className="text-xl font-bold">Related Live Streams</h3>
                             <Button asChild variant="link">
-                                <Link href="/live-selling">More <span className="sr-only">Streams</span></Link>
+                                <Link href="/live-selling">
+                                    More
+                                </Link>
                             </Button>
-                        </CardHeader>
+                        </div>
                         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 sm:gap-4">
                             {relatedStreams.map(stream => (
                                 <div key={stream.id} className="group relative rounded-lg overflow-hidden shadow-lg">
