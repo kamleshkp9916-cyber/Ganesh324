@@ -787,33 +787,14 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                     </div>
                 </div>
 
-                {/* Related Products Section */}
-                <div className="mt-8 py-4 border-t">
-                    <CardHeader className="p-0 mb-4">
-                        <CardTitle>You Might Also Like</CardTitle>
-                    </CardHeader>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 sm:gap-4">
-                        {relatedProducts.map(p => (
-                            <Link href={`/product/${p.key}`} key={p.id}>
-                                <Card className="overflow-hidden group">
-                                    <div className="aspect-square bg-muted relative">
-                                        <Image src={p.images[0]} alt={p.name} fill sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 16vw" className="object-cover group-hover:scale-105 transition-transform" data-ai-hint={p.hint} />
-                                    </div>
-                                    <div className="p-2 sm:p-3">
-                                        <h4 className="font-semibold text-xs sm:text-sm truncate">{p.name}</h4>
-                                        <p className="text-foreground font-bold text-sm sm:text-base">{p.price}</p>
-                                    </div>
-                                </Card>
-                            </Link>
-                        ))}
-                    </div>
-                 </div>
-
-                 {/* Related Streams Section */}
+                {/* Related Streams Section */}
                 {relatedStreams.length > 0 && (
                     <div className="mt-8 py-4 border-t">
-                        <CardHeader className="p-0 mb-4">
+                        <CardHeader className="p-0 mb-4 flex-row items-center justify-between">
                             <CardTitle>Related Live Streams</CardTitle>
+                            <Button asChild variant="link">
+                                <Link href="/live-selling">More <span className="sr-only">Streams</span></Link>
+                            </Button>
                         </CardHeader>
                         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 sm:gap-4">
                             {relatedStreams.map(stream => (
