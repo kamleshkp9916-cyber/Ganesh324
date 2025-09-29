@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import {
@@ -1165,7 +1166,7 @@ export default function StreamPage() {
                                                                 </Button>
                                                             </CollapsibleTrigger>
                                                             {seller.hasAuction && (
-                                                                <Badge variant="purple" className="flex items-center gap-1.5 h-7">
+                                                                <Badge variant="info" className="flex items-center gap-1.5 h-7">
                                                                     <Gavel className="w-4 h-4" /> Auction
                                                                 </Badge>
                                                             )}
@@ -1244,7 +1245,7 @@ export default function StreamPage() {
                                                             <div className="flex items-center gap-1.5">
                                                                 <p className="font-semibold text-xs group-hover:underline truncate">{s.name}</p>
                                                                 {s.hasAuction && (
-                                                                    <Badge variant="purple" className="text-xs font-bold px-1.5 py-0">
+                                                                    <Badge variant="info" className="text-xs font-bold px-1.5 py-0">
                                                                         Auction
                                                                     </Badge>
                                                                 )}
@@ -1444,5 +1445,3 @@ export default function StreamPage() {
         </React.Fragment>
     );
 }
-
-    
