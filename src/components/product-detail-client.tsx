@@ -708,10 +708,10 @@ export function ProductDetailClient({ productId }: { productId: string }) {
 
                  {/* Reviews Section */}
                 <div className="mt-8 py-4 border-t">
-                     <CardHeader className="p-0 mb-4 flex-row justify-between items-center">
+                     <div className="mb-4 flex items-center justify-between">
                         <CardTitle>Ratings & Reviews</CardTitle>
                         <Button variant="outline" onClick={openReviewDialog}>Write a Review</Button>
-                    </CardHeader>
+                    </div>
                     <div className="grid md:grid-cols-3 gap-8">
                         <div className="flex flex-col items-center justify-center gap-2 p-6 bg-muted rounded-lg">
                             <h2 className="text-5xl font-bold">{averageRating}</h2>
@@ -792,7 +792,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                     <div className="mt-8 py-4 border-t">
                         <div className="mb-4 flex items-center justify-between">
                             <h3 className="text-xl font-bold">Related Live Streams</h3>
-                            <Button asChild variant="link">
+                             <Button asChild variant="link">
                                 <Link href="/live-selling">
                                     More
                                 </Link>
