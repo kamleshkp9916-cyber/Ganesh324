@@ -496,12 +496,12 @@ const AuctionCard = React.memo(({
             <Card
                 className={cn(
                     "text-white border-2 bg-black/80 backdrop-blur-sm",
-                    isAuctionActive ? "border-primary" : "border-gray-700",
+                    "border-gray-700",
                     isPinned && "cursor-pointer"
                 )}
                 onClick={onClick}
             >
-                <CardContent className="p-3">
+                <CardContent className="p-4 space-y-4">
                     <div className="flex items-center gap-3">
                         <Link href={`/product/${product.key}`} className="w-16 h-16 bg-black rounded-md relative overflow-hidden flex-shrink-0 group" onClick={(e) => e.stopPropagation()}>
                             <Image src={product.images[0]} alt={product.name} fill className="object-cover group-hover:scale-105 transition-transform" />
@@ -523,7 +523,7 @@ const AuctionCard = React.memo(({
                             </div>
                         </div>
                     </div>
-                     <div className="mt-3 flex items-center gap-2">
+                     <div className="flex items-center gap-2">
                         <Button className="h-8 text-xs" variant="outline" onClick={onViewBids}>
                             <History className="w-4 h-4 mr-2" /> View Bids
                         </Button>
@@ -1434,4 +1434,3 @@ export default function StreamPage() {
         </React.Fragment>
     );
 }
-
