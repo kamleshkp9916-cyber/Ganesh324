@@ -1,6 +1,4 @@
 
-
-      
 "use client";
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
@@ -792,7 +790,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                     <div className="mt-8 py-4 border-t">
                         <div className="mb-4 flex items-center justify-between">
                             <h3 className="text-xl font-bold">Related Live Streams</h3>
-                             <Button asChild variant="link">
+                            <Button asChild variant="link">
                                 <Link href="/live-selling">
                                     More
                                 </Link>
