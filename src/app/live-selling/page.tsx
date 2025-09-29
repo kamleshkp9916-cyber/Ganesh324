@@ -865,7 +865,7 @@ export default function LiveSellingPage() {
                                                 <div className="flex items-center gap-1.5">
                                                     <p className="font-semibold text-xs group-hover:underline truncate">{seller.name}</p>
                                                     {seller.hasAuction && (
-                                                        <Badge variant="purple" className="text-xs font-bold px-1.5 py-0">
+                                                        <Badge variant="info" className="text-xs font-bold px-1.5 py-0">
                                                             Auction
                                                         </Badge>
                                                     )}
@@ -1034,7 +1034,7 @@ export default function LiveSellingPage() {
                                                     <div className="flex items-center gap-1.5">
                                                         <p className="font-semibold text-xs group-hover:underline truncate">{seller.name}</p>
                                                         {seller.hasAuction && (
-                                                            <Badge variant="purple" className="text-xs font-bold px-1.5 py-0">
+                                                            <Badge variant="info" className="text-xs font-bold px-1.5 py-0">
                                                                 Auction
                                                             </Badge>
                                                         )}

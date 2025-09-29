@@ -200,7 +200,7 @@ export default function AdminLiveControlPage() {
                                             <div className="flex flex-col">
                                                 <span className="font-medium group-hover:underline">{stream.seller.name}</span>
                                                 {stream.hasAuction && (
-                                                     <Badge variant="purple" className="w-fit">
+                                                     <Badge variant="info" className="w-fit">
                                                         <Gavel className="mr-1 h-3 w-3" />
                                                         Auction
                                                     </Badge>
