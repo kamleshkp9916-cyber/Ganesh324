@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import {
@@ -406,7 +405,7 @@ const ChatMessageContent = React.memo(({ msg, index, handlers, post, pinnedMessa
                 </Avatar>
                 <p className="text-xs">
                     <span className="font-semibold" style={{ color: msg.userColor }}>{msg.user.split(' ')[0]}</span>
-                    <span className="text-muted-foreground"> placed a bid: </span>
+                    <span className="text-muted-foreground"> placed a bid: </span> 
                     <span className="font-bold text-sm text-primary">{msg.text.replace('BID ', '')}</span>
                 </p>
             </div>
@@ -529,7 +528,7 @@ const AuctionCard = React.memo(({
                         </Button>
                          <Button 
                             size="sm"
-                            className="w-full text-xs"
+                            className="w-full text-xs h-8"
                             disabled={!isAuctionActive}
                             onClick={onBid}
                         >
@@ -1165,6 +1164,11 @@ export default function StreamPage() {
                                                                     <ShoppingBag className="w-4 h-4" /> View Products ({sellerProducts.length})
                                                                 </Button>
                                                             </CollapsibleTrigger>
+                                                            {seller.hasAuction && (
+                                                                <Badge variant="purple" className="flex items-center gap-1.5 h-7">
+                                                                    <Gavel className="w-4 h-4" /> Auction
+                                                                </Badge>
+                                                            )}
                                                         </div>
                                                     </>
                                                 )}
@@ -1440,3 +1444,5 @@ export default function StreamPage() {
         </React.Fragment>
     );
 }
+
+    
