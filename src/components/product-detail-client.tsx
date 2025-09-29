@@ -264,13 +264,13 @@ export function ProductDetailClient({ productId }: { productId: string }) {
         }
     };
 
-    const handleReviewSubmit = (reviewData: Review) => {
+    const handleReviewSubmit = (review: Review) => {
         if (!product || !user) {
             toast({ variant: 'destructive', title: "Error", description: "You must be logged in to submit a review." });
             return;
         }
-        if (reviewData.id) { // Editing existing review
-            updateReview(product.key, reviewData);
+        if (review.id) { // Editing existing review
+            updateReview(product.key, review);
             toast({ title: "Review Updated!", description: "Your review has been successfully updated." });
         }
         fetchReviews(); // Re-fetch to show updated list
@@ -797,7 +797,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                             </Button>
                         </div>
                         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 sm:gap-4">
-                            {relatedStreams.map(stream => (
+                            {relatedStreams.map((stream) => (
                                 <div key={stream.id} className="group relative rounded-lg overflow-hidden shadow-lg">
                                     <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
                                     <div className="absolute top-2 right-2 z-10"><Badge variant="secondary" className="bg-background/60 backdrop-blur-sm"><Users className="w-3 h-3 mr-1.5" />{stream.viewers}</Badge></div>
@@ -905,5 +905,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
 
     
 
+
+    
 
     
