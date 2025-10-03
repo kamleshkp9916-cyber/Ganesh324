@@ -402,7 +402,7 @@ const ChatMessageContent = React.memo(({ msg, index, handlers, post, pinnedMessa
     }
     
     if (msg.isBid) {
-         if (!seller?.hasAuction) return null;
+        if (!seller?.hasAuction) return null;
         return (
             <div key={msg.id || index} className="my-1 flex items-center gap-2 p-1.5 rounded-lg bg-black/30 border border-primary/20">
                 <Gavel className="h-4 w-4 text-primary flex-shrink-0" />
@@ -424,7 +424,7 @@ const ChatMessageContent = React.memo(({ msg, index, handlers, post, pinnedMessa
         if (!product) return null;
         return (
             <div className="my-2">
-                <Card key={msg.id || index} className="bg-transparent border my-2 border-border">
+                <Card key={msg.id || index} className="bg-transparent my-2 border border-border">
                     <CardContent className="p-0">
                         <div className="flex items-center gap-3">
                             <Link href={`/product/${product.key}`} className="w-16 h-16 bg-black rounded-md relative overflow-hidden flex-shrink-0 group" onClick={(e) => e.stopPropagation()}>
@@ -644,16 +644,24 @@ export default function StreamPage() {
     const [isProductListVisible, setIsProductListVisible] = useState(false);
     const [replyingTo, setReplyingTo] = useState<{ name: string; id: string } | null>(null);
     const [showScrollToBottom, setShowScrollToBottom] = useState(false);
+    const [showScrollToTop, setShowScrollToTop] = useState(false);
     
     const product = productDetails[seller?.productId as keyof typeof productDetails];
     
     const chatContainerRef = useRef<HTMLDivElement>(null);
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
-     const sellerProducts = useMemo(() => {
+    const sellerProducts = useMemo(() => {
         if (!seller) return [];
-        const allProducts = Object.values(productDetails)
-        return allProducts.filter(p => productToSellerMapping[p.key]?.name === seller.name && p.stock > 0)
+        const allProducts = Object.values(productDetails);
+        const productsForSeller = allProducts.filter(p => productToSellerMapping[p.key]?.name === seller.name && p.stock > 0);
+        // Add 15 mock products for demonstration
+        if (productsForSeller.length < 15) {
+            const needed = 15 - productsForSeller.length;
+            const otherProducts = allProducts.filter(p => !productsForSeller.some(sp => sp.key === p.key)).slice(0, needed);
+            return [...productsForSeller, ...otherProducts];
+        }
+        return productsForSeller;
     }, [seller]);
     
     const relatedStreams = useMemo(() => {
@@ -841,18 +849,20 @@ export default function StreamPage() {
         }
     };
     
-    const handleAutoScroll = useCallback(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    const handleAutoScroll = useCallback((behavior: 'smooth' | 'auto' = 'smooth') => {
+        messagesEndRef.current?.scrollIntoView({ behavior });
     }, []);
 
     const handleManualScroll = (e: React.UIEvent<HTMLDivElement>) => {
         const target = e.currentTarget;
         const isScrolledUp = target.scrollHeight - target.scrollTop > target.clientHeight + 200;
         setShowScrollToBottom(isScrolledUp);
+        const isAtTop = target.scrollTop < 200;
+        setShowScrollToTop(!isAtTop && isScrolledUp);
     };
 
     useEffect(() => {
-        handleAutoScroll();
+        handleAutoScroll('auto');
     }, [chatMessages, handleAutoScroll]);
 
     const handleNewMessageSubmit = (e: React.FormEvent) => {
@@ -1259,7 +1269,7 @@ export default function StreamPage() {
                                             <Link href="/live-selling">More</Link>
                                         </Button>
                                       </div>
-                                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 md:gap-4">
+                                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6 gap-2 md:gap-4">
                                             {relatedStreams.map((s: any) => (
                                                 <Link href={`/stream/${s.id}`} key={s.id} className="group">
                                                     <div className="relative rounded-lg overflow-hidden aspect-[16/9] bg-muted">
@@ -1412,13 +1422,29 @@ export default function StreamPage() {
                                             <div ref={messagesEndRef} />
                                         </div>
                                     </ScrollArea>
+                                     {showScrollToTop && (
+                                        <div className="absolute bottom-20 left-1/2 -translate-x-1/2 z-20">
+                                            <Button
+                                                variant="secondary"
+                                                size="sm"
+                                                className="rounded-full shadow-lg"
+                                                onClick={() => {
+                                                    if(chatContainerRef.current) {
+                                                        chatContainerRef.current.scrollTo({ top: 0, behavior: 'smooth' })
+                                                    }
+                                                }}
+                                            >
+                                                <ArrowUp className="mr-1 h-4 w-4" /> Go to Top
+                                            </Button>
+                                        </div>
+                                     )}
                                      {showScrollToBottom && (
                                         <div className="absolute bottom-20 right-1/2 translate-x-1/2 z-20">
                                             <Button
                                                 variant="secondary"
                                                 size="sm"
                                                 className="rounded-full shadow-lg"
-                                                onClick={handleAutoScroll}
+                                                onClick={() => handleAutoScroll()}
                                             >
                                                 <ChevronDown className="mr-1 h-4 w-4" /> New Messages
                                             </Button>
