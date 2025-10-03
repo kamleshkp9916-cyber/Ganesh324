@@ -610,12 +610,12 @@ export default function StreamPage() {
     const [isBidHistoryOpen, setIsBidHistoryOpen] = useState(false);
     const [showGoToTop, setShowGoToTop] = useState(false);
     const [showChatGoToTop, setShowChatGoToTop] = useState(false);
+    const [isFollowingState, setIsFollowingState] = useState(false);
     
     const { ref: auctionCardRef, inView: auctionCardInView } = useInView({ threshold: 0.99 });
     
     const seller = useMemo(() => liveSellers.find(s => s.id === streamId), [streamId]);
     const showPinnedAuction = !auctionCardInView && activeAuction && seller?.hasAuction;
-    const [isFollowingState, setIsFollowingState] = useState(false);
     
     const mockStreamData = {
         id: streamId,
@@ -1121,7 +1121,7 @@ export default function StreamPage() {
     }
 
     return (
-        <>
+        <React.Fragment>
             <Dialog open={isBidDialogOpen} onOpenChange={setIsBidDialogOpen}>
                 <DialogContent className="sm:max-w-md bg-background border-border">
                     <DialogHeader>
@@ -1291,99 +1291,91 @@ export default function StreamPage() {
                                         <h2 className="font-bold text-xl">{streamData.title || "Live Stream"}</h2>
                                         <div className="text-sm text-muted-foreground">{renderContentWithHashtags(streamData.description) || "Welcome to the live stream!"}</div>
                                     </div>
-                                    <div className="flex items-center justify-between">
-                                        <Collapsible className="w-full">
-                                            <div className="flex items-start sm:items-center justify-between gap-4 w-full flex-col sm:flex-row">
+                                    <Collapsible>
+                                        <div className="flex items-start justify-between gap-4 w-full">
+                                            <div className="flex-grow min-w-0">
                                                 {seller && (
                                                     <div className="flex items-center gap-3">
                                                         <Avatar>
                                                             <AvatarImage src={seller.avatarUrl} />
                                                             <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
                                                         </Avatar>
-                                                        <div className="flex-1">
-                                                            <div className="flex items-center gap-2">
-                                                                <h3 className="font-semibold">{seller.name}</h3>
-                                                                <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                                                                    {seller.instagram && <a href={seller.instagram} target="_blank" rel="noopener noreferrer"><Instagram className="h-4 w-4 hover:text-primary" /></a>}
-                                                                    {seller.twitter && <a href={seller.twitter} target="_blank" rel="noopener noreferrer"><Twitter className="h-4 w-4 hover:text-primary" /></a>}
-                                                                    {seller.youtube && <a href={seller.youtube} target="_blank" rel="noopener noreferrer"><Youtube className="h-4 w-4 hover:text-primary" /></a>}
-                                                                </div>
-                                                            </div>
+                                                        <div className="flex items-center gap-2">
+                                                            <h3 className="font-semibold truncate">{seller.name}</h3>
+                                                            <Button
+                                                                onClick={() => seller && handleFollowToggle(seller.id)}
+                                                                variant={isFollowingState ? 'outline' : 'secondary'}
+                                                                size="sm"
+                                                                className="h-7 w-7 p-0 sm:w-auto sm:px-2 text-xs"
+                                                            >
+                                                                <UserPlus className="h-4 w-4 sm:mr-1.5" />
+                                                                <span className="hidden sm:inline">{isFollowingState ? "Following" : "Follow"}</span>
+                                                            </Button>
                                                         </div>
                                                     </div>
                                                 )}
-                                                <div className="flex items-center gap-2 flex-shrink-0">
-                                                    <Button
-                                                        onClick={() => seller && handleFollowToggle(seller.id)}
-                                                        variant={isFollowingState ? "outline" : "default"}
-                                                        size="sm"
-                                                        className="h-7 gap-1.5 text-xs px-2"
-                                                    >
-                                                        <UserPlus className="h-4 w-4" />
-                                                        <span className="hidden sm:inline">{isFollowingState ? "Following" : "Follow"}</span>
-                                                    </Button>
-                                                    <CollapsibleTrigger asChild>
-                                                        <Button variant="outline" size="sm" className="h-7 gap-1.5 text-xs px-2">
-                                                            <ShoppingBag className="w-4 h-4" />
-                                                            <span className="hidden sm:inline">View Products ({sellerProducts.length})</span>
-                                                        </Button>
-                                                    </CollapsibleTrigger>
-                                                    {seller?.hasAuction && (
-                                                        <Badge variant="info" className="flex items-center gap-1.5 h-7">
-                                                            <Gavel className="w-4 h-4" /> <span className="hidden sm:inline">Auction</span>
-                                                        </Badge>
-                                                    )}
-                                                </div>
                                             </div>
-                                            <CollapsibleContent className="mt-4">
-                                                <div className="relative">
-                                                    <Carousel opts={{ align: "start", dragFree: true }} className="w-full">
-                                                        <CarouselContent className="-ml-2">
-                                                            {sellerProducts.map((p, index) => (
-                                                                <CarouselItem key={index} className="pl-2 basis-auto">
-                                                                    <div className="w-40">
-                                                                        <Card className="h-full flex flex-col overflow-hidden bg-card text-card-foreground">
-                                                                            <Link href={`/product/${p.key}`}>
-                                                                                <div className="aspect-square bg-muted rounded-t-lg relative">
-                                                                                    <Image src={(p.images && p.images[0]?.preview) || p.images[0]} alt={p.name} fill sizes="128px" className="object-cover" />
-                                                                                    {p.stock === 0 && (
-                                                                                        <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                                                                                            <Badge variant="destructive">Out of Stock</Badge>
-                                                                                        </div>
-                                                                                    )}
-                                                                                </div>
-                                                                                <div className="p-2 flex-grow">
-                                                                                    <p className="text-[11px] font-semibold truncate leading-tight">{p.name}</p>
-                                                                                    <p className="text-sm font-bold mt-1">{p.price}</p>
-                                                                                    <div className="flex items-center gap-1 text-xs text-amber-400 mt-1">
-                                                                                        <Star className="w-3 h-3 fill-current" />
-                                                                                        <span>{p.rating || '4.8'}</span>
-                                                                                        <span className="text-muted-foreground text-[10px]">({p.reviews || 25})</span>
+                                            <div className="flex items-center gap-2 flex-shrink-0">
+                                                <CollapsibleTrigger asChild>
+                                                    <Button variant="outline" size="sm" className="h-7 w-7 p-0 sm:w-auto sm:px-2 text-xs">
+                                                        <ShoppingBag className="w-4 h-4 sm:mr-1"/>
+                                                        <span className="hidden sm:inline">View Products ({sellerProducts.length})</span>
+                                                    </Button>
+                                                </CollapsibleTrigger>
+                                                {seller?.hasAuction && (
+                                                    <Badge variant="info" className="flex items-center gap-1.5 h-7">
+                                                        <Gavel className="w-4 h-4" /> <span className="hidden sm:inline">Auction</span>
+                                                    </Badge>
+                                                )}
+                                            </div>
+                                        </div>
+                                        <CollapsibleContent className="mt-4">
+                                            <div className="relative">
+                                                <Carousel opts={{ align: "start", dragFree: true }} className="w-full">
+                                                    <CarouselContent className="-ml-2">
+                                                        {sellerProducts.map((p, index) => (
+                                                            <CarouselItem key={index} className="pl-2 basis-auto">
+                                                                <div className="w-40">
+                                                                    <Card className="h-full flex flex-col overflow-hidden bg-card text-card-foreground">
+                                                                        <Link href={`/product/${p.key}`}>
+                                                                            <div className="aspect-square bg-muted rounded-t-lg relative">
+                                                                                <Image src={(p.images && p.images[0]?.preview) || p.images[0]} alt={p.name} fill sizes="128px" className="object-cover" />
+                                                                                {p.stock === 0 && (
+                                                                                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                                                                                        <Badge variant="destructive">Out of Stock</Badge>
                                                                                     </div>
-                                                                                    <p className="text-[10px] text-muted-foreground mt-1">{p.sold || 120} sold</p>
-                                                                                </div>
-                                                                            </Link>
-                                                                            <CardFooter className="p-1.5 mt-auto grid grid-cols-2 gap-1">
-                                                                                {p.stock > 0 ? (
-                                                                                    <>
-                                                                                        <Button size="xs" className="w-full text-[10px] h-7" variant="secondary" onClick={() => handleAddToCart(p)}>Add</Button>
-                                                                                        <Button size="xs" className="w-full text-[10px] h-7" onClick={() => handleBuyNow(p)}>Buy</Button>
-                                                                                    </>
-                                                                                ) : (
-                                                                                    <Button size="xs" className="w-full text-[10px] h-7 col-span-2" variant="outline" disabled>Out of Stock</Button>
                                                                                 )}
-                                                                            </CardFooter>
-                                                                        </Card>
-                                                                    </div>
-                                                                </CarouselItem>
-                                                            ))}
-                                                        </CarouselContent>
-                                                    </Carousel>
-                                                </div>
-                                            </CollapsibleContent>
-                                        </Collapsible>
-                                    </div>
-
+                                                                            </div>
+                                                                            <div className="p-2 flex-grow">
+                                                                                <p className="text-[11px] font-semibold truncate leading-tight">{p.name}</p>
+                                                                                <p className="text-sm font-bold mt-1">{p.price}</p>
+                                                                                <div className="flex items-center gap-1 text-xs text-amber-400 mt-1">
+                                                                                    <Star className="w-3 h-3 fill-current" />
+                                                                                    <span>{p.rating || '4.8'}</span>
+                                                                                    <span className="text-muted-foreground text-[10px]">({p.reviews || 25})</span>
+                                                                                </div>
+                                                                                <p className="text-[10px] text-muted-foreground mt-1">{p.sold || 120} sold</p>
+                                                                            </div>
+                                                                        </Link>
+                                                                        <CardFooter className="p-1.5 mt-auto grid grid-cols-2 gap-1">
+                                                                            {p.stock > 0 ? (
+                                                                                <>
+                                                                                    <Button size="xs" className="w-full text-[10px] h-7" variant="secondary" onClick={() => handleAddToCart(p)}>Add</Button>
+                                                                                    <Button size="xs" className="w-full text-[10px] h-7" onClick={() => handleBuyNow(p)}>Buy</Button>
+                                                                                </>
+                                                                            ) : (
+                                                                                <Button size="xs" className="w-full text-[10px] h-7 col-span-2" variant="outline" disabled>Out of Stock</Button>
+                                                                            )}
+                                                                        </CardFooter>
+                                                                    </Card>
+                                                                </div>
+                                                            </CarouselItem>
+                                                        ))}
+                                                    </CarouselContent>
+                                                </Carousel>
+                                            </div>
+                                        </CollapsibleContent>
+                                    </Collapsible>
                                     <div className="mt-8">
                                       <div className="mb-4 flex items-center justify-between">
                                         <h4 className="font-semibold">Related Streams</h4>
@@ -1620,7 +1612,7 @@ export default function StreamPage() {
                     />
                 </DialogContent>
             </Dialog>
-        </>
+        </React.Fragment>
     );
 }
 
