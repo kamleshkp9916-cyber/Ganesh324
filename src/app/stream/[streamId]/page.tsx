@@ -599,6 +599,7 @@ export default function StreamPage() {
         { id: 1, bankName: 'HDFC Bank', accountNumber: 'XXXX-XXXX-XX12-3456' },
     ]);
     const [pinnedMessages, setPinnedMessages] = useState<any[]>([]);
+    const [isFollowingState, setIsFollowingState] = useState(false);
     
     const [chatMessages, setChatMessages] = useState(mockChatMessages);
     const [auctionTime, setAuctionTime] = useState<number | null>(null);
@@ -610,7 +611,6 @@ export default function StreamPage() {
     const [isBidHistoryOpen, setIsBidHistoryOpen] = useState(false);
     const [showGoToTop, setShowGoToTop] = useState(false);
     const [showChatGoToTop, setShowChatGoToTop] = useState(false);
-    const [isFollowingState, setIsFollowingState] = useState(false);
     
     const { ref: auctionCardRef, inView: auctionCardInView } = useInView({ threshold: 0.99 });
     
@@ -1081,6 +1081,16 @@ export default function StreamPage() {
         
         toast({ title: 'Bid Placed!', description: `Your bid of ₹${bidValue.toLocaleString()} has been placed.` });
     };
+    
+    const handleFollowToggle = async (sellerId: string) => {
+        if (!user) return; // Or prompt to login
+        await toggleFollow(user.uid, sellerId);
+        setIsFollowingState(prev => !prev);
+        toast({
+            title: isFollowingState ? 'Unfollowed' : 'Followed',
+            description: `You are now ${isFollowingState ? 'no longer following' : 'following'} ${seller?.name}.`
+        });
+    };
 
     const handleMinimize = () => {
       if (streamData && seller) {
@@ -1283,7 +1293,7 @@ export default function StreamPage() {
                                     </div>
                                     <div className="flex items-center justify-between">
                                         <Collapsible className="w-full">
-                                            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+                                            <div className="flex flex-col sm:flex-row items-center gap-4 w-full">
                                                 {seller && (
                                                     <>
                                                         <div className="flex items-center gap-3 flex-grow">
@@ -1291,10 +1301,10 @@ export default function StreamPage() {
                                                                 <AvatarImage src={seller.avatarUrl} />
                                                                 <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
                                                             </Avatar>
-                                                            <div>
+                                                            <div className="flex items-center gap-2">
                                                                 <h3 className="font-semibold">{seller.name}</h3>
                                                                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                                                                     {seller.instagram && <a href={seller.instagram} target="_blank" rel="noopener noreferrer"><Instagram className="h-4 w-4 hover:text-primary" /></a>}
+                                                                    {seller.instagram && <a href={seller.instagram} target="_blank" rel="noopener noreferrer"><Instagram className="h-4 w-4 hover:text-primary" /></a>}
                                                                     {seller.twitter && <a href={seller.twitter} target="_blank" rel="noopener noreferrer"><Twitter className="h-4 w-4 hover:text-primary" /></a>}
                                                                     {seller.youtube && <a href={seller.youtube} target="_blank" rel="noopener noreferrer"><Youtube className="h-4 w-4 hover:text-primary" /></a>}
                                                                 </div>
@@ -1302,7 +1312,8 @@ export default function StreamPage() {
                                                         </div>
                                                         <div className="flex items-center gap-2 flex-shrink-0">
                                                             <Button
-                                                                variant={isFollowingState ? 'outline' : 'secondary'}
+                                                                onClick={() => seller && handleFollowToggle(seller.id)}
+                                                                variant={isFollowingState ? 'outline' : 'default'}
                                                                 size="sm"
                                                                 className="h-7 w-7 p-0 sm:w-auto sm:px-2 text-xs"
                                                             >
@@ -1310,7 +1321,7 @@ export default function StreamPage() {
                                                                 <span className="hidden sm:inline">{isFollowingState ? 'Following' : 'Follow'}</span>
                                                             </Button>
                                                             <CollapsibleTrigger asChild>
-                                                                <Button variant="outline" size="sm" className="h-7 gap-1.5">
+                                                                <Button variant="outline" size="sm" className="h-7 gap-1.5 text-xs px-2">
                                                                     <ShoppingBag className="w-4 h-4" />
                                                                     <span className="hidden sm:inline">View Products ({sellerProducts.length})</span>
                                                                 </Button>
