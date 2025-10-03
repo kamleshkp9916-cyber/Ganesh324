@@ -419,7 +419,7 @@ const ChatMessageContent = React.memo(({ msg, index, handlers, post, pinnedMessa
         const product = productDetails[msg.productId as keyof typeof productDetails];
         if (!product) return null;
         return (
-            <Card key={msg.id || index} className="my-2 text-white bg-transparent border-none shadow-none">
+            <Card key={msg.id || index} className="my-2 bg-transparent border-none shadow-none">
                 <CardContent className="p-0">
                     <div className="flex items-center gap-3">
                         <Link href={`/product/${product.key}`} className="w-16 h-16 bg-black rounded-md relative overflow-hidden flex-shrink-0 group" onClick={(e) => e.stopPropagation()}>
@@ -1132,7 +1132,7 @@ export default function StreamPage() {
                                                         variant="destructive"
                                                         className="gap-1.5 h-8 text-xs sm:text-sm"
                                                         onClick={handleGoLive}
-                                                        disabled={isLive}
+                                                        disabled={isLive || (duration - currentTime) < 2}
                                                     >
                                                         <div className={cn("h-2 w-2 rounded-full bg-white", !isLive && "animate-pulse")} />
                                                         {isLive ? 'LIVE' : 'Go Live'}
