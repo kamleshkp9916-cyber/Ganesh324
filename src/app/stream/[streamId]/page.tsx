@@ -688,8 +688,8 @@ export default function StreamPage() {
             setActiveAuction(currentActiveAuction);
             setAuctionTime(currentActiveAuction.initialTime);
         } else if (activeAuction && !chatMessages.some(msg => msg.type === 'auction' && msg.id === activeAuction.id && msg.active)) {
-             const auctionJustEnded = !chatMessages.some(msg => msg.type === 'auction_end' && msg.auctionId === activeAuction.id);
-            if (auctionJustEnded) {
+             const auctionEndedMessageExists = chatMessages.some(msg => msg.type === 'auction_end' && msg.auctionId === activeAuction.id);
+            if (!auctionEndedMessageExists) {
                  const winningBid = [...chatMessages].reverse().find(m => m.isBid);
                 const winnerMessage = {
                     id: Date.now(),
@@ -1257,7 +1257,7 @@ export default function StreamPage() {
                                         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
                                             {relatedStreams.map((s: any) => (
                                                 <Link href={`/stream/${s.id}`} key={s.id} className="group">
-                                                    <div className="relative rounded-lg overflow-hidden aspect-[16/9] bg-muted">
+                                                    <div className="relative rounded-lg overflow-hidden aspect-[2/3] bg-muted">
                                                         <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
                                                         <div className="absolute top-2 right-2 z-10">
                                                             <Badge variant="secondary" className="bg-background/60 backdrop-blur-sm gap-1.5">
@@ -1271,7 +1271,7 @@ export default function StreamPage() {
                                                             <AvatarImage src={s.avatarUrl} alt={s.name} />
                                                             <AvatarFallback>{s.name.charAt(0)}</AvatarFallback>
                                                         </Avatar>
-                                                        <div className="flex-1">
+                                                        <div className="flex-1 overflow-hidden">
                                                             <div className="flex items-center gap-1.5">
                                                                 <p className="font-semibold text-xs group-hover:underline truncate">{s.name}</p>
                                                                 {s.hasAuction && (
@@ -1281,7 +1281,9 @@ export default function StreamPage() {
                                                                 )}
                                                             </div>
                                                             <p className="text-xs text-muted-foreground">{s.category}</p>
-                                                            <p className="text-xs text-primary font-semibold mt-0.5 sm:hidden lg:block">#{s.category.toLowerCase()}</p>
+                                                            <div className="mt-0.5 sm:hidden lg:flex flex-wrap gap-x-2 gap-y-1 overflow-hidden h-4">
+                                                                <p className="text-xs text-primary font-semibold">#{s.category.toLowerCase().replace(/\s+/g, '')}</p>
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </Link>
