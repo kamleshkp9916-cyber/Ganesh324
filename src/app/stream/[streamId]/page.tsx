@@ -379,7 +379,7 @@ const ChatMessageContent = React.memo(({ msg, index, handlers, post, pinnedMessa
         return <p key={msg.id || index} className="text-xs text-muted-foreground text-center italic my-2">{msg.text}</p>;
     }
     
-     if (msg.type === 'auction_end') {
+    if (msg.type === 'auction_end') {
         return (
              <Card key={msg.id || index} className="my-2 text-foreground shadow-lg bg-gradient-to-br from-gold/20 via-gold/5 to-gold/20 border-l-4 border-gold">
                 <CardContent className="p-3">
@@ -420,15 +420,14 @@ const ChatMessageContent = React.memo(({ msg, index, handlers, post, pinnedMessa
         const product = productDetails[msg.productId as keyof typeof productDetails];
         if (!product) return null;
         return (
-             <Card key={msg.id || index} className="my-2 text-foreground shadow-lg bg-muted/40 border-l-4 border-primary">
+            <Card key={msg.id || index} className="my-2 text-foreground shadow-lg bg-muted/40">
                 <CardContent className="p-3">
                     <div className="flex items-center gap-3">
                         <Link href={`/product/${product.key}`} className="w-16 h-16 bg-black rounded-md relative overflow-hidden flex-shrink-0 group" onClick={(e) => e.stopPropagation()}>
                             <Image src={product.images[0]} alt={product.name} fill className="object-cover group-hover:scale-105 transition-transform" />
                         </Link>
                         <div className="flex-grow">
-                            <p className="text-xs text-primary font-bold">PINNED PRODUCT</p>
-                            <Link href={`/product/${product.key}`} className="hover:underline" onClick={(e) => e.stopPropagation()}><h4 className="font-bold leading-tight mt-0 text-white">{product.name}</h4></Link>
+                            <Link href={`/product/${product.key}`} className="hover:underline" onClick={(e) => e.stopPropagation()}><h4 className="font-bold leading-tight text-white">{product.name}</h4></Link>
                              <p className="text-sm font-bold text-foreground mt-1">{product.price}</p>
                         </div>
                     </div>
