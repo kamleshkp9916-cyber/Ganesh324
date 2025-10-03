@@ -1134,7 +1134,7 @@ export default function StreamPage() {
                                                         disabled={isLive}
                                                     >
                                                         <div className={cn("h-2 w-2 rounded-full bg-white", !isLive && "animate-pulse")} />
-                                                        LIVE
+                                                        {isLive ? 'LIVE' : 'Go Live'}
                                                     </Button>
                                                     {!isLive && (
                                                         <div className="text-xs text-yellow-400 font-semibold">
