@@ -419,8 +419,8 @@ const ChatMessageContent = React.memo(({ msg, index, handlers, post, pinnedMessa
         const product = productDetails[msg.productId as keyof typeof productDetails];
         if (!product) return null;
         return (
-            <Card key={msg.id || index} className="my-2 text-foreground shadow-lg bg-card/60 border-none">
-                <CardContent className="p-3">
+            <Card key={msg.id || index} className="my-2 text-white bg-transparent border-none shadow-none">
+                <CardContent className="p-0">
                     <div className="flex items-center gap-3">
                         <Link href={`/product/${product.key}`} className="w-16 h-16 bg-black rounded-md relative overflow-hidden flex-shrink-0 group" onClick={(e) => e.stopPropagation()}>
                             <Image src={product.images[0]} alt={product.name} fill className="object-cover group-hover:scale-105 transition-transform" />
@@ -745,6 +745,7 @@ export default function StreamPage() {
         const video = videoRef.current;
         if (video) {
             video.currentTime = duration;
+            setIsLive(true); // Manually set isLive for immediate UI feedback
         }
     };
     
@@ -1258,7 +1259,7 @@ export default function StreamPage() {
                                                         <div className="absolute top-2 right-2 z-10">
                                                             <Badge variant="secondary" className="bg-background/60 backdrop-blur-sm gap-1.5">
                                                                 <Users className="h-3 w-3"/>
-                                                                {s.viewers}
+                                                                {s.viewers.toLocaleString()}
                                                             </Badge>
                                                         </div>
                                                     </div>
