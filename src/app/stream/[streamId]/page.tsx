@@ -422,7 +422,7 @@ const ChatMessageContent = React.memo(({ msg, index, handlers, post, pinnedMessa
         if (!product) return null;
         return (
             <div className="my-2">
-                <Card key={msg.id || index} className="bg-transparent border-border my-2">
+                <Card key={msg.id || index} className="bg-transparent border border-border my-2">
                     <CardContent className="p-0">
                         <div className="flex items-center gap-3 p-3">
                             <Link href={`/product/${product.key}`} className="w-16 h-16 bg-black rounded-md relative overflow-hidden flex-shrink-0 group" onClick={(e) => e.stopPropagation()}>
@@ -840,7 +840,7 @@ export default function StreamPage() {
             video.addEventListener("play", onPlay);
             video.addEventListener("pause", onPause);
 
-            video.muted = true;
+            video.muted = isMuted;
             video.play().catch(() => {
                 setIsPaused(true);
             });
@@ -853,14 +853,7 @@ export default function StreamPage() {
                 video.removeEventListener("pause", onPause);
             };
         }
-    }, [duration, isLive, isMinimized, streamId]);
-    
-    useEffect(() => {
-        const video = videoRef.current;
-        if (video) {
-            video.muted = isMuted;
-        }
-    }, [isMuted]);
+    }, [duration, isLive, isMuted, isMinimized, streamId]);
     
     const handlePlaybackRateChange = (rate: number) => {
         const video = videoRef.current;
@@ -880,6 +873,31 @@ export default function StreamPage() {
     const handleSkipIntervalChange = (interval: number) => {
         setSkipInterval(interval);
     };
+
+    const handleToggleFullscreen = () => {
+        const elem = playerRef.current;
+        if (!elem) return;
+    
+        if (!document.fullscreenElement) {
+            elem.requestFullscreen().catch(err => {
+                alert(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
+            });
+        } else {
+            document.exitFullscreen();
+        }
+    };
+
+    useEffect(() => {
+        const handleFullscreenChange = () => {
+            setIsFullscreen(!!document.fullscreenElement);
+        };
+    
+        document.addEventListener('fullscreenchange', handleFullscreenChange);
+    
+        return () => {
+            document.removeEventListener('fullscreenchange', handleFullscreenChange);
+        };
+    }, []);
 
 
     const handleReply = (msgUser: { name: string; id: string }) => {
@@ -1191,8 +1209,8 @@ export default function StreamPage() {
                         </header>
 
                         <div className="flex flex-1 overflow-hidden relative">
-                            <div className="flex-1 overflow-y-auto no-scrollbar relative" ref={mainScrollRef} onScroll={handleMainScroll}>
-                                 {showGoToTop && (
+                             <div className="flex-1 overflow-y-auto no-scrollbar relative" ref={mainScrollRef} onScroll={handleMainScroll}>
+                                {showGoToTop && (
                                     <Button
                                         size="icon"
                                         className="fixed bottom-6 left-6 z-50 rounded-full shadow-lg"
@@ -1248,7 +1266,7 @@ export default function StreamPage() {
                                                     <DialogTrigger asChild>
                                                         <Button variant="ghost" size="icon"><Settings /></Button>
                                                     </DialogTrigger>
-                                                    <Button variant="ghost" size="icon" onClick={() => playerRef.current?.requestFullscreen()}><Maximize /></Button>
+                                                    <Button variant="ghost" size="icon" onClick={handleToggleFullscreen}><Maximize /></Button>
                                                 </div>
                                             </div>
                                         </div>
@@ -1481,7 +1499,7 @@ export default function StreamPage() {
                                 </div>
                                 
                                 <div className="relative flex-1 flex flex-col overflow-hidden">
-                                    <ScrollArea className="flex-1" ref={chatContainerRef} onScroll={handleChatScroll}>
+                                     <ScrollArea className="flex-1" ref={chatContainerRef} onScroll={handleChatScroll}>
                                         {showChatGoToTop && (
                                             <Button
                                                 size="sm"
