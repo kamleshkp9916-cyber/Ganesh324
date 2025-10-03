@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import {
@@ -39,7 +38,6 @@ import {
   WifiOff,
   ChevronDown,
   Maximize,
-  Minimize,
   PictureInPicture,
   ShoppingBag,
   Paperclip,
@@ -113,6 +111,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useInView } from "react-intersection-observer";
+import { useMiniPlayer } from "@/context/MiniPlayerContext";
 
 
 const emojis = [
@@ -592,6 +591,7 @@ export default function StreamPage() {
     const streamId = params.streamId as string;
     const { user } = useAuth();
     const { toast } = useToast();
+    const { minimizeStream, isMinimized } = useMiniPlayer();
     const [walletBalance, setWalletBalance] = useState(42580.22);
     const [bidAmount, setBidAmount] = useState<number | string>("");
     const [isWithdrawOpen, setIsWithdrawOpen] = useState(false);
@@ -609,6 +609,8 @@ export default function StreamPage() {
     const [activeAuction, setActiveAuction] = useState<any | null>(null);
     const [isBidDialogOpen, setIsBidDialogOpen] = useState(false);
     const [isBidHistoryOpen, setIsBidHistoryOpen] = useState(false);
+    const [showGoToTop, setShowGoToTop] = useState(false);
+    const [showChatGoToTop, setShowChatGoToTop] = useState(false);
     
     const { ref: auctionCardRef, inView: auctionCardInView } = useInView({ threshold: 0.99 });
     
@@ -651,6 +653,26 @@ export default function StreamPage() {
     
     const chatContainerRef = useRef<HTMLDivElement>(null);
     const messagesEndRef = useRef<HTMLDivElement>(null);
+    const mainScrollRef = useRef<HTMLDivElement>(null);
+
+
+    const handleMainScroll = (e: React.UIEvent<HTMLDivElement>) => {
+        const shouldShow = e.currentTarget.scrollTop > 200;
+        if (shouldShow !== showGoToTop) {
+            setShowGoToTop(shouldShow);
+        }
+    };
+    
+    const handleChatScroll = (e: React.UIEvent<HTMLDivElement>) => {
+        const shouldShow = e.currentTarget.scrollTop > 400;
+        if (shouldShow !== showChatGoToTop) {
+            setShowChatGoToTop(shouldShow);
+        }
+    };
+
+    const scrollToTop = (ref: React.RefObject<HTMLDivElement>) => {
+        ref.current?.scrollTo({ top: 0, behavior: 'smooth' });
+    };
 
     const sellerProducts = useMemo(() => {
         if (!seller) return [];
@@ -788,6 +810,11 @@ export default function StreamPage() {
     
     useEffect(() => {
         const video = videoRef.current;
+        if (isMinimized(streamId)) {
+            if(video) video.pause();
+            return;
+        };
+
         if (video) {
             const updateProgress = () => {
                 setCurrentTime(video.currentTime);
@@ -827,7 +854,7 @@ export default function StreamPage() {
                 video.removeEventListener("pause", onPause);
             };
         }
-    }, [duration, isLive]);
+    }, [duration, isLive, isMinimized, streamId]);
     
     useEffect(() => {
         const video = videoRef.current;
@@ -1030,12 +1057,34 @@ export default function StreamPage() {
         
         toast({ title: 'Bid Placed!', description: `Your bid of ₹${bidValue.toLocaleString()} has been placed.` });
     };
+
+    const handleMinimize = () => {
+      if (streamData && seller) {
+        minimizeStream({
+          id: streamData.id,
+          streamUrl: streamData.streamUrl,
+          title: seller.name,
+        });
+        router.push('/live-selling');
+      }
+    };
     
     const handlers = { onReply: handleReply, onTogglePinMessage: handleTogglePinMessage, onReportMessage: handleReportMessage, onAddToCart: handleAddToCart, onBuyNow: handleBuyNow };
 
     const scrollToAuction = (auctionId: string) => {
         inlineAuctionCardRefs.current[auctionId]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     };
+
+    if (isMinimized(streamId)) {
+        return (
+            <div className="flex h-screen items-center justify-center bg-black">
+                <div className="text-center text-white">
+                    <h1 className="text-2xl font-bold">Stream is minimized</h1>
+                    <p className="text-muted-foreground">This stream is currently playing in the mini-player.</p>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <React.Fragment>
@@ -1143,7 +1192,16 @@ export default function StreamPage() {
                         </header>
 
                         <div className="flex flex-1 overflow-hidden">
-                            <div className="flex-1 overflow-y-auto no-scrollbar">
+                            <div className="flex-1 overflow-y-auto no-scrollbar" ref={mainScrollRef} onScroll={handleMainScroll}>
+                                 {showGoToTop && (
+                                    <Button
+                                        size="icon"
+                                        className="fixed bottom-24 right-4 z-50 rounded-full shadow-lg"
+                                        onClick={() => scrollToTop(mainScrollRef)}
+                                    >
+                                        <ArrowUp className="h-5 w-5" />
+                                    </Button>
+                                )}
                                 <div className="w-full aspect-video bg-black relative group flex-shrink-0" ref={playerRef}>
                                     <video ref={videoRef} src={streamData.streamUrl || "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"} className="w-full h-full object-cover" loop />
                                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-black/60 flex flex-col p-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
@@ -1183,10 +1241,10 @@ export default function StreamPage() {
                                                     <Button variant="ghost" size="icon" onClick={() => setIsMuted(prev => !prev)}>
                                                         {isMuted ? <VolumeX /> : <Volume2 />}
                                                     </Button>
-                                                    <p className="text-sm font-mono">{formatTime(currentTime)}</p>
+                                                    <p className="text-sm font-mono">{formatTime(currentTime)} / {formatTime(duration)}</p>
                                                 </div>
                                                 <div className="flex items-center gap-1 sm:gap-2">
-                                                    <Button variant="ghost" size="icon" onClick={() => videoRef.current?.requestPictureInPicture()}><PictureInPicture /></Button>
+                                                    <Button variant="ghost" size="icon" onClick={handleMinimize}><PictureInPicture /></Button>
                                                     <Button variant="ghost" size="icon" onClick={handleShare}><Share2 /></Button>
                                                     <DialogTrigger asChild>
                                                         <Button variant="ghost" size="icon"><Settings /></Button>
@@ -1249,7 +1307,7 @@ export default function StreamPage() {
                                                                         <Card className="h-full flex flex-col overflow-hidden bg-card text-card-foreground">
                                                                             <Link href={`/product/${p.key}`}>
                                                                                 <div className="aspect-square bg-muted rounded-t-lg relative">
-                                                                                    <Image src={(p.images && p.images[0]?.preview) || p.images[0]} alt={p.name} fill className="object-cover" />
+                                                                                    <Image src={(p.images && p.images[0]?.preview) || p.images[0]} alt={p.name} fill sizes="128px" className="object-cover" />
                                                                                     {p.stock === 0 && (
                                                                                         <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
                                                                                             <Badge variant="destructive">Out of Stock</Badge>
@@ -1258,7 +1316,7 @@ export default function StreamPage() {
                                                                                 </div>
                                                                                 <div className="p-2 flex-grow">
                                                                                     <p className="text-[11px] font-semibold truncate leading-tight">{p.name}</p>
-                                                                                    <p className="text-sm font-bold mt-1">{p.price}</p>
+                                                                                    <p className="text-sm font-bold mt-1">₹{p.price.toLocaleString('en-IN')}</p>
                                                                                     <div className="flex items-center gap-1 text-xs text-amber-400 mt-1">
                                                                                         <Star className="w-3 h-3 fill-current" />
                                                                                         <span>4.8</span>
@@ -1424,7 +1482,17 @@ export default function StreamPage() {
                                 </div>
                                 
                                 <div className="relative flex-1 flex flex-col overflow-hidden">
-                                    <ScrollArea className="flex-1" ref={chatContainerRef} onScroll={handleManualScroll}>
+                                    <ScrollArea className="flex-1" ref={chatContainerRef} onScroll={handleChatScroll}>
+                                        {showChatGoToTop && (
+                                            <Button
+                                                size="sm"
+                                                className="absolute top-2 left-1/2 -translate-x-1/2 z-20 rounded-full shadow-lg"
+                                                onClick={() => scrollToTop(chatContainerRef)}
+                                            >
+                                                <ArrowUp className="h-4 w-4 mr-1" />
+                                                Go to Top
+                                            </Button>
+                                        )}
                                         <div className="p-4 space-y-0.5">
                                              {chatMessages.map((msg, index) => {
                                                 if (msg.type === 'auction' && seller?.hasAuction) {
@@ -1516,4 +1584,3 @@ export default function StreamPage() {
         </React.Fragment>
     );
 }
-
