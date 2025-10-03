@@ -430,7 +430,7 @@ const ChatMessageContent = React.memo(({ msg, index, handlers, post, pinnedMessa
                             </Link>
                             <div className="flex-grow">
                                 <Link href={`/product/${product.key}`} className="hover:underline" onClick={(e) => e.stopPropagation()}><h4 className="font-bold leading-tight text-white">{product.name}</h4></Link>
-                                 <p className="text-sm font-bold text-foreground mt-1">₹{product.price}</p>
+                                 <p className="text-sm font-bold text-foreground mt-1">{product.price}</p>
                             </div>
                         </div>
                          {msg.text && <p className="text-xs text-muted-foreground mt-2 px-3 pb-3">{msg.text}</p>}
@@ -1293,14 +1293,14 @@ export default function StreamPage() {
                                     </div>
                                     <div className="flex items-center justify-between">
                                         <Collapsible className="w-full">
-                                            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 w-full">
+                                            <div className="flex items-start sm:items-center justify-between gap-4 w-full flex-col sm:flex-row">
                                                 {seller && (
-                                                    <>
-                                                        <div className="flex items-center gap-3 flex-grow">
-                                                            <Avatar>
-                                                                <AvatarImage src={seller.avatarUrl} />
-                                                                <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
-                                                            </Avatar>
+                                                    <div className="flex items-center gap-3">
+                                                        <Avatar>
+                                                            <AvatarImage src={seller.avatarUrl} />
+                                                            <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
+                                                        </Avatar>
+                                                        <div className="flex-1">
                                                             <div className="flex items-center gap-2">
                                                                 <h3 className="font-semibold">{seller.name}</h3>
                                                                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
@@ -1310,30 +1310,30 @@ export default function StreamPage() {
                                                                 </div>
                                                             </div>
                                                         </div>
-                                                        <div className="flex items-center gap-2 flex-shrink-0">
-                                                            <Button
-                                                                onClick={() => seller && handleFollowToggle(seller.id)}
-                                                                variant={isFollowingState ? "outline" : "default"}
-                                                                size="sm"
-                                                                className="h-7 w-7 p-0 sm:w-auto sm:px-2 text-xs"
-                                                            >
-                                                                <UserPlus className="h-4 w-4 sm:mr-1.5" />
-                                                                <span className="hidden sm:inline">{isFollowingState ? "Following" : "Follow"}</span>
-                                                            </Button>
-                                                            <CollapsibleTrigger asChild>
-                                                                <Button variant="outline" size="sm" className="h-7 gap-1.5 text-xs px-2">
-                                                                    <ShoppingBag className="w-4 h-4" />
-                                                                    <span className="hidden sm:inline">View Products ({sellerProducts.length})</span>
-                                                                </Button>
-                                                            </CollapsibleTrigger>
-                                                            {seller.hasAuction && (
-                                                                <Badge variant="info" className="flex items-center gap-1.5 h-7">
-                                                                    <Gavel className="w-4 h-4" /> <span className="hidden sm:inline">Auction</span>
-                                                                </Badge>
-                                                            )}
-                                                        </div>
-                                                    </>
+                                                    </div>
                                                 )}
+                                                <div className="flex items-center gap-2 flex-shrink-0">
+                                                    <Button
+                                                        onClick={() => seller && handleFollowToggle(seller.id)}
+                                                        variant={isFollowingState ? "outline" : "default"}
+                                                        size="sm"
+                                                        className="h-7 gap-1.5 text-xs px-2"
+                                                    >
+                                                        <UserPlus className="h-4 w-4" />
+                                                        <span className="hidden sm:inline">{isFollowingState ? "Following" : "Follow"}</span>
+                                                    </Button>
+                                                    <CollapsibleTrigger asChild>
+                                                        <Button variant="outline" size="sm" className="h-7 gap-1.5 text-xs px-2">
+                                                            <ShoppingBag className="w-4 h-4" />
+                                                            <span className="hidden sm:inline">View Products ({sellerProducts.length})</span>
+                                                        </Button>
+                                                    </CollapsibleTrigger>
+                                                    {seller?.hasAuction && (
+                                                        <Badge variant="info" className="flex items-center gap-1.5 h-7">
+                                                            <Gavel className="w-4 h-4" /> <span className="hidden sm:inline">Auction</span>
+                                                        </Badge>
+                                                    )}
+                                                </div>
                                             </div>
                                             <CollapsibleContent className="mt-4">
                                                 <div className="relative">
@@ -1354,7 +1354,7 @@ export default function StreamPage() {
                                                                                 </div>
                                                                                 <div className="p-2 flex-grow">
                                                                                     <p className="text-[11px] font-semibold truncate leading-tight">{p.name}</p>
-                                                                                    <p className="text-sm font-bold mt-1">₹{p.price.toLocaleString('en-IN')}</p>
+                                                                                    <p className="text-sm font-bold mt-1">{p.price}</p>
                                                                                     <div className="flex items-center gap-1 text-xs text-amber-400 mt-1">
                                                                                         <Star className="w-3 h-3 fill-current" />
                                                                                         <span>{p.rating || '4.8'}</span>
