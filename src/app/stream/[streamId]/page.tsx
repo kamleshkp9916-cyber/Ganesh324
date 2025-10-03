@@ -607,7 +607,8 @@ export default function StreamPage() {
     
     const { ref: auctionCardRef, inView: auctionCardInView } = useInView({ threshold: 0.99 });
     
-    const showPinnedAuction = !auctionCardInView && activeAuction;
+    const seller = useMemo(() => liveSellers.find(s => s.id === streamId), [streamId]);
+    const showPinnedAuction = !auctionCardInView && activeAuction && seller?.hasAuction;
     
     const mockStreamData = {
         id: streamId,
@@ -641,7 +642,6 @@ export default function StreamPage() {
     const [replyingTo, setReplyingTo] = useState<{ name: string; id: string } | null>(null);
     const [showScrollToBottom, setShowScrollToBottom] = useState(false);
     
-    const seller = useMemo(() => liveSellers.find(s => s.id === streamId), [streamId]);
     const product = productDetails[seller?.productId as keyof typeof productDetails];
     
     const chatContainerRef = useRef<HTMLDivElement>(null);
@@ -1293,7 +1293,7 @@ export default function StreamPage() {
                                 </div>
                             </div>
                             <div className="hidden lg:flex w-[340px] flex-shrink-0 h-full flex-col bg-card relative">
-                                {showPinnedAuction && activeAuction && (
+                                {showPinnedAuction && (
                                     <div className="absolute top-16 left-0 right-0 z-20 p-4 pointer-events-none">
                                         <div className="w-full pointer-events-auto">
                                             <AuctionCard
@@ -1403,6 +1403,9 @@ export default function StreamPage() {
                                                             />
                                                          </div>
                                                     );
+                                                }
+                                                if (msg.isBid && !seller?.hasAuction) {
+                                                    return null;
                                                 }
                                                 return <ChatMessageContent key={msg.id || index} msg={msg} index={index} handlers={handlers} post={{sellerId: seller?.id, avatarUrl: seller?.avatarUrl, sellerName: seller?.name}} pinnedMessages={pinnedMessages} />
                                              })}
