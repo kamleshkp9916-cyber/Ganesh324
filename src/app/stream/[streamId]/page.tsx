@@ -264,7 +264,7 @@ const PlayerSettingsDialog = ({ playbackRate, onPlaybackRateChange, skipInterval
                                     <Switch />
                                 </div>
                             </div>
-                            <div className="p-4 rounded-lg bg-white/5">
+                             <div className="p-4 rounded-lg bg-white/5">
                                  <div className="flex items-center justify-between">
                                     <div>
                                         <Label className="font-semibold">Audio output</Label>
@@ -381,7 +381,7 @@ const ChatMessageContent = React.memo(({ msg, index, handlers, post, pinnedMessa
     
     if (msg.type === 'auction_end') {
         return (
-             <Card key={msg.id || index} className="my-2 text-foreground shadow-lg bg-gradient-to-br from-gold/20 via-gold/5 to-gold/20 border-l-4 border-gold">
+            <Card key={msg.id || index} className="my-2 text-foreground shadow-lg bg-gradient-to-br from-gold/20 via-gold/5 to-gold/20 border-l-4 border-gold">
                 <CardContent className="p-3">
                     <div className="flex items-center gap-3">
                         <div className="p-2 bg-gold/20 rounded-full">
@@ -420,7 +420,7 @@ const ChatMessageContent = React.memo(({ msg, index, handlers, post, pinnedMessa
         const product = productDetails[msg.productId as keyof typeof productDetails];
         if (!product) return null;
         return (
-            <Card key={msg.id || index} className="my-2 text-foreground shadow-lg bg-muted/40">
+            <Card key={msg.id || index} className="my-2 text-foreground shadow-lg bg-card/60">
                 <CardContent className="p-3">
                     <div className="flex items-center gap-3">
                         <Link href={`/product/${product.key}`} className="w-16 h-16 bg-black rounded-md relative overflow-hidden flex-shrink-0 group" onClick={(e) => e.stopPropagation()}>
@@ -681,19 +681,21 @@ export default function StreamPage() {
     
     useEffect(() => {
         const currentActiveAuction = chatMessages.find(msg => msg.type === 'auction' && msg.active);
-        if (currentActiveAuction && (!activeAuction || activeAuction.id !== currentActiveAuction.id)) {
-            setActiveAuction(currentActiveAuction);
-            setAuctionTime(currentActiveAuction.initialTime);
-        } else if (!currentActiveAuction && activeAuction && activeAuction.active === true) {
-            // Handle case where active auction is removed from chat messages
-            const endedAuction = {...activeAuction, active: false};
-            setActiveAuction(endedAuction);
+        if (currentActiveAuction) {
+            if (!activeAuction || activeAuction.id !== currentActiveAuction.id) {
+                setActiveAuction(currentActiveAuction);
+                setAuctionTime(currentActiveAuction.initialTime);
+            }
+        } else {
+            // If no active auction is found in chat messages, clear the activeAuction state
+            setActiveAuction(null);
         }
     }, [chatMessages, activeAuction]);
+
     
     useEffect(() => {
         let timer: NodeJS.Timeout | undefined;
-        if (auctionTime !== null && auctionTime > 0 && activeAuction) {
+        if (auctionTime !== null && auctionTime > 0 && activeAuction && activeAuction.active) {
             timer = setInterval(() => {
                 setAuctionTime(prev => {
                     if (prev === null) return null;
@@ -727,6 +729,7 @@ export default function StreamPage() {
             
             setChatMessages(prev => prev.map(msg => msg.id === activeAuction.id ? { ...msg, active: false } : msg));
             setAuctionTime(null);
+            // activeAuction is cleared by the other useEffect
         }
         return () => { if (timer) clearInterval(timer) };
     }, [auctionTime, activeAuction, chatMessages]);
@@ -1389,9 +1392,24 @@ export default function StreamPage() {
                                 <div className="relative flex-1 flex flex-col overflow-hidden">
                                     <ScrollArea className="flex-1" ref={chatContainerRef} onScroll={handleManualScroll}>
                                         <div className="p-4 space-y-0.5">
-                                             {chatMessages.map((msg, index) => (
-                                                <ChatMessageContent key={msg.id || index} msg={msg} index={index} handlers={handlers} post={{sellerId: seller?.id, avatarUrl: seller?.avatarUrl, sellerName: seller?.name}} pinnedMessages={pinnedMessages} />
-                                            ))}
+                                             {chatMessages.map((msg, index) => {
+                                                if (msg.type === 'auction') {
+                                                    return (
+                                                         <AuctionCard
+                                                            key={msg.id || index}
+                                                            auction={msg}
+                                                            auctionTime={activeAuction?.id === msg.id ? auctionTime : 0}
+                                                            highestBid={highestBid}
+                                                            totalBids={totalBids}
+                                                            walletBalance={walletBalance}
+                                                            cardRef={el => inlineAuctionCardRefs.current[msg.id] = el}
+                                                            onBid={() => setIsBidDialogOpen(true)}
+                                                            onViewBids={(e) => { e.stopPropagation(); setIsBidHistoryOpen(true); }}
+                                                        />
+                                                    );
+                                                }
+                                                return <ChatMessageContent key={msg.id || index} msg={msg} index={index} handlers={handlers} post={{sellerId: seller?.id, avatarUrl: seller?.avatarUrl, sellerName: seller?.name}} pinnedMessages={pinnedMessages} />
+                                             })}
                                             <div ref={messagesEndRef} />
                                         </div>
                                     </ScrollArea>
