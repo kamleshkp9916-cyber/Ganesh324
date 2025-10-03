@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import {
@@ -129,16 +128,16 @@ const emojis = [
 ];
 
 const liveSellers = [
-    { id: '1', name: 'FashionFinds', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Fashion', viewers: 1200, buyers: 25, rating: 4.8, reviews: 12, hint: 'woman posing stylish outfit', productId: 'prod_1', hasAuction: true, instagram: '#', twitter: '#', youtube: '#' },
-    { id: '2', name: 'GadgetGuru', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Electronics', viewers: 2500, buyers: 42, rating: 4.9, reviews: 28, hint: 'unboxing new phone', productId: 'prod_2', hasAuction: false, instagram: '#', twitter: '#', youtube: '#' },
-    { id: '3', name: 'HomeHaven', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Home Goods', viewers: 850, buyers: 15, rating: 4.7, reviews: 9, hint: 'modern living room decor', productId: 'prod_3', hasAuction: false, instagram: '#', twitter: '#', youtube: '#' },
-    { id: '4', name: 'BeautyBox', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Beauty', viewers: 3100, buyers: 78, rating: 4.9, reviews: 55, hint: 'makeup tutorial', productId: 'prod_4', hasAuction: true, instagram: '#', twitter: '#', youtube: '#' },
-    { id: '5', name: 'KitchenWiz', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Kitchenware', viewers: 975, buyers: 0, rating: 0, reviews: 0, hint: 'cooking demonstration', productId: 'prod_5', hasAuction: false, instagram: '#', twitter: '#', youtube: '#' },
-    { id: '6', name: 'FitFlow', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Fitness', viewers: 1500, buyers: 33, rating: 4.6, reviews: 18, hint: 'yoga session', productId: 'prod_6', hasAuction: false, instagram: '#', twitter: '#', youtube: '#' },
-    { id: '7', name: 'ArtisanAlley', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Handmade', viewers: 450, buyers: 8, rating: 5.0, reviews: 6, hint: 'pottery making', productId: 'prod_7', hasAuction: true, instagram: '#', twitter: '#', youtube: '#' },
-    { id: '8', name: 'PetPalace', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Pet Supplies', viewers: 1800, buyers: 50, rating: 4.8, reviews: 30, hint: 'playing with puppy', productId: 'prod_8', hasAuction: false, instagram: '#', twitter: '#', youtube: '#' },
-    { id: '9', name: 'BookNook', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Books', viewers: 620, buyers: 12, rating: 4.9, reviews: 10, hint: 'reading book cozy', productId: 'prod_9', hasAuction: false, instagram: '#', twitter: '#', youtube: '#' },
-    { id: '10', name: 'GamerGuild', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Gaming', viewers: 4200, buyers: 102, rating: 4.9, reviews: 80, hint: 'esports competition', productId: 'prod_10', hasAuction: true, instagram: '#', twitter: '#', youtube: '#' },
+    { id: '1', name: 'FashionFinds', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Fashion', viewers: 1200, buyers: 25, rating: 4.8, reviews: 12, hint: 'woman posing stylish outfit', productId: 'prod_1', hasAuction: true },
+    { id: '2', name: 'GadgetGuru', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Electronics', viewers: 2500, buyers: 42, rating: 4.9, reviews: 28, hint: 'unboxing new phone', productId: 'prod_2', hasAuction: false },
+    { id: '3', name: 'HomeHaven', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Home Goods', viewers: 850, buyers: 15, rating: 4.7, reviews: 9, hint: 'modern living room decor', productId: 'prod_3', hasAuction: false },
+    { id: '4', name: 'BeautyBox', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Beauty', viewers: 3100, buyers: 78, rating: 4.9, reviews: 55, hint: 'makeup tutorial', productId: 'prod_4', hasAuction: true },
+    { id: '5', name: 'KitchenWiz', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Kitchenware', viewers: 975, buyers: 0, rating: 0, reviews: 0, hint: 'cooking demonstration', productId: 'prod_5', hasAuction: false },
+    { id: '6', name: 'FitFlow', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Fitness', viewers: 1500, buyers: 33, rating: 4.6, reviews: 18, hint: 'yoga session', productId: 'prod_6', hasAuction: false },
+    { id: '7', name: 'ArtisanAlley', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Handmade', viewers: 450, buyers: 8, rating: 5.0, reviews: 6, hint: 'pottery making', productId: 'prod_7', hasAuction: true },
+    { id: '8', name: 'PetPalace', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Pet Supplies', viewers: 1800, buyers: 50, rating: 4.8, reviews: 30, hint: 'playing with puppy', productId: 'prod_8', hasAuction: false },
+    { id: '9', name: 'BookNook', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Books', viewers: 620, buyers: 12, rating: 4.9, reviews: 10, hint: 'reading book cozy', productId: 'prod_9', hasAuction: false },
+    { id: '10', name: 'GamerGuild', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Gaming', viewers: 4200, buyers: 102, rating: 4.9, reviews: 80, hint: 'esports competition', productId: 'prod_10', hasAuction: true },
 ];
 
 const productToSellerMapping: { [key: string]: { name: string; avatarUrl: string, uid: string } } = {
@@ -584,6 +583,227 @@ const AuctionCard = React.memo(({
 });
 AuctionCard.displayName = 'AuctionCard';
 
+const ChatPanel = ({
+  seller,
+  chatMessages,
+  pinnedMessages,
+  activeAuction,
+  auctionTime,
+  highestBid,
+  totalBids,
+  walletBalance,
+  handlers,
+  inlineAuctionCardRefs,
+  onClose,
+}: {
+  seller: any;
+  chatMessages: any[];
+  pinnedMessages: any[];
+  activeAuction: any;
+  auctionTime: number | null;
+  highestBid: number;
+  totalBids: number;
+  walletBalance: number;
+  handlers: any;
+  inlineAuctionCardRefs: React.MutableRefObject<Record<string, HTMLDivElement | null>>;
+  onClose: () => void;
+}) => {
+  const [newMessage, setNewMessage] = useState("");
+  const [replyingTo, setReplyingTo] = useState<{ name: string; id: string } | null>(null);
+  const [showScrollToBottom, setShowScrollToBottom] = useState(false);
+  const chatContainerRef = useRef<HTMLDivElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  
+  const handleAutoScroll = useCallback((behavior: 'smooth' | 'auto' = 'smooth') => {
+    messagesEndRef.current?.scrollIntoView({ behavior });
+  }, []);
+
+  const handleManualScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const target = e.currentTarget;
+    const isScrolledUp = target.scrollHeight - target.scrollTop > target.clientHeight + 200;
+    setShowScrollToBottom(isScrolledUp);
+  };
+  
+  useEffect(() => {
+    handleAutoScroll('auto');
+  }, [chatMessages, handleAutoScroll]);
+
+  const addEmoji = (emoji: string) => {
+    setNewMessage(prev => prev + emoji);
+  };
+
+  const handleNewMessageSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newMessage.trim()) return;
+    
+    // In a real app, this would be handled by a proper state management solution
+    // and sent to a backend. For this demo, we'll just log it.
+    console.log("New Message:", newMessage);
+
+    setNewMessage("");
+    setReplyingTo(null);
+  };
+
+  return (
+    <>
+      <div className="p-4 flex items-center justify-between z-10 flex-shrink-0 h-16 border-b">
+        <h3 className="font-bold text-lg">Live Chat</h3>
+        <div className="flex items-center gap-1">
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-8 w-8 relative">
+                <Pin className="h-5 w-5 text-muted-foreground" />
+                {pinnedMessages.length > 0 && <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-primary" />}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent align="end" className="w-80 p-0">
+              <div className="p-3 border-b">
+                <h4 className="font-semibold">Pinned Items</h4>
+              </div>
+              <ScrollArea className="h-64">
+                <div className="p-3 space-y-3">
+                  <Card className="bg-primary/10 border-primary/20">
+                    <CardContent className="p-3">
+                      <div className="flex items-start gap-3">
+                        <Ticket className="h-5 w-5 text-primary flex-shrink-0 mt-1" />
+                        <div>
+                          <p className="text-xs font-semibold">🎉 Special Offer!</p>
+                          <p className="text-sm">Use code <span className="font-bold text-primary">LIVE10</span> for 10% off your entire order.</p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                  <Card className="overflow-hidden">
+                    <CardContent className="p-0">
+                      <div className="p-3">
+                        <p className="text-xs text-muted-foreground font-semibold">Featured Product</p>
+                        <div className="flex items-center gap-3 mt-1">
+                          <div className="w-12 h-12 bg-muted rounded-md relative overflow-hidden flex-shrink-0">
+                            <Image src={productDetails['prod_1'].images[0]} alt={productDetails['prod_1'].name} fill className="object-cover" />
+                          </div>
+                          <div className="flex-grow">
+                            <h4 className="font-semibold leading-tight text-sm">{productDetails['prod_1'].name}</h4>
+                            <p className="text-sm font-bold">{productDetails['prod_1'].price}</p>
+                          </div>
+                        </div>
+                      </div>
+                      <CardFooter className="p-0">
+                        <Button asChild variant="secondary" className="w-full rounded-none rounded-b-lg h-9">
+                          <Link href={`/product/${productDetails['prod_1'].key}`}>View Product</Link>
+                        </Button>
+                      </CardFooter>
+                    </CardContent>
+                  </Card>
+                </div>
+              </ScrollArea>
+            </PopoverContent>
+          </Popover>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-8 w-8">
+                <MoreVertical className="h-5 w-5" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <FeedbackDialog>
+                <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                  <MessageCircle className="mr-2 h-4 w-4" /> Feedback
+                </DropdownMenuItem>
+              </FeedbackDialog>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive focus:text-destructive">
+                    <Flag className="mr-2 h-4 w-4" /> Report Stream
+                  </DropdownMenuItem>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Report this stream?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      If this stream violates our community guidelines, please report it. Our team will review it shortly.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={() => toast({title: "Stream Reported"})}>Submit Report</AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <Button variant="ghost" size="icon" onClick={onClose} className="h-8 w-8">
+            <X className="h-5 w-5" />
+          </Button>
+        </div>
+      </div>
+      <div className="relative flex-1 flex flex-col overflow-hidden">
+        <ScrollArea className="flex-1" ref={chatContainerRef} onScroll={handleManualScroll}>
+          <div className="p-4 space-y-0.5">
+            {chatMessages.map((msg, index) => {
+              if (msg.type === 'auction' && seller?.hasAuction) {
+                return (
+                  <div className="my-2" key={msg.id || index}>
+                    <AuctionCard
+                      auction={msg}
+                      auctionTime={activeAuction?.id === msg.id ? auctionTime : 0}
+                      highestBid={highestBid}
+                      totalBids={totalBids}
+                      walletBalance={walletBalance}
+                      cardRef={el => inlineAuctionCardRefs.current[msg.id] = el}
+                      onBid={() => handlers.onBid()}
+                      onViewBids={(e) => { e.stopPropagation(); handlers.onViewBids(e); }}
+                    />
+                  </div>
+                );
+              }
+              return <ChatMessageContent key={msg.id || index} msg={msg} index={index} handlers={handlers} post={{sellerId: seller?.id, avatarUrl: seller?.avatarUrl, sellerName: seller?.name}} pinnedMessages={pinnedMessages} seller={seller} />
+            })}
+            <div ref={messagesEndRef} />
+          </div>
+        </ScrollArea>
+        {showScrollToBottom && (
+          <div className="absolute bottom-20 left-1/2 -translate-x-1/2 z-20">
+            <Button
+              variant="secondary"
+              size="sm"
+              className="rounded-full shadow-lg"
+              onClick={() => handleAutoScroll()}
+            >
+              <ChevronDown className="mr-1 h-4 w-4" /> New Messages
+            </Button>
+          </div>
+        )}
+        <div className="p-3 border-t bg-background flex-shrink-0">
+          <form onSubmit={handleNewMessageSubmit} className="flex items-center gap-3">
+            <div className="relative flex-grow">
+              <Textarea ref={textareaRef} placeholder={replyingTo ? `@${replyingTo.name} ` : "Send a message..."} value={newMessage} onChange={(e) => setNewMessage(e.target.value)} className="resize-none pr-10 rounded-2xl bg-muted border-transparent focus:border-primary focus:bg-background h-10 min-h-[40px] pt-2.5 text-sm" rows={1} onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleNewMessageSubmit(e); } }} />
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="ghost" size="icon" type="button" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full text-muted-foreground">
+                    <Smile className="h-5 w-5" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-80 h-64 p-2">
+                  <div className="grid grid-cols-8 gap-1 h-full overflow-y-auto no-scrollbar">
+                    {emojis.map((emoji, index) => (
+                      <Button key={index} variant="ghost" size="icon" onClick={() => addEmoji(emoji)} className="text-xl">
+                        {emoji}
+                      </Button>
+                    ))}
+                  </div>
+                </PopoverContent>
+              </Popover>
+            </div>
+            <Button type="submit" size="icon" disabled={!newMessage.trim()} className="rounded-full flex-shrink-0 h-10 w-10">
+              <Send className="h-4 w-4" />
+            </Button>
+          </form>
+        </div>
+      </div>
+    </>
+  );
+};
 
 export default function StreamPage() {
     const router = useRouter();
@@ -600,6 +820,7 @@ export default function StreamPage() {
         { id: 1, bankName: 'HDFC Bank', accountNumber: 'XXXX-XXXX-XX12-3456' },
     ]);
     const [pinnedMessages, setPinnedMessages] = useState<any[]>([]);
+    const [isFollowingState, setIsFollowingState] = useState(false);
     
     const [chatMessages, setChatMessages] = useState(mockChatMessages);
     const [auctionTime, setAuctionTime] = useState<number | null>(null);
@@ -610,8 +831,6 @@ export default function StreamPage() {
     const [isBidDialogOpen, setIsBidDialogOpen] = useState(false);
     const [isBidHistoryOpen, setIsBidHistoryOpen] = useState(false);
     const [showGoToTop, setShowGoToTop] = useState(false);
-    const [showChatGoToTop, setShowChatGoToTop] = useState(false);
-    const [isFollowingState, setIsFollowingState] = useState(false);
     
     const { ref: auctionCardRef, inView: auctionCardInView } = useInView({ threshold: 0.99 });
     
@@ -631,7 +850,6 @@ export default function StreamPage() {
     const streamData = mockStreamData;
     const videoRef = useRef<HTMLVideoElement>(null);
     const playerRef = useRef<HTMLDivElement>(null);
-    const textareaRef = useRef<HTMLTextAreaElement>(null);
     const progressContainerRef = useRef<HTMLDivElement>(null);
     const inlineAuctionCardRefs = useRef<Record<string, HTMLDivElement | null>>({});
     
@@ -645,16 +863,8 @@ export default function StreamPage() {
     const [skipInterval, setSkipInterval] = useState(10);
     const [isFullscreen, setIsFullscreen] = useState(false);
     const [isLive, setIsLive] = useState(true);
-    const [newMessage, setNewMessage] = useState("");
-    const [isProductListVisible, setIsProductListVisible] = useState(false);
-    const [replyingTo, setReplyingTo] = useState<{ name: string; id: string } | null>(null);
-    const [showScrollToBottom, setShowScrollToBottom] = useState(false);
-    const [isChatPanelOpen, setIsChatPanelOpen] = useState(false);
+    const [isMobileChatVisible, setIsMobileChatVisible] = useState(false);
     
-    const product = productDetails[seller?.productId as keyof typeof productDetails];
-    
-    const chatContainerRef = useRef<HTMLDivElement>(null);
-    const messagesEndRef = useRef<HTMLDivElement>(null);
     const mainScrollRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -668,13 +878,6 @@ export default function StreamPage() {
         const shouldShow = e.currentTarget.scrollTop > 200;
         if (shouldShow !== showGoToTop) {
             setShowGoToTop(shouldShow);
-        }
-    };
-    
-    const handleChatScroll = (e: React.UIEvent<HTMLDivElement>) => {
-        const shouldShow = e.currentTarget.scrollTop > 200;
-        if (shouldShow !== showChatGoToTop) {
-            setShowChatGoToTop(shouldShow);
         }
     };
 
@@ -704,17 +907,15 @@ export default function StreamPage() {
     }, [seller]);
     
     const relatedStreams = useMemo(() => {
-        if (!product) return [];
+        if (!seller) return [];
         let streams = liveSellers.filter(
-            s => s.category === product.category && s.productId !== product.key
+            s => s.category === seller.category && s.id !== seller.id
         );
         if (streams.length > 50) {
             return streams.slice(0, 51);
         }
-        // Fallback to show some streams if none match the category, excluding the current one
-        const fallbackStreams = liveSellers.filter(s => s.productId !== product.key);
+        const fallbackStreams = liveSellers.filter(s => s.id !== seller.id);
         
-        // Add from fallback until we have 6 total, avoiding duplicates
         let i = 0;
         while(streams.length < 51 && i < fallbackStreams.length) {
             if (!streams.some(s => s.id === fallbackStreams[i].id)) {
@@ -723,7 +924,7 @@ export default function StreamPage() {
             i++;
         }
         return streams.slice(0,51);
-    }, [product]);
+    }, [seller]);
     
     const formatTime = (timeInSeconds: number) => {
         if (isNaN(timeInSeconds) || timeInSeconds < 0) return '00:00';
@@ -908,48 +1109,6 @@ export default function StreamPage() {
         };
     }, []);
 
-
-    const handleReply = (msgUser: { name: string; id: string }) => {
-        if(user?.uid === msgUser.id) return;
-        setReplyingTo(msgUser);
-        setNewMessage(`@${msgUser.name} `);
-        if (textareaRef.current) {
-            textareaRef.current.focus();
-        }
-    };
-    
-    const handleAutoScroll = useCallback((behavior: 'smooth' | 'auto' = 'smooth') => {
-        messagesEndRef.current?.scrollIntoView({ behavior });
-    }, []);
-
-    const handleManualScroll = (e: React.UIEvent<HTMLDivElement>) => {
-        const target = e.currentTarget;
-        const isScrolledUp = target.scrollHeight - target.scrollTop > target.clientHeight + 200;
-        setShowScrollToBottom(isScrolledUp);
-    };
-
-    useEffect(() => {
-        handleAutoScroll('auto');
-    }, [chatMessages, handleAutoScroll]);
-
-    const handleNewMessageSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!newMessage.trim()) return;
-        
-        const newMsg: any = {
-            id: Date.now(),
-            user: user?.displayName?.split(' ')[0] || 'You',
-            userId: user?.uid,
-            text: newMessage,
-            avatar: user?.photoURL || 'https://placehold.co/40x40.png',
-            userColor: user?.color || '#ffffff'
-        };
-
-        setChatMessages(prev => [...prev, newMsg]);
-        setNewMessage("");
-        setReplyingTo(null);
-    };
-
     const handleReportMessage = (messageId: number) => {
         toast({
             title: "Message Reported",
@@ -971,14 +1130,6 @@ export default function StreamPage() {
         router.push(`/cart?buyNow=true&productId=${product.key}`);
       }
     };
-    
-    const addEmoji = (emoji: string) => {
-        setNewMessage(prev => prev + emoji);
-    };
-
-    const removeMedia = (index: number) => {
-        // Dummy function
-    }
 
     const handleWithdraw = (amount: number, bankAccountId: string) => {
         const selectedAccount = bankAccounts.find(acc => String(acc.id) === bankAccountId);
@@ -1105,7 +1256,18 @@ export default function StreamPage() {
       }
     };
     
-    const handlers = { onReply: handleReply, onTogglePinMessage: handleTogglePinMessage, onReportMessage: handleReportMessage, onAddToCart: handleAddToCart, onBuyNow: handleBuyNow };
+    const handlers = {
+        onReply: (user: { name: string; id: string }) => {
+            // This is a placeholder for actual reply functionality
+            console.log("Replying to", user);
+        },
+        onTogglePinMessage: handleTogglePinMessage,
+        onReportMessage: handleReportMessage,
+        onAddToCart: handleAddToCart,
+        onBuyNow: handleBuyNow,
+        onBid: () => setIsBidDialogOpen(true),
+        onViewBids: (e: React.MouseEvent) => { e.stopPropagation(); setIsBidHistoryOpen(true); },
+    };
 
     const scrollToAuction = (auctionId: string) => {
         inlineAuctionCardRefs.current[auctionId]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -1122,191 +1284,6 @@ export default function StreamPage() {
         );
     }
     
-    const ChatPanel = () => (
-        <>
-            {showPinnedAuction && (
-                <div className="absolute top-16 left-0 right-0 z-20 p-4 pointer-events-none">
-                    <div className="w-full pointer-events-auto">
-                        <AuctionCard
-                            auction={activeAuction}
-                            auctionTime={auctionTime}
-                            highestBid={highestBid}
-                            totalBids={totalBids}
-                            walletBalance={walletBalance}
-                            isPinned={true}
-                            onClick={() => scrollToAuction(activeAuction.id)}
-                            onBid={() => setIsBidDialogOpen(true)}
-                            onViewBids={(e) => { e.stopPropagation(); setIsBidHistoryOpen(true); }}
-                        />
-                    </div>
-                </div>
-            )}
-            <div className="p-4 flex items-center justify-between z-10 flex-shrink-0 h-16 border-b">
-                <h3 className="font-bold text-lg">Live Chat</h3>
-                <div className="flex items-center gap-1">
-                    <Popover>
-                        <PopoverTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-8 w-8 relative">
-                                <Pin className="h-5 w-5 text-muted-foreground" />
-                                {pinnedMessages.length > 0 && <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-primary" />}
-                            </Button>
-                        </PopoverTrigger>
-                        <PopoverContent align="end" className="w-80 p-0">
-                            <div className="p-3 border-b">
-                                <h4 className="font-semibold">Pinned Items</h4>
-                            </div>
-                            <ScrollArea className="h-64">
-                                <div className="p-3 space-y-3">
-                                    <Card className="bg-primary/10 border-primary/20">
-                                        <CardContent className="p-3">
-                                            <div className="flex items-start gap-3">
-                                                <Ticket className="h-5 w-5 text-primary flex-shrink-0 mt-1" />
-                                                <div>
-                                                    <p className="text-xs font-semibold">🎉 Special Offer!</p>
-                                                    <p className="text-sm">Use code <span className="font-bold text-primary">LIVE10</span> for 10% off your entire order.</p>
-                                                </div>
-                                            </div>
-                                        </CardContent>
-                                    </Card>
-                                    <Card className="overflow-hidden">
-                                        <CardContent className="p-0">
-                                            <div className="p-3">
-                                                <p className="text-xs text-muted-foreground font-semibold">Featured Product</p>
-                                                <div className="flex items-center gap-3 mt-1">
-                                                    <div className="w-12 h-12 bg-muted rounded-md relative overflow-hidden flex-shrink-0">
-                                                        <Image src={productDetails['prod_1'].images[0]} alt={productDetails['prod_1'].name} fill className="object-cover" />
-                                                    </div>
-                                                    <div className="flex-grow">
-                                                        <h4 className="font-semibold leading-tight text-sm">{productDetails['prod_1'].name}</h4>
-                                                        <p className="text-sm font-bold">{productDetails['prod_1'].price}</p>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <CardFooter className="p-0">
-                                                <Button asChild variant="secondary" className="w-full rounded-none rounded-b-lg h-9">
-                                                    <Link href={`/product/${productDetails['prod_1'].key}`}>View Product</Link>
-                                                </Button>
-                                            </CardFooter>
-                                        </CardContent>
-                                    </Card>
-                                </div>
-                            </ScrollArea>
-                        </PopoverContent>
-                    </Popover>
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-8 w-8">
-                                <MoreVertical className="h-5 w-5" />
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                            <FeedbackDialog>
-                                <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                                    <MessageCircle className="mr-2 h-4 w-4" /> Feedback
-                                </DropdownMenuItem>
-                            </FeedbackDialog>
-                            <AlertDialog>
-                                <AlertDialogTrigger asChild>
-                                    <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive focus:text-destructive">
-                                        <Flag className="mr-2 h-4 w-4" /> Report Stream
-                                    </DropdownMenuItem>
-                                </AlertDialogTrigger>
-                                <AlertDialogContent>
-                                    <AlertDialogHeader>
-                                        <AlertDialogTitle>Report this stream?</AlertDialogTitle>
-                                        <AlertDialogDescription>
-                                            If this stream violates our community guidelines, please report it. Our team will review it shortly.
-                                        </AlertDialogDescription>
-                                    </AlertDialogHeader>
-                                    <AlertDialogFooter>
-                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                        <AlertDialogAction onClick={() => toast({title: "Stream Reported"})}>Submit Report</AlertDialogAction>
-                                    </AlertDialogFooter>
-                                </AlertDialogContent>
-                            </AlertDialog>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                </div>
-            </div>
-            
-            <div className="relative flex-1 flex flex-col overflow-hidden">
-                    <ScrollArea className="flex-1" ref={chatContainerRef} onScroll={handleChatScroll}>
-                    {showChatGoToTop && (
-                        <Button
-                            size="sm"
-                            variant="secondary"
-                            className="absolute top-2 left-1/2 -translate-x-1/2 z-20 rounded-full shadow-lg"
-                            onClick={() => scrollToTop(chatContainerRef)}
-                        >
-                            <ArrowUp className="h-4 w-4 mr-1" />
-                            Go to Top
-                        </Button>
-                    )}
-                    <div className="p-4 space-y-0.5">
-                            {chatMessages.map((msg, index) => {
-                            if (msg.type === 'auction' && seller?.hasAuction) {
-                                return (
-                                        <div className="my-2" key={msg.id || index}>
-                                        <AuctionCard
-                                            auction={msg}
-                                            auctionTime={activeAuction?.id === msg.id ? auctionTime : 0}
-                                            highestBid={highestBid}
-                                            totalBids={totalBids}
-                                            walletBalance={walletBalance}
-                                            cardRef={el => inlineAuctionCardRefs.current[msg.id] = el}
-                                            onBid={() => setIsBidDialogOpen(true)}
-                                            onViewBids={(e) => { e.stopPropagation(); setIsBidHistoryOpen(true); }}
-                                        />
-                                        </div>
-                                );
-                            }
-                            return <ChatMessageContent key={msg.id || index} msg={msg} index={index} handlers={handlers} post={{sellerId: seller?.id, avatarUrl: seller?.avatarUrl, sellerName: seller?.name}} pinnedMessages={pinnedMessages} seller={seller} />
-                            })}
-                        <div ref={messagesEndRef} />
-                    </div>
-                </ScrollArea>
-                    {showScrollToBottom && (
-                    <div className="absolute bottom-20 left-1/2 -translate-x-1/2 z-20">
-                        <Button
-                            variant="secondary"
-                            size="sm"
-                            className="rounded-full shadow-lg"
-                            onClick={() => handleAutoScroll()}
-                        >
-                            <ChevronDown className="mr-1 h-4 w-4" /> New Messages
-                        </Button>
-                    </div>
-                    )}
-                <div className="p-3 border-t bg-background flex-shrink-0">
-                    <form onSubmit={handleNewMessageSubmit} className="flex items-center gap-3">
-                        <div className="relative flex-grow">
-                            <Textarea ref={textareaRef} placeholder={replyingTo ? `@${replyingTo.name} ` : "Send a message..."} value={newMessage} onChange={(e) => setNewMessage(e.target.value)} className="resize-none pr-10 rounded-2xl bg-muted border-transparent focus:border-primary focus:bg-background h-10 min-h-[40px] pt-2.5 text-sm" rows={1} onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleNewMessageSubmit(e); } }} />
-                            <Popover>
-                                <PopoverTrigger asChild>
-                                    <Button variant="ghost" size="icon" type="button" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full text-muted-foreground">
-                                        <Smile className="h-5 w-5" />
-                                    </Button>
-                                </PopoverTrigger>
-                                <PopoverContent className="w-80 h-64 p-2">
-                                    <div className="grid grid-cols-8 gap-1 h-full overflow-y-auto no-scrollbar">
-                                        {emojis.map((emoji, index) => (
-                                            <Button key={index} variant="ghost" size="icon" onClick={() => addEmoji(emoji)} className="text-xl">
-                                                {emoji}
-                                            </Button>
-                                        ))}
-                                    </div>
-                                </PopoverContent>
-                            </Popover>
-                        </div>
-                        <Button type="submit" size="icon" disabled={!newMessage.trim()} className="rounded-full flex-shrink-0 h-10 w-10">
-                            <Send className="h-4 w-4" />
-                        </Button>
-                    </form>
-                </div>
-            </div>
-        </>
-    );
-
     return (
         <React.Fragment>
             <Dialog open={isBidDialogOpen} onOpenChange={setIsBidDialogOpen}>
@@ -1386,8 +1363,8 @@ export default function StreamPage() {
 
             <Dialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
                 <AlertDialog>
-                    <div className="h-dvh w-full flex flex-col bg-background text-foreground">
-                         <header className="flex-shrink-0 h-16 bg-background border-b border-border flex items-center justify-between px-4 z-40">
+                    <div className="h-dvh w-full flex flex-col lg:grid lg:grid-cols-[1fr_340px] bg-background text-foreground">
+                         <header className="flex-shrink-0 h-16 bg-background border-b border-border flex items-center justify-between px-4 z-40 col-span-2">
                             <div className="flex items-center gap-2">
                                 <Button variant="ghost" size="icon" onClick={() => router.back()}>
                                     <ArrowLeft />
@@ -1411,8 +1388,8 @@ export default function StreamPage() {
                             </div>
                         </header>
 
-                        <div className="flex flex-1 overflow-hidden relative">
-                             <div className="flex-1 overflow-y-auto no-scrollbar relative" ref={mainScrollRef} onScroll={handleMainScroll}>
+                        <div className="flex-1 flex flex-col lg:flex-row overflow-hidden relative">
+                             <div className="flex-1 overflow-y-auto no-scrollbar relative flex flex-col" ref={mainScrollRef} onScroll={handleMainScroll}>
                                 {showGoToTop && (
                                     <Button
                                         size="icon"
@@ -1475,98 +1452,31 @@ export default function StreamPage() {
                                         </div>
                                     </div>
                                 </div>
-                                <div className="p-4">
-                                    <div className="mb-4">
-                                        <h2 className="font-bold text-xl">{streamData.title || "Live Stream"}</h2>
-                                        <div className="text-sm text-muted-foreground">{renderContentWithHashtags(streamData.description) || "Welcome to the live stream!"}</div>
-                                    </div>
-                                    <Collapsible>
-                                        <div className="flex items-center justify-between gap-4 w-full">
-                                            <div className="flex-grow min-w-0">
-                                                {seller && (
-                                                    <div className="flex items-center gap-2">
-                                                        <Avatar className="h-10 w-10">
-                                                            <AvatarImage src={seller.avatarUrl} />
-                                                            <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
-                                                        </Avatar>
-                                                        <div className="flex items-center gap-2 flex-wrap">
-                                                            <h3 className="font-semibold truncate">{seller.name}</h3>
-                                                              <Button
-                                                                onClick={() => seller && handleFollowToggle(seller.id)}
-                                                                variant={isFollowingState ? "outline" : "secondary"}
-                                                                size="sm"
-                                                                className="h-7 w-7 p-0 sm:w-auto sm:px-2 text-xs"
-                                                            >
-                                                                <UserPlus className="h-4 w-4 sm:mr-1.5" />
-                                                                <span className="hidden sm:inline">{isFollowingState ? "Following" : "Follow"}</span>
-                                                            </Button>
-                                                            <Button
-                                                              variant="outline"
-                                                              size="sm"
-                                                              className="h-7 w-7 p-0 sm:w-auto sm:px-2 text-xs"
-                                                              asChild
-                                                            >
-                                                              <Link href={`/seller/profile?userId=${seller?.id}`}>
-                                                                <ShoppingBag className="w-4 h-4 sm:mr-1" />
-                                                                <span className="hidden sm:inline">View Products ({sellerProducts.length})</span>
-                                                              </Link>
-                                                            </Button>
-                                                        </div>
-                                                    </div>
-                                                )}
+
+                                {/* Main content below video */}
+                                <div className="flex-grow">
+                                    <div className="lg:hidden">
+                                        {isMobileChatVisible ? (
+                                            <div className="h-[60dvh] flex flex-col bg-card">
+                                                <ChatPanel seller={seller} chatMessages={chatMessages} pinnedMessages={pinnedMessages} activeAuction={activeAuction} auctionTime={auctionTime} highestBid={highestBid} totalBids={totalBids} walletBalance={walletBalance} handlers={handlers} inlineAuctionCardRefs={inlineAuctionCardRefs} onClose={() => setIsMobileChatVisible(false)} />
                                             </div>
-                                             {seller?.hasAuction && (
-                                                <Badge variant="info" className="flex items-center gap-1.5 h-7">
-                                                    <Gavel className="w-4 h-4" /> <span className="hidden sm:inline">Auction</span>
-                                                </Badge>
-                                            )}
-                                        </div>
-                                    </Collapsible>
-                                    <div className="mt-8">
-                                      <div className="mb-4 flex items-center justify-between">
-                                        <h4 className="font-semibold">Related Streams</h4>
-                                        <Button asChild variant="link" size="sm" className="text-xs">
-                                            <Link href="/live-selling">More</Link>
-                                        </Button>
-                                      </div>
-                                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-4 gap-2 md:gap-4">
-                                            {relatedStreams.map((s: any) => (
-                                                <Link href={`/stream/${s.id}`} key={s.id} className="group">
-                                                    <div className="relative rounded-lg overflow-hidden aspect-[16/9] bg-muted">
-                                                        <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
-                                                        <div className="absolute top-2 right-2 z-10">
-                                                            <Badge variant="secondary" className="bg-background/60 backdrop-blur-sm gap-1.5">
-                                                                <Users className="h-3 w-3"/>
-                                                                {s.viewers.toLocaleString()}
-                                                            </Badge>
-                                                        </div>
-                                                    </div>
-                                                    <div className="flex items-start gap-2 mt-2">
-                                                        <Avatar className="w-7 h-7">
-                                                            <AvatarImage src={s.avatarUrl} alt={s.name} />
-                                                            <AvatarFallback>{s.name.charAt(0)}</AvatarFallback>
-                                                        </Avatar>
-                                                        <div className="flex-1 overflow-hidden">
-                                                            <div className="flex items-center gap-1.5">
-                                                                <p className="font-semibold text-xs group-hover:underline truncate">{s.name}</p>
-                                                                {s.hasAuction && (
-                                                                    <Badge variant="info" className="text-xs font-bold px-1.5 py-0">
-                                                                        Auction
-                                                                    </Badge>
-                                                                )}
-                                                            </div>
-                                                            <p className="text-xs text-muted-foreground">{s.category}</p>
-                                                            <p className="text-xs text-primary font-semibold mt-0.5">#{s.category.toLowerCase().replace(/\s+/g, '')}</p>
-                                                        </div>
-                                                    </div>
-                                                </Link>
-                                            ))}
-                                        </div>
+                                        ) : (
+                                            <div className="p-4 space-y-6">
+                                                {/* Content to show when chat is closed on mobile */}
+                                                <StreamInfo seller={seller} streamData={streamData} handleFollowToggle={handleFollowToggle} isFollowingState={isFollowingState} sellerProducts={sellerProducts}/>
+                                                <RelatedContent relatedStreams={relatedStreams} />
+                                            </div>
+                                        )}
+                                    </div>
+                                    <div className="hidden lg:block p-4 space-y-6">
+                                        <StreamInfo seller={seller} streamData={streamData} handleFollowToggle={handleFollowToggle} isFollowingState={isFollowingState} sellerProducts={sellerProducts}/>
+                                        <RelatedContent relatedStreams={relatedStreams} />
                                     </div>
                                 </div>
                             </div>
+
                             <div className="w-[340px] flex-shrink-0 h-full flex-col bg-card relative hidden lg:flex">
-                                <ChatPanel />
+                                <ChatPanel seller={seller} chatMessages={chatMessages} pinnedMessages={pinnedMessages} activeAuction={activeAuction} auctionTime={auctionTime} highestBid={highestBid} totalBids={totalBids} walletBalance={walletBalance} handlers={handlers} inlineAuctionCardRefs={inlineAuctionCardRefs} onClose={() => {}} />
                             </div>
                         </div>
                     </div>
@@ -1594,28 +1504,112 @@ export default function StreamPage() {
                 </DialogContent>
             </Dialog>
 
-            {/* Floating Chat Button */}
-            <Button
-                size="icon"
-                className="fixed bottom-6 right-6 z-50 rounded-full h-16 w-16 shadow-lg lg:hidden"
-                onClick={() => setIsChatPanelOpen(true)}
-            >
-                <MessageSquare className="h-8 w-8" />
-            </Button>
-            
-            {/* Mobile Chat Sheet */}
-            <Sheet open={isChatPanelOpen} onOpenChange={setIsChatPanelOpen}>
-                 <SheetContent side="bottom" className="h-[60dvh] p-0 flex flex-col lg:hidden">
-                    <div className="absolute top-3 right-3">
-                        <SheetClose asChild>
-                            <Button variant="ghost" size="icon">
-                                <X className="h-5 w-5" />
-                            </Button>
-                        </SheetClose>
-                    </div>
-                    <ChatPanel />
-                </SheetContent>
-            </Sheet>
+            {/* Floating Chat Button for Mobile */}
+            {!isMobileChatVisible && (
+                <Button
+                    size="icon"
+                    className="fixed bottom-6 right-6 z-50 rounded-full h-16 w-16 shadow-lg lg:hidden"
+                    onClick={() => setIsMobileChatVisible(true)}
+                >
+                    <MessageSquare className="h-8 w-8" />
+                </Button>
+            )}
         </React.Fragment>
     );
 }
+
+
+const StreamInfo = ({ seller, streamData, handleFollowToggle, isFollowingState, sellerProducts }: { seller: any, streamData: any, handleFollowToggle: any, isFollowingState: boolean, sellerProducts: any[] }) => (
+    <div className="space-y-4">
+        <div className="mb-4">
+            <h2 className="font-bold text-xl">{streamData.title || "Live Stream"}</h2>
+            <div className="text-sm text-muted-foreground">{renderContentWithHashtags(streamData.description) || "Welcome to the live stream!"}</div>
+        </div>
+        <Collapsible>
+            <div className="flex items-center justify-between gap-4 w-full">
+                <div className="flex-grow min-w-0">
+                    {seller && (
+                        <div className="flex items-center gap-2">
+                            <Avatar className="h-10 w-10">
+                                <AvatarImage src={seller.avatarUrl} />
+                                <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
+                            </Avatar>
+                            <div className="flex items-center gap-2 flex-wrap">
+                                <h3 className="font-semibold truncate">{seller.name}</h3>
+                                <Button
+                                    onClick={() => seller && handleFollowToggle(seller.id)}
+                                    variant={isFollowingState ? "outline" : "secondary"}
+                                    size="sm"
+                                    className="h-7 w-7 p-0 sm:w-auto sm:px-2 text-xs"
+                                >
+                                    <UserPlus className="h-4 w-4 sm:mr-1.5" />
+                                    <span className="hidden sm:inline">{isFollowingState ? "Following" : "Follow"}</span>
+                                </Button>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="h-7 w-7 p-0 sm:w-auto sm:px-2 text-xs"
+                                    asChild
+                                >
+                                    <Link href={`/seller/profile?userId=${seller?.id}`}>
+                                        <ShoppingBag className="w-4 h-4 sm:mr-1" />
+                                        <span className="hidden sm:inline">View Products ({sellerProducts.length})</span>
+                                    </Link>
+                                </Button>
+                            </div>
+                        </div>
+                    )}
+                </div>
+                {seller?.hasAuction && (
+                    <Badge variant="info" className="flex items-center gap-1.5 h-7">
+                        <Gavel className="w-4 h-4" /> <span className="hidden sm:inline">Auction</span>
+                    </Badge>
+                )}
+            </div>
+        </Collapsible>
+    </div>
+);
+
+const RelatedContent = ({ relatedStreams }: { relatedStreams: any[] }) => (
+     <div className="mt-8">
+        <div className="mb-4 flex items-center justify-between">
+        <h4 className="font-semibold">Related Streams</h4>
+        <Button asChild variant="link" size="sm" className="text-xs">
+            <Link href="/live-selling">More</Link>
+        </Button>
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-4 gap-2 md:gap-4">
+            {relatedStreams.map((s: any) => (
+                <Link href={`/stream/${s.id}`} key={s.id} className="group">
+                    <div className="relative rounded-lg overflow-hidden aspect-[16/9] bg-muted">
+                        <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
+                        <div className="absolute top-2 right-2 z-10">
+                            <Badge variant="secondary" className="bg-background/60 backdrop-blur-sm gap-1.5">
+                                <Users className="h-3 w-3"/>
+                                {s.viewers.toLocaleString()}
+                            </Badge>
+                        </div>
+                    </div>
+                    <div className="flex items-start gap-2 mt-2">
+                        <Avatar className="w-7 h-7">
+                            <AvatarImage src={s.avatarUrl} alt={s.name} />
+                            <AvatarFallback>{s.name.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 overflow-hidden">
+                            <div className="flex items-center gap-1.5">
+                                <p className="font-semibold text-xs group-hover:underline truncate">{s.name}</p>
+                                {s.hasAuction && (
+                                    <Badge variant="info" className="text-xs font-bold px-1.5 py-0">
+                                        Auction
+                                    </Badge>
+                                )}
+                            </div>
+                            <p className="text-xs text-muted-foreground">{s.category}</p>
+                            <p className="text-xs text-primary font-semibold mt-0.5">#{s.category.toLowerCase().replace(/\s+/g, '')}</p>
+                        </div>
+                    </div>
+                </Link>
+            ))}
+        </div>
+    </div>
+);
