@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import {
@@ -421,7 +422,7 @@ const ChatMessageContent = React.memo(({ msg, index, handlers, post, pinnedMessa
         if (!product) return null;
         return (
             <div className="mt-2">
-                <Card key={msg.id || index} className="bg-transparent border-none shadow-none">
+                <Card key={msg.id || index} className="bg-transparent border shadow-none">
                     <CardContent className="p-0">
                         <div className="flex items-center gap-3">
                             <Link href={`/product/${product.key}`} className="w-16 h-16 bg-black rounded-md relative overflow-hidden flex-shrink-0 group" onClick={(e) => e.stopPropagation()}>
@@ -1256,7 +1257,7 @@ export default function StreamPage() {
                                             <Link href="/live-selling">More</Link>
                                         </Button>
                                       </div>
-                                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 md:gap-4">
                                             {relatedStreams.map((s: any) => (
                                                 <Link href={`/stream/${s.id}`} key={s.id} className="group">
                                                     <div className="relative rounded-lg overflow-hidden aspect-[16/9] bg-muted">
@@ -1283,7 +1284,7 @@ export default function StreamPage() {
                                                                 )}
                                                             </div>
                                                             <p className="text-xs text-muted-foreground">{s.category}</p>
-                                                            <p className="text-xs text-primary font-semibold mt-0.5">#{s.category.toLowerCase()}</p>
+                                                            <p className="text-xs text-primary font-semibold mt-0.5">#{s.category.toLowerCase().replace(/\s+/g, '')}</p>
                                                         </div>
                                                     </div>
                                                 </Link>
