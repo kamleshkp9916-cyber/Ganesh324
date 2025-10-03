@@ -640,7 +640,6 @@ export default function StreamPage() {
     const [isProductListVisible, setIsProductListVisible] = useState(false);
     const [replyingTo, setReplyingTo] = useState<{ name: string; id: string } | null>(null);
     const [showScrollToBottom, setShowScrollToBottom] = useState(false);
-    const [showGoToTop, setShowGoToTop] = useState(false);
     
     const seller = useMemo(() => liveSellers.find(s => s.id === streamId), [streamId]);
     const product = productDetails[seller?.productId as keyof typeof productDetails];
@@ -810,23 +809,6 @@ export default function StreamPage() {
         }
     }, [duration, isLive]);
     
-    useEffect(() => {
-        const handleScroll = () => {
-            if (window.scrollY > 400) {
-                setShowGoToTop(true);
-            } else {
-                setShowGoToTop(false);
-            }
-        };
-
-        window.addEventListener('scroll', handleScroll);
-        return () => window.removeEventListener('scroll', handleScroll);
-    }, []);
-
-    const scrollToTop = () => {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    };
-
     const handlePlaybackRateChange = (rate: number) => {
         const video = videoRef.current;
         if (video) {
@@ -1274,7 +1256,7 @@ export default function StreamPage() {
                                             <Link href="/live-selling">More</Link>
                                         </Button>
                                       </div>
-                                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-4">
+                                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
                                             {relatedStreams.map((s: any) => (
                                                 <Link href={`/stream/${s.id}`} key={s.id} className="group">
                                                     <div className="relative rounded-lg overflow-hidden aspect-[16/9] bg-muted">
@@ -1301,7 +1283,7 @@ export default function StreamPage() {
                                                                 )}
                                                             </div>
                                                             <p className="text-xs text-muted-foreground">{s.category}</p>
-                                                            <p className="text-xs text-primary font-semibold mt-0.5">#{s.category.toLowerCase().replace(/\s+/g, '')}</p>
+                                                            <p className="text-xs text-primary font-semibold mt-0.5">#{s.category.toLowerCase()}</p>
                                                         </div>
                                                     </div>
                                                 </Link>
@@ -1406,7 +1388,7 @@ export default function StreamPage() {
                                     <ScrollArea className="flex-1" ref={chatContainerRef} onScroll={handleManualScroll}>
                                         <div className="p-4 space-y-0.5">
                                              {chatMessages.map((msg, index) => {
-                                                if (msg.type === 'auction') {
+                                                if (msg.type === 'auction' && seller?.hasAuction) {
                                                     return (
                                                          <div className="my-2" key={msg.id || index}>
                                                             <AuctionCard
@@ -1469,13 +1451,6 @@ export default function StreamPage() {
                             </div>
                         </div>
                     </div>
-                    {showGoToTop && (
-                        <div className="fixed bottom-24 right-4 z-50">
-                            <Button size="icon" className="rounded-full shadow-lg" onClick={scrollToTop}>
-                                <ArrowUp className="h-5 w-5" />
-                            </Button>
-                        </div>
-                    )}
                     <AlertDialogContent>
                         <AlertDialogHeader>
                             <AlertDialogTitle>Report Stream</AlertDialogTitle>
@@ -1502,5 +1477,3 @@ export default function StreamPage() {
         </React.Fragment>
     );
 }
-
-    
