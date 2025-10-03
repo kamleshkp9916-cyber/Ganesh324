@@ -599,7 +599,6 @@ export default function StreamPage() {
         { id: 1, bankName: 'HDFC Bank', accountNumber: 'XXXX-XXXX-XX12-3456' },
     ]);
     const [pinnedMessages, setPinnedMessages] = useState<any[]>([]);
-    const [isFollowingState, setIsFollowingState] = useState(false);
     
     const [chatMessages, setChatMessages] = useState(mockChatMessages);
     const [auctionTime, setAuctionTime] = useState<number | null>(null);
@@ -616,6 +615,7 @@ export default function StreamPage() {
     
     const seller = useMemo(() => liveSellers.find(s => s.id === streamId), [streamId]);
     const showPinnedAuction = !auctionCardInView && activeAuction && seller?.hasAuction;
+    const [isFollowingState, setIsFollowingState] = useState(false);
     
     const mockStreamData = {
         id: streamId,
@@ -1172,7 +1172,7 @@ export default function StreamPage() {
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
-             <Dialog open={isBidHistoryOpen} onOpenChange={setIsBidHistoryOpen}>
+            <Dialog open={isBidHistoryOpen} onOpenChange={setIsBidHistoryOpen}>
                 <DialogContent>
                     <DialogHeader>
                         <DialogTitle>Bid History for {productDetails[activeAuction?.productId as keyof typeof productDetails]?.name}</DialogTitle>
@@ -1293,7 +1293,7 @@ export default function StreamPage() {
                                     </div>
                                     <div className="flex items-center justify-between">
                                         <Collapsible className="w-full">
-                                            <div className="flex flex-col sm:flex-row items-center gap-4 w-full">
+                                            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 w-full">
                                                 {seller && (
                                                     <>
                                                         <div className="flex items-center gap-3 flex-grow">
@@ -1313,12 +1313,12 @@ export default function StreamPage() {
                                                         <div className="flex items-center gap-2 flex-shrink-0">
                                                             <Button
                                                                 onClick={() => seller && handleFollowToggle(seller.id)}
-                                                                variant={isFollowingState ? 'outline' : 'default'}
+                                                                variant={isFollowingState ? "outline" : "default"}
                                                                 size="sm"
                                                                 className="h-7 w-7 p-0 sm:w-auto sm:px-2 text-xs"
                                                             >
                                                                 <UserPlus className="h-4 w-4 sm:mr-1.5" />
-                                                                <span className="hidden sm:inline">{isFollowingState ? 'Following' : 'Follow'}</span>
+                                                                <span className="hidden sm:inline">{isFollowingState ? "Following" : "Follow"}</span>
                                                             </Button>
                                                             <CollapsibleTrigger asChild>
                                                                 <Button variant="outline" size="sm" className="h-7 gap-1.5 text-xs px-2">
@@ -1623,3 +1623,4 @@ export default function StreamPage() {
         </>
     );
 }
+
