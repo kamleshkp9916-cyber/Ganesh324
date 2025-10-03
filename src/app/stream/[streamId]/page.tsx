@@ -378,9 +378,9 @@ const ChatMessageContent = React.memo(({ msg, index, handlers, post, pinnedMessa
         return <p key={msg.id || index} className="text-xs text-muted-foreground text-center italic my-2">{msg.text}</p>;
     }
     
-     if (msg.type === 'auction_end') {
+    if (msg.type === 'auction_end') {
         return (
-            <Card key={msg.id || index} className="my-2 text-foreground shadow-lg bg-gradient-to-br from-gold/20 via-gold/5 to-gold/20 border-l-4 border-gold">
+             <Card key={msg.id || index} className="my-2 text-foreground shadow-lg bg-gradient-to-br from-gold/20 via-gold/5 to-gold/20 border-l-4 border-gold">
                 <CardContent className="p-3">
                     <div className="flex items-center gap-3">
                         <div className="p-2 bg-gold/20 rounded-full">
@@ -432,11 +432,11 @@ const ChatMessageContent = React.memo(({ msg, index, handlers, post, pinnedMessa
                     </div>
                      {msg.text && <p className="text-xs text-muted-foreground mt-2">{msg.text}</p>}
                     <div className="flex items-center gap-2 mt-3">
-                         <Button size="sm" className="w-full text-xs h-8" onClick={() => handlers.onAddToCart(product)}>
+                         <Button size="sm" variant="secondary" className="w-full text-xs h-8" onClick={() => handlers.onAddToCart(product)}>
                             <ShoppingCart className="w-4 h-4 mr-2"/>
                             Add to Cart
                         </Button>
-                        <Button size="sm" variant="secondary" className="w-full text-xs h-8" onClick={() => handlers.onBuyNow(product)}>
+                        <Button size="sm" className="w-full text-xs h-8" onClick={() => handlers.onBuyNow(product)}>
                             Buy Now
                         </Button>
                     </div>
@@ -1290,7 +1290,7 @@ export default function StreamPage() {
                                 </div>
                             </div>
                             <div className="hidden lg:flex w-[340px] flex-shrink-0 h-full flex-col bg-card relative">
-                                {showPinnedAuction && (
+                                {showPinnedAuction && activeAuction && (
                                     <div className="absolute top-16 left-0 right-0 z-20 p-4 pointer-events-none">
                                         <div className="w-full pointer-events-auto">
                                             <AuctionCard
