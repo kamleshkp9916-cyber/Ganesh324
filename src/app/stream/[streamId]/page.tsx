@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import {
@@ -167,7 +166,7 @@ const mockChatMessages: any[] = [
     { id: 12, user: 'Laura', text: 'BID ₹9,000', avatar: 'https://placehold.co/40x40.png', userColor: '#d35400', userId: 'user7', isBid: true },
     { id: 13, user: 'FashionFinds', text: 'Laura with a bid of ₹9,000! Going once...', avatar: 'https://placehold.co/40x40.png', userColor: '#f1c40f', isSeller: true, userId: 'FashionFinds' },
     { id: 14, user: 'Emily', text: 'How long does the battery last on the light meter?', avatar: 'https://placehold.co/40x40.png', userColor: '#8e44ad', userId: 'user8' },
-    { id: 15, type: 'auction', productId: 'prod_4', active: true, initialTime: 180 },
+    { id: 15, type: 'auction', productId: 'prod_4', active: true, initialTime: 30 },
     { id: 99, type: 'product_pin', productId: 'prod_2', text: 'Special offer on these headphones!' },
     { id: 16, user: 'FashionFinds', text: '@Emily It lasts for about a year with average use!', avatar: 'https://placehold.co/40x40.png', userColor: '#f1c40f', isSeller: true, userId: 'FashionFinds' },
     { id: 17, type: 'system', text: 'Robert purchased Wireless Headphones.' },
@@ -379,7 +378,7 @@ const ChatMessageContent = React.memo(({ msg, index, handlers, post, pinnedMessa
         return <p key={msg.id || index} className="text-xs text-muted-foreground text-center italic my-2">{msg.text}</p>;
     }
     
-    if (msg.type === 'auction_end') {
+     if (msg.type === 'auction_end') {
         return (
             <Card key={msg.id || index} className="my-2 text-foreground shadow-lg bg-gradient-to-br from-gold/20 via-gold/5 to-gold/20 border-l-4 border-gold">
                 <CardContent className="p-3">
@@ -416,11 +415,11 @@ const ChatMessageContent = React.memo(({ msg, index, handlers, post, pinnedMessa
         );
     }
 
-    if (msg.type === 'product_pin') {
+     if (msg.type === 'product_pin') {
         const product = productDetails[msg.productId as keyof typeof productDetails];
         if (!product) return null;
         return (
-            <Card key={msg.id || index} className="my-2 text-foreground shadow-lg bg-card/60">
+            <Card key={msg.id || index} className="my-2 text-foreground shadow-lg bg-card/60 border-none">
                 <CardContent className="p-3">
                     <div className="flex items-center gap-3">
                         <Link href={`/product/${product.key}`} className="w-16 h-16 bg-black rounded-md relative overflow-hidden flex-shrink-0 group" onClick={(e) => e.stopPropagation()}>
@@ -688,7 +687,9 @@ export default function StreamPage() {
             }
         } else {
             // If no active auction is found in chat messages, clear the activeAuction state
-            setActiveAuction(null);
+             if (activeAuction) {
+                setActiveAuction(null);
+            }
         }
     }, [chatMessages, activeAuction]);
 
@@ -708,24 +709,15 @@ export default function StreamPage() {
             }, 1000);
         } else if (auctionTime === 0 && activeAuction && activeAuction.active) {
             const winningBid = [...chatMessages].reverse().find(m => m.isBid);
-            if (winningBid) {
-                const winnerMessage = {
-                    id: Date.now(),
-                    type: 'auction_end',
-                    winner: winningBid.user,
-                    winnerAvatar: winningBid.avatar,
-                    winningBid: winningBid.text.replace('BID ', ''),
-                    productName: productDetails[activeAuction.productId as keyof typeof productDetails].name,
-                };
-                setChatMessages(prev => [...prev, winnerMessage]);
-            } else {
-                 const noWinnerMessage = {
-                    id: Date.now(),
-                    type: 'system',
-                    text: `The auction for ${productDetails[activeAuction.productId as keyof typeof productDetails].name} has ended with no bids.`,
-                };
-                setChatMessages(prev => [...prev, noWinnerMessage]);
-            }
+             const winnerMessage = {
+                id: Date.now(),
+                type: 'auction_end',
+                winner: winningBid ? winningBid.user : "No one",
+                winnerAvatar: winningBid ? winningBid.avatar : null,
+                winningBid: winningBid ? winningBid.text.replace('BID ', '') : 'No bids',
+                productName: productDetails[activeAuction.productId as keyof typeof productDetails].name,
+            };
+            setChatMessages(prev => [...prev, winnerMessage]);
             
             setChatMessages(prev => prev.map(msg => msg.id === activeAuction.id ? { ...msg, active: false } : msg));
             setAuctionTime(null);
