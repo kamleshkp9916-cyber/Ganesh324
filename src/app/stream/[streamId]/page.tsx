@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import {
@@ -379,8 +380,7 @@ const ChatMessageContent = React.memo(({ msg, index, handlers, post, pinnedMessa
         return <p key={msg.id || index} className="text-xs text-muted-foreground text-center italic my-2">{msg.text}</p>;
     }
     
-    if (msg.type === 'auction_end') {
-        if (!seller?.hasAuction) return null;
+    if (msg.type === 'auction_end' && seller?.hasAuction) {
         return (
              <Card key={msg.id || index} className="my-2 text-foreground shadow-lg bg-muted border-l-4 border-foreground">
                 <CardContent className="p-3">
@@ -422,7 +422,7 @@ const ChatMessageContent = React.memo(({ msg, index, handlers, post, pinnedMessa
         if (!product) return null;
         return (
             <div className="my-2">
-                <Card key={msg.id || index} className="bg-transparent border border-border my-2">
+                <Card key={msg.id || index} className="bg-transparent border my-2 border-border shadow-none">
                     <CardContent className="p-0">
                         <div className="flex items-center gap-3 p-3">
                             <Link href={`/product/${product.key}`} className="w-16 h-16 bg-black rounded-md relative overflow-hidden flex-shrink-0 group" onClick={(e) => e.stopPropagation()}>
@@ -430,7 +430,7 @@ const ChatMessageContent = React.memo(({ msg, index, handlers, post, pinnedMessa
                             </Link>
                             <div className="flex-grow">
                                 <Link href={`/product/${product.key}`} className="hover:underline" onClick={(e) => e.stopPropagation()}><h4 className="font-bold leading-tight text-white">{product.name}</h4></Link>
-                                 <p className="text-sm font-bold text-foreground mt-1">{product.price}</p>
+                                 <p className="text-sm font-bold text-foreground mt-1">₹{product.price}</p>
                             </div>
                         </div>
                          {msg.text && <p className="text-xs text-muted-foreground mt-2 px-3 pb-3">{msg.text}</p>}
@@ -590,7 +590,7 @@ export default function StreamPage() {
     const streamId = params.streamId as string;
     const { user } = useAuth();
     const { toast } = useToast();
-    const { minimizeStream, isMinimized } = useMiniPlayer();
+    const { minimizedStream, minimizeStream, closeMinimizedStream, isMinimized } = useMiniPlayer();
     const [walletBalance, setWalletBalance] = useState(42580.22);
     const [bidAmount, setBidAmount] = useState<number | string>("");
     const [isWithdrawOpen, setIsWithdrawOpen] = useState(false);
@@ -642,7 +642,7 @@ export default function StreamPage() {
     const [playbackRate, setPlaybackRate] = useState(1);
     const [skipInterval, setSkipInterval] = useState(10);
     const [isFullscreen, setIsFullscreen] = useState(false);
-    const [isLive, setIsLive] = useState(false);
+    const [isLive, setIsLive] = useState(true);
     const [newMessage, setNewMessage] = useState("");
     const [isProductListVisible, setIsProductListVisible] = useState(false);
     const [replyingTo, setReplyingTo] = useState<{ name: string; id: string } | null>(null);
@@ -653,6 +653,12 @@ export default function StreamPage() {
     const chatContainerRef = useRef<HTMLDivElement>(null);
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const mainScrollRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        if (minimizedStream && minimizedStream.id !== streamId) {
+            closeMinimizedStream();
+        }
+    }, [minimizedStream, streamId, closeMinimizedStream]);
 
 
     const handleMainScroll = (e: React.UIEvent<HTMLDivElement>) => {
@@ -1104,7 +1110,7 @@ export default function StreamPage() {
     }
 
     return (
-        <React.Fragment>
+        <>
             <Dialog open={isBidDialogOpen} onOpenChange={setIsBidDialogOpen}>
                 <DialogContent className="sm:max-w-md bg-background border-border">
                     <DialogHeader>
@@ -1122,7 +1128,7 @@ export default function StreamPage() {
                             </div>
                         </div>
                         <div>
-                            <Label htmlFor="bid-amount" className="text-sm font-medium">Your Bid (must be > ₹{highestBid.toLocaleString()})</Label>
+                            <Label htmlFor="bid-amount" className="text-sm font-medium">Your Bid (must be &gt; ₹{highestBid.toLocaleString()})</Label>
                             <div className="relative mt-1">
                                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">₹</span>
                                 <Input
@@ -1155,8 +1161,7 @@ export default function StreamPage() {
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
-
-             <Dialog open={isBidHistoryOpen} onOpenChange={setIsBidHistoryOpen}>
+            <Dialog open={isBidHistoryOpen} onOpenChange={setIsBidHistoryOpen}>
                 <DialogContent>
                     <DialogHeader>
                         <DialogTitle>Bid History for {productDetails[activeAuction?.productId as keyof typeof productDetails]?.name}</DialogTitle>
@@ -1209,7 +1214,7 @@ export default function StreamPage() {
                         </header>
 
                         <div className="flex flex-1 overflow-hidden relative">
-                             <div className="flex-1 overflow-y-auto no-scrollbar relative" ref={mainScrollRef} onScroll={handleMainScroll}>
+                             <div className="flex-1 overflow-y-auto no-scrollbar relative" ref={mainScrollRef}>
                                 {showGoToTop && (
                                     <Button
                                         size="icon"
@@ -1336,7 +1341,7 @@ export default function StreamPage() {
                                                                                     <p className="text-sm font-bold mt-1">₹{p.price.toLocaleString('en-IN')}</p>
                                                                                     <div className="flex items-center gap-1 text-xs text-amber-400 mt-1">
                                                                                         <Star className="w-3 h-3 fill-current" />
-                                                                                        <span>4.8</span>
+                                                                                        <span>{p.rating || '4.8'}</span>
                                                                                         <span className="text-muted-foreground text-[10px]">({p.reviews || 25})</span>
                                                                                     </div>
                                                                                     <p className="text-[10px] text-muted-foreground mt-1">{p.sold || 120} sold</p>
@@ -1599,6 +1604,6 @@ export default function StreamPage() {
                     />
                 </DialogContent>
             </Dialog>
-        </React.Fragment>
+        </>
     );
 }
