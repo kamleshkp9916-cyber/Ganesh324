@@ -436,7 +436,7 @@ const ChatMessageContent = React.memo(({ msg, index, handlers, post, pinnedMessa
                             <ShoppingCart className="w-4 h-4 mr-2"/>
                             Add to Cart
                         </Button>
-                        <Button size="sm" className="w-full text-xs h-8" onClick={() => handlers.onBuyNow(product)}>
+                        <Button size="sm" className="w-full text-xs h-8" onClick={() => handlers.onBuyNow(product)} variant="default">
                             Buy Now
                         </Button>
                     </div>
@@ -686,12 +686,21 @@ export default function StreamPage() {
                 setAuctionTime(currentActiveAuction.initialTime);
             }
         } else {
-            // If no active auction is found in chat messages, clear the activeAuction state
-             if (activeAuction) {
-                setActiveAuction(null);
-            }
+             if (activeAuction && auctionTime === 0) {
+                 const winningBid = [...chatMessages].reverse().find(m => m.isBid);
+                 const winnerMessage = {
+                    id: Date.now(),
+                    type: 'auction_end',
+                    winner: winningBid ? winningBid.user : "No one",
+                    winnerAvatar: winningBid ? winningBid.avatar : null,
+                    winningBid: winningBid ? winningBid.text.replace('BID ', '') : 'No bids',
+                    productName: productDetails[activeAuction.productId as keyof typeof productDetails].name,
+                };
+                setChatMessages(prev => [...prev, winnerMessage]);
+             }
+             setActiveAuction(null);
         }
-    }, [chatMessages, activeAuction]);
+    }, [chatMessages, activeAuction, auctionTime]);
 
     
     useEffect(() => {
@@ -708,23 +717,11 @@ export default function StreamPage() {
                 });
             }, 1000);
         } else if (auctionTime === 0 && activeAuction && activeAuction.active) {
-            const winningBid = [...chatMessages].reverse().find(m => m.isBid);
-             const winnerMessage = {
-                id: Date.now(),
-                type: 'auction_end',
-                winner: winningBid ? winningBid.user : "No one",
-                winnerAvatar: winningBid ? winningBid.avatar : null,
-                winningBid: winningBid ? winningBid.text.replace('BID ', '') : 'No bids',
-                productName: productDetails[activeAuction.productId as keyof typeof productDetails].name,
-            };
-            setChatMessages(prev => [...prev, winnerMessage]);
-            
             setChatMessages(prev => prev.map(msg => msg.id === activeAuction.id ? { ...msg, active: false } : msg));
             setAuctionTime(null);
-            // activeAuction is cleared by the other useEffect
         }
         return () => { if (timer) clearInterval(timer) };
-    }, [auctionTime, activeAuction, chatMessages]);
+    }, [auctionTime, activeAuction]);
 
     const handlePlayPause = useCallback(() => {
         const video = videoRef.current;
@@ -1114,7 +1111,7 @@ export default function StreamPage() {
                                         <div className="flex items-center justify-between">
                                             <h1 className="font-bold text-lg hidden sm:block text-white">{streamData.title || "Live Event"}</h1>
                                             <Badge variant="secondary" className="gap-1.5">
-                                                <Users className="h-3 w-3" /> {Math.round(streamData.viewerCount / 1000)}K watching
+                                                <Users className="h-3 w-3" /> {streamData.viewerCount.toLocaleString()} watching
                                             </Badge>
                                         </div>
                                         <div className="flex-1 flex items-center justify-center gap-4 sm:gap-8 text-white">
