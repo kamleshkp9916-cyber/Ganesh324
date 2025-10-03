@@ -426,7 +426,7 @@ const ChatMessageContent = React.memo(({ msg, index, handlers, post, pinnedMessa
             <div className="my-2">
                 <Card key={msg.id || index} className="bg-transparent my-2 border border-border">
                     <CardContent className="p-0">
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-3 p-3">
                             <Link href={`/product/${product.key}`} className="w-16 h-16 bg-black rounded-md relative overflow-hidden flex-shrink-0 group" onClick={(e) => e.stopPropagation()}>
                                 <Image src={product.images[0]} alt={product.name} fill className="object-cover group-hover:scale-105 transition-transform" />
                             </Link>
@@ -435,16 +435,18 @@ const ChatMessageContent = React.memo(({ msg, index, handlers, post, pinnedMessa
                                  <p className="text-sm font-bold text-foreground mt-1">{product.price}</p>
                             </div>
                         </div>
-                         {msg.text && <p className="text-xs text-muted-foreground mt-2">{msg.text}</p>}
-                        <div className="flex items-center gap-2 mt-3">
-                            <Button size="sm" variant="secondary" className="w-full text-xs h-8" onClick={() => handlers.onAddToCart(product)}>
-                                <ShoppingCart className="w-4 h-4 mr-2"/>
-                                Add to Cart
-                            </Button>
-                            <Button size="sm" className="w-full text-xs h-8" onClick={() => handlers.onBuyNow(product)} variant="default">
-                                Buy Now
-                            </Button>
-                        </div>
+                         {msg.text && <p className="text-xs text-muted-foreground mt-2 px-3 pb-3">{msg.text}</p>}
+                        <CardFooter className="p-2 bg-muted/50 border-t">
+                            <div className="flex items-center gap-2 w-full">
+                                <Button size="sm" variant="secondary" className="w-full text-xs h-8" onClick={() => handlers.onAddToCart(product)}>
+                                    <ShoppingCart className="w-4 h-4 mr-2"/>
+                                    Add to Cart
+                                </Button>
+                                <Button size="sm" className="w-full text-xs h-8" onClick={() => handlers.onBuyNow(product)} variant="default">
+                                    Buy Now
+                                </Button>
+                            </div>
+                        </CardFooter>
                     </CardContent>
                 </Card>
             </div>
@@ -653,15 +655,18 @@ export default function StreamPage() {
 
     const sellerProducts = useMemo(() => {
         if (!seller) return [];
-        const allProducts = Object.values(productDetails);
-        const productsForSeller = allProducts.filter(p => productToSellerMapping[p.key]?.name === seller.name && p.stock > 0);
-        // Add 15 mock products for demonstration
-        if (productsForSeller.length < 15) {
-            const needed = 15 - productsForSeller.length;
-            const otherProducts = allProducts.filter(p => !productsForSeller.some(sp => sp.key === p.key)).slice(0, needed);
-            return [...productsForSeller, ...otherProducts];
+        const baseProducts = Object.values(productDetails).filter(
+            p => productToSellerMapping[p.key]?.name === seller.name && p.stock > 0
+        );
+
+        if (baseProducts.length < 15) {
+            const needed = 15 - baseProducts.length;
+            const otherProducts = Object.values(productDetails)
+                .filter(p => !baseProducts.some(sp => sp.key === p.key))
+                .slice(0, needed);
+            return [...baseProducts, ...otherProducts];
         }
-        return productsForSeller;
+        return baseProducts;
     }, [seller]);
     
     const relatedStreams = useMemo(() => {
@@ -702,7 +707,7 @@ export default function StreamPage() {
             setAuctionTime(currentActiveAuction.initialTime);
         } else if (activeAuction && !chatMessages.some(msg => msg.type === 'auction' && msg.id === activeAuction.id && msg.active)) {
              const auctionEndedMessageExists = chatMessages.some(msg => msg.type === 'auction_end' && msg.auctionId === activeAuction.id);
-            if (!auctionEndedMessageExists) {
+            if (!auctionEndedMessageExists && seller?.hasAuction) {
                  const winningBid = [...chatMessages].reverse().find(m => m.isBid);
                 const winnerMessage = {
                     id: Date.now(),
@@ -717,7 +722,7 @@ export default function StreamPage() {
             }
             setActiveAuction(null);
         }
-    }, [chatMessages, activeAuction]);
+    }, [chatMessages, activeAuction, seller?.hasAuction]);
     
     useEffect(() => {
         let timer: NodeJS.Timeout | undefined;
@@ -1225,7 +1230,7 @@ export default function StreamPage() {
                                                         <CarouselContent className="-ml-2">
                                                             {sellerProducts.map((p, index) => (
                                                                 <CarouselItem key={index} className="pl-2 basis-auto">
-                                                                    <div className="w-32">
+                                                                    <div className="w-40">
                                                                         <Card className="h-full flex flex-col overflow-hidden bg-card text-card-foreground">
                                                                             <Link href={`/product/${p.key}`}>
                                                                                 <div className="aspect-square bg-muted rounded-t-lg relative">
@@ -1236,9 +1241,15 @@ export default function StreamPage() {
                                                                                         </div>
                                                                                     )}
                                                                                 </div>
-                                                                                <div className="p-1.5">
+                                                                                <div className="p-2 flex-grow">
                                                                                     <p className="text-[11px] font-semibold truncate leading-tight">{p.name}</p>
-                                                                                    <p className="text-xs font-bold">₹{p.price.toLocaleString()}</p>
+                                                                                    <p className="text-sm font-bold mt-1">{p.price}</p>
+                                                                                    <div className="flex items-center gap-1 text-xs text-amber-400 mt-1">
+                                                                                        <Star className="w-3 h-3 fill-current" />
+                                                                                        <span>4.8</span>
+                                                                                        <span className="text-muted-foreground text-[10px]">({p.reviews || 25})</span>
+                                                                                    </div>
+                                                                                    <p className="text-[10px] text-muted-foreground mt-1">{p.sold || 120} sold</p>
                                                                                 </div>
                                                                             </Link>
                                                                             <CardFooter className="p-1.5 mt-auto grid grid-cols-2 gap-1">
@@ -1269,7 +1280,7 @@ export default function StreamPage() {
                                             <Link href="/live-selling">More</Link>
                                         </Button>
                                       </div>
-                                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6 gap-2 md:gap-4">
+                                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-4 gap-2 md:gap-4">
                                             {relatedStreams.map((s: any) => (
                                                 <Link href={`/stream/${s.id}`} key={s.id} className="group">
                                                     <div className="relative rounded-lg overflow-hidden aspect-[16/9] bg-muted">
