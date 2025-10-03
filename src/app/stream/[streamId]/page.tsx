@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import {
@@ -63,6 +62,7 @@ import {
   Twitch,
   Facebook,
   Reddit,
+  ArrowUp,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -531,7 +531,7 @@ const AuctionCard = React.memo(({
         <div ref={cardRef}>
             <Card
                 className={cn(
-                    "text-white border-2 bg-black/80 backdrop-blur-sm my-2",
+                    "text-white border-2 bg-black/80 backdrop-blur-sm",
                     "border-gray-700",
                     isPinned && "cursor-pointer"
                 )}
@@ -640,6 +640,7 @@ export default function StreamPage() {
     const [isProductListVisible, setIsProductListVisible] = useState(false);
     const [replyingTo, setReplyingTo] = useState<{ name: string; id: string } | null>(null);
     const [showScrollToBottom, setShowScrollToBottom] = useState(false);
+    const [showGoToTop, setShowGoToTop] = useState(false);
     
     const seller = useMemo(() => liveSellers.find(s => s.id === streamId), [streamId]);
     const product = productDetails[seller?.productId as keyof typeof productDetails];
@@ -658,19 +659,21 @@ export default function StreamPage() {
         let streams = liveSellers.filter(
             s => s.category === product.category && s.productId !== product.key
         );
-        if (streams.length > 5) {
-            return streams.slice(0, 6);
+        if (streams.length > 50) {
+            return streams.slice(0, 51);
         }
+        // Fallback to show some streams if none match the category, excluding the current one
         const fallbackStreams = liveSellers.filter(s => s.productId !== product.key);
         
+        // Add from fallback until we have 6 total, avoiding duplicates
         let i = 0;
-        while(streams.length < 6 && i < fallbackStreams.length) {
+        while(streams.length < 51 && i < fallbackStreams.length) {
             if (!streams.some(s => s.id === fallbackStreams[i].id)) {
                 streams.push(fallbackStreams[i]);
             }
             i++;
         }
-        return streams.slice(0,6);
+        return streams.slice(0,51);
     }, [product]);
     
     const formatTime = (timeInSeconds: number) => {
@@ -807,6 +810,23 @@ export default function StreamPage() {
         }
     }, [duration, isLive]);
     
+    useEffect(() => {
+        const handleScroll = () => {
+            if (window.scrollY > 400) {
+                setShowGoToTop(true);
+            } else {
+                setShowGoToTop(false);
+            }
+        };
+
+        window.addEventListener('scroll', handleScroll);
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, []);
+
+    const scrollToTop = () => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
     const handlePlaybackRateChange = (rate: number) => {
         const video = videoRef.current;
         if (video) {
@@ -1254,7 +1274,7 @@ export default function StreamPage() {
                                             <Link href="/live-selling">More</Link>
                                         </Button>
                                       </div>
-                                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-4">
                                             {relatedStreams.map((s: any) => (
                                                 <Link href={`/stream/${s.id}`} key={s.id} className="group">
                                                     <div className="relative rounded-lg overflow-hidden aspect-[16/9] bg-muted">
@@ -1449,6 +1469,13 @@ export default function StreamPage() {
                             </div>
                         </div>
                     </div>
+                    {showGoToTop && (
+                        <div className="fixed bottom-24 right-4 z-50">
+                            <Button size="icon" className="rounded-full shadow-lg" onClick={scrollToTop}>
+                                <ArrowUp className="h-5 w-5" />
+                            </Button>
+                        </div>
+                    )}
                     <AlertDialogContent>
                         <AlertDialogHeader>
                             <AlertDialogTitle>Report Stream</AlertDialogTitle>
@@ -1475,3 +1502,5 @@ export default function StreamPage() {
         </React.Fragment>
     );
 }
+
+    
