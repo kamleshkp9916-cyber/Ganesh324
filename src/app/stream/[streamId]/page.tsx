@@ -424,7 +424,7 @@ const ChatMessageContent = React.memo(({ msg, index, handlers, post, pinnedMessa
         if (!product) return null;
         return (
             <div className="my-2">
-                <Card key={msg.id || index} className="bg-transparent border shadow-none my-2">
+                <Card key={msg.id || index} className="bg-transparent border my-2">
                     <CardContent className="p-0">
                         <div className="flex items-center gap-3 p-3">
                             <Link href={`/product/${product.key}`} className="w-16 h-16 bg-black rounded-md relative overflow-hidden flex-shrink-0 group" onClick={(e) => e.stopPropagation()}>
@@ -828,6 +828,13 @@ export default function StreamPage() {
             };
         }
     }, [duration, isLive]);
+    
+    useEffect(() => {
+        const video = videoRef.current;
+        if (video) {
+            video.muted = isMuted;
+        }
+    }, [isMuted]);
     
     const handlePlaybackRateChange = (rate: number) => {
         const video = videoRef.current;
@@ -1251,7 +1258,7 @@ export default function StreamPage() {
                                                                                 </div>
                                                                                 <div className="p-2 flex-grow">
                                                                                     <p className="text-[11px] font-semibold truncate leading-tight">{p.name}</p>
-                                                                                    <p className="text-sm font-bold mt-1">₹{p.price}</p>
+                                                                                    <p className="text-sm font-bold mt-1">{p.price}</p>
                                                                                     <div className="flex items-center gap-1 text-xs text-amber-400 mt-1">
                                                                                         <Star className="w-3 h-3 fill-current" />
                                                                                         <span>4.8</span>
@@ -1509,3 +1516,4 @@ export default function StreamPage() {
         </React.Fragment>
     );
 }
+
