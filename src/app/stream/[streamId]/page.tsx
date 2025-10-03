@@ -113,7 +113,7 @@ import { Switch } from "@/components/ui/switch";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useInView } from "react-intersection-observer";
 import { useMiniPlayer } from "@/context/MiniPlayerContext";
-import { Sheet, SheetContent } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetClose } from "@/components/ui/sheet";
 
 
 const emojis = [
@@ -1308,7 +1308,7 @@ export default function StreamPage() {
     );
 
     return (
-        <>
+        <React.Fragment>
             <Dialog open={isBidDialogOpen} onOpenChange={setIsBidDialogOpen}>
                 <DialogContent className="sm:max-w-md bg-background border-border">
                     <DialogHeader>
@@ -1359,6 +1359,7 @@ export default function StreamPage() {
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
+            
             <Dialog open={isBidHistoryOpen} onOpenChange={setIsBidHistoryOpen}>
                 <DialogContent>
                     <DialogHeader>
@@ -1382,6 +1383,7 @@ export default function StreamPage() {
                     </ScrollArea>
                 </DialogContent>
             </Dialog>
+
             <Dialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
                 <AlertDialog>
                     <div className="h-dvh w-full flex flex-col bg-background text-foreground">
@@ -1487,16 +1489,17 @@ export default function StreamPage() {
                                                             <AvatarImage src={seller.avatarUrl} />
                                                             <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
                                                         </Avatar>
-                                                        <h3 className="font-semibold truncate">{seller.name}</h3>
-                                                          <Button
-                                                              onClick={() => seller && handleFollowToggle(seller.id)}
-                                                              variant={isFollowingState ? "outline" : "secondary"}
-                                                              size="sm"
-                                                              className="h-7 w-7 p-0 sm:w-auto sm:px-2 text-xs"
-                                                          >
-                                                              <UserPlus className="h-4 w-4 sm:mr-1.5" />
-                                                              <span className="hidden sm:inline">{isFollowingState ? "Following" : "Follow"}</span>
-                                                          </Button>
+                                                        <div className="flex items-center gap-2 flex-wrap">
+                                                            <h3 className="font-semibold truncate">{seller.name}</h3>
+                                                              <Button
+                                                                onClick={() => seller && handleFollowToggle(seller.id)}
+                                                                variant={isFollowingState ? "outline" : "secondary"}
+                                                                size="sm"
+                                                                className="h-7 w-7 p-0 sm:w-auto sm:px-2 text-xs"
+                                                            >
+                                                                <UserPlus className="h-4 w-4 sm:mr-1.5" />
+                                                                <span className="hidden sm:inline">{isFollowingState ? "Following" : "Follow"}</span>
+                                                            </Button>
                                                             <Button
                                                               variant="outline"
                                                               size="sm"
@@ -1508,6 +1511,7 @@ export default function StreamPage() {
                                                                 <span className="hidden sm:inline">View Products ({sellerProducts.length})</span>
                                                               </Link>
                                                             </Button>
+                                                        </div>
                                                     </div>
                                                 )}
                                             </div>
@@ -1561,7 +1565,7 @@ export default function StreamPage() {
                                     </div>
                                 </div>
                             </div>
-                            <div className={cn("w-[340px] flex-shrink-0 h-full flex-col bg-card relative", !isChatPanelOpen && "hidden", "lg:flex")}>
+                            <div className="w-[340px] flex-shrink-0 h-full flex-col bg-card relative hidden lg:flex">
                                 <ChatPanel />
                             </div>
                         </div>
@@ -1601,11 +1605,17 @@ export default function StreamPage() {
             
             {/* Mobile Chat Sheet */}
             <Sheet open={isChatPanelOpen} onOpenChange={setIsChatPanelOpen}>
-                <SheetContent side="bottom" className="h-[60dvh] p-0 flex flex-col lg:hidden">
+                 <SheetContent side="bottom" className="h-[60dvh] p-0 flex flex-col lg:hidden">
+                    <div className="absolute top-3 right-3">
+                        <SheetClose asChild>
+                            <Button variant="ghost" size="icon">
+                                <X className="h-5 w-5" />
+                            </Button>
+                        </SheetClose>
+                    </div>
                     <ChatPanel />
                 </SheetContent>
             </Sheet>
-        </>
+        </React.Fragment>
     );
 }
-
