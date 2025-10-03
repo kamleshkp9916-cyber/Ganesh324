@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import {
@@ -380,7 +381,7 @@ const ChatMessageContent = React.memo(({ msg, index, handlers, post, pinnedMessa
     
     if (msg.type === 'auction_end') {
         return (
-            <Card key={msg.id || index} className="my-2 text-foreground shadow-lg bg-muted border-l-4 border-foreground">
+             <Card key={msg.id || index} className="my-2 text-foreground shadow-lg bg-muted border-l-4 border-foreground">
                 <CardContent className="p-3">
                     <div className="flex items-center gap-3">
                         <div className="p-2 bg-secondary rounded-full">
@@ -679,31 +680,38 @@ export default function StreamPage() {
     };
     
     useEffect(() => {
-        const currentActiveAuction = chatMessages.find(msg => msg.type === 'auction' && msg.active);
-        if (currentActiveAuction) {
-            if (!activeAuction || activeAuction.id !== currentActiveAuction.id) {
-                setActiveAuction(currentActiveAuction);
-                setAuctionTime(currentActiveAuction.initialTime);
-            }
-        } else {
-             if (activeAuction && auctionTime === 0) {
-                 const winningBid = [...chatMessages].reverse().find(m => m.isBid);
-                 const winnerMessage = {
-                    id: Date.now(),
-                    type: 'auction_end',
-                    winner: winningBid ? winningBid.user : "No one",
-                    winnerAvatar: winningBid ? winningBid.avatar : null,
-                    winningBid: winningBid ? winningBid.text.replace('BID ', '') : 'No bids',
-                    productName: productDetails[activeAuction.productId as keyof typeof productDetails].name,
-                };
-                setChatMessages(prev => [...prev, winnerMessage]);
-                setActiveAuction(null); // Clear the active auction *after* posting the end message
-             } else if(activeAuction && auctionTime === null){
-                 setActiveAuction(null);
-             }
-        }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [chatMessages, activeAuction, auctionTime]);
+      const currentActiveAuction = chatMessages.find(msg => msg.type === 'auction' && msg.active);
+      if (currentActiveAuction) {
+          if (!activeAuction || activeAuction.id !== currentActiveAuction.id) {
+              setActiveAuction(currentActiveAuction);
+              setAuctionTime(currentActiveAuction.initialTime);
+          }
+      } else {
+          if (activeAuction && auctionTime === 0) {
+              const lastAuctionId = activeAuction.id;
+              // Check if an "auction_end" message for this auction already exists
+              const alreadyEnded = chatMessages.some(m => m.type === 'auction_end' && m.auctionId === lastAuctionId);
+              
+              if (!alreadyEnded) {
+                   const winningBid = [...chatMessages].reverse().find(m => m.isBid);
+                   const winnerMessage = {
+                      id: Date.now(),
+                      type: 'auction_end',
+                      auctionId: lastAuctionId, // Associate with the specific auction
+                      winner: winningBid ? winningBid.user : "No one",
+                      winnerAvatar: winningBid ? winningBid.avatar : null,
+                      winningBid: winningBid ? winningBid.text.replace('BID ', '') : 'No bids',
+                      productName: productDetails[activeAuction.productId as keyof typeof productDetails].name,
+                  };
+                  setChatMessages(prev => [...prev, winnerMessage]);
+              }
+              setActiveAuction(null); // Clear the active auction *after* posting the end message
+           } else if(activeAuction && auctionTime === null){
+               setActiveAuction(null);
+           }
+      }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [chatMessages, auctionTime]);
 
     
     useEffect(() => {
@@ -721,7 +729,7 @@ export default function StreamPage() {
             }, 1000);
         } else if (auctionTime === 0 && activeAuction && activeAuction.active) {
             setChatMessages(prev => prev.map(msg => msg.id === activeAuction.id ? { ...msg, active: false } : msg));
-            setAuctionTime(null);
+            // Don't set auction time to null here, let the other useEffect handle it.
         }
         return () => { if (timer) clearInterval(timer) };
     }, [auctionTime, activeAuction]);
@@ -1131,11 +1139,11 @@ export default function StreamPage() {
                                             </div>
                                             <div className="flex items-center justify-between">
                                                 <div className="flex items-center gap-2 sm:gap-4">
-                                                    <Button
+                                                     <Button
                                                         variant="destructive"
                                                         className="gap-1.5 h-8 text-xs sm:text-sm"
                                                         onClick={handleGoLive}
-                                                        disabled={isLive || (duration - currentTime) < 2}
+                                                        disabled={isLive}
                                                     >
                                                         <div className={cn("h-2 w-2 rounded-full bg-white", !isLive && "animate-pulse")} />
                                                         {isLive ? 'LIVE' : 'Go Live'}
