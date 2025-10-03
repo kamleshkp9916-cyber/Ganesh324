@@ -422,7 +422,7 @@ const ChatMessageContent = React.memo(({ msg, index, handlers, post, pinnedMessa
         if (!product) return null;
         return (
             <div className="my-2">
-                <Card key={msg.id || index} className="bg-transparent border my-2 border-border shadow-none">
+                <Card key={msg.id || index} className="bg-transparent border my-2 border-border">
                     <CardContent className="p-0">
                         <div className="flex items-center gap-3 p-3">
                             <Link href={`/product/${product.key}`} className="w-16 h-16 bg-black rounded-md relative overflow-hidden flex-shrink-0 group" onClick={(e) => e.stopPropagation()}>
@@ -430,7 +430,7 @@ const ChatMessageContent = React.memo(({ msg, index, handlers, post, pinnedMessa
                             </Link>
                             <div className="flex-grow">
                                 <Link href={`/product/${product.key}`} className="hover:underline" onClick={(e) => e.stopPropagation()}><h4 className="font-bold leading-tight text-white">{product.name}</h4></Link>
-                                 <p className="text-sm font-bold text-foreground mt-1">₹{product.price}</p>
+                                 <p className="text-sm font-bold text-foreground mt-1">{product.price}</p>
                             </div>
                         </div>
                          {msg.text && <p className="text-xs text-muted-foreground mt-2 px-3 pb-3">{msg.text}</p>}
@@ -1184,8 +1184,6 @@ export default function StreamPage() {
                     </ScrollArea>
                 </DialogContent>
             </Dialog>
-
-
             <Dialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
                 <AlertDialog>
                     <div className="h-dvh w-full flex flex-col bg-background text-foreground">
@@ -1214,7 +1212,7 @@ export default function StreamPage() {
                         </header>
 
                         <div className="flex flex-1 overflow-hidden relative">
-                             <div className="flex-1 overflow-y-auto no-scrollbar relative" ref={mainScrollRef}>
+                             <div className="flex-1 overflow-y-auto no-scrollbar relative" ref={mainScrollRef} onScroll={handleMainScroll}>
                                 {showGoToTop && (
                                     <Button
                                         size="icon"
@@ -1302,17 +1300,23 @@ export default function StreamPage() {
                                                             </div>
                                                         </div>
                                                         <div className="flex items-center gap-2 flex-shrink-0">
-                                                            <Button variant="secondary" size="sm" className="h-7">
-                                                                <UserPlus className="mr-1.5 h-4 w-4" /> Follow
+                                                            <Button
+                                                                variant={isFollowingState ? 'outline' : 'secondary'}
+                                                                size="sm"
+                                                                className="h-7 w-7 p-0 sm:w-auto sm:px-2 text-xs"
+                                                            >
+                                                                <UserPlus className="h-4 w-4 sm:mr-1.5" />
+                                                                <span className="hidden sm:inline">{isFollowingState ? 'Following' : 'Follow'}</span>
                                                             </Button>
                                                             <CollapsibleTrigger asChild>
-                                                                <Button variant="outline" size="sm" className="h-7 gap-1.5">
-                                                                    <ShoppingBag className="w-4 h-4" /> View Products ({sellerProducts.length})
+                                                                <Button variant="outline" size="sm" className="h-7 w-7 p-0 sm:w-auto sm:px-2 text-xs">
+                                                                    <ShoppingBag className="w-4 h-4 sm:mr-1.5" />
+                                                                    <span className="hidden sm:inline">View Products ({sellerProducts.length})</span>
                                                                 </Button>
                                                             </CollapsibleTrigger>
                                                             {seller.hasAuction && (
                                                                 <Badge variant="info" className="flex items-center gap-1.5 h-7">
-                                                                    <Gavel className="w-4 h-4" /> Auction
+                                                                    <Gavel className="w-4 h-4" /> <span className="hidden sm:inline">Auction</span>
                                                                 </Badge>
                                                             )}
                                                         </div>
