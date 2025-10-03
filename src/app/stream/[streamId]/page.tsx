@@ -420,29 +420,31 @@ const ChatMessageContent = React.memo(({ msg, index, handlers, post, pinnedMessa
         const product = productDetails[msg.productId as keyof typeof productDetails];
         if (!product) return null;
         return (
-            <Card key={msg.id || index} className="mt-2 bg-transparent border-none shadow-none">
-                <CardContent className="p-0">
-                    <div className="flex items-center gap-3">
-                        <Link href={`/product/${product.key}`} className="w-16 h-16 bg-black rounded-md relative overflow-hidden flex-shrink-0 group" onClick={(e) => e.stopPropagation()}>
-                            <Image src={product.images[0]} alt={product.name} fill className="object-cover group-hover:scale-105 transition-transform" />
-                        </Link>
-                        <div className="flex-grow">
-                            <Link href={`/product/${product.key}`} className="hover:underline" onClick={(e) => e.stopPropagation()}><h4 className="font-bold leading-tight text-white">{product.name}</h4></Link>
-                             <p className="text-sm font-bold text-foreground mt-1">{product.price}</p>
+            <div className="mt-2">
+                <Card key={msg.id || index} className="bg-transparent border-none shadow-none">
+                    <CardContent className="p-0">
+                        <div className="flex items-center gap-3">
+                            <Link href={`/product/${product.key}`} className="w-16 h-16 bg-black rounded-md relative overflow-hidden flex-shrink-0 group" onClick={(e) => e.stopPropagation()}>
+                                <Image src={product.images[0]} alt={product.name} fill className="object-cover group-hover:scale-105 transition-transform" />
+                            </Link>
+                            <div className="flex-grow">
+                                <Link href={`/product/${product.key}`} className="hover:underline" onClick={(e) => e.stopPropagation()}><h4 className="font-bold leading-tight text-white">{product.name}</h4></Link>
+                                 <p className="text-sm font-bold text-foreground mt-1">{product.price}</p>
+                            </div>
                         </div>
-                    </div>
-                     {msg.text && <p className="text-xs text-muted-foreground mt-2">{msg.text}</p>}
-                    <div className="flex items-center gap-2 mt-3">
-                        <Button size="sm" variant="secondary" className="w-full text-xs h-8" onClick={() => handlers.onAddToCart(product)}>
-                            <ShoppingCart className="w-4 h-4 mr-2"/>
-                            Add to Cart
-                        </Button>
-                        <Button size="sm" className="w-full text-xs h-8" onClick={() => handlers.onBuyNow(product)} variant="default">
-                            Buy Now
-                        </Button>
-                    </div>
-                </CardContent>
-            </Card>
+                         {msg.text && <p className="text-xs text-muted-foreground mt-2">{msg.text}</p>}
+                        <div className="flex items-center gap-2 mt-3">
+                            <Button size="sm" variant="secondary" className="w-full text-xs h-8" onClick={() => handlers.onAddToCart(product)}>
+                                <ShoppingCart className="w-4 h-4 mr-2"/>
+                                Add to Cart
+                            </Button>
+                            <Button size="sm" className="w-full text-xs h-8" onClick={() => handlers.onBuyNow(product)} variant="default">
+                                Buy Now
+                            </Button>
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
         );
     }
 
@@ -687,7 +689,6 @@ export default function StreamPage() {
                 setAuctionTime(currentActiveAuction.initialTime);
             }
         } else if (activeAuction) {
-            // If there's an activeAuction in state but not in chat, it means it just ended.
             const auctionJustEnded = !chatMessages.some(msg => msg.id === activeAuction.id && msg.active);
             if (auctionJustEnded && auctionTime === 0) {
                  const alreadyHasEndMessage = chatMessages.some(m => m.type === 'auction_end' && m.auctionId === activeAuction.id);
@@ -704,14 +705,12 @@ export default function StreamPage() {
                     };
                     setChatMessages(prev => [...prev, winnerMessage]);
                  }
-                 setActiveAuction(null); // Now clear it
+                 setActiveAuction(null);
             } else if (auctionTime === null) {
-                // If time becomes null (e.g. manually stopped), clear it
                 setActiveAuction(null);
             }
         }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [chatMessages, auctionTime]);
+    }, [chatMessages, activeAuction, auctionTime]);
     
     useEffect(() => {
         let timer: NodeJS.Timeout | undefined;
