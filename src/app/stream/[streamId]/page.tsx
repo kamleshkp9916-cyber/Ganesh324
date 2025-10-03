@@ -168,6 +168,7 @@ const mockChatMessages: any[] = [
     { id: 13, user: 'FashionFinds', text: 'Laura with a bid of ₹9,000! Going once...', avatar: 'https://placehold.co/40x40.png', userColor: '#f1c40f', isSeller: true, userId: 'FashionFinds' },
     { id: 14, user: 'Emily', text: 'How long does the battery last on the light meter?', avatar: 'https://placehold.co/40x40.png', userColor: '#8e44ad', userId: 'user8' },
     { id: 15, type: 'auction', productId: 'prod_4', active: true, initialTime: 180 },
+    { id: 99, type: 'product_pin', productId: 'prod_2', text: 'Special offer on these headphones!' },
     { id: 16, user: 'FashionFinds', text: '@Emily It lasts for about a year with average use!', avatar: 'https://placehold.co/40x40.png', userColor: '#f1c40f', isSeller: true, userId: 'FashionFinds' },
     { id: 17, type: 'system', text: 'Robert purchased Wireless Headphones.' },
     { id: 18, user: 'Ganesh', text: 'Can you show the back of the camera?', avatar: 'https://placehold.co/40x40.png', userColor: '#3498db', userId: 'user1' },
@@ -372,6 +373,8 @@ const renderContentWithHashtags = (text: string) => {
 
 const ChatMessageContent = React.memo(({ msg, index, handlers, post, pinnedMessages }: { msg: any; index: number, handlers: any, post: any, pinnedMessages: any[] }) => {
     const { user } = useAuth();
+    const router = useRouter();
+
     if (msg.type === 'system') {
         return <p key={msg.id || index} className="text-xs text-muted-foreground text-center italic my-2">{msg.text}</p>;
     }
@@ -412,6 +415,38 @@ const ChatMessageContent = React.memo(({ msg, index, handlers, post, pinnedMessa
             </div>
         );
     }
+
+    if (msg.type === 'product_pin') {
+        const product = productDetails[msg.productId as keyof typeof productDetails];
+        if (!product) return null;
+        return (
+             <Card key={msg.id || index} className="my-2 text-foreground shadow-lg bg-muted/40 border-l-4 border-primary">
+                <CardContent className="p-3">
+                    <div className="flex items-center gap-3">
+                        <Link href={`/product/${product.key}`} className="w-16 h-16 bg-black rounded-md relative overflow-hidden flex-shrink-0 group" onClick={(e) => e.stopPropagation()}>
+                            <Image src={product.images[0]} alt={product.name} fill className="object-cover group-hover:scale-105 transition-transform" />
+                        </Link>
+                        <div className="flex-grow">
+                            <p className="text-xs text-primary font-bold">PINNED PRODUCT</p>
+                            <Link href={`/product/${product.key}`} className="hover:underline" onClick={(e) => e.stopPropagation()}><h4 className="font-bold leading-tight mt-0 text-white">{product.name}</h4></Link>
+                             <p className="text-sm font-bold text-foreground mt-1">{product.price}</p>
+                        </div>
+                    </div>
+                     {msg.text && <p className="text-xs text-muted-foreground mt-2">{msg.text}</p>}
+                    <div className="flex items-center gap-2 mt-3">
+                         <Button size="sm" className="w-full text-xs h-8" onClick={() => handlers.onAddToCart(product)}>
+                            <ShoppingCart className="w-4 h-4 mr-2"/>
+                            Add to Cart
+                        </Button>
+                        <Button size="sm" variant="secondary" className="w-full text-xs h-8" onClick={() => handlers.onBuyNow(product)}>
+                            Buy Now
+                        </Button>
+                    </div>
+                </CardContent>
+            </Card>
+        );
+    }
+
     if (msg.user) {
         const isPostAuthor = user?.uid === post.sellerId;
 
@@ -966,7 +1001,7 @@ export default function StreamPage() {
         toast({ title: 'Bid Placed!', description: `Your bid of ₹${bidValue.toLocaleString()} has been placed.` });
     };
     
-    const handlers = { onReply: handleReply, onTogglePinMessage: handleTogglePinMessage, onReportMessage: handleReportMessage };
+    const handlers = { onReply: handleReply, onTogglePinMessage: handleTogglePinMessage, onReportMessage: handleReportMessage, onAddToCart, onBuyNow };
 
     const scrollToAuction = (auctionId: string) => {
         inlineAuctionCardRefs.current[auctionId]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -1355,25 +1390,9 @@ export default function StreamPage() {
                                 <div className="relative flex-1 flex flex-col overflow-hidden">
                                     <ScrollArea className="flex-1" ref={chatContainerRef} onScroll={handleManualScroll}>
                                         <div className="p-4 space-y-0.5">
-                                             {chatMessages.map((msg, index) => {
-                                                if (msg.type === 'auction') {
-                                                    return (
-                                                        <div key={msg.id} className="my-2" ref={el => inlineAuctionCardRefs.current[msg.id] = el}>
-                                                            <AuctionCard
-                                                                auction={msg}
-                                                                auctionTime={activeAuction?.id === msg.id ? auctionTime : 0}
-                                                                highestBid={highestBid}
-                                                                totalBids={totalBids}
-                                                                walletBalance={walletBalance}
-                                                                cardRef={msg.active ? auctionCardRef : undefined}
-                                                                onBid={() => setIsBidDialogOpen(true)}
-                                                                onViewBids={() => setIsBidHistoryOpen(true)}
-                                                            />
-                                                        </div>
-                                                    )
-                                                }
-                                                return <ChatMessageContent key={msg.id || index} msg={msg} index={index} handlers={handlers} post={{sellerId: seller?.id, avatarUrl: seller?.avatarUrl, sellerName: seller?.name}} pinnedMessages={pinnedMessages} />
-                                            })}
+                                             {chatMessages.map((msg, index) => (
+                                                <ChatMessageContent key={msg.id || index} msg={msg} index={index} handlers={handlers} post={{sellerId: seller?.id, avatarUrl: seller?.avatarUrl, sellerName: seller?.name}} pinnedMessages={pinnedMessages} />
+                                            ))}
                                             <div ref={messagesEndRef} />
                                         </div>
                                     </ScrollArea>
