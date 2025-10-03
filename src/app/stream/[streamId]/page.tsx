@@ -531,7 +531,7 @@ const AuctionCard = React.memo(({
         <div ref={cardRef}>
             <Card
                 className={cn(
-                    "text-white border-2 bg-black/80 backdrop-blur-sm",
+                    "text-white border-2 bg-black/80 backdrop-blur-sm my-2",
                     "border-gray-700",
                     isPinned && "cursor-pointer"
                 )}
@@ -1254,10 +1254,10 @@ export default function StreamPage() {
                                             <Link href="/live-selling">More</Link>
                                         </Button>
                                       </div>
-                                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
                                             {relatedStreams.map((s: any) => (
                                                 <Link href={`/stream/${s.id}`} key={s.id} className="group">
-                                                    <div className="relative rounded-lg overflow-hidden aspect-[2/3] bg-muted">
+                                                    <div className="relative rounded-lg overflow-hidden aspect-[16/9] bg-muted">
                                                         <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
                                                         <div className="absolute top-2 right-2 z-10">
                                                             <Badge variant="secondary" className="bg-background/60 backdrop-blur-sm gap-1.5">
@@ -1281,9 +1281,7 @@ export default function StreamPage() {
                                                                 )}
                                                             </div>
                                                             <p className="text-xs text-muted-foreground">{s.category}</p>
-                                                            <div className="mt-0.5 sm:hidden lg:flex flex-wrap gap-x-2 gap-y-1 overflow-hidden h-4">
-                                                                <p className="text-xs text-primary font-semibold">#{s.category.toLowerCase().replace(/\s+/g, '')}</p>
-                                                            </div>
+                                                            <p className="text-xs text-primary font-semibold mt-0.5">#{s.category.toLowerCase().replace(/\s+/g, '')}</p>
                                                         </div>
                                                     </div>
                                                 </Link>
