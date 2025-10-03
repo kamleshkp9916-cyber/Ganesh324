@@ -380,14 +380,14 @@ const ChatMessageContent = React.memo(({ msg, index, handlers, post, pinnedMessa
     
     if (msg.type === 'auction_end') {
         return (
-             <Card key={msg.id || index} className="my-2 text-foreground shadow-lg bg-gradient-to-br from-gold/20 via-gold/5 to-gold/20 border-l-4 border-gold">
+            <Card key={msg.id || index} className="my-2 text-foreground shadow-lg bg-muted border-l-4 border-foreground">
                 <CardContent className="p-3">
                     <div className="flex items-center gap-3">
-                        <div className="p-2 bg-gold/20 rounded-full">
-                            <Award className="h-8 w-8 text-gold" />
+                        <div className="p-2 bg-secondary rounded-full">
+                            <Award className="h-8 w-8 text-foreground" />
                         </div>
                         <div className="flex-grow">
-                            <p className="text-sm font-bold text-gold">AUCTION ENDED</p>
+                            <p className="text-sm font-bold text-foreground">AUCTION ENDED</p>
                             <p className="text-foreground text-base">
                                 <span className="font-semibold">{msg.winner}</span> won <span className="font-bold">{msg.productName}</span> with a bid of <span className="font-bold">{msg.winningBid}!</span>
                             </p>
@@ -432,7 +432,7 @@ const ChatMessageContent = React.memo(({ msg, index, handlers, post, pinnedMessa
                     </div>
                      {msg.text && <p className="text-xs text-muted-foreground mt-2">{msg.text}</p>}
                     <div className="flex items-center gap-2 mt-3">
-                         <Button size="sm" variant="secondary" className="w-full text-xs h-8" onClick={() => handlers.onAddToCart(product)}>
+                        <Button size="sm" variant="secondary" className="w-full text-xs h-8" onClick={() => handlers.onAddToCart(product)}>
                             <ShoppingCart className="w-4 h-4 mr-2"/>
                             Add to Cart
                         </Button>
@@ -697,9 +697,12 @@ export default function StreamPage() {
                     productName: productDetails[activeAuction.productId as keyof typeof productDetails].name,
                 };
                 setChatMessages(prev => [...prev, winnerMessage]);
+                setActiveAuction(null); // Clear the active auction *after* posting the end message
+             } else if(activeAuction && auctionTime === null){
+                 setActiveAuction(null);
              }
-             setActiveAuction(null);
         }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [chatMessages, activeAuction, auctionTime]);
 
     
