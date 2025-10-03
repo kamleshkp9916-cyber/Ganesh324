@@ -424,7 +424,7 @@ const ChatMessageContent = React.memo(({ msg, index, handlers, post, pinnedMessa
         if (!product) return null;
         return (
             <div className="mt-2">
-                <Card key={msg.id || index} className="bg-transparent border shadow-none">
+                <Card key={msg.id || index} className="bg-transparent border">
                     <CardContent className="p-0">
                         <div className="flex items-center gap-3">
                             <Link href={`/product/${product.key}`} className="w-16 h-16 bg-black rounded-md relative overflow-hidden flex-shrink-0 group" onClick={(e) => e.stopPropagation()}>
