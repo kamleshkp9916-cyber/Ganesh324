@@ -113,6 +113,7 @@ import { Switch } from "@/components/ui/switch";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useInView } from "react-intersection-observer";
 import { useMiniPlayer } from "@/context/MiniPlayerContext";
+import { Sheet, SheetContent } from "@/components/ui/sheet";
 
 
 const emojis = [
@@ -648,6 +649,7 @@ export default function StreamPage() {
     const [isProductListVisible, setIsProductListVisible] = useState(false);
     const [replyingTo, setReplyingTo] = useState<{ name: string; id: string } | null>(null);
     const [showScrollToBottom, setShowScrollToBottom] = useState(false);
+    const [isChatPanelOpen, setIsChatPanelOpen] = useState(false);
     
     const product = productDetails[seller?.productId as keyof typeof productDetails];
     
@@ -1119,9 +1121,194 @@ export default function StreamPage() {
             </div>
         );
     }
+    
+    const ChatPanel = () => (
+        <>
+            {showPinnedAuction && (
+                <div className="absolute top-16 left-0 right-0 z-20 p-4 pointer-events-none">
+                    <div className="w-full pointer-events-auto">
+                        <AuctionCard
+                            auction={activeAuction}
+                            auctionTime={auctionTime}
+                            highestBid={highestBid}
+                            totalBids={totalBids}
+                            walletBalance={walletBalance}
+                            isPinned={true}
+                            onClick={() => scrollToAuction(activeAuction.id)}
+                            onBid={() => setIsBidDialogOpen(true)}
+                            onViewBids={(e) => { e.stopPropagation(); setIsBidHistoryOpen(true); }}
+                        />
+                    </div>
+                </div>
+            )}
+            <div className="p-4 flex items-center justify-between z-10 flex-shrink-0 h-16 border-b">
+                <h3 className="font-bold text-lg">Live Chat</h3>
+                <div className="flex items-center gap-1">
+                    <Popover>
+                        <PopoverTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-8 w-8 relative">
+                                <Pin className="h-5 w-5 text-muted-foreground" />
+                                {pinnedMessages.length > 0 && <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-primary" />}
+                            </Button>
+                        </PopoverTrigger>
+                        <PopoverContent align="end" className="w-80 p-0">
+                            <div className="p-3 border-b">
+                                <h4 className="font-semibold">Pinned Items</h4>
+                            </div>
+                            <ScrollArea className="h-64">
+                                <div className="p-3 space-y-3">
+                                    <Card className="bg-primary/10 border-primary/20">
+                                        <CardContent className="p-3">
+                                            <div className="flex items-start gap-3">
+                                                <Ticket className="h-5 w-5 text-primary flex-shrink-0 mt-1" />
+                                                <div>
+                                                    <p className="text-xs font-semibold">🎉 Special Offer!</p>
+                                                    <p className="text-sm">Use code <span className="font-bold text-primary">LIVE10</span> for 10% off your entire order.</p>
+                                                </div>
+                                            </div>
+                                        </CardContent>
+                                    </Card>
+                                    <Card className="overflow-hidden">
+                                        <CardContent className="p-0">
+                                            <div className="p-3">
+                                                <p className="text-xs text-muted-foreground font-semibold">Featured Product</p>
+                                                <div className="flex items-center gap-3 mt-1">
+                                                    <div className="w-12 h-12 bg-muted rounded-md relative overflow-hidden flex-shrink-0">
+                                                        <Image src={productDetails['prod_1'].images[0]} alt={productDetails['prod_1'].name} fill className="object-cover" />
+                                                    </div>
+                                                    <div className="flex-grow">
+                                                        <h4 className="font-semibold leading-tight text-sm">{productDetails['prod_1'].name}</h4>
+                                                        <p className="text-sm font-bold">{productDetails['prod_1'].price}</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <CardFooter className="p-0">
+                                                <Button asChild variant="secondary" className="w-full rounded-none rounded-b-lg h-9">
+                                                    <Link href={`/product/${productDetails['prod_1'].key}`}>View Product</Link>
+                                                </Button>
+                                            </CardFooter>
+                                        </CardContent>
+                                    </Card>
+                                </div>
+                            </ScrollArea>
+                        </PopoverContent>
+                    </Popover>
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                                <MoreVertical className="h-5 w-5" />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                            <FeedbackDialog>
+                                <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                                    <MessageCircle className="mr-2 h-4 w-4" /> Feedback
+                                </DropdownMenuItem>
+                            </FeedbackDialog>
+                            <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                    <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive focus:text-destructive">
+                                        <Flag className="mr-2 h-4 w-4" /> Report Stream
+                                    </DropdownMenuItem>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                        <AlertDialogTitle>Report this stream?</AlertDialogTitle>
+                                        <AlertDialogDescription>
+                                            If this stream violates our community guidelines, please report it. Our team will review it shortly.
+                                        </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                        <AlertDialogAction onClick={() => toast({title: "Stream Reported"})}>Submit Report</AlertDialogAction>
+                                    </AlertDialogFooter>
+                                </AlertDialogContent>
+                            </AlertDialog>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                </div>
+            </div>
+            
+            <div className="relative flex-1 flex flex-col overflow-hidden">
+                    <ScrollArea className="flex-1" ref={chatContainerRef} onScroll={handleChatScroll}>
+                    {showChatGoToTop && (
+                        <Button
+                            size="sm"
+                            variant="secondary"
+                            className="absolute top-2 left-1/2 -translate-x-1/2 z-20 rounded-full shadow-lg"
+                            onClick={() => scrollToTop(chatContainerRef)}
+                        >
+                            <ArrowUp className="h-4 w-4 mr-1" />
+                            Go to Top
+                        </Button>
+                    )}
+                    <div className="p-4 space-y-0.5">
+                            {chatMessages.map((msg, index) => {
+                            if (msg.type === 'auction' && seller?.hasAuction) {
+                                return (
+                                        <div className="my-2" key={msg.id || index}>
+                                        <AuctionCard
+                                            auction={msg}
+                                            auctionTime={activeAuction?.id === msg.id ? auctionTime : 0}
+                                            highestBid={highestBid}
+                                            totalBids={totalBids}
+                                            walletBalance={walletBalance}
+                                            cardRef={el => inlineAuctionCardRefs.current[msg.id] = el}
+                                            onBid={() => setIsBidDialogOpen(true)}
+                                            onViewBids={(e) => { e.stopPropagation(); setIsBidHistoryOpen(true); }}
+                                        />
+                                        </div>
+                                );
+                            }
+                            return <ChatMessageContent key={msg.id || index} msg={msg} index={index} handlers={handlers} post={{sellerId: seller?.id, avatarUrl: seller?.avatarUrl, sellerName: seller?.name}} pinnedMessages={pinnedMessages} seller={seller} />
+                            })}
+                        <div ref={messagesEndRef} />
+                    </div>
+                </ScrollArea>
+                    {showScrollToBottom && (
+                    <div className="absolute bottom-20 left-1/2 -translate-x-1/2 z-20">
+                        <Button
+                            variant="secondary"
+                            size="sm"
+                            className="rounded-full shadow-lg"
+                            onClick={() => handleAutoScroll()}
+                        >
+                            <ChevronDown className="mr-1 h-4 w-4" /> New Messages
+                        </Button>
+                    </div>
+                    )}
+                <div className="p-3 border-t bg-background flex-shrink-0">
+                    <form onSubmit={handleNewMessageSubmit} className="flex items-center gap-3">
+                        <div className="relative flex-grow">
+                            <Textarea ref={textareaRef} placeholder={replyingTo ? `@${replyingTo.name} ` : "Send a message..."} value={newMessage} onChange={(e) => setNewMessage(e.target.value)} className="resize-none pr-10 rounded-2xl bg-muted border-transparent focus:border-primary focus:bg-background h-10 min-h-[40px] pt-2.5 text-sm" rows={1} onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleNewMessageSubmit(e); } }} />
+                            <Popover>
+                                <PopoverTrigger asChild>
+                                    <Button variant="ghost" size="icon" type="button" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full text-muted-foreground">
+                                        <Smile className="h-5 w-5" />
+                                    </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-80 h-64 p-2">
+                                    <div className="grid grid-cols-8 gap-1 h-full overflow-y-auto no-scrollbar">
+                                        {emojis.map((emoji, index) => (
+                                            <Button key={index} variant="ghost" size="icon" onClick={() => addEmoji(emoji)} className="text-xl">
+                                                {emoji}
+                                            </Button>
+                                        ))}
+                                    </div>
+                                </PopoverContent>
+                            </Popover>
+                        </div>
+                        <Button type="submit" size="icon" disabled={!newMessage.trim()} className="rounded-full flex-shrink-0 h-10 w-10">
+                            <Send className="h-4 w-4" />
+                        </Button>
+                    </form>
+                </div>
+            </div>
+        </>
+    );
 
     return (
-        <React.Fragment>
+        <>
             <Dialog open={isBidDialogOpen} onOpenChange={setIsBidDialogOpen}>
                 <DialogContent className="sm:max-w-md bg-background border-border">
                     <DialogHeader>
@@ -1292,89 +1479,44 @@ export default function StreamPage() {
                                         <div className="text-sm text-muted-foreground">{renderContentWithHashtags(streamData.description) || "Welcome to the live stream!"}</div>
                                     </div>
                                     <Collapsible>
-                                        <div className="flex items-start justify-between gap-4 w-full">
+                                        <div className="flex items-center justify-between gap-4 w-full">
                                             <div className="flex-grow min-w-0">
                                                 {seller && (
-                                                    <div className="flex items-center gap-3">
-                                                        <Avatar>
+                                                    <div className="flex items-center gap-2">
+                                                        <Avatar className="h-10 w-10">
                                                             <AvatarImage src={seller.avatarUrl} />
                                                             <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
                                                         </Avatar>
-                                                        <div className="flex items-center gap-2">
-                                                            <h3 className="font-semibold truncate">{seller.name}</h3>
+                                                        <h3 className="font-semibold truncate">{seller.name}</h3>
+                                                          <Button
+                                                              onClick={() => seller && handleFollowToggle(seller.id)}
+                                                              variant={isFollowingState ? "outline" : "secondary"}
+                                                              size="sm"
+                                                              className="h-7 w-7 p-0 sm:w-auto sm:px-2 text-xs"
+                                                          >
+                                                              <UserPlus className="h-4 w-4 sm:mr-1.5" />
+                                                              <span className="hidden sm:inline">{isFollowingState ? "Following" : "Follow"}</span>
+                                                          </Button>
                                                             <Button
-                                                                onClick={() => seller && handleFollowToggle(seller.id)}
-                                                                variant={isFollowingState ? 'outline' : 'secondary'}
-                                                                size="sm"
-                                                                className="h-7 w-7 p-0 sm:w-auto sm:px-2 text-xs"
+                                                              variant="outline"
+                                                              size="sm"
+                                                              className="h-7 w-7 p-0 sm:w-auto sm:px-2 text-xs"
+                                                              asChild
                                                             >
-                                                                <UserPlus className="h-4 w-4 sm:mr-1.5" />
-                                                                <span className="hidden sm:inline">{isFollowingState ? "Following" : "Follow"}</span>
+                                                              <Link href={`/seller/profile?userId=${seller?.id}`}>
+                                                                <ShoppingBag className="w-4 h-4 sm:mr-1" />
+                                                                <span className="hidden sm:inline">View Products ({sellerProducts.length})</span>
+                                                              </Link>
                                                             </Button>
-                                                        </div>
                                                     </div>
                                                 )}
                                             </div>
-                                            <div className="flex items-center gap-2 flex-shrink-0">
-                                                <CollapsibleTrigger asChild>
-                                                    <Button variant="outline" size="sm" className="h-7 w-7 p-0 sm:w-auto sm:px-2 text-xs">
-                                                        <ShoppingBag className="w-4 h-4 sm:mr-1"/>
-                                                        <span className="hidden sm:inline">View Products ({sellerProducts.length})</span>
-                                                    </Button>
-                                                </CollapsibleTrigger>
-                                                {seller?.hasAuction && (
-                                                    <Badge variant="info" className="flex items-center gap-1.5 h-7">
-                                                        <Gavel className="w-4 h-4" /> <span className="hidden sm:inline">Auction</span>
-                                                    </Badge>
-                                                )}
-                                            </div>
+                                             {seller?.hasAuction && (
+                                                <Badge variant="info" className="flex items-center gap-1.5 h-7">
+                                                    <Gavel className="w-4 h-4" /> <span className="hidden sm:inline">Auction</span>
+                                                </Badge>
+                                            )}
                                         </div>
-                                        <CollapsibleContent className="mt-4">
-                                            <div className="relative">
-                                                <Carousel opts={{ align: "start", dragFree: true }} className="w-full">
-                                                    <CarouselContent className="-ml-2">
-                                                        {sellerProducts.map((p, index) => (
-                                                            <CarouselItem key={index} className="pl-2 basis-auto">
-                                                                <div className="w-40">
-                                                                    <Card className="h-full flex flex-col overflow-hidden bg-card text-card-foreground">
-                                                                        <Link href={`/product/${p.key}`}>
-                                                                            <div className="aspect-square bg-muted rounded-t-lg relative">
-                                                                                <Image src={(p.images && p.images[0]?.preview) || p.images[0]} alt={p.name} fill sizes="128px" className="object-cover" />
-                                                                                {p.stock === 0 && (
-                                                                                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                                                                                        <Badge variant="destructive">Out of Stock</Badge>
-                                                                                    </div>
-                                                                                )}
-                                                                            </div>
-                                                                            <div className="p-2 flex-grow">
-                                                                                <p className="text-[11px] font-semibold truncate leading-tight">{p.name}</p>
-                                                                                <p className="text-sm font-bold mt-1">{p.price}</p>
-                                                                                <div className="flex items-center gap-1 text-xs text-amber-400 mt-1">
-                                                                                    <Star className="w-3 h-3 fill-current" />
-                                                                                    <span>{p.rating || '4.8'}</span>
-                                                                                    <span className="text-muted-foreground text-[10px]">({p.reviews || 25})</span>
-                                                                                </div>
-                                                                                <p className="text-[10px] text-muted-foreground mt-1">{p.sold || 120} sold</p>
-                                                                            </div>
-                                                                        </Link>
-                                                                        <CardFooter className="p-1.5 mt-auto grid grid-cols-2 gap-1">
-                                                                            {p.stock > 0 ? (
-                                                                                <>
-                                                                                    <Button size="xs" className="w-full text-[10px] h-7" variant="secondary" onClick={() => handleAddToCart(p)}>Add</Button>
-                                                                                    <Button size="xs" className="w-full text-[10px] h-7" onClick={() => handleBuyNow(p)}>Buy</Button>
-                                                                                </>
-                                                                            ) : (
-                                                                                <Button size="xs" className="w-full text-[10px] h-7 col-span-2" variant="outline" disabled>Out of Stock</Button>
-                                                                            )}
-                                                                        </CardFooter>
-                                                                    </Card>
-                                                                </div>
-                                                            </CarouselItem>
-                                                        ))}
-                                                    </CarouselContent>
-                                                </Carousel>
-                                            </div>
-                                        </CollapsibleContent>
                                     </Collapsible>
                                     <div className="mt-8">
                                       <div className="mb-4 flex items-center justify-between">
@@ -1419,173 +1561,8 @@ export default function StreamPage() {
                                     </div>
                                 </div>
                             </div>
-                            <div className="hidden lg:flex w-[340px] flex-shrink-0 h-full flex-col bg-card relative">
-                                {showPinnedAuction && (
-                                    <div className="absolute top-16 left-0 right-0 z-20 p-4 pointer-events-none">
-                                        <div className="w-full pointer-events-auto">
-                                            <AuctionCard
-                                                auction={activeAuction}
-                                                auctionTime={auctionTime}
-                                                highestBid={highestBid}
-                                                totalBids={totalBids}
-                                                walletBalance={walletBalance}
-                                                isPinned={true}
-                                                onClick={() => scrollToAuction(activeAuction.id)}
-                                                onBid={() => setIsBidDialogOpen(true)}
-                                                onViewBids={(e) => { e.stopPropagation(); setIsBidHistoryOpen(true); }}
-                                            />
-                                        </div>
-                                    </div>
-                                )}
-                                <div className="p-4 flex items-center justify-between z-10 flex-shrink-0 h-16 border-b">
-                                    <h3 className="font-bold text-lg">Live Chat</h3>
-                                    <div className="flex items-center gap-1">
-                                        <Popover>
-                                            <PopoverTrigger asChild>
-                                                <Button variant="ghost" size="icon" className="h-8 w-8 relative">
-                                                    <Pin className="h-5 w-5 text-muted-foreground" />
-                                                    {pinnedMessages.length > 0 && <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-primary" />}
-                                                </Button>
-                                            </PopoverTrigger>
-                                            <PopoverContent align="end" className="w-80 p-0">
-                                                <div className="p-3 border-b">
-                                                    <h4 className="font-semibold">Pinned Items</h4>
-                                                </div>
-                                                <ScrollArea className="h-64">
-                                                    <div className="p-3 space-y-3">
-                                                        <Card className="bg-primary/10 border-primary/20">
-                                                            <CardContent className="p-3">
-                                                                <div className="flex items-start gap-3">
-                                                                    <Ticket className="h-5 w-5 text-primary flex-shrink-0 mt-1" />
-                                                                    <div>
-                                                                        <p className="text-xs font-semibold">🎉 Special Offer!</p>
-                                                                        <p className="text-sm">Use code <span className="font-bold text-primary">LIVE10</span> for 10% off your entire order.</p>
-                                                                    </div>
-                                                                </div>
-                                                            </CardContent>
-                                                        </Card>
-                                                        <Card className="overflow-hidden">
-                                                            <CardContent className="p-0">
-                                                                <div className="p-3">
-                                                                    <p className="text-xs text-muted-foreground font-semibold">Featured Product</p>
-                                                                    <div className="flex items-center gap-3 mt-1">
-                                                                        <div className="w-12 h-12 bg-muted rounded-md relative overflow-hidden flex-shrink-0">
-                                                                            <Image src={productDetails['prod_1'].images[0]} alt={productDetails['prod_1'].name} fill className="object-cover" />
-                                                                        </div>
-                                                                        <div className="flex-grow">
-                                                                            <h4 className="font-semibold leading-tight text-sm">{productDetails['prod_1'].name}</h4>
-                                                                            <p className="text-sm font-bold">{productDetails['prod_1'].price}</p>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                                <CardFooter className="p-0">
-                                                                    <Button asChild variant="secondary" className="w-full rounded-none rounded-b-lg h-9">
-                                                                        <Link href={`/product/${productDetails['prod_1'].key}`}>View Product</Link>
-                                                                    </Button>
-                                                                </CardFooter>
-                                                            </CardContent>
-                                                        </Card>
-                                                    </div>
-                                                </ScrollArea>
-                                            </PopoverContent>
-                                        </Popover>
-                                        <DropdownMenu>
-                                            <DropdownMenuTrigger asChild>
-                                                <Button variant="ghost" size="icon" className="h-8 w-8">
-                                                    <MoreVertical className="h-5 w-5" />
-                                                </Button>
-                                            </DropdownMenuTrigger>
-                                            <DropdownMenuContent align="end">
-                                                <FeedbackDialog>
-                                                    <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                                                        <MessageCircle className="mr-2 h-4 w-4" /> Feedback
-                                                    </DropdownMenuItem>
-                                                </FeedbackDialog>
-                                                <AlertDialogTrigger asChild>
-                                                    <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive focus:text-destructive">
-                                                        <Flag className="mr-2 h-4 w-4" /> Report Stream
-                                                    </DropdownMenuItem>
-                                                </AlertDialogTrigger>
-                                            </DropdownMenuContent>
-                                        </DropdownMenu>
-                                    </div>
-                                </div>
-                                
-                                <div className="relative flex-1 flex flex-col overflow-hidden">
-                                     <ScrollArea className="flex-1" ref={chatContainerRef} onScroll={handleChatScroll}>
-                                        {showChatGoToTop && (
-                                            <Button
-                                                size="sm"
-                                                variant="secondary"
-                                                className="absolute top-2 left-1/2 -translate-x-1/2 z-20 rounded-full shadow-lg"
-                                                onClick={() => scrollToTop(chatContainerRef)}
-                                            >
-                                                <ArrowUp className="h-4 w-4 mr-1" />
-                                                Go to Top
-                                            </Button>
-                                        )}
-                                        <div className="p-4 space-y-0.5">
-                                             {chatMessages.map((msg, index) => {
-                                                if (msg.type === 'auction' && seller?.hasAuction) {
-                                                    return (
-                                                         <div className="my-2" key={msg.id || index}>
-                                                            <AuctionCard
-                                                                auction={msg}
-                                                                auctionTime={activeAuction?.id === msg.id ? auctionTime : 0}
-                                                                highestBid={highestBid}
-                                                                totalBids={totalBids}
-                                                                walletBalance={walletBalance}
-                                                                cardRef={el => inlineAuctionCardRefs.current[msg.id] = el}
-                                                                onBid={() => setIsBidDialogOpen(true)}
-                                                                onViewBids={(e) => { e.stopPropagation(); setIsBidHistoryOpen(true); }}
-                                                            />
-                                                         </div>
-                                                    );
-                                                }
-                                                return <ChatMessageContent key={msg.id || index} msg={msg} index={index} handlers={handlers} post={{sellerId: seller?.id, avatarUrl: seller?.avatarUrl, sellerName: seller?.name}} pinnedMessages={pinnedMessages} seller={seller} />
-                                             })}
-                                            <div ref={messagesEndRef} />
-                                        </div>
-                                    </ScrollArea>
-                                     {showScrollToBottom && (
-                                        <div className="absolute bottom-20 left-1/2 -translate-x-1/2 z-20">
-                                            <Button
-                                                variant="secondary"
-                                                size="sm"
-                                                className="rounded-full shadow-lg"
-                                                onClick={() => handleAutoScroll()}
-                                            >
-                                                <ChevronDown className="mr-1 h-4 w-4" /> New Messages
-                                            </Button>
-                                        </div>
-                                     )}
-                                    <div className="p-3 border-t bg-background flex-shrink-0">
-                                        <form onSubmit={handleNewMessageSubmit} className="flex items-center gap-3">
-                                            <div className="relative flex-grow">
-                                                <Textarea ref={textareaRef} placeholder={replyingTo ? `@${replyingTo.name} ` : "Send a message..."} value={newMessage} onChange={(e) => setNewMessage(e.target.value)} className="resize-none pr-10 rounded-2xl bg-muted border-transparent focus:border-primary focus:bg-background h-10 min-h-[40px] pt-2.5 text-sm" rows={1} onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleNewMessageSubmit(e); } }} />
-                                                <Popover>
-                                                    <PopoverTrigger asChild>
-                                                        <Button variant="ghost" size="icon" type="button" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full text-muted-foreground">
-                                                            <Smile className="h-5 w-5" />
-                                                        </Button>
-                                                    </PopoverTrigger>
-                                                    <PopoverContent className="w-80 h-64 p-2">
-                                                        <div className="grid grid-cols-8 gap-1 h-full overflow-y-auto no-scrollbar">
-                                                            {emojis.map((emoji, index) => (
-                                                                <Button key={index} variant="ghost" size="icon" onClick={() => addEmoji(emoji)} className="text-xl">
-                                                                    {emoji}
-                                                                </Button>
-                                                            ))}
-                                                        </div>
-                                                    </PopoverContent>
-                                                </Popover>
-                                            </div>
-                                            <Button type="submit" size="icon" disabled={!newMessage.trim()} className="rounded-full flex-shrink-0 h-10 w-10">
-                                                <Send className="h-4 w-4" />
-                                            </Button>
-                                        </form>
-                                    </div>
-                                </div>
+                            <div className={cn("w-[340px] flex-shrink-0 h-full flex-col bg-card relative", !isChatPanelOpen && "hidden", "lg:flex")}>
+                                <ChatPanel />
                             </div>
                         </div>
                     </div>
@@ -1612,7 +1589,23 @@ export default function StreamPage() {
                     />
                 </DialogContent>
             </Dialog>
-        </React.Fragment>
+
+            {/* Floating Chat Button */}
+            <Button
+                size="icon"
+                className="fixed bottom-6 right-6 z-50 rounded-full h-16 w-16 shadow-lg lg:hidden"
+                onClick={() => setIsChatPanelOpen(true)}
+            >
+                <MessageSquare className="h-8 w-8" />
+            </Button>
+            
+            {/* Mobile Chat Sheet */}
+            <Sheet open={isChatPanelOpen} onOpenChange={setIsChatPanelOpen}>
+                <SheetContent side="bottom" className="h-[60dvh] p-0 flex flex-col lg:hidden">
+                    <ChatPanel />
+                </SheetContent>
+            </Sheet>
+        </>
     );
 }
 
