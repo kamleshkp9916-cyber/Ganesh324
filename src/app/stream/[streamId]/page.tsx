@@ -372,15 +372,16 @@ const renderContentWithHashtags = (text: string) => {
     });
 };
 
-const ChatMessageContent = React.memo(({ msg, index, handlers, post, pinnedMessages }: { msg: any; index: number, handlers: any, post: any, pinnedMessages: any[] }) => {
+const ChatMessageContent = React.memo(({ msg, index, handlers, post, pinnedMessages, seller }: { msg: any; index: number, handlers: any, post: any, pinnedMessages: any[], seller?: any }) => {
     const { user } = useAuth();
     const router = useRouter();
-
+    
     if (msg.type === 'system') {
         return <p key={msg.id || index} className="text-xs text-muted-foreground text-center italic my-2">{msg.text}</p>;
     }
     
     if (msg.type === 'auction_end') {
+        if (!seller?.hasAuction) return null;
         return (
              <Card key={msg.id || index} className="my-2 text-foreground shadow-lg bg-muted border-l-4 border-foreground">
                 <CardContent className="p-3">
@@ -401,6 +402,7 @@ const ChatMessageContent = React.memo(({ msg, index, handlers, post, pinnedMessa
     }
     
     if (msg.isBid) {
+         if (!seller?.hasAuction) return null;
         return (
             <div key={msg.id || index} className="my-1 flex items-center gap-2 p-1.5 rounded-lg bg-black/30 border border-primary/20">
                 <Gavel className="h-4 w-4 text-primary flex-shrink-0" />
@@ -1405,10 +1407,7 @@ export default function StreamPage() {
                                                          </div>
                                                     );
                                                 }
-                                                if (msg.isBid && !seller?.hasAuction) {
-                                                    return null;
-                                                }
-                                                return <ChatMessageContent key={msg.id || index} msg={msg} index={index} handlers={handlers} post={{sellerId: seller?.id, avatarUrl: seller?.avatarUrl, sellerName: seller?.name}} pinnedMessages={pinnedMessages} />
+                                                return <ChatMessageContent key={msg.id || index} msg={msg} index={index} handlers={handlers} post={{sellerId: seller?.id, avatarUrl: seller?.avatarUrl, sellerName: seller?.name}} pinnedMessages={pinnedMessages} seller={seller} />
                                              })}
                                             <div ref={messagesEndRef} />
                                         </div>
