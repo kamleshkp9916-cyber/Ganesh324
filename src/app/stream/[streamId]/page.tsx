@@ -430,7 +430,7 @@ const ChatMessageContent = React.memo(({ msg, index, handlers, post, pinnedMessa
                             </Link>
                             <div className="flex-grow">
                                 <Link href={`/product/${product.key}`} className="hover:underline" onClick={(e) => e.stopPropagation()}><h4 className="font-bold leading-tight text-white">{product.name}</h4></Link>
-                                 <p className="text-sm font-bold text-foreground mt-1">{product.price}</p>
+                                 <p className="text-sm font-bold text-foreground mt-1">₹{product.price}</p>
                             </div>
                         </div>
                          {msg.text && <p className="text-xs text-muted-foreground mt-2 px-3 pb-3">{msg.text}</p>}
@@ -610,6 +610,7 @@ export default function StreamPage() {
     const [isBidHistoryOpen, setIsBidHistoryOpen] = useState(false);
     const [showGoToTop, setShowGoToTop] = useState(false);
     const [showChatGoToTop, setShowChatGoToTop] = useState(false);
+    const [isFollowingState, setIsFollowingState] = useState(false);
     
     const { ref: auctionCardRef, inView: auctionCardInView } = useInView({ threshold: 0.99 });
     
@@ -1161,7 +1162,7 @@ export default function StreamPage() {
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
-            <Dialog open={isBidHistoryOpen} onOpenChange={setIsBidHistoryOpen}>
+             <Dialog open={isBidHistoryOpen} onOpenChange={setIsBidHistoryOpen}>
                 <DialogContent>
                     <DialogHeader>
                         <DialogTitle>Bid History for {productDetails[activeAuction?.productId as keyof typeof productDetails]?.name}</DialogTitle>
@@ -1309,8 +1310,8 @@ export default function StreamPage() {
                                                                 <span className="hidden sm:inline">{isFollowingState ? 'Following' : 'Follow'}</span>
                                                             </Button>
                                                             <CollapsibleTrigger asChild>
-                                                                <Button variant="outline" size="sm" className="h-7 w-7 p-0 sm:w-auto sm:px-2 text-xs">
-                                                                    <ShoppingBag className="w-4 h-4 sm:mr-1.5" />
+                                                                <Button variant="outline" size="sm" className="h-7 gap-1.5">
+                                                                    <ShoppingBag className="w-4 h-4" />
                                                                     <span className="hidden sm:inline">View Products ({sellerProducts.length})</span>
                                                                 </Button>
                                                             </CollapsibleTrigger>
