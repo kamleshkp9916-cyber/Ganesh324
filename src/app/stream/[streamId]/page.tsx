@@ -400,8 +400,7 @@ const ChatMessageContent = React.memo(({ msg, index, handlers, post, pinnedMessa
         );
     }
     
-    if (msg.isBid) {
-        if (!seller?.hasAuction) return null;
+    if (msg.isBid && seller?.hasAuction) {
         return (
             <div key={msg.id || index} className="my-1 flex items-center gap-2 p-1.5 rounded-lg bg-black/30 border border-primary/20">
                 <Gavel className="h-4 w-4 text-primary flex-shrink-0" />
@@ -423,7 +422,7 @@ const ChatMessageContent = React.memo(({ msg, index, handlers, post, pinnedMessa
         if (!product) return null;
         return (
             <div className="my-2">
-                <Card key={msg.id || index} className="bg-transparent border my-2">
+                <Card key={msg.id || index} className="bg-transparent border-border my-2">
                     <CardContent className="p-0">
                         <div className="flex items-center gap-3 p-3">
                             <Link href={`/product/${product.key}`} className="w-16 h-16 bg-black rounded-md relative overflow-hidden flex-shrink-0 group" onClick={(e) => e.stopPropagation()}>
@@ -664,7 +663,7 @@ export default function StreamPage() {
     };
     
     const handleChatScroll = (e: React.UIEvent<HTMLDivElement>) => {
-        const shouldShow = e.currentTarget.scrollTop > 400;
+        const shouldShow = e.currentTarget.scrollTop > 200;
         if (shouldShow !== showChatGoToTop) {
             setShowChatGoToTop(shouldShow);
         }
@@ -1191,12 +1190,12 @@ export default function StreamPage() {
                             </div>
                         </header>
 
-                        <div className="flex flex-1 overflow-hidden">
-                            <div className="flex-1 overflow-y-auto no-scrollbar" ref={mainScrollRef} onScroll={handleMainScroll}>
+                        <div className="flex flex-1 overflow-hidden relative">
+                            <div className="flex-1 overflow-y-auto no-scrollbar relative" ref={mainScrollRef} onScroll={handleMainScroll}>
                                  {showGoToTop && (
                                     <Button
                                         size="icon"
-                                        className="fixed bottom-24 right-4 z-50 rounded-full shadow-lg"
+                                        className="fixed bottom-6 left-6 z-50 rounded-full shadow-lg"
                                         onClick={() => scrollToTop(mainScrollRef)}
                                     >
                                         <ArrowUp className="h-5 w-5" />
@@ -1486,6 +1485,7 @@ export default function StreamPage() {
                                         {showChatGoToTop && (
                                             <Button
                                                 size="sm"
+                                                variant="secondary"
                                                 className="absolute top-2 left-1/2 -translate-x-1/2 z-20 rounded-full shadow-lg"
                                                 onClick={() => scrollToTop(chatContainerRef)}
                                             >
