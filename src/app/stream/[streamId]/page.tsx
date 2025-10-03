@@ -726,7 +726,7 @@ const ChatPanel = ({
                   </AlertDialogHeader>
                   <AlertDialogFooter>
                     <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction onClick={() => toast({title: "Stream Reported"})}>Submit Report</AlertDialogAction>
+                    <AlertDialogAction onClick={() => handlers.toast({title: "Stream Reported"})}>Submit Report</AlertDialogAction>
                   </AlertDialogFooter>
                 </AlertDialogContent>
               </AlertDialog>
@@ -774,7 +774,8 @@ const ChatPanel = ({
             </Button>
           </div>
         )}
-        <div className="p-3 border-t bg-background flex-shrink-0">
+      </div>
+      <div className="p-3 border-t bg-background flex-shrink-0">
           <form onSubmit={handleNewMessageSubmit} className="flex items-center gap-3">
             <div className="relative flex-grow">
               <Textarea ref={textareaRef} placeholder={replyingTo ? `@${replyingTo.name} ` : "Send a message..."} value={newMessage} onChange={(e) => setNewMessage(e.target.value)} className="resize-none pr-10 rounded-2xl bg-muted border-transparent focus:border-primary focus:bg-background h-10 min-h-[40px] pt-2.5 text-sm" rows={1} onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleNewMessageSubmit(e); } }} />
@@ -800,7 +801,6 @@ const ChatPanel = ({
             </Button>
           </form>
         </div>
-      </div>
     </>
   );
 };
@@ -914,10 +914,12 @@ export default function StreamPage() {
         if (streams.length > 50) {
             return streams.slice(0, 51);
         }
+        // Fallback to show some streams if none match the category, excluding the current one
         const fallbackStreams = liveSellers.filter(s => s.id !== seller.id);
         
+        // Add from fallback until we have 6 total, avoiding duplicates
         let i = 0;
-        while(streams.length < 51 && i < fallbackStreams.length) {
+        while(streams.length < 6 && i < fallbackStreams.length) {
             if (!streams.some(s => s.id === fallbackStreams[i].id)) {
                 streams.push(fallbackStreams[i]);
             }
@@ -1267,6 +1269,7 @@ export default function StreamPage() {
         onBuyNow: handleBuyNow,
         onBid: () => setIsBidDialogOpen(true),
         onViewBids: (e: React.MouseEvent) => { e.stopPropagation(); setIsBidHistoryOpen(true); },
+        toast,
     };
 
     const scrollToAuction = (auctionId: string) => {
@@ -1457,7 +1460,7 @@ export default function StreamPage() {
                                 <div className="flex-grow">
                                     <div className="lg:hidden">
                                         {isMobileChatVisible ? (
-                                            <div className="h-[60dvh] flex flex-col bg-card">
+                                            <div className="h-[calc(100dvh-56.25vw-4rem)] flex flex-col bg-card">
                                                 <ChatPanel seller={seller} chatMessages={chatMessages} pinnedMessages={pinnedMessages} activeAuction={activeAuction} auctionTime={auctionTime} highestBid={highestBid} totalBids={totalBids} walletBalance={walletBalance} handlers={handlers} inlineAuctionCardRefs={inlineAuctionCardRefs} onClose={() => setIsMobileChatVisible(false)} />
                                             </div>
                                         ) : (
@@ -1475,7 +1478,7 @@ export default function StreamPage() {
                                 </div>
                             </div>
 
-                            <div className="w-[340px] flex-shrink-0 h-full flex-col bg-card relative hidden lg:flex">
+                            <div className="w-[340px] flex-shrink-0 h-full flex flex-col bg-card relative hidden lg:flex">
                                 <ChatPanel seller={seller} chatMessages={chatMessages} pinnedMessages={pinnedMessages} activeAuction={activeAuction} auctionTime={auctionTime} highestBid={highestBid} totalBids={totalBids} walletBalance={walletBalance} handlers={handlers} inlineAuctionCardRefs={inlineAuctionCardRefs} onClose={() => {}} />
                             </div>
                         </div>
@@ -1536,26 +1539,28 @@ const StreamInfo = ({ seller, streamData, handleFollowToggle, isFollowingState, 
                             </Avatar>
                             <div className="flex items-center gap-2 flex-wrap">
                                 <h3 className="font-semibold truncate">{seller.name}</h3>
-                                <Button
-                                    onClick={() => seller && handleFollowToggle(seller.id)}
-                                    variant={isFollowingState ? "outline" : "secondary"}
-                                    size="sm"
-                                    className="h-7 w-7 p-0 sm:w-auto sm:px-2 text-xs"
-                                >
-                                    <UserPlus className="h-4 w-4 sm:mr-1.5" />
-                                    <span className="hidden sm:inline">{isFollowingState ? "Following" : "Follow"}</span>
-                                </Button>
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    className="h-7 w-7 p-0 sm:w-auto sm:px-2 text-xs"
-                                    asChild
-                                >
-                                    <Link href={`/seller/profile?userId=${seller?.id}`}>
-                                        <ShoppingBag className="w-4 h-4 sm:mr-1" />
-                                        <span className="hidden sm:inline">View Products ({sellerProducts.length})</span>
-                                    </Link>
-                                </Button>
+                                 <div className="flex items-center gap-2 flex-shrink-0">
+                                    <Button
+                                        onClick={() => seller && handleFollowToggle(seller.id)}
+                                        variant={isFollowingState ? "outline" : "secondary"}
+                                        size="sm"
+                                        className="h-7 w-7 p-0 sm:w-auto sm:px-2 text-xs"
+                                    >
+                                        <UserPlus className="h-4 w-4 sm:mr-1.5" />
+                                        <span className="hidden sm:inline">{isFollowingState ? "Following" : "Follow"}</span>
+                                    </Button>
+                                     <Button
+                                        variant="outline"
+                                        size="sm"
+                                        className="h-7 w-7 p-0 sm:w-auto sm:px-2 text-xs"
+                                        asChild
+                                    >
+                                        <Link href={`/seller/profile?userId=${seller?.id}`}>
+                                            <ShoppingBag className="w-4 h-4 sm:mr-1" />
+                                            <span className="hidden sm:inline">Products ({sellerProducts.length})</span>
+                                        </Link>
+                                    </Button>
+                                </div>
                             </div>
                         </div>
                     )}
