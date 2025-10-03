@@ -528,7 +528,7 @@ const AuctionCard = React.memo(({
     if (!product) return null;
 
     return (
-        <div ref={cardRef} className="mb-2">
+        <div ref={cardRef}>
             <Card
                 className={cn(
                     "text-white border-2 bg-black/80 backdrop-blur-sm",
@@ -687,11 +687,10 @@ export default function StreamPage() {
         if (currentActiveAuction && (!activeAuction || activeAuction.id !== currentActiveAuction.id)) {
             setActiveAuction(currentActiveAuction);
             setAuctionTime(currentActiveAuction.initialTime);
-        } else if (activeAuction && !currentActiveAuction) {
-            // This case handles when the active auction is removed from chat messages
-            const auctionJustEnded = !chatMessages.some(msg => msg.id === activeAuction.id && msg.active);
+        } else if (activeAuction && !chatMessages.some(msg => msg.type === 'auction' && msg.id === activeAuction.id && msg.active)) {
+             const auctionJustEnded = !chatMessages.some(msg => msg.type === 'auction_end' && msg.auctionId === activeAuction.id);
             if (auctionJustEnded) {
-                const winningBid = [...chatMessages].reverse().find(m => m.isBid);
+                 const winningBid = [...chatMessages].reverse().find(m => m.isBid);
                 const winnerMessage = {
                     id: Date.now(),
                     type: 'auction_end',
@@ -701,15 +700,9 @@ export default function StreamPage() {
                     winningBid: winningBid ? winningBid.text.replace('BID ', '') : 'No bids',
                     productName: productDetails[activeAuction.productId as keyof typeof productDetails].name,
                 };
-                setChatMessages(prev => {
-                    // Prevent adding duplicate "auction ended" messages
-                    if (!prev.some(m => m.type === 'auction_end' && m.auctionId === activeAuction.id)) {
-                        return [...prev, winnerMessage];
-                    }
-                    return prev;
-                });
-                setActiveAuction(null);
+                setChatMessages(prev => [...prev, winnerMessage]);
             }
+            setActiveAuction(null);
         }
     }, [chatMessages, activeAuction]);
     
@@ -727,7 +720,6 @@ export default function StreamPage() {
             }, 1000);
         } else if (auctionTime === 0 && activeAuction?.active) {
             setChatMessages(prev => prev.map(msg => msg.id === activeAuction.id ? { ...msg, active: false } : msg));
-            // The logic to set activeAuction to null will be handled by the other useEffect
         }
         return () => { if (timer) clearInterval(timer) };
     }, [auctionTime, activeAuction]);
@@ -754,7 +746,7 @@ export default function StreamPage() {
         const video = videoRef.current;
         if (video) {
             video.currentTime = duration;
-            setIsLive(true); // Manually set isLive for immediate UI feedback
+            setIsLive(true);
         }
     };
     
@@ -1396,9 +1388,8 @@ export default function StreamPage() {
                                              {chatMessages.map((msg, index) => {
                                                 if (msg.type === 'auction') {
                                                     return (
-                                                         <div className="my-2">
+                                                         <div className="my-2" key={msg.id || index}>
                                                             <AuctionCard
-                                                                key={msg.id || index}
                                                                 auction={msg}
                                                                 auctionTime={activeAuction?.id === msg.id ? auctionTime : 0}
                                                                 highestBid={highestBid}
