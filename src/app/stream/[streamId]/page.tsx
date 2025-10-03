@@ -424,7 +424,7 @@ const ChatMessageContent = React.memo(({ msg, index, handlers, post, pinnedMessa
         if (!product) return null;
         return (
             <div className="my-2">
-                <Card key={msg.id || index} className="bg-transparent my-2 border border-border">
+                <Card key={msg.id || index} className="bg-transparent border shadow-none my-2">
                     <CardContent className="p-0">
                         <div className="flex items-center gap-3 p-3">
                             <Link href={`/product/${product.key}`} className="w-16 h-16 bg-black rounded-md relative overflow-hidden flex-shrink-0 group" onClick={(e) => e.stopPropagation()}>
@@ -646,7 +646,6 @@ export default function StreamPage() {
     const [isProductListVisible, setIsProductListVisible] = useState(false);
     const [replyingTo, setReplyingTo] = useState<{ name: string; id: string } | null>(null);
     const [showScrollToBottom, setShowScrollToBottom] = useState(false);
-    const [showScrollToTop, setShowScrollToTop] = useState(false);
     
     const product = productDetails[seller?.productId as keyof typeof productDetails];
     
@@ -655,18 +654,23 @@ export default function StreamPage() {
 
     const sellerProducts = useMemo(() => {
         if (!seller) return [];
-        const baseProducts = Object.values(productDetails).filter(
+        let products = Object.values(productDetails).filter(
             p => productToSellerMapping[p.key]?.name === seller.name && p.stock > 0
         );
 
-        if (baseProducts.length < 15) {
-            const needed = 15 - baseProducts.length;
+        if (products.length < 15) {
+            const needed = 15 - products.length;
             const otherProducts = Object.values(productDetails)
-                .filter(p => !baseProducts.some(sp => sp.key === p.key))
+                .filter(p => !products.some(sp => sp.key === p.key))
                 .slice(0, needed);
-            return [...baseProducts, ...otherProducts];
+            products = [...products, ...otherProducts];
         }
-        return baseProducts;
+        
+        return products.map(p => ({
+            ...p,
+            reviews: Math.floor(Math.random() * 200),
+            sold: Math.floor(Math.random() * 1000)
+        }));
     }, [seller]);
     
     const relatedStreams = useMemo(() => {
@@ -862,8 +866,6 @@ export default function StreamPage() {
         const target = e.currentTarget;
         const isScrolledUp = target.scrollHeight - target.scrollTop > target.clientHeight + 200;
         setShowScrollToBottom(isScrolledUp);
-        const isAtTop = target.scrollTop < 200;
-        setShowScrollToTop(!isAtTop && isScrolledUp);
     };
 
     useEffect(() => {
@@ -937,7 +939,13 @@ export default function StreamPage() {
         setIsWithdrawOpen(false);
      };
     
-    const handleShare = () => {};
+    const handleShare = () => {
+        navigator.clipboard.writeText(window.location.href);
+        toast({
+            title: "Stream Link Copied!",
+            description: "The link to this stream has been copied to your clipboard.",
+        });
+    };
 
      const handleTogglePinMessage = (msgId: number) => {
         const msg = chatMessages.find(m => m.id === msgId);
@@ -1243,7 +1251,7 @@ export default function StreamPage() {
                                                                                 </div>
                                                                                 <div className="p-2 flex-grow">
                                                                                     <p className="text-[11px] font-semibold truncate leading-tight">{p.name}</p>
-                                                                                    <p className="text-sm font-bold mt-1">{p.price}</p>
+                                                                                    <p className="text-sm font-bold mt-1">₹{p.price}</p>
                                                                                     <div className="flex items-center gap-1 text-xs text-amber-400 mt-1">
                                                                                         <Star className="w-3 h-3 fill-current" />
                                                                                         <span>4.8</span>
@@ -1433,24 +1441,8 @@ export default function StreamPage() {
                                             <div ref={messagesEndRef} />
                                         </div>
                                     </ScrollArea>
-                                     {showScrollToTop && (
-                                        <div className="absolute bottom-20 left-1/2 -translate-x-1/2 z-20">
-                                            <Button
-                                                variant="secondary"
-                                                size="sm"
-                                                className="rounded-full shadow-lg"
-                                                onClick={() => {
-                                                    if(chatContainerRef.current) {
-                                                        chatContainerRef.current.scrollTo({ top: 0, behavior: 'smooth' })
-                                                    }
-                                                }}
-                                            >
-                                                <ArrowUp className="mr-1 h-4 w-4" /> Go to Top
-                                            </Button>
-                                        </div>
-                                     )}
                                      {showScrollToBottom && (
-                                        <div className="absolute bottom-20 right-1/2 translate-x-1/2 z-20">
+                                        <div className="absolute bottom-20 left-1/2 -translate-x-1/2 z-20">
                                             <Button
                                                 variant="secondary"
                                                 size="sm"
@@ -1460,7 +1452,7 @@ export default function StreamPage() {
                                                 <ChevronDown className="mr-1 h-4 w-4" /> New Messages
                                             </Button>
                                         </div>
-                                    )}
+                                     )}
                                     <div className="p-3 border-t bg-background flex-shrink-0">
                                         <form onSubmit={handleNewMessageSubmit} className="flex items-center gap-3">
                                             <div className="relative flex-grow">
