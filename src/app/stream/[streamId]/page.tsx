@@ -424,9 +424,10 @@ export default function StreamPage() {
     const [isFullscreen, setIsFullscreen] = useState(false);
     const [isLive, setIsLive] = useState(true);
     const mainScrollRef = useRef<HTMLDivElement>(null);
+    const [hydrated, setHydrated] = useState(false);
 
     useEffect(() => {
-        setIsLoading(false);
+        setHydrated(true);
         if (minimizedStream && minimizedStream.id !== streamId) {
             closeMinimizedStream();
         }
@@ -833,24 +834,18 @@ export default function StreamPage() {
         inlineAuctionCardRefs.current[auctionId]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     };
 
-    const [hydrated, setHydrated] = useState(false);
-    useEffect(() => {
-        setHydrated(true);
-    }, []);
-
-
     if (!hydrated) {
-        return (
-            <div className="flex flex-col h-screen items-center justify-center bg-background">
-                <div className="w-full max-w-4xl">
-                <Skeleton className="w-full aspect-video" />
-                <div className="p-4 space-y-3">
-                    <Skeleton className="h-8 w-3/4" />
-                    <Skeleton className="h-6 w-1/2" />
-                </div>
-                </div>
-            </div>
-        );
+      return (
+          <div className="flex flex-col h-screen items-center justify-center bg-background">
+              <div className="w-full max-w-4xl">
+              <Skeleton className="w-full aspect-video" />
+              <div className="p-4 space-y-3">
+                  <Skeleton className="h-8 w-3/4" />
+                  <Skeleton className="h-6 w-1/2" />
+              </div>
+              </div>
+          </div>
+      );
     }
     
     if (isMinimized(streamId)) {
@@ -870,14 +865,6 @@ export default function StreamPage() {
         <main className="flex-1 flex flex-col overflow-hidden">
           <div className="w-full aspect-video bg-black relative" ref={playerRef}>
               <video ref={videoRef} src={streamData.streamUrl || "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"} className="w-full h-full object-cover" loop />
-              <div className="absolute inset-0 bg-gradient-to-b from-black/50 to-transparent opacity-0 hover:opacity-100 transition-opacity">
-                <div className="p-4 flex items-center justify-between text-white">
-                  <h1 className="font-bold text-lg">{streamData.title || "Live Event"}</h1>
-                    <Badge variant="secondary" className="gap-1.5">
-                        <Users className="h-3 w-3" /> {streamData.viewerCount.toLocaleString()} watching
-                    </Badge>
-                </div>
-              </div>
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex flex-col justify-end p-4 text-white">
                   <div className="w-full cursor-pointer py-1" ref={progressContainerRef} onClick={handleProgressClick}>
                       <Progress value={(currentTime / duration) * 100} valueBuffer={(buffered / duration) * 100} isLive={isLive} className="h-2" />
@@ -956,11 +943,12 @@ export default function StreamPage() {
               </div>
             </div>
           )}
-          <Button variant="ghost" size="sm" onClick={() => setIsMobileChatVisible(prev => !prev)}>
+          <Button variant={isMobileChatVisible ? "secondary" : "ghost"} size="sm" onClick={() => setIsMobileChatVisible(prev => !prev)}>
             {isMobileChatVisible ? <X className="mr-2 h-4 w-4" /> : <MessageSquare className="mr-2 h-4 w-4" />}
             {isMobileChatVisible ? 'Close' : 'Chat'}
           </Button>
         </header>
+        
         <div className="w-full aspect-video bg-black relative flex-shrink-0">
            <video ref={videoRef} src={streamData.streamUrl || "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"} className="w-full h-full object-cover" loop />
             <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex flex-col justify-end p-2 text-white">
@@ -1128,3 +1116,6 @@ const RelatedContent = ({ relatedStreams }: { relatedStreams: any[] }) => (
         </div>
     </div>
 );
+
+
+    
