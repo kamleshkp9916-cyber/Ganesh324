@@ -419,9 +419,6 @@ export const ChatPanel = ({
                 </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-          <Button variant="ghost" size="icon" onClick={onClose} className="h-8 w-8 lg:hidden">
-            <X className="h-5 w-5" />
-          </Button>
         </div>
       </header>
       <ScrollArea className="flex-grow" ref={chatContainerRef} onScroll={handleManualScroll}>
@@ -446,30 +443,30 @@ export const ChatPanel = ({
           </div>
         )}
       <footer className="p-3 border-t bg-background flex-shrink-0">
-          <form onSubmit={handleNewMessageSubmit} className="flex items-center gap-3">
-             <Textarea
-                ref={textareaRef}
-                placeholder="Send a message..." 
-                value={newMessage}
-                onChange={(e) => setNewMessage(e.target.value)}
-                rows={1}
-                className='flex-grow resize-none max-h-24 pr-10'
-             />
-             <div className="flex items-center">
+          <form onSubmit={handleNewMessageSubmit} className="flex items-start gap-3">
+             <div className="relative flex-grow">
+                <Textarea
+                    ref={textareaRef}
+                    placeholder="Send a message..." 
+                    value={newMessage}
+                    onChange={(e) => setNewMessage(e.target.value)}
+                    rows={1}
+                    className='flex-grow resize-none max-h-24 pr-10 rounded-full bg-muted border-transparent focus:border-input focus:bg-background'
+                />
                 <Popover>
                     <PopoverTrigger asChild>
-                         <Button variant="ghost" size="icon" type="button">
-                            <Smile className="h-5 w-5 text-muted-foreground" />
+                         <Button variant="ghost" size="icon" type="button" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full text-muted-foreground">
+                            <Smile className="h-5 w-5" />
                         </Button>
                     </PopoverTrigger>
                      <PopoverContent className="w-80 h-64 mb-2">
                         {/* Emoji Content */}
                      </PopoverContent>
                 </Popover>
-                <Button type="submit" size="icon" disabled={!newMessage.trim()} className="rounded-full flex-shrink-0 h-10 w-10">
-                    <Send className="h-4 w-4" />
-                </Button>
              </div>
+             <Button type="submit" size="icon" disabled={!newMessage.trim()} className="rounded-full flex-shrink-0 h-10 w-10">
+                <Send className="h-4 w-4" />
+            </Button>
           </form>
         </footer>
     </div>
