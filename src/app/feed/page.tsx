@@ -1133,7 +1133,7 @@ function FeedPageContent() {
              (mainTab === 'feed' || mainTab === 'saves') && "lg:grid-cols-[260px_1fr_320px]",
              (mainTab === 'messages') && "lg:grid-cols-[260px_1fr]"
          )}>
-                <aside className={cn("h-full flex-col border-r border-border/50 sticky top-0 hidden lg:flex")}>
+                <aside className="relative h-full flex-col border-r border-border/50 hidden lg:flex overflow-hidden">
                     <MainSidebar userData={userData!} userPosts={userPosts} />
                 </aside>
 
@@ -1226,7 +1226,7 @@ function FeedPageContent() {
                 </div>
 
                 {(mainTab === 'feed' || mainTab === 'saves') && (
-                    <aside className="h-full flex-col border-l border-border/50 sticky top-0 hidden lg:flex">
+                    <aside className="relative h-full flex-col border-l border-border/50 hidden lg:flex overflow-hidden">
                     <div className="p-4 flex flex-col h-full bg-sidebar-background text-sidebar-foreground">
                             <div className="flex-shrink-0">
                             </div>
@@ -1310,6 +1310,7 @@ export default function FeedPage() {
     
 
     
+
 
 
 

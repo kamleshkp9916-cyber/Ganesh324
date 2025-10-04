@@ -1015,7 +1015,7 @@ const DesktopLayout = (props: any) => (
       </div>
     </main>
 
-   <div className="h-full w-[384px] flex-shrink-0 flex-col bg-card relative hidden lg:flex border-l">
+   <aside className="relative h-full w-[384px] flex-shrink-0 flex-col bg-card hidden lg:flex border-l overflow-hidden">
         <ChatPanel
             seller={props.seller}
             chatMessages={props.chatMessages}
@@ -1029,7 +1029,7 @@ const DesktopLayout = (props: any) => (
             inlineAuctionCardRefs={props.inlineAuctionCardRefs}
             onClose={() => {}}
         />
-    </div>
+    </aside>
   </div>
 );
 
