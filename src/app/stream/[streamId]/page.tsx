@@ -1460,16 +1460,20 @@ export default function StreamPage() {
                         <div className="flex-1 overflow-y-auto no-scrollbar" onScroll={handleMainScroll} ref={mainScrollRef}>
                             <div className="p-4 space-y-6">
                                 <StreamInfo seller={seller} streamData={streamData} handleFollowToggle={handleFollowToggle} isFollowingState={isFollowingState} sellerProducts={sellerProducts}/>
-                                <div className="lg:hidden">
-                                    <Button className="w-full" onClick={() => setIsMobileChatVisible(true)}>
-                                        <MessageSquare className="mr-2 h-4 w-4" /> Live Chat
-                                    </Button>
+                                 <div className="lg:hidden">
+                                    <Collapsible open={isMobileChatVisible} onOpenChange={setIsMobileChatVisible}>
+                                        <CollapsibleTrigger asChild>
+                                             <Button className="w-full">
+                                                <MessageSquare className="mr-2 h-4 w-4" /> Live Chat
+                                            </Button>
+                                        </CollapsibleTrigger>
+                                        <CollapsibleContent>
+                                            <div className="mt-4 h-[60vh] flex flex-col border rounded-lg overflow-hidden">
+                                                 <ChatPanel seller={seller} chatMessages={chatMessages} pinnedMessages={pinnedMessages} activeAuction={activeAuction} auctionTime={auctionTime} highestBid={highestBid} totalBids={totalBids} walletBalance={walletBalance} handlers={handlers} inlineAuctionCardRefs={inlineAuctionCardRefs} onClose={() => setIsMobileChatVisible(false)} />
+                                            </div>
+                                        </CollapsibleContent>
+                                    </Collapsible>
                                 </div>
-                                {isMobileChatVisible && (
-                                    <div className="lg:hidden h-[50vh] flex flex-col border rounded-lg overflow-hidden">
-                                        <ChatPanel seller={seller} chatMessages={chatMessages} pinnedMessages={pinnedMessages} activeAuction={activeAuction} auctionTime={auctionTime} highestBid={highestBid} totalBids={totalBids} walletBalance={walletBalance} handlers={handlers} inlineAuctionCardRefs={inlineAuctionCardRefs} onClose={() => setIsMobileChatVisible(false)} />
-                                    </div>
-                                )}
                                 <div className={cn(isMobileChatVisible && "hidden")}>
                                   <RelatedContent relatedStreams={relatedStreams} />
                                 </div>
@@ -1578,3 +1582,4 @@ const RelatedContent = ({ relatedStreams }: { relatedStreams: any[] }) => (
         </div>
     </div>
 );
+
