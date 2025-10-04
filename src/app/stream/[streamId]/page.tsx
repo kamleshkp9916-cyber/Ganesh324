@@ -1389,7 +1389,7 @@ export default function StreamPage() {
                 />
             </Dialog>
             
-             <div className="flex flex-col h-screen bg-background text-foreground">
+             <div className="flex flex-col h-dvh bg-background text-foreground">
                 <header className="p-4 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-sm z-30 border-b h-16 shrink-0">
                     <Button variant="ghost" size="icon" onClick={() => router.back()}>
                         <ArrowLeft className="h-6 w-6" />
@@ -1467,7 +1467,7 @@ export default function StreamPage() {
                             <RelatedContent relatedStreams={relatedStreams} />
                         </div>
                     </main>
-                   <div className="h-full w-[384px] flex-shrink-0 flex-col bg-card relative hidden lg:flex">
+                   <div className={cn("h-full w-[384px] flex-shrink-0 flex-col bg-card relative hidden lg:flex border-l")}>
                         <ChatPanel seller={seller} chatMessages={chatMessages} pinnedMessages={pinnedMessages} activeAuction={activeAuction} auctionTime={auctionTime} highestBid={highestBid} totalBids={totalBids} walletBalance={walletBalance} handlers={handlers} inlineAuctionCardRefs={inlineAuctionCardRefs} onClose={() => {}} />
                     </div>
                 </div>
@@ -1577,5 +1577,3 @@ const RelatedContent = ({ relatedStreams }: { relatedStreams: any[] }) => (
         </div>
     </div>
 );
-
-    
