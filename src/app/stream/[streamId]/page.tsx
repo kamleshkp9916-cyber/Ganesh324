@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import {
@@ -878,8 +879,13 @@ export default function StreamPage() {
             </Dialog>
             
              <div className={cn("bg-black text-foreground", isMobile ? 'flex flex-col h-dvh' : 'flex flex-col h-screen')}>
-                 {isMobile ? (
+                 {isMobile === undefined ? (
+                    <div className="flex h-screen items-center justify-center">
+                        <LoadingSpinner />
+                    </div>
+                 ) : isMobile ? (
                     <MobileLayout
+                        router={router}
                         videoRef={videoRef}
                         playerRef={playerRef}
                         progressContainerRef={progressContainerRef}
@@ -914,6 +920,7 @@ export default function StreamPage() {
                         inlineAuctionCardRefs={inlineAuctionCardRefs}
                         isMobileChatVisible={isMobileChatVisible}
                         setIsMobileChatVisible={setIsMobileChatVisible}
+                        formatTime={formatTime}
                     />
                  ) : (
                     <DesktopLayout 
