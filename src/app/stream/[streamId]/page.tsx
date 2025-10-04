@@ -1280,7 +1280,7 @@ export default function StreamPage() {
     if (isLoading) {
         return (
             <div className="flex h-screen items-center justify-center bg-background">
-                <div className="flex flex-col items-center gap-4">
+                <div className="flex flex-col items-center gap-4 w-full max-w-4xl">
                      <div className="w-full aspect-video bg-muted rounded-lg flex items-center justify-center">
                         <Skeleton className="w-full h-full" />
                     </div>
@@ -1401,8 +1401,8 @@ export default function StreamPage() {
                         </Link>
                     </Button>
                 </header>
-                 <div className="flex-1 flex flex-col lg:grid lg:grid-cols-[1fr_384px] overflow-hidden">
-                   <div className="lg:overflow-y-auto no-scrollbar" onScroll={handleMainScroll} ref={mainScrollRef}>
+                <div className="flex-1 flex flex-col lg:grid lg:grid-cols-[1fr_384px] overflow-hidden">
+                    <div className="lg:overflow-y-auto no-scrollbar flex-1 flex flex-col" onScroll={handleMainScroll} ref={mainScrollRef}>
                         {showGoToTop && (
                             <Button
                                 size="icon"
