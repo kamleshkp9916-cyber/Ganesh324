@@ -1395,7 +1395,7 @@ export default function StreamPage() {
                         <ArrowLeft className="h-6 w-6" />
                     </Button>
                     <h1 className="text-xl font-bold truncate">{seller?.name || 'Live Stream'}</h1>
-                    <Button asChild variant="ghost">
+                     <Button asChild variant="ghost">
                         <Link href="/cart">
                             <ShoppingCart className="mr-2 h-5 w-5" />
                             <span className="hidden sm:inline">My Cart</span>
@@ -1403,8 +1403,8 @@ export default function StreamPage() {
                     </Button>
                 </header>
 
-                <div className="flex-1 flex flex-col lg:grid lg:grid-cols-[1fr_384px] overflow-hidden">
-                    <div className="lg:overflow-y-auto no-scrollbar" onScroll={handleMainScroll} ref={mainScrollRef}>
+                <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
+                    <div className="flex-1 flex flex-col lg:overflow-y-auto no-scrollbar">
                         <div className="w-full aspect-video bg-black relative group flex-shrink-0" ref={playerRef}>
                             <video ref={videoRef} src={streamData.streamUrl || "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"} className="w-full h-full object-cover" loop />
                             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-black/60 flex flex-col p-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
