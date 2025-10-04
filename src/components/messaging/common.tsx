@@ -418,6 +418,9 @@ export const ChatPanel = ({
                 </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
+          <Button variant="ghost" size="icon" onClick={onClose} className="h-8 w-8 lg:hidden">
+            <X className="h-5 w-5" />
+          </Button>
         </div>
       </header>
       <ScrollArea className="flex-grow" ref={chatContainerRef} onScroll={handleManualScroll}>
@@ -426,6 +429,7 @@ export const ChatPanel = ({
                     if (msg.type === 'system') {
                         return <div key={msg.id} className="text-xs text-center text-muted-foreground italic py-1">{msg.text}</div>
                     }
+                    if (!msg.user) return null; // Important check to prevent crash
 
                     const isMyMessage = msg.userId === seller?.uid; // Assuming seller is the "self" in this context
                     return (
