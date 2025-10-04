@@ -8,7 +8,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useAuth } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
 import { UserData } from "@/lib/follow-data";
-import { ArrowLeft, Loader2, Menu, MoreHorizontal, Search, Send, Trash2, CheckCheck, Check, Flag, Paperclip, FileText, PlusCircle, Home, Pin, Award, History, Gavel, ShoppingBag, X, Smile } from "lucide-react";
+import { ArrowLeft, Loader2, Menu, MoreHorizontal, Search, Send, Trash2, CheckCheck, Check, Flag, Paperclip, FileText, PlusCircle, Home, Pin, Award, History, Gavel, ShoppingBag, X, Smile, MoreVertical } from "lucide-react";
 import { useEffect, useMemo, useRef, useState, useCallback, forwardRef } from "react";
 import { Skeleton } from "../ui/skeleton";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -451,13 +451,10 @@ export const ChatPanel = ({
                            </Avatar>
                             <div className={cn("flex-grow max-w-[86%]")}>
                                <div className="flex items-center gap-2">
-                                 <b className="text-sm font-semibold text-white" style={{ color: msg.userColor || 'inherit' }}>{msg.user}</b>
+                                 <b className="text-sm font-semibold text-white" style={{ color: msg.userColor || 'inherit' }}>{msg.user}:</b>
                                  {isSellerMessage && (
                                      <Badge className="text-xs px-2 py-0.5 rounded-full bg-[#E43F3F] text-white shadow-sm">Host</Badge>
                                  )}
-                                 <p className="text-xs text-[#9AA1A6] flex-shrink-0">
-                                   {msg.timestamp}
-                                 </p>
                                   <DropdownMenu>
                                       <DropdownMenuTrigger asChild>
                                           <button className="text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity p-1">
@@ -502,11 +499,11 @@ export const ChatPanel = ({
                     value={newMessage}
                     onChange={(e) => setNewMessage(e.target.value)}
                     rows={1}
-                    className='flex-grow resize-none max-h-24 px-4 pr-14 py-3 min-h-11 rounded-full bg-[#0f1113] text-white placeholder:text-[#7d8488] border-none focus-visible:ring-2 focus-visible:ring-offset-0 focus-visible:ring-[#E43F3F]/30'
+                    className='flex-grow resize-none max-h-24 px-4 pr-12 py-3 min-h-11 rounded-full bg-[#0f1113] text-white placeholder:text-[#7d8488] border-none focus-visible:ring-2 focus-visible:ring-offset-0 focus-visible:ring-[#E43F3F]/30'
                 />
                 <Popover>
                     <PopoverTrigger asChild>
-                         <Button variant="ghost" size="icon" type="button" className="absolute right-12 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full text-muted-foreground hover:text-white">
+                         <Button variant="ghost" size="icon" type="button" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full text-muted-foreground hover:text-white">
                             <Smile className="h-5 w-5" />
                         </Button>
                     </PopoverTrigger>
