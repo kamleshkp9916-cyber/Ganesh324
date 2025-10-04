@@ -8,8 +8,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useAuth } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
 import { UserData } from "@/lib/follow-data";
-import { ArrowLeft, Loader2, Menu, MoreVertical, Search, Send, Smile, Trash2, CheckCheck, Check, Flag, Paperclip, FileText, PlusCircle, Home, Pin, Award, History, Gavel } from "lucide-react";
-import { useEffect, useMemo, useRef, useState, useCallback } from "react";
+import { ArrowLeft, Loader2, Menu, MoreVertical, Search, Send, Smile, Trash2, CheckCheck, Check, Flag, Paperclip, FileText, PlusCircle, Home, Pin, Award, History, Gavel, ShoppingBag } from "lucide-react";
+import { useEffect, useMemo, useRef, useState, useCallback, forwardRef } from "react";
 import { Skeleton } from "../ui/skeleton";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useSidebar } from "../ui/sidebar";
@@ -32,9 +32,24 @@ export interface Message {
   id: number | string;
   text?: string;
   imageUrl?: string;
-  senderId: string; 
+  senderId?: string; // Made optional for system messages
+  sender?: string; // Legacy support
+  user?: string; // Legacy support
   timestamp: string | Timestamp;
   status?: 'sent' | 'delivered' | 'read';
+  type?: 'system' | 'auction' | 'auction_end' | 'product_pin';
+  isBid?: boolean;
+  isSeller?: boolean;
+  avatar?: string;
+  userColor?: string;
+  productId?: string;
+  initialTime?: number;
+  active?: boolean;
+  winner?: string;
+  winnerAvatar?: string;
+  winningBid?: string;
+  productName?: string;
+  auctionId?: string;
 }
 
 export interface Conversation {
@@ -101,7 +116,7 @@ export const ConversationItem = ({ convo, isSelected, onClick, onDelete }: { con
 };
 
 
-export const ChatMessage = ({ msg, currentUserId }: { msg: Message, currentUserId: string }) => {
+export const ChatMessage = ({ msg, currentUserId }: { msg: Message, currentUserId?: string }) => {
     const isMyMessage = msg.senderId === currentUserId;
     const timestamp = msg.timestamp instanceof Timestamp ? format(msg.timestamp.toDate(), 'p') : msg.timestamp;
 
@@ -385,18 +400,36 @@ export const ChatPanel = ({
                 {pinnedMessages.length > 0 && <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-primary" />}
               </Button>
             </PopoverTrigger>
-            <PopoverContent align="end" className="w-80 p-0">
-              {/* Pinned messages content */}
-            </PopoverContent>
+            {/* Pinned Messages Content */}
           </Popover>
           <DropdownMenu>
-            {/* ... Dropdown menu ... */}
+             <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-8 w-8">
+                    <MoreVertical className="h-5 w-5 text-muted-foreground" />
+                </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+                <FeedbackDialog>
+                    <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                        <MessageCircle className="mr-2 h-4 w-4" />Feedback
+                    </DropdownMenuItem>
+                </FeedbackDialog>
+                <DropdownMenuItem>
+                    <LifeBuoy className="mr-2 h-4 w-4" />Help
+                </DropdownMenuItem>
+            </DropdownMenuContent>
           </DropdownMenu>
+          <Button variant="ghost" size="icon" onClick={onClose} className="h-8 w-8 lg:hidden">
+            <X className="h-5 w-5" />
+          </Button>
         </div>
       </header>
       <ScrollArea className="flex-grow" ref={chatContainerRef} onScroll={handleManualScroll}>
           <div className="p-4 space-y-0.5">
-            {/* messages mapping */}
+            {chatMessages.map(msg => (
+                // Logic to render different message types will go here
+                <div key={msg.id} className="text-sm p-2">{msg.user}: {msg.text}</div>
+            ))}
             <div ref={messagesEndRef} />
           </div>
         </ScrollArea>
@@ -414,15 +447,29 @@ export const ChatPanel = ({
         )}
       <footer className="p-3 border-t bg-background flex-shrink-0">
           <form onSubmit={handleNewMessageSubmit} className="flex items-center gap-3">
-            <Input 
+             <Textarea
+                ref={textareaRef}
                 placeholder="Send a message..." 
                 value={newMessage}
                 onChange={(e) => setNewMessage(e.target.value)}
-                className='flex-grow'
-            />
-            <Button type="submit" size="icon" disabled={!newMessage.trim()} className="rounded-full flex-shrink-0 h-10 w-10">
-              <Send className="h-4 w-4" />
-            </Button>
+                rows={1}
+                className='flex-grow resize-none max-h-24 pr-10'
+             />
+             <div className="flex items-center">
+                <Popover>
+                    <PopoverTrigger asChild>
+                         <Button variant="ghost" size="icon" type="button">
+                            <Smile className="h-5 w-5 text-muted-foreground" />
+                        </Button>
+                    </PopoverTrigger>
+                     <PopoverContent className="w-80 h-64 mb-2">
+                        {/* Emoji Content */}
+                     </PopoverContent>
+                </Popover>
+                <Button type="submit" size="icon" disabled={!newMessage.trim()} className="rounded-full flex-shrink-0 h-10 w-10">
+                    <Send className="h-4 w-4" />
+                </Button>
+             </div>
           </form>
         </footer>
     </div>
