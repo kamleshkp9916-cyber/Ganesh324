@@ -8,7 +8,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useAuth } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
 import { UserData } from "@/lib/follow-data";
-import { ArrowLeft, Loader2, Menu, MoreVertical, Search, Send, Smile, Trash2, CheckCheck, Check, Flag, Paperclip, FileText, PlusCircle, Home, Pin, Award, History, Gavel, ShoppingBag, X } from "lucide-react";
+import { ArrowLeft, Loader2, Menu, MoreHorizontal, Search, Send, Smile, Trash2, CheckCheck, Check, Flag, Paperclip, FileText, PlusCircle, Home, Pin, Award, History, Gavel, ShoppingBag, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState, useCallback, forwardRef } from "react";
 import { Skeleton } from "../ui/skeleton";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -16,12 +16,12 @@ import { useSidebar } from "../ui/sidebar";
 import { onSnapshot, collection, query, orderBy, getFirestore, doc, Timestamp } from 'firebase/firestore';
 import { getFirestoreDb } from "@/lib/firebase";
 import { format } from "date-fns";
-import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "../ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from "../ui/dropdown-menu";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FeedbackDialog } from "../feedback-dialog";
-import { MessageCircle, LifeBuoy, Share2 } from "lucide-react";
+import { MessageCircle, LifeBuoy, Share2, Link as Link2 } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "../ui/alert-dialog";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "../ui/card";
 import { productDetails } from "@/lib/product-data";
@@ -400,7 +400,6 @@ export const ChatPanel = ({
                 {pinnedMessages.length > 0 && <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-primary" />}
               </Button>
             </PopoverTrigger>
-            {/* Pinned Messages Content */}
           </Popover>
           <DropdownMenu>
              <DropdownMenuTrigger asChild>
@@ -422,11 +421,46 @@ export const ChatPanel = ({
         </div>
       </header>
       <ScrollArea className="flex-grow" ref={chatContainerRef} onScroll={handleManualScroll}>
-          <div className="p-4 space-y-0.5">
-            {chatMessages.map(msg => (
-                // Logic to render different message types will go here
-                <div key={msg.id} className="text-sm p-2">{msg.user}: {msg.text}</div>
-            ))}
+          <div className="p-4 space-y-4">
+              {chatMessages.map((msg) => {
+                    if (msg.type === 'system') {
+                        return <div key={msg.id} className="text-xs text-center text-muted-foreground italic py-1">{msg.text}</div>
+                    }
+
+                    const isMyMessage = msg.userId === seller?.uid; // Assuming seller is the "self" in this context
+                    return (
+                        <div key={msg.id} className={cn("flex items-start gap-3 w-full group", isMyMessage && "flex-row-reverse")}>
+                            <Avatar className="h-8 w-8">
+                                <AvatarImage src={msg.avatar} />
+                                <AvatarFallback>{msg.user.charAt(0)}</AvatarFallback>
+                            </Avatar>
+                            <div className={cn("flex-grow max-w-[80%]", isMyMessage && "text-right")}>
+                                <div className={cn("flex items-center gap-2", isMyMessage && "justify-end")}>
+                                    <p className="font-bold text-xs" style={{color: msg.userColor || 'inherit'}}>{msg.user}</p>
+                                    <p className="text-xs text-muted-foreground">{msg.timestamp}</p>
+                                </div>
+                                <div className={cn("p-2 rounded-lg mt-1 inline-block", 
+                                    isMyMessage ? "bg-primary text-primary-foreground rounded-br-none" : "bg-muted rounded-bl-none",
+                                    msg.isBid && "bg-amber-100 dark:bg-amber-900 border border-amber-300 dark:border-amber-700"
+                                )}>
+                                    <p className="text-sm">{msg.text}</p>
+                                </div>
+                            </div>
+                             <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <button className="text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <MoreVertical className="w-4 h-4" />
+                                    </button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                    <DropdownMenuItem onSelect={() => console.log('report user', msg.userId)}>
+                                        <Flag className="mr-2 h-4 w-4" />Report User
+                                    </DropdownMenuItem>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                        </div>
+                    )
+                })}
             <div ref={messagesEndRef} />
           </div>
         </ScrollArea>
@@ -443,7 +477,7 @@ export const ChatPanel = ({
           </div>
         )}
       <footer className="p-3 border-t bg-background flex-shrink-0">
-          <form onSubmit={handleNewMessageSubmit} className="flex items-start gap-3">
+          <form onSubmit={handleNewMessageSubmit} className="flex items-start gap-2">
              <div className="relative flex-grow">
                 <Textarea
                     ref={textareaRef}
@@ -460,7 +494,15 @@ export const ChatPanel = ({
                         </Button>
                     </PopoverTrigger>
                      <PopoverContent className="w-80 h-64 mb-2">
-                        {/* Emoji Content */}
+                        <ScrollArea className="h-full">
+                            <div className="grid grid-cols-8 gap-1">
+                                {emojis.map((emoji, index) => (
+                                    <Button key={index} variant="ghost" size="icon" onClick={() => addEmoji(emoji)}>
+                                        {emoji}
+                                    </Button>
+                                ))}
+                            </div>
+                        </ScrollArea>
                      </PopoverContent>
                 </Popover>
              </div>
