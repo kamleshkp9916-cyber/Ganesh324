@@ -834,20 +834,6 @@ export default function StreamPage() {
         inlineAuctionCardRefs.current[auctionId]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     };
 
-    if (!hydrated) {
-      return (
-          <div className="flex flex-col h-screen items-center justify-center bg-background">
-              <div className="w-full max-w-4xl">
-              <Skeleton className="w-full aspect-video" />
-              <div className="p-4 space-y-3">
-                  <Skeleton className="h-8 w-3/4" />
-                  <Skeleton className="h-6 w-1/2" />
-              </div>
-              </div>
-          </div>
-      );
-    }
-    
     if (isMinimized(streamId)) {
         return (
             <div className="flex h-screen items-center justify-center bg-black">
@@ -858,146 +844,20 @@ export default function StreamPage() {
             </div>
         );
     }
-    
-    // Desktop Layout
-    const DesktopLayout = () => (
-      <div className="flex-1 lg:grid lg:grid-cols-[1fr,384px] overflow-hidden">
-        <main className="flex-1 flex flex-col overflow-hidden">
-          <div className="w-full aspect-video bg-black relative" ref={playerRef}>
-              <video ref={videoRef} src={streamData.streamUrl || "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"} className="w-full h-full object-cover" loop />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex flex-col justify-end p-4 text-white">
-                  <div className="w-full cursor-pointer py-1" ref={progressContainerRef} onClick={handleProgressClick}>
-                      <Progress value={(currentTime / duration) * 100} valueBuffer={(buffered / duration) * 100} isLive={isLive} className="h-2" />
-                  </div>
-                  <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2 sm:gap-4">
-                            <Button variant="ghost" size="icon" className="w-10 h-10" onClick={handlePlayPause}>
-                                {isPaused ? <Play className="w-6 h-6 fill-current" /> : <Pause className="w-6 h-6 fill-current" />}
-                            </Button>
-                            <Button
-                              variant="destructive"
-                              className="gap-1.5 h-8 text-xs sm:text-sm"
-                              onClick={handleGoLive}
-                              disabled={isLive}
-                          >
-                              <div className={cn("h-2 w-2 rounded-full bg-white", !isLive && "animate-pulse")} />
-                              {isLive ? 'LIVE' : 'Go Live'}
-                          </Button>
-                          <Button variant="ghost" size="icon" onClick={() => setIsMuted(prev => !prev)}>
-                              {isMuted ? <VolumeX /> : <Volume2 />}
-                          </Button>
-                          <p className="text-sm font-mono">{formatTime(currentTime)} / {formatTime(duration)}</p>
-                      </div>
-                      <div className="flex items-center gap-1 sm:gap-2">
-                          <Button variant="ghost" size="icon" onClick={handleMinimize}><PictureInPicture /></Button>
-                          <Button variant="ghost" size="icon" onClick={handleShare}><Share2 /></Button>
-                          <Button variant="ghost" size="icon" onClick={() => setIsSettingsOpen(true)}><Settings /></Button>
-                          <Button variant="ghost" size="icon" onClick={handleToggleFullscreen}><Maximize /></Button>
-                      </div>
-                  </div>
-              </div>
-          </div>
 
-          <div className="flex-1 overflow-y-auto no-scrollbar" ref={mainScrollRef} onScroll={handleMainScroll}>
-              <div className="p-4 space-y-6">
-                 <StreamInfo seller={seller} streamData={streamData} handleFollowToggle={handleFollowToggle} isFollowingState={isFollowingState} sellerProducts={sellerProducts}/>
-                 <RelatedContent relatedStreams={relatedStreams} />
-              </div>
-          </div>
-        </main>
-
-       <div className={cn("h-full w-[384px] flex-shrink-0 flex-col bg-card relative hidden lg:flex border-l")}>
-            <ChatPanel
-                seller={seller}
-                chatMessages={chatMessages}
-                pinnedMessages={pinnedMessages}
-                activeAuction={activeAuction}
-                auctionTime={auctionTime}
-                highestBid={highestBid}
-                totalBids={totalBids}
-                walletBalance={walletBalance}
-                handlers={handlers}
-                inlineAuctionCardRefs={inlineAuctionCardRefs}
-                onClose={() => {}}
-            />
-        </div>
-      </div>
-    );
-
-    // Mobile Layout
-    const MobileLayout = () => (
-      <div className="flex flex-col h-dvh overflow-hidden">
-        <header className="p-3 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-sm z-30 border-b h-16 shrink-0">
-          <Button variant="ghost" size="icon" onClick={() => router.back()}>
-              <ArrowLeft className="h-6 w-6" />
-          </Button>
-          {seller && (
-             <div className="flex items-center gap-2 overflow-hidden">
-              <Avatar className="h-8 w-8">
-                <AvatarImage src={seller.avatarUrl} />
-                <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
-              </Avatar>
-              <div className="overflow-hidden">
-                <h1 className="text-sm font-bold truncate">{seller.name}</h1>
-                <p className="text-xs text-muted-foreground">{streamData.viewerCount.toLocaleString()} viewers</p>
-              </div>
-            </div>
-          )}
-          <Button variant={isMobileChatVisible ? "secondary" : "ghost"} size="sm" onClick={() => setIsMobileChatVisible(prev => !prev)}>
-            {isMobileChatVisible ? <X className="mr-2 h-4 w-4" /> : <MessageSquare className="mr-2 h-4 w-4" />}
-            {isMobileChatVisible ? 'Close' : 'Chat'}
-          </Button>
-        </header>
-        
-        <div className="w-full aspect-video bg-black relative flex-shrink-0">
-           <video ref={videoRef} src={streamData.streamUrl || "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"} className="w-full h-full object-cover" loop />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex flex-col justify-end p-2 text-white">
-                <div className="w-full cursor-pointer py-1" ref={progressContainerRef} onClick={handleProgressClick}>
-                    <Progress value={(currentTime / duration) * 100} isLive={isLive} className="h-1.5" />
-                </div>
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-1">
-                        <Button variant="ghost" size="icon" className="w-9 h-9" onClick={handlePlayPause}>
-                            {isPaused ? <Play className="w-5 h-5 fill-current" /> : <Pause className="w-5 h-5 fill-current" />}
-                        </Button>
-                        <Button variant="ghost" size="icon" className="w-9 h-9" onClick={() => setIsMuted(prev => !prev)}>
-                            {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
-                        </Button>
-                         <p className="text-xs font-mono">{formatTime(currentTime)}</p>
-                    </div>
-                    <div className="flex items-center gap-1">
-                        <Button variant="ghost" size="icon" className="w-9 h-9" onClick={handleMinimize}><PictureInPicture className="w-5 h-5"/></Button>
-                        <Button variant="ghost" size="icon" className="w-9 h-9" onClick={handleToggleFullscreen}><Maximize className="w-5 h-5"/></Button>
+    if (!hydrated) {
+        return (
+            <div className="flex flex-col h-screen items-center justify-center bg-background">
+                <div className="w-full max-w-4xl">
+                    <Skeleton className="w-full aspect-video" />
+                    <div className="p-4 space-y-3">
+                        <Skeleton className="h-8 w-3/4" />
+                        <Skeleton className="h-6 w-1/2" />
                     </div>
                 </div>
             </div>
-        </div>
-        <div className="flex-1 overflow-hidden">
-          {isMobileChatVisible ? (
-             <ChatPanel
-                seller={seller}
-                chatMessages={chatMessages}
-                pinnedMessages={pinnedMessages}
-                activeAuction={activeAuction}
-                auctionTime={auctionTime}
-                highestBid={highestBid}
-                totalBids={totalBids}
-                walletBalance={walletBalance}
-                handlers={handlers}
-                inlineAuctionCardRefs={inlineAuctionCardRefs}
-                onClose={() => setIsMobileChatVisible(false)}
-            />
-          ) : (
-            <ScrollArea className="h-full">
-              <div className="p-4 space-y-6">
-                <StreamInfo seller={seller} streamData={streamData} handleFollowToggle={handleFollowToggle} isFollowingState={isFollowingState} sellerProducts={sellerProducts}/>
-                <RelatedContent relatedStreams={relatedStreams} />
-              </div>
-            </ScrollArea>
-          )}
-        </div>
-      </div>
-    );
+        );
+    }
     
     return (
         <React.Fragment>
@@ -1017,13 +877,228 @@ export default function StreamPage() {
                 />
             </Dialog>
             
-             <div className="flex flex-col h-dvh bg-black text-foreground">
-                {isMobile ? <MobileLayout /> : <DesktopLayout />}
+             <div className={cn("bg-black text-foreground", isMobile ? 'flex flex-col h-dvh' : 'flex flex-col h-screen')}>
+                 {isMobile ? (
+                    <MobileLayout
+                        videoRef={videoRef}
+                        playerRef={playerRef}
+                        progressContainerRef={progressContainerRef}
+                        handleProgressClick={handleProgressClick}
+                        handlePlayPause={handlePlayPause}
+                        handleGoLive={handleGoLive}
+                        handleSeek={handleSeek}
+                        handleToggleFullscreen={handleToggleFullscreen}
+                        handleMinimize={handleMinimize}
+                        handleShare={handleShare}
+                        setIsSettingsOpen={setIsSettingsOpen}
+                        setIsMuted={setIsMuted}
+                        isLive={isLive}
+                        isPaused={isPaused}
+                        isMuted={isMuted}
+                        currentTime={currentTime}
+                        duration={duration}
+                        streamData={streamData}
+                        seller={seller}
+                        handleFollowToggle={handleFollowToggle}
+                        isFollowingState={isFollowingState}
+                        sellerProducts={sellerProducts}
+                        relatedStreams={relatedStreams}
+                        chatMessages={chatMessages}
+                        pinnedMessages={pinnedMessages}
+                        activeAuction={activeAuction}
+                        auctionTime={auctionTime}
+                        highestBid={highestBid}
+                        totalBids={totalBids}
+                        walletBalance={walletBalance}
+                        handlers={handlers}
+                        inlineAuctionCardRefs={inlineAuctionCardRefs}
+                        isMobileChatVisible={isMobileChatVisible}
+                        setIsMobileChatVisible={setIsMobileChatVisible}
+                    />
+                 ) : (
+                    <DesktopLayout 
+                        videoRef={videoRef}
+                        playerRef={playerRef}
+                        progressContainerRef={progressContainerRef}
+                        handleProgressClick={handleProgressClick}
+                        handlePlayPause={handlePlayPause}
+                        handleGoLive={handleGoLive}
+                        handleSeek={handleSeek}
+                        handleToggleFullscreen={handleToggleFullscreen}
+                        handleMinimize={handleMinimize}
+                        handleShare={handleShare}
+                        setIsSettingsOpen={setIsSettingsOpen}
+                        setIsMuted={setIsMuted}
+                        isLive={isLive}
+                        isPaused={isPaused}
+                        isMuted={isMuted}
+                        currentTime={currentTime}
+                        duration={duration}
+                        buffered={buffered}
+                        streamData={streamData}
+                        seller={seller}
+                        handleFollowToggle={handleFollowToggle}
+                        isFollowingState={isFollowingState}
+                        sellerProducts={sellerProducts}
+                        relatedStreams={relatedStreams}
+                        chatMessages={chatMessages}
+                        pinnedMessages={pinnedMessages}
+                        activeAuction={activeAuction}
+                        auctionTime={auctionTime}
+                        highestBid={highestBid}
+                        totalBids={totalBids}
+                        walletBalance={walletBalance}
+                        handlers={handlers}
+                        inlineAuctionCardRefs={inlineAuctionCardRefs}
+                        mainScrollRef={mainScrollRef}
+                        handleMainScroll={handleMainScroll}
+                        showGoToTop={showGoToTop}
+                        scrollToTop={scrollToTop}
+                        formatTime={formatTime}
+                    />
+                 )}
             </div>
         </React.Fragment>
     );
 }
 
+const DesktopLayout = (props: any) => (
+  <div className="flex-1 lg:grid lg:grid-cols-[1fr,384px] overflow-hidden">
+    <main className="flex-1 flex flex-col overflow-hidden">
+      <div className="w-full aspect-video bg-black relative" ref={props.playerRef}>
+          <video ref={props.videoRef} src={props.streamData.streamUrl || "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"} className="w-full h-full object-cover" loop />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent flex flex-col justify-end p-4 text-white">
+              <div className="w-full cursor-pointer py-1" ref={props.progressContainerRef} onClick={props.handleProgressClick}>
+                  <Progress value={(props.currentTime / props.duration) * 100} valueBuffer={(props.buffered / props.duration) * 100} isLive={props.isLive} className="h-2" />
+              </div>
+              <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 sm:gap-4">
+                        <Button variant="ghost" size="icon" className="w-10 h-10" onClick={props.handlePlayPause}>
+                            {props.isPaused ? <Play className="w-6 h-6 fill-current" /> : <Pause className="w-6 h-6 fill-current" />}
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          className="gap-1.5 h-8 text-xs sm:text-sm"
+                          onClick={props.handleGoLive}
+                          disabled={props.isLive}
+                      >
+                          <div className={cn("h-2 w-2 rounded-full bg-white", !props.isLive && "animate-pulse")} />
+                          {props.isLive ? 'LIVE' : 'Go Live'}
+                      </Button>
+                      <Button variant="ghost" size="icon" onClick={() => props.setIsMuted((prev: any) => !prev)}>
+                          {props.isMuted ? <VolumeX /> : <Volume2 />}
+                      </Button>
+                      <p className="text-sm font-mono">{props.formatTime(props.currentTime)} / {props.formatTime(props.duration)}</p>
+                  </div>
+                  <div className="flex items-center gap-1 sm:gap-2">
+                      <Button variant="ghost" size="icon" onClick={props.handleMinimize}><PictureInPicture /></Button>
+                      <Button variant="ghost" size="icon" onClick={props.handleShare}><Share2 /></Button>
+                      <Button variant="ghost" size="icon" onClick={() => props.setIsSettingsOpen(true)}><Settings /></Button>
+                      <Button variant="ghost" size="icon" onClick={props.handleToggleFullscreen}><Maximize /></Button>
+                  </div>
+              </div>
+          </div>
+      </div>
+
+      <div className="flex-1 overflow-y-auto no-scrollbar" ref={props.mainScrollRef} onScroll={props.handleMainScroll}>
+          <div className="p-4 space-y-6">
+             <StreamInfo seller={props.seller} streamData={props.streamData} handleFollowToggle={props.handleFollowToggle} isFollowingState={props.isFollowingState} sellerProducts={props.sellerProducts}/>
+             <RelatedContent relatedStreams={props.relatedStreams} />
+          </div>
+      </div>
+    </main>
+
+   <div className="h-full w-[384px] flex-shrink-0 flex-col bg-card relative hidden lg:flex border-l">
+        <ChatPanel
+            seller={props.seller}
+            chatMessages={props.chatMessages}
+            pinnedMessages={props.pinnedMessages}
+            activeAuction={props.activeAuction}
+            auctionTime={props.auctionTime}
+            highestBid={props.highestBid}
+            totalBids={props.totalBids}
+            walletBalance={props.walletBalance}
+            handlers={props.handlers}
+            inlineAuctionCardRefs={props.inlineAuctionCardRefs}
+            onClose={() => {}}
+        />
+    </div>
+  </div>
+);
+
+const MobileLayout = (props: any) => (
+  <div className="flex flex-col h-dvh overflow-hidden">
+    <header className="p-3 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-sm z-30 border-b h-16 shrink-0">
+      <Button variant="ghost" size="icon" onClick={() => props.router.back()}>
+          <ArrowLeft className="h-6 w-6" />
+      </Button>
+      {props.seller && (
+         <div className="flex items-center gap-2 overflow-hidden">
+          <Avatar className="h-8 w-8">
+            <AvatarImage src={props.seller.avatarUrl} />
+            <AvatarFallback>{props.seller.name.charAt(0)}</AvatarFallback>
+          </Avatar>
+          <div className="overflow-hidden">
+            <h1 className="text-sm font-bold truncate">{props.seller.name}</h1>
+            <p className="text-xs text-muted-foreground">{props.streamData.viewerCount.toLocaleString()} viewers</p>
+          </div>
+        </div>
+      )}
+       <Button variant={props.isMobileChatVisible ? "secondary" : "ghost"} size="sm" onClick={() => props.setIsMobileChatVisible((prev: boolean) => !prev)}>
+        {props.isMobileChatVisible ? <X className="mr-2 h-4 w-4" /> : <MessageSquare className="mr-2 h-4 w-4" />}
+        Chat
+      </Button>
+    </header>
+    
+    <div className="w-full aspect-video bg-black relative flex-shrink-0" ref={props.playerRef}>
+        <video ref={props.videoRef} src={props.streamData.streamUrl || "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"} className="w-full h-full object-cover" loop />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent flex flex-col justify-end p-2 text-white">
+            <div className="w-full cursor-pointer py-1" ref={props.progressContainerRef} onClick={props.handleProgressClick}>
+                <Progress value={(props.currentTime / props.duration) * 100} isLive={props.isLive} className="h-1.5" />
+            </div>
+            <div className="flex items-center justify-between">
+                <div className="flex items-center gap-1">
+                    <Button variant="ghost" size="icon" className="w-9 h-9" onClick={props.handlePlayPause}>
+                        {props.isPaused ? <Play className="w-5 h-5 fill-current" /> : <Pause className="w-5 h-5 fill-current" />}
+                    </Button>
+                    <Button variant="ghost" size="icon" className="w-9 h-9" onClick={() => props.setIsMuted((prev: any) => !prev)}>
+                        {props.isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
+                    </Button>
+                     <p className="text-xs font-mono">{props.formatTime(props.currentTime)}</p>
+                </div>
+                <div className="flex items-center gap-1">
+                    <Button variant="ghost" size="icon" className="w-9 h-9" onClick={props.handleMinimize}><PictureInPicture className="w-5 h-5"/></Button>
+                    <Button variant="ghost" size="icon" className="w-9 h-9" onClick={props.handleToggleFullscreen}><Maximize className="w-5 h-5"/></Button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div className="flex-1 overflow-hidden">
+      {props.isMobileChatVisible ? (
+         <ChatPanel
+            seller={props.seller}
+            chatMessages={props.chatMessages}
+            pinnedMessages={props.pinnedMessages}
+            activeAuction={props.activeAuction}
+            auctionTime={props.auctionTime}
+            highestBid={props.highestBid}
+            totalBids={props.totalBids}
+            walletBalance={props.walletBalance}
+            handlers={props.handlers}
+            inlineAuctionCardRefs={props.inlineAuctionCardRefs}
+            onClose={() => props.setIsMobileChatVisible(false)}
+        />
+      ) : (
+        <ScrollArea className="h-full">
+          <div className="p-4 space-y-6">
+            <StreamInfo seller={props.seller} streamData={props.streamData} handleFollowToggle={props.handleFollowToggle} isFollowingState={props.isFollowingState} sellerProducts={props.sellerProducts}/>
+            <RelatedContent relatedStreams={props.relatedStreams} />
+          </div>
+        </ScrollArea>
+      )}
+    </div>
+  </div>
+);
 
 const StreamInfo = ({ seller, streamData, handleFollowToggle, isFollowingState, sellerProducts }: { seller: any, streamData: any, handleFollowToggle: any, isFollowingState: boolean, sellerProducts: any[] }) => (
     <div className="space-y-4">
@@ -1116,6 +1191,3 @@ const RelatedContent = ({ relatedStreams }: { relatedStreams: any[] }) => (
         </div>
     </div>
 );
-
-
-    
