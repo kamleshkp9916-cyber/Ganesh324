@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -374,7 +375,7 @@ export const ChatPanel = ({
             <X className="h-5 w-5" />
         </Button>
       </div>
-      <ScrollArea className="flex-1" ref={chatContainerRef} onScroll={handleManualScroll}>
+      <ScrollArea className="flex-grow" ref={chatContainerRef} onScroll={handleManualScroll}>
           <div className="p-4 space-y-0.5">
             {chatMessages.map((msg, index) => (
               <div key={index}>{/* Simplified for brevity */}</div>
