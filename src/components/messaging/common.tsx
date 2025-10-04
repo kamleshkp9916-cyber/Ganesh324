@@ -434,7 +434,7 @@ export const ChatPanel = ({
         </div>
       </header>
       <ScrollArea className="flex-grow" ref={chatContainerRef} onScroll={handleManualScroll}>
-          <div className="p-4 space-y-4">
+          <div className="p-4 space-y-3">
               {chatMessages.map((msg) => {
                     if (msg.type === 'system') {
                         return <div key={msg.id} className="text-xs text-center text-muted-foreground italic py-1">{msg.text}</div>
@@ -449,9 +449,9 @@ export const ChatPanel = ({
                                 <AvatarFallback>{msg.user.charAt(0)}</AvatarFallback>
                            </Avatar>
                             <div className="flex-grow">
-                                <p className="leading-relaxed">
-                                    <span className="font-bold" style={{ color: msg.userColor || 'inherit' }}>{msg.user}:</span>
-                                    <span className="ml-1.5">{msg.text}</span>
+                                <p className="leading-relaxed break-words">
+                                    <span className="font-bold mr-1.5" style={{ color: msg.userColor || 'inherit' }}>{msg.user}:</span>
+                                    {msg.text}
                                 </p>
                             </div>
                          <DropdownMenu>
@@ -493,7 +493,7 @@ export const ChatPanel = ({
                     value={newMessage}
                     onChange={(e) => setNewMessage(e.target.value)}
                     rows={1}
-                    className='flex-grow resize-none max-h-24 pr-10 rounded-full bg-muted border-transparent focus:border-input focus:bg-background'
+                    className='flex-grow resize-none max-h-24 pr-10 rounded-full bg-muted border-transparent focus:border-input focus:bg-background h-10 py-2'
                 />
                 <Popover>
                     <PopoverTrigger asChild>
@@ -522,3 +522,5 @@ export const ChatPanel = ({
     </div>
   );
 };
+
+    
