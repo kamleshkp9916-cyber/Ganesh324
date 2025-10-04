@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import {
@@ -159,7 +158,7 @@ const mockChatMessages: any[] = [
     { id: 2, user: 'Alex', text: 'What is the material?', avatar: 'https://placehold.co/40x40.png', userColor: '#e74c3c', userId: 'user2' },
     { id: 3, user: 'Jane', text: 'I just bought one! So excited. 🤩 #newpurchase', avatar: 'https://placehold.co/40x40.png', userColor: '#9b59b6', userId: 'user3' },
     { id: 4, type: 'system', text: 'Chris joined the stream.' },
-    { id: 5, user: 'FashionFinds', text: 'Hey Alex, it\'s 100% genuine leather!', avatar: 'https://placehold.co/40x40.png', userColor: '#f1c40f', isSeller: true, userId: 'FashionFinds' },
+    { id: 5, user: 'FashionFinds', text: "Hey Alex, it's 100% genuine leather!", avatar: 'https://placehold.co/40x40.png', userColor: '#f1c40f', isSeller: true, userId: 'FashionFinds' },
     { id: 6, type: 'system', text: 'Maria purchased a Vintage Camera.' },
     { id: 7, user: 'David', text: 'Do you ship to the US?', avatar: 'https://placehold.co/40x40.png', userColor: '#2ecc71', userId: 'user4' },
     { id: 8, user: 'FashionFinds', text: 'Yes David, we offer international shipping!', avatar: 'https://placehold.co/40x40.png', userColor: '#f1c40f', isSeller: true, userId: 'FashionFinds' },
@@ -735,7 +734,7 @@ const ChatPanel = ({
               </AlertDialog>
             </DropdownMenuContent>
           </DropdownMenu>
-          <Button variant="ghost" size="icon" onClick={onClose} className="h-8 w-8">
+          <Button variant="ghost" size="icon" onClick={onClose} className="h-8 w-8 lg:hidden">
             <X className="h-5 w-5" />
           </Button>
         </div>
@@ -865,7 +864,7 @@ export default function StreamPage() {
     const [playbackRate, setPlaybackRate] = useState(1);
     const [skipInterval, setSkipInterval] = useState(10);
     const [isFullscreen, setIsFullscreen] = useState(false);
-    const [isLive, setIsLive] = useState(true);
+    const [isLive, setIsLive] = useState(isLive);
     const [isMobileChatVisible, setIsMobileChatVisible] = useState(false);
     
     const mainScrollRef = useRef<HTMLDivElement>(null);
@@ -1383,8 +1382,8 @@ export default function StreamPage() {
                     <h1 className="text-xl font-bold truncate">{seller?.name || 'Live Stream'}</h1>
                     <div className="w-10"></div>
                 </header>
-                <div className="lg:grid lg:grid-cols-[1fr_384px] flex-1 min-h-0 h-[calc(100vh-4rem)]">
-                   <div className="relative flex-1 flex flex-col overflow-y-auto no-scrollbar" onScroll={handleMainScroll} ref={mainScrollRef}>
+                <div className="lg:grid lg:grid-cols-[1fr_384px] flex-1 h-[calc(100vh-4rem)]">
+                   <div className="relative flex-1 flex flex-col lg:overflow-y-auto no-scrollbar" onScroll={handleMainScroll} ref={mainScrollRef}>
                         {showGoToTop && (
                             <Button
                                 size="icon"
@@ -1579,3 +1578,5 @@ const RelatedContent = ({ relatedStreams }: { relatedStreams: any[] }) => (
         </div>
     </div>
 );
+
+    
