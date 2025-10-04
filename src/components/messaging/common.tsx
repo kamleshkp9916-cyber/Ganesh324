@@ -8,7 +8,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useAuth } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
 import { UserData } from "@/lib/follow-data";
-import { ArrowLeft, Loader2, Menu, MoreHorizontal, Search, Send, Trash2, CheckCheck, Check, Flag, Paperclip, FileText, PlusCircle, Home, Pin, Award, History, Gavel, ShoppingBag, X, Smile, MoreVertical } from "lucide-react";
+import { ArrowLeft, Loader2, Menu, MoreVertical, Search, Send, Trash2, CheckCheck, Check, Flag, Paperclip, FileText, PlusCircle, Home, Pin, Award, History, Gavel, ShoppingBag, X, Smile, MoreHorizontal } from "lucide-react";
 import { useEffect, useMemo, useRef, useState, useCallback, forwardRef } from "react";
 import { Skeleton } from "../ui/skeleton";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -27,6 +27,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "../ui/card
 import { productDetails } from "@/lib/product-data";
 import Image from "next/image";
 import { Textarea } from "../ui/textarea";
+import { Badge } from "../ui/badge";
 
 export interface Message {
   id: number | string;
@@ -327,7 +328,7 @@ export const ChatWindow = ({ conversation, userData, onBack, messages, onSendMes
                             value={newMessage}
                             onChange={(e) => setNewMessage(e.target.value)}
                         />
-                         <Button variant="ghost" size="icon" type="button" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 text-muted-foreground rounded-full">
+                         <Button variant="ghost" size="icon" type="button" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 text-muted-foreground">
                             <Smile className="h-5 w-5"/>
                         </Button>
                     </div>
@@ -447,11 +448,16 @@ export const ChatPanel = ({
                        <div key={msg.id} className="flex items-start gap-3 w-full group text-sm animate-message-in">
                            <Avatar className="h-9 w-9 mt-0.5 border border-[rgba(255,255,255,0.04)]">
                                 <AvatarImage src={msg.avatar} />
-                                <AvatarFallback className="bg-gradient-to-br from-red-500 to-yellow-500 text-white font-bold">{msg.user.charAt(0)}</AvatarFallback>
+                               <AvatarFallback className="bg-gradient-to-br from-red-500 to-yellow-500 text-white font-bold">{msg.user.charAt(0)}</AvatarFallback>
                            </Avatar>
                             <div className={cn("flex-grow max-w-[86%]")}>
-                               <div className="flex items-center gap-2">
-                                 <b className="text-sm font-semibold text-white" style={{ color: msg.userColor || 'inherit' }}>{msg.user}:</b>
+                                <div className="flex items-center gap-2">
+                                 <p className="flex items-baseline gap-2">
+                                    <b className="text-sm font-semibold text-white" style={{ color: msg.userColor || 'inherit' }}>{msg.user}</b>
+                                    <span className="leading-relaxed break-words text-sm text-[#E6ECEF]">
+                                       {msg.text}
+                                    </span>
+                                </p>
                                  {isSellerMessage && (
                                      <Badge className="text-xs px-2 py-0.5 rounded-full bg-[#E43F3F] text-white shadow-sm">Host</Badge>
                                  )}
@@ -462,15 +468,12 @@ export const ChatPanel = ({
                                           </button>
                                       </DropdownMenuTrigger>
                                       <DropdownMenuContent align="end">
-                                          <DropdownMenuItem onSelect={() => handlers.onReport(msg.userId)}>
-                                              <Flag className="mr-2 h-4 w-4" />Report User
-                                          </DropdownMenuItem>
+                                         <DropdownMenuItem onSelect={() => handlers.onReportMessage(msg.id)}>
+                                            <Flag className="mr-2 h-4 w-4" />Report
+                                        </DropdownMenuItem>
                                       </DropdownMenuContent>
                                   </DropdownMenu>
                                </div>
-                               <p className="leading-relaxed break-words text-sm text-[#E6ECEF] mt-0.5">
-                                   {msg.text}
-                                </p>
                             </div>
                         </div>
                     )
@@ -493,7 +496,7 @@ export const ChatPanel = ({
       <footer className="p-3 bg-transparent flex-shrink-0">
           <form onSubmit={handleNewMessageSubmit} className="flex items-center gap-2">
              <div className="relative flex-grow">
-                <Textarea
+                 <Textarea
                     ref={textareaRef}
                     placeholder="Send a message..." 
                     value={newMessage}
