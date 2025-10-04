@@ -8,7 +8,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useAuth } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
 import { UserData } from "@/lib/follow-data";
-import { ArrowLeft, Loader2, Menu, MoreVertical, Search, Send, Trash2, CheckCheck, Check, Flag, Paperclip, FileText, PlusCircle, Home, Pin, Award, History, Gavel, ShoppingBag, X, Smile } from "lucide-react";
+import { ArrowLeft, Loader2, Menu, MoreHorizontal, MoreVertical, Search, Send, Trash2, CheckCheck, Check, Flag, Paperclip, FileText, PlusCircle, Home, Pin, Award, History, Gavel, ShoppingBag, X, Smile } from "lucide-react";
 import { useEffect, useMemo, useRef, useState, useCallback, forwardRef } from "react";
 import { Skeleton } from "../ui/skeleton";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -434,8 +434,8 @@ export const ChatPanel = ({
         </div>
       </header>
       <ScrollArea className="flex-grow" ref={chatContainerRef} onScroll={handleManualScroll}>
-          <div className="p-4">
-              {chatMessages.map((msg, index) => {
+          <div className="p-4 space-y-1">
+              {chatMessages.map((msg) => {
                     if (msg.type === 'system') {
                         return <div key={msg.id} className="text-xs text-center text-muted-foreground italic py-1 mt-2">{msg.text}</div>
                     }
@@ -443,17 +443,21 @@ export const ChatPanel = ({
 
                     const isMyMessage = msg.userId === seller?.uid;
                     return (
-                       <div key={msg.id} className={cn("flex items-start gap-3 w-full group text-sm", index > 0 && "mt-2")}>
+                       <div key={msg.id} className="flex items-start gap-3 w-full group text-sm">
                            <Avatar className="h-6 w-6 mt-0.5">
                                 <AvatarImage src={msg.avatar} />
                                 <AvatarFallback>{msg.user.charAt(0)}</AvatarFallback>
                            </Avatar>
-                            <div className={cn("flex-grow max-w-[80%]")}>
+                            <div className={cn("flex-grow max-w-[85%]")}>
                                 <div className={cn("flex items-center gap-2")}>
+                                    <p className="leading-relaxed break-words">
+                                        <b className="mr-1.5 font-bold" style={{ color: msg.userColor || 'inherit' }}>{msg.user}:</b>
+                                        {msg.text}
+                                    </p>
                                      <DropdownMenu>
                                         <DropdownMenuTrigger asChild>
                                             <button className="text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity">
-                                                <MoreVertical className="w-4 h-4" />
+                                                <MoreHorizontal className="w-4 h-4" />
                                             </button>
                                         </DropdownMenuTrigger>
                                         <DropdownMenuContent align="end">
@@ -462,10 +466,6 @@ export const ChatPanel = ({
                                             </DropdownMenuItem>
                                         </DropdownMenuContent>
                                     </DropdownMenu>
-                                    <p className="leading-relaxed break-words">
-                                        <b className="mr-1.5" style={{ color: msg.userColor || 'inherit' }}>{msg.user}:</b>
-                                        {msg.text}
-                                    </p>
                                 </div>
                             </div>
                         </div>
