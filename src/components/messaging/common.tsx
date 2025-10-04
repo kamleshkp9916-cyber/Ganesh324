@@ -8,7 +8,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useAuth } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
 import { UserData } from "@/lib/follow-data";
-import { ArrowLeft, Loader2, Menu, MoreVertical, Search, Send, Smile, Trash2, CheckCheck, Check, Flag, Paperclip, FileText, PlusCircle, Home, Pin, Award, History, Gavel, ShoppingBag, X } from "lucide-react";
+import { ArrowLeft, Loader2, Menu, MoreVertical, Search, Send, Trash2, CheckCheck, Check, Flag, Paperclip, FileText, PlusCircle, Home, Pin, Award, History, Gavel, ShoppingBag, X, Smile } from "lucide-react";
 import { useEffect, useMemo, useRef, useState, useCallback, forwardRef } from "react";
 import { Skeleton } from "../ui/skeleton";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -37,7 +37,7 @@ export interface Message {
   user?: string; // Legacy support
   timestamp: string | Timestamp;
   status?: 'sent' | 'delivered' | 'read';
-  type?: 'system' | 'auction' | 'auction_end' | 'product_pin';
+  type?: 'system' | 'auction' | 'auction_end' | 'product_pin' | 'offer_pin';
   isBid?: boolean;
   isSeller?: boolean;
   avatar?: string;
@@ -434,22 +434,22 @@ export const ChatPanel = ({
         </div>
       </header>
       <ScrollArea className="flex-grow" ref={chatContainerRef} onScroll={handleManualScroll}>
-          <div className="p-4 space-y-2">
-              {chatMessages.map((msg) => {
+          <div className="p-4">
+              {chatMessages.map((msg, index) => {
                     if (msg.type === 'system') {
-                        return <div key={msg.id} className="text-xs text-center text-muted-foreground italic py-1">{msg.text}</div>
+                        return <div key={msg.id} className="text-xs text-center text-muted-foreground italic py-1 mt-2">{msg.text}</div>
                     }
                     if (!msg.user) return null;
 
                     const isMyMessage = msg.userId === seller?.uid;
                     return (
-                       <div key={msg.id} className="flex items-start gap-3 w-full group text-sm">
+                       <div key={msg.id} className={cn("flex items-start gap-3 w-full group text-sm", index > 0 && "mt-2")}>
                            <Avatar className="h-6 w-6 mt-0.5">
                                 <AvatarImage src={msg.avatar} />
                                 <AvatarFallback>{msg.user.charAt(0)}</AvatarFallback>
                            </Avatar>
-                            <div className={cn("flex-grow max-w-[80%]", isMyMessage && "text-right")}>
-                                <div className={cn("flex items-center gap-2", isMyMessage && "justify-end")}>
+                            <div className={cn("flex-grow max-w-[80%]")}>
+                                <div className={cn("flex items-center gap-2")}>
                                      <DropdownMenu>
                                         <DropdownMenuTrigger asChild>
                                             <button className="text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity">
@@ -463,7 +463,7 @@ export const ChatPanel = ({
                                         </DropdownMenuContent>
                                     </DropdownMenu>
                                     <p className="leading-relaxed break-words">
-                                        <span className="font-bold mr-1.5" style={{ color: msg.userColor || 'inherit' }}>{msg.user}:</span>
+                                        <b className="mr-1.5" style={{ color: msg.userColor || 'inherit' }}>{msg.user}:</b>
                                         {msg.text}
                                     </p>
                                 </div>
@@ -495,11 +495,12 @@ export const ChatPanel = ({
                     value={newMessage}
                     onChange={(e) => setNewMessage(e.target.value)}
                     rows={1}
-                    className='flex-grow resize-none max-h-24 pr-10 rounded-full bg-muted border-transparent focus:border-input focus:bg-background h-10 py-2'
+                    className='flex-grow resize-none max-h-24 pr-10 rounded-full bg-muted border-transparent focus:border-input focus:bg-background h-11 py-2.5'
+                    style={{minHeight: '44px'}}
                 />
                 <Popover>
                     <PopoverTrigger asChild>
-                         <Button variant="ghost" size="icon" type="button" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full text-muted-foreground">
+                         <Button variant="ghost" size="icon" type="button" className="absolute right-1.5 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full text-muted-foreground">
                             <Smile className="h-5 w-5" />
                         </Button>
                     </PopoverTrigger>
@@ -516,7 +517,7 @@ export const ChatPanel = ({
                      </PopoverContent>
                 </Popover>
              </div>
-             <Button type="submit" size="icon" disabled={!newMessage.trim()} className="rounded-full flex-shrink-0 h-10 w-10">
+             <Button type="submit" size="icon" disabled={!newMessage.trim()} className="rounded-full flex-shrink-0 h-11 w-11">
                 <Send className="h-4 w-4" />
             </Button>
           </form>
