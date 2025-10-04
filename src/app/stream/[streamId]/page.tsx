@@ -665,8 +665,10 @@ const ChatPanel = ({
                 <div className="p-3 space-y-3">
                   <Card className="bg-primary/10 border-primary/20">
                     <CardContent className="p-3">
-                      <div className="flex items-start gap-3">
-                        <Ticket className="h-5 w-5 text-primary flex-shrink-0 mt-1" />
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 bg-secondary rounded-full">
+                            <Award className="h-8 w-8 text-foreground" />
+                        </div>
                         <div>
                           <p className="text-xs font-semibold">🎉 Special Offer!</p>
                           <p className="text-sm">Use code <span className="font-bold text-primary">LIVE10</span> for 10% off your entire order.</p>
@@ -1366,8 +1368,8 @@ export default function StreamPage() {
 
             <Dialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
                 <AlertDialog>
-                    <div className="h-dvh w-full flex flex-col lg:grid lg:grid-cols-[1fr_340px] bg-background text-foreground">
-                         <header className="flex-shrink-0 h-16 bg-background border-b border-border flex items-center justify-between px-4 z-40 col-span-2">
+                    <div className="h-dvh w-full flex flex-col bg-background text-foreground">
+                         <header className="flex-shrink-0 h-16 bg-background border-b border-border flex items-center justify-between px-4 z-40">
                             <div className="flex items-center gap-2">
                                 <Button variant="ghost" size="icon" onClick={() => router.back()}>
                                     <ArrowLeft />
@@ -1391,7 +1393,7 @@ export default function StreamPage() {
                             </div>
                         </header>
 
-                        <div className="flex-1 flex flex-col lg:flex-row overflow-hidden relative">
+                        <div className="flex-1 lg:grid lg:grid-cols-[1fr_340px] overflow-hidden">
                              <div className="flex-1 overflow-y-auto no-scrollbar relative flex flex-col" ref={mainScrollRef} onScroll={handleMainScroll}>
                                 {showGoToTop && (
                                     <Button
@@ -1477,8 +1479,7 @@ export default function StreamPage() {
                                     </div>
                                 </div>
                             </div>
-
-                            <div className="w-[340px] flex-shrink-0 h-full flex flex-col bg-card relative hidden lg:flex">
+                           <div className="h-full w-[340px] flex-shrink-0 flex-col bg-card relative hidden lg:flex">
                                 <ChatPanel seller={seller} chatMessages={chatMessages} pinnedMessages={pinnedMessages} activeAuction={activeAuction} auctionTime={auctionTime} highestBid={highestBid} totalBids={totalBids} walletBalance={walletBalance} handlers={handlers} inlineAuctionCardRefs={inlineAuctionCardRefs} onClose={() => {}} />
                             </div>
                         </div>
