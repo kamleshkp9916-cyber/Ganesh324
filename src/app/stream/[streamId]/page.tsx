@@ -790,7 +790,7 @@ const ChatPanel = ({
                 <PopoverContent className="w-80 h-64 p-2">
                   <div className="grid grid-cols-8 gap-1 h-full overflow-y-auto no-scrollbar">
                     {emojis.map((emoji, index) => (
-                      <Button key={index} variant="ghost" size="icon" onClick={() => addEmoji(emoji)} className="text-xl">
+                      <Button key={index} variant="ghost" size="icon" onClick={()={() => addEmoji(emoji)} className="text-xl">
                         {emoji}
                       </Button>
                     ))}
@@ -868,6 +868,37 @@ export default function StreamPage() {
     const [isLive, setIsLive] = useState(true);
     const [isMobileChatVisible, setIsMobileChatVisible] = useState(false);
     const mainScrollRef = useRef<HTMLDivElement>(null);
+    const [isHeaderVisible, setIsHeaderVisible] = useState(true);
+    const activityTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+    const resetActivityTimer = useCallback(() => {
+        setIsHeaderVisible(true);
+        if (activityTimerRef.current) {
+            clearTimeout(activityTimerRef.current);
+        }
+        activityTimerRef.current = setTimeout(() => {
+            setIsHeaderVisible(false);
+        }, 3000); // Hide after 3 seconds of inactivity
+    }, []);
+
+    useEffect(() => {
+        const activityEvents: (keyof WindowEventMap)[] = ['mousemove', 'mousedown', 'touchstart', 'keydown', 'scroll'];
+        
+        activityEvents.forEach(event => {
+            window.addEventListener(event, resetActivityTimer);
+        });
+
+        resetActivityTimer(); // Initial timer
+
+        return () => {
+            activityEvents.forEach(event => {
+                window.removeEventListener(event, resetActivityTimer);
+            });
+            if (activityTimerRef.current) {
+                clearTimeout(activityTimerRef.current);
+            }
+        };
+    }, [resetActivityTimer]);
 
     useEffect(() => {
         setIsLoading(false);
@@ -1390,7 +1421,9 @@ export default function StreamPage() {
             </Dialog>
             
              <div className="flex flex-col h-dvh bg-background text-foreground">
-                <header className="p-4 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-sm z-30 border-b h-16 shrink-0">
+                <header className={cn("p-4 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-sm z-30 border-b h-16 shrink-0 transition-all duration-300",
+                    isHeaderVisible ? "translate-y-0 opacity-100" : "-translate-y-full opacity-0"
+                )}>
                     <Button variant="ghost" size="icon" onClick={() => router.back()}>
                         <ArrowLeft className="h-6 w-6" />
                     </Button>
@@ -1484,7 +1517,19 @@ export default function StreamPage() {
                     </main>
 
                    <div className={cn("h-full w-[384px] flex-shrink-0 flex-col bg-card relative hidden lg:flex border-l")}>
-                        <ChatPanel seller={seller} chatMessages={chatMessages} pinnedMessages={pinnedMessages} activeAuction={activeAuction} auctionTime={auctionTime} highestBid={highestBid} totalBids={totalBids} walletBalance={walletBalance} handlers={handlers} inlineAuctionCardRefs={inlineAuctionCardRefs} onClose={() => {}} />
+                        <ChatPanel
+                            seller={seller}
+                            chatMessages={chatMessages}
+                            pinnedMessages={pinnedMessages}
+                            activeAuction={activeAuction}
+                            auctionTime={auctionTime}
+                            highestBid={highestBid}
+                            totalBids={totalBids}
+                            walletBalance={walletBalance}
+                            handlers={handlers}
+                            inlineAuctionCardRefs={inlineAuctionCardRefs}
+                            onClose={() => {}}
+                        />
                     </div>
                 </div>
             </div>
@@ -1584,3 +1629,5 @@ const RelatedContent = ({ relatedStreams }: { relatedStreams: any[] }) => (
         </div>
     </div>
 );
+
+    
