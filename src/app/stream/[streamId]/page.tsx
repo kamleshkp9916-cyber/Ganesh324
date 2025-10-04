@@ -646,7 +646,7 @@ const ChatPanel = ({
   };
 
   return (
-    <>
+    <div className='h-full flex flex-col'>
       <div className="p-4 flex items-center justify-between z-10 flex-shrink-0 h-16 border-b">
         <h3 className="font-bold text-lg">Live Chat</h3>
         <div className="flex items-center gap-1">
@@ -803,7 +803,7 @@ const ChatPanel = ({
             </Button>
           </form>
         </div>
-    </>
+    </div>
   );
 };
 
@@ -868,31 +868,6 @@ export default function StreamPage() {
     const [isLive, setIsLive] = useState(true);
     const [isMobileChatVisible, setIsMobileChatVisible] = useState(false);
     const mainScrollRef = useRef<HTMLDivElement>(null);
-    const [isHeaderVisible, setIsHeaderVisible] = useState(true);
-    const lastScrollY = useRef(0);
-
-    useEffect(() => {
-        const mainEl = mainScrollRef.current;
-        if (!mainEl) return;
-    
-        const handleScroll = () => {
-          const currentScrollY = mainEl.scrollTop;
-          
-          if (currentScrollY > lastScrollY.current && currentScrollY > 50) {
-            // Scrolling down
-            setIsHeaderVisible(false);
-          } else {
-            // Scrolling up
-            setIsHeaderVisible(true);
-          }
-          lastScrollY.current = currentScrollY;
-        };
-    
-        mainEl.addEventListener('scroll', handleScroll);
-        return () => {
-          mainEl.removeEventListener('scroll', handleScroll);
-        };
-    }, []);
 
     useEffect(() => {
         setIsLoading(false);
@@ -1415,9 +1390,7 @@ export default function StreamPage() {
             </Dialog>
             
              <div className="flex flex-col h-dvh bg-background text-foreground">
-                <header className={cn("p-4 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-sm z-30 border-b h-16 shrink-0 transition-transform duration-300",
-                    isHeaderVisible ? "translate-y-0" : "-translate-y-full"
-                )}>
+                <div className="p-4 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-sm z-30 border-b h-16 shrink-0">
                     <Button variant="ghost" size="icon" onClick={() => router.back()}>
                         <ArrowLeft className="h-6 w-6" />
                     </Button>
@@ -1428,10 +1401,10 @@ export default function StreamPage() {
                             <span className="hidden sm:inline">My Cart</span>
                         </Link>
                     </Button>
-                </header>
+                </div>
 
                 <div className="flex-1 flex flex-col lg:grid lg:grid-cols-[1fr,384px] overflow-hidden">
-                    <main className="flex-1 flex flex-col overflow-hidden" ref={mainScrollRef}>
+                    <main className="flex-1 flex flex-col overflow-hidden">
                         <div className="w-full aspect-video bg-black relative group flex-shrink-0" ref={playerRef}>
                             <video ref={videoRef} src={streamData.streamUrl || "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"} className="w-full h-full object-cover" loop />
                             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-black/60 flex flex-col p-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
@@ -1484,9 +1457,9 @@ export default function StreamPage() {
                             </div>
                         </div>
 
-                        <div className="flex-1 overflow-y-auto no-scrollbar">
+                        <div className="flex-1 overflow-y-auto no-scrollbar" ref={mainScrollRef}>
                             <div className="p-4 space-y-6">
-                                <StreamInfo seller={seller} streamData={streamData} handleFollowToggle={handleFollowToggle} isFollowingState={isFollowingState} sellerProducts={sellerProducts}/>
+                                {!isMobileChatVisible && <StreamInfo seller={seller} streamData={streamData} handleFollowToggle={handleFollowToggle} isFollowingState={isFollowingState} sellerProducts={sellerProducts}/>}
                                 <div className="lg:hidden">
                                     <Collapsible open={isMobileChatVisible} onOpenChange={setIsMobileChatVisible}>
                                         {!isMobileChatVisible && (
