@@ -112,7 +112,7 @@ import { Switch } from "@/components/ui/switch";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useInView } from "react-intersection-observer";
 import { useMiniPlayer } from "@/context/MiniPlayerContext";
-import { Sheet, SheetContent, SheetClose } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
 
 
@@ -1403,8 +1403,8 @@ export default function StreamPage() {
                     </Button>
                 </header>
 
-                <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
-                    <div className="flex-1 flex flex-col overflow-y-auto no-scrollbar" onScroll={handleMainScroll} ref={mainScrollRef}>
+                <div className="flex-1 flex flex-col lg:grid lg:grid-cols-[1fr,384px] overflow-hidden">
+                    <main className="flex-1 flex flex-col overflow-y-auto no-scrollbar" onScroll={handleMainScroll} ref={mainScrollRef}>
                         <div className="w-full aspect-video bg-black relative group flex-shrink-0" ref={playerRef}>
                             <video ref={videoRef} src={streamData.streamUrl || "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"} className="w-full h-full object-cover" loop />
                             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-black/60 flex flex-col p-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
@@ -1459,30 +1459,28 @@ export default function StreamPage() {
 
                         <div className="p-4 space-y-6">
                             <StreamInfo seller={seller} streamData={streamData} handleFollowToggle={handleFollowToggle} isFollowingState={isFollowingState} sellerProducts={sellerProducts}/>
+                             <div className="lg:hidden">
+                                <Button className="w-full" onClick={() => setIsMobileChatVisible(true)}>
+                                    <MessageSquare className="mr-2 h-4 w-4" /> Live Chat
+                                </Button>
+                            </div>
                             <RelatedContent relatedStreams={relatedStreams} />
                         </div>
-                    </div>
+                    </main>
                    <div className="h-full w-[384px] flex-shrink-0 flex-col bg-card relative hidden lg:flex">
                         <ChatPanel seller={seller} chatMessages={chatMessages} pinnedMessages={pinnedMessages} activeAuction={activeAuction} auctionTime={auctionTime} highestBid={highestBid} totalBids={totalBids} walletBalance={walletBalance} handlers={handlers} inlineAuctionCardRefs={inlineAuctionCardRefs} onClose={() => {}} />
                     </div>
                 </div>
             </div>
             
-             <Sheet open={isMobileChatVisible} onOpenChange={setIsMobileChatVisible}>
+            <Sheet open={isMobileChatVisible} onOpenChange={setIsMobileChatVisible}>
                 <SheetContent side="bottom" className="h-[70dvh] p-0 flex flex-col rounded-t-lg" overlayClassName="bg-transparent">
+                     <SheetHeader className="p-4 border-b flex-row items-center justify-between">
+                         <SheetTitle>Live Chat</SheetTitle>
+                     </SheetHeader>
                     <ChatPanel seller={seller} chatMessages={chatMessages} pinnedMessages={pinnedMessages} activeAuction={activeAuction} auctionTime={auctionTime} highestBid={highestBid} totalBids={totalBids} walletBalance={walletBalance} handlers={handlers} inlineAuctionCardRefs={inlineAuctionCardRefs} onClose={() => setIsMobileChatVisible(false)} />
                 </SheetContent>
             </Sheet>
-            
-            {!isMobileChatVisible && (
-                <Button
-                    size="icon"
-                    className="fixed bottom-6 right-6 z-50 rounded-full h-16 w-16 shadow-lg lg:hidden"
-                    onClick={() => setIsMobileChatVisible(true)}
-                >
-                    <MessageSquare className="h-8 w-8" />
-                </Button>
-            )}
         </React.Fragment>
     );
 }
