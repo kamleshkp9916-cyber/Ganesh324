@@ -816,7 +816,7 @@ export default function StreamPage() {
     const { minimizedStream, minimizeStream, closeMinimizedStream, isMinimized } = useMiniPlayer();
     const [walletBalance, setWalletBalance] = useState(42580.22);
     const [bidAmount, setBidAmount] = useState<number | string>("");
-    const [isWithdrawOpen, setIsWithdrawOpen] = useState(isSettingsOpen);
+    const [isWithdrawOpen, setIsWithdrawOpen] = useState(false);
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
     const [bankAccounts, setBankAccounts] = useState([
         { id: 1, bankName: 'HDFC Bank', accountNumber: 'XXXX-XXXX-XX12-3456' },
@@ -1599,3 +1599,5 @@ const RelatedContent = ({ relatedStreams }: { relatedStreams: any[] }) => (
         </div>
     </div>
 );
+
+    
