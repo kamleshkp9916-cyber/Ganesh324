@@ -833,18 +833,24 @@ export default function StreamPage() {
         inlineAuctionCardRefs.current[auctionId]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     };
 
-    if (isLoading) {
-      return (
-        <div className="flex flex-col h-screen items-center justify-center bg-background">
-          <div className="w-full max-w-4xl">
-            <Skeleton className="w-full aspect-video" />
-            <div className="p-4 space-y-3">
-              <Skeleton className="h-8 w-3/4" />
-              <Skeleton className="h-6 w-1/2" />
+    const [hydrated, setHydrated] = useState(false);
+    useEffect(() => {
+        setHydrated(true);
+    }, []);
+
+
+    if (!hydrated) {
+        return (
+            <div className="flex flex-col h-screen items-center justify-center bg-background">
+                <div className="w-full max-w-4xl">
+                <Skeleton className="w-full aspect-video" />
+                <div className="p-4 space-y-3">
+                    <Skeleton className="h-8 w-3/4" />
+                    <Skeleton className="h-6 w-1/2" />
+                </div>
+                </div>
             </div>
-          </div>
-        </div>
-      );
+        );
     }
     
     if (isMinimized(streamId)) {
@@ -864,51 +870,42 @@ export default function StreamPage() {
         <main className="flex-1 flex flex-col overflow-hidden">
           <div className="w-full aspect-video bg-black relative" ref={playerRef}>
               <video ref={videoRef} src={streamData.streamUrl || "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"} className="w-full h-full object-cover" loop />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/60 flex flex-col p-4">
+              <div className="absolute inset-0 bg-gradient-to-b from-black/50 to-transparent opacity-0 hover:opacity-100 transition-opacity">
+                <div className="p-4 flex items-center justify-between text-white">
+                  <h1 className="font-bold text-lg">{streamData.title || "Live Event"}</h1>
+                    <Badge variant="secondary" className="gap-1.5">
+                        <Users className="h-3 w-3" /> {streamData.viewerCount.toLocaleString()} watching
+                    </Badge>
+                </div>
+              </div>
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex flex-col justify-end p-4 text-white">
+                  <div className="w-full cursor-pointer py-1" ref={progressContainerRef} onClick={handleProgressClick}>
+                      <Progress value={(currentTime / duration) * 100} valueBuffer={(buffered / duration) * 100} isLive={isLive} className="h-2" />
+                  </div>
                   <div className="flex items-center justify-between">
-                      <h1 className="font-bold text-lg hidden sm:block text-white">{streamData.title || "Live Event"}</h1>
-                      <Badge variant="secondary" className="gap-1.5">
-                          <Users className="h-3 w-3" /> {streamData.viewerCount.toLocaleString()} watching
-                      </Badge>
-                  </div>
-                  <div className="flex-1 flex items-center justify-center gap-4 sm:gap-8 text-white">
-                      <Button variant="ghost" size="icon" className="w-14 h-14" onClick={() => handleSeek('backward')}><Rewind className="w-8 h-8" /></Button>
-                      <Button variant="ghost" size="icon" className="w-20 h-20" onClick={handlePlayPause}>
-                          {isPaused ? <Play className="w-12 h-12 fill-current" /> : <Pause className="w-12 h-12 fill-current" />}
-                      </Button>
-                      <Button variant="ghost" size="icon" className="w-14 h-14" onClick={() => handleSeek('forward')}><FastForward className="w-8 h-8" /></Button>
-                  </div>
-                  <div className="space-y-3 text-white">
-                      <div className="w-full cursor-pointer py-1" ref={progressContainerRef} onClick={handleProgressClick}>
-                          <Progress value={(currentTime / duration) * 100} valueBuffer={(buffered / duration) * 100} isLive={isLive} className="h-2" />
+                      <div className="flex items-center gap-2 sm:gap-4">
+                            <Button variant="ghost" size="icon" className="w-10 h-10" onClick={handlePlayPause}>
+                                {isPaused ? <Play className="w-6 h-6 fill-current" /> : <Pause className="w-6 h-6 fill-current" />}
+                            </Button>
+                            <Button
+                              variant="destructive"
+                              className="gap-1.5 h-8 text-xs sm:text-sm"
+                              onClick={handleGoLive}
+                              disabled={isLive}
+                          >
+                              <div className={cn("h-2 w-2 rounded-full bg-white", !isLive && "animate-pulse")} />
+                              {isLive ? 'LIVE' : 'Go Live'}
+                          </Button>
+                          <Button variant="ghost" size="icon" onClick={() => setIsMuted(prev => !prev)}>
+                              {isMuted ? <VolumeX /> : <Volume2 />}
+                          </Button>
+                          <p className="text-sm font-mono">{formatTime(currentTime)} / {formatTime(duration)}</p>
                       </div>
-                      <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2 sm:gap-4">
-                              <Button
-                                  variant="destructive"
-                                  className="gap-1.5 h-8 text-xs sm:text-sm"
-                                  onClick={handleGoLive}
-                                  disabled={isLive}
-                              >
-                                  <div className={cn("h-2 w-2 rounded-full bg-white", !isLive && "animate-pulse")} />
-                                  {isLive ? 'LIVE' : 'Go Live'}
-                              </Button>
-                              {!isLive && (
-                                  <div className="text-xs text-yellow-400 font-semibold">
-                                      You are {formatTime(duration - currentTime)} behind
-                                  </div>
-                              )}
-                              <Button variant="ghost" size="icon" onClick={() => setIsMuted(prev => !prev)}>
-                                  {isMuted ? <VolumeX /> : <Volume2 />}
-                              </Button>
-                              <p className="text-sm font-mono">{formatTime(currentTime)} / {formatTime(duration)}</p>
-                          </div>
-                          <div className="flex items-center gap-1 sm:gap-2">
-                              <Button variant="ghost" size="icon" onClick={handleMinimize}><PictureInPicture /></Button>
-                              <Button variant="ghost" size="icon" onClick={handleShare}><Share2 /></Button>
-                              <Button variant="ghost" size="icon" onClick={() => setIsSettingsOpen(true)}><Settings /></Button>
-                              <Button variant="ghost" size="icon" onClick={handleToggleFullscreen}><Maximize /></Button>
-                          </div>
+                      <div className="flex items-center gap-1 sm:gap-2">
+                          <Button variant="ghost" size="icon" onClick={handleMinimize}><PictureInPicture /></Button>
+                          <Button variant="ghost" size="icon" onClick={handleShare}><Share2 /></Button>
+                          <Button variant="ghost" size="icon" onClick={() => setIsSettingsOpen(true)}><Settings /></Button>
+                          <Button variant="ghost" size="icon" onClick={handleToggleFullscreen}><Maximize /></Button>
                       </div>
                   </div>
               </div>
@@ -966,6 +963,26 @@ export default function StreamPage() {
         </header>
         <div className="w-full aspect-video bg-black relative flex-shrink-0">
            <video ref={videoRef} src={streamData.streamUrl || "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"} className="w-full h-full object-cover" loop />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex flex-col justify-end p-2 text-white">
+                <div className="w-full cursor-pointer py-1" ref={progressContainerRef} onClick={handleProgressClick}>
+                    <Progress value={(currentTime / duration) * 100} isLive={isLive} className="h-1.5" />
+                </div>
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-1">
+                        <Button variant="ghost" size="icon" className="w-9 h-9" onClick={handlePlayPause}>
+                            {isPaused ? <Play className="w-5 h-5 fill-current" /> : <Pause className="w-5 h-5 fill-current" />}
+                        </Button>
+                        <Button variant="ghost" size="icon" className="w-9 h-9" onClick={() => setIsMuted(prev => !prev)}>
+                            {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
+                        </Button>
+                         <p className="text-xs font-mono">{formatTime(currentTime)}</p>
+                    </div>
+                    <div className="flex items-center gap-1">
+                        <Button variant="ghost" size="icon" className="w-9 h-9" onClick={handleMinimize}><PictureInPicture className="w-5 h-5"/></Button>
+                        <Button variant="ghost" size="icon" className="w-9 h-9" onClick={handleToggleFullscreen}><Maximize className="w-5 h-5"/></Button>
+                    </div>
+                </div>
+            </div>
         </div>
         <div className="flex-1 overflow-hidden">
           {isMobileChatVisible ? (
@@ -1111,5 +1128,3 @@ const RelatedContent = ({ relatedStreams }: { relatedStreams: any[] }) => (
         </div>
     </div>
 );
-
-    
