@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -369,17 +368,31 @@ export const ChatPanel = ({
 
   return (
     <div className='h-full flex flex-col'>
-      <div className="p-4 flex items-center justify-between z-10 flex-shrink-0 h-16 border-b">
+      <header className="p-4 flex items-center justify-between z-10 flex-shrink-0 h-16 border-b">
         <h3 className="font-bold text-lg">Live Chat</h3>
-        <Button variant="ghost" size="icon" onClick={onClose} className="h-8 w-8 lg:hidden">
+        <div className="flex items-center gap-1">
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-8 w-8 relative">
+                <Pin className="h-5 w-5 text-muted-foreground" />
+                {pinnedMessages.length > 0 && <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-primary" />}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent align="end" className="w-80 p-0">
+              {/* Pinned messages content */}
+            </PopoverContent>
+          </Popover>
+          <DropdownMenu>
+            {/* ... Dropdown menu ... */}
+          </DropdownMenu>
+          <Button variant="ghost" size="icon" onClick={onClose} className="h-8 w-8 lg:hidden">
             <X className="h-5 w-5" />
-        </Button>
-      </div>
+          </Button>
+        </div>
+      </header>
       <ScrollArea className="flex-grow" ref={chatContainerRef} onScroll={handleManualScroll}>
           <div className="p-4 space-y-0.5">
-            {chatMessages.map((msg, index) => (
-              <div key={index}>{/* Simplified for brevity */}</div>
-            ))}
+            {/* messages mapping */}
             <div ref={messagesEndRef} />
           </div>
         </ScrollArea>
@@ -395,7 +408,7 @@ export const ChatPanel = ({
             </Button>
           </div>
         )}
-      <div className="p-3 border-t bg-background flex-shrink-0">
+      <footer className="p-3 border-t bg-background flex-shrink-0">
           <form onSubmit={handleNewMessageSubmit} className="flex items-center gap-3">
             <Input 
                 placeholder="Send a message..." 
@@ -407,7 +420,7 @@ export const ChatPanel = ({
               <Send className="h-4 w-4" />
             </Button>
           </form>
-        </div>
+        </footer>
     </div>
   );
 };
