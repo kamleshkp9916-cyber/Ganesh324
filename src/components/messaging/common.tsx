@@ -8,7 +8,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useAuth } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
 import { UserData } from "@/lib/follow-data";
-import { ArrowLeft, Loader2, Menu, MoreHorizontal, MoreVertical, Search, Send, Trash2, CheckCheck, Check, Flag, Paperclip, FileText, PlusCircle, Home, Pin, Award, History, Gavel, ShoppingBag, X, Smile } from "lucide-react";
+import { ArrowLeft, Loader2, Menu, MoreHorizontal, Search, Send, Trash2, CheckCheck, Check, Flag, Paperclip, FileText, PlusCircle, Home, Pin, Award, History, Gavel, ShoppingBag, X, Smile } from "lucide-react";
 import { useEffect, useMemo, useRef, useState, useCallback, forwardRef } from "react";
 import { Skeleton } from "../ui/skeleton";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -108,7 +108,7 @@ export const ConversationItem = ({ convo, isSelected, onClick, onDelete }: { con
                                 <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
                                         <Button variant="ghost" size="icon" className="h-7 w-7" onClick={(e) => e.stopPropagation()}>
-                                            <MoreVertical className="h-4 w-4" />
+                                            <MoreHorizontal className="h-4 w-4" />
                                         </Button>
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
@@ -145,7 +145,7 @@ export const ChatMessage = ({ msg, currentUserId }: { msg: Message, currentUserI
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                         <Button variant="ghost" size="icon" className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <MoreVertical className="h-4 w-4" />
+                            <MoreHorizontal className="h-4 w-4" />
                         </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent>
@@ -155,7 +155,7 @@ export const ChatMessage = ({ msg, currentUserId }: { msg: Message, currentUserI
                     </DropdownMenuContent>
                 </DropdownMenu>
             )}
-            <div className={cn("max-w-[75%] rounded-2xl px-4 py-2", isMyMessage ? "bg-primary text-primary-foreground" : "bg-muted")}>
+            <div className={cn("max-w-[86%] rounded-[18px] px-4 py-1.5", isMyMessage ? "bg-primary text-primary-foreground" : "bg-[#141516] text-[#E6ECEF]")}>
                 {msg.text && <p className="text-sm whitespace-pre-wrap">{msg.text}</p>}
                 {msg.imageUrl && <img src={msg.imageUrl} alt="sent" className="rounded-md max-w-full h-auto mt-2" />}
                 <div className={cn("text-xs mt-1 flex items-center gap-1", isMyMessage ? "text-primary-foreground/70 justify-end" : "text-muted-foreground justify-end")}>
@@ -458,12 +458,7 @@ export const ChatPanel = ({
                                  <p className="text-xs text-[#9AA1A6] flex-shrink-0">
                                    {msg.timestamp}
                                  </p>
-                               </div>
-                               <div className="flex items-start justify-between gap-2">
-                                  <p className="leading-relaxed break-words text-base text-[#E6ECEF] mt-0.5">
-                                      <span className="mr-1.5">:</span>{msg.text}
-                                  </p>
-                                   <DropdownMenu>
+                                  <DropdownMenu>
                                       <DropdownMenuTrigger asChild>
                                           <button className="text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity p-1">
                                               <MoreHorizontal className="w-4 h-4" />
@@ -476,6 +471,9 @@ export const ChatPanel = ({
                                       </DropdownMenuContent>
                                   </DropdownMenu>
                                </div>
+                               <p className="leading-relaxed break-words text-sm text-[#E6ECEF] mt-0.5">
+                                   {msg.text}
+                                </p>
                             </div>
                         </div>
                     )
