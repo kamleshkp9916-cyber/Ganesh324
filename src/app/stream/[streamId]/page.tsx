@@ -1462,14 +1462,16 @@ export default function StreamPage() {
                                 <StreamInfo seller={seller} streamData={streamData} handleFollowToggle={handleFollowToggle} isFollowingState={isFollowingState} sellerProducts={sellerProducts}/>
                                  <div className="lg:hidden">
                                     <Collapsible open={isMobileChatVisible} onOpenChange={setIsMobileChatVisible}>
-                                        <CollapsibleTrigger asChild>
-                                             <Button className="w-full">
-                                                <MessageSquare className="mr-2 h-4 w-4" /> Live Chat
-                                            </Button>
-                                        </CollapsibleTrigger>
+                                        {!isMobileChatVisible && (
+                                            <CollapsibleTrigger asChild>
+                                                <Button className="w-full">
+                                                    <MessageSquare className="mr-2 h-4 w-4" /> Live Chat
+                                                </Button>
+                                            </CollapsibleTrigger>
+                                        )}
                                         <CollapsibleContent>
                                             <div className="mt-4 h-[60vh] flex flex-col border rounded-lg overflow-hidden">
-                                                 <ChatPanel seller={seller} chatMessages={chatMessages} pinnedMessages={pinnedMessages} activeAuction={activeAuction} auctionTime={auctionTime} highestBid={highestBid} totalBids={totalBids} walletBalance={walletBalance} handlers={handlers} inlineAuctionCardRefs={inlineAuctionCardRefs} onClose={() => setIsMobileChatVisible(false)} />
+                                                <ChatPanel seller={seller} chatMessages={chatMessages} pinnedMessages={pinnedMessages} activeAuction={activeAuction} auctionTime={auctionTime} highestBid={highestBid} totalBids={totalBids} walletBalance={walletBalance} handlers={handlers} inlineAuctionCardRefs={inlineAuctionCardRefs} onClose={() => setIsMobileChatVisible(false)} />
                                             </div>
                                         </CollapsibleContent>
                                     </Collapsible>
@@ -1582,4 +1584,3 @@ const RelatedContent = ({ relatedStreams }: { relatedStreams: any[] }) => (
         </div>
     </div>
 );
-
