@@ -1475,9 +1475,6 @@ export default function StreamPage() {
             
             <Sheet open={isMobileChatVisible} onOpenChange={setIsMobileChatVisible}>
                 <SheetContent side="bottom" className="h-[70dvh] p-0 flex flex-col rounded-t-lg" overlayClassName="bg-transparent">
-                     <SheetHeader className="p-4 border-b flex-row items-center justify-between">
-                         <SheetTitle>Live Chat</SheetTitle>
-                     </SheetHeader>
                     <ChatPanel seller={seller} chatMessages={chatMessages} pinnedMessages={pinnedMessages} activeAuction={activeAuction} auctionTime={auctionTime} highestBid={highestBid} totalBids={totalBids} walletBalance={walletBalance} handlers={handlers} inlineAuctionCardRefs={inlineAuctionCardRefs} onClose={() => setIsMobileChatVisible(false)} />
                 </SheetContent>
             </Sheet>
