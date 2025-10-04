@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import Link from 'next/link';
@@ -62,14 +63,14 @@ export function MainSidebar({ userData, userPosts }: MainSidebarProps) {
     const isMessagesActive = isActive('/feed', 'messages');
 
     return (
-        <div className="p-4 flex flex-col h-full bg-sidebar-background text-sidebar-foreground">
-            <div className="flex items-center justify-between gap-2 mb-8 flex-shrink-0">
+        <div className="flex flex-col h-full bg-sidebar-background text-sidebar-foreground">
+            <div className="p-4 flex items-center justify-between gap-2 mb-4 flex-shrink-0">
                 <Link href="/live-selling" className="flex items-center gap-2">
                     <Logo className="h-8 w-8 text-foreground" />
                     <span className="font-bold text-xl">StreamCart</span>
                 </Link>
             </div>
-             <ScrollArea className="-mx-4">
+             <ScrollArea className="flex-grow">
                 <div className="px-4">
                     <div className="flex flex-col items-center text-center mb-6">
                         <Avatar className="h-20 w-20 mb-3 border-2 border-primary">
@@ -108,7 +109,7 @@ export function MainSidebar({ userData, userPosts }: MainSidebarProps) {
                     </nav>
                 </div>
             </ScrollArea>
-             <div className="mt-auto flex-shrink-0 pt-4 border-t border-border/50">
+             <div className="mt-auto flex-shrink-0 pt-4 px-4 pb-4 border-t border-border/50">
                 <div className="flex flex-row items-center justify-center gap-4">
                     <Button asChild variant="link" className="p-0 h-auto text-xs text-muted-foreground hover:text-primary">
                         <Link href="/help">Help</Link>
