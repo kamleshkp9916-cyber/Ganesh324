@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import {
@@ -962,6 +961,7 @@ export default function StreamPage() {
                         showGoToTop={showGoToTop}
                         scrollToTop={scrollToTop}
                         formatTime={formatTime}
+                        router={router}
                     />
                  )}
             </div>
@@ -970,85 +970,87 @@ export default function StreamPage() {
 }
 
 const DesktopLayout = (props: any) => (
-  <div className="flex-1 lg:grid lg:grid-cols-[1fr,384px] overflow-hidden">
-    <main className="flex-1 flex flex-col overflow-hidden">
-       <header className="p-3 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-sm z-30 border-b h-16 shrink-0">
-          <Button variant="ghost" size="icon" onClick={() => props.router.back()}>
-              <ArrowLeft className="h-6 w-6" />
-          </Button>
-          {props.seller && (
-             <div className="flex items-center gap-2 overflow-hidden">
-              <Avatar className="h-8 w-8">
-                <AvatarImage src={props.seller.avatarUrl} />
-                <AvatarFallback>{props.seller.name.charAt(0)}</AvatarFallback>
-              </Avatar>
-              <div className="overflow-hidden">
-                <h1 className="text-sm font-bold truncate">{props.seller.name}</h1>
-                <p className="text-xs text-muted-foreground">{props.streamData.viewerCount.toLocaleString()} viewers</p>
-              </div>
+  <div className="flex flex-col h-screen overflow-hidden">
+    <header className="p-3 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-sm z-30 border-b h-16 shrink-0">
+        <Button variant="ghost" size="icon" onClick={() => props.router.back()}>
+            <ArrowLeft className="h-6 w-6" />
+        </Button>
+        {props.seller && (
+            <div className="flex items-center gap-2 overflow-hidden">
+            <Avatar className="h-8 w-8">
+              <AvatarImage src={props.seller.avatarUrl} />
+              <AvatarFallback>{props.seller.name.charAt(0)}</AvatarFallback>
+            </Avatar>
+            <div className="overflow-hidden">
+              <h1 className="text-sm font-bold truncate">{props.seller.name}</h1>
+              <p className="text-xs text-muted-foreground">{props.streamData.viewerCount.toLocaleString()} viewers</p>
             </div>
-          )}
-          <div />
-        </header>
-      <div className="w-full aspect-video bg-black relative" ref={props.playerRef}>
-          <video ref={props.videoRef} src={props.streamData.streamUrl || "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"} className="w-full h-full object-cover" loop />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent flex flex-col justify-end p-4 text-white">
-              <div className="w-full cursor-pointer py-1" ref={props.progressContainerRef} onClick={props.handleProgressClick}>
-                  <Progress value={(props.currentTime / props.duration) * 100} valueBuffer={(props.buffered / props.duration) * 100} isLive={props.isLive} className="h-2" />
-              </div>
-              <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 sm:gap-4">
-                        <Button variant="ghost" size="icon" className="w-10 h-10" onClick={props.handlePlayPause}>
-                            {props.isPaused ? <Play className="w-6 h-6 fill-current" /> : <Pause className="w-6 h-6 fill-current" />}
-                        </Button>
-                        <Button
-                          variant="destructive"
-                          className="gap-1.5 h-8 text-xs sm:text-sm"
-                          onClick={props.handleGoLive}
-                          disabled={props.isLive}
-                      >
-                          <div className={cn("h-2 w-2 rounded-full bg-white", !props.isLive && "animate-pulse")} />
-                          {props.isLive ? 'LIVE' : 'Go Live'}
-                      </Button>
-                      <Button variant="ghost" size="icon" onClick={() => props.setIsMuted((prev: any) => !prev)}>
-                          {props.isMuted ? <VolumeX /> : <Volume2 />}
-                      </Button>
-                      <p className="text-sm font-mono">{props.formatTime(props.currentTime)} / {props.formatTime(props.duration)}</p>
-                  </div>
-                  <div className="flex items-center gap-1 sm:gap-2">
-                      <Button variant="ghost" size="icon" onClick={props.handleMinimize}><PictureInPicture /></Button>
-                      <Button variant="ghost" size="icon" onClick={props.handleShare}><Share2 /></Button>
-                      <Button variant="ghost" size="icon" onClick={() => props.setIsSettingsOpen(true)}><Settings /></Button>
-                      <Button variant="ghost" size="icon" onClick={props.handleToggleFullscreen}><Maximize /></Button>
-                  </div>
-              </div>
           </div>
-      </div>
+        )}
+        <div />
+    </header>
+    <div className="flex-1 grid grid-cols-[1fr,384px] overflow-hidden">
+        <main className="flex-1 flex flex-col overflow-hidden">
+            <div className="w-full aspect-video bg-black relative" ref={props.playerRef}>
+                <video ref={props.videoRef} src={props.streamData.streamUrl || "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"} className="w-full h-full object-cover" loop />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent flex flex-col justify-end p-4 text-white">
+                    <div className="w-full cursor-pointer py-1" ref={props.progressContainerRef} onClick={props.handleProgressClick}>
+                        <Progress value={(props.currentTime / props.duration) * 100} valueBuffer={(props.buffered / props.duration) * 100} isLive={props.isLive} className="h-2" />
+                    </div>
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2 sm:gap-4">
+                              <Button variant="ghost" size="icon" className="w-10 h-10" onClick={props.handlePlayPause}>
+                                  {props.isPaused ? <Play className="w-6 h-6 fill-current" /> : <Pause className="w-6 h-6 fill-current" />}
+                              </Button>
+                              <Button
+                                variant="destructive"
+                                className="gap-1.5 h-8 text-xs sm:text-sm"
+                                onClick={props.handleGoLive}
+                                disabled={props.isLive}
+                            >
+                                <div className={cn("h-2 w-2 rounded-full bg-white", !props.isLive && "animate-pulse")} />
+                                {props.isLive ? 'LIVE' : 'Go Live'}
+                            </Button>
+                            <Button variant="ghost" size="icon" onClick={() => props.setIsMuted((prev: any) => !prev)}>
+                                {props.isMuted ? <VolumeX /> : <Volume2 />}
+                            </Button>
+                            <p className="text-sm font-mono">{props.formatTime(props.currentTime)} / {props.formatTime(props.duration)}</p>
+                        </div>
+                        <div className="flex items-center gap-1 sm:gap-2">
+                            <Button variant="ghost" size="icon" onClick={props.handleMinimize}><PictureInPicture /></Button>
+                            <Button variant="ghost" size="icon" onClick={props.handleShare}><Share2 /></Button>
+                            <Button variant="ghost" size="icon" onClick={() => props.setIsSettingsOpen(true)}><Settings /></Button>
+                            <Button variant="ghost" size="icon" onClick={props.handleToggleFullscreen}><Maximize /></Button>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-      <div className="flex-1 overflow-y-auto no-scrollbar" ref={props.mainScrollRef} onScroll={props.handleMainScroll}>
-          <div className="p-4 space-y-6">
-             <StreamInfo seller={props.seller} streamData={props.streamData} handleFollowToggle={props.handleFollowToggle} isFollowingState={props.isFollowingState} sellerProducts={props.sellerProducts}/>
-             <RelatedContent relatedStreams={props.relatedStreams} />
-          </div>
-      </div>
-    </main>
+            <div className="flex-1 overflow-y-auto" ref={props.mainScrollRef} onScroll={props.handleMainScroll}>
+                <div className="p-4 space-y-6">
+                    <StreamInfo seller={props.seller} streamData={props.streamData} handleFollowToggle={props.handleFollowToggle} isFollowingState={props.isFollowingState} sellerProducts={props.sellerProducts}/>
+                    <RelatedContent relatedStreams={props.relatedStreams} />
+                </div>
+            </div>
+        </main>
 
-   <aside className="relative h-full w-[384px] flex-shrink-0 flex-col bg-card hidden lg:flex border-l overflow-hidden">
-        <ChatPanel
-            seller={props.seller}
-            chatMessages={props.chatMessages}
-            pinnedMessages={props.pinnedMessages}
-            activeAuction={props.activeAuction}
-            auctionTime={props.auctionTime}
-            highestBid={props.highestBid}
-            totalBids={props.totalBids}
-            walletBalance={props.walletBalance}
-            handlers={props.handlers}
-            inlineAuctionCardRefs={props.inlineAuctionCardRefs}
-            onClose={() => {}}
-        />
-    </aside>
-  </div>
+        <aside className="relative h-full w-[384px] flex-shrink-0 flex flex-col bg-card overflow-hidden border-l">
+            <ChatPanel
+                seller={props.seller}
+                chatMessages={props.chatMessages}
+                pinnedMessages={props.pinnedMessages}
+                activeAuction={props.activeAuction}
+                auctionTime={props.auctionTime}
+                highestBid={props.highestBid}
+                totalBids={props.totalBids}
+                walletBalance={props.walletBalance}
+                handlers={props.handlers}
+                inlineAuctionCardRefs={props.inlineAuctionCardRefs}
+                onClose={() => {}}
+            />
+        </aside>
+    </div>
+</div>
 );
 
 const MobileLayout = (props: any) => (
