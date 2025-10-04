@@ -854,6 +854,7 @@ export default function StreamPage() {
     const playerRef = useRef<HTMLDivElement>(null);
     const progressContainerRef = useRef<HTMLDivElement>(null);
     const inlineAuctionCardRefs = useRef<Record<string, HTMLDivElement | null>>({});
+    const mainScrollRef = useRef<HTMLDivElement>(null);
     
     const [isPaused, setIsPaused] = useState(true);
     const [isMuted, setIsMuted] = useState(true);
@@ -1320,8 +1321,8 @@ export default function StreamPage() {
                         </div>
                         <div className="grid grid-cols-3 gap-2">
                             <Button variant="outline" onClick={() => setBidAmount(prev => Number(prev || highestBid) + 100)}>+100</Button>
-                            <Button variant="outline" onClick={() => setBidAmount(prev => Number(prev || highestBid) + 500)}>+500</Button>
-                            <Button variant="outline" onClick={() => setBidAmount(prev => Number(prev || highestBid) + 1000)}>+1000</Button>
+                            <Button variant="outline" onClick={()={() => setBidAmount(prev => Number(prev || highestBid) + 500)}>+500</Button>
+                            <Button variant="outline" onClick={()={() => setBidAmount(prev => Number(prev || highestBid) + 1000)}>+1000</Button>
                         </div>
                     </div>
                     <DialogFooter>
@@ -1364,130 +1365,112 @@ export default function StreamPage() {
             </Dialog>
 
             <Dialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
-                <AlertDialog>
-                    <div className="flex flex-col h-screen bg-background text-foreground">
-                        <header className="p-4 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-sm z-30 border-b">
-                            <Button variant="ghost" size="icon" onClick={() => router.back()}>
-                                <ArrowLeft className="h-6 w-6" />
+                <PlayerSettingsDialog
+                    playbackRate={playbackRate}
+                    onPlaybackRateChange={handlePlaybackRateChange}
+                    skipInterval={skipInterval}
+                    onSkipIntervalChange={handleSkipIntervalChange}
+                    onClose={() => setIsSettingsOpen(false)}
+                />
+            </Dialog>
+            <div className="flex flex-col h-screen bg-background text-foreground">
+                <header className="p-4 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-sm z-30 border-b h-16 shrink-0">
+                    <Button variant="ghost" size="icon" onClick={() => router.back()}>
+                        <ArrowLeft className="h-6 w-6" />
+                    </Button>
+                    <h1 className="text-xl font-bold truncate">{seller?.name || 'Live Stream'}</h1>
+                    <div className="w-10"></div>
+                </header>
+                <div className="lg:grid lg:grid-cols-[1fr_384px] flex-1 min-h-0 h-[calc(100vh-4rem)]">
+                   <div className="relative flex-1 flex flex-col overflow-y-auto no-scrollbar" onScroll={handleMainScroll} ref={mainScrollRef}>
+                        {showGoToTop && (
+                            <Button
+                                size="icon"
+                                className="fixed bottom-6 left-6 z-50 rounded-full shadow-lg"
+                                onClick={() => scrollToTop(mainScrollRef)}
+                            >
+                                <ArrowUp className="h-5 w-5" />
                             </Button>
-                            <h1 className="text-xl font-bold truncate">{seller?.name || 'Live Stream'}</h1>
-                            <div className="w-10"></div>
-                        </header>
-                        <div className="lg:grid lg:grid-cols-[1fr_384px] flex-1 min-h-0">
-                           <div className="relative flex-1 flex flex-col overflow-y-auto no-scrollbar" onScroll={handleMainScroll}>
-                                {showGoToTop && (
-                                    <Button
-                                        size="icon"
-                                        className="fixed bottom-6 left-6 z-50 rounded-full shadow-lg"
-                                        onClick={() => scrollToTop(mainScrollRef)}
-                                    >
-                                        <ArrowUp className="h-5 w-5" />
+                        )}
+                        <div className="w-full aspect-video bg-black relative group flex-shrink-0" ref={playerRef}>
+                            <video ref={videoRef} src={streamData.streamUrl || "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"} className="w-full h-full object-cover" loop />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-black/60 flex flex-col p-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                <div className="flex items-center justify-between">
+                                    <h1 className="font-bold text-lg hidden sm:block text-white">{streamData.title || "Live Event"}</h1>
+                                    <Badge variant="secondary" className="gap-1.5">
+                                        <Users className="h-3 w-3" /> {streamData.viewerCount.toLocaleString()} watching
+                                    </Badge>
+                                </div>
+                                <div className="flex-1 flex items-center justify-center gap-4 sm:gap-8 text-white">
+                                    <Button variant="ghost" size="icon" className="w-14 h-14" onClick={() => handleSeek('backward')}><Rewind className="w-8 h-8" /></Button>
+                                    <Button variant="ghost" size="icon" className="w-20 h-20" onClick={handlePlayPause}>
+                                        {isPaused ? <Play className="w-12 h-12 fill-current" /> : <Pause className="w-12 h-12 fill-current" />}
                                     </Button>
-                                )}
-                                <div className="w-full aspect-video bg-black relative group flex-shrink-0" ref={playerRef}>
-                                    <video ref={videoRef} src={streamData.streamUrl || "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"} className="w-full h-full object-cover" loop />
-                                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-black/60 flex flex-col p-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                                        <div className="flex items-center justify-between">
-                                            <h1 className="font-bold text-lg hidden sm:block text-white">{streamData.title || "Live Event"}</h1>
-                                            <Badge variant="secondary" className="gap-1.5">
-                                                <Users className="h-3 w-3" /> {streamData.viewerCount.toLocaleString()} watching
-                                            </Badge>
-                                        </div>
-                                        <div className="flex-1 flex items-center justify-center gap-4 sm:gap-8 text-white">
-                                            <Button variant="ghost" size="icon" className="w-14 h-14" onClick={() => handleSeek('backward')}><Rewind className="w-8 h-8" /></Button>
-                                            <Button variant="ghost" size="icon" className="w-20 h-20" onClick={handlePlayPause}>
-                                                {isPaused ? <Play className="w-12 h-12 fill-current" /> : <Pause className="w-12 h-12 fill-current" />}
+                                    <Button variant="ghost" size="icon" className="w-14 h-14" onClick={() => handleSeek('forward')}><FastForward className="w-8 h-8" /></Button>
+                                </div>
+                                <div className="space-y-3 text-white">
+                                    <div className="w-full cursor-pointer py-1" ref={progressContainerRef} onClick={handleProgressClick}>
+                                        <Progress value={(currentTime / duration) * 100} valueBuffer={(buffered / duration) * 100} isLive={isLive} className="h-2" />
+                                    </div>
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-2 sm:gap-4">
+                                             <Button
+                                                variant="destructive"
+                                                className="gap-1.5 h-8 text-xs sm:text-sm"
+                                                onClick={handleGoLive}
+                                                disabled={isLive}
+                                            >
+                                                <div className={cn("h-2 w-2 rounded-full bg-white", !isLive && "animate-pulse")} />
+                                                {isLive ? 'LIVE' : 'Go Live'}
                                             </Button>
-                                            <Button variant="ghost" size="icon" className="w-14 h-14" onClick={() => handleSeek('forward')}><FastForward className="w-8 h-8" /></Button>
+                                            {!isLive && (
+                                                <div className="text-xs text-yellow-400 font-semibold">
+                                                    You are {formatTime(duration - currentTime)} behind
+                                                </div>
+                                            )}
+                                            <Button variant="ghost" size="icon" onClick={() => setIsMuted(prev => !prev)}>
+                                                {isMuted ? <VolumeX /> : <Volume2 />}
+                                            </Button>
+                                            <p className="text-sm font-mono">{formatTime(currentTime)} / {formatTime(duration)}</p>
                                         </div>
-                                        <div className="space-y-3 text-white">
-                                            <div className="w-full cursor-pointer py-1" ref={progressContainerRef} onClick={handleProgressClick}>
-                                                <Progress value={(currentTime / duration) * 100} valueBuffer={(buffered / duration) * 100} isLive={isLive} className="h-2" />
-                                            </div>
-                                            <div className="flex items-center justify-between">
-                                                <div className="flex items-center gap-2 sm:gap-4">
-                                                     <Button
-                                                        variant="destructive"
-                                                        className="gap-1.5 h-8 text-xs sm:text-sm"
-                                                        onClick={handleGoLive}
-                                                        disabled={isLive}
-                                                    >
-                                                        <div className={cn("h-2 w-2 rounded-full bg-white", !isLive && "animate-pulse")} />
-                                                        {isLive ? 'LIVE' : 'Go Live'}
-                                                    </Button>
-                                                    {!isLive && (
-                                                        <div className="text-xs text-yellow-400 font-semibold">
-                                                            You are {formatTime(duration - currentTime)} behind
-                                                        </div>
-                                                    )}
-                                                    <Button variant="ghost" size="icon" onClick={() => setIsMuted(prev => !prev)}>
-                                                        {isMuted ? <VolumeX /> : <Volume2 />}
-                                                    </Button>
-                                                    <p className="text-sm font-mono">{formatTime(currentTime)} / {formatTime(duration)}</p>
-                                                </div>
-                                                <div className="flex items-center gap-1 sm:gap-2">
-                                                    <Button variant="ghost" size="icon" onClick={handleMinimize}><PictureInPicture /></Button>
-                                                    <Button variant="ghost" size="icon" onClick={handleShare}><Share2 /></Button>
-                                                    <DialogTrigger asChild>
-                                                        <Button variant="ghost" size="icon"><Settings /></Button>
-                                                    </DialogTrigger>
-                                                    <Button variant="ghost" size="icon" onClick={handleToggleFullscreen}><Maximize /></Button>
-                                                </div>
-                                            </div>
+                                        <div className="flex items-center gap-1 sm:gap-2">
+                                            <Button variant="ghost" size="icon" onClick={handleMinimize}><PictureInPicture /></Button>
+                                            <Button variant="ghost" size="icon" onClick={handleShare}><Share2 /></Button>
+                                            <Button variant="ghost" size="icon" onClick={() => setIsSettingsOpen(true)}><Settings /></Button>
+                                            <Button variant="ghost" size="icon" onClick={handleToggleFullscreen}><Maximize /></Button>
                                         </div>
                                     </div>
                                 </div>
+                            </div>
+                        </div>
 
-                                {/* Main content below video */}
-                                <div className="flex-grow">
-                                    <div className="lg:hidden">
-                                        {isMobileChatVisible ? (
-                                            <div className="h-[calc(100dvh-56.25vw-4rem)] flex flex-col bg-card">
-                                                <ChatPanel seller={seller} chatMessages={chatMessages} pinnedMessages={pinnedMessages} activeAuction={activeAuction} auctionTime={auctionTime} highestBid={highestBid} totalBids={totalBids} walletBalance={walletBalance} handlers={handlers} inlineAuctionCardRefs={inlineAuctionCardRefs} onClose={() => setIsMobileChatVisible(false)} />
-                                            </div>
-                                        ) : (
-                                            <div className="p-4 space-y-6">
-                                                {/* Content to show when chat is closed on mobile */}
-                                                <StreamInfo seller={seller} streamData={streamData} handleFollowToggle={handleFollowToggle} isFollowingState={isFollowingState} sellerProducts={sellerProducts}/>
-                                                <RelatedContent relatedStreams={relatedStreams} />
-                                            </div>
-                                        )}
+                        {/* Main content below video */}
+                        <div className="flex-grow">
+                            <div className="lg:hidden">
+                                {isMobileChatVisible ? (
+                                    <div className="h-[calc(100dvh-56.25vw-4rem)] flex flex-col bg-card">
+                                        <ChatPanel seller={seller} chatMessages={chatMessages} pinnedMessages={pinnedMessages} activeAuction={activeAuction} auctionTime={auctionTime} highestBid={highestBid} totalBids={totalBids} walletBalance={walletBalance} handlers={handlers} inlineAuctionCardRefs={inlineAuctionCardRefs} onClose={() => setIsMobileChatVisible(false)} />
                                     </div>
-                                    <div className="hidden lg:block p-4 space-y-6">
+                                ) : (
+                                    <div className="p-4 space-y-6">
+                                        {/* Content to show when chat is closed on mobile */}
                                         <StreamInfo seller={seller} streamData={streamData} handleFollowToggle={handleFollowToggle} isFollowingState={isFollowingState} sellerProducts={sellerProducts}/>
                                         <RelatedContent relatedStreams={relatedStreams} />
                                     </div>
-                                </div>
+                                )}
                             </div>
-                           <div className="h-full w-[384px] flex-shrink-0 flex-col bg-card relative hidden lg:flex">
-                                <ChatPanel seller={seller} chatMessages={chatMessages} pinnedMessages={pinnedMessages} activeAuction={activeAuction} auctionTime={auctionTime} highestBid={highestBid} totalBids={totalBids} walletBalance={walletBalance} handlers={handlers} inlineAuctionCardRefs={inlineAuctionCardRefs} onClose={() => {}} />
+                            <div className="hidden lg:block p-4 space-y-6">
+                                <StreamInfo seller={seller} streamData={streamData} handleFollowToggle={handleFollowToggle} isFollowingState={isFollowingState} sellerProducts={sellerProducts}/>
+                                <RelatedContent relatedStreams={relatedStreams} />
                             </div>
                         </div>
                     </div>
-                    <AlertDialogContent>
-                        <AlertDialogHeader>
-                            <AlertDialogTitle>Report Stream</AlertDialogTitle>
-                            <AlertDialogDescription>
-                                Please let us know why you are reporting this stream. Your feedback helps us keep the community safe.
-                            </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                            <AlertDialogAction>Submit Report</AlertDialogAction>
-                        </AlertDialogFooter>
-                    </AlertDialogContent>
-                </AlertDialog>
-                <DialogContent className="max-w-2xl bg-black border-gray-800 text-white p-0">
-                    <PlayerSettingsDialog
-                        playbackRate={playbackRate}
-                        onPlaybackRateChange={handlePlaybackRateChange}
-                        skipInterval={skipInterval}
-                        onSkipIntervalChange={handleSkipIntervalChange}
-                        onClose={() => setIsSettingsOpen(false)}
-                    />
-                </DialogContent>
-            </Dialog>
-
+                   <div className="h-full w-[384px] flex-shrink-0 flex-col bg-card relative hidden lg:flex">
+                        <ChatPanel seller={seller} chatMessages={chatMessages} pinnedMessages={pinnedMessages} activeAuction={activeAuction} auctionTime={auctionTime} highestBid={highestBid} totalBids={totalBids} walletBalance={walletBalance} handlers={handlers} inlineAuctionCardRefs={inlineAuctionCardRefs} onClose={() => {}} />
+                    </div>
+                </div>
+            </div>
+            
             {/* Floating Chat Button for Mobile */}
             {!isMobileChatVisible && (
                 <Button
@@ -1569,12 +1552,7 @@ const RelatedContent = ({ relatedStreams }: { relatedStreams: any[] }) => (
                 <Link href={`/stream/${s.id}`} key={s.id} className="group">
                     <div className="relative rounded-lg overflow-hidden aspect-[16/9] bg-muted">
                         <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
-                        <div className="absolute top-2 right-2 z-10">
-                            <Badge variant="secondary" className="bg-background/60 backdrop-blur-sm gap-1.5">
-                                <Users className="h-3 w-3"/>
-                                {s.viewers.toLocaleString()}
-                            </Badge>
-                        </div>
+                        <div className="absolute top-2 right-2 z-10"><Badge variant="secondary" className="bg-background/60 backdrop-blur-sm gap-1.5"><Users className="h-3 w-3"/>{s.viewers.toLocaleString()}</Badge></div>
                     </div>
                     <div className="flex items-start gap-2 mt-2">
                         <Avatar className="w-7 h-7">
@@ -1599,5 +1577,3 @@ const RelatedContent = ({ relatedStreams }: { relatedStreams: any[] }) => (
         </div>
     </div>
 );
-
-    
