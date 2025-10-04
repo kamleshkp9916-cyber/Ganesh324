@@ -305,3 +305,108 @@ export const ChatWindow = ({ conversation, userData, onBack, messages, onSendMes
         </div>
     );
 };
+
+export const ChatPanel = ({
+  seller,
+  chatMessages,
+  pinnedMessages,
+  activeAuction,
+  auctionTime,
+  highestBid,
+  totalBids,
+  walletBalance,
+  handlers,
+  inlineAuctionCardRefs,
+  onClose,
+}: {
+  seller: any;
+  chatMessages: any[];
+  pinnedMessages: any[];
+  activeAuction: any;
+  auctionTime: number | null;
+  highestBid: number;
+  totalBids: number;
+  walletBalance: number;
+  handlers: any;
+  inlineAuctionCardRefs: React.MutableRefObject<Record<string, HTMLDivElement | null>>;
+  onClose: () => void;
+}) => {
+  const [newMessage, setNewMessage] = useState("");
+  const [replyingTo, setReplyingTo] = useState<{ name: string; id: string } | null>(null);
+  const [showScrollToBottom, setShowScrollToBottom] = useState(false);
+  const chatContainerRef = useRef<HTMLDivElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  
+  const handleAutoScroll = useCallback((behavior: 'smooth' | 'auto' = 'smooth') => {
+    messagesEndRef.current?.scrollIntoView({ behavior });
+  }, []);
+
+  const handleManualScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const target = e.currentTarget;
+    const isScrolledUp = target.scrollHeight - target.scrollTop > target.clientHeight + 200;
+    setShowScrollToBottom(isScrolledUp);
+  };
+  
+  useEffect(() => {
+    handleAutoScroll('auto');
+  }, [chatMessages, handleAutoScroll]);
+
+  const addEmoji = (emoji: string) => {
+    setNewMessage(prev => prev + emoji);
+  };
+
+  const handleNewMessageSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newMessage.trim()) return;
+    
+    console.log("New Message:", newMessage);
+
+    setNewMessage("");
+    setReplyingTo(null);
+  };
+
+  return (
+    <div className='h-full flex flex-col'>
+      <div className="p-4 flex items-center justify-between z-10 flex-shrink-0 h-16 border-b">
+        <h3 className="font-bold text-lg">Live Chat</h3>
+        <Button variant="ghost" size="icon" onClick={onClose} className="h-8 w-8 lg:hidden">
+            <X className="h-5 w-5" />
+        </Button>
+      </div>
+      <ScrollArea className="flex-1" ref={chatContainerRef} onScroll={handleManualScroll}>
+          <div className="p-4 space-y-0.5">
+            {chatMessages.map((msg, index) => (
+              <div key={index}>{/* Simplified for brevity */}</div>
+            ))}
+            <div ref={messagesEndRef} />
+          </div>
+        </ScrollArea>
+        {showScrollToBottom && (
+          <div className="absolute bottom-20 left-1/2 -translate-x-1/2 z-20">
+            <Button
+              variant="secondary"
+              size="sm"
+              className="rounded-full shadow-lg"
+              onClick={() => handleAutoScroll()}
+            >
+              New Messages
+            </Button>
+          </div>
+        )}
+      <div className="p-3 border-t bg-background flex-shrink-0">
+          <form onSubmit={handleNewMessageSubmit} className="flex items-center gap-3">
+            <Input 
+                placeholder="Send a message..." 
+                value={newMessage}
+                onChange={(e) => setNewMessage(e.target.value)}
+                className='flex-grow'
+            />
+            <Button type="submit" size="icon" disabled={!newMessage.trim()} className="rounded-full flex-shrink-0 h-10 w-10">
+              <Send className="h-4 w-4" />
+            </Button>
+          </form>
+        </div>
+    </div>
+  );
+};
