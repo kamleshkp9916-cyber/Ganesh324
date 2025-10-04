@@ -434,7 +434,7 @@ export const ChatPanel = ({
         </div>
       </header>
       <ScrollArea className="flex-grow" ref={chatContainerRef} onScroll={handleManualScroll}>
-          <div className="p-4 space-y-3">
+          <div className="p-4 space-y-2">
               {chatMessages.map((msg) => {
                     if (msg.type === 'system') {
                         return <div key={msg.id} className="text-xs text-center text-muted-foreground italic py-1">{msg.text}</div>
@@ -448,24 +448,26 @@ export const ChatPanel = ({
                                 <AvatarImage src={msg.avatar} />
                                 <AvatarFallback>{msg.user.charAt(0)}</AvatarFallback>
                            </Avatar>
-                            <div className="flex-grow">
-                                <p className="leading-relaxed break-words">
-                                    <span className="font-bold mr-1.5" style={{ color: msg.userColor || 'inherit' }}>{msg.user}:</span>
-                                    {msg.text}
-                                </p>
+                            <div className={cn("flex-grow max-w-[80%]", isMyMessage && "text-right")}>
+                                <div className={cn("flex items-center gap-2", isMyMessage && "justify-end")}>
+                                     <DropdownMenu>
+                                        <DropdownMenuTrigger asChild>
+                                            <button className="text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <MoreVertical className="w-4 h-4" />
+                                            </button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent align="end">
+                                            <DropdownMenuItem onSelect={() => console.log('report user', msg.userId)}>
+                                                <Flag className="mr-2 h-4 w-4" />Report User
+                                            </DropdownMenuItem>
+                                        </DropdownMenuContent>
+                                    </DropdownMenu>
+                                    <p className="leading-relaxed break-words">
+                                        <span className="font-bold mr-1.5" style={{ color: msg.userColor || 'inherit' }}>{msg.user}:</span>
+                                        {msg.text}
+                                    </p>
+                                </div>
                             </div>
-                         <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <button className="text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <MoreVertical className="w-4 h-4" />
-                                </button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                                <DropdownMenuItem onSelect={() => console.log('report user', msg.userId)}>
-                                    <Flag className="mr-2 h-4 w-4" />Report User
-                                </DropdownMenuItem>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
                         </div>
                     )
                 })}
@@ -522,5 +524,3 @@ export const ChatPanel = ({
     </div>
   );
 };
-
-    
