@@ -443,35 +443,29 @@ export const ChatPanel = ({
 
                     const isMyMessage = msg.userId === seller?.uid;
                     return (
-                        <div key={msg.id} className={cn("flex items-start gap-3 w-full group", isMyMessage && "flex-row-reverse")}>
-                            <Avatar className="h-8 w-8">
+                       <div key={msg.id} className="flex items-start gap-3 w-full group text-sm">
+                           <Avatar className="h-6 w-6 mt-0.5">
                                 <AvatarImage src={msg.avatar} />
                                 <AvatarFallback>{msg.user.charAt(0)}</AvatarFallback>
-                            </Avatar>
-                            <div className={cn("flex-grow max-w-[80%]", isMyMessage && "text-right")}>
-                                <div className={cn("flex items-center gap-2", isMyMessage && "justify-end")}>
-                                    <p className="font-bold text-xs" style={{color: msg.userColor || 'inherit'}}>{msg.user}</p>
-                                    <p className="text-xs text-muted-foreground">{msg.timestamp}</p>
-                                </div>
-                                <div className={cn("p-2 rounded-lg mt-1 inline-block", 
-                                    isMyMessage ? "bg-primary text-primary-foreground rounded-br-none" : "bg-muted rounded-bl-none",
-                                    msg.isBid && "bg-amber-100 dark:bg-amber-900 border border-amber-300 dark:border-amber-700"
-                                )}>
-                                    <p className="text-sm">{msg.text}</p>
-                                </div>
+                           </Avatar>
+                            <div className="flex-grow">
+                                <p className="leading-relaxed">
+                                    <span className="font-bold" style={{ color: msg.userColor || 'inherit' }}>{msg.user}:</span>
+                                    <span className="ml-1.5">{msg.text}</span>
+                                </p>
                             </div>
-                             <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                    <button className="text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity">
-                                        <MoreVertical className="w-4 h-4" />
-                                    </button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                    <DropdownMenuItem onSelect={() => console.log('report user', msg.userId)}>
-                                        <Flag className="mr-2 h-4 w-4" />Report User
-                                    </DropdownMenuItem>
-                                </DropdownMenuContent>
-                            </DropdownMenu>
+                         <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <button className="text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <MoreVertical className="w-4 h-4" />
+                                </button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                                <DropdownMenuItem onSelect={() => console.log('report user', msg.userId)}>
+                                    <Flag className="mr-2 h-4 w-4" />Report User
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
                         </div>
                     )
                 })}
