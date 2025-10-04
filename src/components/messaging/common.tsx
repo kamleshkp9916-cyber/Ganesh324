@@ -8,7 +8,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useAuth } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
 import { UserData } from "@/lib/follow-data";
-import { ArrowLeft, Loader2, Menu, MoreVertical, Search, Send, Trash2, CheckCheck, Check, Flag, Paperclip, FileText, PlusCircle, Home, Pin, Award, History, Gavel, ShoppingBag, X, Smile, MoreHorizontal } from "lucide-react";
+import { ArrowLeft, Loader2, Menu, MoreHorizontal, Search, Send, Trash2, CheckCheck, Check, Flag, Paperclip, FileText, PlusCircle, Home, Pin, Award, History, Gavel, ShoppingBag, X, Smile } from "lucide-react";
 import { useEffect, useMemo, useRef, useState, useCallback, forwardRef } from "react";
 import { Skeleton } from "../ui/skeleton";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -156,7 +156,7 @@ export const ChatMessage = ({ msg, currentUserId }: { msg: Message, currentUserI
                     </DropdownMenuContent>
                 </DropdownMenu>
             )}
-            <div className={cn("max-w-[86%] rounded-[18px] px-4 py-1.5", isMyMessage ? "bg-primary text-primary-foreground" : "bg-[#141516] text-[#E6ECEF]")}>
+            <div className={cn("max-w-[86%] rounded-[18px] px-3 py-1.5", isMyMessage ? "bg-primary text-primary-foreground" : "bg-[#141516] text-[#E6ECEF]")}>
                 {msg.text && <p className="text-sm whitespace-pre-wrap">{msg.text}</p>}
                 {msg.imageUrl && <img src={msg.imageUrl} alt="sent" className="rounded-md max-w-full h-auto mt-2" />}
                 <div className={cn("text-xs mt-1 flex items-center gap-1", isMyMessage ? "text-primary-foreground/70 justify-end" : "text-muted-foreground justify-end")}>
@@ -417,7 +417,7 @@ export const ChatPanel = ({
           <DropdownMenu>
              <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-white">
-                    <MoreVertical className="h-5 w-5" />
+                   <MoreHorizontal className="h-5 w-5" />
                 </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
@@ -434,34 +434,36 @@ export const ChatPanel = ({
         </div>
       </header>
       <ScrollArea className="flex-grow" ref={chatContainerRef} onScroll={handleManualScroll}>
-          <div className="p-3 space-y-2.5">
-              {chatMessages.map((msg) => {
-                    if (msg.type === 'system') {
-                        return <div key={msg.id} className="text-xs text-center text-[#9AA1A6] italic py-1 mt-2">{msg.text}</div>
-                    }
-                    if (!msg.user) return null;
+          <div className="p-3 space-y-2">
+             {chatMessages.map((msg) => {
+                  if (msg.type === 'system') {
+                      return <div key={msg.id} className="text-xs text-center text-[#9AA1A6] italic py-1">{msg.text}</div>
+                  }
+                  if (!msg.user) return null;
 
-                    const isMyMessage = msg.userId === seller?.uid;
-                    const isSellerMessage = msg.userId === seller?.uid;
-                    
-                    return (
-                       <div key={msg.id} className="flex items-start gap-3 w-full group text-sm animate-message-in">
-                           <Avatar className="h-9 w-9 mt-0.5 border border-[rgba(255,255,255,0.04)]">
-                                <AvatarImage src={msg.avatar} />
-                               <AvatarFallback className="bg-gradient-to-br from-red-500 to-yellow-500 text-white font-bold">{msg.user.charAt(0)}</AvatarFallback>
-                           </Avatar>
-                            <div className={cn("flex-grow max-w-[86%]")}>
-                                <div className="flex items-center gap-2">
-                                 <p className="flex items-baseline gap-2">
-                                    <b className="text-sm font-semibold text-white" style={{ color: msg.userColor || 'inherit' }}>{msg.user}</b>
-                                    <span className="leading-relaxed break-words text-sm text-[#E6ECEF]">
-                                       {msg.text}
-                                    </span>
-                                </p>
-                                 {isSellerMessage && (
-                                     <Badge className="text-xs px-2 py-0.5 rounded-full bg-[#E43F3F] text-white shadow-sm">Host</Badge>
-                                 )}
-                                  <DropdownMenu>
+                  const isMyMessage = msg.userId === seller?.uid;
+                  const isSellerMessage = msg.userId === seller?.uid;
+                  
+                  return (
+                     <div key={msg.id} className="flex items-start gap-3 w-full group animate-message-in">
+                         <Avatar className="h-9 w-9 mt-0.5 border border-[rgba(255,255,255,0.04)]">
+                             <AvatarImage src={msg.avatar} />
+                             <AvatarFallback className="bg-gradient-to-br from-red-500 to-yellow-500 text-white font-bold">{msg.user.charAt(0)}</AvatarFallback>
+                         </Avatar>
+                          <div className={cn("flex-grow")}>
+                              <div className="flex items-center justify-between">
+                                  <div className="flex items-baseline gap-2">
+                                      <p className="flex items-baseline gap-2 flex-wrap">
+                                          <b className="text-sm font-semibold text-white" style={{ color: msg.userColor || 'inherit' }}>{msg.user}:</b>
+                                          <span className="leading-relaxed break-words text-xs text-[#E6ECEF]">
+                                             {msg.text}
+                                          </span>
+                                      </p>
+                                       {isSellerMessage && (
+                                           <Badge className="text-xs px-1.5 py-0 rounded-full bg-[#E43F3F] text-white shadow-sm">Host</Badge>
+                                       )}
+                                  </div>
+                                   <DropdownMenu>
                                       <DropdownMenuTrigger asChild>
                                           <button className="text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity p-1">
                                               <MoreHorizontal className="w-4 h-4" />
@@ -473,11 +475,11 @@ export const ChatPanel = ({
                                         </DropdownMenuItem>
                                       </DropdownMenuContent>
                                   </DropdownMenu>
-                               </div>
-                            </div>
-                        </div>
-                    )
-                })}
+                             </div>
+                          </div>
+                      </div>
+                  )
+              })}
             <div ref={messagesEndRef} />
           </div>
         </ScrollArea>
