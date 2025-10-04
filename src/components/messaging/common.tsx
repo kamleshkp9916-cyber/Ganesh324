@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -451,30 +452,31 @@ export const ChatPanel = ({
                              <AvatarFallback className="bg-gradient-to-br from-red-500 to-yellow-500 text-white font-bold">{msg.user.charAt(0)}</AvatarFallback>
                          </Avatar>
                           <div className="flex-grow">
-                            <div className="flex items-center justify-between">
-                                <div className="flex items-baseline gap-2">
-                                  <b className="text-sm font-semibold text-white" style={{ color: msg.userColor || 'inherit' }}>{msg.user}</b>
-                                  {isSellerMessage && (
-                                    <Badge className="text-xs px-1.5 py-0 rounded-full bg-[#E43F3F] text-white shadow-sm">Host</Badge>
-                                  )}
-                                </div>
-                                <DropdownMenu>
-                                    <DropdownMenuTrigger asChild>
-                                        <button className="text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity p-1">
-                                            <MoreVertical className="w-4 h-4" />
-                                        </button>
-                                    </DropdownMenuTrigger>
-                                    <DropdownMenuContent align="end">
-                                        <DropdownMenuItem onSelect={() => handlers.onReportMessage(msg.id)}>
-                                          <Flag className="mr-2 h-4 w-4" />Report
-                                      </DropdownMenuItem>
-                                    </DropdownMenuContent>
-                                </DropdownMenu>
+                            <div className="flex items-baseline gap-2">
+                                <b className="text-sm font-semibold text-white" style={{ color: msg.userColor || 'inherit' }}>{msg.user}</b>
+                                <p className="text-xs text-muted-foreground flex-shrink-0">
+                                  {msg.timestamp}
+                                </p>
+                                {isSellerMessage && (
+                                  <Badge className="text-xs px-1.5 py-0 rounded-full bg-[#E43F3F] text-white shadow-sm">Host</Badge>
+                                )}
                             </div>
-                            <p className="leading-relaxed break-words text-sm text-[#E6ECEF]">
+                           <p className="leading-relaxed break-words text-sm text-[#E6ECEF]">
                                 {msg.text}
                             </p>
                           </div>
+                          <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                  <button className="text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity p-1">
+                                      <MoreVertical className="w-4 h-4" />
+                                  </button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                  <DropdownMenuItem onSelect={() => handlers.onReportMessage(msg.id)}>
+                                    <Flag className="mr-2 h-4 w-4" />Report
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                          </DropdownMenu>
                       </div>
                   )
               })}
