@@ -62,6 +62,7 @@ import {
   Facebook,
   Reddit,
   ArrowUp,
+  GripHorizontal,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -596,6 +597,11 @@ const ChatPanel = ({
   handlers,
   inlineAuctionCardRefs,
   onClose,
+  chatHeight,
+  isDragging,
+  handleDragStart,
+  handleDragMove,
+  handleDragEnd,
 }: {
   seller: any;
   chatMessages: any[];
@@ -608,6 +614,11 @@ const ChatPanel = ({
   handlers: any;
   inlineAuctionCardRefs: React.MutableRefObject<Record<string, HTMLDivElement | null>>;
   onClose: () => void;
+  chatHeight: number;
+  isDragging: boolean;
+  handleDragStart: (e: React.TouchEvent) => void;
+  handleDragMove: (e: React.TouchEvent) => void;
+  handleDragEnd: () => void;
 }) => {
   const [newMessage, setNewMessage] = useState("");
   const [replyingTo, setReplyingTo] = useState<{ name: string; id: string } | null>(null);
@@ -646,8 +657,16 @@ const ChatPanel = ({
 
   return (
     <>
-      <div className="p-4 flex items-center justify-between z-10 flex-shrink-0 h-16 border-b">
-        <h3 className="font-bold text-lg">Live Chat</h3>
+      <div 
+        className="p-4 flex items-center justify-between z-10 flex-shrink-0 h-16 border-b touch-none"
+        onTouchStart={handleDragStart}
+        onTouchMove={handleDragMove}
+        onTouchEnd={handleDragEnd}
+      >
+        <div className="flex items-center gap-2">
+            <GripHorizontal className="h-5 w-5 text-muted-foreground cursor-grab" />
+            <h3 className="font-bold text-lg">Live Chat</h3>
+        </div>
         <div className="flex items-center gap-1">
           <Popover>
             <PopoverTrigger asChild>
@@ -866,7 +885,33 @@ export default function StreamPage() {
     const [isFullscreen, setIsFullscreen] = useState(false);
     const [isLive, setIsLive] = useState(true);
     const [isMobileChatVisible, setIsMobileChatVisible] = useState(false);
-    
+    const [chatHeight, setChatHeight] = useState(50); // Initial height in dvh
+    const [isDragging, setIsDragging] = useState(false);
+    const [dragStart, setDragStart] = useState(0);
+
+    const handleDragStart = (e: React.TouchEvent) => {
+        setIsDragging(true);
+        setDragStart(e.touches[0].clientY);
+        document.body.style.overflow = 'hidden'; // Prevent page scroll
+    };
+
+    const handleDragMove = (e: React.TouchEvent) => {
+        if (!isDragging) return;
+        const currentY = e.touches[0].clientY;
+        const delta = dragStart - currentY;
+        const newHeight = (window.innerHeight - currentY) / window.innerHeight * 100;
+
+        // Constrain height between 20% and 85%
+        const clampedHeight = Math.max(20, Math.min(85, newHeight));
+        setChatHeight(clampedHeight);
+        setDragStart(currentY);
+    };
+
+    const handleDragEnd = () => {
+        setIsDragging(false);
+        document.body.style.overflow = '';
+    };
+
     const mainScrollRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -1469,13 +1514,21 @@ export default function StreamPage() {
                             </div>
                         </main>
                         <Sheet open={isMobileChatVisible} onOpenChange={setIsMobileChatVisible}>
-                            <SheetContent side="bottom" className="h-[55dvh] p-0 flex flex-col rounded-t-lg" overlayClassName="bg-transparent">
-                                <ChatPanel seller={seller} chatMessages={chatMessages} pinnedMessages={pinnedMessages} activeAuction={activeAuction} auctionTime={auctionTime} highestBid={highestBid} totalBids={totalBids} walletBalance={walletBalance} handlers={handlers} inlineAuctionCardRefs={inlineAuctionCardRefs} onClose={() => setIsMobileChatVisible(false)} />
+                            <SheetContent 
+                                side="bottom" 
+                                className={cn("h-[70dvh] p-0 flex flex-col rounded-t-lg transition-all duration-300", isDragging && "transition-none")}
+                                style={{ height: `${chatHeight}dvh` }}
+                                overlayClassName="bg-transparent"
+                            >
+                                <SheetHeader className="sr-only">
+                                    <SheetTitle>Live Chat</SheetTitle>
+                                </SheetHeader>
+                                <ChatPanel seller={seller} chatMessages={chatMessages} pinnedMessages={pinnedMessages} activeAuction={activeAuction} auctionTime={auctionTime} highestBid={highestBid} totalBids={totalBids} walletBalance={walletBalance} handlers={handlers} inlineAuctionCardRefs={inlineAuctionCardRefs} onClose={() => setIsMobileChatVisible(false)} chatHeight={chatHeight} isDragging={isDragging} handleDragStart={handleDragStart} handleDragMove={handleDragMove} handleDragEnd={handleDragEnd} />
                             </SheetContent>
                         </Sheet>
                     </div>
                    <div className={cn("h-full w-[384px] flex-shrink-0 flex-col bg-card relative hidden lg:flex border-l")}>
-                        <ChatPanel seller={seller} chatMessages={chatMessages} pinnedMessages={pinnedMessages} activeAuction={activeAuction} auctionTime={auctionTime} highestBid={highestBid} totalBids={totalBids} walletBalance={walletBalance} handlers={handlers} inlineAuctionCardRefs={inlineAuctionCardRefs} onClose={() => {}} />
+                        <ChatPanel seller={seller} chatMessages={chatMessages} pinnedMessages={pinnedMessages} activeAuction={activeAuction} auctionTime={auctionTime} highestBid={highestBid} totalBids={totalBids} walletBalance={walletBalance} handlers={handlers} inlineAuctionCardRefs={inlineAuctionCardRefs} onClose={() => {}} chatHeight={chatHeight} isDragging={isDragging} handleDragStart={handleDragStart} handleDragMove={handleDragMove} handleDragEnd={handleDragEnd} />
                     </div>
                 </div>
             </div>
@@ -1575,6 +1628,3 @@ const RelatedContent = ({ relatedStreams }: { relatedStreams: any[] }) => (
         </div>
     </div>
 );
-
-
-    
