@@ -8,7 +8,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useAuth } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
 import { UserData } from "@/lib/follow-data";
-import { ArrowLeft, Loader2, Menu, MoreVertical, Search, Send, Smile, Trash2, CheckCheck, Check, Flag, Paperclip, FileText, PlusCircle, Home } from "lucide-react";
+import { ArrowLeft, Loader2, Menu, MoreVertical, Search, Send, Smile, Trash2, CheckCheck, Check, Flag, Paperclip, FileText, PlusCircle, Home, Pin, Award, History, Gavel } from "lucide-react";
 import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { Skeleton } from "../ui/skeleton";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -20,6 +20,13 @@ import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuIte
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { FeedbackDialog } from "../feedback-dialog";
+import { MessageCircle, LifeBuoy, Share2 } from "lucide-react";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "../ui/alert-dialog";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "../ui/card";
+import { productDetails } from "@/lib/product-data";
+import Image from "next/image";
+import { Textarea } from "../ui/textarea";
 
 export interface Message {
   id: number | string;
@@ -385,9 +392,6 @@ export const ChatPanel = ({
           <DropdownMenu>
             {/* ... Dropdown menu ... */}
           </DropdownMenu>
-          <Button variant="ghost" size="icon" onClick={onClose} className="h-8 w-8 lg:hidden">
-            <X className="h-5 w-5" />
-          </Button>
         </div>
       </header>
       <ScrollArea className="flex-grow" ref={chatContainerRef} onScroll={handleManualScroll}>

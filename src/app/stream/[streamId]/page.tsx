@@ -115,6 +115,7 @@ import { useInView } from "react-intersection-observer";
 import { useMiniPlayer } from "@/context/MiniPlayerContext";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ChatPanel } from "@/components/messaging/common";
 
 
 const emojis = [
@@ -584,228 +585,6 @@ const AuctionCard = React.memo(({
     );
 });
 AuctionCard.displayName = 'AuctionCard';
-
-const ChatPanel = ({
-  seller,
-  chatMessages,
-  pinnedMessages,
-  activeAuction,
-  auctionTime,
-  highestBid,
-  totalBids,
-  walletBalance,
-  handlers,
-  inlineAuctionCardRefs,
-  onClose,
-}: {
-  seller: any;
-  chatMessages: any[];
-  pinnedMessages: any[];
-  activeAuction: any;
-  auctionTime: number | null;
-  highestBid: number;
-  totalBids: number;
-  walletBalance: number;
-  handlers: any;
-  inlineAuctionCardRefs: React.MutableRefObject<Record<string, HTMLDivElement | null>>;
-  onClose: () => void;
-}) => {
-  const [newMessage, setNewMessage] = useState("");
-  const [replyingTo, setReplyingTo] = useState<{ name: string; id: string } | null>(null);
-  const [showScrollToBottom, setShowScrollToBottom] = useState(false);
-  const chatContainerRef = useRef<HTMLDivElement>(null);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
-  
-  const handleAutoScroll = useCallback((behavior: 'smooth' | 'auto' = 'smooth') => {
-    messagesEndRef.current?.scrollIntoView({ behavior });
-  }, []);
-
-  const handleManualScroll = (e: React.UIEvent<HTMLDivElement>) => {
-    const target = e.currentTarget;
-    const isScrolledUp = target.scrollHeight - target.scrollTop > target.clientHeight + 200;
-    setShowScrollToBottom(isScrolledUp);
-  };
-  
-  useEffect(() => {
-    handleAutoScroll('auto');
-  }, [chatMessages, handleAutoScroll]);
-
-  const addEmoji = (emoji: string) => {
-    setNewMessage(prev => prev + emoji);
-  };
-
-  const handleNewMessageSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newMessage.trim()) return;
-    
-    console.log("New Message:", newMessage);
-
-    setNewMessage("");
-    setReplyingTo(null);
-  };
-
-  return (
-    <div className='h-full flex flex-col'>
-      <div className="p-4 flex items-center justify-between z-10 flex-shrink-0 h-16 border-b">
-        <h3 className="font-bold text-lg">Live Chat</h3>
-        <div className="flex items-center gap-1">
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8 relative">
-                <Pin className="h-5 w-5 text-muted-foreground" />
-                {pinnedMessages.length > 0 && <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-primary" />}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent align="end" className="w-80 p-0">
-              <div className="p-3 border-b">
-                <h4 className="font-semibold">Pinned Items</h4>
-              </div>
-              <ScrollArea className="h-64">
-                <div className="p-3 space-y-3">
-                  <Card className="bg-primary/10 border-primary/20">
-                    <CardContent className="p-3">
-                      <div className="flex items-center gap-3">
-                        <div className="p-2 bg-secondary rounded-full">
-                            <Award className="h-8 w-8 text-foreground" />
-                        </div>
-                        <div>
-                          <p className="text-xs font-semibold">🎉 Special Offer!</p>
-                          <p className="text-sm">Use code <span className="font-bold text-primary">LIVE10</span> for 10% off your entire order.</p>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                  <Card className="overflow-hidden">
-                    <CardContent className="p-0">
-                      <div className="p-3">
-                        <p className="text-xs text-muted-foreground font-semibold">Featured Product</p>
-                        <div className="flex items-center gap-3 mt-1">
-                          <div className="w-12 h-12 bg-muted rounded-md relative overflow-hidden flex-shrink-0">
-                            <Image src={productDetails['prod_1'].images[0]} alt={productDetails['prod_1'].name} fill className="object-cover" />
-                          </div>
-                          <div className="flex-grow">
-                            <h4 className="font-semibold leading-tight text-sm">{productDetails['prod_1'].name}</h4>
-                            <p className="text-sm font-bold">{productDetails['prod_1'].price}</p>
-                          </div>
-                        </div>
-                      </div>
-                      <CardFooter className="p-0">
-                        <Button asChild variant="secondary" className="w-full rounded-none rounded-b-lg h-9">
-                          <Link href={`/product/${productDetails['prod_1'].key}`}>View Product</Link>
-                        </Button>
-                      </CardFooter>
-                    </CardContent>
-                  </Card>
-                </div>
-              </ScrollArea>
-            </PopoverContent>
-          </Popover>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8">
-                <MoreVertical className="h-5 w-5" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <FeedbackDialog>
-                <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                  <MessageCircle className="mr-2 h-4 w-4" /> Feedback
-                </DropdownMenuItem>
-              </FeedbackDialog>
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive focus:text-destructive">
-                    <Flag className="mr-2 h-4 w-4" /> Report Stream
-                  </DropdownMenuItem>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Report this stream?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      If this stream violates our community guidelines, please report it. Our team will review it shortly.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction onClick={() => handlers.toast({title: "Stream Reported"})}>Submit Report</AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
-            </DropdownMenuContent>
-          </DropdownMenu>
-          <Button variant="ghost" size="icon" onClick={onClose} className="h-8 w-8 lg:hidden">
-            <X className="h-5 w-5" />
-          </Button>
-        </div>
-      </div>
-      <div className="relative flex-1 flex flex-col overflow-hidden">
-        <ScrollArea className="flex-1" ref={chatContainerRef} onScroll={handleManualScroll}>
-          <div className="p-4 space-y-0.5">
-            {chatMessages.map((msg, index) => {
-              if (msg.type === 'auction' && seller?.hasAuction) {
-                return (
-                  <div className="my-2" key={msg.id || index}>
-                    <AuctionCard
-                      auction={msg}
-                      auctionTime={activeAuction?.id === msg.id ? auctionTime : 0}
-                      highestBid={highestBid}
-                      totalBids={totalBids}
-                      walletBalance={walletBalance}
-                      cardRef={el => inlineAuctionCardRefs.current[msg.id] = el}
-                      onBid={() => handlers.onBid()}
-                      onViewBids={(e) => { e.stopPropagation(); handlers.onViewBids(e); }}
-                    />
-                  </div>
-                );
-              }
-              return <ChatMessageContent key={msg.id || index} msg={msg} index={index} handlers={handlers} post={{sellerId: seller?.id, avatarUrl: seller?.avatarUrl, sellerName: seller?.name}} pinnedMessages={pinnedMessages} seller={seller} />
-            })}
-            <div ref={messagesEndRef} />
-          </div>
-        </ScrollArea>
-        {showScrollToBottom && (
-          <div className="absolute bottom-20 left-1/2 -translate-x-1/2 z-20">
-            <Button
-              variant="secondary"
-              size="sm"
-              className="rounded-full shadow-lg"
-              onClick={() => handleAutoScroll()}
-            >
-              <ChevronDown className="mr-1 h-4 w-4" /> New Messages
-            </Button>
-          </div>
-        )}
-      </div>
-      <div className="p-3 border-t bg-background flex-shrink-0">
-          <form onSubmit={handleNewMessageSubmit} className="flex items-center gap-3">
-            <div className="relative flex-grow">
-              <Textarea ref={textareaRef} placeholder={replyingTo ? `@${replyingTo.name} ` : "Send a message..."} value={newMessage} onChange={(e) => setNewMessage(e.target.value)} className="resize-none pr-10 rounded-2xl bg-muted border-transparent focus:border-primary focus:bg-background h-10 min-h-[40px] pt-2.5 text-sm" rows={1} onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleNewMessageSubmit(e); } }} />
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="ghost" size="icon" type="button" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full text-muted-foreground">
-                    <Smile className="h-5 w-5" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-80 h-64 p-2">
-                  <div className="grid grid-cols-8 gap-1 h-full overflow-y-auto no-scrollbar">
-                    {emojis.map((emoji, index) => (
-                      <Button key={index} variant="ghost" size="icon" onClick={() => addEmoji(emoji)} className="text-xl">
-                        {emoji}
-                      </Button>
-                    ))}
-                  </div>
-                </PopoverContent>
-              </Popover>
-            </div>
-            <Button type="submit" size="icon" disabled={!newMessage.trim()} className="rounded-full flex-shrink-0 h-10 w-10">
-              <Send className="h-4 w-4" />
-            </Button>
-          </form>
-        </div>
-    </div>
-  );
-};
 
 export default function StreamPage() {
     const router = useRouter();
@@ -1389,8 +1168,8 @@ export default function StreamPage() {
                 />
             </Dialog>
             
-             <div className="flex flex-col h-dvh bg-background text-foreground">
-                <div className="p-4 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-sm z-30 border-b h-16 shrink-0">
+             <div className="flex flex-col h-dvh bg-black text-foreground">
+                <header className="p-4 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-sm z-30 border-b h-16 shrink-0 lg:hidden">
                     <Button variant="ghost" size="icon" onClick={() => router.back()}>
                         <ArrowLeft className="h-6 w-6" />
                     </Button>
@@ -1401,7 +1180,7 @@ export default function StreamPage() {
                             <span className="hidden sm:inline">My Cart</span>
                         </Link>
                     </Button>
-                </div>
+                </header>
 
                 <div className="flex-1 flex flex-col lg:grid lg:grid-cols-[1fr,384px] overflow-hidden">
                     <main className="flex-1 flex flex-col overflow-hidden">
@@ -1457,28 +1236,15 @@ export default function StreamPage() {
                             </div>
                         </div>
 
-                        <div className="flex-1 overflow-y-auto no-scrollbar" ref={mainScrollRef}>
+                         <div className="lg:hidden flex-1 flex flex-col overflow-hidden">
+                            <ChatPanel seller={seller} chatMessages={chatMessages} pinnedMessages={pinnedMessages} activeAuction={activeAuction} auctionTime={auctionTime} highestBid={highestBid} totalBids={totalBids} walletBalance={walletBalance} handlers={handlers} inlineAuctionCardRefs={inlineAuctionCardRefs} onClose={() => setIsMobileChatVisible(false)} />
+                        </div>
+
+
+                        <div className="flex-1 overflow-y-auto no-scrollbar hidden lg:block" ref={mainScrollRef}>
                             <div className="p-4 space-y-6">
-                                {!isMobileChatVisible && <StreamInfo seller={seller} streamData={streamData} handleFollowToggle={handleFollowToggle} isFollowingState={isFollowingState} sellerProducts={sellerProducts}/>}
-                                <div className="lg:hidden">
-                                    <Collapsible open={isMobileChatVisible} onOpenChange={setIsMobileChatVisible}>
-                                        {!isMobileChatVisible && (
-                                            <CollapsibleTrigger asChild>
-                                                <Button className="w-full">
-                                                    <MessageSquare className="mr-2 h-4 w-4" /> Live Chat
-                                                </Button>
-                                            </CollapsibleTrigger>
-                                        )}
-                                        <CollapsibleContent>
-                                            <div className="mt-4 h-[60vh] flex flex-col border rounded-lg overflow-hidden">
-                                                <ChatPanel seller={seller} chatMessages={chatMessages} pinnedMessages={pinnedMessages} activeAuction={activeAuction} auctionTime={auctionTime} highestBid={highestBid} totalBids={totalBids} walletBalance={walletBalance} handlers={handlers} inlineAuctionCardRefs={inlineAuctionCardRefs} onClose={() => setIsMobileChatVisible(false)} />
-                                            </div>
-                                        </CollapsibleContent>
-                                    </Collapsible>
-                                </div>
-                                <div className={cn(isMobileChatVisible && "hidden")}>
-                                  <RelatedContent relatedStreams={relatedStreams} />
-                                </div>
+                               <StreamInfo seller={seller} streamData={streamData} handleFollowToggle={handleFollowToggle} isFollowingState={isFollowingState} sellerProducts={sellerProducts}/>
+                               <RelatedContent relatedStreams={relatedStreams} />
                             </div>
                         </div>
                     </main>
@@ -1596,5 +1362,3 @@ const RelatedContent = ({ relatedStreams }: { relatedStreams: any[] }) => (
         </div>
     </div>
 );
-
-    
