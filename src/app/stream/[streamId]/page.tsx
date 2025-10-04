@@ -862,9 +862,9 @@ export default function StreamPage() {
     const DesktopLayout = () => (
       <div className="flex-1 lg:grid lg:grid-cols-[1fr,384px] overflow-hidden">
         <main className="flex-1 flex flex-col overflow-hidden">
-          <div className="w-full aspect-video bg-black relative group flex-shrink-0" ref={playerRef}>
+          <div className="w-full aspect-video bg-black relative" ref={playerRef}>
               <video ref={videoRef} src={streamData.streamUrl || "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"} className="w-full h-full object-cover" loop />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-black/60 flex flex-col p-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/60 flex flex-col p-4">
                   <div className="flex items-center justify-between">
                       <h1 className="font-bold text-lg hidden sm:block text-white">{streamData.title || "Live Event"}</h1>
                       <Badge variant="secondary" className="gap-1.5">
@@ -964,9 +964,8 @@ export default function StreamPage() {
             {isMobileChatVisible ? 'Close' : 'Chat'}
           </Button>
         </header>
-        <div className="w-full aspect-video bg-black relative group flex-shrink-0" ref={playerRef}>
+        <div className="w-full aspect-video bg-black relative flex-shrink-0">
            <video ref={videoRef} src={streamData.streamUrl || "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"} className="w-full h-full object-cover" loop />
-           {/* Mobile player controls can be simplified or removed, assuming native controls might be preferred */}
         </div>
         <div className="flex-1 overflow-hidden">
           {isMobileChatVisible ? (
@@ -1112,3 +1111,5 @@ const RelatedContent = ({ relatedStreams }: { relatedStreams: any[] }) => (
         </div>
     </div>
 );
+
+    
