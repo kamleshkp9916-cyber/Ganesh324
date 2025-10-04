@@ -1094,7 +1094,7 @@ export default function StreamPage() {
     
         if (!document.fullscreenElement) {
             elem.requestFullscreen().catch(err => {
-                alert(`Error attempting to enable full-screen mode: ${'${err.message}'} (${'${err.name}'})`);
+                alert(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
             });
         } else {
             document.exitFullscreen();
@@ -1388,8 +1388,8 @@ export default function StreamPage() {
                     onClose={() => setIsSettingsOpen(false)}
                 />
             </Dialog>
-
-            <div className="flex flex-col h-screen bg-background text-foreground">
+            
+             <div className="flex flex-col h-screen bg-background text-foreground">
                 <header className="p-4 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-sm z-30 border-b h-16 shrink-0">
                     <Button variant="ghost" size="icon" onClick={() => router.back()}>
                         <ArrowLeft className="h-6 w-6" />
@@ -1404,7 +1404,7 @@ export default function StreamPage() {
                 </header>
 
                 <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
-                    <div className="flex-1 flex flex-col lg:overflow-y-auto no-scrollbar" onScroll={handleMainScroll} ref={mainScrollRef}>
+                    <div className="flex-1 flex flex-col overflow-y-auto no-scrollbar" onScroll={handleMainScroll} ref={mainScrollRef}>
                         <div className="w-full aspect-video bg-black relative group flex-shrink-0" ref={playerRef}>
                             <video ref={videoRef} src={streamData.streamUrl || "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"} className="w-full h-full object-cover" loop />
                             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-black/60 flex flex-col p-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
@@ -1469,7 +1469,7 @@ export default function StreamPage() {
             </div>
             
              <Sheet open={isMobileChatVisible} onOpenChange={setIsMobileChatVisible}>
-                <SheetContent side="bottom" className="h-[70vh] p-0 flex flex-col rounded-t-lg">
+                <SheetContent side="bottom" className="h-[70dvh] p-0 flex flex-col rounded-t-lg" overlayClassName="bg-transparent">
                     <ChatPanel seller={seller} chatMessages={chatMessages} pinnedMessages={pinnedMessages} activeAuction={activeAuction} auctionTime={auctionTime} highestBid={highestBid} totalBids={totalBids} walletBalance={walletBalance} handlers={handlers} inlineAuctionCardRefs={inlineAuctionCardRefs} onClose={() => setIsMobileChatVisible(false)} />
                 </SheetContent>
             </Sheet>
@@ -1579,3 +1579,5 @@ const RelatedContent = ({ relatedStreams }: { relatedStreams: any[] }) => (
         </div>
     </div>
 );
+
+    
