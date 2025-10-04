@@ -124,6 +124,10 @@ body {
     animation: live-pulse 1.5s infinite;
   }
 
+  .animate-message-in {
+      animation: message-in 220ms ease-out;
+  }
+
   @keyframes live-pulse {
     0%, 100% {
       transform: scale(1);
@@ -132,6 +136,17 @@ body {
     50% {
       transform: scale(1.1);
       opacity: 0.8;
+    }
+  }
+
+  @keyframes message-in {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
     }
   }
 }

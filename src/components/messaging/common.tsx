@@ -33,7 +33,6 @@ export interface Message {
   text?: string;
   imageUrl?: string;
   senderId?: string; // Made optional for system messages
-  sender?: string; // Legacy support
   user?: string; // Legacy support
   timestamp: string | Timestamp;
   status?: 'sent' | 'delivered' | 'read';
@@ -402,22 +401,22 @@ export const ChatPanel = ({
   };
 
   return (
-    <div className='h-full flex flex-col'>
-      <header className="p-4 flex items-center justify-between z-10 flex-shrink-0 h-16 border-b">
-        <h3 className="font-bold text-lg">Live Chat</h3>
+    <div className='h-full flex flex-col bg-[#0b0b0c]'>
+      <header className="p-3 flex items-center justify-between z-10 flex-shrink-0 h-16 border-b border-[rgba(255,255,255,0.04)] sticky top-0 bg-[#0f1113]/80 backdrop-blur-sm">
+        <h3 className="font-bold text-lg text-white">Live Chat</h3>
         <div className="flex items-center gap-1">
           <Popover>
             <PopoverTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8 relative">
-                <Pin className="h-5 w-5 text-muted-foreground" />
+              <Button variant="ghost" size="icon" className="h-8 w-8 relative text-muted-foreground hover:text-white">
+                <Pin className="h-5 w-5" />
                 {pinnedMessages.length > 0 && <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-primary" />}
               </Button>
             </PopoverTrigger>
           </Popover>
           <DropdownMenu>
              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-8 w-8">
-                    <MoreVertical className="h-5 w-5 text-muted-foreground" />
+                <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-white">
+                    <MoreVertical className="h-5 w-5" />
                 </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
@@ -434,39 +433,49 @@ export const ChatPanel = ({
         </div>
       </header>
       <ScrollArea className="flex-grow" ref={chatContainerRef} onScroll={handleManualScroll}>
-          <div className="p-4 space-y-1">
+          <div className="p-3 space-y-2.5">
               {chatMessages.map((msg) => {
                     if (msg.type === 'system') {
-                        return <div key={msg.id} className="text-xs text-center text-muted-foreground italic py-1 mt-2">{msg.text}</div>
+                        return <div key={msg.id} className="text-xs text-center text-[#9AA1A6] italic py-1 mt-2">{msg.text}</div>
                     }
                     if (!msg.user) return null;
 
                     const isMyMessage = msg.userId === seller?.uid;
+                    const isSellerMessage = msg.userId === seller?.uid;
+                    
                     return (
-                       <div key={msg.id} className="flex items-start gap-3 w-full group text-sm">
-                           <Avatar className="h-6 w-6 mt-0.5">
+                       <div key={msg.id} className="flex items-start gap-3 w-full group text-sm animate-message-in">
+                           <Avatar className="h-9 w-9 mt-0.5 border border-[rgba(255,255,255,0.04)]">
                                 <AvatarImage src={msg.avatar} />
-                                <AvatarFallback>{msg.user.charAt(0)}</AvatarFallback>
+                                <AvatarFallback className="bg-gradient-to-br from-red-500 to-yellow-500 text-white font-bold">{msg.user.charAt(0)}</AvatarFallback>
                            </Avatar>
-                            <div className={cn("flex-grow max-w-[85%]")}>
-                                <div className={cn("flex items-center gap-2")}>
-                                    <p className="leading-relaxed break-words">
-                                        <b className="mr-1.5 font-bold" style={{ color: msg.userColor || 'inherit' }}>{msg.user}:</b>
-                                        {msg.text}
-                                    </p>
-                                     <DropdownMenu>
-                                        <DropdownMenuTrigger asChild>
-                                            <button className="text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity">
-                                                <MoreHorizontal className="w-4 h-4" />
-                                            </button>
-                                        </DropdownMenuTrigger>
-                                        <DropdownMenuContent align="end">
-                                            <DropdownMenuItem onSelect={() => console.log('report user', msg.userId)}>
-                                                <Flag className="mr-2 h-4 w-4" />Report User
-                                            </DropdownMenuItem>
-                                        </DropdownMenuContent>
-                                    </DropdownMenu>
-                                </div>
+                            <div className={cn("flex-grow max-w-[86%]")}>
+                               <div className="flex items-center gap-2">
+                                 <b className="text-sm font-semibold text-white" style={{ color: msg.userColor || 'inherit' }}>{msg.user}</b>
+                                 {isSellerMessage && (
+                                     <Badge className="text-xs px-2 py-0.5 rounded-full bg-[#E43F3F] text-white shadow-sm">Host</Badge>
+                                 )}
+                                 <p className="text-xs text-[#9AA1A6] flex-shrink-0">
+                                   {msg.timestamp}
+                                 </p>
+                               </div>
+                               <div className="flex items-start justify-between gap-2">
+                                  <p className="leading-relaxed break-words text-base text-[#E6ECEF] mt-0.5">
+                                      <span className="mr-1.5">:</span>{msg.text}
+                                  </p>
+                                   <DropdownMenu>
+                                      <DropdownMenuTrigger asChild>
+                                          <button className="text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity p-1">
+                                              <MoreHorizontal className="w-4 h-4" />
+                                          </button>
+                                      </DropdownMenuTrigger>
+                                      <DropdownMenuContent align="end">
+                                          <DropdownMenuItem onSelect={() => handlers.onReport(msg.userId)}>
+                                              <Flag className="mr-2 h-4 w-4" />Report User
+                                          </DropdownMenuItem>
+                                      </DropdownMenuContent>
+                                  </DropdownMenu>
+                               </div>
                             </div>
                         </div>
                     )
@@ -482,12 +491,12 @@ export const ChatPanel = ({
               className="rounded-full shadow-lg"
               onClick={() => handleAutoScroll()}
             >
-              New Messages
+              Jump to latest
             </Button>
           </div>
         )}
-      <footer className="p-3 border-t bg-background flex-shrink-0">
-          <form onSubmit={handleNewMessageSubmit} className="flex items-start gap-2">
+      <footer className="p-3 bg-transparent flex-shrink-0">
+          <form onSubmit={handleNewMessageSubmit} className="flex items-center gap-2">
              <div className="relative flex-grow">
                 <Textarea
                     ref={textareaRef}
@@ -495,12 +504,11 @@ export const ChatPanel = ({
                     value={newMessage}
                     onChange={(e) => setNewMessage(e.target.value)}
                     rows={1}
-                    className='flex-grow resize-none max-h-24 pr-10 rounded-full bg-muted border-transparent focus:border-input focus:bg-background h-11 py-2.5'
-                    style={{minHeight: '44px'}}
+                    className='flex-grow resize-none max-h-24 px-4 pr-14 py-3 min-h-11 rounded-full bg-[#0f1113] text-white placeholder:text-[#7d8488] border-none focus-visible:ring-2 focus-visible:ring-offset-0 focus-visible:ring-[#E43F3F]/30'
                 />
                 <Popover>
                     <PopoverTrigger asChild>
-                         <Button variant="ghost" size="icon" type="button" className="absolute right-1.5 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full text-muted-foreground">
+                         <Button variant="ghost" size="icon" type="button" className="absolute right-12 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full text-muted-foreground hover:text-white">
                             <Smile className="h-5 w-5" />
                         </Button>
                     </PopoverTrigger>
@@ -517,8 +525,8 @@ export const ChatPanel = ({
                      </PopoverContent>
                 </Popover>
              </div>
-             <Button type="submit" size="icon" disabled={!newMessage.trim()} className="rounded-full flex-shrink-0 h-11 w-11">
-                <Send className="h-4 w-4" />
+             <Button type="submit" size="icon" disabled={!newMessage.trim()} className="rounded-full flex-shrink-0 h-11 w-11 bg-[#E43F3F] hover:bg-[#E43F3F]/90 active:scale-105 transition-transform">
+                <Send className="h-5 w-5" />
             </Button>
           </form>
         </footer>
