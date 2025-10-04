@@ -113,6 +113,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useInView } from "react-intersection-observer";
 import { useMiniPlayer } from "@/context/MiniPlayerContext";
 import { Sheet, SheetContent, SheetClose } from "@/components/ui/sheet";
+import { Skeleton } from "@/components/ui/skeleton";
 
 
 const emojis = [
@@ -637,8 +638,6 @@ const ChatPanel = ({
     e.preventDefault();
     if (!newMessage.trim()) return;
     
-    // In a real app, this would be handled by a proper state management solution
-    // and sent to a backend. For this demo, we'll just log it.
     console.log("New Message:", newMessage);
 
     setNewMessage("");
@@ -814,6 +813,7 @@ export default function StreamPage() {
     const { user } = useAuth();
     const { toast } = useToast();
     const { minimizedStream, minimizeStream, closeMinimizedStream, isMinimized } = useMiniPlayer();
+    const [isLoading, setIsLoading] = useState(true);
     const [walletBalance, setWalletBalance] = useState(42580.22);
     const [bidAmount, setBidAmount] = useState<number | string>("");
     const [isWithdrawOpen, setIsWithdrawOpen] = useState(false);
@@ -870,6 +870,7 @@ export default function StreamPage() {
     const mainScrollRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
+        setIsLoading(false);
         if (minimizedStream && minimizedStream.id !== streamId) {
             closeMinimizedStream();
         }
@@ -915,10 +916,8 @@ export default function StreamPage() {
         if (streams.length > 50) {
             return streams.slice(0, 51);
         }
-        // Fallback to show some streams if none match the category, excluding the current one
         const fallbackStreams = liveSellers.filter(s => s.id !== seller.id);
         
-        // Add from fallback until we have 6 total, avoiding duplicates
         let i = 0;
         while(streams.length < 6 && i < fallbackStreams.length) {
             if (!streams.some(s => s.id === fallbackStreams[i].id)) {
@@ -1261,7 +1260,6 @@ export default function StreamPage() {
     
     const handlers = {
         onReply: (user: { name: string; id: string }) => {
-            // This is a placeholder for actual reply functionality
             console.log("Replying to", user);
         },
         onTogglePinMessage: handleTogglePinMessage,
@@ -1277,6 +1275,20 @@ export default function StreamPage() {
         inlineAuctionCardRefs.current[auctionId]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     };
 
+    if (isLoading) {
+        return (
+            <div className="flex h-screen items-center justify-center bg-background">
+                <div className="flex flex-col items-center gap-4">
+                     <div className="w-full aspect-video bg-muted rounded-lg flex items-center justify-center">
+                        <Skeleton className="w-full h-full" />
+                    </div>
+                    <Skeleton className="h-10 w-3/4" />
+                    <Skeleton className="h-6 w-1/2" />
+                </div>
+            </div>
+        );
+    }
+    
     if (isMinimized(streamId)) {
         return (
             <div className="flex h-screen items-center justify-center bg-black">
@@ -1380,10 +1392,15 @@ export default function StreamPage() {
                         <ArrowLeft className="h-6 w-6" />
                     </Button>
                     <h1 className="text-xl font-bold truncate">{seller?.name || 'Live Stream'}</h1>
-                    <div className="w-10"></div>
+                     <Button asChild variant="ghost">
+                        <Link href="/cart">
+                            <ShoppingCart className="mr-2 h-5 w-5" />
+                            <span className="hidden sm:inline">My Cart</span>
+                        </Link>
+                    </Button>
                 </header>
-                <div className="lg:grid lg:grid-cols-[1fr_384px] flex-1 h-[calc(100vh-4rem)]">
-                   <div className="relative flex-1 flex flex-col lg:overflow-y-auto no-scrollbar" onScroll={handleMainScroll} ref={mainScrollRef}>
+                 <div className="flex-1 lg:grid lg:grid-cols-[1fr_384px] overflow-hidden">
+                   <div className="lg:overflow-y-auto no-scrollbar" onScroll={handleMainScroll} ref={mainScrollRef}>
                         {showGoToTop && (
                             <Button
                                 size="icon"
@@ -1454,7 +1471,6 @@ export default function StreamPage() {
                                     </div>
                                 ) : (
                                     <div className="p-4 space-y-6">
-                                        {/* Content to show when chat is closed on mobile */}
                                         <StreamInfo seller={seller} streamData={streamData} handleFollowToggle={handleFollowToggle} isFollowingState={isFollowingState} sellerProducts={sellerProducts}/>
                                         <RelatedContent relatedStreams={relatedStreams} />
                                     </div>
@@ -1472,7 +1488,6 @@ export default function StreamPage() {
                 </div>
             </div>
             
-            {/* Floating Chat Button for Mobile */}
             {!isMobileChatVisible && (
                 <Button
                     size="icon"
@@ -1578,6 +1593,5 @@ const RelatedContent = ({ relatedStreams }: { relatedStreams: any[] }) => (
         </div>
     </div>
 );
-
 
     
