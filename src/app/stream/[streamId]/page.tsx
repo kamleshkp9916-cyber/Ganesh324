@@ -816,7 +816,7 @@ export default function StreamPage() {
     const { minimizedStream, minimizeStream, closeMinimizedStream, isMinimized } = useMiniPlayer();
     const [walletBalance, setWalletBalance] = useState(42580.22);
     const [bidAmount, setBidAmount] = useState<number | string>("");
-    const [isWithdrawOpen, setIsWithdrawOpen] = useState(false);
+    const [isWithdrawOpen, setIsWithdrawOpen] = useState(isSettingsOpen);
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
     const [bankAccounts, setBankAccounts] = useState([
         { id: 1, bankName: 'HDFC Bank', accountNumber: 'XXXX-XXXX-XX12-3456' },
@@ -867,14 +867,11 @@ export default function StreamPage() {
     const [isLive, setIsLive] = useState(true);
     const [isMobileChatVisible, setIsMobileChatVisible] = useState(false);
     
-    const mainScrollRef = useRef<HTMLDivElement>(null);
-
     useEffect(() => {
         if (minimizedStream && minimizedStream.id !== streamId) {
             closeMinimizedStream();
         }
     }, [minimizedStream, streamId, closeMinimizedStream]);
-
 
     const handleMainScroll = (e: React.UIEvent<HTMLDivElement>) => {
         const shouldShow = e.currentTarget.scrollTop > 200;
@@ -1368,9 +1365,16 @@ export default function StreamPage() {
 
             <Dialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
                 <AlertDialog>
-                    <div className="h-dvh w-full bg-background text-foreground">
-                        <div className="h-full lg:grid lg:grid-cols-[1fr_384px]">
-                           <div className="flex-1 relative flex flex-col h-full lg:overflow-y-auto no-scrollbar" ref={mainScrollRef} onScroll={handleMainScroll}>
+                    <div className="flex flex-col h-screen bg-background text-foreground">
+                        <header className="p-4 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-sm z-30 border-b">
+                            <Button variant="ghost" size="icon" onClick={() => router.back()}>
+                                <ArrowLeft className="h-6 w-6" />
+                            </Button>
+                            <h1 className="text-xl font-bold truncate">{seller?.name || 'Live Stream'}</h1>
+                            <div className="w-10"></div>
+                        </header>
+                        <div className="lg:grid lg:grid-cols-[1fr_384px] flex-1 min-h-0">
+                           <div className="relative flex-1 flex flex-col overflow-y-auto no-scrollbar" onScroll={handleMainScroll}>
                                 {showGoToTop && (
                                     <Button
                                         size="icon"
@@ -1455,7 +1459,7 @@ export default function StreamPage() {
                                     </div>
                                 </div>
                             </div>
-                           <div className="h-screen w-[384px] flex-shrink-0 flex-col bg-card relative hidden lg:flex">
+                           <div className="h-full w-[384px] flex-shrink-0 flex-col bg-card relative hidden lg:flex">
                                 <ChatPanel seller={seller} chatMessages={chatMessages} pinnedMessages={pinnedMessages} activeAuction={activeAuction} auctionTime={auctionTime} highestBid={highestBid} totalBids={totalBids} walletBalance={walletBalance} handlers={handlers} inlineAuctionCardRefs={inlineAuctionCardRefs} onClose={() => {}} />
                             </div>
                         </div>
