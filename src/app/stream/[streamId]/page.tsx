@@ -790,7 +790,7 @@ const ChatPanel = ({
                 <PopoverContent className="w-80 h-64 p-2">
                   <div className="grid grid-cols-8 gap-1 h-full overflow-y-auto no-scrollbar">
                     {emojis.map((emoji, index) => (
-                      <Button key={index} variant="ghost" size="icon" onClick={()={() => addEmoji(emoji)} className="text-xl">
+                      <Button key={index} variant="ghost" size="icon" onClick={() => addEmoji(emoji)} className="text-xl">
                         {emoji}
                       </Button>
                     ))}
@@ -1493,7 +1493,7 @@ export default function StreamPage() {
                         <div className="flex-1 overflow-y-auto no-scrollbar" onScroll={handleMainScroll} ref={mainScrollRef}>
                             <div className="p-4 space-y-6">
                                 <StreamInfo seller={seller} streamData={streamData} handleFollowToggle={handleFollowToggle} isFollowingState={isFollowingState} sellerProducts={sellerProducts}/>
-                                 <div className="lg:hidden">
+                                <div className="lg:hidden">
                                     <Collapsible open={isMobileChatVisible} onOpenChange={setIsMobileChatVisible}>
                                         {!isMobileChatVisible && (
                                             <CollapsibleTrigger asChild>
