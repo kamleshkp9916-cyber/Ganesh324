@@ -869,36 +869,30 @@ export default function StreamPage() {
     const [isMobileChatVisible, setIsMobileChatVisible] = useState(false);
     const mainScrollRef = useRef<HTMLDivElement>(null);
     const [isHeaderVisible, setIsHeaderVisible] = useState(true);
-    const activityTimerRef = useRef<NodeJS.Timeout | null>(null);
-
-    const resetActivityTimer = useCallback(() => {
-        setIsHeaderVisible(true);
-        if (activityTimerRef.current) {
-            clearTimeout(activityTimerRef.current);
-        }
-        activityTimerRef.current = setTimeout(() => {
-            setIsHeaderVisible(false);
-        }, 3000); // Hide after 3 seconds of inactivity
-    }, []);
+    const lastScrollY = useRef(0);
 
     useEffect(() => {
-        const activityEvents: (keyof WindowEventMap)[] = ['mousemove', 'mousedown', 'touchstart', 'keydown', 'scroll'];
-        
-        activityEvents.forEach(event => {
-            window.addEventListener(event, resetActivityTimer);
-        });
-
-        resetActivityTimer(); // Initial timer
-
-        return () => {
-            activityEvents.forEach(event => {
-                window.removeEventListener(event, resetActivityTimer);
-            });
-            if (activityTimerRef.current) {
-                clearTimeout(activityTimerRef.current);
-            }
+        const mainEl = mainScrollRef.current;
+        if (!mainEl) return;
+    
+        const handleScroll = () => {
+          const currentScrollY = mainEl.scrollTop;
+          
+          if (currentScrollY > lastScrollY.current && currentScrollY > 50) {
+            // Scrolling down
+            setIsHeaderVisible(false);
+          } else {
+            // Scrolling up
+            setIsHeaderVisible(true);
+          }
+          lastScrollY.current = currentScrollY;
         };
-    }, [resetActivityTimer]);
+    
+        mainEl.addEventListener('scroll', handleScroll);
+        return () => {
+          mainEl.removeEventListener('scroll', handleScroll);
+        };
+    }, []);
 
     useEffect(() => {
         setIsLoading(false);
@@ -1421,8 +1415,8 @@ export default function StreamPage() {
             </Dialog>
             
              <div className="flex flex-col h-dvh bg-background text-foreground">
-                <header className={cn("p-4 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-sm z-30 border-b h-16 shrink-0 transition-all duration-300",
-                    isHeaderVisible ? "translate-y-0 opacity-100" : "-translate-y-full opacity-0"
+                <header className={cn("p-4 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-sm z-30 border-b h-16 shrink-0 transition-transform duration-300",
+                    isHeaderVisible ? "translate-y-0" : "-translate-y-full"
                 )}>
                     <Button variant="ghost" size="icon" onClick={() => router.back()}>
                         <ArrowLeft className="h-6 w-6" />
@@ -1437,7 +1431,7 @@ export default function StreamPage() {
                 </header>
 
                 <div className="flex-1 flex flex-col lg:grid lg:grid-cols-[1fr,384px] overflow-hidden">
-                    <main className="flex-1 flex flex-col overflow-hidden">
+                    <main className="flex-1 flex flex-col overflow-hidden" ref={mainScrollRef}>
                         <div className="w-full aspect-video bg-black relative group flex-shrink-0" ref={playerRef}>
                             <video ref={videoRef} src={streamData.streamUrl || "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"} className="w-full h-full object-cover" loop />
                             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-black/60 flex flex-col p-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
@@ -1490,7 +1484,7 @@ export default function StreamPage() {
                             </div>
                         </div>
 
-                        <div className="flex-1 overflow-y-auto no-scrollbar" onScroll={handleMainScroll} ref={mainScrollRef}>
+                        <div className="flex-1 overflow-y-auto no-scrollbar">
                             <div className="p-4 space-y-6">
                                 <StreamInfo seller={seller} streamData={streamData} handleFollowToggle={handleFollowToggle} isFollowingState={isFollowingState} sellerProducts={sellerProducts}/>
                                 <div className="lg:hidden">
