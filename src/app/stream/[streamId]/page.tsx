@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import {
@@ -854,7 +855,6 @@ export default function StreamPage() {
     const playerRef = useRef<HTMLDivElement>(null);
     const progressContainerRef = useRef<HTMLDivElement>(null);
     const inlineAuctionCardRefs = useRef<Record<string, HTMLDivElement | null>>({});
-    const mainScrollRef = useRef<HTMLDivElement>(null);
     
     const [isPaused, setIsPaused] = useState(true);
     const [isMuted, setIsMuted] = useState(true);
@@ -868,6 +868,8 @@ export default function StreamPage() {
     const [isLive, setIsLive] = useState(true);
     const [isMobileChatVisible, setIsMobileChatVisible] = useState(false);
     
+    const mainScrollRef = useRef<HTMLDivElement>(null);
+
     useEffect(() => {
         if (minimizedStream && minimizedStream.id !== streamId) {
             closeMinimizedStream();
@@ -1321,8 +1323,8 @@ export default function StreamPage() {
                         </div>
                         <div className="grid grid-cols-3 gap-2">
                             <Button variant="outline" onClick={() => setBidAmount(prev => Number(prev || highestBid) + 100)}>+100</Button>
-                            <Button variant="outline" onClick={()={() => setBidAmount(prev => Number(prev || highestBid) + 500)}>+500</Button>
-                            <Button variant="outline" onClick={()={() => setBidAmount(prev => Number(prev || highestBid) + 1000)}>+1000</Button>
+                            <Button variant="outline" onClick={() => setBidAmount(prev => Number(prev || highestBid) + 500)}>+500</Button>
+                            <Button variant="outline" onClick={() => setBidAmount(prev => Number(prev || highestBid) + 1000)}>+1000</Button>
                         </div>
                     </div>
                     <DialogFooter>
