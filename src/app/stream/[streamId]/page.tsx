@@ -990,7 +990,7 @@ const DesktopLayout = (props: any) => (
         <div />
     </header>
     <div className="flex-1 grid grid-cols-[1fr,384px] overflow-hidden">
-        <main className="flex-1 flex flex-col overflow-hidden">
+        <main className="flex-1 overflow-y-auto" ref={props.mainScrollRef} onScroll={props.handleMainScroll}>
             <div className="w-full aspect-video bg-black relative" ref={props.playerRef}>
                 <video ref={props.videoRef} src={props.streamData.streamUrl || "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"} className="w-full h-full object-cover" loop />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent flex flex-col justify-end p-4 text-white">
@@ -1026,11 +1026,9 @@ const DesktopLayout = (props: any) => (
                 </div>
             </div>
 
-            <div className="flex-1 overflow-y-auto" ref={props.mainScrollRef} onScroll={props.handleMainScroll}>
-                <div className="p-4 space-y-6">
-                    <StreamInfo seller={props.seller} streamData={props.streamData} handleFollowToggle={props.handleFollowToggle} isFollowingState={props.isFollowingState} sellerProducts={props.sellerProducts}/>
-                    <RelatedContent relatedStreams={props.relatedStreams} />
-                </div>
+            <div className="p-4 space-y-6">
+                <StreamInfo seller={props.seller} streamData={props.streamData} handleFollowToggle={props.handleFollowToggle} isFollowingState={props.isFollowingState} sellerProducts={props.sellerProducts}/>
+                <RelatedContent relatedStreams={props.relatedStreams} />
             </div>
         </main>
 
