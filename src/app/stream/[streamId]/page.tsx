@@ -1369,8 +1369,8 @@ export default function StreamPage() {
             <Dialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
                 <AlertDialog>
                     <div className="h-dvh w-full bg-background text-foreground">
-                        <div className="h-full lg:grid lg:grid-cols-[1fr_340px]">
-                           <div className="flex-1 overflow-y-auto no-scrollbar relative flex flex-col" ref={mainScrollRef} onScroll={handleMainScroll}>
+                        <div className="h-full lg:grid lg:grid-cols-[1fr_384px]">
+                           <div className="flex-1 relative flex flex-col h-full lg:overflow-y-auto no-scrollbar" ref={mainScrollRef} onScroll={handleMainScroll}>
                                 {showGoToTop && (
                                     <Button
                                         size="icon"
@@ -1455,7 +1455,7 @@ export default function StreamPage() {
                                     </div>
                                 </div>
                             </div>
-                           <div className="h-full w-[340px] flex-shrink-0 flex-col bg-card relative hidden lg:flex">
+                           <div className="h-screen w-[384px] flex-shrink-0 flex-col bg-card relative hidden lg:flex">
                                 <ChatPanel seller={seller} chatMessages={chatMessages} pinnedMessages={pinnedMessages} activeAuction={activeAuction} auctionTime={auctionTime} highestBid={highestBid} totalBids={totalBids} walletBalance={walletBalance} handlers={handlers} inlineAuctionCardRefs={inlineAuctionCardRefs} onClose={() => {}} />
                             </div>
                         </div>
@@ -1560,7 +1560,7 @@ const RelatedContent = ({ relatedStreams }: { relatedStreams: any[] }) => (
             <Link href="/live-selling">More</Link>
         </Button>
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-4 gap-2 md:gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-4 gap-2 sm:gap-4">
             {relatedStreams.map((s: any) => (
                 <Link href={`/stream/${s.id}`} key={s.id} className="group">
                     <div className="relative rounded-lg overflow-hidden aspect-[16/9] bg-muted">
