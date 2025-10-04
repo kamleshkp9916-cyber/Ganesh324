@@ -8,7 +8,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useAuth } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
 import { UserData } from "@/lib/follow-data";
-import { MoreVertical, Search, Send, Trash2, CheckCheck, Check, Flag, Paperclip, FileText, PlusCircle, Home, Pin, Award, History, Gavel, ShoppingBag, X, Smile } from "lucide-react";
+import { MoreVertical, Search, Send, Trash2, CheckCheck, Check, Flag, Paperclip, FileText, PlusCircle, Home, Pin, Award, History, Gavel, ShoppingBag, X, Smile, Reply } from "lucide-react";
 import { useEffect, useMemo, useRef, useState, useCallback, forwardRef } from "react";
 import { Skeleton } from "../ui/skeleton";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -395,11 +395,21 @@ export const ChatPanel = ({
     e.preventDefault();
     if (!newMessage.trim()) return;
     
-    console.log("New Message:", newMessage);
+    let messageToSend = newMessage;
+    if (replyingTo) {
+      messageToSend = `@${replyingTo.name.split(' ')[0]} ${newMessage}`;
+    }
+
+    console.log("New Message:", messageToSend);
 
     setNewMessage("");
     setReplyingTo(null);
   };
+  
+  const handleReply = (msg: any) => {
+    setReplyingTo({ name: msg.user, id: msg.userId });
+    textareaRef.current?.focus();
+  }
 
   return (
     <div className='h-full flex flex-col bg-[#0b0b0c]'>
@@ -434,7 +444,7 @@ export const ChatPanel = ({
         </div>
       </header>
       <ScrollArea className="flex-grow" ref={chatContainerRef} onScroll={handleManualScroll}>
-          <div className="p-3">
+          <div className="p-3 space-y-2.5">
              {chatMessages.map((msg) => {
                   if (msg.type === 'system') {
                       return <div key={msg.id} className="text-xs text-center text-[#9AA1A6] italic py-1">{msg.text}</div>
@@ -445,16 +455,16 @@ export const ChatPanel = ({
                   const isSellerMessage = msg.userId === seller?.uid;
                   
                   return (
-                     <div key={msg.id} className="flex items-start gap-3 w-full group animate-message-in">
+                     <div key={msg.id} className="flex items-start gap-3 w-full group text-sm animate-message-in">
                          <Avatar className="h-9 w-9 mt-0.5 border border-[rgba(255,255,255,0.04)]">
                              <AvatarImage src={msg.avatar} />
                              <AvatarFallback className="bg-gradient-to-br from-red-500 to-yellow-500 text-white font-bold">{msg.user.charAt(0)}</AvatarFallback>
                          </Avatar>
                           <div className="flex-grow">
-                            <p className="leading-relaxed break-words text-sm text-[#E6ECEF]">
-                                <b className="text-sm font-semibold text-white mr-1.5" style={{ color: msg.userColor || 'inherit' }}>{msg.user}:</b>
-                                <span className="text-xs">{msg.text}</span>
-                            </p>
+                             <p className="leading-relaxed break-words text-sm text-[#E6ECEF]">
+                                 <b className="font-semibold text-sm mr-1.5" style={{ color: msg.userColor || 'inherit' }}>{msg.user}:</b>
+                                 {msg.text}
+                             </p>
                           </div>
                           <DropdownMenu>
                               <DropdownMenuTrigger asChild>
@@ -463,6 +473,9 @@ export const ChatPanel = ({
                                   </button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end">
+                                  <DropdownMenuItem onSelect={() => handleReply(msg)}>
+                                      <Reply className="mr-2 h-4 w-4" />Reply
+                                  </DropdownMenuItem>
                                   <DropdownMenuItem onSelect={() => handlers.onReportMessage(msg.id)}>
                                     <Flag className="mr-2 h-4 w-4" />Report
                                 </DropdownMenuItem>
@@ -487,6 +500,14 @@ export const ChatPanel = ({
           </div>
         )}
       <footer className="p-3 bg-transparent flex-shrink-0">
+          {replyingTo && (
+            <div className="text-xs text-muted-foreground mb-1 px-3 flex justify-between items-center">
+              <span>Replying to <span className="text-primary font-semibold">@{replyingTo.name}</span></span>
+              <button onClick={() => setReplyingTo(null)} className="p-1 rounded-full hover:bg-muted">
+                <X className="w-3 h-3" />
+              </button>
+            </div>
+          )}
           <form onSubmit={handleNewMessageSubmit} className="flex items-center gap-2">
              <div className="relative flex-grow">
                  <Textarea
