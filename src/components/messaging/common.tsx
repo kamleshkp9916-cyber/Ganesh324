@@ -8,7 +8,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useAuth } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
 import { UserData } from "@/lib/follow-data";
-import { ArrowLeft, Loader2, Menu, MoreHorizontal, Search, Send, Trash2, CheckCheck, Check, Flag, Paperclip, FileText, PlusCircle, Home, Pin, Award, History, Gavel, ShoppingBag, X, Smile } from "lucide-react";
+import { ArrowLeft, Loader2, Menu, MoreVertical, Search, Send, Trash2, CheckCheck, Check, Flag, Paperclip, FileText, PlusCircle, Home, Pin, Award, History, Gavel, ShoppingBag, X, Smile } from "lucide-react";
 import { useEffect, useMemo, useRef, useState, useCallback, forwardRef } from "react";
 import { Skeleton } from "../ui/skeleton";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -109,7 +109,7 @@ export const ConversationItem = ({ convo, isSelected, onClick, onDelete }: { con
                                 <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
                                         <Button variant="ghost" size="icon" className="h-7 w-7" onClick={(e) => e.stopPropagation()}>
-                                            <MoreHorizontal className="h-4 w-4" />
+                                            <MoreVertical className="h-4 w-4" />
                                         </Button>
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
@@ -146,7 +146,7 @@ export const ChatMessage = ({ msg, currentUserId }: { msg: Message, currentUserI
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                         <Button variant="ghost" size="icon" className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <MoreHorizontal className="h-4 w-4" />
+                            <MoreVertical className="h-4 w-4" />
                         </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent>
@@ -417,7 +417,7 @@ export const ChatPanel = ({
           <DropdownMenu>
              <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-white">
-                   <MoreHorizontal className="h-5 w-5" />
+                   <MoreVertical className="h-5 w-5" />
                 </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
@@ -434,7 +434,7 @@ export const ChatPanel = ({
         </div>
       </header>
       <ScrollArea className="flex-grow" ref={chatContainerRef} onScroll={handleManualScroll}>
-          <div className="p-3 space-y-2">
+          <div className="p-3 space-y-2.5">
              {chatMessages.map((msg) => {
                   if (msg.type === 'system') {
                       return <div key={msg.id} className="text-xs text-center text-[#9AA1A6] italic py-1">{msg.text}</div>
@@ -450,32 +450,30 @@ export const ChatPanel = ({
                              <AvatarImage src={msg.avatar} />
                              <AvatarFallback className="bg-gradient-to-br from-red-500 to-yellow-500 text-white font-bold">{msg.user.charAt(0)}</AvatarFallback>
                          </Avatar>
-                          <div className={cn("flex-grow")}>
-                              <div className="flex items-center justify-between">
-                                  <div className="flex items-baseline gap-2">
-                                      <p className="flex items-baseline gap-2 flex-wrap">
-                                          <b className="text-sm font-semibold text-white" style={{ color: msg.userColor || 'inherit' }}>{msg.user}:</b>
-                                          <span className="leading-relaxed break-words text-xs text-[#E6ECEF]">
-                                             {msg.text}
-                                          </span>
-                                      </p>
-                                       {isSellerMessage && (
-                                           <Badge className="text-xs px-1.5 py-0 rounded-full bg-[#E43F3F] text-white shadow-sm">Host</Badge>
-                                       )}
-                                  </div>
-                                   <DropdownMenu>
-                                      <DropdownMenuTrigger asChild>
-                                          <button className="text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity p-1">
-                                              <MoreHorizontal className="w-4 h-4" />
-                                          </button>
-                                      </DropdownMenuTrigger>
-                                      <DropdownMenuContent align="end">
-                                         <DropdownMenuItem onSelect={() => handlers.onReportMessage(msg.id)}>
-                                            <Flag className="mr-2 h-4 w-4" />Report
-                                        </DropdownMenuItem>
-                                      </DropdownMenuContent>
-                                  </DropdownMenu>
-                             </div>
+                          <div className="flex-grow">
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-baseline gap-2">
+                                  <b className="text-sm font-semibold text-white" style={{ color: msg.userColor || 'inherit' }}>{msg.user}</b>
+                                  {isSellerMessage && (
+                                    <Badge className="text-xs px-1.5 py-0 rounded-full bg-[#E43F3F] text-white shadow-sm">Host</Badge>
+                                  )}
+                                </div>
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <button className="text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity p-1">
+                                            <MoreVertical className="w-4 h-4" />
+                                        </button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end">
+                                        <DropdownMenuItem onSelect={() => handlers.onReportMessage(msg.id)}>
+                                          <Flag className="mr-2 h-4 w-4" />Report
+                                      </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
+                            </div>
+                            <p className="leading-relaxed break-words text-sm text-[#E6ECEF]">
+                                {msg.text}
+                            </p>
                           </div>
                       </div>
                   )
