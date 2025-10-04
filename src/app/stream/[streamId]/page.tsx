@@ -1368,33 +1368,9 @@ export default function StreamPage() {
 
             <Dialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
                 <AlertDialog>
-                    <div className="h-dvh w-full flex flex-col bg-background text-foreground">
-                         <header className="flex-shrink-0 h-16 bg-background border-b border-border flex items-center justify-between px-4 z-40">
-                            <div className="flex items-center gap-2">
-                                <Button variant="ghost" size="icon" onClick={() => router.back()}>
-                                    <ArrowLeft />
-                                </Button>
-                                <Link href="/live-selling" className="flex items-center gap-2">
-                                    <Logo className="h-7 w-7" />
-                                    <span className="font-bold text-lg hidden sm:inline-block">StreamCart</span>
-                                </Link>
-                            </div>
-                            <div className="relative w-full max-w-md mx-4 hidden lg:block">
-                                <Input placeholder="Search..." className="rounded-full bg-muted pr-10" />
-                                <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <Button asChild variant="ghost">
-                                    <Link href="/cart">
-                                        <ShoppingCart className="mr-2" />
-                                        My Cart
-                                    </Link>
-                                </Button>
-                            </div>
-                        </header>
-
-                        <div className="flex-1 lg:grid lg:grid-cols-[1fr_340px] overflow-hidden">
-                             <div className="flex-1 overflow-y-auto no-scrollbar relative flex flex-col" ref={mainScrollRef} onScroll={handleMainScroll}>
+                    <div className="h-dvh w-full bg-background text-foreground">
+                        <div className="h-full lg:grid lg:grid-cols-[1fr_340px]">
+                           <div className="flex-1 overflow-y-auto no-scrollbar relative flex flex-col" ref={mainScrollRef} onScroll={handleMainScroll}>
                                 {showGoToTop && (
                                     <Button
                                         size="icon"
