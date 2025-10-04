@@ -159,7 +159,7 @@ const mockChatMessages: any[] = [
     { id: 2, user: 'Alex', text: 'What is the material?', avatar: 'https://placehold.co/40x40.png', userColor: '#e74c3c', userId: 'user2' },
     { id: 3, user: 'Jane', text: 'I just bought one! So excited. 🤩 #newpurchase', avatar: 'https://placehold.co/40x40.png', userColor: '#9b59b6', userId: 'user3' },
     { id: 4, type: 'system', text: 'Chris joined the stream.' },
-    { id: 5, user: 'FashionFinds', text: "Hey Alex, it's 100% genuine leather!", avatar: 'https://placehold.co/40x40.png', userColor: '#f1c40f', isSeller: true, userId: 'FashionFinds' },
+    { id: 5, user: 'FashionFinds', text: 'Hey Alex, it\'s 100% genuine leather!', avatar: 'https://placehold.co/40x40.png', userColor: '#f1c40f', isSeller: true, userId: 'FashionFinds' },
     { id: 6, type: 'system', text: 'Maria purchased a Vintage Camera.' },
     { id: 7, user: 'David', text: 'Do you ship to the US?', avatar: 'https://placehold.co/40x40.png', userColor: '#2ecc71', userId: 'user4' },
     { id: 8, user: 'FashionFinds', text: 'Yes David, we offer international shipping!', avatar: 'https://placehold.co/40x40.png', userColor: '#f1c40f', isSeller: true, userId: 'FashionFinds' },
@@ -1279,13 +1279,13 @@ export default function StreamPage() {
 
     if (isLoading) {
         return (
-            <div className="flex h-screen items-center justify-center bg-background">
-                <div className="flex flex-col items-center gap-4 w-full max-w-4xl">
-                     <div className="w-full aspect-video bg-muted rounded-lg flex items-center justify-center">
-                        <Skeleton className="w-full h-full" />
+            <div className="flex flex-col h-screen items-center justify-center bg-background">
+                <div className="w-full max-w-4xl">
+                     <Skeleton className="w-full aspect-video" />
+                    <div className="p-4 space-y-3">
+                        <Skeleton className="h-8 w-3/4" />
+                        <Skeleton className="h-6 w-1/2" />
                     </div>
-                    <Skeleton className="h-10 w-3/4" />
-                    <Skeleton className="h-6 w-1/2" />
                 </div>
             </div>
         );
@@ -1388,30 +1388,23 @@ export default function StreamPage() {
                     onClose={() => setIsSettingsOpen(false)}
                 />
             </Dialog>
+
             <div className="flex flex-col h-screen bg-background text-foreground">
                 <header className="p-4 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-sm z-30 border-b h-16 shrink-0">
                     <Button variant="ghost" size="icon" onClick={() => router.back()}>
                         <ArrowLeft className="h-6 w-6" />
                     </Button>
                     <h1 className="text-xl font-bold truncate">{seller?.name || 'Live Stream'}</h1>
-                     <Button asChild variant="ghost">
+                    <Button asChild variant="ghost">
                         <Link href="/cart">
                             <ShoppingCart className="mr-2 h-5 w-5" />
                             <span className="hidden sm:inline">My Cart</span>
                         </Link>
                     </Button>
                 </header>
+
                 <div className="flex-1 flex flex-col lg:grid lg:grid-cols-[1fr_384px] overflow-hidden">
-                    <div className="lg:overflow-y-auto no-scrollbar flex-1 flex flex-col" onScroll={handleMainScroll} ref={mainScrollRef}>
-                        {showGoToTop && (
-                            <Button
-                                size="icon"
-                                className="fixed bottom-6 left-6 z-50 rounded-full shadow-lg"
-                                onClick={() => scrollToTop(mainScrollRef)}
-                            >
-                                <ArrowUp className="h-5 w-5" />
-                            </Button>
-                        )}
+                    <div className="lg:overflow-y-auto no-scrollbar" onScroll={handleMainScroll} ref={mainScrollRef}>
                         <div className="w-full aspect-video bg-black relative group flex-shrink-0" ref={playerRef}>
                             <video ref={videoRef} src={streamData.streamUrl || "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"} className="w-full h-full object-cover" loop />
                             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-black/60 flex flex-col p-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
@@ -1464,24 +1457,9 @@ export default function StreamPage() {
                             </div>
                         </div>
 
-                        {/* Main content below video */}
-                        <div className="flex-grow">
-                            <div className="lg:hidden">
-                                {isMobileChatVisible ? (
-                                    <div className="h-[calc(100dvh-56.25vw-4rem)] flex flex-col bg-card">
-                                        <ChatPanel seller={seller} chatMessages={chatMessages} pinnedMessages={pinnedMessages} activeAuction={activeAuction} auctionTime={auctionTime} highestBid={highestBid} totalBids={totalBids} walletBalance={walletBalance} handlers={handlers} inlineAuctionCardRefs={inlineAuctionCardRefs} onClose={() => setIsMobileChatVisible(false)} />
-                                    </div>
-                                ) : (
-                                    <div className="p-4 space-y-6">
-                                        <StreamInfo seller={seller} streamData={streamData} handleFollowToggle={handleFollowToggle} isFollowingState={isFollowingState} sellerProducts={sellerProducts}/>
-                                        <RelatedContent relatedStreams={relatedStreams} />
-                                    </div>
-                                )}
-                            </div>
-                            <div className="hidden lg:block p-4 space-y-6">
-                                <StreamInfo seller={seller} streamData={streamData} handleFollowToggle={handleFollowToggle} isFollowingState={isFollowingState} sellerProducts={sellerProducts}/>
-                                <RelatedContent relatedStreams={relatedStreams} />
-                            </div>
+                        <div className="p-4 space-y-6">
+                            <StreamInfo seller={seller} streamData={streamData} handleFollowToggle={handleFollowToggle} isFollowingState={isFollowingState} sellerProducts={sellerProducts}/>
+                            <RelatedContent relatedStreams={relatedStreams} />
                         </div>
                     </div>
                    <div className="h-full w-[384px] flex-shrink-0 flex-col bg-card relative hidden lg:flex">
@@ -1489,6 +1467,12 @@ export default function StreamPage() {
                     </div>
                 </div>
             </div>
+            
+             <Sheet open={isMobileChatVisible} onOpenChange={setIsMobileChatVisible}>
+                <SheetContent side="right" className="w-[85%] max-w-sm p-0 flex flex-col">
+                    <ChatPanel seller={seller} chatMessages={chatMessages} pinnedMessages={pinnedMessages} activeAuction={activeAuction} auctionTime={auctionTime} highestBid={highestBid} totalBids={totalBids} walletBalance={walletBalance} handlers={handlers} inlineAuctionCardRefs={inlineAuctionCardRefs} onClose={() => setIsMobileChatVisible(false)} />
+                </SheetContent>
+            </Sheet>
             
             {!isMobileChatVisible && (
                 <Button
