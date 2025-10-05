@@ -445,7 +445,7 @@ export default function StreamPage() {
     const [activeAuction, setActiveAuction] = useState<any | null>(null);
     const [isBidDialogOpen, setIsBidDialogOpen] = useState(false);
     const [isBidHistoryOpen, setIsBidHistoryOpen] = useState(false);
-    const [showGoToTop, setShowGoToTop] = useState(false);
+    const [showScrollToBottom, setShowScrollToBottom] = useState(false);
     const isMobile = useIsMobile();
     const [isMobileChatVisible, setIsMobileChatVisible] = useState(false);
     
@@ -1166,70 +1166,48 @@ const MobileLayout = (props: any) => (
         </Button>
     </header>
 
-    <div className="w-full aspect-video bg-black relative flex-shrink-0" ref={props.playerRef}>
-        <video ref={props.videoRef} src={props.streamData.streamUrl || "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"} className="w-full h-full object-cover" loop />
-        <div className="absolute inset-0 bg-black/20 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-            <Button variant="ghost" size="icon" className="text-white" onClick={props.handlePlayPause}>
-                {props.isPaused ? <Play className="h-10 w-10 fill-white" /> : <Pause className="h-10 w-10 fill-white" />}
-            </Button>
-        </div>
-        <div className="absolute inset-x-0 bottom-0 p-2">
-            <div className="w-full cursor-pointer py-1" ref={props.progressContainerRef} onClick={props.handleProgressClick}>
-                <Progress value={(props.currentTime / props.duration) * 100} isLive={props.isLive} className="h-1.5" />
+    <div className="flex-1 grid grid-rows-[auto_1fr] overflow-hidden">
+        <div className="w-full aspect-video bg-black relative flex-shrink-0" ref={props.playerRef}>
+            <video ref={props.videoRef} src={props.streamData.streamUrl || "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"} className="w-full h-full object-cover" loop />
+            <div className="absolute inset-0 bg-black/20 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                <Button variant="ghost" size="icon" className="text-white" onClick={props.handlePlayPause}>
+                    {props.isPaused ? <Play className="h-10 w-10 fill-white" /> : <Pause className="h-10 w-10 fill-white" />}
+                </Button>
             </div>
-            <div className="flex items-center justify-between">
-                <div className="flex items-center gap-1">
-                    <p className="text-xs font-mono text-white">{props.formatTime(props.currentTime)}</p>
+            <div className="absolute inset-x-0 bottom-0 p-2">
+                <div className="w-full cursor-pointer py-1" ref={props.progressContainerRef} onClick={props.handleProgressClick}>
+                    <Progress value={(props.currentTime / props.duration) * 100} isLive={props.isLive} className="h-1.5" />
                 </div>
-                <div className="flex items-center gap-1">
-                    <Button variant="ghost" size="icon" className="h-7 w-7 text-white" onClick={props.handleMinimize}><PictureInPicture className="w-4 h-4"/></Button>
-                    <Button variant="ghost" size="icon" className="h-7 w-7 text-white" onClick={props.handleToggleFullscreen}><Maximize className="w-4 h-4"/></Button>
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-1">
+                        <p className="text-xs font-mono text-white">{props.formatTime(props.currentTime)}</p>
+                    </div>
+                    <div className="flex items-center gap-1">
+                        <Button variant="ghost" size="icon" className="h-7 w-7 text-white" onClick={props.handleMinimize}><PictureInPicture className="w-4 h-4"/></Button>
+                        <Button variant="ghost" size="icon" className="h-7 w-7 text-white" onClick={props.handleToggleFullscreen}><Maximize className="w-4 h-4"/></Button>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
-    <div className="flex-1 overflow-y-auto" ref={props.mainScrollRef} onScroll={props.handleMainScroll}>
-        <div className="p-4 space-y-4">
-            <StreamInfo 
-                seller={props.seller}
-                streamData={props.streamData}
-                handleFollowToggle={props.handleFollowToggle}
-                isFollowingState={props.isFollowingState}
-                sellerProducts={props.sellerProducts}
-                onAddToCart={props.handlers.onAddToCart}
-                onBuyNow={props.handlers.onBuyNow}
-                renderWithHashtags={props.renderWithHashtags}
-            />
-            <RelatedContent relatedStreams={props.relatedStreams} />
+
+        <div className="flex flex-col overflow-hidden">
+             <div className="flex-1 flex flex-col h-full overflow-hidden">
+                <ChatPanel
+                    seller={props.seller}
+                    chatMessages={props.chatMessages}
+                    pinnedMessages={props.pinnedMessages}
+                    activeAuction={props.activeAuction}
+                    auctionTime={props.auctionTime}
+                    highestBid={props.highestBid}
+                    totalBids={props.totalBids}
+                    walletBalance={props.walletBalance}
+                    handlers={props.handlers}
+                    inlineAuctionCardRefs={props.inlineAuctionCardRefs}
+                    onClose={() => {}}
+                />
+            </div>
         </div>
     </div>
-    <div className="fixed bottom-4 right-4 z-20">
-      <Button
-        variant="secondary"
-        size="icon"
-        className="rounded-full h-12 w-12 shadow-lg"
-        onClick={() => props.setIsMobileChatVisible(true)}
-      >
-        <MessageSquare />
-      </Button>
-    </div>
-     <Sheet open={props.isMobileChatVisible} onOpenChange={props.setIsMobileChatVisible} snapPoints={[0.9]}>
-        <SheetContent side="bottom" className="h-[90dvh] p-0 flex flex-col" overlayClassName="bg-black/20">
-             <ChatPanel
-                seller={props.seller}
-                chatMessages={props.chatMessages}
-                pinnedMessages={props.pinnedMessages}
-                activeAuction={props.activeAuction}
-                auctionTime={props.auctionTime}
-                highestBid={props.highestBid}
-                totalBids={props.totalBids}
-                walletBalance={props.walletBalance}
-                handlers={props.handlers}
-                inlineAuctionCardRefs={props.inlineAuctionCardRefs}
-                onClose={() => props.setIsMobileChatVisible(false)}
-            />
-        </SheetContent>
-    </Sheet>
 </div>
 );
 
@@ -1389,6 +1367,7 @@ const RelatedContent = ({ relatedStreams }: { relatedStreams: any[] }) => (
 
 
     
+
 
 
 
