@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import {
@@ -445,7 +446,7 @@ export default function StreamPage() {
     const [isBidDialogOpen, setIsBidDialogOpen] = useState(false);
     const [isBidHistoryOpen, setIsBidHistoryOpen] = useState(false);
     const isMobile = useIsMobile();
-    const [isChatSheetOpen, setIsChatSheetOpen] = useState(false);
+    const [mobileView, setMobileView] = useState<'chat' | 'about'>('chat');
     
     const { ref: auctionCardRef, inView: auctionCardInView } = useInView({ threshold: 0.99 });
     
@@ -992,8 +993,8 @@ export default function StreamPage() {
                         walletBalance={walletBalance}
                         handlers={handlers}
                         inlineAuctionCardRefs={inlineAuctionCardRefs}
-                        isChatSheetOpen={isChatSheetOpen}
-                        setIsChatSheetOpen={setIsChatSheetOpen}
+                        mobileView={mobileView}
+                        setMobileView={setMobileView}
                         formatTime={formatTime}
                         renderWithHashtags={renderWithHashtags}
                     />
@@ -1137,79 +1138,45 @@ const DesktopLayout = (props: any) => (
 </div>
 );
 
-const MobileLayout = (props: any) => (
-    <div className="flex flex-col h-dvh overflow-hidden relative">
-        <header className="p-3 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-sm z-30 border-b h-16 shrink-0">
-            <div className="flex items-center gap-2">
-                <Button variant="ghost" size="icon" onClick={() => props.router.back()}>
-                    <ArrowLeft className="h-6 w-6" />
-                </Button>
-                {props.seller && (
-                    <div className="flex items-center gap-2 overflow-hidden">
-                        <Avatar className="h-8 w-8">
-                            <AvatarImage src={props.seller.avatarUrl} />
-                            <AvatarFallback>{props.seller.name.charAt(0)}</AvatarFallback>
-                        </Avatar>
-                        <div className="overflow-hidden">
-                            <h1 className="text-sm font-bold truncate">{props.seller.name}</h1>
-                            <p className="text-xs text-muted-foreground">{props.streamData.viewerCount.toLocaleString()} viewers</p>
-                        </div>
-                    </div>
-                )}
-            </div>
-            <Button asChild variant="ghost">
-                <Link href="/cart">
-                    <ShoppingCart className="mr-2 h-4 w-4" />
-                    My Cart
-                </Link>
-            </Button>
-        </header>
-
-        <div className="flex-1 grid grid-rows-[auto_1fr] overflow-hidden">
+const MobileLayout = (props: any) => {
+    return (
+        <div className="flex flex-col h-dvh overflow-hidden relative">
             <div className="w-full aspect-video bg-black relative flex-shrink-0" ref={props.playerRef}>
                 <video ref={props.videoRef} src={props.streamData.streamUrl || "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"} className="w-full h-full object-cover" loop />
+                 <div className="absolute inset-x-0 top-0 p-2 flex justify-between items-center bg-gradient-to-b from-black/50 to-transparent">
+                    <Button variant="ghost" size="icon" className="text-white" onClick={() => props.router.back()}>
+                        <ArrowLeft className="h-6 w-6" />
+                    </Button>
+                    <div className="flex items-center gap-2">
+                        <Button variant="ghost" size="icon" className="text-white" onClick={props.handleShare}>
+                            <Share2 className="h-5 w-5" />
+                        </Button>
+                        <Button variant="ghost" size="icon" className="text-white" onClick={props.handleToggleFullscreen}>
+                            <Maximize className="h-5 w-5" />
+                        </Button>
+                    </div>
+                </div>
                 <div className="absolute inset-0 bg-black/20 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                     <Button variant="ghost" size="icon" className="text-white" onClick={props.handlePlayPause}>
                         {props.isPaused ? <Play className="h-10 w-10 fill-white" /> : <Pause className="h-10 w-10 fill-white" />}
                     </Button>
                 </div>
-                <div className="absolute inset-x-0 bottom-0 p-2">
-                    <div className="w-full cursor-pointer py-1" ref={props.progressContainerRef} onClick={props.handleProgressClick}>
-                        <Progress value={(props.currentTime / props.duration) * 100} isLive={props.isLive} className="h-1.5" />
-                    </div>
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-1">
-                            <p className="text-xs font-mono text-white">{props.formatTime(props.currentTime)}</p>
-                        </div>
-                        <div className="flex items-center gap-1">
-                            <Button variant="ghost" size="icon" className="h-7 w-7 text-white" onClick={props.handleMinimize}><PictureInPicture className="w-4 h-4"/></Button>
-                            <Button variant="ghost" size="icon" className="h-7 w-7 text-white" onClick={props.handleToggleFullscreen}><Maximize className="w-4 h-4"/></Button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <ScrollArea className="flex-1">
-                <div className="p-4 space-y-6">
-                    <StreamInfo {...props}/>
-                    <RelatedContent {...props} />
-                </div>
-            </ScrollArea>
-
-            <div className="fixed bottom-4 right-4 z-40">
-                <Button size="icon" className="rounded-full h-14 w-14 shadow-lg" onClick={() => props.setIsChatSheetOpen(true)}>
-                    <MessageSquare className="h-7 w-7" />
-                </Button>
             </div>
             
-            <Sheet open={props.isChatSheetOpen} onOpenChange={props.setIsChatSheetOpen}>
-                <SheetContent side="bottom" className="h-[80dvh] flex flex-col p-0">
-                    <ChatPanel {...props} onClose={() => props.setIsChatSheetOpen(false)} />
-                </SheetContent>
-            </Sheet>
+            <div className="flex-1 flex flex-col overflow-hidden">
+                <div className="h-1/2 flex-shrink-0">
+                    <ChatPanel {...props} />
+                </div>
+                <ScrollArea className="flex-1 bg-background">
+                    <div className="p-4 space-y-6">
+                        <StreamInfo {...props}/>
+                        <RelatedContent {...props} />
+                    </div>
+                </ScrollArea>
+            </div>
         </div>
-    </div>
-);
+    );
+};
 
 const StreamInfo = ({ seller, streamData, handleFollowToggle, isFollowingState, sellerProducts, onAddToCart, onBuyNow, renderWithHashtags }: { seller: any, streamData: any, handleFollowToggle: any, isFollowingState: boolean, sellerProducts: any[], onAddToCart: (product: any) => void, onBuyNow: (product: any) => void, renderWithHashtags: (text: string) => React.ReactNode }) => {
     const isMobile = useIsMobile();
@@ -1262,7 +1229,7 @@ const StreamInfo = ({ seller, streamData, handleFollowToggle, isFollowingState, 
                 <Collapsible>
                     <h2 className="font-bold text-xl">{streamData.title || "Live Stream"}</h2>
                     <CollapsibleContent>
-                        <div className="text-sm text-muted-foreground mt-2 space-y-4">
+                         <div className="text-sm text-muted-foreground mt-2 space-y-4">
                             <p>{renderWithHashtags(streamData.description || "Welcome to the live stream!")}</p>
                             <div className="py-2 border-y flex flex-col sm:flex-row items-start sm:items-center gap-2 text-sm">
                                 <h4 className="font-semibold text-muted-foreground flex-shrink-0">Follow on:</h4>
@@ -1363,3 +1330,4 @@ const RelatedContent = ({ relatedStreams }: { relatedStreams: any[] }) => (
         </div>
     </div>
 );
+
