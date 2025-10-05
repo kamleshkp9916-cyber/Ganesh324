@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import {
@@ -118,7 +117,7 @@ import { useMiniPlayer } from "@/context/MiniPlayerContext";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ChatPanel } from "@/components/messaging/common";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { useIsMobile } from "@/hooks/use-is-mobile";
 
 
 const emojis = [
@@ -1135,22 +1134,22 @@ const MobileLayout = (props: any) => {
                     </Button>
                     {props.seller && (
                         <div className="flex items-center gap-2 overflow-hidden">
-                        <Avatar className="h-8 w-8">
-                            <AvatarImage src={props.seller.avatarUrl} />
-                            <AvatarFallback>{props.seller.name.charAt(0)}</AvatarFallback>
-                        </Avatar>
-                        <div className="overflow-hidden">
-                            <h1 className="text-sm font-bold truncate">{props.seller.name}</h1>
-                            <p className="text-xs text-muted-foreground">{props.streamData.viewerCount.toLocaleString()} viewers</p>
-                        </div>
+                            <Avatar className="h-8 w-8">
+                                <AvatarImage src={props.seller.avatarUrl} />
+                                <AvatarFallback>{props.seller.name.charAt(0)}</AvatarFallback>
+                            </Avatar>
+                            <div className="overflow-hidden">
+                                <h1 className="text-sm font-bold truncate">{props.seller.name}</h1>
+                                <p className="text-xs text-muted-foreground">{props.streamData.viewerCount.toLocaleString()} viewers</p>
+                            </div>
                         </div>
                     )}
                 </div>
                 <Button asChild variant="ghost">
-                <Link href="/cart">
-                    <ShoppingCart className="mr-2 h-4 w-4" />
-                    My Cart
-                </Link>
+                    <Link href="/cart">
+                        <ShoppingCart className="mr-2 h-4 w-4" />
+                        My Cart
+                    </Link>
                 </Button>
             </header>
             
@@ -1178,12 +1177,8 @@ const MobileLayout = (props: any) => {
             </div>
             
             <div className="flex-1 overflow-y-auto no-scrollbar relative">
-                <div className="p-4">
-                    <StreamInfo seller={props.seller} streamData={props.streamData} handleFollowToggle={props.handleFollowToggle} isFollowingState={props.isFollowingState} sellerProducts={props.sellerProducts} onAddToCart={props.handlers.onAddToCart} onBuyNow={props.handlers.onBuyNow}/>
-                </div>
-                
-                {props.isMobileChatVisible && (
-                     <div className="h-96 border-t">
+                {props.isMobileChatVisible ? (
+                    <div className="h-full">
                         <ChatPanel
                             seller={props.seller}
                             chatMessages={props.chatMessages}
@@ -1198,23 +1193,25 @@ const MobileLayout = (props: any) => {
                             onClose={() => props.setIsMobileChatVisible(false)}
                         />
                     </div>
-                )}
-                
-                <div className="p-4">
-                    <RelatedContent relatedStreams={props.relatedStreams} />
-                </div>
-
-                {!props.isMobileChatVisible && (
-                    <div className="sticky bottom-4 right-4 z-20 flex justify-end p-4">
-                        <Button
-                            variant="secondary"
-                            className="rounded-full shadow-lg"
-                            onClick={() => props.setIsMobileChatVisible(true)}
-                        >
-                            <MessageSquare className="mr-2 h-4 w-4" />
-                            Show Chat
-                        </Button>
-                    </div>
+                ) : (
+                    <>
+                        <div className="p-4">
+                            <StreamInfo seller={props.seller} streamData={props.streamData} handleFollowToggle={props.handleFollowToggle} isFollowingState={props.isFollowingState} sellerProducts={props.sellerProducts} onAddToCart={props.handlers.onAddToCart} onBuyNow={props.handlers.onBuyNow}/>
+                        </div>
+                        <div className="p-4">
+                            <RelatedContent relatedStreams={props.relatedStreams} />
+                        </div>
+                        <div className="sticky bottom-4 right-4 z-20 flex justify-end p-4">
+                            <Button
+                                variant="secondary"
+                                className="rounded-full shadow-lg"
+                                onClick={() => props.setIsMobileChatVisible(true)}
+                            >
+                                <MessageSquare className="mr-2 h-4 w-4" />
+                                Show Chat
+                            </Button>
+                        </div>
+                    </>
                 )}
             </div>
         </div>
