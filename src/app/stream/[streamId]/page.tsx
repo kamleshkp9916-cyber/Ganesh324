@@ -97,7 +97,6 @@ import { toggleFollow, getUserData } from '@/lib/follow-data';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { doc, onSnapshot, Timestamp } from 'firebase/firestore';
 import { getFirestoreDb } from '@/lib/firebase';
 import { Slider } from "@/components/ui/slider";
@@ -475,8 +474,6 @@ const ReportDialog = ({ onSubmit }: { onSubmit: (reason: string, details: string
         </DialogContent>
     )
 };
-
-
 
 export default function StreamPage() {
     const router = useRouter();
@@ -1091,8 +1088,6 @@ const DesktopLayout = (props: any) => (
             )}
         </div>
         <div className="flex items-center gap-2">
-            <Button variant="ghost" size="icon" onClick={props.handleShare}><Share2 /></Button>
-            <Button variant="ghost" size="icon" onClick={() => props.setIsSettingsOpen(true)}><Settings /></Button>
              <Button asChild variant="ghost">
                 <Link href="/cart">
                     <ShoppingCart className="mr-2 h-4 w-4" />
@@ -1129,6 +1124,8 @@ const DesktopLayout = (props: any) => (
                             <p className="text-sm font-mono">{props.formatTime(props.currentTime)} / {props.formatTime(props.duration)}</p>
                         </div>
                         <div className="flex items-center gap-1 sm:gap-2">
+                             <Button variant="ghost" size="icon" onClick={props.handleShare}><Share2 /></Button>
+                            <Button variant="ghost" size="icon" onClick={() => props.setIsSettingsOpen(true)}><Settings /></Button>
                             <Button variant="ghost" size="icon" onClick={props.handleMinimize}><PictureInPicture /></Button>
                             <Button variant="ghost" size="icon" onClick={props.handleToggleFullscreen}><Maximize /></Button>
                         </div>
@@ -1183,38 +1180,38 @@ const MobileLayout = (props: any) => {
                     </div>
                     )}
                 </div>
-                <div className="flex items-center gap-2">
+                 <div className="flex items-center gap-0.5">
                     <Button asChild variant="ghost" size="icon">
-                    <Link href="/cart">
-                        <ShoppingCart className="h-5 w-5" />
-                    </Link>
+                        <Link href="/cart">
+                            <ShoppingCart className="h-5 w-5" />
+                        </Link>
                     </Button>
-                    <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon">
-                        <MoreVertical className="h-5 w-5" />
-                        </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                        <DropdownMenuItem onSelect={props.handleShare}><Share2 className="mr-2 h-4 w-4" />Share</DropdownMenuItem>
-                        <DropdownMenuItem onSelect={() => props.setIsSettingsOpen(true)}><Settings className="mr-2 h-4 w-4" />Playback Settings</DropdownMenuItem>
-                    </DropdownMenuContent>
+                     <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon">
+                                <MoreVertical className="h-5 w-5" />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                            <DropdownMenuItem onSelect={props.handleShare}><Share2 className="mr-2 h-4 w-4" />Share</DropdownMenuItem>
+                            <DropdownMenuItem onSelect={() => props.setIsSettingsOpen(true)}><Settings className="mr-2 h-4 w-4" />Playback Settings</DropdownMenuItem>
+                        </DropdownMenuContent>
                     </DropdownMenu>
                 </div>
             </header>
 
             <div className="w-full aspect-video bg-black relative flex-shrink-0" ref={props.playerRef}>
                 <video ref={props.videoRef} src={props.streamData.streamUrl || "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"} className="w-full h-full object-cover" loop onClick={props.handlePlayPause}/>
-                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent flex flex-col justify-end p-2 text-white">
+                 <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent flex flex-col justify-end p-2 text-white">
                     <div className="w-full cursor-pointer py-1" ref={props.progressContainerRef} onClick={props.handleProgressClick}>
-                        <Progress value={(props.currentTime / props.duration) * 100} valueBuffer={(props.buffered / props.duration) * 100} isLive={props.isLive} className="h-1.5" />
+                        <Progress value={(currentTime / duration) * 100} valueBuffer={(props.buffered / duration) * 100} isLive={isLive} className="h-1.5" />
                     </div>
                     <div className="flex items-center justify-between">
-                         <div className="flex items-center gap-1">
+                        <div className="flex items-center gap-1">
                             <Button variant="ghost" size="icon" className="w-9 h-9" onClick={props.handlePlayPause}>
                                 {props.isPaused ? <Play className="w-5 h-5 fill-current" /> : <Pause className="w-5 h-5 fill-current" />}
                             </Button>
-                            <Button
+                             <Button
                                 variant="destructive"
                                 className="gap-1 h-7 px-2 text-xs"
                                 onClick={handleGoLive}
@@ -1223,13 +1220,15 @@ const MobileLayout = (props: any) => {
                                 <div className={cn("h-1.5 w-1.5 rounded-full bg-white", !isLive && "animate-pulse")} />
                                 {isLive ? 'LIVE' : 'Go Live'}
                             </Button>
-                             <p className="text-xs font-mono">{formatTime(currentTime)} / {formatTime(duration)}</p>
                         </div>
+                        <p className="text-xs font-mono">{formatTime(currentTime)} / {formatTime(duration)}</p>
                         <div className="flex items-center gap-0.5">
-                            <Button variant="ghost" size="icon" className="w-9 h-9" onClick={() => setIsMuted((prev: any) => !prev)}>
+                             <Button variant="ghost" size="icon" className="w-9 h-9" onClick={() => setIsMuted((prev: any) => !prev)}>
                                 {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
                             </Button>
-                             <Button variant="ghost" size="icon" className="w-9 h-9" onClick={props.handleToggleFullscreen}><Maximize className="w-5 h-5"/></Button>
+                            <Button variant="ghost" size="icon" className="w-9 h-9" onClick={props.handleToggleFullscreen}>
+                                <Maximize className="w-5 h-5"/>
+                            </Button>
                         </div>
                     </div>
                 </div>
