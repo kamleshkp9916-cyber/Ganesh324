@@ -29,6 +29,8 @@ import { productDetails } from "@/lib/product-data";
 import Image from "next/image";
 import { Textarea } from "../ui/textarea";
 import { Badge } from "../ui/badge";
+import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
+import { Label } from "../ui/label";
 
 export interface Message {
   id: number | string;
@@ -472,6 +474,9 @@ export const ChatPanel = ({
                 </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
+                <DropdownMenuItem onSelect={handlers.onReportStream}>
+                    <Flag className="mr-2 h-4 w-4" /> Report Stream
+                </DropdownMenuItem>
                 <FeedbackDialog>
                     <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
                         <MessageCircle className="mr-2 h-4 w-4" />Feedback

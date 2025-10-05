@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import {
@@ -191,6 +192,16 @@ const mockChatMessages: any[] = [
     { id: 30, user: 'Sophia', text: 'Great stream! Thanks!', avatar: 'https://placehold.co/40x40.png?text=S', userColor: '#16a085', userId: 'user15' },
 ];
 
+const reportReasons = [
+    { value: "spam", label: "Spam or misleading" },
+    { value: "nudity", label: "Nudity or sexual content" },
+    { value: "hate", label: "Hate speech or symbols" },
+    { value: "violence", label: "Violent or graphic content" },
+    { value: "scam", label: "Scam or fraud" },
+    { value: "illegal", label: "Illegal goods or activities" },
+    { value: "other", label: "Other" },
+];
+
 const PlayerSettingsDialog = ({ playbackRate, onPlaybackRateChange, skipInterval, onSkipIntervalChange, onClose }: {
     playbackRate: number,
     onPlaybackRateChange: (rate: number) => void,
@@ -362,6 +373,50 @@ const PlayerSettingsDialog = ({ playbackRate, onPlaybackRateChange, skipInterval
     );
 };
 
+const ReportDialog = ({ onSubmit }: { onSubmit: (reason: string, details: string) => void }) => {
+    const [reason, setReason] = useState("");
+    const [details, setDetails] = useState("");
+
+    const handleSubmit = () => {
+        onSubmit(reason, details);
+    };
+
+    return (
+        <DialogContent>
+            <DialogHeader>
+                <DialogTitle>Report Stream</DialogTitle>
+                <DialogDescription>
+                    Help us understand the problem. What's going on in this stream?
+                </DialogDescription>
+            </DialogHeader>
+            <div className="py-4 space-y-4">
+                <RadioGroup value={reason} onValueChange={setReason}>
+                    <div className="space-y-2">
+                        {reportReasons.map(r => (
+                            <div key={r.value} className="flex items-center">
+                                <RadioGroupItem value={r.value} id={r.value} />
+                                <Label htmlFor={r.value} className="ml-2 cursor-pointer">{r.label}</Label>
+                            </div>
+                        ))}
+                    </div>
+                </RadioGroup>
+                {reason === 'other' && (
+                    <Textarea 
+                        placeholder="Please provide more details..." 
+                        value={details}
+                        onChange={(e) => setDetails(e.target.value)}
+                    />
+                )}
+            </div>
+            <DialogFooter>
+                <DialogClose asChild><Button variant="outline">Cancel</Button></DialogClose>
+                <Button onClick={handleSubmit} disabled={!reason || (reason === 'other' && !details.trim())}>Submit Report</Button>
+            </DialogFooter>
+        </DialogContent>
+    )
+};
+
+
 export default function StreamPage() {
     const router = useRouter();
     const params = useParams();
@@ -374,6 +429,7 @@ export default function StreamPage() {
     const [bidAmount, setBidAmount] = useState<number | string>("");
     const [isWithdrawOpen, setIsWithdrawOpen] = useState(false);
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+    const [isReportOpen, setIsReportOpen] = useState(false);
     const [bankAccounts, setBankAccounts] = useState([
         { id: 1, bankName: 'HDFC Bank', accountNumber: 'XXXX-XXXX-XX12-3456' },
     ]);
@@ -821,8 +877,9 @@ export default function StreamPage() {
         onReply: (user: { name: string; id: string }) => {
             console.log("Replying to", user);
         },
-        onTogglePinMessage: handleTogglePinMessage,
+        onTogglePin: handleTogglePinMessage,
         onReportMessage: handleReportMessage,
+        onReportStream: () => setIsReportOpen(true),
         onAddToCart: handleAddToCart,
         onBuyNow: handleBuyNow,
         onBid: () => setIsBidDialogOpen(true),
@@ -876,8 +933,15 @@ export default function StreamPage() {
                     onClose={() => setIsSettingsOpen(false)}
                 />
             </Dialog>
+             <Dialog open={isReportOpen} onOpenChange={setIsReportOpen}>
+                <ReportDialog onSubmit={(reason, details) => {
+                    console.log("Report submitted", { reason, details });
+                    toast({ title: "Report Submitted", description: "Thank you for your feedback. Our team will review this stream." });
+                    setIsReportOpen(false);
+                }} />
+            </Dialog>
             
-             <div className={cn("bg-black text-foreground", isMobile ? 'flex flex-col h-dvh' : 'flex flex-col h-screen')}>
+             <div className={cn("bg-black text-foreground", isMobile ? 'flex flex-col h-dvh' : 'h-screen')}>
                  {isMobile === undefined ? (
                     <div className="flex h-screen items-center justify-center">
                         <LoadingSpinner />
@@ -970,7 +1034,7 @@ export default function StreamPage() {
 }
 
 const DesktopLayout = (props: any) => (
-  <div className="flex flex-col h-screen overflow-hidden">
+<div className="flex flex-col h-screen overflow-hidden">
     <header className="p-3 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-sm z-30 border-b h-16 shrink-0">
         <div className="flex items-center gap-2">
             <Button variant="ghost" size="icon" onClick={() => props.router.back()}>
