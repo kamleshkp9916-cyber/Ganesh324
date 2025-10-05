@@ -446,7 +446,6 @@ export default function StreamPage() {
     const [isBidDialogOpen, setIsBidDialogOpen] = useState(false);
     const [isBidHistoryOpen, setIsBidHistoryOpen] = useState(false);
     const isMobile = useIsMobile();
-    const [mobileView, setMobileView] = useState<'chat' | 'about'>('chat');
     
     const { ref: auctionCardRef, inView: auctionCardInView } = useInView({ threshold: 0.99 });
     
@@ -478,7 +477,7 @@ export default function StreamPage() {
     const [playbackRate, setPlaybackRate] = useState(1);
     const [skipInterval, setSkipInterval] = useState(10);
     const [isFullscreen, setIsFullscreen] = useState(false);
-    const [isLive, setIsLive] = useState(true);
+    const [isLive, setIsLive] = useState(isMobile ? false : true);
     const mainScrollRef = useRef<HTMLDivElement>(null);
     const [hydrated, setHydrated] = useState(false);
     const [showGoToTop, setShowGoToTop] = useState(false);
@@ -960,7 +959,7 @@ export default function StreamPage() {
                         <LoadingSpinner />
                     </div>
                  ) : isMobile ? (
-                    <MobileLayout {...{ router, videoRef, playerRef, handlePlayPause, handleShare, handleMinimize, handleToggleFullscreen, isPaused, seller, streamData, handleFollowToggle, isFollowingState, sellerProducts, handlers, relatedStreams, isChatOpen, setIsChatOpen, renderWithHashtags, chatMessages, pinnedMessages, activeAuction, auctionTime, highestBid, totalBids, walletBalance, inlineAuctionCardRefs, onClose: () => setIsChatOpen(false) }} />
+                     <MobileLayout {...{ router, videoRef, playerRef, handlePlayPause, handleShare, handleMinimize, handleToggleFullscreen, isPaused, seller, streamData, handleFollowToggle, isFollowingState, sellerProducts, handlers, relatedStreams, isChatOpen, setIsChatOpen, renderWithHashtags, chatMessages, pinnedMessages, activeAuction, auctionTime, highestBid, totalBids, walletBalance, inlineAuctionCardRefs, onClose: () => setIsChatOpen(false), onAddToCart, onBuyNow }} />
                  ) : (
                     <DesktopLayout 
                         videoRef={videoRef}
@@ -1183,37 +1182,60 @@ const MobileLayout = (props: any) => {
 
 const StreamInfo = ({ seller, streamData, handleFollowToggle, isFollowingState, sellerProducts, onAddToCart, onBuyNow, renderWithHashtags }: { seller: any, streamData: any, handleFollowToggle: any, isFollowingState: boolean, sellerProducts: any[], onAddToCart: (product: any) => void, onBuyNow: (product: any) => void, renderWithHashtags: (text: string) => React.ReactNode }) => {
     const isMobile = useIsMobile();
-    const [isProductSheetOpen, setIsProductSheetOpen] = useState(false);
+    
     const mockSocials = {
         instagram: 'https://instagram.com/streamcart',
         twitter: 'https://twitter.com/streamcart',
         youtube: 'https://youtube.com/streamcart'
     };
     
-    const ProductShelf = () => {
-        return (
-             <Dialog open={isProductSheetOpen} onOpenChange={setIsProductSheetOpen}>
-                <DialogTrigger asChild>
-                    <Button variant="outline" className="w-full justify-between">
-                        <div className="flex items-center gap-2">
-                            <ShoppingBag className="w-4 h-4 sm:mr-1" />
-                            <span>Products ({sellerProducts.length})</span>
-                        </div>
-                        <ChevronDown className="h-4 w-4" />
-                    </Button>
-                </DialogTrigger>
-                <SheetContent side="bottom" className="h-[80vh] flex flex-col bg-background/95 backdrop-blur-sm" overlayClassName="bg-black/20">
-                    <SheetHeader>
-                        <SheetTitle>Products in this Stream</SheetTitle>
-                    </SheetHeader>
-                    <ScrollArea className="flex-grow -mx-6">
-                        <div className="px-6 grid grid-cols-2 xs:grid-cols-2 gap-4">
-                            {sellerProducts.slice(0, 10).map((product: any, index: number) => (
+    const ProductShelf = ({ sellerProducts, onAddToCart, onBuyNow }: { sellerProducts: any[], onAddToCart: (product: any) => void, onBuyNow: (product: any) => void }) => {
+    const [isOpen, setIsOpen] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            if (sellerProducts.length > 0) {
+                setIsLoading(false);
+            }
+        }, 1000);
+        return () => clearTimeout(timer);
+    }, [sellerProducts]);
+
+    return (
+        <Sheet open={isOpen} onOpenChange={setIsOpen}>
+            <SheetTrigger asChild>
+                <Button variant="outline" className="w-full justify-between">
+                    <div className="flex items-center gap-2">
+                        <ShoppingBag className="w-4 h-4 sm:mr-1" />
+                        <span>Products ({sellerProducts.length})</span>
+                    </div>
+                    <ChevronDown className="h-4 w-4" />
+                </Button>
+            </SheetTrigger>
+            <SheetContent side="bottom" className="h-[80vh] flex flex-col bg-background/95 backdrop-blur-sm p-0" overlayClassName="bg-black/20">
+                <SheetHeader className="p-4 border-b">
+                    <SheetTitle>Products in this Stream</SheetTitle>
+                </SheetHeader>
+                <ScrollArea className="flex-grow">
+                    <div className="p-4 grid grid-cols-2 xs:grid-cols-2 gap-4">
+                        {isLoading ? (
+                            Array.from({ length: 4 }).map((_, i) => (
+                                <Card key={i}>
+                                    <Skeleton className="aspect-square w-full" />
+                                    <div className="p-2 space-y-2">
+                                        <Skeleton className="h-4 w-3/4" />
+                                        <Skeleton className="h-5 w-1/2" />
+                                    </div>
+                                </Card>
+                            ))
+                        ) : (
+                            sellerProducts.slice(0, 10).map((product: any, index: number) => (
                                 <Card key={index} className="w-full overflow-hidden h-full flex flex-col">
                                     <Link href={`/product/${product.key}`} className="group block">
                                         <div className="relative aspect-square bg-muted">
                                             <Image
-                                                src={product.images[0]}
+                                                src={product.images[0]?.preview || product.images[0]}
                                                 alt={product.name}
                                                 fill
                                                 sizes="50vw"
@@ -1233,17 +1255,19 @@ const StreamInfo = ({ seller, streamData, handleFollowToggle, isFollowingState, 
                                         </div>
                                     </div>
                                     <CardFooter className="p-2 grid grid-cols-2 gap-2">
-                                        <Button variant="outline" size="sm" className="w-full text-xs h-8" onClick={() => onAddToCart(product)}><ShoppingCart className="mr-1 h-3 w-3" /> Cart</Button>
-                                        <Button size="sm" className="w-full text-xs h-8" onClick={() => onBuyNow(product)}>Buy Now</Button>
+                                        <Button variant="outline" size="sm" className="w-full text-xs h-8" onClick={() => { onAddToCart(product); setIsOpen(false); }}><ShoppingCart className="mr-1 h-3 w-3" /> Cart</Button>
+                                        <Button size="sm" className="w-full text-xs h-8" onClick={() => { onBuyNow(product); setIsOpen(false); }}>Buy Now</Button>
                                     </CardFooter>
                                 </Card>
-                            ))}
-                        </div>
-                    </ScrollArea>
-                </SheetContent>
-            </Dialog>
-        );
-    };
+                            ))
+                        )}
+                    </div>
+                </ScrollArea>
+            </SheetContent>
+        </Sheet>
+    );
+};
+    
 
     return (
         <div className="space-y-4">
@@ -1299,7 +1323,7 @@ const StreamInfo = ({ seller, streamData, handleFollowToggle, isFollowingState, 
                 </Button>
             </div>
             
-            <ProductShelf />
+            <ProductShelf sellerProducts={sellerProducts} onAddToCart={onAddToCart} onBuyNow={onBuyNow} />
         </div>
     );
 };
@@ -1343,3 +1367,4 @@ const RelatedContent = ({ relatedStreams }: { relatedStreams: any[] }) => (
     </div>
 );
 
+    
