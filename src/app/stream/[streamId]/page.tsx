@@ -1139,7 +1139,7 @@ const DesktopLayout = (props: any) => (
 );
 
 const MobileLayout = (props: any) => (
-<div className="flex flex-col h-dvh overflow-hidden">
+<div className="flex flex-col h-dvh overflow-hidden relative">
     <header className="p-3 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-sm z-30 border-b h-16 shrink-0">
         <div className="flex items-center gap-2">
             <Button variant="ghost" size="icon" onClick={() => props.router.back()}>
@@ -1203,15 +1203,15 @@ const MobileLayout = (props: any) => (
             <RelatedContent relatedStreams={props.relatedStreams} />
         </div>
     </div>
-    <div className="sticky bottom-0 z-10 bg-background/80 backdrop-blur-sm border-t p-2">
-        <Button
-            variant="secondary"
-            className="w-full"
-            onClick={() => props.setIsMobileChatVisible(true)}
-        >
-            <MessageSquare className="mr-2 h-4 w-4" />
-            Show Chat
-        </Button>
+    <div className="fixed bottom-4 right-4 z-20">
+      <Button
+        variant="secondary"
+        size="icon"
+        className="rounded-full h-12 w-12 shadow-lg"
+        onClick={() => props.setIsMobileChatVisible(true)}
+      >
+        <MessageSquare />
+      </Button>
     </div>
      <Sheet open={props.isMobileChatVisible} onOpenChange={props.setIsMobileChatVisible} snapPoints={[0.9]}>
         <SheetContent side="bottom" className="h-[90dvh] p-0 flex flex-col" overlayClassName="bg-black/20">
@@ -1389,5 +1389,6 @@ const RelatedContent = ({ relatedStreams }: { relatedStreams: any[] }) => (
 
 
     
+
 
 
