@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -423,6 +424,46 @@ export const ChatPanel = ({
                 {pinnedMessages.length > 0 && <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-primary" />}
               </Button>
             </PopoverTrigger>
+             <PopoverContent align="end" className="w-80 bg-[#141516] border-gray-800 text-white p-0">
+                <div className="p-3 border-b border-gray-700">
+                    <h4 className="font-semibold text-sm flex items-center gap-2">
+                        <Pin className="h-4 w-4" /> Pinned Items
+                    </h4>
+                </div>
+                 <ScrollArea className="h-80">
+                     <div className="p-3 space-y-3">
+                        {pinnedMessages.length > 0 ? (
+                            pinnedMessages.map((item) => (
+                                <div key={item.id} className="text-xs p-2 rounded-md bg-white/5">
+                                    {item.type === 'message' && (
+                                        <>
+                                            <p className="font-bold text-primary">{item.user}</p>
+                                            <p>{item.text}</p>
+                                        </>
+                                    )}
+                                    {item.type === 'offer' && (
+                                        <>
+                                            <p className="font-bold text-primary">{item.title}</p>
+                                            <p>{item.description}</p>
+                                        </>
+                                    )}
+                                    {item.type === 'product' && (
+                                        <div className="flex items-center gap-2">
+                                            <Image src={item.product.images[0]} alt={item.product.name} width={40} height={40} className="rounded-md" />
+                                            <div>
+                                                <p className="font-semibold">{item.product.name}</p>
+                                                <p className="font-bold text-primary">{item.product.price}</p>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            ))
+                        ) : (
+                            <p className="text-center text-muted-foreground text-xs py-4">Pinned items will appear here.</p>
+                        )}
+                    </div>
+                 </ScrollArea>
+            </PopoverContent>
           </Popover>
           <DropdownMenu>
              <DropdownMenuTrigger asChild>
@@ -463,6 +504,7 @@ export const ChatPanel = ({
                           <div className="flex-grow">
                              <p className="leading-relaxed break-words text-sm text-[#E6ECEF]">
                                  <b className="font-semibold text-sm mr-1.5" style={{ color: msg.userColor || 'inherit' }}>{msg.user}:</b>
+                                 {msg.replyingTo && <span className="text-primary font-semibold mr-1">@{msg.replyingTo}</span>}
                                  {msg.text}
                              </p>
                           </div>
