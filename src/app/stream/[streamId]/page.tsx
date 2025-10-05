@@ -917,6 +917,17 @@ export default function StreamPage() {
         );
     }
     
+    const renderWithHashtags = (text: string) => {
+        if (!text) return text;
+        const parts = text.split(/(#\w+)/g);
+        return parts.map((part, index) => {
+            if (part.startsWith('#')) {
+                return <Link key={index} href={`/feed?filter=${part.substring(1)}`} className="text-primary hover:underline">{part}</Link>;
+            }
+            return part;
+        });
+    };
+    
     return (
         <React.Fragment>
             <Dialog open={isBidDialogOpen} onOpenChange={setIsBidDialogOpen}>
@@ -985,6 +996,7 @@ export default function StreamPage() {
                         isMobileChatVisible={isMobileChatVisible}
                         setIsMobileChatVisible={setIsMobileChatVisible}
                         formatTime={formatTime}
+                        renderWithHashtags={renderWithHashtags}
                     />
                  ) : (
                     <DesktopLayout 
@@ -1027,6 +1039,7 @@ export default function StreamPage() {
                         scrollToTop={scrollToTop}
                         formatTime={formatTime}
                         router={router}
+                        renderWithHashtags={renderWithHashtags}
                     />
                  )}
             </div>
@@ -1101,7 +1114,7 @@ const DesktopLayout = (props: any) => (
             </div>
 
             <div className="p-4 space-y-6">
-                <StreamInfo seller={props.seller} streamData={props.streamData} handleFollowToggle={props.handleFollowToggle} isFollowingState={props.isFollowingState} sellerProducts={props.sellerProducts} onAddToCart={props.handlers.onAddToCart} onBuyNow={props.handlers.onBuyNow}/>
+                <StreamInfo seller={props.seller} streamData={props.streamData} handleFollowToggle={props.handleFollowToggle} isFollowingState={props.isFollowingState} sellerProducts={props.sellerProducts} onAddToCart={props.handlers.onAddToCart} onBuyNow={props.handlers.onBuyNow} renderWithHashtags={props.renderWithHashtags}/>
                 <RelatedContent relatedStreams={props.relatedStreams} />
             </div>
         </main>
@@ -1156,6 +1169,7 @@ const MobileLayout = (props: any) => {
                     sellerProducts={props.sellerProducts}
                     onAddToCart={props.handlers.onAddToCart}
                     onBuyNow={props.handlers.onBuyNow}
+                    renderWithHashtags={props.renderWithHashtags}
                 />
                 <RelatedContent relatedStreams={props.relatedStreams} />
             </div>
@@ -1192,7 +1206,7 @@ const MobileLayout = (props: any) => {
 
             <div className="w-full aspect-video bg-black relative flex-shrink-0" ref={props.playerRef}>
                 <video ref={props.videoRef} src={props.streamData.streamUrl || "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"} className="w-full h-full object-cover" loop />
-                <div className="absolute inset-0 bg-black/20 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center">
+                <div className="absolute inset-0 bg-black/20 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                     <Button variant="ghost" size="icon" className="w-16 h-16 text-white" onClick={props.handlePlayPause}>
                         {props.isPaused ? <Play className="w-10 h-10 fill-white" /> : <Pause className="w-10 h-10 fill-white" />}
                     </Button>
@@ -1233,11 +1247,11 @@ const MobileLayout = (props: any) => {
     )
 };
 
-const StreamInfo = ({ seller, streamData, handleFollowToggle, isFollowingState, sellerProducts, onAddToCart, onBuyNow }: { seller: any, streamData: any, handleFollowToggle: any, isFollowingState: boolean, sellerProducts: any[], onAddToCart: (product: any) => void, onBuyNow: (product: any) => void }) => {
+const StreamInfo = ({ seller, streamData, handleFollowToggle, isFollowingState, sellerProducts, onAddToCart, onBuyNow, renderWithHashtags }: { seller: any, streamData: any, handleFollowToggle: any, isFollowingState: boolean, sellerProducts: any[], onAddToCart: (product: any) => void, onBuyNow: (product: any) => void, renderWithHashtags: (text: string) => React.ReactNode }) => {
     const isMobile = useIsMobile();
     
     const ProductShelf = () => (
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-2 gap-4">
         {sellerProducts.slice(0, 10).map((product, index) => (
           <Card key={index} className="w-full overflow-hidden h-full flex flex-col">
             <Link href={`/product/${product.key}`} className="group block">
@@ -1274,8 +1288,8 @@ const StreamInfo = ({ seller, streamData, handleFollowToggle, isFollowingState, 
     return (
         <div className="space-y-4">
             <div className="mb-4">
-                <h2 className="font-bold text-xl">{streamData.title || "Live Stream"}</h2>
-                <div className="text-sm text-muted-foreground">{streamData.description || "Welcome to the live stream!"}</div>
+                <h2 className="font-bold text-xl">{renderWithHashtags(streamData.title || "Live Stream")}</h2>
+                <div className="text-sm text-muted-foreground">{renderWithHashtags(streamData.description || "Welcome to the live stream!")}</div>
             </div>
             {isMobile ? (
                 <Sheet>
@@ -1355,7 +1369,7 @@ const StreamInfo = ({ seller, streamData, handleFollowToggle, isFollowingState, 
                       <Carousel opts={{ align: "start" }} className="w-full">
                           <CarouselContent className="-ml-2">
                               {sellerProducts.map((product, index) => (
-                                  <CarouselItem key={index} className="basis-1/2 sm:basis-1/3 md:basis-1/4 lg:basis-1/5 pl-2">
+                                  <CarouselItem key={index} className="pl-2 basis-1/2 xs:basis-1/2 sm:basis-1/3 md:basis-1/4 lg:basis-1/5">
                                           <Card className="w-full overflow-hidden h-full flex flex-col">
                                           <Link href={`/product/${product.key}`} className="group block">
                                               <div className="relative aspect-square bg-muted">
