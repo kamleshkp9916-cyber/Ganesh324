@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import {
@@ -707,7 +706,7 @@ export default function StreamPage() {
     
         if (!document.fullscreenElement) {
             elem.requestFullscreen().catch(err => {
-                alert(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
+                alert(`Error attempting to enable full-screen mode: ${'\\`'}${err.message}${'\\`'} (${'\\`'}${err.name}${'\\`'})`);
             });
         } else {
             document.exitFullscreen();
@@ -1035,7 +1034,7 @@ export default function StreamPage() {
 
 const DesktopLayout = (props: any) => (
 <div className="flex flex-col h-screen overflow-hidden">
-    <header className="p-3 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-sm z-30 border-b h-16 shrink-0">
+    <header className="p-3 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-sm z-30 border-b h-16 shrink-0 w-full">
         <div className="flex items-center gap-2">
             <Button variant="ghost" size="icon" onClick={() => props.router.back()}>
                 <ArrowLeft className="h-6 w-6" />
@@ -1223,28 +1222,56 @@ const StreamInfo = ({ seller, streamData, handleFollowToggle, isFollowingState, 
                                         <UserPlus className="h-4 w-4 sm:mr-1.5" />
                                         <span className="hidden sm:inline">{isFollowingState ? "Following" : "Follow"}</span>
                                     </Button>
-                                     <Button
-                                        variant="outline"
-                                        size="sm"
-                                        className="h-7 w-7 p-0 sm:w-auto sm:px-2 text-xs"
-                                        asChild
-                                    >
-                                        <Link href={`/seller/profile?userId=${seller?.id}`}>
+                                    <CollapsibleTrigger asChild>
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            className="h-7 w-7 p-0 sm:w-auto sm:px-2 text-xs"
+                                        >
                                             <ShoppingBag className="w-4 h-4 sm:mr-1" />
                                             <span className="hidden sm:inline">Products ({sellerProducts.length})</span>
-                                        </Link>
-                                    </Button>
+                                        </Button>
+                                    </CollapsibleTrigger>
                                 </div>
                             </div>
                         </div>
                     )}
                 </div>
                 {seller?.hasAuction && (
-                    <Badge variant="info" className="flex items-center gap-1.5 h-7">
+                    <Badge variant="purple" className="flex items-center gap-1.5 h-7">
                         <Gavel className="w-4 h-4" /> <span className="hidden sm:inline">Auction</span>
                     </Badge>
                 )}
             </div>
+             <CollapsibleContent className="mt-4">
+                <Carousel opts={{ align: "start" }} className="w-full">
+                    <CarouselContent className="-ml-2">
+                        {sellerProducts.map((product, index) => (
+                            <CarouselItem key={index} className="basis-1/2 md:basis-1/3 lg:basis-1/4 xl:basis-1/5 pl-2">
+                                <Link href={`/product/${product.key}`} className="group block">
+                                    <Card className="w-full overflow-hidden h-full flex flex-col">
+                                        <div className="relative aspect-square bg-muted">
+                                            <Image
+                                                src={product.images[0]}
+                                                alt={product.name}
+                                                fill
+                                                sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 20vw"
+                                                className="object-cover transition-transform group-hover:scale-105"
+                                            />
+                                        </div>
+                                        <div className="p-2">
+                                            <h4 className="font-semibold truncate text-xs">{product.name}</h4>
+                                            <p className="font-bold text-sm">{product.price}</p>
+                                        </div>
+                                    </Card>
+                                </Link>
+                            </CarouselItem>
+                        ))}
+                    </CarouselContent>
+                    <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2" />
+                    <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2" />
+                </Carousel>
+            </CollapsibleContent>
         </Collapsible>
     </div>
 );
@@ -1273,7 +1300,7 @@ const RelatedContent = ({ relatedStreams }: { relatedStreams: any[] }) => (
                             <div className="flex items-center gap-1.5">
                                 <p className="font-semibold text-xs group-hover:underline truncate">{s.name}</p>
                                 {s.hasAuction && (
-                                    <Badge variant="info" className="text-xs font-bold px-1.5 py-0">
+                                    <Badge variant="purple" className="text-xs font-bold px-1.5 py-0">
                                         Auction
                                     </Badge>
                                 )}
