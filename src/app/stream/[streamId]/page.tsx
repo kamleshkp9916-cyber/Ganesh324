@@ -1237,7 +1237,7 @@ const StreamInfo = ({ seller, streamData, handleFollowToggle, isFollowingState, 
     const isMobile = useIsMobile();
     
     const ProductShelf = () => (
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid grid-cols-2 gap-4">
         {sellerProducts.slice(0, 10).map((product, index) => (
           <Card key={index} className="w-full overflow-hidden h-full flex flex-col">
             <Link href={`/product/${product.key}`} className="group block">
@@ -1246,7 +1246,7 @@ const StreamInfo = ({ seller, streamData, handleFollowToggle, isFollowingState, 
                   src={product.images[0]}
                   alt={product.name}
                   fill
-                  sizes="(max-width: 640px) 50vw, 33vw"
+                  sizes="50vw"
                   className="object-cover transition-transform group-hover:scale-105"
                 />
               </div>
@@ -1355,7 +1355,7 @@ const StreamInfo = ({ seller, streamData, handleFollowToggle, isFollowingState, 
                       <Carousel opts={{ align: "start" }} className="w-full">
                           <CarouselContent className="-ml-2">
                               {sellerProducts.map((product, index) => (
-                                  <CarouselItem key={index} className="basis-[45%] sm:basis-1/3 md:basis-1/4 lg:basis-1/5 pl-2">
+                                  <CarouselItem key={index} className="basis-1/2 sm:basis-1/3 md:basis-1/4 lg:basis-1/5 pl-2">
                                           <Card className="w-full overflow-hidden h-full flex flex-col">
                                           <Link href={`/product/${product.key}`} className="group block">
                                               <div className="relative aspect-square bg-muted">
@@ -1363,7 +1363,7 @@ const StreamInfo = ({ seller, streamData, handleFollowToggle, isFollowingState, 
                                                       src={product.images[0]}
                                                       alt={product.name}
                                                       fill
-                                                      sizes="(max-width: 640px) 45vw, (max-width: 768px) 33vw, 20vw"
+                                                      sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 20vw"
                                                       className="object-cover transition-transform group-hover:scale-105"
                                                   />
                                               </div>
