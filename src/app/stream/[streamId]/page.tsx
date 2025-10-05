@@ -425,52 +425,107 @@ const ProductShelfContent = ({ sellerProducts, handleAddToCart, handleBuyNow, is
                     <SheetTitle>Products in this Stream</SheetTitle>
                 </SheetHeader>
             )}
-            <ScrollArea className="flex-grow">
-                <div className="p-4 grid grid-cols-2 gap-4">
+            <ScrollArea className={cn("flex-grow", isMobile && "no-scrollbar")}>
+                <div className={cn("p-4 grid gap-4", isMobile && "grid-cols-2")}>
                     {sellerProducts.length > 0 ? (
-                        sellerProducts.slice(0, 10).map((product: any, index: number) => (
-                            <Card key={index} className="w-full overflow-hidden h-full flex flex-col">
-                                <Link href={`/product/${product.key}`} className="group block">
-                                    <div className="relative aspect-square bg-muted">
-                                        <Image
-                                            src={product.images[0]?.preview || product.images[0]}
-                                            alt={product.name}
-                                            fill
-                                            sizes="50vw"
-                                            className="object-cover transition-transform group-hover:scale-105"
-                                        />
-                                        {product.stock === 0 && (
-                                            <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                                                <Badge variant="destructive">Out of Stock</Badge>
-                                            </div>
-                                        )}
-                                    </div>
-                                </Link>
-                                <div className="p-2 flex-grow flex flex-col">
+                         isMobile ? (
+                            sellerProducts.map((product: any, index: number) => (
+                                <Card key={index} className="w-full overflow-hidden h-full flex flex-col">
                                     <Link href={`/product/${product.key}`} className="group block">
-                                        <h4 className="font-semibold truncate text-xs group-hover:underline">{product.name}</h4>
-                                        <p className="font-bold text-sm">{product.price}</p>
+                                        <div className="relative aspect-square bg-muted">
+                                            <Image
+                                                src={product.images[0]?.preview || product.images[0]}
+                                                alt={product.name}
+                                                fill
+                                                sizes="50vw"
+                                                className="object-cover transition-transform group-hover:scale-105"
+                                            />
+                                            {product.stock === 0 && (
+                                                <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                                                    <Badge variant="destructive">Out of Stock</Badge>
+                                                </div>
+                                            )}
+                                        </div>
                                     </Link>
-                                    <div className="flex items-center justify-between text-xs text-muted-foreground mt-2">
-                                        <div className="flex items-center gap-1 cursor-pointer hover:text-primary"><Package className="h-3 w-3" /> {product.stock} left</div>
-                                        <div className="flex items-center gap-1 cursor-pointer hover:text-primary"><Users className="h-3 w-3" /> {product.sold} sold</div>
-                                        <div className="flex items-center gap-1 cursor-pointer hover:text-primary"><Star className="h-3 w-3" /> {product.reviews}</div>
+                                    <div className="p-2 flex-grow flex flex-col">
+                                        <Link href={`/product/${product.key}`} className="group block">
+                                            <h4 className="font-semibold truncate text-xs group-hover:underline">{product.name}</h4>
+                                            <p className="font-bold text-sm">{product.price}</p>
+                                        </Link>
+                                        <div className="flex items-center justify-between text-xs text-muted-foreground mt-2">
+                                            <div className="flex items-center gap-1 cursor-pointer hover:text-primary"><Package className="h-3 w-3" /> {product.stock} left</div>
+                                            <div className="flex items-center gap-1 cursor-pointer hover:text-primary"><Users className="h-3 w-3" /> {product.sold} sold</div>
+                                            <div className="flex items-center gap-1 cursor-pointer hover:text-primary"><Star className="h-3 w-3" /> {product.reviews}</div>
+                                        </div>
                                     </div>
-                                </div>
-                                <CardFooter className="p-2 grid grid-cols-1 gap-2">
-                                    {product.stock > 0 ? (
-                                        <>
-                                            <Button variant="outline" size="sm" className="w-full text-xs h-8" onClick={() => { handleAddToCart(product); onClose(); }}><ShoppingCart className="mr-1 h-3 w-3" /> Cart</Button>
-                                            <Button size="sm" className="w-full text-xs h-8" onClick={() => { handleBuyNow(product); onClose(); }}>Buy Now</Button>
-                                        </>
-                                    ) : (
-                                        <Button size="sm" className="w-full text-xs h-8" onClick={() => { toast({ title: "We'll let you know!", description: `You will be notified when ${product.name} is back in stock.`}); onClose(); }}>Notify Me</Button>
-                                    )}
-                                </CardFooter>
-                            </Card>
-                        ))
+                                    <CardFooter className="p-2 grid grid-cols-1 gap-2">
+                                        {product.stock > 0 ? (
+                                            <>
+                                                <Button variant="outline" size="sm" className="w-full text-xs h-8" onClick={() => { handleAddToCart(product); onClose(); }}><ShoppingCart className="mr-1 h-3 w-3" /> Cart</Button>
+                                                <Button size="sm" className="w-full text-xs h-8" onClick={() => { handleBuyNow(product); onClose(); }}>Buy Now</Button>
+                                            </>
+                                        ) : (
+                                            <Button size="sm" className="w-full text-xs h-8" onClick={() => { toast({ title: "We'll let you know!", description: `You will be notified when ${product.name} is back in stock.`}); onClose(); }}>Notify Me</Button>
+                                        )}
+                                    </CardFooter>
+                                </Card>
+                            ))
+                         ) : (
+                             <Carousel
+                                opts={{ align: "start" }}
+                                className="w-full"
+                            >
+                                <CarouselContent className="-ml-2 md:-ml-4">
+                                     {sellerProducts.slice(0, 10).map((product: any, index: number) => (
+                                        <CarouselItem key={index} className="basis-1/2 sm:basis-1/3 lg:basis-1/4 xl:basis-1/5 pl-2 md:pl-4">
+                                            <Card className="w-full overflow-hidden h-full flex flex-col">
+                                                <Link href={`/product/${product.key}`} className="group block">
+                                                    <div className="relative aspect-square bg-muted">
+                                                        <Image
+                                                            src={product.images[0]?.preview || product.images[0]}
+                                                            alt={product.name}
+                                                            fill
+                                                            sizes="50vw"
+                                                            className="object-cover transition-transform group-hover:scale-105"
+                                                        />
+                                                        {product.stock === 0 && (
+                                                            <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                                                                <Badge variant="destructive">Out of Stock</Badge>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </Link>
+                                                <div className="p-2 flex-grow flex flex-col">
+                                                    <Link href={`/product/${product.key}`} className="group block">
+                                                        <h4 className="font-semibold truncate text-xs group-hover:underline">{product.name}</h4>
+                                                        <p className="font-bold text-sm">{product.price}</p>
+                                                    </Link>
+                                                    <div className="flex items-center justify-between text-xs text-muted-foreground mt-2">
+                                                        <div className="flex items-center gap-1 cursor-pointer hover:text-primary"><Package className="h-3 w-3" /> {product.stock} left</div>
+                                                        <div className="flex items-center gap-1 cursor-pointer hover:text-primary"><Users className="h-3 w-3" /> {product.sold} sold</div>
+                                                        <div className="flex items-center gap-1 cursor-pointer hover:text-primary"><Star className="h-3 w-3" /> {product.reviews}</div>
+                                                    </div>
+                                                </div>
+                                                <CardFooter className="p-2 grid grid-cols-1 gap-2">
+                                                    {product.stock > 0 ? (
+                                                        <>
+                                                            <Button variant="outline" size="sm" className="w-full text-xs h-8" onClick={() => { handleAddToCart(product); }}><ShoppingCart className="mr-1 h-3 w-3" /> Cart</Button>
+                                                            <Button size="sm" className="w-full text-xs h-8" onClick={() => { handleBuyNow(product); }}>Buy Now</Button>
+                                                        </>
+                                                    ) : (
+                                                        <Button size="sm" className="w-full text-xs h-8" onClick={() => { toast({ title: "We'll let you know!", description: `You will be notified when ${product.name} is back in stock.`}); }}>Notify Me</Button>
+                                                    )}
+                                                </CardFooter>
+                                            </Card>
+                                        </CarouselItem>
+                                    ))}
+                                </CarouselContent>
+                                <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2 hidden md:flex" />
+                                <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2 hidden md:flex" />
+                            </Carousel>
+                        )
                     ) : (
-                        <div className="col-span-2 text-center text-muted-foreground py-10">No products to show.</div>
+                        <div className="col-span-full text-center text-muted-foreground py-10 w-full">No products to show.</div>
                     )}
                 </div>
             </ScrollArea>
@@ -518,62 +573,14 @@ const ProductShelf = ({ sellerProducts, handleAddToCart, handleBuyNow, toast }: 
                 </Button>
             </CollapsibleTrigger>
             <CollapsibleContent className="mt-4">
-                 <Carousel
-                    opts={{ align: "start" }}
-                    className="w-full"
-                >
-                    <CarouselContent className="-ml-2 md:-ml-4">
-                        {sellerProducts.length > 0 ? (
-                            sellerProducts.slice(0, 10).map((product: any, index: number) => (
-                                <CarouselItem key={index} className="basis-1/2 sm:basis-1/3 lg:basis-1/4 xl:basis-1/5 pl-2 md:pl-4">
-                                    <Card className="w-full overflow-hidden h-full flex flex-col">
-                                        <Link href={`/product/${product.key}`} className="group block">
-                                            <div className="relative aspect-square bg-muted">
-                                                <Image
-                                                    src={product.images[0]?.preview || product.images[0]}
-                                                    alt={product.name}
-                                                    fill
-                                                    sizes="50vw"
-                                                    className="object-cover transition-transform group-hover:scale-105"
-                                                />
-                                                 {product.stock === 0 && (
-                                                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                                                        <Badge variant="destructive">Out of Stock</Badge>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </Link>
-                                        <div className="p-2 flex-grow flex flex-col">
-                                            <Link href={`/product/${product.key}`} className="group block">
-                                                <h4 className="font-semibold truncate text-xs group-hover:underline">{product.name}</h4>
-                                                <p className="font-bold text-sm">{product.price}</p>
-                                            </Link>
-                                             <div className="flex items-center justify-between text-xs text-muted-foreground mt-2">
-                                                <div className="flex items-center gap-1 cursor-pointer hover:text-primary"><Package className="h-3 w-3" /> {product.stock} left</div>
-                                                <div className="flex items-center gap-1 cursor-pointer hover:text-primary"><Users className="h-3 w-3" /> {product.sold} sold</div>
-                                                <div className="flex items-center gap-1 cursor-pointer hover:text-primary"><Star className="h-3 w-3" /> {product.reviews}</div>
-                                            </div>
-                                        </div>
-                                         <CardFooter className="p-2 grid grid-cols-1 gap-2">
-                                            {product.stock > 0 ? (
-                                                <>
-                                                    <Button variant="outline" size="sm" className="w-full text-xs h-8" onClick={() => { handleAddToCart(product); }}><ShoppingCart className="mr-1 h-3 w-3" /> Cart</Button>
-                                                    <Button size="sm" className="w-full text-xs h-8" onClick={() => { handleBuyNow(product); }}>Buy Now</Button>
-                                                </>
-                                            ) : (
-                                                <Button size="sm" className="w-full text-xs h-8" onClick={() => { toast({ title: "We'll let you know!", description: `You will be notified when ${product.name} is back in stock.`}); }}>Notify Me</Button>
-                                            )}
-                                        </CardFooter>
-                                    </Card>
-                                </CarouselItem>
-                            ))
-                        ) : (
-                            <div className="col-span-full text-center text-muted-foreground py-10 w-full">No products to show.</div>
-                        )}
-                    </CarouselContent>
-                    <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2 hidden md:flex" />
-                    <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2 hidden md:flex" />
-                </Carousel>
+                 <ProductShelfContent 
+                    sellerProducts={sellerProducts}
+                    handleAddToCart={handleAddToCart}
+                    handleBuyNow={handleBuyNow}
+                    isMobile={false}
+                    onClose={() => setIsOpen(false)}
+                    toast={toast}
+                />
             </CollapsibleContent>
         </Collapsible>
     );
@@ -1364,13 +1371,12 @@ const StreamInfo = (props: any) => {
     
     return (
         <div className="space-y-4">
-            <div className="mb-4">
+             <div className="mb-4">
                 <h2 className="font-bold text-lg">Topic</h2>
                 <div className="text-sm text-muted-foreground mt-1 space-y-4">
                     <p>{renderWithHashtags(streamData.description || "Welcome to the live stream!")}</p>
                 </div>
             </div>
-
              <div className="flex flex-col sm:flex-row items-center justify-between gap-2">
                 <Link href={`/seller/profile?userId=${seller.id}`} className="flex items-center gap-3 group w-full">
                     <Avatar className="h-10 w-10">
@@ -1440,5 +1446,6 @@ const RelatedContent = ({ relatedStreams }: { relatedStreams: any[] }) => (
         </div>
     </div>
 );
+
 
 
