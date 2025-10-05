@@ -115,7 +115,7 @@ import { Switch } from "@/components/ui/switch";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useInView } from "react-intersection-observer";
 import { useMiniPlayer } from "@/context/MiniPlayerContext";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ChatPanel } from "@/components/messaging/common";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -1176,129 +1176,162 @@ const MobileLayout = (props: any) => (
         </div>
     </div>
     <div className="flex-1 overflow-hidden relative">
-      {props.isMobileChatVisible ? (
-         <ChatPanel
-            seller={props.seller}
-            chatMessages={props.chatMessages}
-            pinnedMessages={props.pinnedMessages}
-            activeAuction={props.activeAuction}
-            auctionTime={props.auctionTime}
-            highestBid={props.highestBid}
-            totalBids={props.totalBids}
-            walletBalance={props.walletBalance}
-            handlers={props.handlers}
-            inlineAuctionCardRefs={props.inlineAuctionCardRefs}
-            onClose={() => props.setIsMobileChatVisible(false)}
-        />
-      ) : (
-        <ScrollArea className="h-full">
-          <div className="p-4 space-y-6">
+      <Collapsible>
+        <div className="p-4 space-y-6">
             <StreamInfo seller={props.seller} streamData={props.streamData} handleFollowToggle={props.handleFollowToggle} isFollowingState={props.isFollowingState} sellerProducts={props.sellerProducts} onAddToCart={props.handlers.onAddToCart} onBuyNow={props.handlers.onBuyNow}/>
-            <RelatedContent relatedStreams={props.relatedStreams} />
-          </div>
-           <div className="fixed bottom-4 right-4 z-20">
-                <Button onClick={() => props.setIsMobileChatVisible(true)}>
-                    <MessageSquare className="mr-2 h-4 w-4" />
-                    Show Chat
-                </Button>
-            </div>
-        </ScrollArea>
-      )}
+        </div>
+        <CollapsibleContent>
+            <ChatPanel
+                seller={props.seller}
+                chatMessages={props.chatMessages}
+                pinnedMessages={props.pinnedMessages}
+                activeAuction={props.activeAuction}
+                auctionTime={props.auctionTime}
+                highestBid={props.highestBid}
+                totalBids={props.totalBids}
+                walletBalance={props.walletBalance}
+                handlers={props.handlers}
+                inlineAuctionCardRefs={props.inlineAuctionCardRefs}
+                onClose={() => {}}
+            />
+        </CollapsibleContent>
+      </Collapsible>
     </div>
   </div>
 );
 
-const StreamInfo = ({ seller, streamData, handleFollowToggle, isFollowingState, sellerProducts, onAddToCart, onBuyNow }: { seller: any, streamData: any, handleFollowToggle: any, isFollowingState: boolean, sellerProducts: any[], onAddToCart: (product: any) => void, onBuyNow: (product: any) => void }) => (
-    <div className="space-y-4">
-        <div className="mb-4">
-            <h2 className="font-bold text-xl">{streamData.title || "Live Stream"}</h2>
-            <div className="text-sm text-muted-foreground">{streamData.description || "Welcome to the live stream!"}</div>
-        </div>
-        <Collapsible>
-            <div className="flex items-center justify-between gap-4 w-full">
-                <div className="flex-grow min-w-0">
-                    {seller && (
-                        <div className="flex items-center gap-2">
-                            <Avatar className="h-10 w-10">
-                                <AvatarImage src={seller.avatarUrl} />
-                                <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
-                            </Avatar>
-                            <div className="flex items-center gap-2 flex-wrap">
-                                <h3 className="font-semibold truncate">{seller.name}</h3>
-                                 <div className="flex items-center gap-2 flex-shrink-0">
-                                    <Button
-                                        onClick={() => seller && handleFollowToggle(seller.id)}
-                                        variant={isFollowingState ? "outline" : "secondary"}
-                                        size="sm"
-                                        className="h-7 w-7 p-0 sm:w-auto sm:px-2 text-xs"
-                                    >
-                                        <UserPlus className="h-4 w-4 sm:mr-1.5" />
-                                        <span className="hidden sm:inline">{isFollowingState ? "Following" : "Follow"}</span>
-                                    </Button>
-                                    <CollapsibleTrigger asChild>
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
-                                            className="h-7 w-7 p-0 sm:w-auto sm:px-2 text-xs"
-                                        >
-                                            <ShoppingBag className="w-4 h-4 sm:mr-1" />
-                                            <span className="hidden sm:inline">Products ({sellerProducts.length})</span>
-                                        </Button>
-                                    </CollapsibleTrigger>
+const StreamInfo = ({ seller, streamData, handleFollowToggle, isFollowingState, sellerProducts, onAddToCart, onBuyNow }: { seller: any, streamData: any, handleFollowToggle: any, isFollowingState: boolean, sellerProducts: any[], onAddToCart: (product: any) => void, onBuyNow: (product: any) => void }) => {
+    const isMobile = useIsMobile();
+    
+    const ProductShelf = () => (
+        <Carousel opts={{ align: "start" }} className="w-full">
+            <CarouselContent className="-ml-2">
+                {sellerProducts.map((product, index) => (
+                    <CarouselItem key={index} className="basis-1/2 md:basis-1/3 lg:basis-1/4 xl:basis-1/5 pl-2">
+                            <Card className="w-full overflow-hidden h-full flex flex-col">
+                            <Link href={`/product/${product.key}`} className="group block">
+                                <div className="relative aspect-square bg-muted">
+                                    <Image
+                                        src={product.images[0]}
+                                        alt={product.name}
+                                        fill
+                                        sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 20vw"
+                                        className="object-cover transition-transform group-hover:scale-105"
+                                    />
+                                </div>
+                            </Link>
+                            <div className="p-2 flex-grow flex flex-col">
+                                <Link href={`/product/${product.key}`} className="group block">
+                                    <h4 className="font-semibold truncate text-xs group-hover:underline">{product.name}</h4>
+                                    <p className="font-bold text-sm">{product.price}</p>
+                                </Link>
+                                <div className="flex items-center justify-between text-xs text-muted-foreground mt-2">
+                                    <div className="flex items-center gap-1 cursor-pointer hover:text-primary"><Package className="h-3 w-3" /> {product.stock} left</div>
+                                    <div className="flex items-center gap-1 cursor-pointer hover:text-primary"><Users className="h-3 w-3" /> {product.sold} sold</div>
+                                    <div className="flex items-center gap-1 cursor-pointer hover:text-primary"><Star className="h-3 w-3" /> {product.reviews}</div>
                                 </div>
                             </div>
-                        </div>
-                    )}
-                </div>
-                {seller?.hasAuction && (
-                    <Badge variant="purple" className="flex items-center gap-1.5 h-7">
-                        <Gavel className="w-4 h-4" /> <span className="hidden sm:inline">Auction</span>
-                    </Badge>
-                )}
+                            <CardFooter className="p-2 grid grid-cols-2 gap-2">
+                                <Button variant="outline" size="sm" className="w-full text-xs h-8" onClick={() => onAddToCart(product)}><ShoppingCart className="mr-1 h-3 w-3" /> Cart</Button>
+                                <Button size="sm" className="w-full text-xs h-8" onClick={() => onBuyNow(product)}>Buy Now</Button>
+                            </CardFooter>
+                        </Card>
+                    </CarouselItem>
+                ))}
+            </CarouselContent>
+            <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2 hidden sm:flex" />
+            <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2 hidden sm:flex" />
+        </Carousel>
+    );
+
+    return (
+        <div className="space-y-4">
+            <div className="mb-4">
+                <h2 className="font-bold text-xl">{streamData.title || "Live Stream"}</h2>
+                <div className="text-sm text-muted-foreground">{streamData.description || "Welcome to the live stream!"}</div>
             </div>
-             <CollapsibleContent className="mt-4">
-                <Carousel opts={{ align: "start" }} className="w-full">
-                    <CarouselContent className="-ml-2">
-                        {sellerProducts.map((product, index) => (
-                            <CarouselItem key={index} className="basis-1/2 md:basis-1/3 lg:basis-1/4 xl:basis-1/5 pl-2">
-                                 <Card className="w-full overflow-hidden h-full flex flex-col">
-                                    <Link href={`/product/${product.key}`} className="group block">
-                                        <div className="relative aspect-square bg-muted">
-                                            <Image
-                                                src={product.images[0]}
-                                                alt={product.name}
-                                                fill
-                                                sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 20vw"
-                                                className="object-cover transition-transform group-hover:scale-105"
-                                            />
-                                        </div>
-                                    </Link>
-                                    <div className="p-2 flex-grow flex flex-col">
-                                        <Link href={`/product/${product.key}`} className="group block">
-                                            <h4 className="font-semibold truncate text-xs group-hover:underline">{product.name}</h4>
-                                            <p className="font-bold text-sm">{product.price}</p>
-                                        </Link>
-                                        <div className="flex items-center justify-between text-xs text-muted-foreground mt-2">
-                                            <div className="flex items-center gap-1 cursor-pointer hover:text-primary"><Package className="h-3 w-3" /> {product.stock} left</div>
-                                            <div className="flex items-center gap-1 cursor-pointer hover:text-primary"><Users className="h-3 w-3" /> {product.sold} sold</div>
-                                            <div className="flex items-center gap-1 cursor-pointer hover:text-primary"><Star className="h-3 w-3" /> {product.reviews}</div>
-                                        </div>
+            {isMobile ? (
+                <Sheet>
+                    <div className="flex items-center justify-between gap-4 w-full">
+                        <div className="flex-grow min-w-0">
+                             {seller && (
+                                <div className="flex items-center gap-2">
+                                    <Avatar className="h-10 w-10">
+                                        <AvatarImage src={seller.avatarUrl} />
+                                        <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
+                                    </Avatar>
+                                    <div className="flex items-center gap-2 flex-wrap">
+                                        <h3 className="font-semibold truncate">{seller.name}</h3>
                                     </div>
-                                    <CardFooter className="p-2 grid grid-cols-2 gap-2">
-                                        <Button variant="outline" size="sm" className="w-full text-xs h-8" onClick={() => onAddToCart(product)}><ShoppingCart className="mr-1 h-3 w-3" /> Cart</Button>
-                                        <Button size="sm" className="w-full text-xs h-8" onClick={() => onBuyNow(product)}>Buy Now</Button>
-                                    </CardFooter>
-                                </Card>
-                            </CarouselItem>
-                        ))}
-                    </CarouselContent>
-                    <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2 hidden sm:flex" />
-                    <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2 hidden sm:flex" />
-                </Carousel>
-            </CollapsibleContent>
-        </Collapsible>
-    </div>
-);
+                                </div>
+                            )}
+                        </div>
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                            <Button onClick={() => seller && handleFollowToggle(seller.id)} variant={isFollowingState ? "outline" : "secondary"} size="sm" className="h-7 w-7 p-0 sm:w-auto sm:px-2 text-xs">
+                                <UserPlus className="h-4 w-4 sm:mr-1.5" />
+                                <span className="hidden sm:inline">{isFollowingState ? "Following" : "Follow"}</span>
+                            </Button>
+                            <SheetTrigger asChild>
+                                <Button variant="outline" size="sm" className="h-7 w-7 p-0 sm:w-auto sm:px-2 text-xs">
+                                    <ShoppingBag className="w-4 h-4 sm:mr-1" />
+                                    <span className="hidden sm:inline">Products ({sellerProducts.length})</span>
+                                </Button>
+                            </SheetTrigger>
+                        </div>
+                    </div>
+                     <SheetContent side="bottom" className="h-[75dvh] rounded-t-lg bg-background/80 backdrop-blur-sm" overlayClassName="bg-black/20">
+                        <SheetHeader className="p-4 border-b">
+                            <SheetTitle>Products in this Stream</SheetTitle>
+                        </SheetHeader>
+                        <ScrollArea className="h-[calc(75vh-65px)]">
+                            <div className="p-4">
+                               <ProductShelf />
+                            </div>
+                        </ScrollArea>
+                    </SheetContent>
+                </Sheet>
+            ) : (
+                <Collapsible>
+                    <div className="flex items-center justify-between gap-4 w-full">
+                        <div className="flex-grow min-w-0">
+                            {seller && (
+                                <div className="flex items-center gap-2">
+                                    <Avatar className="h-10 w-10">
+                                        <AvatarImage src={seller.avatarUrl} />
+                                        <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
+                                    </Avatar>
+                                    <div className="flex items-center gap-2 flex-wrap">
+                                        <h3 className="font-semibold truncate">{seller.name}</h3>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                            <Button
+                                onClick={() => seller && handleFollowToggle(seller.id)}
+                                variant={isFollowingState ? "outline" : "secondary"}
+                                size="sm"
+                                className="h-7 w-7 p-0 sm:w-auto sm:px-2 text-xs"
+                            >
+                                <UserPlus className="h-4 w-4 sm:mr-1.5" />
+                                <span className="hidden sm:inline">{isFollowingState ? "Following" : "Follow"}</span>
+                            </Button>
+                            <CollapsibleTrigger asChild>
+                                <Button variant="outline" size="sm" className="h-7 w-7 p-0 sm:w-auto sm:px-2 text-xs">
+                                    <ShoppingBag className="w-4 h-4 sm:mr-1" />
+                                    <span className="hidden sm:inline">Products ({sellerProducts.length})</span>
+                                </Button>
+                            </CollapsibleTrigger>
+                        </div>
+                    </div>
+                    <CollapsibleContent className="mt-4">
+                        <ProductShelf />
+                    </CollapsibleContent>
+                </Collapsible>
+            )}
+        </div>
+    );
+};
 
 const RelatedContent = ({ relatedStreams }: { relatedStreams: any[] }) => (
      <div className="mt-8">
