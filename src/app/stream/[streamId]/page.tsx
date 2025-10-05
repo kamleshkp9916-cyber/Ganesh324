@@ -418,11 +418,10 @@ const ReportDialog = ({ onSubmit }: { onSubmit: (reason: string, details: string
 
 const ProductShelf = ({ sellerProducts, handleAddToCart, handleBuyNow }: { sellerProducts: any[], handleAddToCart: (product: any) => void, handleBuyNow: (product: any) => void }) => {
     const [isOpen, setIsOpen] = useState(false);
-
     return (
         <Sheet open={isOpen} onOpenChange={setIsOpen}>
             <SheetTrigger asChild>
-                <Button variant="outline" className="w-full justify-center">
+                 <Button variant="outline" className="w-full justify-center">
                     <div className="flex items-center gap-2">
                         <ShoppingBag className="w-4 h-4 sm:mr-1" />
                         <span>Products ({sellerProducts.length})</span>
@@ -475,7 +474,6 @@ const ProductShelf = ({ sellerProducts, handleAddToCart, handleBuyNow }: { selle
         </Sheet>
     );
 };
-
 
 export default function StreamPage() {
     const router = useRouter();
@@ -1234,65 +1232,6 @@ const MobileLayout = (props: any) => (
     )}
   </div>
 );
-
-const ProductShelf = ({ sellerProducts, handleAddToCart, handleBuyNow }: { sellerProducts: any[], handleAddToCart: (product: any) => void, handleBuyNow: (product: any) => void }) => {
-    const [isOpen, setIsOpen] = useState(false);
-    return (
-        <Sheet open={isOpen} onOpenChange={setIsOpen}>
-            <SheetTrigger asChild>
-                 <Button variant="outline" className="w-full justify-center">
-                    <div className="flex items-center gap-2">
-                        <ShoppingBag className="w-4 h-4 sm:mr-1" />
-                        <span>Products ({sellerProducts.length})</span>
-                    </div>
-                </Button>
-            </SheetTrigger>
-            <SheetContent side="bottom" className="h-[80vh] flex flex-col p-0">
-                <SheetHeader className="p-4 border-b">
-                    <SheetTitle>Products in this Stream</SheetTitle>
-                </SheetHeader>
-                <ScrollArea className="flex-grow">
-                    <div className="p-4 grid grid-cols-2 xs:grid-cols-2 gap-4">
-                        {sellerProducts.length > 0 ? (
-                            sellerProducts.slice(0, 10).map((product: any, index: number) => (
-                                <Card key={index} className="w-full overflow-hidden h-full flex flex-col">
-                                    <Link href={`/product/${product.key}`} className="group block">
-                                        <div className="relative aspect-square bg-muted">
-                                            <Image
-                                                src={product.images[0]?.preview || product.images[0]}
-                                                alt={product.name}
-                                                fill
-                                                sizes="50vw"
-                                                className="object-cover transition-transform group-hover:scale-105"
-                                            />
-                                        </div>
-                                    </Link>
-                                    <div className="p-2 flex-grow flex flex-col">
-                                        <Link href={`/product/${product.key}`} className="group block">
-                                            <h4 className="font-semibold truncate text-xs group-hover:underline">{product.name}</h4>
-                                            <p className="font-bold text-sm">{product.price}</p>
-                                        </Link>
-                                        <div className="flex items-center justify-between text-xs text-muted-foreground mt-2">
-                                            <div className="flex items-center gap-1 cursor-pointer hover:text-primary"><Package className="h-3 w-3" /> {product.stock} left</div>
-                                            <div className="flex items-center gap-1 cursor-pointer hover:text-primary"><Users className="h-3 w-3" /> {product.sold} sold</div>
-                                            <div className="flex items-center gap-1 cursor-pointer hover:text-primary"><Star className="h-3 w-3" /> {product.reviews}</div>
-                                        </div>
-                                    </div>
-                                    <CardFooter className="p-2 grid grid-cols-2 gap-2">
-                                        <Button variant="outline" size="sm" className="w-full text-xs h-8" onClick={() => { handleAddToCart(product); setIsOpen(false); }}><ShoppingCart className="mr-1 h-3 w-3" /> Cart</Button>
-                                        <Button size="sm" className="w-full text-xs h-8" onClick={() => { handleBuyNow(product); setIsOpen(false); }}>Buy Now</Button>
-                                    </CardFooter>
-                                </Card>
-                            ))
-                        ) : (
-                            <div className="col-span-2 text-center text-muted-foreground py-10">No products to show.</div>
-                        )}
-                    </div>
-                </ScrollArea>
-            </SheetContent>
-        </Sheet>
-    );
-};
 
 const StreamInfo = ({ seller, streamData, handleFollowToggle, isFollowingState, sellerProducts, handleAddToCart, handleBuyNow, renderWithHashtags }: { seller: any, streamData: any, handleFollowToggle: any, isFollowingState: boolean, sellerProducts: any[], handleAddToCart: (product: any) => void, handleBuyNow: (product: any) => void, renderWithHashtags: (text: string) => React.ReactNode }) => {
     
