@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import {
@@ -1077,7 +1076,7 @@ const DesktopLayout = (props: any) => (
             </div>
 
             <div className="p-4 space-y-6">
-                <StreamInfo seller={props.seller} streamData={props.streamData} handleFollowToggle={props.handleFollowToggle} isFollowingState={props.isFollowingState} sellerProducts={props.sellerProducts} onAddToCart={props.handlers.onAddToCart} onBuyNow={props.handlers.onBuyNow} renderWithHashtags={props.renderWithHashtags}/>
+                <StreamInfo seller={props.seller} streamData={props.streamData} handleFollowToggle={props.handleFollowToggle} isFollowingState={props.isFollowingState} sellerProducts={props.sellerProducts} handleAddToCart={props.handleAddToCart} handleBuyNow={props.handleBuyNow} renderWithHashtags={props.renderWithHashtags}/>
                 <RelatedContent relatedStreams={props.relatedStreams} />
             </div>
         </main>
@@ -1191,45 +1190,24 @@ const StreamInfo = ({ seller, streamData, handleFollowToggle, isFollowingState, 
     
     const ProductShelf = ({ sellerProducts, handleAddToCart, handleBuyNow }: { sellerProducts: any[], handleAddToCart: (product: any) => void, handleBuyNow: (product: any) => void }) => {
         const [isOpen, setIsOpen] = useState(false);
-        const [isLoading, setIsLoading] = useState(true);
-
-        useEffect(() => {
-            const timer = setTimeout(() => {
-                if (sellerProducts.length > 0) {
-                    setIsLoading(false);
-                }
-            }, 1000);
-            return () => clearTimeout(timer);
-        }, [sellerProducts]);
 
         return (
-            <Dialog open={isOpen} onOpenChange={setIsOpen}>
-                <DialogTrigger asChild>
-                     <Button variant="outline" className="w-full justify-between">
+            <Sheet open={isOpen} onOpenChange={setIsOpen}>
+                <SheetTrigger asChild>
+                     <Button variant="outline" className="w-full justify-center">
                         <div className="flex items-center gap-2">
                             <ShoppingBag className="w-4 h-4 sm:mr-1" />
                             <span>Products ({sellerProducts.length})</span>
                         </div>
-                        <ChevronDown className="h-4 w-4" />
                     </Button>
-                </DialogTrigger>
-                <DialogContent className="max-w-md h-[80vh] flex flex-col p-0">
-                    <DialogHeader className="p-4 border-b">
-                        <DialogTitle>Products in this Stream</DialogTitle>
-                    </DialogHeader>
+                </SheetTrigger>
+                <SheetContent side="bottom" className="h-[80vh] flex flex-col p-0">
+                    <SheetHeader className="p-4 border-b">
+                        <SheetTitle>Products in this Stream</SheetTitle>
+                    </SheetHeader>
                     <ScrollArea className="flex-grow">
                         <div className="p-4 grid grid-cols-2 xs:grid-cols-2 gap-4">
-                            {isLoading ? (
-                                Array.from({ length: 4 }).map((_, i) => (
-                                    <Card key={i}>
-                                        <Skeleton className="aspect-square w-full" />
-                                        <div className="p-2 space-y-2">
-                                            <Skeleton className="h-4 w-3/4" />
-                                            <Skeleton className="h-5 w-1/2" />
-                                        </div>
-                                    </Card>
-                                ))
-                            ) : (
+                            {sellerProducts.length > 0 ? (
                                 sellerProducts.slice(0, 10).map((product: any, index: number) => (
                                     <Card key={index} className="w-full overflow-hidden h-full flex flex-col">
                                         <Link href={`/product/${product.key}`} className="group block">
@@ -1260,11 +1238,13 @@ const StreamInfo = ({ seller, streamData, handleFollowToggle, isFollowingState, 
                                         </CardFooter>
                                     </Card>
                                 ))
+                            ) : (
+                                <div className="col-span-2 text-center text-muted-foreground py-10">No products to show.</div>
                             )}
                         </div>
                     </ScrollArea>
-                </DialogContent>
-            </Dialog>
+                </SheetContent>
+            </Sheet>
         );
     };
     
@@ -1366,3 +1346,5 @@ const RelatedContent = ({ relatedStreams }: { relatedStreams: any[] }) => (
         </div>
     </div>
 );
+
+    
