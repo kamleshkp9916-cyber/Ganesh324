@@ -117,7 +117,7 @@ import { useMiniPlayer } from "@/context/MiniPlayerContext";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ChatPanel } from "@/components/messaging/common";
-import { useIsMobile } from "@/hooks/use-is-mobile";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 
 const emojis = [
@@ -1124,99 +1124,96 @@ const DesktopLayout = (props: any) => (
 </div>
 );
 
-const MobileLayout = (props: any) => {
-    return (
-        <div className="flex flex-col h-dvh overflow-hidden">
-            <header className="p-3 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-sm z-30 border-b h-16 shrink-0">
-                <div className="flex items-center gap-2">
-                    <Button variant="ghost" size="icon" onClick={() => props.router.back()}>
-                        <ArrowLeft className="h-6 w-6" />
-                    </Button>
-                    {props.seller && (
-                        <div className="flex items-center gap-2 overflow-hidden">
-                            <Avatar className="h-8 w-8">
-                                <AvatarImage src={props.seller.avatarUrl} />
-                                <AvatarFallback>{props.seller.name.charAt(0)}</AvatarFallback>
-                            </Avatar>
-                            <div className="overflow-hidden">
-                                <h1 className="text-sm font-bold truncate">{props.seller.name}</h1>
-                                <p className="text-xs text-muted-foreground">{props.streamData.viewerCount.toLocaleString()} viewers</p>
-                            </div>
-                        </div>
-                    )}
-                </div>
-                <Button asChild variant="ghost">
-                    <Link href="/cart">
-                        <ShoppingCart className="mr-2 h-4 w-4" />
-                        My Cart
-                    </Link>
+const MobileLayout = (props: any) => (
+    <div className="flex flex-col h-dvh overflow-hidden">
+        <header className="p-3 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-sm z-30 border-b h-16 shrink-0">
+            <div className="flex items-center gap-2">
+                <Button variant="ghost" size="icon" onClick={() => props.router.back()}>
+                    <ArrowLeft className="h-6 w-6" />
                 </Button>
-            </header>
-            
-            <div className="w-full aspect-video bg-black relative flex-shrink-0" ref={props.playerRef}>
-                <video ref={props.videoRef} src={props.streamData.streamUrl || "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"} className="w-full h-full object-cover" loop />
-                <div className="absolute inset-0 bg-black/20 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center">
-                    <Button variant="ghost" size="icon" className="w-16 h-16 text-white" onClick={props.handlePlayPause}>
-                        {props.isPaused ? <Play className="w-10 h-10 fill-current" /> : <Pause className="w-10 h-10 fill-current" />}
-                    </Button>
-                </div>
-                <div className="absolute inset-x-0 bottom-0 p-2">
-                    <div className="w-full cursor-pointer py-1" ref={props.progressContainerRef} onClick={props.handleProgressClick}>
-                        <Progress value={(props.currentTime / props.duration) * 100} isLive={props.isLive} className="h-1.5" />
-                    </div>
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-1">
-                            <p className="text-xs font-mono text-white">{props.formatTime(props.currentTime)}</p>
-                        </div>
-                        <div className="flex items-center gap-1">
-                            <Button variant="ghost" size="icon" className="h-7 w-7 text-white" onClick={props.handleMinimize}><PictureInPicture className="w-4 h-4"/></Button>
-                            <Button variant="ghost" size="icon" className="h-7 w-7 text-white" onClick={props.handleToggleFullscreen}><Maximize className="w-4 h-4"/></Button>
+                {props.seller && (
+                    <div className="flex items-center gap-2 overflow-hidden">
+                        <Avatar className="h-8 w-8">
+                            <AvatarImage src={props.seller.avatarUrl} />
+                            <AvatarFallback>{props.seller.name.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                        <div className="overflow-hidden">
+                            <h1 className="text-sm font-bold truncate">{props.seller.name}</h1>
+                            <p className="text-xs text-muted-foreground">{props.streamData.viewerCount.toLocaleString()} viewers</p>
                         </div>
                     </div>
-                </div>
-            </div>
-            
-            <div className="flex-1 overflow-y-auto no-scrollbar relative">
-                {props.isMobileChatVisible ? (
-                    <div className="h-full">
-                        <ChatPanel
-                            seller={props.seller}
-                            chatMessages={props.chatMessages}
-                            pinnedMessages={props.pinnedMessages}
-                            activeAuction={props.activeAuction}
-                            auctionTime={props.auctionTime}
-                            highestBid={props.highestBid}
-                            totalBids={props.totalBids}
-                            walletBalance={props.walletBalance}
-                            handlers={props.handlers}
-                            inlineAuctionCardRefs={props.inlineAuctionCardRefs}
-                            onClose={() => props.setIsMobileChatVisible(false)}
-                        />
-                    </div>
-                ) : (
-                    <>
-                        <div className="p-4">
-                            <StreamInfo seller={props.seller} streamData={props.streamData} handleFollowToggle={props.handleFollowToggle} isFollowingState={props.isFollowingState} sellerProducts={props.sellerProducts} onAddToCart={props.handlers.onAddToCart} onBuyNow={props.handlers.onBuyNow}/>
-                        </div>
-                        <div className="p-4">
-                            <RelatedContent relatedStreams={props.relatedStreams} />
-                        </div>
-                        <div className="sticky bottom-4 right-4 z-20 flex justify-end p-4">
-                            <Button
-                                variant="secondary"
-                                className="rounded-full shadow-lg"
-                                onClick={() => props.setIsMobileChatVisible(true)}
-                            >
-                                <MessageSquare className="mr-2 h-4 w-4" />
-                                Show Chat
-                            </Button>
-                        </div>
-                    </>
                 )}
             </div>
+            <Button asChild variant="ghost">
+                <Link href="/cart">
+                    <ShoppingCart className="mr-2 h-4 w-4" />
+                    My Cart
+                </Link>
+            </Button>
+        </header>
+
+        <div className="w-full aspect-video bg-black relative flex-shrink-0" ref={props.playerRef}>
+            <video ref={props.videoRef} src={props.streamData.streamUrl || "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"} className="w-full h-full object-cover" loop />
+            <div className="absolute inset-0 bg-black/20 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center">
+                <Button variant="ghost" size="icon" className="w-16 h-16 text-white" onClick={props.handlePlayPause}>
+                    {props.isPaused ? <Play className="w-10 h-10 fill-white" /> : <Pause className="w-10 h-10 fill-white" />}
+                </Button>
+            </div>
+            <div className="absolute inset-x-0 bottom-0 p-2">
+                <div className="w-full cursor-pointer py-1" ref={props.progressContainerRef} onClick={props.handleProgressClick}>
+                    <Progress value={(props.currentTime / props.duration) * 100} isLive={props.isLive} className="h-1.5" />
+                </div>
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-1">
+                        <p className="text-xs font-mono text-white">{props.formatTime(props.currentTime)}</p>
+                    </div>
+                    <div className="flex items-center gap-1">
+                        <Button variant="ghost" size="icon" className="h-7 w-7 text-white" onClick={props.handleMinimize}><PictureInPicture className="w-4 h-4"/></Button>
+                        <Button variant="ghost" size="icon" className="h-7 w-7 text-white" onClick={props.handleToggleFullscreen}><Maximize className="w-4 h-4"/></Button>
+                    </div>
+                </div>
+            </div>
         </div>
-    );
-};
+
+        <div className="flex-1 overflow-hidden relative">
+            <div className={cn("h-full overflow-y-auto no-scrollbar", props.isMobileChatVisible && "hidden")}>
+                <div className="p-4 space-y-4">
+                    <StreamInfo seller={props.seller} streamData={props.streamData} handleFollowToggle={props.handleFollowToggle} isFollowingState={props.isFollowingState} sellerProducts={props.sellerProducts} onAddToCart={props.handlers.onAddToCart} onBuyNow={props.handlers.onBuyNow}/>
+                    <RelatedContent relatedStreams={props.relatedStreams} />
+                </div>
+            </div>
+
+            {props.isMobileChatVisible ? (
+                 <div className="h-full">
+                    <ChatPanel
+                        seller={props.seller}
+                        chatMessages={props.chatMessages}
+                        pinnedMessages={props.pinnedMessages}
+                        activeAuction={props.activeAuction}
+                        auctionTime={props.auctionTime}
+                        highestBid={props.highestBid}
+                        totalBids={props.totalBids}
+                        walletBalance={props.walletBalance}
+                        handlers={props.handlers}
+                        inlineAuctionCardRefs={props.inlineAuctionCardRefs}
+                        onClose={() => props.setIsMobileChatVisible(false)}
+                    />
+                </div>
+            ) : (
+                 <div className="absolute bottom-4 right-4 z-20">
+                    <Button
+                        variant="secondary"
+                        className="rounded-full shadow-lg"
+                        onClick={() => props.setIsMobileChatVisible(true)}
+                    >
+                        <MessageSquare className="mr-2 h-4 w-4" />
+                        Show Chat
+                    </Button>
+                </div>
+            )}
+        </div>
+    </div>
+);
 
 const StreamInfo = ({ seller, streamData, handleFollowToggle, isFollowingState, sellerProducts, onAddToCart, onBuyNow }: { seller: any, streamData: any, handleFollowToggle: any, isFollowingState: boolean, sellerProducts: any[], onAddToCart: (product: any) => void, onBuyNow: (product: any) => void }) => {
     const isMobile = useIsMobile();
@@ -1389,5 +1386,3 @@ const RelatedContent = ({ relatedStreams }: { relatedStreams: any[] }) => (
         </div>
     </div>
 );
-
-    
