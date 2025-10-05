@@ -423,7 +423,7 @@ export const ChatPanel = ({
             <PopoverTrigger asChild>
               <Button variant="ghost" size="icon" className="h-8 w-8 relative text-muted-foreground hover:text-white">
                 <Pin className="h-5 w-5" />
-                {pinnedMessages.length > 0 && <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-primary" />}
+                {pinnedMessages && pinnedMessages.length > 0 && <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-primary" />}
               </Button>
             </PopoverTrigger>
              <PopoverContent align="end" className="w-80 bg-[#141516] border-gray-800 text-white p-0">
@@ -434,7 +434,7 @@ export const ChatPanel = ({
                 </div>
                  <ScrollArea className="h-80">
                      <div className="p-3 space-y-3">
-                        {pinnedMessages.length > 0 ? (
+                        {pinnedMessages && pinnedMessages.length > 0 ? (
                             pinnedMessages.map((item) => (
                                 <div key={item.id} className="text-xs p-2 rounded-md bg-white/5">
                                     {item.type === 'message' && (

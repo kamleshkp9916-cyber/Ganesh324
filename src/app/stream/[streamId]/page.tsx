@@ -960,7 +960,7 @@ export default function StreamPage() {
                         <LoadingSpinner />
                     </div>
                  ) : isMobile ? (
-                     <MobileLayout {...{ router, videoRef, playerRef, handlePlayPause, handleShare, handleMinimize, handleToggleFullscreen, isPaused, seller, streamData, handleFollowToggle, isFollowingState, sellerProducts, handlers, relatedStreams, isChatOpen, setIsChatOpen, renderWithHashtags }} />
+                     <MobileLayout {...{ router, videoRef, playerRef, handlePlayPause, handleShare, handleMinimize, handleToggleFullscreen, isPaused, seller, streamData, handleFollowToggle, isFollowingState, sellerProducts, handlers, relatedStreams, isChatOpen, setIsChatOpen, renderWithHashtags, chatMessages, pinnedMessages, activeAuction, auctionTime, highestBid, totalBids, walletBalance, inlineAuctionCardRefs, onClose: () => setIsChatOpen(false) }} />
                  ) : (
                     <DesktopLayout 
                         videoRef={videoRef}
@@ -1102,80 +1102,83 @@ const DesktopLayout = (props: any) => (
 );
 
 const MobileLayout = (props: any) => {
-  const [showChat, setShowChat] = useState(true);
-
-  return (
-    <div className="flex flex-col h-dvh overflow-hidden relative">
-      <header className="p-3 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-sm z-30 border-b h-16 shrink-0 w-full">
-        <div className="flex items-center gap-2">
-          <Button variant="ghost" size="icon" onClick={() => props.router.back()}>
-            <ArrowLeft className="h-6 w-6" />
-          </Button>
-          {props.seller && (
-            <div className="flex items-center gap-2 overflow-hidden">
-              <Avatar className="h-8 w-8">
-                <AvatarImage src={props.seller.avatarUrl} />
-                <AvatarFallback>{props.seller.name.charAt(0)}</AvatarFallback>
-              </Avatar>
-              <div className="overflow-hidden">
-                <h1 className="text-sm font-bold truncate">{props.seller.name}</h1>
-                <p className="text-xs text-muted-foreground">{props.streamData.viewerCount.toLocaleString()} viewers</p>
-              </div>
+    const [mobileView, setMobileView] = useState<'stream' | 'chat'>('stream');
+  
+    return (
+      <div className="flex flex-col h-dvh overflow-hidden relative">
+        <header className="p-3 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-sm z-30 border-b h-16 shrink-0 w-full">
+            <div className="flex items-center gap-2">
+                <Button variant="ghost" size="icon" onClick={() => props.router.back()}>
+                    <ArrowLeft className="h-6 w-6" />
+                </Button>
+                {props.seller && (
+                <div className="flex items-center gap-2 overflow-hidden">
+                    <Avatar className="h-8 w-8">
+                    <AvatarImage src={props.seller.avatarUrl} />
+                    <AvatarFallback>{props.seller.name.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                    <div className="overflow-hidden">
+                    <h1 className="text-sm font-bold truncate">{props.seller.name}</h1>
+                    <p className="text-xs text-muted-foreground">{props.streamData.viewerCount.toLocaleString()} viewers</p>
+                    </div>
+                </div>
+                )}
             </div>
-          )}
-        </div>
-        <div className="flex items-center gap-2">
-          <Button asChild variant="ghost" size="icon">
-            <Link href="/cart">
-              <ShoppingCart className="h-5 w-5" />
-            </Link>
-          </Button>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon">
-                <MoreVertical className="h-5 w-5" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onSelect={props.handleShare}><Share2 className="mr-2 h-4 w-4" />Share</DropdownMenuItem>
-              <DropdownMenuItem onSelect={() => props.setIsSettingsOpen(true)}><Settings className="mr-2 h-4 w-4" />Playback Settings</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      </header>
+            <div className="flex items-center gap-2">
+                <Button asChild variant="ghost" size="icon">
+                <Link href="/cart">
+                    <ShoppingCart className="h-5 w-5" />
+                </Link>
+                </Button>
+                <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon">
+                    <MoreVertical className="h-5 w-5" />
+                    </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                    <DropdownMenuItem onSelect={props.handleShare}><Share2 className="mr-2 h-4 w-4" />Share</DropdownMenuItem>
+                    <DropdownMenuItem onSelect={() => props.setIsSettingsOpen(true)}><Settings className="mr-2 h-4 w-4" />Playback Settings</DropdownMenuItem>
+                </DropdownMenuContent>
+                </DropdownMenu>
+            </div>
+        </header>
 
-      <div className="w-full aspect-video bg-black relative flex-shrink-0" ref={props.playerRef}>
-        <video ref={props.videoRef} src={props.streamData.streamUrl || "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"} className="w-full h-full object-cover" loop />
-        <div className="absolute inset-0 bg-black/20 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-          <Button variant="ghost" size="icon" className="text-white" onClick={props.handlePlayPause}>
-            {props.isPaused ? <Play className="h-10 w-10 fill-white" /> : <Pause className="h-10 w-10 fill-white" />}
-          </Button>
-        </div>
-      </div>
-      
-      <div className="flex-1 overflow-y-auto">
-        <div className="p-4 space-y-6">
-            <StreamInfo seller={props.seller} streamData={props.streamData} handleFollowToggle={props.handleFollowToggle} isFollowingState={props.isFollowingState} sellerProducts={props.sellerProducts} onAddToCart={props.handlers.onAddToCart} onBuyNow={props.handlers.onBuyNow} renderWithHashtags={props.renderWithHashtags}/>
-            <RelatedContent relatedStreams={props.relatedStreams} />
-        </div>
-      </div>
-      <Sheet open={props.isChatOpen} onOpenChange={props.setIsChatOpen}>
-        <SheetContent side="bottom" className="h-[80vh] flex flex-col p-0 bg-[#0b0b0c]" overlayClassName="bg-black/20">
-          <ChatPanel {...props} onClose={() => props.setIsChatOpen(false)} />
-        </SheetContent>
-      </Sheet>
-
-      {!props.isChatOpen && (
-          <div className="fixed bottom-4 left-4 z-20">
-            <Button className="rounded-full shadow-lg h-12 px-6" onClick={() => props.setIsChatOpen(true)}>
-              <MessageSquare className="mr-2 h-5 w-5"/>
-              Show Chat
+        <div className="w-full aspect-video bg-black relative flex-shrink-0" ref={props.playerRef}>
+          <video ref={props.videoRef} src={props.streamData.streamUrl || "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"} className="w-full h-full object-cover" loop />
+          <div className="absolute inset-0 bg-black/20 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+            <Button variant="ghost" size="icon" className="text-white" onClick={props.handlePlayPause}>
+              {props.isPaused ? <Play className="h-10 w-10 fill-white" /> : <Pause className="h-10 w-10 fill-white" />}
             </Button>
           </div>
-      )}
-    </div>
-  );
-};
+        </div>
+        
+        <div className="flex-1 overflow-hidden relative">
+            {mobileView === 'stream' ? (
+                <ScrollArea className="h-full">
+                    <div className="p-4 space-y-6">
+                        <StreamInfo {...props}/>
+                        <RelatedContent {...props}/>
+                    </div>
+                </ScrollArea>
+            ) : (
+                <div className="h-full flex flex-col bg-background">
+                    <ChatPanel {...props} onClose={() => setMobileView('stream')} />
+                </div>
+            )}
+        </div>
+
+        {mobileView === 'stream' && (
+            <div className="fixed bottom-4 left-4 z-20">
+                <Button className="rounded-full shadow-lg h-12 px-6" onClick={() => setMobileView('chat')}>
+                    <MessageSquare className="mr-2 h-5 w-5"/>
+                    Show Chat
+                </Button>
+            </div>
+        )}
+      </div>
+    );
+  };
 
 
 const StreamInfo = ({ seller, streamData, handleFollowToggle, isFollowingState, sellerProducts, onAddToCart, onBuyNow, renderWithHashtags }: { seller: any, streamData: any, handleFollowToggle: any, isFollowingState: boolean, sellerProducts: any[], onAddToCart: (product: any) => void, onBuyNow: (product: any) => void, renderWithHashtags: (text: string) => React.ReactNode }) => {
@@ -1338,3 +1341,4 @@ const RelatedContent = ({ relatedStreams }: { relatedStreams: any[] }) => (
         </div>
     </div>
 );
+
