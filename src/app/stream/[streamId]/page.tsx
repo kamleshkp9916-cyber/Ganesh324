@@ -1251,7 +1251,7 @@ const StreamInfo = ({ seller, streamData, handleFollowToggle, isFollowingState, 
     const isMobile = useIsMobile();
     
     const ProductShelf = () => (
-      <div className="grid grid-cols-2 sm:grid-cols-2 gap-4">
+      <div className="grid grid-cols-2 gap-4">
         {sellerProducts.slice(0, 10).map((product, index) => (
           <Card key={index} className="w-full overflow-hidden h-full flex flex-col">
             <Link href={`/product/${product.key}`} className="group block">
@@ -1291,35 +1291,36 @@ const StreamInfo = ({ seller, streamData, handleFollowToggle, isFollowingState, 
                 <h2 className="font-bold text-xl">{renderWithHashtags(streamData.title || "Live Stream")}</h2>
                 <div className="text-sm text-muted-foreground">{renderWithHashtags(streamData.description || "Welcome to the live stream!")}</div>
             </div>
+
+            <div className="flex items-center gap-2">
+                <Avatar className="h-10 w-10">
+                    <AvatarImage src={seller.avatarUrl} />
+                    <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
+                </Avatar>
+                <div className="flex items-center gap-2 flex-wrap">
+                    <h3 className="font-semibold truncate">{seller.name}</h3>
+                </div>
+            </div>
+
+            <Button
+                onClick={() => seller && handleFollowToggle(seller.id)}
+                className={cn(
+                    "w-full font-bold",
+                    isFollowingState ? "bg-red-600 hover:bg-red-700 text-white" : "bg-gray-200 hover:bg-gray-300 text-gray-800 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-200"
+                )}
+            >
+                <Heart className="mr-2 h-4 w-4" />
+                {isFollowingState ? "Following" : "Follow"}
+            </Button>
+            
             {isMobile ? (
                 <Sheet>
-                    <div className="flex items-center justify-between gap-4 w-full">
-                        <div className="flex-grow min-w-0">
-                             {seller && (
-                                <div className="flex items-center gap-2">
-                                    <Avatar className="h-10 w-10">
-                                        <AvatarImage src={seller.avatarUrl} />
-                                        <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
-                                    </Avatar>
-                                    <div className="flex items-center gap-2 flex-wrap">
-                                        <h3 className="font-semibold truncate">{seller.name}</h3>
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-                        <div className="flex items-center gap-2 flex-shrink-0">
-                            <Button onClick={() => seller && handleFollowToggle(seller.id)} variant={isFollowingState ? "outline" : "secondary"} size="sm" className="h-7 w-7 p-0 sm:w-auto sm:px-2 text-xs">
-                                <UserPlus className="h-4 w-4 sm:mr-1.5" />
-                                <span className="hidden sm:inline">{isFollowingState ? "Following" : "Follow"}</span>
-                            </Button>
-                            <SheetTrigger asChild>
-                                <Button variant="outline" size="sm" className="h-7 w-7 p-0 sm:w-auto sm:px-2 text-xs">
-                                    <ShoppingBag className="w-4 h-4 sm:mr-1" />
-                                    <span className="hidden sm:inline">Products ({sellerProducts.length})</span>
-                                </Button>
-                            </SheetTrigger>
-                        </div>
-                    </div>
+                    <SheetTrigger asChild>
+                        <Button variant="outline" className="w-full">
+                            <ShoppingBag className="w-4 h-4 sm:mr-1" />
+                            <span>Products ({sellerProducts.length})</span>
+                        </Button>
+                    </SheetTrigger>
                      <SheetContent side="bottom" className="h-[75dvh] rounded-t-lg bg-background/80 backdrop-blur-sm" overlayClassName="bg-black/20">
                         <SheetHeader className="p-4 border-b">
                             <SheetTitle>Products in this Stream</SheetTitle>
@@ -1333,43 +1334,17 @@ const StreamInfo = ({ seller, streamData, handleFollowToggle, isFollowingState, 
                 </Sheet>
             ) : (
                 <Collapsible>
-                    <div className="flex items-center justify-between gap-4 w-full">
-                        <div className="flex-grow min-w-0">
-                            {seller && (
-                                <div className="flex items-center gap-2">
-                                    <Avatar className="h-10 w-10">
-                                        <AvatarImage src={seller.avatarUrl} />
-                                        <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
-                                    </Avatar>
-                                    <div className="flex items-center gap-2 flex-wrap">
-                                        <h3 className="font-semibold truncate">{seller.name}</h3>
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-                        <div className="flex items-center gap-2 flex-shrink-0">
-                            <Button
-                                onClick={() => seller && handleFollowToggle(seller.id)}
-                                variant={isFollowingState ? "outline" : "secondary"}
-                                size="sm"
-                                className="h-7 w-7 p-0 sm:w-auto sm:px-2 text-xs"
-                            >
-                                <UserPlus className="h-4 w-4 sm:mr-1.5" />
-                                <span className="hidden sm:inline">{isFollowingState ? "Following" : "Follow"}</span>
-                            </Button>
-                            <CollapsibleTrigger asChild>
-                                <Button variant="outline" size="sm" className="h-7 w-7 p-0 sm:w-auto sm:px-2 text-xs">
-                                    <ShoppingBag className="w-4 h-4 sm:mr-1" />
-                                    <span className="hidden sm:inline">Products ({sellerProducts.length})</span>
-                                </Button>
-                            </CollapsibleTrigger>
-                        </div>
-                    </div>
+                     <CollapsibleTrigger asChild>
+                        <Button variant="outline" className="w-full">
+                            <ShoppingBag className="w-4 h-4 sm:mr-1" />
+                            <span>Products ({sellerProducts.length})</span>
+                        </Button>
+                    </CollapsibleTrigger>
                     <CollapsibleContent className="mt-4">
                       <Carousel opts={{ align: "start" }} className="w-full">
                           <CarouselContent className="-ml-2">
                               {sellerProducts.map((product, index) => (
-                                  <CarouselItem key={index} className="pl-2 basis-1/2 xs:basis-1/2 sm:basis-1/3 md:basis-1/4 lg:basis-1/5">
+                                  <CarouselItem key={index} className="pl-4 basis-full xs:basis-1/2 sm:basis-1/3 md:basis-1/4 lg:basis-1/5">
                                           <Card className="w-full overflow-hidden h-full flex flex-col">
                                           <Link href={`/product/${product.key}`} className="group block">
                                               <div className="relative aspect-square bg-muted">
@@ -1449,3 +1424,4 @@ const RelatedContent = ({ relatedStreams }: { relatedStreams: any[] }) => (
         </div>
     </div>
 );
+
