@@ -482,6 +482,7 @@ export default function StreamPage() {
     const mainScrollRef = useRef<HTMLDivElement>(null);
     const [hydrated, setHydrated] = useState(false);
     const [showGoToTop, setShowGoToTop] = useState(false);
+    const [isChatOpen, setIsChatOpen] = useState(false);
 
     useEffect(() => {
         setHydrated(true);
@@ -997,6 +998,8 @@ export default function StreamPage() {
                         setMobileView={setMobileView}
                         formatTime={formatTime}
                         renderWithHashtags={renderWithHashtags}
+                        isChatOpen={isChatOpen}
+                        setIsChatOpen={setIsChatOpen}
                     />
                  ) : (
                     <DesktopLayout 
@@ -1138,45 +1141,52 @@ const DesktopLayout = (props: any) => (
 </div>
 );
 
-const MobileLayout = (props: any) => {
-    return (
-        <div className="flex flex-col h-dvh overflow-hidden relative">
-            <div className="w-full aspect-video bg-black relative flex-shrink-0" ref={props.playerRef}>
-                <video ref={props.videoRef} src={props.streamData.streamUrl || "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"} className="w-full h-full object-cover" loop />
-                 <div className="absolute inset-x-0 top-0 p-2 flex justify-between items-center bg-gradient-to-b from-black/50 to-transparent">
-                    <Button variant="ghost" size="icon" className="text-white" onClick={() => props.router.back()}>
-                        <ArrowLeft className="h-6 w-6" />
+const MobileLayout = (props: any) => (
+    <div className="flex flex-col h-dvh overflow-hidden relative">
+        <div className="w-full aspect-video bg-black relative flex-shrink-0" ref={props.playerRef}>
+            <video ref={props.videoRef} src={props.streamData.streamUrl || "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"} className="w-full h-full object-cover" loop />
+             <div className="absolute inset-x-0 top-0 p-2 flex justify-between items-center bg-gradient-to-b from-black/50 to-transparent">
+                <Button variant="ghost" size="icon" className="text-white" onClick={() => props.router.back()}>
+                    <ArrowLeft className="h-6 w-6" />
+                </Button>
+                <div className="flex items-center gap-2">
+                    <Button variant="ghost" size="icon" className="text-white" onClick={props.handleShare}>
+                        <Share2 className="h-5 w-5" />
                     </Button>
-                    <div className="flex items-center gap-2">
-                        <Button variant="ghost" size="icon" className="text-white" onClick={props.handleShare}>
-                            <Share2 className="h-5 w-5" />
-                        </Button>
-                        <Button variant="ghost" size="icon" className="text-white" onClick={props.handleToggleFullscreen}>
-                            <Maximize className="h-5 w-5" />
-                        </Button>
-                    </div>
-                </div>
-                <div className="absolute inset-0 bg-black/20 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                    <Button variant="ghost" size="icon" className="text-white" onClick={props.handlePlayPause}>
-                        {props.isPaused ? <Play className="h-10 w-10 fill-white" /> : <Pause className="h-10 w-10 fill-white" />}
+                    <Button variant="ghost" size="icon" className="text-white" onClick={props.handleToggleFullscreen}>
+                        <Maximize className="h-5 w-5" />
                     </Button>
                 </div>
             </div>
-            
-            <div className="flex-1 flex flex-col overflow-hidden">
-                <div className="h-1/2 flex-shrink-0">
-                    <ChatPanel {...props} />
-                </div>
+            <div className="absolute inset-0 bg-black/20 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                <Button variant="ghost" size="icon" className="text-white" onClick={props.handlePlayPause}>
+                    {props.isPaused ? <Play className="h-10 w-10 fill-white" /> : <Pause className="h-10 w-10 fill-white" />}
+                </Button>
+            </div>
+        </div>
+
+        {!props.isChatOpen ? (
+            <>
                 <ScrollArea className="flex-1 bg-background">
                     <div className="p-4 space-y-6">
                         <StreamInfo {...props}/>
                         <RelatedContent {...props} />
                     </div>
                 </ScrollArea>
-            </div>
-        </div>
-    );
-};
+                <div className="fixed bottom-4 right-4 z-20">
+                    <Button onClick={() => props.setIsChatOpen(true)} className="rounded-full shadow-lg h-12 w-auto px-5">
+                        <MessageSquare className="mr-2 h-5 w-5"/>
+                        Show Chat
+                    </Button>
+                </div>
+            </>
+        ) : (
+             <div className="flex-1 flex flex-col overflow-hidden bg-card">
+                 <ChatPanel {...props} onClose={() => props.setIsChatOpen(false)} />
+             </div>
+        )}
+    </div>
+);
 
 const StreamInfo = ({ seller, streamData, handleFollowToggle, isFollowingState, sellerProducts, onAddToCart, onBuyNow, renderWithHashtags }: { seller: any, streamData: any, handleFollowToggle: any, isFollowingState: boolean, sellerProducts: any[], onAddToCart: (product: any) => void, onBuyNow: (product: any) => void, renderWithHashtags: (text: string) => React.ReactNode }) => {
     const isMobile = useIsMobile();
