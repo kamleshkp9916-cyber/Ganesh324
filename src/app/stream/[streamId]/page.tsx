@@ -1180,7 +1180,6 @@ const MobileLayout = (props: any) => {
 
 
 const StreamInfo = ({ seller, streamData, handleFollowToggle, isFollowingState, sellerProducts, handleAddToCart, handleBuyNow, renderWithHashtags }: { seller: any, streamData: any, handleFollowToggle: any, isFollowingState: boolean, sellerProducts: any[], handleAddToCart: (product: any) => void, handleBuyNow: (product: any) => void, renderWithHashtags: (text: string) => React.ReactNode }) => {
-    const isMobile = useIsMobile();
     
     const mockSocials = {
         instagram: 'https://instagram.com/streamcart',
@@ -1251,10 +1250,10 @@ const StreamInfo = ({ seller, streamData, handleFollowToggle, isFollowingState, 
 
     return (
         <div className="space-y-4">
-            <div className="mb-4">
+             <div className="mb-4">
                 <Collapsible>
                     <h2 className="font-bold text-xl">{streamData.title || "Live Stream"}</h2>
-                     <CollapsibleContent>
+                     <CollapsibleContent className="CollapsibleContent">
                          <div className="text-sm text-muted-foreground mt-2 space-y-4">
                             <p>{renderWithHashtags(streamData.description || "Welcome to the live stream!")}</p>
                             <div className="py-2 border-y flex flex-col sm:flex-row items-start sm:items-center gap-2 text-sm">
