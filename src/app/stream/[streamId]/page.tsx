@@ -1249,6 +1249,11 @@ const MobileLayout = (props: any) => {
 
 const StreamInfo = ({ seller, streamData, handleFollowToggle, isFollowingState, sellerProducts, onAddToCart, onBuyNow, renderWithHashtags }: { seller: any, streamData: any, handleFollowToggle: any, isFollowingState: boolean, sellerProducts: any[], onAddToCart: (product: any) => void, onBuyNow: (product: any) => void, renderWithHashtags: (text: string) => React.ReactNode }) => {
     const isMobile = useIsMobile();
+    const mockSocials = {
+        instagram: 'https://instagram.com/streamcart',
+        twitter: 'https://twitter.com/streamcart',
+        youtube: 'https://youtube.com/streamcart'
+    };
     
     const ProductShelf = () => (
         <div className="grid grid-cols-2 gap-4">
@@ -1288,12 +1293,21 @@ const StreamInfo = ({ seller, streamData, handleFollowToggle, isFollowingState, 
     return (
         <div className="space-y-4">
             <div className="mb-4">
-                <h2 className="font-bold text-xl">{renderWithHashtags(streamData.title || "Live Stream")}</h2>
-                <div className="text-sm text-muted-foreground">{renderWithHashtags(streamData.description || "Welcome to the live stream!")}</div>
+                <Collapsible>
+                    <h2 className="font-bold text-xl">{renderWithHashtags(streamData.title || "Live Stream")}</h2>
+                    <CollapsibleContent>
+                        <p className="text-sm text-muted-foreground mt-2">{renderWithHashtags(streamData.description || "Welcome to the live stream!")}</p>
+                    </CollapsibleContent>
+                     <CollapsibleTrigger asChild>
+                        <Button variant="link" className="text-xs p-0 h-auto">
+                            Read more
+                        </Button>
+                    </CollapsibleTrigger>
+                </Collapsible>
             </div>
 
-            <div className="flex items-center justify-between gap-2">
-                <Link href={`/seller/profile?userId=${seller.id}`} className="flex items-center gap-3 group">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-2">
+                <Link href={`/seller/profile?userId=${seller.id}`} className="flex items-center gap-3 group w-full">
                     <Avatar className="h-10 w-10">
                         <AvatarImage src={seller.avatarUrl} />
                         <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
@@ -1311,11 +1325,20 @@ const StreamInfo = ({ seller, streamData, handleFollowToggle, isFollowingState, 
                  <Button
                     onClick={() => seller && handleFollowToggle(seller.id)}
                     variant={isFollowingState ? "outline" : "default"}
-                    className="font-bold"
+                    className="font-bold w-full sm:w-auto"
                 >
                     <Heart className="mr-2 h-4 w-4" />
                     {isFollowingState ? "Following" : "Follow"}
                 </Button>
+            </div>
+            
+            <div className="py-2 border-y flex flex-col sm:flex-row items-start sm:items-center gap-2 text-sm">
+                <h4 className="font-semibold text-muted-foreground flex-shrink-0">Follow on:</h4>
+                <div className="flex flex-wrap gap-x-4 gap-y-2">
+                    <a href={mockSocials.instagram} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 hover:text-primary"><Instagram className="w-4 h-4"/> Instagram</a>
+                    <a href={mockSocials.twitter} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 hover:text-primary"><Twitter className="w-4 h-4"/> Twitter/X</a>
+                    <a href={mockSocials.youtube} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 hover:text-primary"><Youtube className="w-4 h-4"/> YouTube</a>
+                </div>
             </div>
             
             {isMobile ? (
@@ -1332,7 +1355,38 @@ const StreamInfo = ({ seller, streamData, handleFollowToggle, isFollowingState, 
                         </SheetHeader>
                         <ScrollArea className="h-[calc(75vh-65px)]">
                             <div className="p-4">
-                               <ProductShelf />
+                                <div className="grid grid-cols-2 gap-4">
+                                    {sellerProducts.slice(0, 10).map((product: any, index: number) => (
+                                        <Card key={index} className="w-full overflow-hidden h-full flex flex-col">
+                                            <Link href={`/product/${product.key}`} className="group block">
+                                                <div className="relative aspect-square bg-muted">
+                                                    <Image
+                                                        src={product.images[0]}
+                                                        alt={product.name}
+                                                        fill
+                                                        sizes="50vw"
+                                                        className="object-cover transition-transform group-hover:scale-105"
+                                                    />
+                                                </div>
+                                            </Link>
+                                            <div className="p-2 flex-grow flex flex-col">
+                                                <Link href={`/product/${product.key}`} className="group block">
+                                                    <h4 className="font-semibold truncate text-xs group-hover:underline">{product.name}</h4>
+                                                    <p className="font-bold text-sm">{product.price}</p>
+                                                </Link>
+                                                <div className="flex items-center justify-between text-xs text-muted-foreground mt-2">
+                                                    <div className="flex items-center gap-1 cursor-pointer hover:text-primary"><Package className="h-3 w-3" /> {product.stock} left</div>
+                                                    <div className="flex items-center gap-1 cursor-pointer hover:text-primary"><Users className="h-3 w-3" /> {product.sold} sold</div>
+                                                    <div className="flex items-center gap-1 cursor-pointer hover:text-primary"><Star className="h-3 w-3" /> {product.reviews}</div>
+                                                </div>
+                                            </div>
+                                            <CardFooter className="p-2 grid grid-cols-2 gap-2">
+                                                <Button variant="outline" size="sm" className="w-full text-xs h-8" onClick={() => onAddToCart(product)}><ShoppingCart className="mr-1 h-3 w-3" /> Cart</Button>
+                                                <Button size="sm" className="w-full text-xs h-8" onClick={() => onBuyNow(product)}>Buy Now</Button>
+                                            </CardFooter>
+                                        </Card>
+                                    ))}
+                                </div>
                             </div>
                         </ScrollArea>
                     </SheetContent>
@@ -1404,7 +1458,7 @@ const RelatedContent = ({ relatedStreams }: { relatedStreams: any[] }) => (
                 <Link href={`/stream/${s.id}`} key={s.id} className="group">
                     <div className="relative rounded-lg overflow-hidden aspect-[16/9] bg-muted">
                         <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
-                        <div className="absolute top-2 right-2 z-10"><Badge variant="secondary" className="bg-background/60 backdrop-blur-sm gap-1.5"><Users className="h-3 w-3"/>{s.viewers.toLocaleString()}</Badge></div>
+                        <div className="absolute top-2 right-2 z-10"><Badge variant="secondary" className="bg-background/60 backdrop-blur-sm"><Users className="w-3 h-3 mr-1.5" />{s.viewers.toLocaleString()}</Badge></div>
                     </div>
                     <div className="flex items-start gap-2 mt-2">
                         <Avatar className="w-7 h-7">
