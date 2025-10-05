@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import {
@@ -201,6 +202,65 @@ const reportReasons = [
     { value: "illegal", label: "Illegal goods or activities" },
     { value: "other", label: "Other" },
 ];
+
+const ProductShelf = ({ sellerProducts, handleAddToCart, handleBuyNow }: { sellerProducts: any[], handleAddToCart: (product: any) => void, handleBuyNow: (product: any) => void }) => {
+    const [isOpen, setIsOpen] = useState(false);
+    return (
+        <Sheet open={isOpen} onOpenChange={setIsOpen}>
+            <SheetTrigger asChild>
+                 <Button variant="outline" className="w-full justify-center">
+                    <div className="flex items-center gap-2">
+                        <ShoppingBag className="w-4 h-4 sm:mr-1" />
+                        <span>Products ({sellerProducts.length})</span>
+                    </div>
+                </Button>
+            </SheetTrigger>
+            <SheetContent side="bottom" className="h-[80vh] flex flex-col p-0">
+                <SheetHeader className="p-4 border-b">
+                    <SheetTitle>Products in this Stream</SheetTitle>
+                </SheetHeader>
+                <ScrollArea className="flex-grow">
+                    <div className="p-4 grid grid-cols-2 xs:grid-cols-2 gap-4">
+                        {sellerProducts.length > 0 ? (
+                            sellerProducts.slice(0, 10).map((product: any, index: number) => (
+                                <Card key={index} className="w-full overflow-hidden h-full flex flex-col">
+                                    <Link href={`/product/${product.key}`} className="group block">
+                                        <div className="relative aspect-square bg-muted">
+                                            <Image
+                                                src={product.images[0]?.preview || product.images[0]}
+                                                alt={product.name}
+                                                fill
+                                                sizes="50vw"
+                                                className="object-cover transition-transform group-hover:scale-105"
+                                            />
+                                        </div>
+                                    </Link>
+                                    <div className="p-2 flex-grow flex flex-col">
+                                        <Link href={`/product/${product.key}`} className="group block">
+                                            <h4 className="font-semibold truncate text-xs group-hover:underline">{product.name}</h4>
+                                            <p className="font-bold text-sm">{product.price}</p>
+                                        </Link>
+                                        <div className="flex items-center justify-between text-xs text-muted-foreground mt-2">
+                                            <div className="flex items-center gap-1 cursor-pointer hover:text-primary"><Package className="h-3 w-3" /> {product.stock} left</div>
+                                            <div className="flex items-center gap-1 cursor-pointer hover:text-primary"><Users className="h-3 w-3" /> {product.sold} sold</div>
+                                            <div className="flex items-center gap-1 cursor-pointer hover:text-primary"><Star className="h-3 w-3" /> {product.reviews}</div>
+                                        </div>
+                                    </div>
+                                    <CardFooter className="p-2 grid grid-cols-2 gap-2">
+                                        <Button variant="outline" size="sm" className="w-full text-xs h-8" onClick={() => { handleAddToCart(product); setIsOpen(false); }}><ShoppingCart className="mr-1 h-3 w-3" /> Cart</Button>
+                                        <Button size="sm" className="w-full text-xs h-8" onClick={() => { handleBuyNow(product); setIsOpen(false); }}>Buy Now</Button>
+                                    </CardFooter>
+                                </Card>
+                            ))
+                        ) : (
+                            <div className="col-span-2 text-center text-muted-foreground py-10">No products to show.</div>
+                        )}
+                    </div>
+                </ScrollArea>
+            </SheetContent>
+        </Sheet>
+    );
+};
 
 const PlayerSettingsDialog = ({ playbackRate, onPlaybackRateChange, skipInterval, onSkipIntervalChange, onClose }: {
     playbackRate: number,
@@ -416,64 +476,7 @@ const ReportDialog = ({ onSubmit }: { onSubmit: (reason: string, details: string
     )
 };
 
-const ProductShelf = ({ sellerProducts, handleAddToCart, handleBuyNow }: { sellerProducts: any[], handleAddToCart: (product: any) => void, handleBuyNow: (product: any) => void }) => {
-    const [isOpen, setIsOpen] = useState(false);
-    return (
-        <Sheet open={isOpen} onOpenChange={setIsOpen}>
-            <SheetTrigger asChild>
-                 <Button variant="outline" className="w-full justify-center">
-                    <div className="flex items-center gap-2">
-                        <ShoppingBag className="w-4 h-4 sm:mr-1" />
-                        <span>Products ({sellerProducts.length})</span>
-                    </div>
-                </Button>
-            </SheetTrigger>
-            <SheetContent side="bottom" className="h-[80vh] flex flex-col p-0">
-                <SheetHeader className="p-4 border-b">
-                    <SheetTitle>Products in this Stream</SheetTitle>
-                </SheetHeader>
-                <ScrollArea className="flex-grow">
-                    <div className="p-4 grid grid-cols-2 xs:grid-cols-2 gap-4">
-                        {sellerProducts.length > 0 ? (
-                            sellerProducts.slice(0, 10).map((product: any, index: number) => (
-                                <Card key={index} className="w-full overflow-hidden h-full flex flex-col">
-                                    <Link href={`/product/${product.key}`} className="group block">
-                                        <div className="relative aspect-square bg-muted">
-                                            <Image
-                                                src={product.images[0]?.preview || product.images[0]}
-                                                alt={product.name}
-                                                fill
-                                                sizes="50vw"
-                                                className="object-cover transition-transform group-hover:scale-105"
-                                            />
-                                        </div>
-                                    </Link>
-                                    <div className="p-2 flex-grow flex flex-col">
-                                        <Link href={`/product/${product.key}`} className="group block">
-                                            <h4 className="font-semibold truncate text-xs group-hover:underline">{product.name}</h4>
-                                            <p className="font-bold text-sm">{product.price}</p>
-                                        </Link>
-                                        <div className="flex items-center justify-between text-xs text-muted-foreground mt-2">
-                                            <div className="flex items-center gap-1 cursor-pointer hover:text-primary"><Package className="h-3 w-3" /> {product.stock} left</div>
-                                            <div className="flex items-center gap-1 cursor-pointer hover:text-primary"><Users className="h-3 w-3" /> {product.sold} sold</div>
-                                            <div className="flex items-center gap-1 cursor-pointer hover:text-primary"><Star className="h-3 w-3" /> {product.reviews}</div>
-                                        </div>
-                                    </div>
-                                    <CardFooter className="p-2 grid grid-cols-2 gap-2">
-                                        <Button variant="outline" size="sm" className="w-full text-xs h-8" onClick={() => { handleAddToCart(product); setIsOpen(false); }}><ShoppingCart className="mr-1 h-3 w-3" /> Cart</Button>
-                                        <Button size="sm" className="w-full text-xs h-8" onClick={() => { handleBuyNow(product); setIsOpen(false); }}>Buy Now</Button>
-                                    </CardFooter>
-                                </Card>
-                            ))
-                        ) : (
-                            <div className="col-span-2 text-center text-muted-foreground py-10">No products to show.</div>
-                        )}
-                    </div>
-                </ScrollArea>
-            </SheetContent>
-        </Sheet>
-    );
-};
+
 
 export default function StreamPage() {
     const router = useRouter();
@@ -1017,7 +1020,7 @@ export default function StreamPage() {
                         <LoadingSpinner />
                     </div>
                  ) : isMobile ? (
-                     <MobileLayout {...{ router, videoRef, playerRef, handlePlayPause, handleShare, handleMinimize, handleToggleFullscreen, isPaused, seller, streamData, handleFollowToggle, isFollowingState, sellerProducts, handlers, relatedStreams, isChatOpen, setIsChatOpen, renderWithHashtags, chatMessages, pinnedMessages, activeAuction, auctionTime, highestBid, totalBids, walletBalance, inlineAuctionCardRefs, onClose: () => setIsChatOpen(false), handleAddToCart, handleBuyNow, mobileView, setMobileView }} />
+                     <MobileLayout {...{ router, videoRef, playerRef, handlePlayPause, handleShare, handleMinimize, handleToggleFullscreen, isPaused, seller, streamData, handleFollowToggle, isFollowingState, sellerProducts, handlers, relatedStreams, isChatOpen, setIsChatOpen, renderWithHashtags, chatMessages, pinnedMessages, activeAuction, auctionTime, highestBid, totalBids, walletBalance, inlineAuctionCardRefs, onClose: () => setIsChatOpen(false), handleAddToCart, handleBuyNow, mobileView, setMobileView, isMuted, setIsMuted }} />
                  ) : (
                     <DesktopLayout 
                         videoRef={videoRef}
@@ -1158,80 +1161,86 @@ const DesktopLayout = (props: any) => (
 </div>
 );
 
-const MobileLayout = (props: any) => (
-  <div className="flex flex-col h-dvh overflow-hidden relative">
-    <header className="p-3 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-sm z-30 border-b h-16 shrink-0 w-full">
-        <div className="flex items-center gap-2">
-            <Button variant="ghost" size="icon" onClick={() => props.router.back()}>
-                <ArrowLeft className="h-6 w-6" />
-            </Button>
-            {props.seller && (
-            <div className="flex items-center gap-2 overflow-hidden">
-                <Avatar className="h-8 w-8">
-                <AvatarImage src={props.seller.avatarUrl} />
-                <AvatarFallback>{props.seller.name.charAt(0)}</AvatarFallback>
-                </Avatar>
-                <div className="overflow-hidden">
-                <h1 className="text-sm font-bold truncate">{props.seller.name}</h1>
-                <p className="text-xs text-muted-foreground">{props.streamData.viewerCount.toLocaleString()} viewers</p>
+const MobileLayout = (props: any) => {
+    const { isMuted, setIsMuted } = props;
+    return (
+        <div className="flex flex-col h-dvh overflow-hidden relative">
+            <header className="p-3 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-sm z-30 border-b h-16 shrink-0 w-full">
+                <div className="flex items-center gap-2">
+                    <Button variant="ghost" size="icon" onClick={() => props.router.back()}>
+                        <ArrowLeft className="h-6 w-6" />
+                    </Button>
+                    {props.seller && (
+                    <div className="flex items-center gap-2 overflow-hidden">
+                        <Avatar className="h-8 w-8">
+                        <AvatarImage src={props.seller.avatarUrl} />
+                        <AvatarFallback>{props.seller.name.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                        <div className="overflow-hidden">
+                        <h1 className="text-sm font-bold truncate">{props.seller.name}</h1>
+                        <p className="text-xs text-muted-foreground">{props.streamData.viewerCount.toLocaleString()} viewers</p>
+                        </div>
+                    </div>
+                    )}
                 </div>
+                <div className="flex items-center gap-2">
+                    <Button asChild variant="ghost" size="icon">
+                    <Link href="/cart">
+                        <ShoppingCart className="h-5 w-5" />
+                    </Link>
+                    </Button>
+                    <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon">
+                        <MoreVertical className="h-5 w-5" />
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                        <DropdownMenuItem onSelect={props.handleShare}><Share2 className="mr-2 h-4 w-4" />Share</DropdownMenuItem>
+                        <DropdownMenuItem onSelect={() => props.setIsSettingsOpen(true)}><Settings className="mr-2 h-4 w-4" />Playback Settings</DropdownMenuItem>
+                    </DropdownMenuContent>
+                    </DropdownMenu>
+                </div>
+            </header>
+
+            <div className="w-full aspect-video bg-black relative flex-shrink-0" ref={props.playerRef}>
+            <video ref={props.videoRef} src={props.streamData.streamUrl || "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"} className="w-full h-full object-cover" loop />
+            <div className="absolute inset-0 bg-black/10 flex items-center justify-center gap-4">
+                <Button variant="ghost" size="icon" className="text-white" onClick={props.handlePlayPause}>
+                    {props.isPaused ? <Play className="h-10 w-10 fill-white drop-shadow-lg" /> : <Pause className="h-10 w-10 fill-white drop-shadow-lg" />}
+                </Button>
+                 <Button variant="ghost" size="icon" className="text-white absolute bottom-2 right-2" onClick={() => setIsMuted((prev: any) => !prev)}>
+                    {isMuted ? <VolumeX className="h-6 w-6 drop-shadow-md" /> : <Volume2 className="h-6 w-6 drop-shadow-md" />}
+                </Button>
             </div>
+            </div>
+            
+            <div className="flex-1 overflow-hidden relative">
+                {props.mobileView === 'stream' ? (
+                    <ScrollArea className="h-full">
+                        <div className="p-4 space-y-6">
+                            <StreamInfo {...props}/>
+                            <RelatedContent {...props}/>
+                        </div>
+                    </ScrollArea>
+                ) : (
+                    <div className="h-full flex flex-col bg-background">
+                        <ChatPanel {...props} onClose={() => props.setMobileView('stream')} />
+                    </div>
+                )}
+            </div>
+
+            {props.mobileView === 'stream' && (
+                <div className="fixed bottom-4 left-4 z-20">
+                    <Button className="rounded-full shadow-lg h-12 px-6" onClick={() => props.setMobileView('chat')}>
+                        <MessageSquare className="mr-2 h-5 w-5"/>
+                        Show Chat
+                    </Button>
+                </div>
             )}
         </div>
-        <div className="flex items-center gap-2">
-            <Button asChild variant="ghost" size="icon">
-            <Link href="/cart">
-                <ShoppingCart className="h-5 w-5" />
-            </Link>
-            </Button>
-            <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon">
-                <MoreVertical className="h-5 w-5" />
-                </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-                <DropdownMenuItem onSelect={props.handleShare}><Share2 className="mr-2 h-4 w-4" />Share</DropdownMenuItem>
-                <DropdownMenuItem onSelect={() => props.setIsSettingsOpen(true)}><Settings className="mr-2 h-4 w-4" />Playback Settings</DropdownMenuItem>
-            </DropdownMenuContent>
-            </DropdownMenu>
-        </div>
-    </header>
-
-    <div className="w-full aspect-video bg-black relative flex-shrink-0" ref={props.playerRef}>
-      <video ref={props.videoRef} src={props.streamData.streamUrl || "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"} className="w-full h-full object-cover" loop />
-      <div className="absolute inset-0 bg-black/20 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-        <Button variant="ghost" size="icon" className="text-white" onClick={props.handlePlayPause}>
-          {props.isPaused ? <Play className="h-10 w-10 fill-white" /> : <Pause className="h-10 w-10 fill-white" />}
-        </Button>
-      </div>
-    </div>
-    
-    <div className="flex-1 overflow-hidden relative">
-        {props.mobileView === 'stream' ? (
-            <ScrollArea className="h-full">
-                <div className="p-4 space-y-6">
-                    <StreamInfo {...props}/>
-                    <RelatedContent {...props}/>
-                </div>
-            </ScrollArea>
-        ) : (
-            <div className="h-full flex flex-col bg-background">
-                <ChatPanel {...props} onClose={() => props.setMobileView('stream')} />
-            </div>
-        )}
-    </div>
-
-    {props.mobileView === 'stream' && (
-        <div className="fixed bottom-4 left-4 z-20">
-            <Button className="rounded-full shadow-lg h-12 px-6" onClick={() => props.setMobileView('chat')}>
-                <MessageSquare className="mr-2 h-5 w-5"/>
-                Show Chat
-            </Button>
-        </div>
-    )}
-  </div>
-);
+    );
+};
 
 const StreamInfo = ({ seller, streamData, handleFollowToggle, isFollowingState, sellerProducts, handleAddToCart, handleBuyNow, renderWithHashtags }: { seller: any, streamData: any, handleFollowToggle: any, isFollowingState: boolean, sellerProducts: any[], handleAddToCart: (product: any) => void, handleBuyNow: (product: any) => void, renderWithHashtags: (text: string) => React.ReactNode }) => {
     
@@ -1262,12 +1271,10 @@ const StreamInfo = ({ seller, streamData, handleFollowToggle, isFollowingState, 
                 </Link>
                   <Button
                     onClick={() => seller && handleFollowToggle(seller.id)}
-                    className={cn(
-                        "w-full sm:w-auto font-bold",
-                        isFollowingState && "bg-destructive hover:bg-destructive/90"
-                    )}
+                    variant={isFollowingState ? "outline" : "default"}
+                    className="w-full sm:w-auto"
                 >
-                    <Heart className="mr-2 h-4 w-4" />
+                    <UserPlus className="mr-2 h-4 w-4" />
                     {isFollowingState ? "Following" : "Follow"}
                 </Button>
             </div>
@@ -1317,3 +1324,4 @@ const RelatedContent = ({ relatedStreams }: { relatedStreams: any[] }) => (
 );
 
     
+
