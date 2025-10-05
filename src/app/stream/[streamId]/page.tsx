@@ -1235,39 +1235,74 @@ const MobileLayout = (props: any) => (
   </div>
 );
 
+const ProductShelf = ({ sellerProducts, handleAddToCart, handleBuyNow }: { sellerProducts: any[], handleAddToCart: (product: any) => void, handleBuyNow: (product: any) => void }) => {
+    const [isOpen, setIsOpen] = useState(false);
+    return (
+        <Sheet open={isOpen} onOpenChange={setIsOpen}>
+            <SheetTrigger asChild>
+                 <Button variant="outline" className="w-full justify-center">
+                    <div className="flex items-center gap-2">
+                        <ShoppingBag className="w-4 h-4 sm:mr-1" />
+                        <span>Products ({sellerProducts.length})</span>
+                    </div>
+                </Button>
+            </SheetTrigger>
+            <SheetContent side="bottom" className="h-[80vh] flex flex-col p-0">
+                <SheetHeader className="p-4 border-b">
+                    <SheetTitle>Products in this Stream</SheetTitle>
+                </SheetHeader>
+                <ScrollArea className="flex-grow">
+                    <div className="p-4 grid grid-cols-2 xs:grid-cols-2 gap-4">
+                        {sellerProducts.length > 0 ? (
+                            sellerProducts.slice(0, 10).map((product: any, index: number) => (
+                                <Card key={index} className="w-full overflow-hidden h-full flex flex-col">
+                                    <Link href={`/product/${product.key}`} className="group block">
+                                        <div className="relative aspect-square bg-muted">
+                                            <Image
+                                                src={product.images[0]?.preview || product.images[0]}
+                                                alt={product.name}
+                                                fill
+                                                sizes="50vw"
+                                                className="object-cover transition-transform group-hover:scale-105"
+                                            />
+                                        </div>
+                                    </Link>
+                                    <div className="p-2 flex-grow flex flex-col">
+                                        <Link href={`/product/${product.key}`} className="group block">
+                                            <h4 className="font-semibold truncate text-xs group-hover:underline">{product.name}</h4>
+                                            <p className="font-bold text-sm">{product.price}</p>
+                                        </Link>
+                                        <div className="flex items-center justify-between text-xs text-muted-foreground mt-2">
+                                            <div className="flex items-center gap-1 cursor-pointer hover:text-primary"><Package className="h-3 w-3" /> {product.stock} left</div>
+                                            <div className="flex items-center gap-1 cursor-pointer hover:text-primary"><Users className="h-3 w-3" /> {product.sold} sold</div>
+                                            <div className="flex items-center gap-1 cursor-pointer hover:text-primary"><Star className="h-3 w-3" /> {product.reviews}</div>
+                                        </div>
+                                    </div>
+                                    <CardFooter className="p-2 grid grid-cols-2 gap-2">
+                                        <Button variant="outline" size="sm" className="w-full text-xs h-8" onClick={() => { handleAddToCart(product); setIsOpen(false); }}><ShoppingCart className="mr-1 h-3 w-3" /> Cart</Button>
+                                        <Button size="sm" className="w-full text-xs h-8" onClick={() => { handleBuyNow(product); setIsOpen(false); }}>Buy Now</Button>
+                                    </CardFooter>
+                                </Card>
+                            ))
+                        ) : (
+                            <div className="col-span-2 text-center text-muted-foreground py-10">No products to show.</div>
+                        )}
+                    </div>
+                </ScrollArea>
+            </SheetContent>
+        </Sheet>
+    );
+};
 
 const StreamInfo = ({ seller, streamData, handleFollowToggle, isFollowingState, sellerProducts, handleAddToCart, handleBuyNow, renderWithHashtags }: { seller: any, streamData: any, handleFollowToggle: any, isFollowingState: boolean, sellerProducts: any[], handleAddToCart: (product: any) => void, handleBuyNow: (product: any) => void, renderWithHashtags: (text: string) => React.ReactNode }) => {
-    
-    const mockSocials = {
-        instagram: 'https://instagram.com/streamcart',
-        twitter: 'https://twitter.com/streamcart',
-        youtube: 'https://youtube.com/streamcart'
-    };
     
     return (
         <div className="space-y-4">
              <div className="mb-4">
-                <Collapsible>
-                    <h2 className="font-bold text-xl">{streamData.title || "Live Stream"}</h2>
-                     <CollapsibleContent className="CollapsibleContent">
-                         <div className="text-sm text-muted-foreground mt-2 space-y-4">
-                            <p>{renderWithHashtags(streamData.description || "Welcome to the live stream!")}</p>
-                            <div className="py-2 border-y flex flex-col sm:flex-row items-start sm:items-center gap-2 text-sm">
-                                <h4 className="font-semibold text-muted-foreground flex-shrink-0">Follow on:</h4>
-                                <div className="flex flex-wrap gap-x-4 gap-y-2">
-                                    <a href={mockSocials.instagram} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 text-primary hover:underline"><Instagram className="w-4 h-4"/> Instagram</a>
-                                    <a href={mockSocials.twitter} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 text-primary hover:underline"><Twitter className="w-4 h-4"/> Twitter/X</a>
-                                    <a href={mockSocials.youtube} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 text-primary hover:underline"><Youtube className="w-4 h-4"/> YouTube</a>
-                                </div>
-                            </div>
-                        </div>
-                    </CollapsibleContent>
-                     <CollapsibleTrigger asChild>
-                        <Button variant="link" className="text-xs p-0 h-auto">
-                            Read more
-                        </Button>
-                    </CollapsibleTrigger>
-                </Collapsible>
+                <h2 className="font-bold text-lg">Topic</h2>
+                <div className="text-sm text-muted-foreground mt-1 space-y-4">
+                    <p>{renderWithHashtags(streamData.description || "Welcome to the live stream!")}</p>
+                </div>
             </div>
 
             <div className="flex flex-col sm:flex-row items-center justify-between gap-2">
