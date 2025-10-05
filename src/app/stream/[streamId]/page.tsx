@@ -202,65 +202,6 @@ const reportReasons = [
     { value: "other", label: "Other" },
 ];
 
-const ProductShelf = ({ sellerProducts, handleAddToCart, handleBuyNow }: { sellerProducts: any[], handleAddToCart: (product: any) => void, handleBuyNow: (product: any) => void }) => {
-    const [isOpen, setIsOpen] = useState(false);
-    return (
-        <Sheet open={isOpen} onOpenChange={setIsOpen}>
-            <SheetTrigger asChild>
-                 <Button variant="outline" className="w-full justify-center">
-                    <div className="flex items-center gap-2">
-                        <ShoppingBag className="w-4 h-4 sm:mr-1" />
-                        <span>Products ({sellerProducts.length})</span>
-                    </div>
-                </Button>
-            </SheetTrigger>
-            <SheetContent side="bottom" className="h-[80vh] flex flex-col p-0">
-                <SheetHeader className="p-4 border-b">
-                    <SheetTitle>Products in this Stream</SheetTitle>
-                </SheetHeader>
-                <ScrollArea className="flex-grow">
-                    <div className="p-4 grid grid-cols-2 xs:grid-cols-2 gap-4">
-                        {sellerProducts.length > 0 ? (
-                            sellerProducts.slice(0, 10).map((product: any, index: number) => (
-                                <Card key={index} className="w-full overflow-hidden h-full flex flex-col">
-                                    <Link href={`/product/${product.key}`} className="group block">
-                                        <div className="relative aspect-square bg-muted">
-                                            <Image
-                                                src={product.images[0]?.preview || product.images[0]}
-                                                alt={product.name}
-                                                fill
-                                                sizes="50vw"
-                                                className="object-cover transition-transform group-hover:scale-105"
-                                            />
-                                        </div>
-                                    </Link>
-                                    <div className="p-2 flex-grow flex flex-col">
-                                        <Link href={`/product/${product.key}`} className="group block">
-                                            <h4 className="font-semibold truncate text-xs group-hover:underline">{product.name}</h4>
-                                            <p className="font-bold text-sm">{product.price}</p>
-                                        </Link>
-                                        <div className="flex items-center justify-between text-xs text-muted-foreground mt-2">
-                                            <div className="flex items-center gap-1 cursor-pointer hover:text-primary"><Package className="h-3 w-3" /> {product.stock} left</div>
-                                            <div className="flex items-center gap-1 cursor-pointer hover:text-primary"><Users className="h-3 w-3" /> {product.sold} sold</div>
-                                            <div className="flex items-center gap-1 cursor-pointer hover:text-primary"><Star className="h-3 w-3" /> {product.reviews}</div>
-                                        </div>
-                                    </div>
-                                    <CardFooter className="p-2 grid grid-cols-2 gap-2">
-                                        <Button variant="outline" size="sm" className="w-full text-xs h-8" onClick={() => { handleAddToCart(product); setIsOpen(false); }}><ShoppingCart className="mr-1 h-3 w-3" /> Cart</Button>
-                                        <Button size="sm" className="w-full text-xs h-8" onClick={() => { handleBuyNow(product); setIsOpen(false); }}>Buy Now</Button>
-                                    </CardFooter>
-                                </Card>
-                            ))
-                        ) : (
-                            <div className="col-span-2 text-center text-muted-foreground py-10">No products to show.</div>
-                        )}
-                    </div>
-                </ScrollArea>
-            </SheetContent>
-        </Sheet>
-    );
-};
-
 const PlayerSettingsDialog = ({ playbackRate, onPlaybackRateChange, skipInterval, onSkipIntervalChange, onClose }: {
     playbackRate: number,
     onPlaybackRateChange: (rate: number) => void,
@@ -473,6 +414,65 @@ const ReportDialog = ({ onSubmit }: { onSubmit: (reason: string, details: string
             </DialogFooter>
         </DialogContent>
     )
+};
+
+const ProductShelf = ({ sellerProducts, handleAddToCart, handleBuyNow }: { sellerProducts: any[], handleAddToCart: (product: any) => void, handleBuyNow: (product: any) => void }) => {
+    const [isOpen, setIsOpen] = useState(false);
+    return (
+        <Sheet open={isOpen} onOpenChange={setIsOpen}>
+            <SheetTrigger asChild>
+                 <Button variant="outline" className="w-full justify-center">
+                    <div className="flex items-center gap-2">
+                        <ShoppingBag className="w-4 h-4 sm:mr-1" />
+                        <span>Products ({sellerProducts.length})</span>
+                    </div>
+                </Button>
+            </SheetTrigger>
+            <SheetContent side="bottom" className="h-[80vh] flex flex-col p-0">
+                <SheetHeader className="p-4 border-b">
+                    <SheetTitle>Products in this Stream</SheetTitle>
+                </SheetHeader>
+                <ScrollArea className="flex-grow">
+                    <div className="p-4 grid grid-cols-2 xs:grid-cols-2 gap-4">
+                        {sellerProducts.length > 0 ? (
+                            sellerProducts.slice(0, 10).map((product: any, index: number) => (
+                                <Card key={index} className="w-full overflow-hidden h-full flex flex-col">
+                                    <Link href={`/product/${product.key}`} className="group block">
+                                        <div className="relative aspect-square bg-muted">
+                                            <Image
+                                                src={product.images[0]?.preview || product.images[0]}
+                                                alt={product.name}
+                                                fill
+                                                sizes="50vw"
+                                                className="object-cover transition-transform group-hover:scale-105"
+                                            />
+                                        </div>
+                                    </Link>
+                                    <div className="p-2 flex-grow flex flex-col">
+                                        <Link href={`/product/${product.key}`} className="group block">
+                                            <h4 className="font-semibold truncate text-xs group-hover:underline">{product.name}</h4>
+                                            <p className="font-bold text-sm">{product.price}</p>
+                                        </Link>
+                                        <div className="flex items-center justify-between text-xs text-muted-foreground mt-2">
+                                            <div className="flex items-center gap-1 cursor-pointer hover:text-primary"><Package className="h-3 w-3" /> {product.stock} left</div>
+                                            <div className="flex items-center gap-1 cursor-pointer hover:text-primary"><Users className="h-3 w-3" /> {product.sold} sold</div>
+                                            <div className="flex items-center gap-1 cursor-pointer hover:text-primary"><Star className="h-3 w-3" /> {product.reviews}</div>
+                                        </div>
+                                    </div>
+                                    <CardFooter className="p-2 grid grid-cols-2 gap-2">
+                                        <Button variant="outline" size="sm" className="w-full text-xs h-8" onClick={() => { handleAddToCart(product); setIsOpen(false); }}><ShoppingCart className="mr-1 h-3 w-3" /> Cart</Button>
+                                        <Button size="sm" className="w-full text-xs h-8" onClick={() => { handleBuyNow(product); setIsOpen(false); }}>Buy Now</Button>
+                                    </CardFooter>
+                                </Card>
+                            ))
+                        ) : (
+                            <div className="col-span-2 text-center text-muted-foreground py-10">No products to show.</div>
+                        )}
+                    </div>
+                </ScrollArea>
+            </SheetContent>
+        </Sheet>
+    );
 };
 
 export default function StreamPage() {
@@ -1134,8 +1134,8 @@ const DesktopLayout = (props: any) => (
             </div>
 
             <div className="p-4 space-y-6">
-                <StreamInfo seller={props.seller} streamData={props.streamData} handleFollowToggle={props.handleFollowToggle} isFollowingState={props.isFollowingState} sellerProducts={props.sellerProducts} handleAddToCart={props.handleAddToCart} handleBuyNow={props.handleBuyNow} renderWithHashtags={props.renderWithHashtags}/>
-                <RelatedContent relatedStreams={props.relatedStreams} />
+                <StreamInfo {...props}/>
+                <RelatedContent {...props} />
             </div>
         </main>
 
@@ -1159,7 +1159,7 @@ const DesktopLayout = (props: any) => (
 );
 
 const MobileLayout = (props: any) => {
-    const { isMuted, setIsMuted, handleGoLive, isLive, formatTime, currentTime, duration } = props;
+    const { isMuted, setIsMuted, handleGoLive, isLive, formatTime, currentTime, duration, setIsSettingsOpen, handleShare, handleToggleFullscreen } = props;
     return (
         <div className="flex flex-col h-dvh overflow-hidden relative">
             <header className="p-3 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-sm z-30 border-b h-16 shrink-0 w-full">
@@ -1193,8 +1193,8 @@ const MobileLayout = (props: any) => {
                             </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                            <DropdownMenuItem onSelect={props.handleShare}><Share2 className="mr-2 h-4 w-4" />Share</DropdownMenuItem>
-                            <DropdownMenuItem onSelect={() => props.setIsSettingsOpen(true)}><Settings className="mr-2 h-4 w-4" />Playback Settings</DropdownMenuItem>
+                            <DropdownMenuItem onSelect={handleShare}><Share2 className="mr-2 h-4 w-4" />Share</DropdownMenuItem>
+                            <DropdownMenuItem onSelect={() => setIsSettingsOpen(true)}><Settings className="mr-2 h-4 w-4" />Playback Settings</DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>
                 </div>
@@ -1203,14 +1203,16 @@ const MobileLayout = (props: any) => {
             <div className="w-full aspect-video bg-black relative flex-shrink-0" ref={props.playerRef}>
                 <video ref={props.videoRef} src={props.streamData.streamUrl || "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"} className="w-full h-full object-cover" loop onClick={props.handlePlayPause}/>
                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent flex flex-col justify-end p-2 text-white">
+                    <div className="absolute inset-0 flex items-center justify-center gap-4">
+                        <Button variant="ghost" size="icon" className="text-white w-12 h-12" onClick={props.handlePlayPause}>
+                            {props.isPaused ? <Play className="h-8 w-8 fill-white" /> : <Pause className="h-8 w-8 fill-white" />}
+                        </Button>
+                    </div>
                     <div className="w-full cursor-pointer py-1" ref={props.progressContainerRef} onClick={props.handleProgressClick}>
                         <Progress value={(currentTime / duration) * 100} valueBuffer={(props.buffered / duration) * 100} isLive={isLive} className="h-1.5" />
                     </div>
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-1">
-                            <Button variant="ghost" size="icon" className="w-9 h-9" onClick={props.handlePlayPause}>
-                                {props.isPaused ? <Play className="w-5 h-5 fill-current" /> : <Pause className="w-5 h-5 fill-current" />}
-                            </Button>
                              <Button
                                 variant="destructive"
                                 className="gap-1 h-7 px-2 text-xs"
@@ -1220,8 +1222,8 @@ const MobileLayout = (props: any) => {
                                 <div className={cn("h-1.5 w-1.5 rounded-full bg-white", !isLive && "animate-pulse")} />
                                 {isLive ? 'LIVE' : 'Go Live'}
                             </Button>
+                            <p className="text-xs font-mono">{formatTime(currentTime)} / {formatTime(duration)}</p>
                         </div>
-                        <p className="text-xs font-mono">{formatTime(currentTime)} / {formatTime(duration)}</p>
                         <div className="flex items-center gap-0.5">
                              <Button variant="ghost" size="icon" className="w-9 h-9" onClick={() => setIsMuted((prev: any) => !prev)}>
                                 {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
@@ -1236,7 +1238,7 @@ const MobileLayout = (props: any) => {
             
             <div className="flex-1 overflow-hidden relative">
                 {props.mobileView === 'stream' ? (
-                    <ScrollArea className="h-full">
+                    <ScrollArea className="h-full no-scrollbar">
                         <div className="p-4 space-y-6">
                             <StreamInfo {...props}/>
                             <RelatedContent {...props}/>
@@ -1261,18 +1263,12 @@ const MobileLayout = (props: any) => {
     );
 };
 
-const StreamInfo = ({ seller, streamData, handleFollowToggle, isFollowingState, sellerProducts, handleAddToCart, handleBuyNow, renderWithHashtags }: { seller: any, streamData: any, handleFollowToggle: any, isFollowingState: boolean, sellerProducts: any[], handleAddToCart: (product: any) => void, handleBuyNow: (product: any) => void, renderWithHashtags: (text: string) => React.ReactNode }) => {
+const StreamInfo = (props: any) => {
+    const { seller, streamData, handleFollowToggle, isFollowingState, sellerProducts, handleAddToCart, handleBuyNow, renderWithHashtags } = props;
     
     return (
         <div className="space-y-4">
-             <div className="mb-4">
-                <h2 className="font-bold text-lg">Topic</h2>
-                <div className="text-sm text-muted-foreground mt-1 space-y-4">
-                    <p>{renderWithHashtags(streamData.description || "Welcome to the live stream!")}</p>
-                </div>
-            </div>
-
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-2">
+             <div className="flex flex-col sm:flex-row items-center justify-between gap-2">
                 <Link href={`/seller/profile?userId=${seller.id}`} className="flex items-center gap-3 group w-full">
                     <Avatar className="h-10 w-10">
                         <AvatarImage src={seller.avatarUrl} />
@@ -1296,6 +1292,13 @@ const StreamInfo = ({ seller, streamData, handleFollowToggle, isFollowingState, 
                     <UserPlus className="mr-2 h-4 w-4" />
                     {isFollowingState ? "Following" : "Follow"}
                 </Button>
+            </div>
+
+             <div className="mb-4">
+                <h2 className="font-bold text-lg">Topic</h2>
+                <div className="text-sm text-muted-foreground mt-1 space-y-4">
+                    <p>{renderWithHashtags(streamData.description || "Welcome to the live stream!")}</p>
+                </div>
             </div>
             
             <ProductShelf sellerProducts={sellerProducts} handleAddToCart={handleAddToCart} handleBuyNow={handleBuyNow} />
@@ -1343,3 +1346,4 @@ const RelatedContent = ({ relatedStreams }: { relatedStreams: any[] }) => (
 );
 
     
+
