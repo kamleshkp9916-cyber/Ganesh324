@@ -1186,25 +1186,14 @@ const MobileLayout = (props: any) => {
                             <ShoppingCart className="h-5 w-5" />
                         </Link>
                     </Button>
-                     <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon">
-                                <MoreVertical className="h-5 w-5" />
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                            <DropdownMenuItem onSelect={handleShare}><Share2 className="mr-2 h-4 w-4" />Share</DropdownMenuItem>
-                            <DropdownMenuItem onSelect={() => setIsSettingsOpen(true)}><Settings className="mr-2 h-4 w-4" />Playback Settings</DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
                 </div>
             </header>
 
             <div className="w-full aspect-video bg-black relative flex-shrink-0" ref={props.playerRef}>
                 <video ref={props.videoRef} src={props.streamData.streamUrl || "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"} className="w-full h-full object-cover" loop onClick={props.handlePlayPause}/>
                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent flex flex-col justify-end p-2 text-white">
-                    <div className="absolute inset-0 flex items-center justify-center gap-4">
-                        <Button variant="ghost" size="icon" className="text-white w-12 h-12" onClick={props.handlePlayPause}>
+                    <div className="absolute inset-0 bg-black/10 flex items-center justify-center gap-4">
+                         <Button variant="ghost" size="icon" className="text-white w-12 h-12" onClick={props.handlePlayPause}>
                             {props.isPaused ? <Play className="h-8 w-8 fill-white" /> : <Pause className="h-8 w-8 fill-white" />}
                         </Button>
                     </div>
@@ -1228,6 +1217,8 @@ const MobileLayout = (props: any) => {
                              <Button variant="ghost" size="icon" className="w-9 h-9" onClick={() => setIsMuted((prev: any) => !prev)}>
                                 {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
                             </Button>
+                             <Button variant="ghost" size="icon" className="w-9 h-9" onClick={handleShare}><Share2 className="w-5 h-5"/></Button>
+                            <Button variant="ghost" size="icon" className="w-9 h-9" onClick={() => setIsSettingsOpen(true)}><Settings className="w-5 h-5"/></Button>
                             <Button variant="ghost" size="icon" className="w-9 h-9" onClick={props.handleToggleFullscreen}>
                                 <Maximize className="w-5 h-5"/>
                             </Button>
@@ -1264,7 +1255,7 @@ const MobileLayout = (props: any) => {
 };
 
 const StreamInfo = (props: any) => {
-    const { seller, streamData, handleFollowToggle, isFollowingState, sellerProducts, handleAddToCart, handleBuyNow, renderWithHashtags } = props;
+    const { seller, streamData, handleFollowToggle, isFollowingState, renderWithHashtags } = props;
     
     return (
         <div className="space-y-4">
@@ -1293,15 +1284,15 @@ const StreamInfo = (props: any) => {
                     {isFollowingState ? "Following" : "Follow"}
                 </Button>
             </div>
-
-             <div className="mb-4">
+            
+            <div className="mb-4">
                 <h2 className="font-bold text-lg">Topic</h2>
                 <div className="text-sm text-muted-foreground mt-1 space-y-4">
                     <p>{renderWithHashtags(streamData.description || "Welcome to the live stream!")}</p>
                 </div>
             </div>
-            
-            <ProductShelf sellerProducts={sellerProducts} handleAddToCart={handleAddToCart} handleBuyNow={handleBuyNow} />
+
+            <ProductShelf {...props} />
         </div>
     );
 };
@@ -1346,4 +1337,5 @@ const RelatedContent = ({ relatedStreams }: { relatedStreams: any[] }) => (
 );
 
     
+
 
