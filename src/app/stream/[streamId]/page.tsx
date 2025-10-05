@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import {
@@ -959,7 +960,7 @@ export default function StreamPage() {
                         <LoadingSpinner />
                     </div>
                  ) : isMobile ? (
-                     <MobileLayout {...{...props, router, videoRef, playerRef, handlePlayPause, handleShare, handleMinimize, handleToggleFullscreen, isPaused, seller, streamData, handleFollowToggle, isFollowingState, sellerProducts, handlers, relatedStreams, isChatOpen, setIsChatOpen, renderWithHashtags }} />
+                     <MobileLayout {...{ router, videoRef, playerRef, handlePlayPause, handleShare, handleMinimize, handleToggleFullscreen, isPaused, seller, streamData, handleFollowToggle, isFollowingState, sellerProducts, handlers, relatedStreams, isChatOpen, setIsChatOpen, renderWithHashtags }} />
                  ) : (
                     <DesktopLayout 
                         videoRef={videoRef}
@@ -1151,30 +1152,26 @@ const MobileLayout = (props: any) => {
           </Button>
         </div>
       </div>
-
-      <div className="flex-1 flex flex-col overflow-hidden">
-        {showChat ? (
-            <ChatPanel {...props} onClose={() => setShowChat(false)} />
-        ) : (
-          <ScrollArea className="flex-1">
-            <div className="p-4 space-y-6">
-              <StreamInfo {...props} />
-              <RelatedContent {...props} />
-            </div>
-          </ScrollArea>
-        )}
-      </div>
-
-      {!showChat && (
-        <div className="fixed bottom-4 left-4 z-20">
-          <Button
-            className="rounded-full shadow-lg h-12 px-6"
-            onClick={() => setShowChat(true)}
-          >
-            <MessageSquare className="mr-2 h-5 w-5" />
-            Show Chat
-          </Button>
+      
+      <div className="flex-1 overflow-y-auto">
+        <div className="p-4 space-y-6">
+            <StreamInfo seller={props.seller} streamData={props.streamData} handleFollowToggle={props.handleFollowToggle} isFollowingState={props.isFollowingState} sellerProducts={props.sellerProducts} onAddToCart={props.handlers.onAddToCart} onBuyNow={props.handlers.onBuyNow} renderWithHashtags={props.renderWithHashtags}/>
+            <RelatedContent relatedStreams={props.relatedStreams} />
         </div>
+      </div>
+      <Sheet open={props.isChatOpen} onOpenChange={props.setIsChatOpen}>
+        <SheetContent side="bottom" className="h-[80vh] flex flex-col p-0 bg-[#0b0b0c]" overlayClassName="bg-black/20">
+          <ChatPanel {...props} onClose={() => props.setIsChatOpen(false)} />
+        </SheetContent>
+      </Sheet>
+
+      {!props.isChatOpen && (
+          <div className="fixed bottom-4 left-4 z-20">
+            <Button className="rounded-full shadow-lg h-12 px-6" onClick={() => props.setIsChatOpen(true)}>
+              <MessageSquare className="mr-2 h-5 w-5"/>
+              Show Chat
+            </Button>
+          </div>
       )}
     </div>
   );
