@@ -1237,44 +1237,38 @@ const StreamInfo = ({ seller, streamData, handleFollowToggle, isFollowingState, 
     const isMobile = useIsMobile();
     
     const ProductShelf = () => (
-        <Carousel opts={{ align: "start" }} className="w-full">
-            <CarouselContent className="-ml-2">
-                {sellerProducts.map((product, index) => (
-                    <CarouselItem key={index} className="basis-[45%] sm:basis-1/3 md:basis-1/4 lg:basis-1/5 pl-2">
-                            <Card className="w-full overflow-hidden h-full flex flex-col">
-                            <Link href={`/product/${product.key}`} className="group block">
-                                <div className="relative aspect-square bg-muted">
-                                    <Image
-                                        src={product.images[0]}
-                                        alt={product.name}
-                                        fill
-                                        sizes="(max-width: 640px) 45vw, (max-width: 768px) 33vw, 20vw"
-                                        className="object-cover transition-transform group-hover:scale-105"
-                                    />
-                                </div>
-                            </Link>
-                            <div className="p-2 flex-grow flex flex-col">
-                                <Link href={`/product/${product.key}`} className="group block">
-                                    <h4 className="font-semibold truncate text-xs group-hover:underline">{product.name}</h4>
-                                    <p className="font-bold text-sm">{product.price}</p>
-                                </Link>
-                                <div className="flex items-center justify-between text-xs text-muted-foreground mt-2">
-                                    <div className="flex items-center gap-1 cursor-pointer hover:text-primary"><Package className="h-3 w-3" /> {product.stock} left</div>
-                                    <div className="flex items-center gap-1 cursor-pointer hover:text-primary"><Users className="h-3 w-3" /> {product.sold} sold</div>
-                                    <div className="flex items-center gap-1 cursor-pointer hover:text-primary"><Star className="h-3 w-3" /> {product.reviews}</div>
-                                </div>
-                            </div>
-                            <CardFooter className="p-2 grid grid-cols-2 gap-2">
-                                <Button variant="outline" size="sm" className="w-full text-xs h-8" onClick={() => onAddToCart(product)}><ShoppingCart className="mr-1 h-3 w-3" /> Cart</Button>
-                                <Button size="sm" className="w-full text-xs h-8" onClick={() => onBuyNow(product)}>Buy Now</Button>
-                            </CardFooter>
-                        </Card>
-                    </CarouselItem>
-                ))}
-            </CarouselContent>
-            <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2 hidden sm:flex" />
-            <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2 hidden sm:flex" />
-        </Carousel>
+      <div className="grid grid-cols-2 gap-2">
+        {sellerProducts.slice(0, 10).map((product, index) => (
+          <Card key={index} className="w-full overflow-hidden h-full flex flex-col">
+            <Link href={`/product/${product.key}`} className="group block">
+              <div className="relative aspect-square bg-muted">
+                <Image
+                  src={product.images[0]}
+                  alt={product.name}
+                  fill
+                  sizes="(max-width: 640px) 50vw, 33vw"
+                  className="object-cover transition-transform group-hover:scale-105"
+                />
+              </div>
+            </Link>
+            <div className="p-2 flex-grow flex flex-col">
+              <Link href={`/product/${product.key}`} className="group block">
+                <h4 className="font-semibold truncate text-xs group-hover:underline">{product.name}</h4>
+                <p className="font-bold text-sm">{product.price}</p>
+              </Link>
+              <div className="flex items-center justify-between text-xs text-muted-foreground mt-2">
+                <div className="flex items-center gap-1 cursor-pointer hover:text-primary"><Package className="h-3 w-3" /> {product.stock} left</div>
+                <div className="flex items-center gap-1 cursor-pointer hover:text-primary"><Users className="h-3 w-3" /> {product.sold} sold</div>
+                <div className="flex items-center gap-1 cursor-pointer hover:text-primary"><Star className="h-3 w-3" /> {product.reviews}</div>
+              </div>
+            </div>
+            <CardFooter className="p-2 grid grid-cols-2 gap-2">
+              <Button variant="outline" size="sm" className="w-full text-xs h-8" onClick={() => onAddToCart(product)}><ShoppingCart className="mr-1 h-3 w-3" /> Cart</Button>
+              <Button size="sm" className="w-full text-xs h-8" onClick={() => onBuyNow(product)}>Buy Now</Button>
+            </CardFooter>
+          </Card>
+        ))}
+      </div>
     );
 
     return (
@@ -1358,7 +1352,44 @@ const StreamInfo = ({ seller, streamData, handleFollowToggle, isFollowingState, 
                         </div>
                     </div>
                     <CollapsibleContent className="mt-4">
-                        <ProductShelf />
+                      <Carousel opts={{ align: "start" }} className="w-full">
+                          <CarouselContent className="-ml-2">
+                              {sellerProducts.map((product, index) => (
+                                  <CarouselItem key={index} className="basis-[45%] sm:basis-1/3 md:basis-1/4 lg:basis-1/5 pl-2">
+                                          <Card className="w-full overflow-hidden h-full flex flex-col">
+                                          <Link href={`/product/${product.key}`} className="group block">
+                                              <div className="relative aspect-square bg-muted">
+                                                  <Image
+                                                      src={product.images[0]}
+                                                      alt={product.name}
+                                                      fill
+                                                      sizes="(max-width: 640px) 45vw, (max-width: 768px) 33vw, 20vw"
+                                                      className="object-cover transition-transform group-hover:scale-105"
+                                                  />
+                                              </div>
+                                          </Link>
+                                          <div className="p-2 flex-grow flex flex-col">
+                                              <Link href={`/product/${product.key}`} className="group block">
+                                                  <h4 className="font-semibold truncate text-xs group-hover:underline">{product.name}</h4>
+                                                  <p className="font-bold text-sm">{product.price}</p>
+                                              </Link>
+                                              <div className="flex items-center justify-between text-xs text-muted-foreground mt-2">
+                                                  <div className="flex items-center gap-1 cursor-pointer hover:text-primary"><Package className="h-3 w-3" /> {product.stock} left</div>
+                                                  <div className="flex items-center gap-1 cursor-pointer hover:text-primary"><Users className="h-3 w-3" /> {product.sold} sold</div>
+                                                  <div className="flex items-center gap-1 cursor-pointer hover:text-primary"><Star className="h-3 w-3" /> {product.reviews}</div>
+                                              </div>
+                                          </div>
+                                          <CardFooter className="p-2 grid grid-cols-2 gap-2">
+                                              <Button variant="outline" size="sm" className="w-full text-xs h-8" onClick={() => onAddToCart(product)}><ShoppingCart className="mr-1 h-3 w-3" /> Cart</Button>
+                                              <Button size="sm" className="w-full text-xs h-8" onClick={() => onBuyNow(product)}>Buy Now</Button>
+                                          </CardFooter>
+                                      </Card>
+                                  </CarouselItem>
+                              ))}
+                          </CarouselContent>
+                          <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2 hidden sm:flex" />
+                          <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2 hidden sm:flex" />
+                      </Carousel>
                     </CollapsibleContent>
                 </Collapsible>
             )}
