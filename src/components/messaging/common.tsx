@@ -474,7 +474,7 @@ export const ChatPanel = ({
                 </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-                <DropdownMenuItem onSelect={handlers.onReportStream}>
+                 <DropdownMenuItem onSelect={handlers.onReportStream}>
                     <Flag className="mr-2 h-4 w-4" /> Report Stream
                 </DropdownMenuItem>
                 <FeedbackDialog>
@@ -487,6 +487,9 @@ export const ChatPanel = ({
                 </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
+          <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-white lg:hidden" onClick={onClose}>
+            <X className="h-5 w-5" />
+          </Button>
         </div>
       </header>
       <ScrollArea className="flex-grow" ref={chatContainerRef} onScroll={handleManualScroll}>
@@ -508,9 +511,11 @@ export const ChatPanel = ({
                          </Avatar>
                           <div className="flex-grow">
                              <p className="leading-relaxed break-words text-sm text-[#E6ECEF]">
-                                 <b className="font-semibold text-sm mr-1.5" style={{ color: msg.userColor || 'inherit' }}>{msg.user}:</b>
-                                 {msg.replyingTo && <span className="text-primary font-semibold mr-1">@{msg.replyingTo}</span>}
-                                 {msg.text}
+                                 <b className="font-semibold text-xs mr-1.5" style={{ color: msg.userColor || 'inherit' }}>{msg.user}:</b>
+                                 <span className="text-sm">
+                                    {msg.replyingTo && <span className="text-primary font-semibold mr-1">@{msg.replyingTo}</span>}
+                                    {msg.text}
+                                 </span>
                              </p>
                           </div>
                           <DropdownMenu>

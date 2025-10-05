@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import {
@@ -444,7 +445,7 @@ export default function StreamPage() {
     const [activeAuction, setActiveAuction] = useState<any | null>(null);
     const [isBidDialogOpen, setIsBidDialogOpen] = useState(false);
     const [isBidHistoryOpen, setIsBidHistoryOpen] = useState(false);
-    const [showGoToTop, setShowGoToTop] = useState(false);
+    const [showScrollToBottom, setShowScrollToBottom] = useState(false);
     const isMobile = useIsMobile();
     const [isMobileChatVisible, setIsMobileChatVisible] = useState(true);
     
@@ -1053,12 +1054,14 @@ const DesktopLayout = (props: any) => (
             </div>
             )}
         </div>
-         <Button asChild variant="ghost">
-          <Link href="/cart">
-            <ShoppingCart className="mr-2 h-4 w-4" />
-            My Cart
-          </Link>
-        </Button>
+        <div className="flex items-center gap-2">
+            <Button asChild variant="ghost">
+                <Link href="/cart">
+                    <ShoppingCart className="mr-2 h-4 w-4" />
+                    My Cart
+                </Link>
+            </Button>
+        </div>
     </header>
     <div className="flex-1 grid grid-cols-[1fr,384px] overflow-hidden">
         <main className="flex-1 overflow-y-auto no-scrollbar" ref={props.mainScrollRef} onScroll={props.handleMainScroll}>
@@ -1152,28 +1155,27 @@ const MobileLayout = (props: any) => (
     
     <div className="w-full aspect-video bg-black relative flex-shrink-0" ref={props.playerRef}>
         <video ref={props.videoRef} src={props.streamData.streamUrl || "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"} className="w-full h-full object-cover" loop />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent flex flex-col justify-end p-2 text-white">
+        <div className="absolute inset-0 bg-black/20 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center">
+            <Button variant="ghost" size="icon" className="w-16 h-16 text-white" onClick={props.handlePlayPause}>
+                {props.isPaused ? <Play className="w-10 h-10 fill-current" /> : <Pause className="w-10 h-10 fill-current" />}
+            </Button>
+        </div>
+        <div className="absolute inset-x-0 bottom-0 p-2">
             <div className="w-full cursor-pointer py-1" ref={props.progressContainerRef} onClick={props.handleProgressClick}>
                 <Progress value={(props.currentTime / props.duration) * 100} isLive={props.isLive} className="h-1.5" />
             </div>
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1">
-                    <Button variant="ghost" size="icon" className="w-9 h-9" onClick={props.handlePlayPause}>
-                        {props.isPaused ? <Play className="w-5 h-5 fill-current" /> : <Pause className="w-5 h-5 fill-current" />}
-                    </Button>
-                    <Button variant="ghost" size="icon" className="w-9 h-9" onClick={() => props.setIsMuted((prev: any) => !prev)}>
-                        {props.isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
-                    </Button>
-                     <p className="text-xs font-mono">{props.formatTime(props.currentTime)}</p>
+                    <p className="text-xs font-mono text-white">{props.formatTime(props.currentTime)}</p>
                 </div>
                 <div className="flex items-center gap-1">
-                    <Button variant="ghost" size="icon" className="w-9 h-9" onClick={props.handleMinimize}><PictureInPicture className="w-5 h-5"/></Button>
-                    <Button variant="ghost" size="icon" className="w-9 h-9" onClick={props.handleToggleFullscreen}><Maximize className="w-5 h-5"/></Button>
+                    <Button variant="ghost" size="icon" className="h-7 w-7 text-white" onClick={props.handleMinimize}><PictureInPicture className="w-4 h-4"/></Button>
+                    <Button variant="ghost" size="icon" className="h-7 w-7 text-white" onClick={props.handleToggleFullscreen}><Maximize className="w-4 h-4"/></Button>
                 </div>
             </div>
         </div>
     </div>
-    <div className="flex-1 overflow-hidden">
+    <div className="flex-1 overflow-hidden relative">
       {props.isMobileChatVisible ? (
          <ChatPanel
             seller={props.seller}
@@ -1194,6 +1196,12 @@ const MobileLayout = (props: any) => (
             <StreamInfo seller={props.seller} streamData={props.streamData} handleFollowToggle={props.handleFollowToggle} isFollowingState={props.isFollowingState} sellerProducts={props.sellerProducts} onAddToCart={props.handlers.onAddToCart} onBuyNow={props.handlers.onBuyNow}/>
             <RelatedContent relatedStreams={props.relatedStreams} />
           </div>
+           <div className="fixed bottom-4 right-4 z-20">
+                <Button onClick={() => props.setIsMobileChatVisible(true)}>
+                    <MessageSquare className="mr-2 h-4 w-4" />
+                    Show Chat
+                </Button>
+            </div>
         </ScrollArea>
       )}
     </div>
