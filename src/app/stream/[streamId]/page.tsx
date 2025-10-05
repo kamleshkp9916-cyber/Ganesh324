@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import {
@@ -424,50 +425,68 @@ const ProductShelfContent = ({ sellerProducts, handleAddToCart, handleBuyNow, is
                     <SheetTitle>Products in this Stream</SheetTitle>
                 </SheetHeader>
             )}
-            <ScrollArea className="flex-grow">
-                <div className="p-4 grid grid-cols-2 xs:grid-cols-2 gap-4">
+            <Carousel
+                opts={{
+                    align: "start",
+                }}
+                className="w-full"
+            >
+                <CarouselContent className="-ml-2 md:-ml-4">
                     {sellerProducts.length > 0 ? (
                         sellerProducts.slice(0, 10).map((product: any, index: number) => (
-                            <Card key={index} className="w-full overflow-hidden h-full flex flex-col">
-                                <Link href={`/product/${product.key}`} className="group block">
-                                    <div className="relative aspect-square bg-muted">
-                                        <Image
-                                            src={product.images[0]?.preview || product.images[0]}
-                                            alt={product.name}
-                                            fill
-                                            sizes="50vw"
-                                            className="object-cover transition-transform group-hover:scale-105"
-                                        />
-                                    </div>
-                                </Link>
-                                <div className="p-2 flex-grow flex flex-col">
+                            <CarouselItem key={index} className="basis-1/2 sm:basis-1/3 lg:basis-1/4 pl-2 md:pl-4">
+                                <Card className="w-full overflow-hidden h-full flex flex-col">
                                     <Link href={`/product/${product.key}`} className="group block">
-                                        <h4 className="font-semibold truncate text-xs group-hover:underline">{product.name}</h4>
-                                        <p className="font-bold text-sm">{product.price}</p>
+                                        <div className="relative aspect-square bg-muted">
+                                            <Image
+                                                src={product.images[0]?.preview || product.images[0]}
+                                                alt={product.name}
+                                                fill
+                                                sizes="50vw"
+                                                className="object-cover transition-transform group-hover:scale-105"
+                                            />
+                                            {product.stock === 0 && (
+                                                <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                                                    <Badge variant="destructive">Out of Stock</Badge>
+                                                </div>
+                                            )}
+                                        </div>
                                     </Link>
-                                    <div className="flex items-center justify-between text-xs text-muted-foreground mt-2">
-                                        <div className="flex items-center gap-1 cursor-pointer hover:text-primary"><Package className="h-3 w-3" /> {product.stock} left</div>
-                                        <div className="flex items-center gap-1 cursor-pointer hover:text-primary"><Users className="h-3 w-3" /> {product.sold} sold</div>
-                                        <div className="flex items-center gap-1 cursor-pointer hover:text-primary"><Star className="h-3 w-3" /> {product.reviews}</div>
+                                    <div className="p-2 flex-grow flex flex-col">
+                                        <Link href={`/product/${product.key}`} className="group block">
+                                            <h4 className="font-semibold truncate text-xs group-hover:underline">{product.name}</h4>
+                                            <p className="font-bold text-sm">{product.price}</p>
+                                        </Link>
+                                        <div className="flex items-center justify-between text-xs text-muted-foreground mt-2">
+                                            <div className="flex items-center gap-1 cursor-pointer hover:text-primary"><Package className="h-3 w-3" /> {product.stock} left</div>
+                                            <div className="flex items-center gap-1 cursor-pointer hover:text-primary"><Users className="h-3 w-3" /> {product.sold} sold</div>
+                                            <div className="flex items-center gap-1 cursor-pointer hover:text-primary"><Star className="h-3 w-3" /> {product.reviews}</div>
+                                        </div>
                                     </div>
-                                </div>
-                                <CardFooter className="p-2 grid grid-cols-2 gap-2">
-                                    <Button variant="outline" size="sm" className="w-full text-xs h-8" onClick={() => { handleAddToCart(product); onClose(); }}><ShoppingCart className="mr-1 h-3 w-3" /> Cart</Button>
-                                    <Button size="sm" className="w-full text-xs h-8" onClick={() => { handleBuyNow(product); onClose(); }}>Buy Now</Button>
-                                </CardFooter>
-                            </Card>
+                                    <CardFooter className="p-2 grid grid-cols-1 gap-2">
+                                        {product.stock > 0 ? (
+                                            <>
+                                                <Button variant="outline" size="sm" className="w-full text-xs h-8" onClick={() => { handleAddToCart(product); onClose(); }}><ShoppingCart className="mr-1 h-3 w-3" /> Cart</Button>
+                                                <Button size="sm" className="w-full text-xs h-8" onClick={() => { handleBuyNow(product); onClose(); }}>Buy Now</Button>
+                                            </>
+                                        ) : (
+                                            <Button size="sm" className="w-full text-xs h-8" onClick={() => { toast({ title: "We'll let you know!", description: `You will be notified when ${product.name} is back in stock.`}); onClose(); }}>Notify Me</Button>
+                                        )}
+                                    </CardFooter>
+                                </Card>
+                            </CarouselItem>
                         ))
                     ) : (
                         <div className="col-span-2 text-center text-muted-foreground py-10">No products to show.</div>
                     )}
-                </div>
-            </ScrollArea>
+                </CarouselContent>
+                <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2 hidden md:flex" />
+                <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2 hidden md:flex" />
+            </Carousel>
         </>
     );
 };
-
-
-const ProductShelf = ({ sellerProducts, handleAddToCart, handleBuyNow }: { sellerProducts: any[], handleAddToCart: (product: any) => void, handleBuyNow: (product: any) => void }) => {
+const ProductShelf = ({ sellerProducts, handleAddToCart, handleBuyNow, toast }: { sellerProducts: any[], handleAddToCart: (product: any) => void, handleBuyNow: (product: any) => void, toast: any }) => {
     const [isOpen, setIsOpen] = useState(false);
     const isMobile = useIsMobile();
     
@@ -489,6 +508,7 @@ const ProductShelf = ({ sellerProducts, handleAddToCart, handleBuyNow }: { selle
                         handleBuyNow={handleBuyNow}
                         isMobile={true}
                         onClose={() => setIsOpen(false)}
+                        toast={toast}
                     />
                 </SheetContent>
             </Sheet>
@@ -505,21 +525,19 @@ const ProductShelf = ({ sellerProducts, handleAddToCart, handleBuyNow }: { selle
                     </div>
                 </Button>
             </CollapsibleTrigger>
-            <CollapsibleContent>
-                <div className="mt-4">
-                     <ProductShelfContent 
-                        sellerProducts={sellerProducts}
-                        handleAddToCart={handleAddToCart}
-                        handleBuyNow={handleBuyNow}
-                        isMobile={false}
-                        onClose={() => setIsOpen(false)}
-                    />
-                </div>
+            <CollapsibleContent className="mt-4">
+                 <ProductShelfContent 
+                    sellerProducts={sellerProducts}
+                    handleAddToCart={handleAddToCart}
+                    handleBuyNow={handleBuyNow}
+                    isMobile={false}
+                    onClose={() => setIsOpen(false)}
+                    toast={toast}
+                />
             </CollapsibleContent>
         </Collapsible>
     );
 };
-
 
 export default function StreamPage() {
     const router = useRouter();
@@ -608,7 +626,7 @@ export default function StreamPage() {
     const sellerProducts = useMemo(() => {
         if (!seller) return [];
         let products = Object.values(productDetails).filter(
-            p => productToSellerMapping[p.key]?.name === seller.name && p.stock > 0
+            p => productToSellerMapping[p.key]?.name === seller.name
         );
 
         if (products.length < 15) {
@@ -1381,3 +1399,4 @@ const RelatedContent = ({ relatedStreams }: { relatedStreams: any[] }) => (
         </div>
     </div>
 );
+
