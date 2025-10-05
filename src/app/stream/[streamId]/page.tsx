@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import {
@@ -118,6 +117,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import { Skeleton } from "@/components/ui/skeleton";
 import { ChatPanel } from "@/components/messaging/common";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 
 const emojis = [
@@ -416,64 +416,110 @@ const ReportDialog = ({ onSubmit }: { onSubmit: (reason: string, details: string
     )
 };
 
+const ProductShelfContent = ({ sellerProducts, handleAddToCart, handleBuyNow, isMobile, onClose }: { sellerProducts: any[], handleAddToCart: (product: any) => void, handleBuyNow: (product: any) => void, isMobile: boolean, onClose: () => void }) => {
+    return (
+        <>
+            {isMobile && (
+                <SheetHeader className="p-4 border-b">
+                    <SheetTitle>Products in this Stream</SheetTitle>
+                </SheetHeader>
+            )}
+            <ScrollArea className="flex-grow">
+                <div className="p-4 grid grid-cols-2 xs:grid-cols-2 gap-4">
+                    {sellerProducts.length > 0 ? (
+                        sellerProducts.slice(0, 10).map((product: any, index: number) => (
+                            <Card key={index} className="w-full overflow-hidden h-full flex flex-col">
+                                <Link href={`/product/${product.key}`} className="group block">
+                                    <div className="relative aspect-square bg-muted">
+                                        <Image
+                                            src={product.images[0]?.preview || product.images[0]}
+                                            alt={product.name}
+                                            fill
+                                            sizes="50vw"
+                                            className="object-cover transition-transform group-hover:scale-105"
+                                        />
+                                    </div>
+                                </Link>
+                                <div className="p-2 flex-grow flex flex-col">
+                                    <Link href={`/product/${product.key}`} className="group block">
+                                        <h4 className="font-semibold truncate text-xs group-hover:underline">{product.name}</h4>
+                                        <p className="font-bold text-sm">{product.price}</p>
+                                    </Link>
+                                    <div className="flex items-center justify-between text-xs text-muted-foreground mt-2">
+                                        <div className="flex items-center gap-1 cursor-pointer hover:text-primary"><Package className="h-3 w-3" /> {product.stock} left</div>
+                                        <div className="flex items-center gap-1 cursor-pointer hover:text-primary"><Users className="h-3 w-3" /> {product.sold} sold</div>
+                                        <div className="flex items-center gap-1 cursor-pointer hover:text-primary"><Star className="h-3 w-3" /> {product.reviews}</div>
+                                    </div>
+                                </div>
+                                <CardFooter className="p-2 grid grid-cols-2 gap-2">
+                                    <Button variant="outline" size="sm" className="w-full text-xs h-8" onClick={() => { handleAddToCart(product); onClose(); }}><ShoppingCart className="mr-1 h-3 w-3" /> Cart</Button>
+                                    <Button size="sm" className="w-full text-xs h-8" onClick={() => { handleBuyNow(product); onClose(); }}>Buy Now</Button>
+                                </CardFooter>
+                            </Card>
+                        ))
+                    ) : (
+                        <div className="col-span-2 text-center text-muted-foreground py-10">No products to show.</div>
+                    )}
+                </div>
+            </ScrollArea>
+        </>
+    );
+};
+
+
 const ProductShelf = ({ sellerProducts, handleAddToCart, handleBuyNow }: { sellerProducts: any[], handleAddToCart: (product: any) => void, handleBuyNow: (product: any) => void }) => {
     const [isOpen, setIsOpen] = useState(false);
+    const isMobile = useIsMobile();
+    
+    if (isMobile) {
+        return (
+            <Sheet open={isOpen} onOpenChange={setIsOpen}>
+                <SheetTrigger asChild>
+                     <Button variant="outline" className="w-full justify-center">
+                        <div className="flex items-center gap-2">
+                            <ShoppingBag className="w-4 h-4 sm:mr-1" />
+                            <span>Products ({sellerProducts.length})</span>
+                        </div>
+                    </Button>
+                </SheetTrigger>
+                <SheetContent side="bottom" className="h-[80vh] flex flex-col p-0">
+                    <ProductShelfContent 
+                        sellerProducts={sellerProducts}
+                        handleAddToCart={handleAddToCart}
+                        handleBuyNow={handleBuyNow}
+                        isMobile={true}
+                        onClose={() => setIsOpen(false)}
+                    />
+                </SheetContent>
+            </Sheet>
+        );
+    }
+    
     return (
-        <Sheet open={isOpen} onOpenChange={setIsOpen}>
-            <SheetTrigger asChild>
-                 <Button variant="outline" className="w-full justify-center">
+         <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+            <CollapsibleTrigger asChild>
+                <Button variant="outline" className="w-full justify-center">
                     <div className="flex items-center gap-2">
                         <ShoppingBag className="w-4 h-4 sm:mr-1" />
                         <span>Products ({sellerProducts.length})</span>
                     </div>
                 </Button>
-            </SheetTrigger>
-            <SheetContent side="bottom" className="h-[80vh] flex flex-col p-0">
-                <SheetHeader className="p-4 border-b">
-                    <SheetTitle>Products in this Stream</SheetTitle>
-                </SheetHeader>
-                <ScrollArea className="flex-grow">
-                    <div className="p-4 grid grid-cols-2 xs:grid-cols-2 gap-4">
-                        {sellerProducts.length > 0 ? (
-                            sellerProducts.slice(0, 10).map((product: any, index: number) => (
-                                <Card key={index} className="w-full overflow-hidden h-full flex flex-col">
-                                    <Link href={`/product/${product.key}`} className="group block">
-                                        <div className="relative aspect-square bg-muted">
-                                            <Image
-                                                src={product.images[0]?.preview || product.images[0]}
-                                                alt={product.name}
-                                                fill
-                                                sizes="50vw"
-                                                className="object-cover transition-transform group-hover:scale-105"
-                                            />
-                                        </div>
-                                    </Link>
-                                    <div className="p-2 flex-grow flex flex-col">
-                                        <Link href={`/product/${product.key}`} className="group block">
-                                            <h4 className="font-semibold truncate text-xs group-hover:underline">{product.name}</h4>
-                                            <p className="font-bold text-sm">{product.price}</p>
-                                        </Link>
-                                        <div className="flex items-center justify-between text-xs text-muted-foreground mt-2">
-                                            <div className="flex items-center gap-1 cursor-pointer hover:text-primary"><Package className="h-3 w-3" /> {product.stock} left</div>
-                                            <div className="flex items-center gap-1 cursor-pointer hover:text-primary"><Users className="h-3 w-3" /> {product.sold} sold</div>
-                                            <div className="flex items-center gap-1 cursor-pointer hover:text-primary"><Star className="h-3 w-3" /> {product.reviews}</div>
-                                        </div>
-                                    </div>
-                                    <CardFooter className="p-2 grid grid-cols-2 gap-2">
-                                        <Button variant="outline" size="sm" className="w-full text-xs h-8" onClick={() => { handleAddToCart(product); setIsOpen(false); }}><ShoppingCart className="mr-1 h-3 w-3" /> Cart</Button>
-                                        <Button size="sm" className="w-full text-xs h-8" onClick={() => { handleBuyNow(product); setIsOpen(false); }}>Buy Now</Button>
-                                    </CardFooter>
-                                </Card>
-                            ))
-                        ) : (
-                            <div className="col-span-2 text-center text-muted-foreground py-10">No products to show.</div>
-                        )}
-                    </div>
-                </ScrollArea>
-            </SheetContent>
-        </Sheet>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+                <div className="mt-4">
+                     <ProductShelfContent 
+                        sellerProducts={sellerProducts}
+                        handleAddToCart={handleAddToCart}
+                        handleBuyNow={handleBuyNow}
+                        isMobile={false}
+                        onClose={() => setIsOpen(false)}
+                    />
+                </div>
+            </CollapsibleContent>
+        </Collapsible>
     );
 };
+
 
 export default function StreamPage() {
     const router = useRouter();
@@ -1305,7 +1351,7 @@ const RelatedContent = ({ relatedStreams }: { relatedStreams: any[] }) => (
             <Link href="/live-selling">More</Link>
         </Button>
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-4 gap-2 sm:gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-4 gap-2 sm:gap-4">
             {relatedStreams.map((s: any) => (
                 <Link href={`/stream/${s.id}`} key={s.id} className="group">
                     <div className="relative rounded-lg overflow-hidden aspect-[16/9] bg-muted">
@@ -1335,9 +1381,3 @@ const RelatedContent = ({ relatedStreams }: { relatedStreams: any[] }) => (
         </div>
     </div>
 );
-
-    
-
-
-
-
