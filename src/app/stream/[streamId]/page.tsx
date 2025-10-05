@@ -1020,7 +1020,7 @@ export default function StreamPage() {
                         <LoadingSpinner />
                     </div>
                  ) : isMobile ? (
-                     <MobileLayout {...{ router, videoRef, playerRef, handlePlayPause, handleShare, handleMinimize, handleToggleFullscreen, isPaused, seller, streamData, handleFollowToggle, isFollowingState, sellerProducts, handlers, relatedStreams, isChatOpen, setIsChatOpen, renderWithHashtags, chatMessages, pinnedMessages, activeAuction, auctionTime, highestBid, totalBids, walletBalance, inlineAuctionCardRefs, onClose: () => setIsChatOpen(false), handleAddToCart, handleBuyNow, mobileView, setMobileView, isMuted, setIsMuted }} />
+                     <MobileLayout {...{ router, videoRef, playerRef, handlePlayPause, handleShare, handleMinimize, handleToggleFullscreen, isPaused, seller, streamData, handleFollowToggle, isFollowingState, sellerProducts, handlers, relatedStreams, isChatOpen, setIsChatOpen, renderWithHashtags, chatMessages, pinnedMessages, activeAuction, auctionTime, highestBid, totalBids, walletBalance, inlineAuctionCardRefs, onClose: () => setIsChatOpen(false), handleAddToCart, handleBuyNow, mobileView, setMobileView, isMuted, setIsMuted, handleGoLive, handleSeek, isLive, formatTime, currentTime, duration, buffered, handleProgressClick, progressContainerRef, setIsSettingsOpen }} />
                  ) : (
                     <DesktopLayout 
                         videoRef={videoRef}
@@ -1162,7 +1162,7 @@ const DesktopLayout = (props: any) => (
 );
 
 const MobileLayout = (props: any) => {
-    const { isMuted, setIsMuted } = props;
+    const { isMuted, setIsMuted, handleGoLive, isLive, formatTime, currentTime, duration } = props;
     return (
         <div className="flex flex-col h-dvh overflow-hidden relative">
             <header className="p-3 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-sm z-30 border-b h-16 shrink-0 w-full">
@@ -1204,15 +1204,35 @@ const MobileLayout = (props: any) => {
             </header>
 
             <div className="w-full aspect-video bg-black relative flex-shrink-0" ref={props.playerRef}>
-            <video ref={props.videoRef} src={props.streamData.streamUrl || "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"} className="w-full h-full object-cover" loop />
-            <div className="absolute inset-0 bg-black/10 flex items-center justify-center gap-4">
-                <Button variant="ghost" size="icon" className="text-white" onClick={props.handlePlayPause}>
-                    {props.isPaused ? <Play className="h-10 w-10 fill-white drop-shadow-lg" /> : <Pause className="h-10 w-10 fill-white drop-shadow-lg" />}
-                </Button>
-                 <Button variant="ghost" size="icon" className="text-white absolute bottom-2 right-2" onClick={() => setIsMuted((prev: any) => !prev)}>
-                    {isMuted ? <VolumeX className="h-6 w-6 drop-shadow-md" /> : <Volume2 className="h-6 w-6 drop-shadow-md" />}
-                </Button>
-            </div>
+                <video ref={props.videoRef} src={props.streamData.streamUrl || "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"} className="w-full h-full object-cover" loop onClick={props.handlePlayPause}/>
+                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent flex flex-col justify-end p-2 text-white">
+                    <div className="w-full cursor-pointer py-1" ref={props.progressContainerRef} onClick={props.handleProgressClick}>
+                        <Progress value={(props.currentTime / props.duration) * 100} valueBuffer={(props.buffered / props.duration) * 100} isLive={props.isLive} className="h-1.5" />
+                    </div>
+                    <div className="flex items-center justify-between">
+                         <div className="flex items-center gap-1">
+                            <Button variant="ghost" size="icon" className="w-9 h-9" onClick={props.handlePlayPause}>
+                                {props.isPaused ? <Play className="w-5 h-5 fill-current" /> : <Pause className="w-5 h-5 fill-current" />}
+                            </Button>
+                            <Button
+                                variant="destructive"
+                                className="gap-1 h-7 px-2 text-xs"
+                                onClick={handleGoLive}
+                                disabled={isLive}
+                            >
+                                <div className={cn("h-1.5 w-1.5 rounded-full bg-white", !isLive && "animate-pulse")} />
+                                {isLive ? 'LIVE' : 'Go Live'}
+                            </Button>
+                             <p className="text-xs font-mono">{formatTime(currentTime)} / {formatTime(duration)}</p>
+                        </div>
+                        <div className="flex items-center gap-0.5">
+                            <Button variant="ghost" size="icon" className="w-9 h-9" onClick={() => setIsMuted((prev: any) => !prev)}>
+                                {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
+                            </Button>
+                             <Button variant="ghost" size="icon" className="w-9 h-9" onClick={props.handleToggleFullscreen}><Maximize className="w-5 h-5"/></Button>
+                        </div>
+                    </div>
+                </div>
             </div>
             
             <div className="flex-1 overflow-hidden relative">
@@ -1324,4 +1344,3 @@ const RelatedContent = ({ relatedStreams }: { relatedStreams: any[] }) => (
 );
 
     
-
