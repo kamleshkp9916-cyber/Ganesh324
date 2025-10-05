@@ -107,18 +107,25 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
   const [recentlyViewedItems, setRecentlyViewedItems] = useState<Product[]>([]);
   const [myReviews, setMyReviews] = useState<Review[]>([]);
   const [wishlist, setWishlist] = useState<number[]>([]);
-  const [sellerProducts, setSellerProducts] = useState<any[]>([]);
+  const displayName = profileData.displayName || (profileData as any).name || "";
+  const getProductsKey = (name: string) => `sellerProducts_${name}`;
+  const [sellerProducts, setSellerProducts] = useState<any[]>(() => {
+    if (typeof window !== 'undefined' && profileData.role === 'seller') {
+      const productsKey = getProductsKey(displayName);
+      const storedProducts = localStorage.getItem(productsKey);
+      if (storedProducts) return JSON.parse(storedProducts);
+      if (displayName === 'BeautyBox') return mockBeautyBoxProducts;
+    }
+    return [];
+  });
   const [userPosts, setUserPosts] = useState<any[]>([]);
   const [followingList, setFollowingList] = useState<any[]>([]);
   const [followerList, setFollowerList] = useState<any[]>([]);
   const [isFollowingState, setIsFollowingState] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
-  const displayName = profileData.displayName || (profileData as any).name || "";
   const [activeCategory, setActiveCategory] = useState("All");
   const [userOrders, setUserOrders] = useState<any[]>([]);
   const [isLoadingOrders, setIsLoadingOrders] = useState(false);
-  
-  const getProductsKey = (name: string) => `sellerProducts_${name}`;
   
   const loadFollowData = async () => {
     if (user) {
@@ -139,22 +146,6 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, profileData.uid, isOwnProfile]);
-
-  const loadSellerProducts = () => {
-    if (profileData.role === 'seller') {
-      const productsKey = getProductsKey(displayName);
-      const storedProducts = localStorage.getItem(productsKey);
-      
-      let productsToShow = [];
-      if (storedProducts) {
-        productsToShow = JSON.parse(storedProducts);
-      } else if (displayName === 'BeautyBox') {
-        // Fallback for demo user
-        productsToShow = mockBeautyBoxProducts;
-      }
-      setSellerProducts(productsToShow);
-    }
-  };
   
   // Fetch user orders
   useEffect(() => {
@@ -181,8 +172,22 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
 
   // Load data from localStorage on mount and add storage listener
   useEffect(() => {
+    const productsKey = getProductsKey(displayName);
+    const loadSellerProducts = () => {
+        if (profileData.role === 'seller') {
+            const storedProducts = localStorage.getItem(productsKey);
+            let productsToShow = [];
+            if (storedProducts) {
+                productsToShow = JSON.parse(storedProducts);
+            } else if (displayName === 'BeautyBox') {
+                productsToShow = mockBeautyBoxProducts;
+            }
+            setSellerProducts(productsToShow);
+        }
+    };
+
     const handleStorageChange = (event: StorageEvent) => {
-      if (event.key === getProductsKey(displayName)) {
+      if (event.key === productsKey) {
         loadSellerProducts();
       }
       if(event.key?.startsWith('following_')) {
@@ -766,3 +771,5 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
     </>
   );
 }
+
+    
