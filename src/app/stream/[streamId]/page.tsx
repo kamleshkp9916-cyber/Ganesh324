@@ -1175,27 +1175,39 @@ const MobileLayout = (props: any) => (
             </div>
         </div>
     </div>
-    <div className="flex-1 overflow-hidden relative">
-      <Collapsible>
-        <div className="p-4 space-y-6">
+    <div className="flex-1 overflow-y-auto no-scrollbar">
+        <div className="p-4">
             <StreamInfo seller={props.seller} streamData={props.streamData} handleFollowToggle={props.handleFollowToggle} isFollowingState={props.isFollowingState} sellerProducts={props.sellerProducts} onAddToCart={props.handlers.onAddToCart} onBuyNow={props.handlers.onBuyNow}/>
         </div>
-        <CollapsibleContent>
-            <ChatPanel
-                seller={props.seller}
-                chatMessages={props.chatMessages}
-                pinnedMessages={props.pinnedMessages}
-                activeAuction={props.activeAuction}
-                auctionTime={props.auctionTime}
-                highestBid={props.highestBid}
-                totalBids={props.totalBids}
-                walletBalance={props.walletBalance}
-                handlers={props.handlers}
-                inlineAuctionCardRefs={props.inlineAuctionCardRefs}
-                onClose={() => {}}
-            />
-        </CollapsibleContent>
-      </Collapsible>
+        <div className="px-4">
+            <Collapsible>
+                <CollapsibleTrigger asChild>
+                    <Button variant="outline" className="w-full">
+                        <MessageSquare className="mr-2 h-4 w-4" /> Show Chat
+                    </Button>
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                    <div className="h-96 mt-4 border rounded-lg">
+                        <ChatPanel
+                            seller={props.seller}
+                            chatMessages={props.chatMessages}
+                            pinnedMessages={props.pinnedMessages}
+                            activeAuction={props.activeAuction}
+                            auctionTime={props.auctionTime}
+                            highestBid={props.highestBid}
+                            totalBids={props.totalBids}
+                            walletBalance={props.walletBalance}
+                            handlers={props.handlers}
+                            inlineAuctionCardRefs={props.inlineAuctionCardRefs}
+                            onClose={() => {}}
+                        />
+                    </div>
+                </CollapsibleContent>
+            </Collapsible>
+        </div>
+        <div className="p-4">
+             <RelatedContent relatedStreams={props.relatedStreams} />
+        </div>
     </div>
   </div>
 );
@@ -1371,3 +1383,5 @@ const RelatedContent = ({ relatedStreams }: { relatedStreams: any[] }) => (
         </div>
     </div>
 );
+
+    
