@@ -1017,7 +1017,7 @@ export default function StreamPage() {
                         <LoadingSpinner />
                     </div>
                  ) : isMobile ? (
-                     <MobileLayout {...{ router, videoRef, playerRef, handlePlayPause, handleShare, handleMinimize, handleToggleFullscreen, isPaused, seller, streamData, handleFollowToggle, isFollowingState, sellerProducts, handlers, relatedStreams, isChatOpen, setIsChatOpen, renderWithHashtags, chatMessages, pinnedMessages, activeAuction, auctionTime, highestBid, totalBids, walletBalance, inlineAuctionCardRefs, onClose: () => setIsChatOpen(false), handleAddToCart, handleBuyNow, mobileView, setMobileView, isMuted, setIsMuted, handleGoLive, handleSeek, isLive, formatTime, currentTime, duration, buffered, handleProgressClick, progressContainerRef, setIsSettingsOpen }} />
+                     <MobileLayout {...{ router, videoRef, playerRef, handlePlayPause, handleShare, handleMinimize, handleToggleFullscreen, isPaused, seller, streamData, handleFollowToggle, isFollowingState, sellerProducts, handlers, relatedStreams, isChatOpen, setIsChatOpen, renderWithHashtags, chatMessages, pinnedMessages, activeAuction, auctionTime, highestBid, totalBids, walletBalance, inlineAuctionCardRefs, onClose: () => setIsChatOpen(false), handleAddToCart, handleBuyNow, mobileView, setMobileView, isMuted, setIsMuted, handleGoLive, handleSeek, isLive, formatTime, currentTime, duration, buffered, handleProgressClick, progressContainerRef }} />
                  ) : (
                     <DesktopLayout 
                         videoRef={videoRef}
@@ -1159,7 +1159,7 @@ const DesktopLayout = (props: any) => (
 );
 
 const MobileLayout = (props: any) => {
-    const { isMuted, setIsMuted, handleGoLive, isLive, formatTime, currentTime, duration, setIsSettingsOpen, handleShare, handleToggleFullscreen } = props;
+    const { isMuted, setIsMuted, handleGoLive, isLive, formatTime, currentTime, duration, setIsSettingsOpen, handleShare, handleToggleFullscreen, progressContainerRef, handleProgressClick, isPaused, handlePlayPause, handleSeek, handleMinimize } = props;
     return (
         <div className="flex flex-col h-dvh overflow-hidden relative">
             <header className="p-3 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-sm z-30 border-b h-16 shrink-0 w-full">
@@ -1190,15 +1190,15 @@ const MobileLayout = (props: any) => {
             </header>
 
             <div className="w-full aspect-video bg-black relative flex-shrink-0" ref={props.playerRef}>
-                <video ref={props.videoRef} src={props.streamData.streamUrl || "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"} className="w-full h-full object-cover" loop onClick={props.handlePlayPause}/>
+                <video ref={props.videoRef} src={props.streamData.streamUrl || "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"} className="w-full h-full object-cover" loop onClick={handlePlayPause}/>
+                 <div className="absolute inset-0 bg-black/10 flex items-center justify-center gap-4">
+                     <Button variant="ghost" size="icon" className="text-white w-12 h-12" onClick={handlePlayPause}>
+                        {isPaused ? <Play className="h-8 w-8 fill-white" /> : <Pause className="h-8 w-8 fill-white" />}
+                    </Button>
+                </div>
                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent flex flex-col justify-end p-2 text-white">
-                    <div className="absolute inset-0 bg-black/10 flex items-center justify-center gap-4">
-                         <Button variant="ghost" size="icon" className="text-white w-12 h-12" onClick={props.handlePlayPause}>
-                            {props.isPaused ? <Play className="h-8 w-8 fill-white" /> : <Pause className="h-8 w-8 fill-white" />}
-                        </Button>
-                    </div>
-                    <div className="w-full cursor-pointer py-1" ref={props.progressContainerRef} onClick={props.handleProgressClick}>
-                        <Progress value={(currentTime / duration) * 100} valueBuffer={(props.buffered / duration) * 100} isLive={isLive} className="h-1.5" />
+                    <div className="w-full cursor-pointer py-1" ref={progressContainerRef} onClick={handleProgressClick}>
+                        <Progress value={(currentTime / duration) * 100} valueBuffer={props.buffered / duration * 100} isLive={isLive} className="h-1.5" />
                     </div>
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-1">
@@ -1219,7 +1219,7 @@ const MobileLayout = (props: any) => {
                             </Button>
                              <Button variant="ghost" size="icon" className="w-9 h-9" onClick={handleShare}><Share2 className="w-5 h-5"/></Button>
                             <Button variant="ghost" size="icon" className="w-9 h-9" onClick={() => setIsSettingsOpen(true)}><Settings className="w-5 h-5"/></Button>
-                            <Button variant="ghost" size="icon" className="w-9 h-9" onClick={props.handleToggleFullscreen}>
+                            <Button variant="ghost" size="icon" className="w-9 h-9" onClick={handleToggleFullscreen}>
                                 <Maximize className="w-5 h-5"/>
                             </Button>
                         </div>
@@ -1259,6 +1259,13 @@ const StreamInfo = (props: any) => {
     
     return (
         <div className="space-y-4">
+            <div className="mb-4">
+                <h2 className="font-bold text-lg">Topic</h2>
+                <div className="text-sm text-muted-foreground mt-1 space-y-4">
+                    <p>{renderWithHashtags(streamData.description || "Welcome to the live stream!")}</p>
+                </div>
+            </div>
+
              <div className="flex flex-col sm:flex-row items-center justify-between gap-2">
                 <Link href={`/seller/profile?userId=${seller.id}`} className="flex items-center gap-3 group w-full">
                     <Avatar className="h-10 w-10">
@@ -1285,13 +1292,6 @@ const StreamInfo = (props: any) => {
                 </Button>
             </div>
             
-            <div className="mb-4">
-                <h2 className="font-bold text-lg">Topic</h2>
-                <div className="text-sm text-muted-foreground mt-1 space-y-4">
-                    <p>{renderWithHashtags(streamData.description || "Welcome to the live stream!")}</p>
-                </div>
-            </div>
-
             <ProductShelf {...props} />
         </div>
     );
@@ -1337,5 +1337,7 @@ const RelatedContent = ({ relatedStreams }: { relatedStreams: any[] }) => (
 );
 
     
+
+
 
 
