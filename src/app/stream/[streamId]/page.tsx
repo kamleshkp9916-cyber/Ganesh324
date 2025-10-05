@@ -479,7 +479,7 @@ export default function StreamPage() {
     const [playbackRate, setPlaybackRate] = useState(1);
     const [skipInterval, setSkipInterval] = useState(10);
     const [isFullscreen, setIsFullscreen] = useState(false);
-    const [isLive, setIsLive] = useState(isLive);
+    const [isLive, setIsLive] = useState(true);
     const mainScrollRef = useRef<HTMLDivElement>(null);
     const [hydrated, setHydrated] = useState(false);
 
@@ -1253,7 +1253,7 @@ const StreamInfo = ({ seller, streamData, handleFollowToggle, isFollowingState, 
     const ProductShelf = () => (
         <div className="grid grid-cols-2 gap-4">
             {sellerProducts.slice(0, 10).map((product: any, index: number) => (
-                <Card key={index} className="w-full overflow-hidden h-full flex flex-col">
+                 <Card key={index} className="w-full overflow-hidden h-full flex flex-col">
                     <Link href={`/product/${product.key}`} className="group block">
                         <div className="relative aspect-square bg-muted">
                             <Image
@@ -1292,32 +1292,31 @@ const StreamInfo = ({ seller, streamData, handleFollowToggle, isFollowingState, 
                 <div className="text-sm text-muted-foreground">{renderWithHashtags(streamData.description || "Welcome to the live stream!")}</div>
             </div>
 
-            <div className="flex items-center gap-2">
-                <Avatar className="h-10 w-10">
-                    <AvatarImage src={seller.avatarUrl} />
-                    <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
-                </Avatar>
-                <div className="flex items-center gap-2 flex-wrap">
-                    <h3 className="font-semibold truncate">{seller.name}</h3>
-                    {seller.hasAuction && (
-                        <Badge variant="purple">
-                            <Gavel className="mr-1 h-3 w-3" />
-                            Auction
-                        </Badge>
-                    )}
-                </div>
+            <div className="flex items-center justify-between gap-2">
+                <Link href={`/seller/profile?userId=${seller.id}`} className="flex items-center gap-3 group">
+                    <Avatar className="h-10 w-10">
+                        <AvatarImage src={seller.avatarUrl} />
+                        <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                    <div className="flex items-center gap-2 flex-wrap">
+                        <h3 className="font-semibold truncate group-hover:underline">{seller.name}</h3>
+                        {seller.hasAuction && (
+                            <Badge variant="purple">
+                                <Gavel className="mr-1 h-3 w-3" />
+                                Auction
+                            </Badge>
+                        )}
+                    </div>
+                </Link>
+                 <Button
+                    onClick={() => seller && handleFollowToggle(seller.id)}
+                    variant={isFollowingState ? "outline" : "default"}
+                    className="font-bold"
+                >
+                    <Heart className="mr-2 h-4 w-4" />
+                    {isFollowingState ? "Following" : "Follow"}
+                </Button>
             </div>
-
-            <Button
-                onClick={() => seller && handleFollowToggle(seller.id)}
-                className={cn(
-                    "w-full font-bold",
-                    isFollowingState ? "bg-red-600 hover:bg-red-700 text-white" : "bg-gray-200 hover:bg-gray-300 text-gray-800 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-200"
-                )}
-            >
-                <Heart className="mr-2 h-4 w-4" />
-                {isFollowingState ? "Following" : "Follow"}
-            </Button>
             
             {isMobile ? (
                 <Sheet>
@@ -1348,8 +1347,8 @@ const StreamInfo = ({ seller, streamData, handleFollowToggle, isFollowingState, 
                     </CollapsibleTrigger>
                     <CollapsibleContent className="mt-4">
                       <Carousel opts={{ align: "start" }} className="w-full">
-                          <CarouselContent className="-ml-2">
-                              {sellerProducts.map((product: any, index: number) => (
+                           <CarouselContent className="-ml-2">
+                               {sellerProducts.map((product: any, index: number) => (
                                   <CarouselItem key={index} className="pl-4 basis-full xs:basis-1/2 sm:basis-1/3 md:basis-1/4 lg:basis-1/5">
                                           <Card className="w-full overflow-hidden h-full flex flex-col">
                                           <Link href={`/product/${product.key}`} className="group block">
