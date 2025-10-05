@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import {
@@ -1143,48 +1142,67 @@ const DesktopLayout = (props: any) => (
 
 const MobileLayout = (props: any) => (
     <div className="flex flex-col h-dvh overflow-hidden relative">
-        <div className="w-full aspect-video bg-black relative flex-shrink-0" ref={props.playerRef}>
-            <video ref={props.videoRef} src={props.streamData.streamUrl || "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"} className="w-full h-full object-cover" loop />
-             <div className="absolute inset-x-0 top-0 p-2 flex justify-between items-center bg-gradient-to-b from-black/50 to-transparent">
-                <Button variant="ghost" size="icon" className="text-white" onClick={() => props.router.back()}>
+        <header className="p-3 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-sm z-30 border-b h-16 shrink-0 w-full">
+            <div className="flex items-center gap-2">
+                <Button variant="ghost" size="icon" onClick={() => props.router.back()}>
                     <ArrowLeft className="h-6 w-6" />
                 </Button>
-                <div className="flex items-center gap-2">
-                    <Button variant="ghost" size="icon" className="text-white" onClick={props.handleShare}>
-                        <Share2 className="h-5 w-5" />
-                    </Button>
-                    <Button variant="ghost" size="icon" className="text-white" onClick={props.handleToggleFullscreen}>
-                        <Maximize className="h-5 w-5" />
-                    </Button>
-                </div>
+                {props.seller && (
+                    <div className="flex items-center gap-2 overflow-hidden">
+                        <Avatar className="h-8 w-8">
+                            <AvatarImage src={props.seller.avatarUrl} />
+                            <AvatarFallback>{props.seller.name.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                        <div className="overflow-hidden">
+                            <h1 className="text-sm font-bold truncate">{props.seller.name}</h1>
+                            <p className="text-xs text-muted-foreground">{props.streamData.viewerCount.toLocaleString()} viewers</p>
+                        </div>
+                    </div>
+                )}
             </div>
+            <div className="flex items-center gap-2">
+                <Button asChild variant="ghost" size="icon">
+                    <Link href="/cart">
+                        <ShoppingCart className="h-5 w-5" />
+                    </Link>
+                </Button>
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon">
+                            <MoreVertical className="h-5 w-5" />
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                         <DropdownMenuItem onSelect={props.handleShare}><Share2 className="mr-2 h-4 w-4" />Share</DropdownMenuItem>
+                         <DropdownMenuItem onSelect={() => props.setIsSettingsOpen(true)}><Settings className="mr-2 h-4 w-4" />Playback Settings</DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
+            </div>
+        </header>
+
+        <div className="w-full aspect-video bg-black relative flex-shrink-0" ref={props.playerRef}>
+            <video ref={props.videoRef} src={props.streamData.streamUrl || "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"} className="w-full h-full object-cover" loop />
             <div className="absolute inset-0 bg-black/20 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                 <Button variant="ghost" size="icon" className="text-white" onClick={props.handlePlayPause}>
                     {props.isPaused ? <Play className="h-10 w-10 fill-white" /> : <Pause className="h-10 w-10 fill-white" />}
                 </Button>
             </div>
         </div>
-
-        {!props.isChatOpen ? (
-            <>
-                <ScrollArea className="flex-1 bg-background">
-                    <div className="p-4 space-y-6">
-                        <StreamInfo {...props}/>
-                        <RelatedContent {...props} />
-                    </div>
-                </ScrollArea>
-                <div className="fixed bottom-4 right-4 z-20">
-                    <Button onClick={() => props.setIsChatOpen(true)} className="rounded-full shadow-lg h-12 w-auto px-5">
-                        <MessageSquare className="mr-2 h-5 w-5"/>
-                        Show Chat
-                    </Button>
+        <Tabs defaultValue="chat" value={props.mobileView} onValueChange={props.setMobileView} className="flex flex-col flex-1 overflow-hidden">
+            <TabsList className="grid w-full grid-cols-2 flex-shrink-0 rounded-none border-b">
+                <TabsTrigger value="chat">Live Chat</TabsTrigger>
+                <TabsTrigger value="about">About</TabsTrigger>
+            </TabsList>
+            <TabsContent value="chat" className="flex-1 flex flex-col overflow-hidden mt-0">
+                <ChatPanel {...props} onClose={() => {}} />
+            </TabsContent>
+            <TabsContent value="about" className="flex-1 overflow-y-auto mt-0">
+                <div className="p-4 space-y-6">
+                    <StreamInfo {...props}/>
+                    <RelatedContent {...props} />
                 </div>
-            </>
-        ) : (
-             <div className="flex-1 flex flex-col overflow-hidden bg-card">
-                 <ChatPanel {...props} onClose={() => props.setIsChatOpen(false)} />
-             </div>
-        )}
+            </TabsContent>
+        </Tabs>
     </div>
 );
 
@@ -1340,4 +1358,3 @@ const RelatedContent = ({ relatedStreams }: { relatedStreams: any[] }) => (
         </div>
     </div>
 );
-
