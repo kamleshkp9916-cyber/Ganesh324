@@ -479,7 +479,7 @@ export default function StreamPage() {
     const [playbackRate, setPlaybackRate] = useState(1);
     const [skipInterval, setSkipInterval] = useState(10);
     const [isFullscreen, setIsFullscreen] = useState(false);
-    const [isLive, setIsLive] = useState(true);
+    const [isLive, setIsLive] = useState(isLive);
     const mainScrollRef = useRef<HTMLDivElement>(null);
     const [hydrated, setHydrated] = useState(false);
 
@@ -1251,38 +1251,38 @@ const StreamInfo = ({ seller, streamData, handleFollowToggle, isFollowingState, 
     const isMobile = useIsMobile();
     
     const ProductShelf = () => (
-      <div className="grid grid-cols-2 gap-4">
-        {sellerProducts.slice(0, 10).map((product, index) => (
-          <Card key={index} className="w-full overflow-hidden h-full flex flex-col">
-            <Link href={`/product/${product.key}`} className="group block">
-              <div className="relative aspect-square bg-muted">
-                <Image
-                  src={product.images[0]}
-                  alt={product.name}
-                  fill
-                  sizes="50vw"
-                  className="object-cover transition-transform group-hover:scale-105"
-                />
-              </div>
-            </Link>
-            <div className="p-2 flex-grow flex flex-col">
-              <Link href={`/product/${product.key}`} className="group block">
-                <h4 className="font-semibold truncate text-xs group-hover:underline">{product.name}</h4>
-                <p className="font-bold text-sm">{product.price}</p>
-              </Link>
-              <div className="flex items-center justify-between text-xs text-muted-foreground mt-2">
-                <div className="flex items-center gap-1 cursor-pointer hover:text-primary"><Package className="h-3 w-3" /> {product.stock} left</div>
-                <div className="flex items-center gap-1 cursor-pointer hover:text-primary"><Users className="h-3 w-3" /> {product.sold} sold</div>
-                <div className="flex items-center gap-1 cursor-pointer hover:text-primary"><Star className="h-3 w-3" /> {product.reviews}</div>
-              </div>
-            </div>
-            <CardFooter className="p-2 grid grid-cols-2 gap-2">
-              <Button variant="outline" size="sm" className="w-full text-xs h-8" onClick={() => onAddToCart(product)}><ShoppingCart className="mr-1 h-3 w-3" /> Cart</Button>
-              <Button size="sm" className="w-full text-xs h-8" onClick={() => onBuyNow(product)}>Buy Now</Button>
-            </CardFooter>
-          </Card>
-        ))}
-      </div>
+        <div className="grid grid-cols-2 gap-4">
+            {sellerProducts.slice(0, 10).map((product: any, index: number) => (
+                <Card key={index} className="w-full overflow-hidden h-full flex flex-col">
+                    <Link href={`/product/${product.key}`} className="group block">
+                        <div className="relative aspect-square bg-muted">
+                            <Image
+                                src={product.images[0]}
+                                alt={product.name}
+                                fill
+                                sizes="50vw"
+                                className="object-cover transition-transform group-hover:scale-105"
+                            />
+                        </div>
+                    </Link>
+                    <div className="p-2 flex-grow flex flex-col">
+                        <Link href={`/product/${product.key}`} className="group block">
+                            <h4 className="font-semibold truncate text-xs group-hover:underline">{product.name}</h4>
+                            <p className="font-bold text-sm">{product.price}</p>
+                        </Link>
+                        <div className="flex items-center justify-between text-xs text-muted-foreground mt-2">
+                            <div className="flex items-center gap-1 cursor-pointer hover:text-primary"><Package className="h-3 w-3" /> {product.stock} left</div>
+                            <div className="flex items-center gap-1 cursor-pointer hover:text-primary"><Users className="h-3 w-3" /> {product.sold} sold</div>
+                            <div className="flex items-center gap-1 cursor-pointer hover:text-primary"><Star className="h-3 w-3" /> {product.reviews}</div>
+                        </div>
+                    </div>
+                    <CardFooter className="p-2 grid grid-cols-2 gap-2">
+                        <Button variant="outline" size="sm" className="w-full text-xs h-8" onClick={() => onAddToCart(product)}><ShoppingCart className="mr-1 h-3 w-3" /> Cart</Button>
+                        <Button size="sm" className="w-full text-xs h-8" onClick={() => onBuyNow(product)}>Buy Now</Button>
+                    </CardFooter>
+                </Card>
+            ))}
+        </div>
     );
 
     return (
@@ -1299,6 +1299,12 @@ const StreamInfo = ({ seller, streamData, handleFollowToggle, isFollowingState, 
                 </Avatar>
                 <div className="flex items-center gap-2 flex-wrap">
                     <h3 className="font-semibold truncate">{seller.name}</h3>
+                    {seller.hasAuction && (
+                        <Badge variant="purple">
+                            <Gavel className="mr-1 h-3 w-3" />
+                            Auction
+                        </Badge>
+                    )}
                 </div>
             </div>
 
@@ -1343,7 +1349,7 @@ const StreamInfo = ({ seller, streamData, handleFollowToggle, isFollowingState, 
                     <CollapsibleContent className="mt-4">
                       <Carousel opts={{ align: "start" }} className="w-full">
                           <CarouselContent className="-ml-2">
-                              {sellerProducts.map((product, index) => (
+                              {sellerProducts.map((product: any, index: number) => (
                                   <CarouselItem key={index} className="pl-4 basis-full xs:basis-1/2 sm:basis-1/3 md:basis-1/4 lg:basis-1/5">
                                           <Card className="w-full overflow-hidden h-full flex flex-col">
                                           <Link href={`/product/${product.key}`} className="group block">
@@ -1425,3 +1431,6 @@ const RelatedContent = ({ relatedStreams }: { relatedStreams: any[] }) => (
     </div>
 );
 
+
+
+    
