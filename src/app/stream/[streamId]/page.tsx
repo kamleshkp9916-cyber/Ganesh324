@@ -445,9 +445,8 @@ export default function StreamPage() {
     const [activeAuction, setActiveAuction] = useState<any | null>(null);
     const [isBidDialogOpen, setIsBidDialogOpen] = useState(false);
     const [isBidHistoryOpen, setIsBidHistoryOpen] = useState(false);
-    const [showScrollToBottom, setShowScrollToBottom] = useState(false);
     const isMobile = useIsMobile();
-    const [isMobileChatVisible, setIsMobileChatVisible] = useState(false);
+    const [activeMobileTab, setActiveMobileTab] = useState<'chat' | 'about'>('chat');
     
     const { ref: auctionCardRef, inView: auctionCardInView } = useInView({ threshold: 0.99 });
     
@@ -482,6 +481,7 @@ export default function StreamPage() {
     const [isLive, setIsLive] = useState(true);
     const mainScrollRef = useRef<HTMLDivElement>(null);
     const [hydrated, setHydrated] = useState(false);
+    const [showGoToTop, setShowGoToTop] = useState(false);
 
     useEffect(() => {
         setHydrated(true);
@@ -993,8 +993,8 @@ export default function StreamPage() {
                         walletBalance={walletBalance}
                         handlers={handlers}
                         inlineAuctionCardRefs={inlineAuctionCardRefs}
-                        isMobileChatVisible={isMobileChatVisible}
-                        setIsMobileChatVisible={setIsMobileChatVisible}
+                        activeMobileTab={activeMobileTab}
+                        setActiveMobileTab={setActiveMobileTab}
                         formatTime={formatTime}
                         renderWithHashtags={renderWithHashtags}
                     />
@@ -1138,78 +1138,86 @@ const DesktopLayout = (props: any) => (
 </div>
 );
 
-const MobileLayout = (props: any) => (
-<div className="flex flex-col h-dvh overflow-hidden relative">
-    <header className="p-3 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-sm z-30 border-b h-16 shrink-0">
-        <div className="flex items-center gap-2">
-            <Button variant="ghost" size="icon" onClick={() => props.router.back()}>
-                <ArrowLeft className="h-6 w-6" />
-            </Button>
-            {props.seller && (
-                <div className="flex items-center gap-2 overflow-hidden">
-                    <Avatar className="h-8 w-8">
-                        <AvatarImage src={props.seller.avatarUrl} />
-                        <AvatarFallback>{props.seller.name.charAt(0)}</AvatarFallback>
-                    </Avatar>
-                    <div className="overflow-hidden">
-                        <h1 className="text-sm font-bold truncate">{props.seller.name}</h1>
-                        <p className="text-xs text-muted-foreground">{props.streamData.viewerCount.toLocaleString()} viewers</p>
-                    </div>
+const MobileLayout = (props: any) => {
+    return (
+        <div className="flex flex-col h-dvh overflow-hidden relative">
+            <header className="p-3 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-sm z-30 border-b h-16 shrink-0">
+                {/* Mobile Header Content */}
+                 <div className="flex items-center gap-2">
+                    <Button variant="ghost" size="icon" onClick={() => props.router.back()}>
+                        <ArrowLeft className="h-6 w-6" />
+                    </Button>
+                    {props.seller && (
+                        <div className="flex items-center gap-2 overflow-hidden">
+                            <Avatar className="h-8 w-8">
+                                <AvatarImage src={props.seller.avatarUrl} />
+                                <AvatarFallback>{props.seller.name.charAt(0)}</AvatarFallback>
+                            </Avatar>
+                            <div className="overflow-hidden">
+                                <h1 className="text-sm font-bold truncate">{props.seller.name}</h1>
+                                <p className="text-xs text-muted-foreground">{props.streamData.viewerCount.toLocaleString()} viewers</p>
+                            </div>
+                        </div>
+                    )}
                 </div>
-            )}
-        </div>
-        <Button asChild variant="ghost">
-            <Link href="/cart">
-                <ShoppingCart className="mr-2 h-4 w-4" />
-                My Cart
-            </Link>
-        </Button>
-    </header>
-
-    <div className="flex-1 grid grid-rows-[auto_1fr] overflow-hidden">
-        <div className="w-full aspect-video bg-black relative flex-shrink-0" ref={props.playerRef}>
-            <video ref={props.videoRef} src={props.streamData.streamUrl || "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"} className="w-full h-full object-cover" loop />
-            <div className="absolute inset-0 bg-black/20 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                <Button variant="ghost" size="icon" className="text-white" onClick={props.handlePlayPause}>
-                    {props.isPaused ? <Play className="h-10 w-10 fill-white" /> : <Pause className="h-10 w-10 fill-white" />}
+                <Button asChild variant="ghost">
+                    <Link href="/cart">
+                        <ShoppingCart className="mr-2 h-4 w-4" />
+                        My Cart
+                    </Link>
                 </Button>
-            </div>
-            <div className="absolute inset-x-0 bottom-0 p-2">
-                <div className="w-full cursor-pointer py-1" ref={props.progressContainerRef} onClick={props.handleProgressClick}>
-                    <Progress value={(props.currentTime / props.duration) * 100} isLive={props.isLive} className="h-1.5" />
-                </div>
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-1">
-                        <p className="text-xs font-mono text-white">{props.formatTime(props.currentTime)}</p>
-                    </div>
-                    <div className="flex items-center gap-1">
-                        <Button variant="ghost" size="icon" className="h-7 w-7 text-white" onClick={props.handleMinimize}><PictureInPicture className="w-4 h-4"/></Button>
-                        <Button variant="ghost" size="icon" className="h-7 w-7 text-white" onClick={props.handleToggleFullscreen}><Maximize className="w-4 h-4"/></Button>
-                    </div>
-                </div>
-            </div>
-        </div>
+            </header>
 
-        <div className="flex flex-col overflow-hidden">
-             <div className="flex-1 flex flex-col h-full overflow-hidden">
-                <ChatPanel
-                    seller={props.seller}
-                    chatMessages={props.chatMessages}
-                    pinnedMessages={props.pinnedMessages}
-                    activeAuction={props.activeAuction}
-                    auctionTime={props.auctionTime}
-                    highestBid={props.highestBid}
-                    totalBids={props.totalBids}
-                    walletBalance={props.walletBalance}
-                    handlers={props.handlers}
-                    inlineAuctionCardRefs={props.inlineAuctionCardRefs}
-                    onClose={() => {}}
-                />
+            <div className="flex-1 grid grid-rows-[auto_1fr] overflow-hidden">
+                <div className="w-full aspect-video bg-black relative flex-shrink-0" ref={props.playerRef}>
+                    <video ref={props.videoRef} src={props.streamData.streamUrl || "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"} className="w-full h-full object-cover" loop />
+                    <div className="absolute inset-0 bg-black/20 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                        <Button variant="ghost" size="icon" className="text-white" onClick={props.handlePlayPause}>
+                            {props.isPaused ? <Play className="h-10 w-10 fill-white" /> : <Pause className="h-10 w-10 fill-white" />}
+                        </Button>
+                    </div>
+                    <div className="absolute inset-x-0 bottom-0 p-2">
+                        <div className="w-full cursor-pointer py-1" ref={props.progressContainerRef} onClick={props.handleProgressClick}>
+                            <Progress value={(props.currentTime / props.duration) * 100} isLive={props.isLive} className="h-1.5" />
+                        </div>
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-1">
+                                <p className="text-xs font-mono text-white">{props.formatTime(props.currentTime)}</p>
+                            </div>
+                            <div className="flex items-center gap-1">
+                                <Button variant="ghost" size="icon" className="h-7 w-7 text-white" onClick={props.handleMinimize}><PictureInPicture className="w-4 h-4"/></Button>
+                                <Button variant="ghost" size="icon" className="h-7 w-7 text-white" onClick={props.handleToggleFullscreen}><Maximize className="w-4 h-4"/></Button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="flex flex-col overflow-hidden">
+                     <div className="flex-shrink-0 border-b">
+                        <Tabs value={props.activeMobileTab} onValueChange={(value) => props.setActiveMobileTab(value)} className="w-full">
+                            <TabsList className="grid w-full grid-cols-2">
+                                <TabsTrigger value="chat">Live Chat</TabsTrigger>
+                                <TabsTrigger value="about">About</TabsTrigger>
+                            </TabsList>
+                        </Tabs>
+                    </div>
+                    {props.activeMobileTab === 'chat' ? (
+                        <div className="flex-1 flex flex-col h-full overflow-hidden">
+                           <ChatPanel {...props} onClose={() => props.setActiveMobileTab('about')} />
+                        </div>
+                    ) : (
+                         <ScrollArea className="flex-1">
+                            <div className="p-4 space-y-6">
+                                <StreamInfo {...props}/>
+                                <RelatedContent {...props} />
+                            </div>
+                        </ScrollArea>
+                    )}
+                </div>
             </div>
         </div>
-    </div>
-</div>
-);
+    );
+};
 
 const StreamInfo = ({ seller, streamData, handleFollowToggle, isFollowingState, sellerProducts, onAddToCart, onBuyNow, renderWithHashtags }: { seller: any, streamData: any, handleFollowToggle: any, isFollowingState: boolean, sellerProducts: any[], onAddToCart: (product: any) => void, onBuyNow: (product: any) => void, renderWithHashtags: (text: string) => React.ReactNode }) => {
     const isMobile = useIsMobile();
@@ -1264,7 +1272,7 @@ const StreamInfo = ({ seller, streamData, handleFollowToggle, isFollowingState, 
                     <CollapsibleContent>
                         <div className="text-sm text-muted-foreground mt-2 space-y-4">
                             <p>{renderWithHashtags(streamData.description || "Welcome to the live stream!")}</p>
-                             <div className="py-2 border-y flex flex-col sm:flex-row items-start sm:items-center gap-2 text-sm">
+                            <div className="py-2 border-y flex flex-col sm:flex-row items-start sm:items-center gap-2 text-sm">
                                 <h4 className="font-semibold text-muted-foreground flex-shrink-0">Follow on:</h4>
                                 <div className="flex flex-wrap gap-x-4 gap-y-2">
                                     <a href={mockSocials.instagram} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 text-primary hover:underline"><Instagram className="w-4 h-4"/> Instagram</a>
@@ -1367,6 +1375,7 @@ const RelatedContent = ({ relatedStreams }: { relatedStreams: any[] }) => (
 
 
     
+
 
 
 
