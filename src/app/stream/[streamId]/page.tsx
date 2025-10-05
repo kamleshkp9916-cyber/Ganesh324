@@ -1055,7 +1055,7 @@ const DesktopLayout = (props: any) => (
             )}
         </div>
         <div className="flex items-center gap-2">
-            <Button asChild variant="ghost">
+             <Button asChild variant="ghost">
                 <Link href="/cart">
                     <ShoppingCart className="mr-2 h-4 w-4" />
                     My Cart
@@ -1065,7 +1065,7 @@ const DesktopLayout = (props: any) => (
     </header>
     <div className="flex-1 grid grid-cols-[1fr,384px] overflow-hidden">
         <main className="flex-1 overflow-y-auto no-scrollbar" ref={props.mainScrollRef} onScroll={props.handleMainScroll}>
-            <div className="w-full aspect-video bg-black relative sticky top-0 z-20" ref={props.playerRef}>
+            <div className="w-full aspect-video bg-black relative" ref={props.playerRef}>
                 <video ref={props.videoRef} src={props.streamData.streamUrl || "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"} className="w-full h-full object-cover" loop />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent flex flex-col justify-end p-4 text-white">
                     <div className="w-full cursor-pointer py-1" ref={props.progressContainerRef} onClick={props.handleProgressClick}>
@@ -1338,4 +1338,3 @@ const RelatedContent = ({ relatedStreams }: { relatedStreams: any[] }) => (
         </div>
     </div>
 );
-
