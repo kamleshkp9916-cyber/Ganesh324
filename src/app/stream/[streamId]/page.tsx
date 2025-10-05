@@ -960,7 +960,7 @@ export default function StreamPage() {
                         <LoadingSpinner />
                     </div>
                  ) : isMobile ? (
-                     <MobileLayout {...{ router, videoRef, playerRef, handlePlayPause, handleShare, handleMinimize, handleToggleFullscreen, isPaused, seller, streamData, handleFollowToggle, isFollowingState, sellerProducts, handlers, relatedStreams, isChatOpen, setIsChatOpen, renderWithHashtags, chatMessages, pinnedMessages, activeAuction, auctionTime, highestBid, totalBids, walletBalance, inlineAuctionCardRefs, onClose: () => setIsChatOpen(false) }} />
+                    <MobileLayout {...{ router, videoRef, playerRef, handlePlayPause, handleShare, handleMinimize, handleToggleFullscreen, isPaused, seller, streamData, handleFollowToggle, isFollowingState, sellerProducts, handlers, relatedStreams, isChatOpen, setIsChatOpen, renderWithHashtags, chatMessages, pinnedMessages, activeAuction, auctionTime, highestBid, totalBids, walletBalance, inlineAuctionCardRefs, onClose: () => setIsChatOpen(false) }} />
                  ) : (
                     <DesktopLayout 
                         videoRef={videoRef}
@@ -1031,6 +1031,8 @@ const DesktopLayout = (props: any) => (
             )}
         </div>
         <div className="flex items-center gap-2">
+            <Button variant="ghost" size="icon" onClick={props.handleShare}><Share2 /></Button>
+            <Button variant="ghost" size="icon" onClick={() => props.setIsSettingsOpen(true)}><Settings /></Button>
              <Button asChild variant="ghost">
                 <Link href="/cart">
                     <ShoppingCart className="mr-2 h-4 w-4" />
@@ -1068,8 +1070,6 @@ const DesktopLayout = (props: any) => (
                         </div>
                         <div className="flex items-center gap-1 sm:gap-2">
                             <Button variant="ghost" size="icon" onClick={props.handleMinimize}><PictureInPicture /></Button>
-                            <Button variant="ghost" size="icon" onClick={props.handleShare}><Share2 /></Button>
-                            <Button variant="ghost" size="icon" onClick={() => props.setIsSettingsOpen(true)}><Settings /></Button>
                             <Button variant="ghost" size="icon" onClick={props.handleToggleFullscreen}><Maximize /></Button>
                         </div>
                     </div>
@@ -1183,6 +1183,7 @@ const MobileLayout = (props: any) => {
 
 const StreamInfo = ({ seller, streamData, handleFollowToggle, isFollowingState, sellerProducts, onAddToCart, onBuyNow, renderWithHashtags }: { seller: any, streamData: any, handleFollowToggle: any, isFollowingState: boolean, sellerProducts: any[], onAddToCart: (product: any) => void, onBuyNow: (product: any) => void, renderWithHashtags: (text: string) => React.ReactNode }) => {
     const isMobile = useIsMobile();
+    const [isProductSheetOpen, setIsProductSheetOpen] = useState(false);
     const mockSocials = {
         instagram: 'https://instagram.com/streamcart',
         twitter: 'https://twitter.com/streamcart',
@@ -1191,8 +1192,8 @@ const StreamInfo = ({ seller, streamData, handleFollowToggle, isFollowingState, 
     
     const ProductShelf = () => {
         return (
-             <Sheet>
-                <SheetTrigger asChild>
+             <Dialog open={isProductSheetOpen} onOpenChange={setIsProductSheetOpen}>
+                <DialogTrigger asChild>
                     <Button variant="outline" className="w-full justify-between">
                         <div className="flex items-center gap-2">
                             <ShoppingBag className="w-4 h-4 sm:mr-1" />
@@ -1200,7 +1201,7 @@ const StreamInfo = ({ seller, streamData, handleFollowToggle, isFollowingState, 
                         </div>
                         <ChevronDown className="h-4 w-4" />
                     </Button>
-                </SheetTrigger>
+                </DialogTrigger>
                 <SheetContent side="bottom" className="h-[80vh] flex flex-col bg-background/95 backdrop-blur-sm" overlayClassName="bg-black/20">
                     <SheetHeader>
                         <SheetTitle>Products in this Stream</SheetTitle>
@@ -1240,7 +1241,7 @@ const StreamInfo = ({ seller, streamData, handleFollowToggle, isFollowingState, 
                         </div>
                     </ScrollArea>
                 </SheetContent>
-            </Sheet>
+            </Dialog>
         );
     };
 
