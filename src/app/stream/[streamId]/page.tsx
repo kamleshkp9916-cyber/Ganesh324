@@ -189,7 +189,7 @@ const mockChatMessages: any[] = [
     { id: 24, user: 'Sophia', text: 'Great stream! Thanks!', avatar: 'https://placehold.co/40x40.png?text=S', userId: 'user15' },
     { id: 25, user: 'Ganesh', text: 'Replying to @FashionFinds: That sounds great! Thanks!', avatar: 'https://placehold.co/40x40.png', userId: 'user1', replyingTo: 'FashionFinds' },
     { id: 26, user: 'FashionFinds', text: "Welcome to the stream, everyone! Today we have some amazing deals. #welcome", isSeller: true, avatar: 'https://placehold.co/40x40.png', userId: '1' },
-    { id: 27, user: 'FashionFinds', text: "Hey Alex, it\'s 100% genuine leather! https://example.com/leather-info", avatar: 'https://placehold.co/40x40.png', isSeller: true, userId: '1' },
+    { id: 27, user: 'FashionFinds', text: "Hey Alex, it's 100% genuine leather! https://example.com/leather-info", avatar: 'https://placehold.co/40x40.png', isSeller: true, userId: '1' },
     { id: 28, user: 'FashionFinds', text: 'Yes David, we offer international shipping!', avatar: 'https://placehold.co/40x40.png', isSeller: true, userId: '1' },
     { id: 29, user: 'FashionFinds', text: '@Emily It lasts for about a year with average use!', avatar: 'https://placehold.co/40x40.png', isSeller: true, userId: '1' },
     { id: 30, user: 'FashionFinds', text: 'Sure thing, Ganesh! Here is a view of the back.', avatar: 'https://placehold.co/40x40.png', isSeller: true, userId: '1' },
@@ -1259,7 +1259,7 @@ const StreamInfo = (props: any) => {
                 </div>
             </div>
              <div className="flex items-center justify-between gap-2">
-                <Link href={`/seller/profile?userId=${seller.id}`} className="flex items-center gap-3 group flex-grow overflow-hidden">
+                <Link href={`/seller/profile?userId=${seller.name}`} className="flex items-center gap-3 group flex-grow overflow-hidden">
                     <Avatar className="h-12 w-12 flex-shrink-0">
                         <AvatarImage src={seller.avatarUrl} />
                         <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
@@ -1492,16 +1492,15 @@ const ChatPanel = ({
                       return <div key={msg.id} className="text-xs text-center text-[#9AA1A6] italic py-1">{msg.text}</div>
                   }
                   if (!msg.user) return null;
-
                   const isSellerMessage = msg.userId === seller?.id;
                   
                   return (
                      <div key={msg.id} className="flex items-start gap-3 w-full group text-sm animate-message-in">
                          <Avatar className="h-9 w-9 mt-0.5 border border-[rgba(255,255,255,0.04)]">
                              <AvatarImage src={isSellerMessage ? seller.avatarUrl : msg.avatar} />
-                             <AvatarFallback className="bg-gradient-to-br from-red-500 to-yellow-500 text-white font-bold">{isSellerMessage ? seller.name.charAt(0) : msg.user.charAt(0)}</AvatarFallback>
+                             <AvatarFallback className="bg-gradient-to-br from-primary to-purple-500 text-white font-bold">{isSellerMessage ? seller.name.charAt(0) : msg.user.charAt(0)}</AvatarFallback>
                          </Avatar>
-                          <div className="flex-grow">
+                         <div className="flex-grow">
                              <div className="flex items-center gap-2">
                                 <span className={cn("font-semibold text-xs", isSellerMessage && "text-primary")}>
                                      {isSellerMessage ? seller.name : msg.user}:
