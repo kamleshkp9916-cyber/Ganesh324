@@ -414,17 +414,17 @@ const ProductPromoCard = ({ msg, handlers }: { msg: any, handlers: any }) => {
     const { product } = msg;
 
     return (
-        <Card className="bg-card/80 border-primary/20 p-2 animate-in fade-in-0 slide-in-from-bottom-2 overflow-hidden">
-            <div className="relative aspect-[3/1] -m-2 mb-2">
+        <Card className="bg-card/80 border-primary/20 p-0 animate-in fade-in-0 slide-in-from-bottom-2 overflow-hidden">
+            <div className="relative aspect-video">
                 <Image src={product.images[0]} alt={product.name} fill className="object-cover" />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-black/0" />
-                 <div className="absolute bottom-2 left-2">
+                <div className="absolute top-2 left-2">
                     <Badge variant="secondary" className="bg-gradient-to-r from-primary to-purple-500 text-white border-transparent shadow-lg">
                         <Sparkles className="w-3 h-3 mr-1.5"/>Featured Product
                     </Badge>
                 </div>
             </div>
-            <div className="flex flex-col flex-grow p-1">
+            <div className="flex flex-col flex-grow p-2">
                 <h4 className="font-semibold text-sm leading-tight">{product.name}</h4>
                 <p className="font-bold text-lg">{product.price}</p>
                 <div className="flex gap-2 mt-2">
@@ -547,8 +547,9 @@ export default function StreamPage() {
         const intervalSeconds = liveStreamData?.promotionInterval || 20;
 
         const interval = setInterval(() => {
-            const productsWithStock = Object.values(productDetails)
-                .filter(p => productToSellerMapping[p.key]?.name === seller.name && p.stock > 0);
+            const productsWithStock = Object.values(productDetails).filter(p => 
+                productToSellerMapping[p.key]?.name === seller.name && p.stock > 0
+            );
             
             if (productsWithStock.length === 0) return;
             
@@ -1446,14 +1447,14 @@ const ChatPanel = ({
                   
                   return (
                      <div key={msg.id} className="flex items-start gap-3 w-full group text-sm animate-message-in">
-                         <Avatar className="h-9 w-9 mt-0.5 border border-[rgba(255,255,255,0.04)]">
+                         <Avatar className="h-8 w-8 mt-0.5 border border-[rgba(255,255,255,0.04)]">
                              <AvatarImage src={msg.avatar} />
                              <AvatarFallback className="bg-gradient-to-br from-red-500 to-yellow-500 text-white font-bold">{msg.user.charAt(0)}</AvatarFallback>
                          </Avatar>
                           <div className="flex-grow">
                              <p className="leading-relaxed break-words text-sm text-[#E6ECEF]">
-                                 <b className={cn("font-semibold text-xs mr-1.5", msg.isSeller && "text-amber-400")}>{msg.user}:</b>
-                                 <span className="text-sm">
+                                <b className={cn("font-semibold text-xs mr-1.5", msg.isSeller && "text-amber-400")}>{msg.user}:</b>
+                                <span className="text-sm">
                                     {msg.replyingTo && <span className="text-primary font-semibold mr-1">@{msg.replyingTo}</span>}
                                     {msg.text}
                                  </span>
