@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import {
@@ -494,7 +493,7 @@ export default function StreamPage() {
     const { ref: auctionCardRef, inView: auctionCardInView } = useInView({ threshold: 0.99 });
     
     const seller = useMemo(() => liveSellers.find(s => s.id === streamId), [streamId]);
-    const product = useMemo(() => productDetails[seller?.productId as keyof typeof productDetails], [seller]);
+    const product = useMemo(() => seller ? productDetails[seller.productId as keyof typeof productDetails] : null, [seller]);
     
      const relatedStreams = useMemo(() => {
         if (!product) return [];
@@ -1287,7 +1286,7 @@ const StreamInfo = (props: any) => {
                                   <Link href="#" target="_blank" className="text-muted-foreground hover:text-primary"><Twitter /></Link>
                                   <Link href="#" target="_blank" className="text-muted-foreground hover:text-primary"><Youtube /></Link>
                              </div>
-                        </div>
+                         </div>
                      </CollapsibleContent>
                 </Collapsible>
             </div>
@@ -1491,31 +1490,26 @@ const ChatPanel = ({
                       return <div key={msg.id} className="text-xs text-center text-[#9AA1A6] italic py-1">{msg.text}</div>
                   }
                   if (!msg.user) return null;
-
-                  const isSellerMessage = msg.userId === seller?.id;
                   
+                  const isSellerMessage = msg.isSeller || msg.userId === seller?.id;
+
                   return (
                      <div key={msg.id} className="flex items-start gap-3 w-full group text-sm animate-message-in">
                          <Avatar className="h-9 w-9 mt-0.5 border border-[rgba(255,255,255,0.04)]">
                             <AvatarImage src={isSellerMessage ? seller.avatarUrl : msg.avatar} />
-                             <AvatarFallback className="bg-gradient-to-br from-primary to-purple-500 text-white font-bold">{isSellerMessage ? seller.name.charAt(0) : msg.user.charAt(0)}</AvatarFallback>
+                            <AvatarFallback className="bg-gradient-to-br from-red-500 to-yellow-500 text-white font-bold">{isSellerMessage ? seller.name.charAt(0) : msg.user.charAt(0)}</AvatarFallback>
                          </Avatar>
-                         <div className="flex-grow">
-                            <div className="flex items-center gap-2 flex-wrap">
-                               <p className="leading-relaxed break-words text-sm text-[#E6ECEF]">
-                                   <span className={cn(
-                                       "font-semibold text-xs mr-1.5",
-                                       isSellerMessage && "text-yellow-400"
-                                   )}>
-                                       {isSellerMessage ? seller.name : msg.user}
-                                   </span>
-                                   {isSellerMessage && <Badge variant="secondary" className="px-1.5 py-0 text-[9px] h-4">Seller</Badge>}
-                                   <span className="text-sm ml-1">
+                          <div className="flex-grow">
+                             <div className="leading-relaxed break-words text-sm text-[#E6ECEF] mt-0.5">
+                                <span className={cn( "font-semibold text-xs mr-1.5", isSellerMessage && "text-yellow-400" )}>
+                                    {isSellerMessage ? seller.name : msg.user}
+                                </span>
+                                {isSellerMessage && <Badge variant="secondary" className="px-1.5 py-0 text-[9px] h-4 mx-1.5 align-middle">Seller</Badge>}
+                                <span className="text-sm">
                                     {renderWithHashtagsAndLinks(msg.text)}
-                                   </span>
-                               </p>
+                                </span>
                             </div>
-                         </div>
+                          </div>
                           <DropdownMenu>
                               <DropdownMenuTrigger asChild>
                                   <button className="text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity p-1">
