@@ -443,24 +443,8 @@ const ProductPromoCard = ({ msg, handlers }: { msg: any, handlers: any }) => {
     );
 };
 
-const renderWithHashtags = (text: string) => {
+const renderWithHashtags = (text: string, isSeller: boolean = false) => {
     if (!text) return null;
-    const parts = text.split(/(#\w+)/g);
-    return parts.map((part, index) => {
-        if (part.startsWith('#')) {
-            return (
-                <Link key={index} href={`/feed?filter=${part.substring(1)}`} className="text-primary font-semibold hover:underline">
-                    {part}
-                </Link>
-            );
-        }
-        return part;
-    });
-};
-
-const renderMessageContent = (text: string, isSeller: boolean) => {
-    if (!text) return null;
-    
     const regex = /(https?:\/\/[^\s]+|#\w+|@\w+)/g;
     const parts = text.split(regex);
     
@@ -509,6 +493,30 @@ export default function StreamPage() {
     const { ref: auctionCardRef, inView: auctionCardInView } = useInView({ threshold: 0.99 });
     
     const seller = useMemo(() => liveSellers.find(s => s.id === streamId), [streamId]);
+    const product = productDetails[seller?.productId as keyof typeof productDetails];
+    
+    const relatedStreams = useMemo(() => {
+        if (!product) return [];
+        let streams = liveSellers.filter(
+            s => s.category === product.category && s.id !== product.id
+        );
+        if (streams.length > 50) {
+            return streams.slice(0, 51);
+        }
+        // Fallback to show some streams if none match the category, excluding the current one
+        const fallbackStreams = liveSellers.filter(s => s.id !== product.id);
+        
+        // Add from fallback until we have 6 total, avoiding duplicates
+        let i = 0;
+        while(streams.length < 6 && i < fallbackStreams.length) {
+            if (!streams.some(s => s.id === fallbackStreams[i].id)) {
+                streams.push(fallbackStreams[i]);
+            }
+            i++;
+        }
+        return streams.slice(0,51);
+    }, [product]);
+
     const showPinnedAuction = !auctionCardInView && activeAuction && seller?.hasAuction;
     
     const mockStreamData = {
@@ -544,29 +552,6 @@ export default function StreamPage() {
     const [mobileView, setMobileView] = useState<'stream' | 'chat'>('stream');
     const [activeQuality, setActiveQuality] = useState('Auto');
     
-    const product = productDetails[seller?.productId as keyof typeof productDetails];
-
-    const relatedStreams = useMemo(() => {
-        if (!product) return [];
-        let streams = liveSellers.filter(
-            s => s.category === product.category && s.id !== product.id
-        );
-        if (streams.length > 50) {
-            return streams.slice(0, 51);
-        }
-        // Fallback to show some streams if none match the category, excluding the current one
-        const fallbackStreams = liveSellers.filter(s => s.id !== product.id);
-        
-        // Add from fallback until we have 6 total, avoiding duplicates
-        let i = 0;
-        while(streams.length < 6 && i < fallbackStreams.length) {
-            if (!streams.some(s => s.id === fallbackStreams[i].id)) {
-                streams.push(fallbackStreams[i]);
-            }
-            i++;
-        }
-        return streams.slice(0,51);
-    }, [product]);
 
     useEffect(() => {
         setHydrated(true);
@@ -1507,7 +1492,7 @@ const ChatPanel = ({
                       return <div key={msg.id} className="text-xs text-center text-[#9AA1A6] italic py-1">{msg.text}</div>
                   }
                   if (!msg.user) return null;
-                  
+
                   const isSellerMessage = msg.userId === seller?.id;
                   
                   return (
@@ -1517,13 +1502,21 @@ const ChatPanel = ({
                              <AvatarFallback className="bg-gradient-to-br from-red-500 to-yellow-500 text-white font-bold">{msg.user.charAt(0)}</AvatarFallback>
                          </Avatar>
                           <div className="flex-grow">
-                             <div className="flex items-center gap-2">
-                                <b className={cn("font-semibold text-xs", isSellerMessage && "text-primary")}>{msg.user}</b>
-                                {isSellerMessage && <Badge variant="secondary" className="ml-1.5 px-1.5 py-0 text-[10px] h-4">Seller</Badge>}
-                             </div>
-                             <div className="leading-relaxed break-words text-sm text-[#E6ECEF]">
-                                {renderMessageContent(msg.text, isSellerMessage)}
-                             </div>
+                            <div className="flex items-center gap-2">
+                                <span
+                                    className={cn(
+                                        "font-semibold text-xs",
+                                        isSellerMessage && "text-primary"
+                                    )}
+                                    style={{ color: isSellerMessage ? '' : msg.userColor || 'inherit' }}
+                                >
+                                    {msg.user}:
+                                </span>
+                                {isSellerMessage && <Badge variant="secondary" className="px-1.5 py-0 text-[10px] h-4">Seller</Badge>}
+                            </div>
+                            <div className="leading-relaxed break-words text-sm text-[#E6ECEF]">
+                                {renderWithHashtags(msg.text, isSellerMessage)}
+                            </div>
                           </div>
                           <DropdownMenu>
                               <DropdownMenuTrigger asChild>
