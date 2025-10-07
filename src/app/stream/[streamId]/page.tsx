@@ -69,6 +69,7 @@ import {
   Check,
   FileEdit,
   Sparkles,
+  UserCheck,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -166,9 +167,9 @@ const mockChatMessages: any[] = [
     { id: 1, user: 'Ganesh', text: 'This looks amazing! 🔥 #newpurchase', avatar: 'https://placehold.co/40x40.png', userId: 'user1' },
     { id: 2, user: 'Alex', text: 'What is the material?', avatar: 'https://placehold.co/40x40.png', userId: 'user2' },
     { id: 3, user: 'Jane', text: 'I just bought one! So excited. 🤩 #newpurchase', avatar: 'https://placehold.co/40x40.png', userId: 'user3' },
-    { id: 4, type: 'system', text: 'Chris joined the stream.' },
+    { id: 4, type: 'system', text: 'Maria purchased a Vintage Camera.' },
     { id: 5, user: 'FashionFinds', text: "Hey Alex, it's 100% genuine leather!", avatar: 'https://placehold.co/40x40.png', isSeller: true, userId: '1' },
-    { id: 6, type: 'system', text: 'Maria purchased a Vintage Camera.' },
+    { id: 6, type: 'system', text: 'David Garcia joined the stream.' },
     { id: 7, user: 'David', text: 'Do you ship to the US?', avatar: 'https://placehold.co/40x40.png', userId: 'user4' },
     { id: 8, user: 'FashionFinds', text: 'Yes David, we offer international shipping!', avatar: 'https://placehold.co/40x40.png', isSeller: true, userId: '1' },
     { id: 9, user: 'Sarah', text: 'This is my first time here, loving the vibe!', avatar: 'https://placehold.co/40x40.png', userId: 'user5' },
@@ -195,9 +196,8 @@ const mockChatMessages: any[] = [
     { id: 29, user: 'Noah', text: 'BID ₹9,600', avatar: 'https://placehold.co/40x40.png?text=N', userId: 'user14', isBid: true },
     { id: 30, user: 'Sophia', text: 'Great stream! Thanks!', avatar: 'https://placehold.co/40x40.png?text=S', userId: 'user15' },
     { id: 31, user: 'Ganesh', text: 'Replying to @FashionFinds: That sounds great! Thanks!', avatar: 'https://placehold.co/40x40.png', userId: 'user1', replyingTo: 'FashionFinds' },
-    { id: 32, user: 'FashionFinds', text: 'This is a test of a seller message. #test', isSeller: true, avatar: 'https://placehold.co/40x40.png', userId: '1' },
-    { id: 33, type: 'system', text: 'NewUser123 joined the stream.' },
-    { id: 34, user: 'FashionFinds', text: 'Welcome to the stream, everyone! Today we have some amazing deals. #welcome', isSeller: true, avatar: 'https://placehold.co/40x40.png', userId: '1' },
+    { id: 32, user: 'FashionFinds', text: 'Welcome to the stream, everyone! Today we have some amazing deals. #welcome', isSeller: true, avatar: 'https://placehold.co/40x40.png', userId: '1' },
+    { id: 33, user: 'FashionFinds', text: 'This is another message from the seller to demonstrate the badge. #seller #live', isSeller: true, avatar: 'https://placehold.co/40x40.png', userId: '1' },
 ];
 
 const reportReasons = [
@@ -890,14 +890,8 @@ export default function StreamPage() {
         toast({ title: 'Bid Placed!', description: `Your bid of ₹${bidValue.toLocaleString()} has been placed.` });
     };
     
-    const handleFollowToggle = async (sellerId: string) => {
-        if (!user) return; // Or prompt to login
-        await toggleFollow(user.uid, sellerId);
+    const handleFollowToggle = () => {
         setIsFollowingState(prev => !prev);
-        toast({
-            title: isFollowingState ? 'Unfollowed' : 'Followed',
-            description: `You are now ${isFollowingState ? 'no longer following' : 'following'} ${seller?.name}.`
-        });
     };
 
     const handleMinimize = () => {
@@ -970,7 +964,7 @@ export default function StreamPage() {
         const parts = text.split(/(#\w+)/g);
         return parts.map((part, index) => {
             if (part.startsWith('#')) {
-                return <Link key={index} href={`/feed?filter=${part.substring(1)}`} className="text-primary hover:underline">{part}</Link>;
+                return <Link key={index} href={`/feed?filter=${part.substring(1)}`} className="text-primary font-semibold hover:underline">{part}</Link>;
             }
             return part;
         });
@@ -1272,14 +1266,26 @@ const StreamInfo = (props: any) => {
                         )}
                     </div>
                 </Link>
-                  <Button
-                    onClick={() => seller && handleFollowToggle(seller.id)}
-                    variant={isFollowingState ? "outline" : "default"}
-                    className="flex-shrink-0"
-                >
-                    <UserPlus className="mr-2 h-4 w-4" />
-                    {isFollowingState ? "Following" : "Follow"}
-                </Button>
+                <Collapsible open={isFollowingState}>
+                    <Button
+                        onClick={handleFollowToggle}
+                        variant={isFollowingState ? "outline" : "default"}
+                        className="flex-shrink-0"
+                    >
+                        {isFollowingState ? <UserCheck className="mr-2 h-4 w-4" /> : <UserPlus className="mr-2 h-4 w-4" />}
+                        {isFollowingState ? "Following" : "Follow"}
+                    </Button>
+                    <CollapsibleContent className="mt-2">
+                         <div className="p-3 bg-muted rounded-lg flex items-center justify-between">
+                            <Badge variant="success">Premium</Badge>
+                             <div className="flex items-center gap-4">
+                                  <Link href="#" target="_blank" className="text-muted-foreground hover:text-primary"><Instagram /></Link>
+                                  <Link href="#" target="_blank" className="text-muted-foreground hover:text-primary"><Twitter /></Link>
+                                  <Link href="#" target="_blank" className="text-muted-foreground hover:text-primary"><Youtube /></Link>
+                             </div>
+                         </div>
+                    </CollapsibleContent>
+                </Collapsible>
             </div>
             
             <ProductShelf {...props} />
@@ -1385,8 +1391,9 @@ const ChatPanel = ({
     if (replyingTo) {
       messageToSend = `@${replyingTo.name.split(' ')[0]} ${newMessage}`;
     }
-    
+
     handlers.onSendMessage(messageToSend);
+
     setNewMessage("");
     setReplyingTo(null);
   };
@@ -1398,7 +1405,7 @@ const ChatPanel = ({
 
   const renderMessageContent = (text: string) => {
     if (!text) return text;
-    const parts = text.split(/(#\w+|@\w+)/g);
+    const parts = text.split(/(#[a-zA-Z0-9_]+|@[a-zA-Z0-9_]+)/g);
     return parts.map((part, index) => {
       if (part.startsWith('#')) {
         return <Link key={index} href={`/feed?filter=${part.substring(1)}`} className="text-primary font-semibold hover:underline">{part}</Link>;
@@ -1498,7 +1505,7 @@ const ChatPanel = ({
                     return <ProductPromoCard key={msg.id} msg={msg} handlers={handlers} />;
                   }
                   if (!msg.user) return null;
-
+                  
                   const isSellerMessage = msg.userId === seller?.id;
                   
                   return (
@@ -1567,6 +1574,7 @@ const ChatPanel = ({
                     placeholder="Send a message..." 
                     value={newMessage}
                     onChange={(e) => setNewMessage(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleNewMessageSubmit(e); }}}
                     rows={1}
                     className='flex-grow resize-none max-h-24 px-4 pr-12 py-3 min-h-11 rounded-full bg-[#0f1113] text-white placeholder:text-[#7d8488] border-none focus-visible:ring-2 focus-visible:ring-offset-0 focus-visible:ring-[#E43F3F]/30'
                 />
