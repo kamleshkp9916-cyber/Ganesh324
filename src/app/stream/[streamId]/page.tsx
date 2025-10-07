@@ -533,7 +533,7 @@ export default function StreamPage() {
             }));
     }, [seller]);
     
-     useEffect(() => {
+    useEffect(() => {
         if (!seller) return;
         
         let liveStreamData: any = {};
@@ -1358,7 +1358,9 @@ const ChatPanel = ({
       messageToSend = `@${replyingTo.name.split(' ')[0]} ${newMessage}`;
     }
 
-    console.log("New Message:", messageToSend);
+    console.log("New Message:", messageToSend); // This simulates sending
+    // In a real app, you would call your sendMessage function here.
+    // handlers.onSendMessage(messageToSend); 
 
     setNewMessage("");
     setReplyingTo(null);
@@ -1448,31 +1450,38 @@ const ChatPanel = ({
         </div>
       </header>
       <ScrollArea className="flex-grow" ref={chatContainerRef} onScroll={handleManualScroll}>
-          <div className="p-3 space-y-2">
+          <div className="p-3 space-y-2.5">
              {chatMessages.map((msg) => {
                   if (msg.type === 'system') {
                       return <div key={msg.id} className="text-xs text-center text-[#9AA1A6] italic py-1">{msg.text}</div>
                   }
-                   if (msg.type === 'product_promo') {
+                  if (msg.type === 'product_promo') {
                     return <div key={msg.id} className="p-1.5"><ProductPromoCard msg={msg} handlers={handlers} /></div>;
                   }
                   if (!msg.user) return null;
 
-                  const isMyMessage = msg.userId === seller?.uid;
-                  const isSellerMessage = msg.userId === seller?.uid;
+                  const isSellerMessage = msg.userId === seller?.id;
                   
                   return (
-                     <div key={msg.id} className="flex items-start gap-2 w-full group text-sm animate-message-in">
-                         <Avatar className="h-7 w-7 mt-0.5 border border-[rgba(255,255,255,0.04)]">
+                     <div key={msg.id} className="flex items-start gap-2 w-full group animate-message-in">
+                         <Avatar className="h-8 w-8 mt-0.5 border border-[rgba(255,255,255,0.04)]">
                              <AvatarImage src={msg.avatar} />
                              <AvatarFallback className="bg-gradient-to-br from-red-500 to-yellow-500 text-white font-bold">{msg.user.charAt(0)}</AvatarFallback>
                          </Avatar>
                           <div className="flex-grow">
-                             <p className="leading-tight break-words text-xs text-[#E6ECEF]">
-                                 <b className={cn("font-semibold text-xs mr-1.5", isSellerMessage && "text-amber-400")}>{msg.user}:</b>
+                             <p className="leading-snug break-words text-sm text-[#E6ECEF]">
+                                 <span className={cn("font-semibold text-xs mr-1.5", isSellerMessage && "text-amber-400")}>
+                                     {msg.user}
+                                     {isSellerMessage && <Badge variant="secondary" className="ml-1.5 px-1.5 py-0 text-xs">Seller</Badge>}
+                                :</span>
                                  <span className="text-sm">
-                                    {msg.replyingTo && <span className="text-primary font-semibold mr-1">@{msg.replyingTo}</span>}
-                                    {msg.text}
+                                    {msg.text.split(' ').map((part: string, index: number) => 
+                                        part.startsWith('@') ? (
+                                            <span key={index} className="text-blue-400 font-semibold">{part} </span>
+                                        ) : (
+                                            part + ' '
+                                        )
+                                    )}
                                  </span>
                              </p>
                           </div>
@@ -1525,6 +1534,12 @@ const ChatPanel = ({
                     placeholder="Send a message..." 
                     value={newMessage}
                     onChange={(e) => setNewMessage(e.target.value)}
+                    onKeyDown={(e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                            e.preventDefault();
+                            handleNewMessageSubmit(e);
+                        }
+                    }}
                     rows={1}
                     className='flex-grow resize-none max-h-24 px-4 pr-12 py-3 min-h-11 rounded-full bg-[#0f1113] text-white placeholder:text-[#7d8488] border-none focus-visible:ring-2 focus-visible:ring-offset-0 focus-visible:ring-[#E43F3F]/30'
                 />
