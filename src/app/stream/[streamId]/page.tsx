@@ -117,7 +117,7 @@ import { useInView } from "react-intersection-observer";
 import { useMiniPlayer } from "@/context/MiniPlayerContext";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { useMobile } from "@/hooks/use-mobile";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 
@@ -311,7 +311,7 @@ const ProductShelfContent = ({ sellerProducts, handleAddToCart, handleBuyNow, is
 
 const ProductShelf = ({ sellerProducts, handleAddToCart, handleBuyNow, toast }: { sellerProducts: any[], handleAddToCart: (product: any) => void, handleBuyNow: (product: any) => void, toast: any }) => {
     const [isOpen, setIsOpen] = useState(false);
-    const isMobile = useIsMobile();
+    const isMobile = useMobile();
     
     if (isMobile) {
         return (
@@ -456,7 +456,7 @@ export default function StreamPage() {
     const [activeAuction, setActiveAuction] = useState<any | null>(null);
     const [isBidDialogOpen, setIsBidDialogOpen] = useState(false);
     const [isBidHistoryOpen, setIsBidHistoryOpen] = useState(false);
-    const isMobile = useIsMobile();
+    const isMobile = useMobile();
     
     const { ref: auctionCardRef, inView: auctionCardInView } = useInView({ threshold: 0.99 });
     
@@ -531,22 +531,25 @@ export default function StreamPage() {
     useEffect(() => {
         if (!seller) return;
         const interval = setInterval(() => {
-            const allProducts = Object.values(productDetails);
-            const availableProducts = allProducts
-                .filter(p => productToSellerMapping[p.key]?.name === seller.name && p.stock > 0);
+            const promoProducts = [
+                productDetails['prod_1'],
+                productDetails['prod_2'],
+                productDetails['prod_4'],
+                productDetails['prod_5'],
+            ];
 
-            if (availableProducts.length === 0) return;
+            const randomIndex = Math.floor(Math.random() * promoProducts.length);
+            const randomProduct = promoProducts[randomIndex];
             
-            const randomIndex = Math.floor(Math.random() * availableProducts.length);
-            const randomProduct = availableProducts[randomIndex];
-            
-            const promoMessage = {
-                id: `promo-${Date.now()}`,
-                type: 'product_promo',
-                product: randomProduct,
-            };
-    
-            setChatMessages(prev => [...prev, promoMessage]);
+            if (randomProduct) {
+                 const promoMessage = {
+                    id: `promo-${Date.now()}`,
+                    type: 'product_promo',
+                    product: randomProduct,
+                };
+                setChatMessages(prev => [...prev, promoMessage]);
+            }
+
         }, 20000); // every 20 seconds
     
         return () => clearInterval(interval);
@@ -1431,7 +1434,7 @@ const ChatPanel = ({
         </div>
       </header>
       <ScrollArea className="flex-grow" ref={chatContainerRef} onScroll={handleManualScroll}>
-          <div className="p-3 space-y-0">
+          <div className="p-3 space-y-0.5">
              {chatMessages.map((msg) => {
                   if (msg.type === 'system') {
                       return <div key={msg.id} className="text-xs text-center text-[#9AA1A6] italic py-1">{msg.text}</div>
@@ -1445,7 +1448,7 @@ const ChatPanel = ({
                   const isSellerMessage = msg.userId === seller?.uid;
                   
                   return (
-                     <div key={msg.id} className="flex items-start gap-3 w-full group text-sm animate-message-in p-1.5">
+                     <div key={msg.id} className="flex items-start gap-3 w-full group text-sm animate-message-in p-1">
                          <Avatar className="h-6 w-6 mt-0.5 border border-[rgba(255,255,255,0.04)]">
                              <AvatarImage src={msg.avatar} />
                              <AvatarFallback className="bg-gradient-to-br from-red-500 to-yellow-500 text-white font-bold text-[10px]">{msg.user.charAt(0)}</AvatarFallback>
