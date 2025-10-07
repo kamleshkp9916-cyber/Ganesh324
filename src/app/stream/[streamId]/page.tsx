@@ -530,16 +530,24 @@ export default function StreamPage() {
      useEffect(() => {
         if (!seller) return;
         
-        const mockPromoProducts = [
-            productDetails['prod_1'],
-            productDetails['prod_2'],
-            productDetails['prod_4'],
-            productDetails['prod_5'],
-        ];
+        let liveStreamData: any = {};
+        if (typeof window !== 'undefined') {
+            const storedData = localStorage.getItem('liveStream');
+            if (storedData) {
+                liveStreamData = JSON.parse(storedData);
+            }
+        }
+
+        const intervalSeconds = liveStreamData?.promotionInterval || 20;
 
         const interval = setInterval(() => {
-            const randomIndex = Math.floor(Math.random() * mockPromoProducts.length);
-            const randomProduct = mockPromoProducts[randomIndex];
+             const currentSellerProducts = Object.values(productDetails)
+                .filter(p => productToSellerMapping[p.key]?.name === seller.name);
+
+            if (currentSellerProducts.length === 0) return;
+            
+            const randomIndex = Math.floor(Math.random() * currentSellerProducts.length);
+            const randomProduct = currentSellerProducts[randomIndex];
             
             if (randomProduct) {
                  const promoMessage = {
@@ -550,7 +558,7 @@ export default function StreamPage() {
                 setChatMessages(prev => [...prev, promoMessage]);
             }
 
-        }, 20000); // every 20 seconds
+        }, intervalSeconds * 1000);
     
         return () => clearInterval(interval);
     }, [seller]);
@@ -1434,12 +1442,12 @@ const ChatPanel = ({
         </div>
       </header>
       <ScrollArea className="flex-grow" ref={chatContainerRef} onScroll={handleManualScroll}>
-          <div className="p-3 space-y-0.5">
+          <div className="p-3 space-y-2.5">
              {chatMessages.map((msg) => {
                   if (msg.type === 'system') {
                       return <div key={msg.id} className="text-xs text-center text-[#9AA1A6] italic py-1">{msg.text}</div>
                   }
-                  if (msg.type === 'product_promo') {
+                   if (msg.type === 'product_promo') {
                     return <div key={msg.id} className="p-1.5"><ProductPromoCard msg={msg} handlers={handlers} /></div>;
                   }
                   if (!msg.user) return null;
@@ -1448,7 +1456,7 @@ const ChatPanel = ({
                   const isSellerMessage = msg.userId === seller?.uid;
                   
                   return (
-                     <div key={msg.id} className="flex items-start gap-3 w-full group text-xs animate-message-in p-1">
+                     <div key={msg.id} className="flex items-start gap-2 w-full group p-1 animate-message-in">
                          <Avatar className="h-6 w-6 mt-0.5 border border-[rgba(255,255,255,0.04)]">
                              <AvatarImage src={msg.avatar} />
                              <AvatarFallback className="bg-gradient-to-br from-red-500 to-yellow-500 text-white font-bold text-[10px]">{msg.user.charAt(0)}</AvatarFallback>

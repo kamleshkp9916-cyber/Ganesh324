@@ -32,10 +32,11 @@ export function GoLiveDialog() {
     const [streamDescription, setStreamDescription] = useState('');
     const [isAuction, setIsAuction] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [promotionInterval, setPromotionInterval] = useState(20);
 
     const sellerProducts = useMemo(() => {
         if (!userData) return [];
-        const productsKey = `sellerProducts_${userData.displayName}`;
+        const productsKey = `sellerProducts`;
         const stored = localStorage.getItem(productsKey);
         return stored ? JSON.parse(stored) : mockProducts;
     }, [userData]);
@@ -62,6 +63,7 @@ export function GoLiveDialog() {
             description: streamDescription,
             isAuction: isAuction,
             startedAt: new Date().toISOString(),
+            promotionInterval: promotionInterval,
         };
 
         // Simulate API call and save to local storage
@@ -131,6 +133,17 @@ export function GoLiveDialog() {
                             rows={4}
                         />
                     </div>
+                     <div className="space-y-2">
+                        <Label htmlFor="promotion-interval">Promotion Interval (seconds)</Label>
+                        <Input
+                            id="promotion-interval"
+                            type="number"
+                            placeholder="e.g., 20"
+                            value={promotionInterval}
+                            onChange={(e) => setPromotionInterval(Number(e.target.value))}
+                        />
+                        <p className="text-xs text-muted-foreground">How often a product is automatically shown in the chat.</p>
+                    </div>
                     <div className="flex items-center justify-between p-3 border rounded-lg">
                         <div className="flex items-center space-x-2">
                              <Gavel className="text-purple-500" />
@@ -165,4 +178,3 @@ export function GoLiveDialog() {
         </DialogContent>
     );
 }
-
