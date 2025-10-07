@@ -68,6 +68,7 @@ import {
   Reply,
   Check,
   FileEdit,
+  Sparkles,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -121,7 +122,6 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import { Skeleton } from "@/components/ui/skeleton";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { Sparkles } from 'lucide-react';
 
 
 const emojis = [
@@ -195,6 +195,7 @@ const mockChatMessages: any[] = [
     { id: 29, user: 'Noah', text: 'BID ₹9,600', avatar: 'https://placehold.co/40x40.png?text=N', userId: 'user14', isBid: true },
     { id: 30, user: 'Sophia', text: 'Great stream! Thanks!', avatar: 'https://placehold.co/40x40.png?text=S', userId: 'user15' },
     { id: 31, user: 'FashionFinds', text: "This is an example of a seller's message in the chat.", avatar: 'https://placehold.co/40x40.png', isSeller: true, userId: '1' },
+    { id: 32, user: 'Ganesh', text: 'Replying to @FashionFinds: That sounds great! Thanks!', avatar: 'https://placehold.co/40x40.png', userId: 'user1', replyingTo: 'FashionFinds' },
 ];
 
 const reportReasons = [
@@ -321,10 +322,11 @@ const ProductShelf = ({ sellerProducts, handleAddToCart, handleBuyNow, toast }: 
         return (
             <Sheet open={isOpen} onOpenChange={setIsOpen}>
                 <SheetTrigger asChild>
-                     <Button variant="outline" className="w-full justify-center">
+                     <Button variant="outline" className="w-full justify-center group">
                         <div className="flex items-center gap-2">
                             <ShoppingBag className="w-4 h-4 sm:mr-1" />
                             <span>Products ({sellerProducts.length})</span>
+                            <ChevronDown className={cn("h-4 w-4 transition-transform", isOpen && "rotate-180")} />
                         </div>
                     </Button>
                 </SheetTrigger>
@@ -345,10 +347,11 @@ const ProductShelf = ({ sellerProducts, handleAddToCart, handleBuyNow, toast }: 
      return (
          <Collapsible open={isOpen} onOpenChange={setIsOpen}>
             <CollapsibleTrigger asChild>
-                <Button variant="outline" className="w-full justify-center">
+                 <Button variant="outline" className="w-full justify-center group">
                     <div className="flex items-center gap-2">
                         <ShoppingBag className="w-4 h-4 sm:mr-1" />
                         <span>Products ({sellerProducts.length})</span>
+                        <ChevronDown className="h-4 w-4 transition-transform duration-200 group-data-[state=open]:rotate-180" />
                     </div>
                 </Button>
             </CollapsibleTrigger>
@@ -416,13 +419,13 @@ const ProductPromoCard = ({ msg, handlers }: { msg: any, handlers: any }) => {
     const { product } = msg;
 
     return (
-         <Card className="overflow-hidden bg-card/80 border-primary/20 p-0 animate-in fade-in-0 slide-in-from-bottom-2">
+        <Card className="overflow-hidden bg-card/80 border-primary/20 p-0 animate-in fade-in-0 slide-in-from-bottom-2">
             <div className="relative aspect-video">
                 <Image src={product.images[0]} alt={product.name} fill className="object-cover" />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-black/0" />
-                 <div className="absolute top-2 left-2">
+                <div className="absolute top-2 left-2">
                     <Badge variant="secondary" className="bg-gradient-to-r from-primary to-purple-500 text-white border-transparent shadow-lg">
-                        <Sparkles className="w-3 h-3 mr-1.5"/>Featured Product
+                        <Sparkles className="w-3 h-3 mr-1.5" />Featured Product
                     </Badge>
                 </div>
             </div>
@@ -435,8 +438,8 @@ const ProductPromoCard = ({ msg, handlers }: { msg: any, handlers: any }) => {
                 </div>
             </div>
         </Card>
-    )
-}
+    );
+};
 
 
 export default function StreamPage() {
@@ -546,7 +549,7 @@ export default function StreamPage() {
             }
         }
 
-        const intervalSeconds = liveStreamData?.promotionInterval || 300; // 5 minutes default
+        const intervalSeconds = liveStreamData?.promotionInterval || 300; 
 
          const interval = setInterval(() => {
             const productsWithStock = Object.values(productDetails).filter(p => 
@@ -1455,7 +1458,7 @@ const ChatPanel = ({
                   if (msg.type === 'system') {
                       return <div key={msg.id} className="text-xs text-center text-[#9AA1A6] italic py-1">{msg.text}</div>
                   }
-                  if (msg.type === 'product_promo') {
+                   if (msg.type === 'product_promo') {
                     return <div key={msg.id} className="p-1.5"><ProductPromoCard msg={msg} handlers={handlers} /></div>;
                   }
                   if (!msg.user) return null;
@@ -1475,7 +1478,7 @@ const ChatPanel = ({
                                      {isSellerMessage && <Badge variant="secondary" className="ml-1.5 px-1.5 py-0 text-xs">Seller</Badge>}
                                 :</span>
                                  <span className="text-sm">
-                                    {msg.replyingTo && <span className="text-blue-400 font-semibold mr-1">@{msg.replyingTo}</span>}
+                                    {msg.replyingTo && <span className="text-primary font-semibold mr-1">@{msg.replyingTo}</span>}
                                     {msg.text.split(' ').map((part: string, index: number) => 
                                         part.startsWith('@') ? (
                                             <span key={index} className="text-blue-400 font-semibold">{part} </span>
