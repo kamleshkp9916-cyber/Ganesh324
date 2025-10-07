@@ -66,6 +66,7 @@ import {
   GripHorizontal,
   Package,
   Reply,
+  Check,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -203,176 +204,7 @@ const reportReasons = [
     { value: "other", label: "Other" },
 ];
 
-const PlayerSettingsDialog = ({ playbackRate, onPlaybackRateChange, skipInterval, onSkipIntervalChange, onClose }: {
-    playbackRate: number,
-    onPlaybackRateChange: (rate: number) => void,
-    skipInterval: number,
-    onSkipIntervalChange: (interval: number) => void,
-    onClose: () => void;
-}) => {
-    return (
-        <DialogContent className="max-w-2xl bg-black border-gray-800 text-white p-0">
-            <DialogHeader className="p-4 border-b border-gray-700">
-                <DialogTitle className="flex items-center gap-2">
-                    <Settings2 className="h-5 w-5" /> Player Settings
-                </DialogTitle>
-            </DialogHeader>
-            <div className="grid grid-cols-4">
-                <Tabs defaultValue="playback" className="col-span-4 grid grid-cols-4">
-                     <TabsList className="col-span-1 flex flex-col h-auto bg-transparent p-2 gap-1 self-start">
-                        <TabsTrigger value="playback" className="w-full justify-start gap-2 data-[state=active]:bg-white/10 data-[state=active]:text-white">
-                            <Play className="h-5 w-5" /> Playback
-                        </TabsTrigger>
-                        <TabsTrigger value="quality" className="w-full justify-start gap-2 data-[state=active]:bg-white/10 data-[state=active]:text-white">
-                            <SlidersHorizontal className="h-5 w-5" /> Quality
-                        </TabsTrigger>
-                    </TabsList>
-                    <div className="col-span-3 p-2">
-                        <TabsContent value="playback" className="mt-0 space-y-2">
-                            <div className="p-4 rounded-lg bg-white/5 space-y-4">
-                                <div className="flex items-center justify-between">
-                                    <div>
-                                        <Label className="font-semibold">Playback speed</Label>
-                                        <div className="text-xs text-gray-400">Adjust speed for time-shifted viewing</div>
-                                    </div>
-                                    <Select defaultValue={`${playbackRate}`} onValueChange={(val) => onPlaybackRateChange(parseFloat(val))}>
-                                        <SelectTrigger className="w-28 bg-gray-800 border-gray-600">
-                                            <SelectValue />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="0.5">0.5x</SelectItem>
-                                            <SelectItem value="1">1.0x</SelectItem>
-                                            <SelectItem value="1.5">1.5x</SelectItem>
-                                            <SelectItem value="2">2.0x</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                                <div className="flex items-center justify-between">
-                                    <div>
-                                        <Label className="font-semibold">Skip intervals</Label>
-                                        <div className="text-xs text-gray-400">Controls skip forward/back duration</div>
-                                    </div>
-                                    <Select defaultValue={`${skipInterval}`} onValueChange={(val) => onSkipIntervalChange(parseInt(val))}>
-                                        <SelectTrigger className="w-28 bg-gray-800 border-gray-600">
-                                            <SelectValue />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="5">5 sec</SelectItem>
-                                            <SelectItem value="10">10 sec</SelectItem>
-                                            <SelectItem value="15">15 sec</SelectItem>
-                                            <SelectItem value="30">30 sec</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                            </div>
-                            <div className="p-4 rounded-lg bg-white/5 space-y-4">
-                                <div className="flex items-center justify-between">
-                                    <div>
-                                        <Label className="font-semibold">Low-latency mode</Label>
-                                        <div className="text-xs text-gray-400">Prioritize live edge over quality</div>
-                                    </div>
-                                    <Switch />
-                                </div>
-                                <div className="flex items-center justify-between">
-                                    <div>
-                                        <Label className="font-semibold">Auto-play next live</Label>
-                                        <div className="text-xs text-gray-400">Join the next scheduled live automatically</div>
-                                    </div>
-                                    <Switch />
-                                </div>
-                            </div>
-                             <div className="p-4 rounded-lg bg-white/5">
-                                 <div className="flex items-center justify-between">
-                                    <div>
-                                        <Label className="font-semibold">Audio output</Label>
-                                        <div className="text-xs text-gray-400">Choose output device</div>
-                                    </div>
-                                    <Select defaultValue="system">
-                                        <SelectTrigger className="w-36 bg-gray-800 border-gray-600">
-                                            <SelectValue />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="system">System default</SelectItem>
-                                            <SelectItem value="headphones">Headphones</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                            </div>
-                        </TabsContent>
-                         <TabsContent value="quality" className="mt-0 space-y-2">
-                             <div className="p-4 rounded-lg bg-white/5">
-                                <Label className="font-semibold">Streaming quality</Label>
-                                <div className="text-xs text-gray-400 mb-4">Optimize for network or pick a fixed resolution</div>
-                                <RadioGroup defaultValue="auto">
-                                    <div className="space-y-2">
-                                        <Label className="flex items-center justify-between p-3 rounded-md has-[:checked]:bg-white/10 has-[:checked]:border-blue-500 border border-transparent hover:bg-white/5 cursor-pointer">
-                                            <div>
-                                                <div>Auto <Badge className="ml-2 bg-blue-600">LIVE</Badge></div>
-                                                <div className="text-xs text-gray-400">Adaptive bitrate (recommended)</div>
-                                            </div>
-                                            <RadioGroupItem value="auto" />
-                                        </Label>
-                                        <Label className="flex items-center justify-between p-3 rounded-md has-[:checked]:bg-white/10 has-[:checked]:border-blue-500 border border-transparent hover:bg-white/5 cursor-pointer">
-                                            <div>1080p • High</div>
-                                            <RadioGroupItem value="1080p" />
-                                        </Label>
-                                         <Label className="flex items-center justify-between p-3 rounded-md has-[:checked]:bg-white/10 has-[:checked]:border-blue-500 border border-transparent hover:bg-white/5 cursor-pointer">
-                                            <div>720p • Medium</div>
-                                            <RadioGroupItem value="720p" />
-                                        </Label>
-                                         <Label className="flex items-center justify-between p-3 rounded-md has-[:checked]:bg-white/10 has-[:checked]:border-blue-500 border border-transparent hover:bg-white/5 cursor-pointer">
-                                            <div>480p • Data saver</div>
-                                            <RadioGroupItem value="480p" />
-                                        </Label>
-                                    </div>
-                                </RadioGroup>
-                            </div>
-                             <div className="p-4 rounded-lg bg-white/5 space-y-4">
-                                <div className="flex items-center justify-between">
-                                    <div>
-                                        <Label className="font-semibold">Data saver mode</Label>
-                                        <div className="text-xs text-gray-400">Reduce bitrate to minimize usage</div>
-                                    </div>
-                                    <Switch />
-                                </div>
-                                <div className="flex items-center justify-between">
-                                    <div>
-                                        <Label className="font-semibold">HDR</Label>
-                                        <div className="text-xs text-gray-400">Enable if display supports HDR</div>
-                                    </div>
-                                    <Switch />
-                                </div>
-                            </div>
-                             <div className="p-4 rounded-lg bg-white/5">
-                                 <div className="flex items-center justify-between">
-                                    <div>
-                                        <Label className="font-semibold">Max resolution on mobile data</Label>
-                                        <div className="text-xs text-gray-400">Applies when not on Wi-Fi</div>
-                                    </div>
-                                    <Select defaultValue="720p">
-                                        <SelectTrigger className="w-28 bg-gray-800 border-gray-600">
-                                            <SelectValue />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="1080p">1080p</SelectItem>
-                                            <SelectItem value="720p">720p</SelectItem>
-                                            <SelectItem value="480p">480p</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                            </div>
-                        </TabsContent>
-                    </div>
-                </Tabs>
-            </div>
-             <DialogFooter className="p-4 border-t border-gray-700">
-                <DialogClose asChild>
-                    <Button variant="ghost" className="text-white hover:bg-white/10 hover:text-white" onClick={onClose}>Done</Button>
-                </DialogClose>
-            </DialogFooter>
-        </DialogContent>
-    );
-};
+const qualityLevels = ["1080p", "720p", "480p", "360p", "144p"];
 
 const ReportDialog = ({ onSubmit }: { onSubmit: (reason: string, details: string) => void }) => {
     const [reason, setReason] = useState("");
@@ -524,11 +356,10 @@ const ProductShelf = ({ sellerProducts, handleAddToCart, handleBuyNow, toast }: 
                     }}
                     className="w-full"
                 >
-                    <CarouselContent>
+                    <CarouselContent className="-ml-2">
                         {sellerProducts.map((product, index) => (
-                        <CarouselItem key={index} className="basis-1/2 md:basis-1/3 lg:basis-1/4 xl:basis-1/5">
-                            <div className="p-1">
-                            <Card className="w-full overflow-hidden h-full flex flex-col flex-shrink-0 first:ml-0.5 last:mr-0.5">
+                        <CarouselItem key={index} className="basis-1/2 md:basis-1/3 lg:basis-1/4 xl:basis-1/5 pl-2">
+                            <Card className="w-full overflow-hidden h-full flex flex-col flex-shrink-0">
                                 <Link href={`/product/${product.key}`} className="group block">
                                     <div className="relative aspect-square bg-muted">
                                         <Image
@@ -567,7 +398,6 @@ const ProductShelf = ({ sellerProducts, handleAddToCart, handleBuyNow, toast }: 
                                     )}
                                 </CardFooter>
                             </Card>
-                            </div>
                         </CarouselItem>
                         ))}
                     </CarouselContent>
@@ -591,7 +421,6 @@ export default function StreamPage() {
     const [walletBalance, setWalletBalance] = useState(42580.22);
     const [bidAmount, setBidAmount] = useState<number | string>("");
     const [isWithdrawOpen, setIsWithdrawOpen] = useState(false);
-    const [isSettingsOpen, setIsSettingsOpen] = useState(false);
     const [isReportOpen, setIsReportOpen] = useState(false);
     const [bankAccounts, setBankAccounts] = useState([
         { id: 1, bankName: 'HDFC Bank', accountNumber: 'XXXX-XXXX-XX12-3456' },
@@ -645,6 +474,8 @@ export default function StreamPage() {
     const [showGoToTop, setShowGoToTop] = useState(false);
     const [isChatOpen, setIsChatOpen] = useState(false);
     const [mobileView, setMobileView] = useState<'stream' | 'chat'>('stream');
+    const [activeQuality, setActiveQuality] = useState('Auto');
+
 
     useEffect(() => {
         setHydrated(true);
@@ -846,25 +677,6 @@ export default function StreamPage() {
         }
     }, [duration, isLive, isMuted, isMinimized, streamId]);
     
-    const handlePlaybackRateChange = (rate: number) => {
-        const video = videoRef.current;
-        if (video) {
-            if (!isLive) {
-                video.playbackRate = rate;
-                setPlaybackRate(rate);
-            } else {
-                toast({
-                    title: "Live Playback",
-                    description: "Playback speed can only be changed when you are behind the live broadcast.",
-                });
-            }
-        }
-    };
-    
-    const handleSkipIntervalChange = (interval: number) => {
-        setSkipInterval(interval);
-    };
-
     const handleToggleFullscreen = () => {
         const elem = playerRef.current;
         if (!elem) return;
@@ -1099,15 +911,6 @@ export default function StreamPage() {
             <Dialog open={isBidHistoryOpen} onOpenChange={setIsBidHistoryOpen}>
                 {/* Bid History Content */}
             </Dialog>
-            <Dialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
-                <PlayerSettingsDialog
-                    playbackRate={playbackRate}
-                    onPlaybackRateChange={handlePlaybackRateChange}
-                    skipInterval={skipInterval}
-                    onSkipIntervalChange={handleSkipIntervalChange}
-                    onClose={() => setIsSettingsOpen(false)}
-                />
-            </Dialog>
              <Dialog open={isReportOpen} onOpenChange={setIsReportOpen}>
                 <ReportDialog onSubmit={(reason, details) => {
                     console.log("Report submitted", { reason, details });
@@ -1135,7 +938,6 @@ export default function StreamPage() {
                         handleToggleFullscreen={handleToggleFullscreen}
                         handleMinimize={handleMinimize}
                         handleShare={handleShare}
-                        setIsSettingsOpen={setIsSettingsOpen}
                         setIsMuted={setIsMuted}
                         isLive={isLive}
                         isPaused={isPaused}
@@ -1165,6 +967,8 @@ export default function StreamPage() {
                         formatTime={formatTime}
                         router={router}
                         renderWithHashtags={renderWithHashtags}
+                        activeQuality={activeQuality}
+                        setActiveQuality={setActiveQuality}
                     />
                  )}
             </div>
@@ -1194,7 +998,6 @@ const DesktopLayout = (props: any) => (
         </div>
         <div className="flex items-center gap-2">
             <Button variant="ghost" size="sm" onClick={props.handleShare}><Share2 className="mr-2" /> Share</Button>
-            <Button variant="ghost" size="sm" onClick={() => props.setIsSettingsOpen(true)}><Settings className="mr-2" /> Playback Settings</Button>
              <Button asChild variant="ghost">
                 <Link href="/cart">
                     <ShoppingCart className="mr-2 h-4 w-4" />
@@ -1231,6 +1034,26 @@ const DesktopLayout = (props: any) => (
                             <p className="text-sm font-mono">{props.formatTime(props.currentTime)} / {props.formatTime(props.duration)}</p>
                         </div>
                         <div className="flex items-center gap-1 sm:gap-2">
+                             <Popover>
+                                <PopoverTrigger asChild>
+                                    <Button variant="ghost" size="icon"><Settings /></Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-48 p-0" align="end">
+                                    <div className="p-2">
+                                        <p className="text-sm font-semibold p-2">Quality</p>
+                                        <RadioGroup value={props.activeQuality} onValueChange={props.setActiveQuality}>
+                                            <Label className="flex items-center justify-between p-2 hover:bg-muted rounded-md cursor-pointer text-sm">
+                                                Auto <span className="text-xs text-muted-foreground">(Recommended)</span> <RadioGroupItem value="Auto" />
+                                            </Label>
+                                            {qualityLevels.map(level => (
+                                                 <Label key={level} className="flex items-center justify-between p-2 hover:bg-muted rounded-md cursor-pointer text-sm">
+                                                    {level} <RadioGroupItem value={level} />
+                                                </Label>
+                                            ))}
+                                        </RadioGroup>
+                                    </div>
+                                </PopoverContent>
+                            </Popover>
                             <Button variant="ghost" size="icon" onClick={props.handleMinimize}><PictureInPicture /></Button>
                             <Button variant="ghost" size="icon" onClick={props.handleToggleFullscreen}><Maximize /></Button>
                         </div>
@@ -1589,7 +1412,7 @@ const ChatPanel = ({
         </div>
       </header>
       <ScrollArea className="flex-grow" ref={chatContainerRef} onScroll={handleManualScroll}>
-          <div className="p-1 space-y-0">
+          <div className="p-3 space-y-0.5">
              {chatMessages.map((msg) => {
                   if (msg.type === 'system') {
                       return <div key={msg.id} className="text-xs text-center text-[#9AA1A6] italic py-1">{msg.text}</div>
@@ -1600,10 +1423,10 @@ const ChatPanel = ({
                   const isSellerMessage = msg.userId === seller?.uid;
                   
                   return (
-                     <div key={msg.id} className="flex items-start gap-2 w-full group text-xs animate-message-in p-1">
+                     <div key={msg.id} className="flex items-start gap-2 w-full group text-sm animate-message-in p-1">
                          <Avatar className="h-6 w-6 mt-0.5 border border-[rgba(255,255,255,0.04)]">
                              <AvatarImage src={msg.avatar} />
-                             <AvatarFallback className="bg-gradient-to-br from-red-500 to-yellow-500 text-white font-bold">{msg.user.charAt(0)}</AvatarFallback>
+                             <AvatarFallback className="bg-gradient-to-br from-red-500 to-yellow-500 text-white font-bold text-[10px]">{msg.user.charAt(0)}</AvatarFallback>
                          </Avatar>
                           <div className="flex-grow">
                              <p className="leading-relaxed break-words text-xs text-[#E6ECEF]">
@@ -1693,4 +1516,3 @@ const ChatPanel = ({
     </div>
   );
 };
-
