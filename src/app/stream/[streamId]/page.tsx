@@ -197,6 +197,7 @@ const mockChatMessages: any[] = [
     { id: 31, user: 'Ganesh', text: 'Replying to @FashionFinds: That sounds great! Thanks!', avatar: 'https://placehold.co/40x40.png', userId: 'user1', replyingTo: 'FashionFinds' },
     { id: 32, user: 'FashionFinds', text: 'This is a test of a seller message. #test', isSeller: true, avatar: 'https://placehold.co/40x40.png', userId: '1' },
     { id: 33, type: 'system', text: 'NewUser123 joined the stream.' },
+    { id: 34, user: 'FashionFinds', text: 'Welcome to the stream, everyone! Today we have some amazing deals. #welcome', isSeller: true, avatar: 'https://placehold.co/40x40.png', userId: '1' },
 ];
 
 const reportReasons = [
@@ -1041,6 +1042,10 @@ const DesktopLayout = (props: any) => (
         <main className="flex-1 overflow-y-auto no-scrollbar" ref={props.mainScrollRef} onScroll={props.handleMainScroll}>
             <div className="w-full aspect-video bg-black relative" ref={props.playerRef}>
                 <video ref={props.videoRef} src={props.streamData.streamUrl || "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"} className="w-full h-full object-cover" loop />
+                 <div className="absolute top-3 left-3 z-10 flex items-center gap-2">
+                    <Badge variant="destructive" className="gap-1.5"><div className="h-2 w-2 rounded-full bg-white animate-pulse" /> LIVE</Badge>
+                    <Badge variant="secondary" className="bg-black/50 text-white gap-1.5"><Users className="w-3 h-3"/> {props.streamData.viewerCount.toLocaleString()}</Badge>
+                </div>
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent flex flex-col justify-end p-4 text-white">
                     <div className="w-full cursor-pointer py-1" ref={props.progressContainerRef} onClick={props.handleProgressClick}>
                         <Progress value={(props.currentTime / props.duration) * 100} valueBuffer={(props.buffered / props.duration) * 100} isLive={props.isLive} className="h-2" />
@@ -1153,6 +1158,10 @@ const MobileLayout = (props: any) => {
 
             <div className="w-full aspect-video bg-black relative flex-shrink-0" ref={props.playerRef}>
                 <video ref={props.videoRef} src={props.streamData.streamUrl || "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"} className="w-full h-full object-cover" loop onClick={handlePlayPause}/>
+                 <div className="absolute top-3 left-3 z-10 flex items-center gap-2">
+                    <Badge variant="destructive" className="gap-1.5"><div className="h-2 w-2 rounded-full bg-white animate-pulse" /> LIVE</Badge>
+                    <Badge variant="secondary" className="bg-black/50 text-white gap-1.5"><Users className="w-3 h-3"/> {props.streamData.viewerCount.toLocaleString()}</Badge>
+                </div>
                  <div className="absolute inset-0 bg-black/10 flex items-center justify-center gap-4">
                      <Button variant="ghost" size="icon" className="text-white w-12 h-12" onClick={() => handleSeek('backward')}><Rewind className="w-6 h-6 fill-white"/></Button>
                      <Button variant="ghost" size="icon" className="text-white w-16 h-16" onClick={handlePlayPause}>
@@ -1376,7 +1385,7 @@ const ChatPanel = ({
     if (replyingTo) {
       messageToSend = `@${replyingTo.name.split(' ')[0]} ${newMessage}`;
     }
-
+    
     handlers.onSendMessage(messageToSend);
     setNewMessage("");
     setReplyingTo(null);
@@ -1388,6 +1397,7 @@ const ChatPanel = ({
   }
 
   const renderMessageContent = (text: string) => {
+    if (!text) return text;
     const parts = text.split(/(#\w+|@\w+)/g);
     return parts.map((part, index) => {
       if (part.startsWith('#')) {
