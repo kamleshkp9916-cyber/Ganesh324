@@ -150,16 +150,16 @@ const liveSellers = [
 ];
 
 const productToSellerMapping: { [key: string]: { name: string; avatarUrl: string, uid: string } } = {
-    'prod_1': { name: 'FashionFinds', avatarUrl: 'https://placehold.co/80x80.png', uid: 'FashionFinds' },
-    'prod_2': { name: 'GadgetGuru', avatarUrl: 'https://placehold.co/80x80.png', uid: 'GadgetGuru' },
-    'prod_3': { name: 'HomeHaven', avatarUrl: 'https://placehold.co/80x80.png', uid: 'HomeHaven' },
-    'prod_4': { name: 'BeautyBox', avatarUrl: 'https://placehold.co/80x80.png', uid: 'BeautyBox' },
-    'prod_5': { name: 'KitchenWiz', avatarUrl: 'https://placehold.co/80x80.png', uid: 'KitchenWiz' },
-    'prod_6': { name: 'FitFlow', avatarUrl: 'https://placehold.co/80x80.png', uid: 'FitFlow' },
-    'prod_7': { name: 'ArtisanAlley', avatarUrl: 'https://placehold.co/80x80.png', uid: 'ArtisanAlley' },
-    'prod_8': { name: 'PetPalace', avatarUrl: 'https://placehold.co/80x80.png', uid: 'PetPalace' },
-    'prod_9': { name: 'BookNook', avatarUrl: 'https://placehold.co/80x80.png', uid: 'BookNook' },
-    'prod_10': { name: 'GamerGuild', avatarUrl: 'https://placehold.co/80x80.png', uid: 'GamerGuild' },
+    'prod_1': { name: 'FashionFinds', avatarUrl: 'https://placehold.co/80x80.png', uid: '1' },
+    'prod_2': { name: 'GadgetGuru', avatarUrl: 'https://placehold.co/80x80.png', uid: '2' },
+    'prod_3': { name: 'HomeHaven', avatarUrl: 'https://placehold.co/80x80.png', uid: '3' },
+    'prod_4': { name: 'BeautyBox', avatarUrl: 'https://placehold.co/80x80.png', uid: '4' },
+    'prod_5': { name: 'KitchenWiz', avatarUrl: 'https://placehold.co/80x80.png', uid: '5' },
+    'prod_6': { name: 'FitFlow', avatarUrl: 'https://placehold.co/80x80.png', uid: '6' },
+    'prod_7': { name: 'ArtisanAlley', avatarUrl: 'https://placehold.co/80x80.png', uid: '7' },
+    'prod_8': { name: 'PetPalace', avatarUrl: 'https://placehold.co/80x80.png', uid: '8' },
+    'prod_9': { name: 'BookNook', avatarUrl: 'https://placehold.co/80x80.png', uid: '9' },
+    'prod_10': { name: 'GamerGuild', avatarUrl: 'https://placehold.co/80x80.png', uid: '10' },
 };
 
 const mockChatMessages: any[] = [
@@ -167,33 +167,34 @@ const mockChatMessages: any[] = [
     { id: 2, user: 'Alex', text: 'What is the material?', avatar: 'https://placehold.co/40x40.png', userId: 'user2' },
     { id: 3, user: 'Jane', text: 'I just bought one! So excited. 🤩 #newpurchase', avatar: 'https://placehold.co/40x40.png', userId: 'user3' },
     { id: 4, type: 'system', text: 'Chris joined the stream.' },
-    { id: 5, user: 'FashionFinds', text: "Hey Alex, it's 100% genuine leather!", avatar: 'https://placehold.co/40x40.png', isSeller: true, userId: 'FashionFinds' },
+    { id: 5, user: 'FashionFinds', text: "Hey Alex, it's 100% genuine leather!", avatar: 'https://placehold.co/40x40.png', isSeller: true, userId: '1' },
     { id: 6, type: 'system', text: 'Maria purchased a Vintage Camera.' },
     { id: 7, user: 'David', text: 'Do you ship to the US?', avatar: 'https://placehold.co/40x40.png', userId: 'user4' },
-    { id: 8, user: 'FashionFinds', text: 'Yes David, we offer international shipping!', avatar: 'https://placehold.co/40x40.png', isSeller: true, userId: 'FashionFinds' },
+    { id: 8, user: 'FashionFinds', text: 'Yes David, we offer international shipping!', avatar: 'https://placehold.co/40x40.png', isSeller: true, userId: '1' },
     { id: 9, user: 'Sarah', text: 'This is my first time here, loving the vibe!', avatar: 'https://placehold.co/40x40.png', userId: 'user5' },
     { id: 10, type: 'auction', productId: 'prod_1', active: false, initialTime: 0 },
     { id: 11, user: 'Mike', text: 'BID ₹8,500', avatar: 'https://placehold.co/40x40.png', userId: 'user6', isBid: true },
     { id: 12, user: 'Laura', text: 'BID ₹9,000', avatar: 'https://placehold.co/40x40.png', userId: 'user7', isBid: true },
-    { id: 13, user: 'FashionFinds', text: 'Laura with a bid of ₹9,000! Going once...', avatar: 'https://placehold.co/40x40.png', isSeller: true, userId: 'FashionFinds' },
+    { id: 13, user: 'FashionFinds', text: 'Laura with a bid of ₹9,000! Going once...', avatar: 'https://placehold.co/40x40.png', isSeller: true, userId: '1' },
     { id: 14, user: 'Emily', text: 'How long does the battery last on the light meter?', avatar: 'https://placehold.co/40x40.png', userId: 'user8' },
     { id: 15, type: 'auction', productId: 'prod_4', active: true, initialTime: 30 },
     { id: 99, type: 'product_pin', productId: 'prod_2', text: 'Special offer on these headphones!' },
-    { id: 16, user: 'FashionFinds', text: '@Emily It lasts for about a year with average use!', avatar: 'https://placehold.co/40x40.png', isSeller: true, userId: 'FashionFinds' },
+    { id: 16, user: 'FashionFinds', text: '@Emily It lasts for about a year with average use!', avatar: 'https://placehold.co/40x40.png', isSeller: true, userId: '1' },
     { id: 17, type: 'system', text: 'Robert purchased Wireless Headphones.' },
     { id: 18, user: 'Ganesh', text: 'Can you show the back of the camera?', avatar: 'https://placehold.co/40x40.png', userId: 'user1' },
-    { id: 19, user: 'FashionFinds', text: 'Sure thing, Ganesh! Here is a view of the back.', avatar: 'https://placehold.co/40x40.png', isSeller: true, userId: 'FashionFinds' },
+    { id: 19, user: 'FashionFinds', text: 'Sure thing, Ganesh! Here is a view of the back.', avatar: 'https://placehold.co/40x40.png', isSeller: true, userId: '1' },
     { id: 20, user: 'Chloe', text: 'Just tuned in, what did I miss?', avatar: 'https://placehold.co/40x40.png', userId: 'user9' },
-    { id: 21, user: 'FashionFinds', text: 'Welcome Chloe! We just finished an auction, but we have more exciting products coming up. Stick around!', avatar: 'https://placehold.co/40x40.png', isSeller: true, userId: 'FashionFinds' },
+    { id: 21, user: 'FashionFinds', text: 'Welcome Chloe! We just finished an auction, but we have more exciting products coming up. Stick around!', avatar: 'https://placehold.co/40x40.png', isSeller: true, userId: '1' },
     { id: 22, user: 'Oliver', text: 'Is this real leather?', avatar: 'https://placehold.co/40x40.png?text=O', userId: 'user10' },
     { id: 23, user: 'Mia', text: 'Just followed! Love your stuff.', avatar: 'https://placehold.co/40x40.png?text=M', userId: 'user11' },
     { id: 24, user: 'Liam', text: 'How much is shipping?', avatar: 'https://placehold.co/40x40.png?text=L', userId: 'user12' },
     { id: 25, type: 'system', text: 'Emma purchased a Smart Watch.' },
-    { id: 26, user: 'FashionFinds', text: '@Liam shipping is a flat rate of ₹50 anywhere in India!', avatar: 'https://placehold.co/40x40.png', isSeller: true, userId: 'FashionFinds' },
+    { id: 26, user: 'FashionFinds', text: '@Liam shipping is a flat rate of ₹50 anywhere in India!', avatar: 'https://placehold.co/40x40.png', isSeller: true, userId: '1' },
     { id: 27, user: 'Ava', text: 'Can you show a close-up of the stitching?', avatar: 'https://placehold.co/40x40.png?text=A', userId: 'user13' },
     { id: 28, user: 'Noah', text: 'BID ₹9,100', avatar: 'https://placehold.co/40x40.png?text=N', userId: 'user14', isBid: true },
     { id: 29, user: 'Noah', text: 'BID ₹9,600', avatar: 'https://placehold.co/40x40.png?text=N', userId: 'user14', isBid: true },
     { id: 30, user: 'Sophia', text: 'Great stream! Thanks!', avatar: 'https://placehold.co/40x40.png?text=S', userId: 'user15' },
+    { id: 31, user: 'FashionFinds', text: "This is an example of a seller's message in the chat.", avatar: 'https://placehold.co/40x40.png', isSeller: true, userId: '1' },
 ];
 
 const reportReasons = [
@@ -415,7 +416,7 @@ const ProductPromoCard = ({ msg, handlers }: { msg: any, handlers: any }) => {
     const { product } = msg;
 
     return (
-        <Card className="bg-card/80 border-primary/20 p-0 animate-in fade-in-0 slide-in-from-bottom-2 overflow-hidden">
+         <Card className="overflow-hidden bg-card/80 border-primary/20 p-0 animate-in fade-in-0 slide-in-from-bottom-2">
             <div className="relative aspect-video">
                 <Image src={product.images[0]} alt={product.name} fill className="object-cover" />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-black/0" />
@@ -545,7 +546,7 @@ export default function StreamPage() {
             }
         }
 
-        const intervalSeconds = liveStreamData?.promotionInterval || 300;
+        const intervalSeconds = liveStreamData?.promotionInterval || 300; // 5 minutes default
 
          const interval = setInterval(() => {
             const productsWithStock = Object.values(productDetails).filter(p => 
@@ -1360,8 +1361,7 @@ const ChatPanel = ({
       messageToSend = `@${replyingTo.name.split(' ')[0]} ${newMessage}`;
     }
 
-    console.log("New Message:", messageToSend);
-
+    handlers.onSendMessage(messageToSend);
     setNewMessage("");
     setReplyingTo(null);
   };
@@ -1450,7 +1450,7 @@ const ChatPanel = ({
         </div>
       </header>
       <ScrollArea className="flex-grow" ref={chatContainerRef} onScroll={handleManualScroll}>
-          <div className="p-3 space-y-4">
+          <div className="p-3 space-y-3">
              {chatMessages.map((msg) => {
                   if (msg.type === 'system') {
                       return <div key={msg.id} className="text-xs text-center text-[#9AA1A6] italic py-1">{msg.text}</div>
@@ -1469,8 +1469,8 @@ const ChatPanel = ({
                              <AvatarFallback className="bg-gradient-to-br from-red-500 to-yellow-500 text-white font-bold">{msg.user.charAt(0)}</AvatarFallback>
                          </Avatar>
                           <div className="flex-grow">
-                             <p className="leading-snug break-words text-sm text-[#E6ECEF]">
-                                 <span className={cn("font-semibold text-xs mr-1.5", isSellerMessage && "text-amber-400")}>
+                             <p className="leading-snug break-words text-xs text-[#E6ECEF]">
+                                 <span className={cn("font-semibold mr-1.5", isSellerMessage && "text-amber-400")}>
                                      {msg.user}
                                      {isSellerMessage && <Badge variant="secondary" className="ml-1.5 px-1.5 py-0 text-xs">Seller</Badge>}
                                 :</span>
