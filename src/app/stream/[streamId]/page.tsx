@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import {
@@ -195,7 +194,7 @@ const mockChatMessages: any[] = [
     { id: 29, user: 'FashionFinds', text: '@Emily It lasts for about a year with average use!', avatar: 'https://placehold.co/40x40.png', isSeller: true, userId: '1' },
     { id: 30, user: 'FashionFinds', text: 'Sure thing, Ganesh! Here is a view of the back.', avatar: 'https://placehold.co/40x40.png', isSeller: true, userId: '1' },
     { id: 31, user: 'FashionFinds', text: 'Welcome Chloe! We just finished an auction, but we have more exciting products coming up. Stick around!', avatar: 'https://placehold.co/40x40.png', isSeller: true, userId: '1' },
-    { id: 32, user: 'FashionFinds', text: 'This is a seller message for UI testing purposes.', isSeller: true, avatar: 'https://placehold.co/40x40.png', userId: '1' },
+    { id: 32, user: 'FashionFinds', text: 'This is a seller message for UI testing purposes. https://google.com', isSeller: true, avatar: 'https://placehold.co/40x40.png', userId: '1' },
     { id: 33, type: 'system', text: 'Michael joined the stream.' },
 ];
 
@@ -445,7 +444,7 @@ const ProductPromoCard = ({ msg, handlers }: { msg: any, handlers: any }) => {
 };
 
 const renderMessageContent = (text: string, isSeller: boolean) => {
-    if (!text) return text;
+    if (!text) return null;
     
     const regex = /(https?:\/\/[^\s]+|#[a-zA-Z0-9_]+|@[a-zA-Z0-9_]+)/g;
     const parts = text.split(regex);
@@ -1254,14 +1253,14 @@ const StreamInfo = (props: any) => {
     
     return (
         <div className="space-y-4">
-             <div className="mb-4">
+            <div className="mb-4">
                 <h2 className="font-bold text-lg">Topic</h2>
                 <div className="text-sm text-muted-foreground mt-1 space-y-4">
                     <p>{renderMessageContent(streamData.description || "Welcome to the live stream!", true)}</p>
                 </div>
             </div>
-             <div className="flex flex-col gap-4">
-                <Link href={`/seller/profile?userId=${seller.name}`} className="flex items-center gap-3 group flex-grow overflow-hidden">
+            <div className="flex items-center justify-between gap-2">
+                <Link href={`/seller/profile?userId=${seller.uid}`} className="flex items-center gap-3 group flex-grow overflow-hidden">
                     <Avatar className="h-12 w-12 flex-shrink-0">
                         <AvatarImage src={seller.avatarUrl} />
                         <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
@@ -1277,20 +1276,18 @@ const StreamInfo = (props: any) => {
                     </div>
                 </Link>
                  <Collapsible open={isFollowingState} onOpenChange={handleFollowToggle}>
-                     <CollapsibleTrigger asChild>
-                         <Button variant={isFollowingState ? "outline" : "default"} className="w-full">
-                            {isFollowingState ? <UserCheck className="mr-2 h-4 w-4" /> : <UserPlus className="mr-2 h-4 w-4" />}
-                            {isFollowingState ? "Following" : "Follow"}
-                        </Button>
-                    </CollapsibleTrigger>
-                     <CollapsibleContent className="mt-2">
-                         <div className="p-3 bg-muted rounded-lg flex items-center justify-between">
-                            <div className="flex items-center gap-4">
-                                 <Link href="#" target="_blank" className="text-muted-foreground hover:text-primary"><Instagram className="w-5 h-5"/></Link>
-                                 <Link href="#" target="_blank" className="text-muted-foreground hover:text-primary"><Twitter className="w-5 h-5"/></Link>
-                                 <Link href="#" target="_blank" className="text-muted-foreground hover:text-primary"><Youtube className="w-5 h-5"/></Link>
-                            </div>
-                         </div>
+                    <Button variant={isFollowingState ? "outline" : "default"} className="flex-shrink-0">
+                        {isFollowingState ? <UserCheck className="mr-2 h-4 w-4" /> : <UserPlus className="mr-2 h-4 w-4" />}
+                        {isFollowingState ? "Following" : "Follow"}
+                    </Button>
+                     <CollapsibleContent className="mt-4">
+                        <div className="p-3 bg-muted rounded-lg flex items-center justify-center">
+                             <div className="flex items-center gap-4">
+                                 <Link href="#" target="_blank" className="text-muted-foreground hover:text-primary"><Instagram /></Link>
+                                 <Link href="#" target="_blank" className="text-muted-foreground hover:text-primary"><Twitter /></Link>
+                                 <Link href="#" target="_blank" className="text-muted-foreground hover:text-primary"><Youtube /></Link>
+                             </div>
+                        </div>
                      </CollapsibleContent>
                 </Collapsible>
             </div>
@@ -1506,7 +1503,7 @@ const ChatPanel = ({
                          </Avatar>
                           <div className="flex-grow">
                              <div className="flex items-center gap-2">
-                                <b className="font-semibold text-xs" style={{ color: isSellerMessage ? 'hsl(var(--primary))' : 'inherit' }}>{msg.user}</b>
+                                <b className={cn("font-semibold text-xs", isSellerMessage && "text-primary")}>{msg.user}</b>
                                 {isSellerMessage && <Badge variant="secondary" className="ml-1.5 px-1.5 py-0 text-xs">Seller</Badge>}
                              </div>
                              <div className="leading-relaxed break-words text-sm text-[#E6ECEF]">
