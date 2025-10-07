@@ -1279,7 +1279,7 @@ const StreamInfo = (props: any) => {
                             {isFollowingState ? "Following" : "Follow"}
                         </Button>
                     </CollapsibleTrigger>
-                     <CollapsibleContent className="mt-2">
+                     <CollapsibleContent className="mt-4">
                          <div className="p-3 bg-muted rounded-lg flex items-center justify-between">
                              <div className="flex items-center gap-4">
                                   <Link href="#" target="_blank" className="text-muted-foreground hover:text-primary"><Instagram /></Link>
@@ -1484,29 +1484,29 @@ const ChatPanel = ({
         </div>
       </header>
       <ScrollArea className="flex-grow" ref={chatContainerRef} onScroll={handleManualScroll}>
-          <div className="p-3 space-y-2.5">
+          <div className="p-3 space-y-3">
              {chatMessages.map((msg) => {
                   if (msg.type === 'system') {
                       return <div key={msg.id} className="text-xs text-center text-[#9AA1A6] italic py-1">{msg.text}</div>
                   }
                   if (!msg.user) return null;
-                  
+
                   const isSellerMessage = msg.userId === seller?.id;
                   
                   return (
-                     <div key={msg.id} className="flex items-start gap-3 w-full group text-sm animate-message-in">
+                     <div key={msg.id} className="flex items-start gap-3 w-full group animate-message-in">
                          <Avatar className="h-9 w-9 mt-0.5 border border-[rgba(255,255,255,0.04)]">
                             <AvatarImage src={isSellerMessage ? seller.avatarUrl : msg.avatar} />
                              <AvatarFallback className="bg-gradient-to-br from-primary to-purple-500 text-white font-bold">{isSellerMessage ? seller.name.charAt(0) : msg.user.charAt(0)}</AvatarFallback>
                          </Avatar>
-                          <div className="flex-grow">
-                             <div className="flex items-center gap-2 flex-wrap">
+                          <div className="flex-grow text-sm">
+                            <div className="flex items-center gap-2 flex-wrap">
                                 <span className={cn("font-semibold text-xs", isSellerMessage && "text-yellow-400")}>
                                      {isSellerMessage ? seller.name : msg.user}
                                 </span>
-                                {isSellerMessage && <Badge variant="secondary" className="px-1.5 py-0 text-[10px] h-4">Seller</Badge>}
-                             </div>
-                            <div className="leading-relaxed break-words text-sm text-[#E6ECEF]">
+                                {isSellerMessage && <Badge variant="secondary" className="px-1.5 py-0 text-[9px] h-4">Seller</Badge>}
+                            </div>
+                            <div className="leading-relaxed break-words text-[#E6ECEF] mt-0.5">
                                 {renderWithHashtagsAndLinks(msg.text, isSellerMessage)}
                             </div>
                           </div>
