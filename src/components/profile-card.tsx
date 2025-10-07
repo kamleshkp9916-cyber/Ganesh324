@@ -94,7 +94,7 @@ function ReviewSkeleton() {
     );
 }
 
-export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFollowToggle }: { profileData: UserData, isOwnProfile: boolean, onAddressesUpdate: (addresses: any[]) => void, onFollowToggle?: () => void }) {
+export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFollowToggle: onFollowToggleProp }: { profileData: UserData, isOwnProfile: boolean, onAddressesUpdate: (addresses: any[]) => void, onFollowToggle?: () => void }) {
   const { user, userData } = useAuth();
   const { toast } = useToast();
   const [profileImage, setProfileImage] = useState<string | null>(null);
@@ -122,7 +122,10 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
   const [userPosts, setUserPosts] = useState<any[]>([]);
   const [followingList, setFollowingList] = useState<any[]>([]);
   const [followerList, setFollowerList] = useState<any[]>([]);
-  const [isFollowingState, setIsFollowingState] = useState(false);
+  
+  // Local state for follow button UI
+  const [isFollowed, setIsFollowed] = useState(false);
+
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [activeCategory, setActiveCategory] = useState("All");
   const [userOrders, setUserOrders] = useState<any[]>([]);
@@ -130,7 +133,7 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
   
   const loadFollowData = async () => {
     if (user) {
-        setIsFollowingState(await isFollowing(user.uid, profileData.uid));
+        setIsFollowed(await isFollowing(user.uid, profileData.uid));
         
         if (isOwnProfile) {
           setFollowingList(await getFollowing(user.uid));
@@ -268,14 +271,16 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
     });
   };
   
-  const handleFollowToggle = async (targetId: string) => {
-    if (!user) return;
-    await toggleFollow(user.uid, targetId);
-    setIsFollowingState(prev => !prev);
-    if (onFollowToggle) {
-        onFollowToggle();
-    }
-    loadFollowData(); // Reload data to update dialog list
+  const handleFollowToggle = async () => {
+    // This now only toggles local state for the UI demo.
+    setIsFollowed(prev => !prev);
+    // The backend logic is commented out as requested.
+    // if (!user) return;
+    // await toggleFollow(user.uid, profileData.uid);
+    // if (onFollowToggleProp) {
+    //     onFollowToggleProp();
+    // }
+    // loadFollowData(); // Reload data to update dialog list
   };
 
   const sellerAverageRating = (mockReviews.reduce((acc, review) => acc + review.rating, 0) / mockReviews.length).toFixed(1);
@@ -331,7 +336,7 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                                               </div>
                                           </Link>
                                           {isOwnProfile && (
-                                               <Button variant="outline" size="sm" onClick={() => handleFollowToggle(followedUser.uid)}>Unfollow</Button>
+                                               <Button variant="outline" size="sm" onClick={() => handleFollowToggle()}>Unfollow</Button>
                                           )}
                                       </div>
                                   ))}
@@ -382,11 +387,11 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
               </div>
 
                 {!isOwnProfile && profileData.role === 'seller' && (
-                    <Collapsible open={isFollowingState} className="mt-4">
+                    <Collapsible open={isFollowed} className="mt-4">
                         <div className="flex justify-center sm:justify-start gap-2">
-                             <Button onClick={() => handleFollowToggle(profileData.uid)} variant={isFollowingState ? "outline" : "default"}>
-                                {isFollowingState ? <UserCheck className="mr-2 h-4 w-4" /> : <UserPlus className="mr-2 h-4 w-4" />}
-                                {isFollowingState ? "Following" : "Follow"}
+                             <Button onClick={() => handleFollowToggle()} variant={isFollowed ? "outline" : "default"}>
+                                {isFollowed ? <UserCheck className="mr-2 h-4 w-4" /> : <UserPlus className="mr-2 h-4 w-4" />}
+                                {isFollowed ? "Following" : "Follow"}
                             </Button>
                             <Button variant="outline" onClick={() => setIsChatOpen(true)}>
                                 <MessageSquare className="mr-2 h-4 w-4" />
@@ -781,4 +786,3 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
     </>
   );
 }
-
