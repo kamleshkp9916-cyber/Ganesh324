@@ -414,7 +414,7 @@ const ProductPromoCard = ({ msg, handlers }: { msg: any, handlers: any }) => {
     const { product } = msg;
 
     return (
-        <Card className="bg-card/80 border-primary/20 p-0 animate-in fade-in-0 slide-in-from-bottom-2 overflow-hidden">
+       <Card className="bg-card/80 border-primary/20 p-0 animate-in fade-in-0 slide-in-from-bottom-2 overflow-hidden">
             <div className="relative aspect-video">
                 <Image src={product.images[0]} alt={product.name} fill className="object-cover" />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-black/0" />
@@ -1303,12 +1303,25 @@ const ChatPanel = ({
   seller,
   chatMessages,
   pinnedMessages,
+  activeAuction,
+  auctionTime,
+  highestBid,
+  totalBids,
+  walletBalance,
   handlers,
+  inlineAuctionCardRefs,
+  onClose,
 }: {
   seller: any;
   chatMessages: any[];
   pinnedMessages: any[];
+  activeAuction: any;
+  auctionTime: number | null;
+  highestBid: number;
+  totalBids: number;
+  walletBalance: number;
   handlers: any;
+  inlineAuctionCardRefs: React.MutableRefObject<Record<string, HTMLDivElement | null>>;
   onClose: () => void;
 }) => {
   const [newMessage, setNewMessage] = useState("");
@@ -1429,7 +1442,7 @@ const ChatPanel = ({
                 </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-          <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-white lg:hidden" onClick={handlers.onClose}>
+          <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-white lg:hidden" onClick={onClose}>
             <X className="h-5 w-5" />
           </Button>
         </div>
@@ -1440,7 +1453,7 @@ const ChatPanel = ({
                   if (msg.type === 'system') {
                       return <div key={msg.id} className="text-xs text-center text-[#9AA1A6] italic py-1">{msg.text}</div>
                   }
-                  if (msg.type === 'product_promo') {
+                   if (msg.type === 'product_promo') {
                     return <div key={msg.id} className="p-1.5"><ProductPromoCard msg={msg} handlers={handlers} /></div>;
                   }
                   if (!msg.user) return null;
@@ -1451,10 +1464,10 @@ const ChatPanel = ({
                              <AvatarImage src={msg.avatar} />
                              <AvatarFallback className="bg-gradient-to-br from-red-500 to-yellow-500 text-white font-bold">{msg.user.charAt(0)}</AvatarFallback>
                          </Avatar>
-                          <div className="flex-grow">
-                             <p className="leading-relaxed break-words text-sm text-[#E6ECEF]">
-                                <b className={cn("font-semibold text-xs mr-1.5", msg.isSeller && "text-amber-400")}>{msg.user}:</b>
-                                <span className="text-sm">
+                          <div className="flex-grow space-y-0.5">
+                             <p className="leading-snug break-words text-sm text-[#E6ECEF]">
+                                 <b className={cn("font-semibold text-xs mr-1.5", msg.isSeller && "text-amber-400")}>{msg.user}:</b>
+                                 <span className="text-sm">
                                     {msg.replyingTo && <span className="text-primary font-semibold mr-1">@{msg.replyingTo}</span>}
                                     {msg.text}
                                  </span>
