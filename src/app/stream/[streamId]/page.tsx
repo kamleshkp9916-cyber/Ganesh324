@@ -65,6 +65,7 @@ import {
   ArrowUp,
   GripHorizontal,
   Package,
+  Reply,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -424,11 +425,11 @@ const ProductShelfContent = ({ sellerProducts, handleAddToCart, handleBuyNow, is
                     <SheetTitle>Products in this Stream</SheetTitle>
                 </SheetHeader>
             )}
-            <ScrollArea className={cn("flex-grow", isMobile && "no-scrollbar")}>
-                <div className={cn("p-4 grid gap-4", isMobile && "grid-cols-2")}>
+             <ScrollArea className={cn("h-full", isMobile && "no-scrollbar")}>
+                <div className={cn("p-4", isMobile ? "grid grid-cols-2 gap-4" : "flex gap-4")}>
                     {sellerProducts.length > 0 ? (
                         sellerProducts.map((product: any, index: number) => (
-                            <Card key={index} className="w-full overflow-hidden h-full flex flex-col">
+                            <Card key={index} className="w-full overflow-hidden h-full flex flex-col flex-shrink-0 first:ml-0.5 last:mr-0.5" style={{width: isMobile ? 'auto': '160px'}}>
                                 <Link href={`/product/${product.key}`} className="group block">
                                     <div className="relative aspect-square bg-muted">
                                         <Image
@@ -1284,7 +1285,7 @@ const MobileLayout = (props: any) => {
             
             <div className="flex-1 overflow-hidden relative">
                 {props.mobileView === 'stream' ? (
-                    <ScrollArea className="h-full no-scrollbar">
+                     <ScrollArea className="h-full no-scrollbar">
                         <div className="p-4 space-y-6">
                             <StreamInfo {...props}/>
                             <RelatedContent {...props}/>
@@ -1314,6 +1315,12 @@ const StreamInfo = (props: any) => {
     
     return (
         <div className="space-y-4">
+            <div className="mb-4">
+                <h2 className="font-bold text-lg">Topic</h2>
+                <div className="text-sm text-muted-foreground mt-1 space-y-4">
+                    <p>{renderWithHashtags(streamData.description || "Welcome to the live stream!")}</p>
+                </div>
+            </div>
              <div className="flex items-center justify-between gap-2">
                 <Link href={`/seller/profile?userId=${seller.id}`} className="flex items-center gap-3 group flex-grow overflow-hidden">
                     <Avatar className="h-12 w-12 flex-shrink-0">
@@ -1338,12 +1345,6 @@ const StreamInfo = (props: any) => {
                     <UserPlus className="mr-2 h-4 w-4" />
                     {isFollowingState ? "Following" : "Follow"}
                 </Button>
-            </div>
-             <div className="mb-4">
-                <h2 className="font-bold text-lg">Topic</h2>
-                <div className="text-sm text-muted-foreground mt-1 space-y-4">
-                    <p>{renderWithHashtags(streamData.description || "Welcome to the live stream!")}</p>
-                </div>
             </div>
             
             <ProductShelf {...props} />
@@ -1463,7 +1464,7 @@ const ChatPanel = ({
 
   return (
     <div className='h-full flex flex-col bg-[#0b0b0c]'>
-      <header className="p-2 flex items-center justify-between z-10 flex-shrink-0 h-16 border-b border-[rgba(255,255,255,0.04)] sticky top-0 bg-[#0f1113]/80 backdrop-blur-sm">
+      <header className="p-3 flex items-center justify-between z-10 flex-shrink-0 h-16 border-b border-[rgba(255,255,255,0.04)] sticky top-0 bg-[#0f1113]/80 backdrop-blur-sm">
         <h3 className="font-bold text-lg text-white">Live Chat</h3>
         <div className="flex items-center gap-1">
           <Popover>
@@ -1540,7 +1541,7 @@ const ChatPanel = ({
         </div>
       </header>
       <ScrollArea className="flex-grow" ref={chatContainerRef} onScroll={handleManualScroll}>
-          <div className="p-2 space-y-2">
+          <div className="space-y-2.5 p-0">
              {chatMessages.map((msg) => {
                   if (msg.type === 'system') {
                       return <div key={msg.id} className="text-xs text-center text-[#9AA1A6] italic py-1">{msg.text}</div>
@@ -1551,7 +1552,7 @@ const ChatPanel = ({
                   const isSellerMessage = msg.userId === seller?.uid;
                   
                   return (
-                     <div key={msg.id} className="flex items-start gap-2.5 w-full group text-xs animate-message-in">
+                     <div key={msg.id} className="flex items-start gap-3 w-full group text-sm animate-message-in p-3">
                          <Avatar className="h-8 w-8 mt-0.5 border border-[rgba(255,255,255,0.04)]">
                              <AvatarImage src={msg.avatar} />
                              <AvatarFallback className="bg-gradient-to-br from-red-500 to-yellow-500 text-white font-bold">{msg.user.charAt(0)}</AvatarFallback>
@@ -1560,7 +1561,7 @@ const ChatPanel = ({
                              <p className="leading-relaxed break-words text-xs text-[#E6ECEF]">
                                  <b className="font-semibold text-xs mr-1.5" style={{ color: msg.userColor || 'inherit' }}>{msg.user}:</b>
                                  <span className="text-xs">
-                                     {msg.replyingTo && <span className="text-primary font-semibold mr-1">@{msg.replyingTo.split(' ')[0]}</span>}
+                                     {msg.replyingTo && <span className="text-primary font-semibold mr-1">@{msg.replyingTo}</span>}
                                      {msg.text}
                                  </span>
                              </p>
