@@ -1572,7 +1572,7 @@ const ChatPanel = ({
       </header>
        {activeAuction && seller?.hasAuction && <div className="p-3 border-b border-[rgba(255,255,255,0.04)]"><AuctionCard {...{ activeAuction, auctionTime, highestBid, totalBids, handlers }} /></div>}
       <ScrollArea className="flex-grow" ref={chatContainerRef} onScroll={handleManualScroll}>
-          <div className="p-3 space-y-2">
+          <div className="p-3 space-y-4">
              {chatMessages.map((msg) => {
                   if (msg.type === 'system') {
                       return <div key={msg.id} className="text-xs text-center text-[#9AA1A6] italic py-1">{msg.text}</div>
@@ -1587,7 +1587,7 @@ const ChatPanel = ({
                     )
                 }
 
-                if (msg.isBid) {
+                if (msg.isBid && seller?.hasAuction) {
                     return (
                         <div key={msg.id} className="p-2 rounded-md bg-gradient-to-r from-gold/10 to-yellow-600/10 border-l-4 border-gold animate-in fade-in-0">
                             <div className="flex items-center gap-2">
@@ -1615,7 +1615,7 @@ const ChatPanel = ({
                   const authorAvatar = isSellerMessage ? seller.avatarUrl : msg.avatar;
                   
                   return (
-                     <div key={msg.id} className="flex items-start gap-3 w-full group text-sm animate-message-in">
+                     <div key={msg.id} className="flex items-start gap-3 w-full group animate-in fade-in-0 duration-300">
                          <Avatar className="h-9 w-9 mt-0.5 border border-[rgba(255,255,255,0.04)]">
                              <AvatarImage src={authorAvatar} />
                              <AvatarFallback className="bg-gradient-to-br from-red-500 to-yellow-500 text-white font-bold text-sm">{authorName.charAt(0)}</AvatarFallback>
