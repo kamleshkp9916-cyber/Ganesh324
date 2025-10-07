@@ -189,7 +189,7 @@ const mockChatMessages: any[] = [
     { id: 23, user: 'Noah', text: 'BID ₹9,600', avatar: 'https://placehold.co/40x40.png?text=N', userId: 'user14', isBid: true },
     { id: 24, user: 'Sophia', text: 'Great stream! Thanks!', avatar: 'https://placehold.co/40x40.png?text=S', userId: 'user15' },
     { id: 25, user: 'Ganesh', text: 'Replying to @FashionFinds: That sounds great! Thanks!', avatar: 'https://placehold.co/40x40.png', userId: 'user1', replyingTo: 'FashionFinds' },
-    { id: 26, user: 'FashionFinds', text: "Welcome to the stream, everyone! Today we have some amazing deals. #welcome. Find more at https://example.com", isSeller: true, avatar: 'https://placehold.co/40x40.png', userId: '1' },
+    { id: 26, user: 'FashionFinds', text: "Welcome to the stream, everyone! Today we have some amazing deals. #welcome", isSeller: true, avatar: 'https://placehold.co/40x40.png', userId: '1' },
     { id: 27, user: 'FashionFinds', text: "Hey Alex, it's 100% genuine leather!", avatar: 'https://placehold.co/40x40.png', isSeller: true, userId: '1' },
     { id: 28, user: 'FashionFinds', text: 'Yes David, we offer international shipping!', avatar: 'https://placehold.co/40x40.png', isSeller: true, userId: '1' },
     { id: 29, user: 'FashionFinds', text: '@Emily It lasts for about a year with average use!', avatar: 'https://placehold.co/40x40.png', isSeller: true, userId: '1' },
@@ -1257,7 +1257,7 @@ const StreamInfo = (props: any) => {
              <div className="mb-4">
                 <h2 className="font-bold text-lg">Topic</h2>
                 <div className="text-sm text-muted-foreground mt-1 space-y-4">
-                    <p>{renderWithHashtags(streamData.description || "Welcome to the live stream!", true)}</p>
+                    <div>{renderWithHashtags(streamData.description || "Welcome to the live stream!", true)}</div>
                 </div>
             </div>
              <div className="flex items-center justify-between gap-2">
@@ -1288,7 +1288,6 @@ const StreamInfo = (props: any) => {
                     </CollapsibleTrigger>
                     <CollapsibleContent className="mt-2">
                          <div className="p-3 bg-muted rounded-lg flex items-center justify-between">
-                            <Badge variant="secondary" className="gap-1"><Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />Premium</Badge>
                              <div className="flex items-center gap-4">
                                   <Link href="#" target="_blank" className="text-muted-foreground hover:text-primary"><Instagram /></Link>
                                   <Link href="#" target="_blank" className="text-muted-foreground hover:text-primary"><Twitter /></Link>
@@ -1498,12 +1497,10 @@ const ChatPanel = ({
                   if (msg.type === 'system') {
                       return <div key={msg.id} className="text-xs text-center text-[#9AA1A6] italic py-1">{msg.text}</div>
                   }
-                  if (msg.type === 'product_promo') {
-                    return <ProductPromoCard key={msg.id} msg={msg} handlers={handlers} />;
-                  }
                   if (!msg.user) return null;
 
-                  const isSellerMessage = msg.userId === seller?.id;
+                  const isMyMessage = msg.userId === seller?.uid;
+                  const isSellerMessage = msg.userId === seller?.uid;
                   
                   return (
                      <div key={msg.id} className="flex items-start gap-3 w-full group text-sm animate-message-in">
