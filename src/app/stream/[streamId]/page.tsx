@@ -446,11 +446,10 @@ const ProductPromoCard = ({ msg, handlers }: { msg: any, handlers: any }) => {
 
 const renderMessageContent = (text: string, isSeller: boolean) => {
     if (!text) return text;
-
+    
     const regex = /(https?:\/\/[^\s]+|#[a-zA-Z0-9_]+|@[a-zA-Z0-9_]+)/g;
-        
     const parts = text.split(regex);
-
+    
     return parts.map((part, index) => {
         if (isSeller && (part.startsWith('http://') || part.startsWith('https://'))) {
             return <a key={index} href={part} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline">{part}</a>;
@@ -1255,7 +1254,7 @@ const StreamInfo = (props: any) => {
              <div className="mb-4">
                 <h2 className="font-bold text-lg">Topic</h2>
                 <div className="text-sm text-muted-foreground mt-1 space-y-4">
-                    <div>{renderMessageContent(streamData.description || "Welcome to the live stream!", true)}</div>
+                    <p>{renderMessageContent(streamData.description || "Welcome to the live stream!", true)}</p>
                 </div>
             </div>
              <div className="flex items-center justify-between gap-2">
@@ -1274,21 +1273,23 @@ const StreamInfo = (props: any) => {
                         )}
                     </div>
                 </Link>
-                <div className="flex flex-col items-end gap-2">
-                     <Button onClick={handleFollowToggle} variant={isFollowingState ? "outline" : "default"} className="flex-shrink-0">
-                        {isFollowingState ? <UserCheck className="mr-2 h-4 w-4" /> : <UserPlus className="mr-2 h-4 w-4" />}
-                        {isFollowingState ? "Following" : "Follow"}
-                    </Button>
-                    {isFollowingState && (
-                         <div className="p-2 bg-muted rounded-lg flex items-center">
-                             <div className="flex items-center gap-3">
-                                  <Link href="#" target="_blank" className="text-muted-foreground hover:text-primary"><Instagram className="w-5 h-5"/></Link>
-                                  <Link href="#" target="_blank" className="text-muted-foreground hover:text-primary"><Twitter className="w-5 h-5"/></Link>
-                                  <Link href="#" target="_blank" className="text-muted-foreground hover:text-primary"><Youtube className="w-5 h-5"/></Link>
+                 <Collapsible open={isFollowingState} onOpenChange={handleFollowToggle}>
+                    <CollapsibleTrigger asChild>
+                        <Button variant={isFollowingState ? "outline" : "default"} className="flex-shrink-0">
+                            {isFollowingState ? <UserCheck className="mr-2 h-4 w-4" /> : <UserPlus className="mr-2 h-4 w-4" />}
+                            {isFollowingState ? "Following" : "Follow"}
+                        </Button>
+                    </CollapsibleTrigger>
+                     <CollapsibleContent className="mt-2">
+                         <div className="p-3 bg-muted rounded-lg flex items-center justify-center">
+                             <div className="flex items-center gap-4">
+                                 <Link href="#" target="_blank" className="text-muted-foreground hover:text-primary"><Instagram className="w-5 h-5"/></Link>
+                                 <Link href="#" target="_blank" className="text-muted-foreground hover:text-primary"><Twitter className="w-5 h-5"/></Link>
+                                 <Link href="#" target="_blank" className="text-muted-foreground hover:text-primary"><Youtube className="w-5 h-5"/></Link>
                              </div>
                          </div>
-                    )}
-                </div>
+                     </CollapsibleContent>
+                </Collapsible>
             </div>
             
             <ProductShelf {...props} />
@@ -1334,7 +1335,6 @@ const RelatedContent = ({ relatedStreams }: { relatedStreams: any[] }) => (
         </div>
     </div>
 );
-
 
 const ChatPanel = ({
   seller,
@@ -1503,14 +1503,14 @@ const ChatPanel = ({
                          </Avatar>
                           <div className="flex-grow">
                              <div className="leading-relaxed break-words text-sm text-[#E6ECEF]">
-                                 <b className="font-semibold text-xs mr-1.5" style={{ color: msg.userColor || 'inherit' }}>
-                                     {msg.user}
-                                     {isSellerMessage && <Badge variant="secondary" className="ml-1.5 px-1.5 py-0 text-xs">Seller</Badge>}
-                                 </b>
-                                 <div className="text-sm">
+                                <div className="flex items-center gap-2">
+                                  <b className="font-semibold text-xs" style={{ color: msg.userColor || 'inherit' }}>{msg.user}</b>
+                                  {isSellerMessage && <Badge variant="secondary" className="ml-1.5 px-1.5 py-0 text-xs">Seller</Badge>}
+                                </div>
+                                <div className="text-sm">
                                     {msg.replyingTo && <span className="text-primary font-semibold mr-1">@{msg.replyingTo}</span>}
                                     {renderMessageContent(msg.text, isSellerMessage)}
-                                 </div>
+                                </div>
                              </div>
                           </div>
                           <DropdownMenu>
