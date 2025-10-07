@@ -1,5 +1,3 @@
-
-
 "use client";
 
 import React from 'react';
@@ -29,7 +27,7 @@ import { Label } from './ui/label';
 import Link from 'next/link';
 import { CreatePostForm, PostData } from './create-post-form';
 import { ChatPopup } from './chat-popup';
-import { toggleFollow, getUserData, getFollowers, getFollowing, isFollowing, UserData, updateUserData } from '@/lib/follow-data';
+import { toggleFollow, getUserData, getFollowers, getFollowing, isFollowing as isFollowingBackend, UserData, updateUserData } from '@/lib/follow-data';
 import { getUserReviews, Review } from '@/lib/review-data';
 import { getFirestore, collection, query, where, getDocs, orderBy, onSnapshot, serverTimestamp, addDoc, Timestamp } from 'firebase/firestore';
 import { getFirestoreDb } from '@/lib/firebase';
@@ -123,7 +121,6 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
   const [followingList, setFollowingList] = useState<any[]>([]);
   const [followerList, setFollowerList] = useState<any[]>([]);
   
-  // Local state for follow button UI
   const [isFollowed, setIsFollowed] = useState(false);
 
   const [isChatOpen, setIsChatOpen] = useState(false);
@@ -133,7 +130,7 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
   
   const loadFollowData = async () => {
     if (user) {
-        setIsFollowed(await isFollowing(user.uid, profileData.uid));
+        setIsFollowed(await isFollowingBackend(user.uid, profileData.uid));
         
         if (isOwnProfile) {
           setFollowingList(await getFollowing(user.uid));
@@ -272,15 +269,20 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
   };
   
   const handleFollowToggle = async () => {
-    // This now only toggles local state for the UI demo.
+    if (!user) {
+        toast({
+            variant: "destructive",
+            title: "Login Required",
+            description: "You need to be logged in to follow users."
+        });
+        return;
+    }
     setIsFollowed(prev => !prev);
-    // The backend logic is commented out as requested.
-    // if (!user) return;
-    // await toggleFollow(user.uid, profileData.uid);
-    // if (onFollowToggleProp) {
-    //     onFollowToggleProp();
-    // }
-    // loadFollowData(); // Reload data to update dialog list
+    await toggleFollow(user.uid, profileData.uid);
+    if (onFollowToggleProp) {
+        onFollowToggleProp();
+    }
+    loadFollowData(); // Reload data to update dialog list
   };
 
   const sellerAverageRating = (mockReviews.reduce((acc, review) => acc + review.rating, 0) / mockReviews.length).toFixed(1);
@@ -387,9 +389,9 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
               </div>
 
                 {!isOwnProfile && profileData.role === 'seller' && (
-                    <Collapsible open={isFollowed} className="mt-4">
+                    <Collapsible open={isFollowed} onOpenChange={setIsFollowed} className="mt-4">
                         <div className="flex justify-center sm:justify-start gap-2">
-                             <Button onClick={() => handleFollowToggle()} variant={isFollowed ? "outline" : "default"}>
+                             <Button onClick={handleFollowToggle} variant={isFollowed ? "outline" : "default"}>
                                 {isFollowed ? <UserCheck className="mr-2 h-4 w-4" /> : <UserPlus className="mr-2 h-4 w-4" />}
                                 {isFollowed ? "Following" : "Follow"}
                             </Button>
