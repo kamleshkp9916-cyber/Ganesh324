@@ -443,13 +443,13 @@ const ProductPromoCard = ({ msg, handlers }: { msg: any, handlers: any }) => {
     );
 };
 
-const renderWithHashtagsAndLinks = (text: string, isSeller: boolean) => {
+const renderWithHashtagsAndLinks = (text: string) => {
     if (!text) return null;
     const regex = /(https?:\/\/[^\s]+|#\w+|@\w+)/g;
     const parts = text.split(regex);
     
     return parts.map((part, index) => {
-        if (isSeller && (part.startsWith('http://') || part.startsWith('https://'))) {
+        if (part.startsWith('http://') || part.startsWith('https://')) {
             return <a key={index} href={part} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline">{part}</a>;
         }
         if (part.startsWith('#')) {
@@ -1204,7 +1204,7 @@ const MobileLayout = (props: any) => {
                                             {qualityLevels.map(level => (
                                                  <Label key={level} className="flex items-center justify-between p-2 hover:bg-muted rounded-md cursor-pointer text-sm">
                                                     {level} <RadioGroupItem value={level} />
-                                                </Label>
+                                                 </Label>
                                             ))}
                                         </RadioGroup>
                                     </div>
@@ -1253,7 +1253,7 @@ const StreamInfo = (props: any) => {
             <div className="mb-4">
                 <h2 className="font-bold text-lg">Topic</h2>
                 <div className="text-sm text-muted-foreground mt-1 space-y-4">
-                    <p>{renderWithHashtagsAndLinks(streamData.description || "Welcome to the live stream!", true)}</p>
+                    <p>{renderWithHashtagsAndLinks(streamData.description || "Welcome to the live stream!")}</p>
                 </div>
             </div>
              <div className="flex items-center justify-between gap-2">
@@ -1484,7 +1484,7 @@ const ChatPanel = ({
         </div>
       </header>
       <ScrollArea className="flex-grow" ref={chatContainerRef} onScroll={handleManualScroll}>
-          <div className="p-3 space-y-3">
+          <div className="p-3 space-y-2.5">
              {chatMessages.map((msg) => {
                   if (msg.type === 'system') {
                       return <div key={msg.id} className="text-xs text-center text-[#9AA1A6] italic py-1">{msg.text}</div>
@@ -1494,22 +1494,22 @@ const ChatPanel = ({
                   const isSellerMessage = msg.userId === seller?.id;
                   
                   return (
-                     <div key={msg.id} className="flex items-start gap-3 w-full group animate-message-in">
-                         <Avatar className="h-9 w-9 mt-0.5 border border-[rgba(255,255,255,0.04)]">
+                     <div key={msg.id} className="flex items-start gap-3 w-full group text-sm animate-message-in">
+                        <Avatar className="h-9 w-9 mt-0.5 border border-[rgba(255,255,255,0.04)]">
                             <AvatarImage src={isSellerMessage ? seller.avatarUrl : msg.avatar} />
-                             <AvatarFallback className="bg-gradient-to-br from-primary to-purple-500 text-white font-bold">{isSellerMessage ? seller.name.charAt(0) : msg.user.charAt(0)}</AvatarFallback>
-                         </Avatar>
-                          <div className="flex-grow text-sm">
+                            <AvatarFallback className="bg-gradient-to-br from-primary to-purple-500 text-white font-bold">{isSellerMessage ? seller.name.charAt(0) : msg.user.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                        <div className="flex-grow">
                             <div className="flex items-center gap-2 flex-wrap">
                                 <span className={cn("font-semibold text-xs", isSellerMessage && "text-yellow-400")}>
                                      {isSellerMessage ? seller.name : msg.user}
                                 </span>
                                 {isSellerMessage && <Badge variant="secondary" className="px-1.5 py-0 text-[9px] h-4">Seller</Badge>}
                             </div>
-                            <div className="leading-relaxed break-words text-[#E6ECEF] mt-0.5">
-                                {renderWithHashtagsAndLinks(msg.text, isSellerMessage)}
-                            </div>
-                          </div>
+                            <p className="leading-relaxed break-words text-sm text-[#E6ECEF] mt-0.5">
+                                {renderWithHashtagsAndLinks(msg.text)}
+                            </p>
+                        </div>
                           <DropdownMenu>
                               <DropdownMenuTrigger asChild>
                                   <button className="text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity p-1">
