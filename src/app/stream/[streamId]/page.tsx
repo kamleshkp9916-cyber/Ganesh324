@@ -925,7 +925,7 @@ export default function StreamPage() {
                         <LoadingSpinner />
                     </div>
                  ) : isMobile ? (
-                     <MobileLayout {...{ router, videoRef, playerRef, handlePlayPause, handleShare, handleMinimize, handleToggleFullscreen, isPaused, seller, streamData, handleFollowToggle, isFollowingState, sellerProducts, handlers, relatedStreams, isChatOpen, setIsChatOpen, renderWithHashtags, chatMessages, pinnedMessages, activeAuction, auctionTime, highestBid, totalBids, walletBalance, inlineAuctionCardRefs, onClose: () => setIsChatOpen(false), handleAddToCart, handleBuyNow, mobileView, setMobileView, isMuted, setIsMuted, handleGoLive, handleSeek, isLive, formatTime, currentTime, duration, buffered, handleProgressClick, progressContainerRef }} />
+                     <MobileLayout {...{ router, videoRef, playerRef, handlePlayPause, handleShare, handleMinimize, handleToggleFullscreen, isPaused, seller, streamData, handleFollowToggle, isFollowingState, sellerProducts, handlers, relatedStreams, isChatOpen, setIsChatOpen, renderWithHashtags, chatMessages, pinnedMessages, activeAuction, auctionTime, highestBid, totalBids, walletBalance, inlineAuctionCardRefs, onClose: () => setIsChatOpen(false), handleAddToCart, handleBuyNow, mobileView, setMobileView, isMuted, setIsMuted, handleGoLive, handleSeek, isLive, formatTime, currentTime, duration, buffered, handleProgressClick, progressContainerRef, activeQuality, setActiveQuality }} />
                  ) : (
                     <DesktopLayout 
                         videoRef={videoRef}
@@ -997,8 +997,7 @@ const DesktopLayout = (props: any) => (
             )}
         </div>
         <div className="flex items-center gap-2">
-            <Button variant="ghost" size="sm" onClick={props.handleShare}><Share2 className="mr-2" /> Share</Button>
-             <Button asChild variant="ghost">
+            <Button asChild variant="ghost">
                 <Link href="/cart">
                     <ShoppingCart className="mr-2 h-4 w-4" />
                     My Cart
@@ -1019,6 +1018,8 @@ const DesktopLayout = (props: any) => (
                               <Button variant="ghost" size="icon" className="w-10 h-10" onClick={props.handlePlayPause}>
                                   {props.isPaused ? <Play className="w-6 h-6 fill-current" /> : <Pause className="w-6 h-6 fill-current" />}
                               </Button>
+                              <Button variant="ghost" size="icon" className="w-10 h-10" onClick={() => props.handleSeek('backward')}><Rewind className="w-5 h-5" /></Button>
+                              <Button variant="ghost" size="icon" className="w-10 h-10" onClick={() => props.handleSeek('forward')}><FastForward className="w-5 h-5" /></Button>
                               <Button
                                 variant="destructive"
                                 className="gap-1.5 h-8 text-xs sm:text-sm"
@@ -1054,6 +1055,7 @@ const DesktopLayout = (props: any) => (
                                     </div>
                                 </PopoverContent>
                             </Popover>
+                            <Button variant="ghost" size="icon" onClick={props.handleShare}><Share2 /></Button>
                             <Button variant="ghost" size="icon" onClick={props.handleMinimize}><PictureInPicture /></Button>
                             <Button variant="ghost" size="icon" onClick={props.handleToggleFullscreen}><Maximize /></Button>
                         </div>
@@ -1087,7 +1089,7 @@ const DesktopLayout = (props: any) => (
 );
 
 const MobileLayout = (props: any) => {
-    const { isMuted, setIsMuted, handleGoLive, isLive, formatTime, currentTime, duration, setIsSettingsOpen, handleShare, handleToggleFullscreen, progressContainerRef, handleProgressClick, isPaused, handlePlayPause, handleSeek, handleMinimize } = props;
+    const { isMuted, setIsMuted, handleGoLive, isLive, formatTime, currentTime, duration, handleShare, handleToggleFullscreen, progressContainerRef, handleProgressClick, isPaused, handlePlayPause, handleSeek, handleMinimize, activeQuality, setActiveQuality } = props;
     return (
         <div className="flex flex-col h-dvh overflow-hidden relative">
             <header className="p-3 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-sm z-30 border-b h-16 shrink-0 w-full">
@@ -1147,7 +1149,28 @@ const MobileLayout = (props: any) => {
                             <Button variant="ghost" size="icon" className="w-9 h-9" onClick={() => setIsMuted((prev: any) => !prev)}>
                                 {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
                             </Button>
+                            <Popover>
+                                <PopoverTrigger asChild>
+                                    <Button variant="ghost" size="icon" className="w-9 h-9"><Settings className="w-5 h-5" /></Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-48 p-0" align="end">
+                                    <div className="p-2">
+                                        <p className="text-sm font-semibold p-2">Quality</p>
+                                        <RadioGroup value={activeQuality} onValueChange={setActiveQuality}>
+                                            <Label className="flex items-center justify-between p-2 hover:bg-muted rounded-md cursor-pointer text-sm">
+                                                Auto <span className="text-xs text-muted-foreground">(Recommended)</span> <RadioGroupItem value="Auto" />
+                                            </Label>
+                                            {qualityLevels.map(level => (
+                                                 <Label key={level} className="flex items-center justify-between p-2 hover:bg-muted rounded-md cursor-pointer text-sm">
+                                                    {level} <RadioGroupItem value={level} />
+                                                </Label>
+                                            ))}
+                                        </RadioGroup>
+                                    </div>
+                                </PopoverContent>
+                            </Popover>
                             <Button variant="ghost" size="icon" className="w-9 h-9" onClick={handleShare}><Share2 className="w-5 h-5" /></Button>
+                            <Button variant="ghost" size="icon" className="w-9 h-9" onClick={handleMinimize}><PictureInPicture className="w-5 h-5"/></Button>
                             <Button variant="ghost" size="icon" className="w-9 h-9" onClick={handleToggleFullscreen}><Maximize className="w-5 h-5"/></Button>
                         </div>
                     </div>
@@ -1412,7 +1435,7 @@ const ChatPanel = ({
         </div>
       </header>
       <ScrollArea className="flex-grow" ref={chatContainerRef} onScroll={handleManualScroll}>
-          <div className="p-3 space-y-0.5">
+          <div className="p-3 space-y-0">
              {chatMessages.map((msg) => {
                   if (msg.type === 'system') {
                       return <div key={msg.id} className="text-xs text-center text-[#9AA1A6] italic py-1">{msg.text}</div>
@@ -1423,7 +1446,7 @@ const ChatPanel = ({
                   const isSellerMessage = msg.userId === seller?.uid;
                   
                   return (
-                     <div key={msg.id} className="flex items-start gap-2 w-full group text-sm animate-message-in p-1">
+                     <div key={msg.id} className="flex items-start gap-2 w-full group text-sm animate-message-in p-1.5">
                          <Avatar className="h-6 w-6 mt-0.5 border border-[rgba(255,255,255,0.04)]">
                              <AvatarImage src={msg.avatar} />
                              <AvatarFallback className="bg-gradient-to-br from-red-500 to-yellow-500 text-white font-bold text-[10px]">{msg.user.charAt(0)}</AvatarFallback>
