@@ -120,7 +120,7 @@ import { useInView } from "react-intersection-observer";
 import { useMiniPlayer } from "@/context/MiniPlayerContext";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { useIsMobile } from "@/hooks/use-is-mobile";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 
@@ -450,11 +450,8 @@ const renderMessageContent = (text: string, isSeller: boolean) => {
     const parts = text.split(regex);
     
     return parts.map((part, index) => {
-        if (part.startsWith('http://') || part.startsWith('https://')) {
-            if (isSeller) {
-                return <a key={index} href={part} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline">{part}</a>;
-            }
-            return part; // Return as plain text if not a seller
+        if ((part.startsWith('http://') || part.startsWith('https://')) && isSeller) {
+            return <a key={index} href={part} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline">{part}</a>;
         }
         if (part.startsWith('#')) {
             return <Link key={index} href={`/feed?filter=${part.substring(1)}`} className="text-primary font-semibold hover:underline">{part}</Link>;
@@ -1259,8 +1256,8 @@ const StreamInfo = (props: any) => {
                     <p>{renderMessageContent(streamData.description || "Welcome to the live stream!", true)}</p>
                 </div>
             </div>
-            <div className="flex items-center justify-between gap-2">
-                <Link href={`/seller/profile?userId=${seller.uid}`} className="flex items-center gap-3 group flex-grow overflow-hidden">
+             <div className="flex items-center justify-between gap-2">
+                <Link href={`/seller/profile?userId=${seller.name}`} className="flex items-center gap-3 group flex-grow overflow-hidden">
                     <Avatar className="h-12 w-12 flex-shrink-0">
                         <AvatarImage src={seller.avatarUrl} />
                         <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
@@ -1275,17 +1272,17 @@ const StreamInfo = (props: any) => {
                         )}
                     </div>
                 </Link>
-                 <Collapsible open={isFollowingState} onOpenChange={handleFollowToggle}>
-                    <Button variant={isFollowingState ? "outline" : "default"} className="flex-shrink-0">
+                 <Collapsible open={isFollowingState}>
+                    <Button onClick={handleFollowToggle} variant={isFollowingState ? "outline" : "default"} className="flex-shrink-0">
                         {isFollowingState ? <UserCheck className="mr-2 h-4 w-4" /> : <UserPlus className="mr-2 h-4 w-4" />}
                         {isFollowingState ? "Following" : "Follow"}
                     </Button>
                      <CollapsibleContent className="mt-4">
-                        <div className="p-3 bg-muted rounded-lg flex items-center justify-center">
+                         <div className="p-3 bg-muted rounded-lg flex items-center justify-center">
                              <div className="flex items-center gap-4">
-                                 <Link href="#" target="_blank" className="text-muted-foreground hover:text-primary"><Instagram /></Link>
-                                 <Link href="#" target="_blank" className="text-muted-foreground hover:text-primary"><Twitter /></Link>
-                                 <Link href="#" target="_blank" className="text-muted-foreground hover:text-primary"><Youtube /></Link>
+                                  <Link href="#" target="_blank" className="text-muted-foreground hover:text-primary"><Instagram /></Link>
+                                  <Link href="#" target="_blank" className="text-muted-foreground hover:text-primary"><Twitter /></Link>
+                                  <Link href="#" target="_blank" className="text-muted-foreground hover:text-primary"><Youtube /></Link>
                              </div>
                         </div>
                      </CollapsibleContent>
@@ -1491,9 +1488,8 @@ const ChatPanel = ({
                       return <div key={msg.id} className="text-xs text-center text-[#9AA1A6] italic py-1">{msg.text}</div>
                   }
                   if (!msg.user) return null;
-
-                  const isMyMessage = msg.userId === seller?.uid;
-                  const isSellerMessage = msg.userId === seller?.uid;
+                  
+                  const isSellerMessage = msg.userId === seller?.id;
                   
                   return (
                      <div key={msg.id} className="flex items-start gap-3 w-full group text-sm animate-message-in">
