@@ -189,7 +189,7 @@ const mockChatMessages: any[] = [
     { id: 24, user: 'Sophia', text: 'Great stream! Thanks!', avatar: 'https://placehold.co/40x40.png?text=S', userId: 'user15' },
     { id: 25, user: 'Ganesh', text: 'Replying to @FashionFinds: That sounds great! Thanks!', avatar: 'https://placehold.co/40x40.png', userId: 'user1', replyingTo: 'FashionFinds' },
     { id: 26, user: 'FashionFinds', text: "Welcome to the stream, everyone! Today we have some amazing deals. #welcome", isSeller: true, avatar: 'https://placehold.co/40x40.png', userId: '1' },
-    { id: 27, user: 'FashionFinds', text: "Hey Alex, it's 100% genuine leather!", avatar: 'https://placehold.co/40x40.png', isSeller: true, userId: '1' },
+    { id: 27, user: 'FashionFinds', text: "Hey Alex, it's 100% genuine leather! https://example.com/leather-info", avatar: 'https://placehold.co/40x40.png', isSeller: true, userId: '1' },
     { id: 28, user: 'FashionFinds', text: 'Yes David, we offer international shipping!', avatar: 'https://placehold.co/40x40.png', isSeller: true, userId: '1' },
     { id: 29, user: 'FashionFinds', text: '@Emily It lasts for about a year with average use!', avatar: 'https://placehold.co/40x40.png', isSeller: true, userId: '1' },
     { id: 30, user: 'FashionFinds', text: 'Sure thing, Ganesh! Here is a view of the back.', avatar: 'https://placehold.co/40x40.png', isSeller: true, userId: '1' },
@@ -597,15 +597,15 @@ export default function StreamPage() {
     }, [seller]);
     
     const relatedStreams = useMemo(() => {
-        if (!seller) return [];
+        if (!product) return [];
         let streams = liveSellers.filter(
-            s => s.category === seller.category && s.id !== seller.id
+            s => s.category === product.category && s.id !== product.id
         );
         if (streams.length > 50) {
             return streams.slice(0, 51);
         }
         // Fallback to show some streams if none match the category, excluding the current one
-        const fallbackStreams = liveSellers.filter(s => s.id !== seller.id);
+        const fallbackStreams = liveSellers.filter(s => s.id !== product.id);
         
         // Add from fallback until we have 6 total, avoiding duplicates
         let i = 0;
@@ -616,7 +616,7 @@ export default function StreamPage() {
             i++;
         }
         return streams.slice(0,51);
-    }, [seller]);
+    }, [product]);
     
     const formatTime = (timeInSeconds: number) => {
         if (isNaN(timeInSeconds) || timeInSeconds < 0) return '00:00';
@@ -976,6 +976,8 @@ export default function StreamPage() {
         );
     }
     
+    const product = productDetails[seller?.productId as keyof typeof productDetails];
+    
     return (
         <React.Fragment>
             <Dialog open={isBidDialogOpen} onOpenChange={setIsBidDialogOpen}>
@@ -998,10 +1000,10 @@ export default function StreamPage() {
                         <LoadingSpinner />
                     </div>
                  ) : isMobile ? (
-                     <MobileLayout {...{ router, videoRef, playerRef, handlePlayPause, handleShare, handleMinimize, handleToggleFullscreen, isPaused, seller, streamData, handleFollowToggle, isFollowingState, sellerProducts, handlers, relatedStreams, isChatOpen, setIsChatOpen, chatMessages, pinnedMessages, activeAuction, auctionTime, highestBid, totalBids, walletBalance, inlineAuctionCardRefs, onClose: () => setIsChatOpen(false), handleAddToCart, handleBuyNow, mobileView, setMobileView, isMuted, setIsMuted, handleGoLive, handleSeek, isLive, formatTime, currentTime, duration, buffered, handleProgressClick, progressContainerRef, activeQuality, setActiveQuality }} />
+                     <MobileLayout {...{ router, videoRef, playerRef, handlePlayPause, handleShare, handleMinimize, handleToggleFullscreen, isPaused, seller, streamData, handleFollowToggle, isFollowingState, sellerProducts, handlers, relatedStreams, isChatOpen, setIsChatOpen, chatMessages, pinnedMessages, activeAuction, auctionTime, highestBid, totalBids, walletBalance, inlineAuctionCardRefs, onClose: () => setIsChatOpen(false), handleAddToCart, handleBuyNow, mobileView, setMobileView, isMuted, setIsMuted, handleGoLive, handleSeek, isLive, formatTime, currentTime, duration, buffered, handleProgressClick, progressContainerRef, activeQuality, setActiveQuality, product }} />
                  ) : (
                     <DesktopLayout 
-                        {...{ router, videoRef, playerRef, handlePlayPause, handleShare, handleMinimize, handleToggleFullscreen, isPaused, seller, streamData, handleFollowToggle, isFollowingState, sellerProducts, handlers, relatedStreams, isChatOpen, setIsChatOpen, chatMessages, pinnedMessages, activeAuction, auctionTime, highestBid, totalBids, walletBalance, inlineAuctionCardRefs, onClose: () => setIsChatOpen(false), handleAddToCart, handleBuyNow, mobileView, setMobileView, isMuted, setIsMuted, handleGoLive, handleSeek, isLive, formatTime, currentTime, duration, buffered, handleProgressClick, progressContainerRef, mainScrollRef, handleMainScroll, showGoToTop, scrollToTop, activeQuality, setActiveQuality }}
+                        {...{ router, videoRef, playerRef, handlePlayPause, handleShare, handleMinimize, handleToggleFullscreen, isPaused, seller, streamData, handleFollowToggle, isFollowingState, sellerProducts, handlers, relatedStreams, isChatOpen, setIsChatOpen, chatMessages, pinnedMessages, activeAuction, auctionTime, highestBid, totalBids, walletBalance, inlineAuctionCardRefs, onClose: () => setIsChatOpen(false), handleAddToCart, handleBuyNow, mobileView, setMobileView, isMuted, setIsMuted, handleGoLive, handleSeek, isLive, formatTime, currentTime, duration, buffered, handleProgressClick, progressContainerRef, mainScrollRef, handleMainScroll, showGoToTop, scrollToTop, activeQuality, setActiveQuality, product }}
                     />
                  )}
             </div>
@@ -1272,11 +1274,13 @@ const StreamInfo = (props: any) => {
                         )}
                     </div>
                 </Link>
-                 <Collapsible open={isFollowingState} className="flex-shrink-0">
-                    <Button onClick={handleFollowToggle} variant={isFollowingState ? "outline" : "default"}>
-                        {isFollowingState ? <UserCheck className="mr-2 h-4 w-4" /> : <UserPlus className="mr-2 h-4 w-4" />}
-                        {isFollowingState ? "Following" : "Follow"}
-                    </Button>
+                 <Collapsible open={isFollowingState} onOpenChange={handleFollowToggle} className="flex-shrink-0">
+                    <CollapsibleTrigger asChild>
+                        <Button variant={isFollowingState ? "outline" : "default"}>
+                            {isFollowingState ? <UserCheck className="mr-2 h-4 w-4" /> : <UserPlus className="mr-2 h-4 w-4" />}
+                            {isFollowingState ? "Following" : "Follow"}
+                        </Button>
+                    </CollapsibleTrigger>
                      <CollapsibleContent className="mt-2">
                          <div className="p-3 bg-muted rounded-lg flex items-center justify-between">
                              <div className="flex items-center gap-4">
@@ -1358,6 +1362,7 @@ const ChatPanel = ({
   inlineAuctionCardRefs: React.MutableRefObject<Record<string, HTMLDivElement | null>>;
   onClose: () => void;
 }) => {
+  const { user } = useAuth();
   const [newMessage, setNewMessage] = useState("");
   const [replyingTo, setReplyingTo] = useState<{ name: string; id: string } | null>(null);
   const [showScrollToBottom, setShowScrollToBottom] = useState(false);
@@ -1489,22 +1494,20 @@ const ChatPanel = ({
                   }
                   if (!msg.user) return null;
 
-                  const isMyMessage = msg.userId === seller?.uid;
                   const isSellerMessage = msg.userId === seller?.id;
                   
                   return (
                      <div key={msg.id} className="flex items-start gap-3 w-full group text-sm animate-message-in">
-                         <Avatar className="h-9 w-9 mt-0.5 border border-[rgba(255,255,255,0.04)]">
+                        <Avatar className="h-9 w-9 mt-0.5 border border-[rgba(255,255,255,0.04)]">
                              <AvatarImage src={msg.avatar} />
                              <AvatarFallback className="bg-gradient-to-br from-red-500 to-yellow-500 text-white font-bold">{msg.user.charAt(0)}</AvatarFallback>
-                         </Avatar>
-                          <div className="flex-grow">
+                        </Avatar>
+                        <div className="flex-grow">
                              <div className="flex items-center gap-2">
                                 <b className={cn("font-semibold text-xs", isSellerMessage && "text-primary")}>{msg.user}</b>
-                                {isSellerMessage && <Badge variant="secondary" className="ml-1.5 px-1.5 py-0 text-xs">Seller</Badge>}
+                                {isSellerMessage && <Badge variant="secondary" className="ml-1.5 px-1.5 py-0 text-[10px] h-4">Seller</Badge>}
                              </div>
                              <div className="leading-relaxed break-words text-sm text-[#E6ECEF]">
-                                {msg.replyingTo && <span className="text-primary font-semibold mr-1">@{msg.replyingTo}</span>}
                                 {renderMessageContent(msg.text, isSellerMessage)}
                              </div>
                           </div>
