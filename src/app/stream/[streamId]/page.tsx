@@ -413,17 +413,21 @@ const ProductPromoCard = ({ msg, handlers }: { msg: any, handlers: any }) => {
     const { product } = msg;
 
     return (
-        <Card className="bg-card/80 border-primary/20 flex gap-3 p-2 animate-in fade-in-0 slide-in-from-bottom-2">
-            <Link href={`/product/${product.key}`} className="block w-20 h-20 bg-muted rounded-md overflow-hidden flex-shrink-0 relative">
-                 <Image src={product.images[0]} alt={product.name} fill sizes="80px" className="object-cover"/>
-            </Link>
-            <div className="flex flex-col flex-grow">
-                <Badge variant="secondary" className="w-fit mb-1 gap-1"><Sparkles className="w-3 h-3 text-primary"/>Featured Product</Badge>
+        <Card className="bg-card/80 border-primary/20 p-2 animate-in fade-in-0 slide-in-from-bottom-2 overflow-hidden">
+            <div className="relative aspect-[3/1] -m-2 mb-2">
+                <Image src={product.images[0]} alt={product.name} fill className="object-cover" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-black/0" />
+                <Badge variant="secondary" className="absolute bottom-2 left-2 gap-1.5 bg-gradient-to-r from-primary to-purple-500 text-white border-transparent">
+                    <Sparkles className="w-3 h-3"/>
+                    Featured Product
+                </Badge>
+            </div>
+            <div className="flex flex-col flex-grow p-1">
                 <h4 className="font-semibold text-sm leading-tight">{product.name}</h4>
                 <p className="font-bold text-lg">{product.price}</p>
-                <div className="flex gap-2 mt-auto">
-                    <Button size="sm" variant="outline" className="text-xs h-7" onClick={() => handlers.onAddToCart(product)}><ShoppingCart className="w-3 h-3 mr-1" /> Cart</Button>
-                    <Button size="sm" className="text-xs h-7" onClick={() => handlers.onBuyNow(product)}>Buy Now</Button>
+                <div className="flex gap-2 mt-2">
+                    <Button size="sm" variant="outline" className="text-xs h-7 flex-1" onClick={() => handlers.onAddToCart(product)}><ShoppingCart className="w-3 h-3 mr-1" /> Cart</Button>
+                    <Button size="sm" className="text-xs h-7 flex-1" onClick={() => handlers.onBuyNow(product)}>Buy Now</Button>
                 </div>
             </div>
         </Card>
@@ -541,8 +545,7 @@ export default function StreamPage() {
         const intervalSeconds = liveStreamData?.promotionInterval || 20;
 
         const interval = setInterval(() => {
-             const currentSellerProducts = Object.values(productDetails)
-                .filter(p => productToSellerMapping[p.key]?.name === seller.name);
+            const currentSellerProducts = Object.values(productDetails).filter(p => productToSellerMapping[p.key]?.name === seller.name);
 
             if (currentSellerProducts.length === 0) return;
             
@@ -1442,7 +1445,7 @@ const ChatPanel = ({
         </div>
       </header>
       <ScrollArea className="flex-grow" ref={chatContainerRef} onScroll={handleManualScroll}>
-          <div className="p-3 space-y-2.5">
+          <div className="p-3 space-y-0.5">
              {chatMessages.map((msg) => {
                   if (msg.type === 'system') {
                       return <div key={msg.id} className="text-xs text-center text-[#9AA1A6] italic py-1">{msg.text}</div>
@@ -1462,9 +1465,9 @@ const ChatPanel = ({
                              <AvatarFallback className="bg-gradient-to-br from-red-500 to-yellow-500 text-white font-bold text-[10px]">{msg.user.charAt(0)}</AvatarFallback>
                          </Avatar>
                           <div className="flex-grow">
-                             <p className="leading-relaxed break-words text-xs text-[#E6ECEF]">
+                             <p className="leading-relaxed break-words text-sm text-[#E6ECEF]">
                                  <b className="font-semibold text-xs mr-1.5" style={{ color: msg.userColor || 'inherit' }}>{msg.user}:</b>
-                                 <span className="text-xs">
+                                 <span className="text-sm">
                                     {msg.replyingTo && <span className="text-primary font-semibold mr-1">@{msg.replyingTo}</span>}
                                     {msg.text}
                                  </span>
@@ -1549,3 +1552,5 @@ const ChatPanel = ({
     </div>
   );
 };
+
+    
