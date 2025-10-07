@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import {
@@ -495,7 +496,7 @@ export default function StreamPage() {
     const seller = useMemo(() => liveSellers.find(s => s.id === streamId), [streamId]);
     const product = useMemo(() => productDetails[seller?.productId as keyof typeof productDetails], [seller]);
     
-    const relatedStreams = useMemo(() => {
+     const relatedStreams = useMemo(() => {
         if (!product) return [];
         let streams = liveSellers.filter(
             s => s.category === product.category && s.id !== streamId
@@ -1086,7 +1087,7 @@ const DesktopLayout = (props: any) => (
                                             {qualityLevels.map(level => (
                                                  <Label key={level} className="flex items-center justify-between p-2 hover:bg-muted rounded-md cursor-pointer text-sm">
                                                     {level} <RadioGroupItem value={level} />
-                                                </Label>
+                                                 </Label>
                                             ))}
                                         </RadioGroup>
                                     </div>
@@ -1495,21 +1496,26 @@ const ChatPanel = ({
                   
                   return (
                      <div key={msg.id} className="flex items-start gap-3 w-full group text-sm animate-message-in">
-                        <Avatar className="h-9 w-9 mt-0.5 border border-[rgba(255,255,255,0.04)]">
+                         <Avatar className="h-9 w-9 mt-0.5 border border-[rgba(255,255,255,0.04)]">
                             <AvatarImage src={isSellerMessage ? seller.avatarUrl : msg.avatar} />
-                            <AvatarFallback className="bg-gradient-to-br from-primary to-purple-500 text-white font-bold">{isSellerMessage ? seller.name.charAt(0) : msg.user.charAt(0)}</AvatarFallback>
-                        </Avatar>
-                        <div className="flex-grow">
+                             <AvatarFallback className="bg-gradient-to-br from-primary to-purple-500 text-white font-bold">{isSellerMessage ? seller.name.charAt(0) : msg.user.charAt(0)}</AvatarFallback>
+                         </Avatar>
+                         <div className="flex-grow">
                             <div className="flex items-center gap-2 flex-wrap">
-                                <span className={cn("font-semibold text-xs", isSellerMessage && "text-yellow-400")}>
-                                     {isSellerMessage ? seller.name : msg.user}
-                                </span>
-                                {isSellerMessage && <Badge variant="secondary" className="px-1.5 py-0 text-[9px] h-4">Seller</Badge>}
+                               <p className="leading-relaxed break-words text-sm text-[#E6ECEF]">
+                                   <span className={cn(
+                                       "font-semibold text-xs mr-1.5",
+                                       isSellerMessage && "text-yellow-400"
+                                   )}>
+                                       {isSellerMessage ? seller.name : msg.user}
+                                   </span>
+                                   {isSellerMessage && <Badge variant="secondary" className="px-1.5 py-0 text-[9px] h-4">Seller</Badge>}
+                                   <span className="text-sm ml-1">
+                                    {renderWithHashtagsAndLinks(msg.text)}
+                                   </span>
+                               </p>
                             </div>
-                            <p className="leading-relaxed break-words text-sm text-[#E6ECEF] mt-0.5">
-                                {renderWithHashtagsAndLinks(msg.text)}
-                            </p>
-                        </div>
+                         </div>
                           <DropdownMenu>
                               <DropdownMenuTrigger asChild>
                                   <button className="text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity p-1">
