@@ -451,8 +451,11 @@ const renderMessageContent = (text: string, isSeller: boolean) => {
     const parts = text.split(regex);
     
     return parts.map((part, index) => {
-        if (isSeller && (part.startsWith('http://') || part.startsWith('https://'))) {
-            return <a key={index} href={part} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline">{part}</a>;
+        if (part.startsWith('http://') || part.startsWith('https://')) {
+            if (isSeller) {
+                return <a key={index} href={part} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline">{part}</a>;
+            }
+            return part; // Return as plain text if not a seller
         }
         if (part.startsWith('#')) {
             return <Link key={index} href={`/feed?filter=${part.substring(1)}`} className="text-primary font-semibold hover:underline">{part}</Link>;
@@ -500,7 +503,7 @@ export default function StreamPage() {
     const mockStreamData = {
         id: streamId,
         title: "Live Shopping Event",
-        description: "Join us for exclusive deals and a first look at our new collection! #fashion #live",
+        description: "Join us for exclusive deals and a first look at our new collection! #fashion #live Check this out: https://google.com",
         status: "live",
         startedAt: new Timestamp(Math.floor(Date.now() / 1000) - 300, 0), // 5 minutes ago
         viewerCount: 12400,
@@ -1257,8 +1260,8 @@ const StreamInfo = (props: any) => {
                     <p>{renderMessageContent(streamData.description || "Welcome to the live stream!", true)}</p>
                 </div>
             </div>
-             <div className="flex items-center justify-between gap-2">
-                <Link href={`/seller/profile?userId=${seller.uid}`} className="flex items-center gap-3 group flex-grow overflow-hidden">
+             <div className="flex flex-col gap-4">
+                <Link href={`/seller/profile?userId=${seller.name}`} className="flex items-center gap-3 group flex-grow overflow-hidden">
                     <Avatar className="h-12 w-12 flex-shrink-0">
                         <AvatarImage src={seller.avatarUrl} />
                         <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
@@ -1274,19 +1277,19 @@ const StreamInfo = (props: any) => {
                     </div>
                 </Link>
                  <Collapsible open={isFollowingState} onOpenChange={handleFollowToggle}>
-                    <CollapsibleTrigger asChild>
-                        <Button variant={isFollowingState ? "outline" : "default"} className="flex-shrink-0">
+                     <CollapsibleTrigger asChild>
+                         <Button variant={isFollowingState ? "outline" : "default"} className="w-full">
                             {isFollowingState ? <UserCheck className="mr-2 h-4 w-4" /> : <UserPlus className="mr-2 h-4 w-4" />}
                             {isFollowingState ? "Following" : "Follow"}
                         </Button>
                     </CollapsibleTrigger>
                      <CollapsibleContent className="mt-2">
-                         <div className="p-3 bg-muted rounded-lg flex items-center justify-center">
-                             <div className="flex items-center gap-4">
+                         <div className="p-3 bg-muted rounded-lg flex items-center justify-between">
+                            <div className="flex items-center gap-4">
                                  <Link href="#" target="_blank" className="text-muted-foreground hover:text-primary"><Instagram className="w-5 h-5"/></Link>
                                  <Link href="#" target="_blank" className="text-muted-foreground hover:text-primary"><Twitter className="w-5 h-5"/></Link>
                                  <Link href="#" target="_blank" className="text-muted-foreground hover:text-primary"><Youtube className="w-5 h-5"/></Link>
-                             </div>
+                            </div>
                          </div>
                      </CollapsibleContent>
                 </Collapsible>
@@ -1502,15 +1505,13 @@ const ChatPanel = ({
                              <AvatarFallback className="bg-gradient-to-br from-red-500 to-yellow-500 text-white font-bold">{msg.user.charAt(0)}</AvatarFallback>
                          </Avatar>
                           <div className="flex-grow">
+                             <div className="flex items-center gap-2">
+                                <b className="font-semibold text-xs" style={{ color: isSellerMessage ? 'hsl(var(--primary))' : 'inherit' }}>{msg.user}</b>
+                                {isSellerMessage && <Badge variant="secondary" className="ml-1.5 px-1.5 py-0 text-xs">Seller</Badge>}
+                             </div>
                              <div className="leading-relaxed break-words text-sm text-[#E6ECEF]">
-                                <div className="flex items-center gap-2">
-                                  <b className="font-semibold text-xs" style={{ color: msg.userColor || 'inherit' }}>{msg.user}</b>
-                                  {isSellerMessage && <Badge variant="secondary" className="ml-1.5 px-1.5 py-0 text-xs">Seller</Badge>}
-                                </div>
-                                <div className="text-sm">
-                                    {msg.replyingTo && <span className="text-primary font-semibold mr-1">@{msg.replyingTo}</span>}
-                                    {renderMessageContent(msg.text, isSellerMessage)}
-                                </div>
+                                {msg.replyingTo && <span className="text-primary font-semibold mr-1">@{msg.replyingTo}</span>}
+                                {renderMessageContent(msg.text, isSellerMessage)}
                              </div>
                           </div>
                           <DropdownMenu>
