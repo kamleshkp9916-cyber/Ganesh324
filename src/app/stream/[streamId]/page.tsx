@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import {
@@ -118,7 +117,7 @@ import { useInView } from "react-intersection-observer";
 import { useMiniPlayer } from "@/context/MiniPlayerContext";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { useIsMobile } from "@/hooks/use-is-mobile";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 
@@ -413,12 +412,12 @@ const ProductPromoCard = ({ msg, handlers }: { msg: any, handlers: any }) => {
     const { product } = msg;
 
     return (
-        <Card className="bg-card/50 border-primary/20 flex gap-3 p-2">
+        <Card className="bg-card/50 border-primary/20 flex gap-3 p-2 animate-in fade-in-0 slide-in-from-bottom-2">
             <Link href={`/product/${product.key}`} className="block w-20 h-20 bg-muted rounded-md overflow-hidden flex-shrink-0 relative">
                  <Image src={product.images[0]} alt={product.name} fill sizes="80px" className="object-cover"/>
             </Link>
             <div className="flex flex-col flex-grow">
-                <p className="text-xs text-muted-foreground">Featured Product</p>
+                <Badge variant="secondary" className="w-fit mb-1 gap-1"><Sparkles className="w-3 h-3 text-primary"/>Featured Product</Badge>
                 <h4 className="font-semibold text-sm leading-tight">{product.name}</h4>
                 <p className="font-bold text-lg">{product.price}</p>
                 <div className="flex gap-2 mt-auto">
@@ -531,9 +530,13 @@ export default function StreamPage() {
     
     useEffect(() => {
         if (sellerProducts.length === 0) return;
-    
+
         const interval = setInterval(() => {
-            const availableProducts = sellerProducts.filter(p => p.stock > 0);
+            // Re-fetch sellerProducts inside interval to get current state
+            const currentSellerProducts = Object.values(productDetails).filter(
+                p => productToSellerMapping[p.key]?.name === seller?.name
+            );
+            const availableProducts = currentSellerProducts.filter(p => p.stock > 0);
             if (availableProducts.length === 0) return;
             
             const randomIndex = Math.floor(Math.random() * availableProducts.length);
@@ -549,7 +552,7 @@ export default function StreamPage() {
         }, 20000); // every 20 seconds
     
         return () => clearInterval(interval);
-    }, [sellerProducts]);
+    }, [seller, sellerProducts.length]); // Depend on length to restart if products load late
     
     const relatedStreams = useMemo(() => {
         if (!seller) return [];
@@ -1444,27 +1447,17 @@ const ChatPanel = ({
                   const isSellerMessage = msg.userId === seller?.uid;
                   
                   return (
-                     <div key={msg.id} className="flex items-start gap-3 w-full group text-sm animate-message-in p-1">
-                         <Avatar className="h-6 w-6 mt-0.5 border border-[rgba(255,255,255,0.04)]">
+                     <div key={msg.id} className="flex items-start gap-2 w-full group animate-message-in p-1.5">
+                         <Avatar className="h-8 w-8 mt-0.5 border border-[rgba(255,255,255,0.04)]">
                              <AvatarImage src={msg.avatar} />
                              <AvatarFallback className="bg-gradient-to-br from-red-500 to-yellow-500 text-white font-bold text-[10px]">{msg.user.charAt(0)}</AvatarFallback>
                          </Avatar>
                           <div className="flex-grow">
                              <p className="leading-relaxed break-words text-xs text-[#E6ECEF]">
                                  <b className="font-semibold text-xs mr-1.5" style={{ color: msg.userColor || 'inherit' }}>{msg.user}:</b>
-                                 <span className="text-xs">
-                                    {replyingTo && msg.text.startsWith(`@${replyingTo.name}`) ? (
-                                        <>
-                                            <span className="text-primary font-semibold">{msg.text.split(' ')[0]}</span>
-                                            {msg.text.substring(msg.text.indexOf(' ') + 1)}
-                                        </>
-                                    ) : msg.replyingTo ? (
-                                        <>
-                                             <span className="text-primary font-semibold">@{msg.replyingTo}</span> {msg.text}
-                                        </>
-                                    ) : (
-                                        msg.text
-                                    )}
+                                 <span className="text-sm">
+                                    {msg.replyingTo && <span className="text-primary font-semibold mr-1">@{msg.replyingTo}</span>}
+                                    {msg.text}
                                  </span>
                              </p>
                           </div>
