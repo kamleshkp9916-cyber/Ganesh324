@@ -195,8 +195,7 @@ const mockChatMessages: any[] = [
     { id: 29, user: 'FashionFinds', text: '@Emily It lasts for about a year with average use!', avatar: 'https://placehold.co/40x40.png', isSeller: true, userId: '1' },
     { id: 30, user: 'FashionFinds', text: 'Sure thing, Ganesh! Here is a view of the back.', avatar: 'https://placehold.co/40x40.png', isSeller: true, userId: '1' },
     { id: 31, user: 'FashionFinds', text: 'Welcome Chloe! We just finished an auction, but we have more exciting products coming up. Stick around!', avatar: 'https://placehold.co/40x40.png', isSeller: true, userId: '1' },
-    { id: 32, user: 'FashionFinds', text: '@Liam shipping is a flat rate of ₹50 anywhere in India! #shipping', avatar: 'https://placehold.co/40x40.png', isSeller: true, userId: '1' },
-    { id: 33, user: 'FashionFinds', text: 'This is a seller message for UI testing purposes.', isSeller: true, avatar: 'https://placehold.co/40x40.png', userId: '1' },
+    { id: 32, user: 'FashionFinds', text: 'This is a seller message for UI testing purposes.', isSeller: true, avatar: 'https://placehold.co/40x40.png', userId: '1' },
 ];
 
 const reportReasons = [
@@ -444,6 +443,29 @@ const ProductPromoCard = ({ msg, handlers }: { msg: any, handlers: any }) => {
     );
 };
 
+
+function renderWithHashtags(text: string, isSeller: boolean) {
+    if (!text) return text;
+
+    const regex = isSeller
+        ? /(https?:\/\/[^\s]+|#[a-zA-Z0-9_]+|@[a-zA-Z0-9_]+)/g
+        : /(#[a-zA-Z0-9_]+|@[a-zA-Z0-9_]+)/g;
+        
+    const parts = text.split(regex);
+
+    return parts.map((part, index) => {
+        if (isSeller && (part.startsWith('http://') || part.startsWith('https://'))) {
+            return <a key={index} href={part} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline">{part}</a>;
+        }
+        if (part.startsWith('#')) {
+            return <Link key={index} href={`/feed?filter=${part.substring(1)}`} className="text-primary font-semibold hover:underline">{part}</Link>;
+        }
+        if (part.startsWith('@')) {
+            return <span key={index} className="text-blue-400 font-semibold">{part}</span>;
+        }
+        return part;
+    });
+}
 
 export default function StreamPage() {
     const router = useRouter();
@@ -958,30 +980,6 @@ export default function StreamPage() {
         );
     }
     
-    const renderWithHashtags = (text: string, isSeller: boolean) => {
-        if (!text) return text;
-        
-        // Regex to match URLs, hashtags, and mentions
-        const regex = isSeller
-            ? /(https?:\/\/[^\s]+|#[a-zA-Z0-9_]+|@[a-zA-Z0-9_]+)/g
-            : /(#[a-zA-Z0-9_]+|@[a-zA-Z0-9_]+)/g;
-            
-        const parts = text.split(regex);
-
-        return parts.map((part, index) => {
-            if (isSeller && (part.startsWith('http://') || part.startsWith('https://'))) {
-                return <a key={index} href={part} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline">{part}</a>;
-            }
-            if (part.startsWith('#')) {
-                return <Link key={index} href={`/feed?filter=${part.substring(1)}`} className="text-primary font-semibold hover:underline">{part}</Link>;
-            }
-            if (part.startsWith('@')) {
-                return <span key={index} className="text-blue-400 font-semibold">{part}</span>;
-            }
-            return part;
-        });
-    };
-    
     return (
         <React.Fragment>
             <Dialog open={isBidDialogOpen} onOpenChange={setIsBidDialogOpen}>
@@ -1252,7 +1250,7 @@ const MobileLayout = (props: any) => {
 };
 
 const StreamInfo = (props: any) => {
-    const { seller, streamData, handleFollowToggle, isFollowingState, renderWithHashtags } = props;
+    const { seller, streamData, handleFollowToggle, isFollowingState } = props;
     
     return (
         <div className="space-y-4">
@@ -1278,15 +1276,16 @@ const StreamInfo = (props: any) => {
                         )}
                     </div>
                 </Link>
-                <Collapsible open={isFollowingState}>
-                    <Button
-                        onClick={handleFollowToggle}
-                        variant={isFollowingState ? "outline" : "default"}
-                        className="flex-shrink-0"
-                    >
-                        {isFollowingState ? <UserCheck className="mr-2 h-4 w-4" /> : <UserPlus className="mr-2 h-4 w-4" />}
-                        {isFollowingState ? "Following" : "Follow"}
-                    </Button>
+                <Collapsible open={isFollowingState} onOpenChange={handleFollowToggle}>
+                    <CollapsibleTrigger asChild>
+                        <Button
+                            variant={isFollowingState ? "outline" : "default"}
+                            className="flex-shrink-0"
+                        >
+                            {isFollowingState ? <UserCheck className="mr-2 h-4 w-4" /> : <UserPlus className="mr-2 h-4 w-4" />}
+                            {isFollowingState ? "Following" : "Follow"}
+                        </Button>
+                    </CollapsibleTrigger>
                     <CollapsibleContent className="mt-2">
                          <div className="p-3 bg-muted rounded-lg flex items-center justify-between">
                             <Badge variant="secondary" className="gap-1"><Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />Premium</Badge>
@@ -1415,33 +1414,6 @@ const ChatPanel = ({
     textareaRef.current?.focus();
   }
 
-  const renderMessageContent = (text: string, isSeller: boolean) => {
-    if (!text) return text;
-
-    const urlRegex = /(https?:\/\/[^\s]+)/g;
-    const hashtagRegex = /(#[a-zA-Z0-9_]+)/g;
-    const mentionRegex = /(@[a-zA-Z0-9_]+)/g;
-    
-    const combinedRegex = isSeller 
-      ? new RegExp(`(${urlRegex.source}|${hashtagRegex.source}|${mentionRegex.source})`, 'g')
-      : new RegExp(`(${hashtagRegex.source}|${mentionRegex.source})`, 'g');
-      
-    const parts = text.split(combinedRegex);
-
-    return parts.map((part, index) => {
-        if (isSeller && part && (part.startsWith('http://') || part.startsWith('https://'))) {
-            return <a key={index} href={part} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline">{part}</a>;
-        }
-        if (part && part.startsWith('#')) {
-            return <Link key={index} href={`/feed?filter=${part.substring(1)}`} className="text-primary font-semibold hover:underline">{part}</Link>;
-        }
-        if (part && part.startsWith('@')) {
-            return <span key={index} className="text-blue-400 font-semibold">{part}</span>;
-        }
-        return part;
-    });
-  };
-
   return (
     <div className='h-full flex flex-col bg-[#0b0b0c]'>
       <header className="p-3 flex items-center justify-between z-10 flex-shrink-0 h-16 border-b border-[rgba(255,255,255,0.04)] sticky top-0 bg-[#0f1113]/80 backdrop-blur-sm">
@@ -1534,20 +1506,21 @@ const ChatPanel = ({
                   const isSellerMessage = msg.userId === seller?.id;
                   
                   return (
-                     <div key={msg.id} className="flex items-start gap-2 w-full group animate-message-in">
-                         <Avatar className="h-7 w-7 mt-0.5 border border-[rgba(255,255,255,0.04)]">
+                     <div key={msg.id} className="flex items-start gap-3 w-full group text-sm animate-message-in">
+                         <Avatar className="h-9 w-9 mt-0.5 border border-[rgba(255,255,255,0.04)]">
                              <AvatarImage src={msg.avatar} />
-                             <AvatarFallback className="bg-gradient-to-br from-red-500 to-yellow-500 text-white font-bold text-xs">{msg.user.charAt(0)}</AvatarFallback>
+                             <AvatarFallback className="bg-gradient-to-br from-red-500 to-yellow-500 text-white font-bold">{msg.user.charAt(0)}</AvatarFallback>
                          </Avatar>
                           <div className="flex-grow">
-                             <div className="leading-snug break-words text-xs text-[#E6ECEF]">
-                                 <b className={cn("font-semibold mr-1.5", isSellerMessage && "text-amber-400")}>
+                             <div className="leading-relaxed break-words text-sm text-[#E6ECEF]">
+                                 <b className={cn("font-semibold text-xs mr-1.5", isSellerMessage && "text-amber-400")}>
                                      {msg.user}
                                      {isSellerMessage && <Badge variant="secondary" className="ml-1.5 px-1.5 py-0 text-xs">Seller</Badge>}
                                 :</b>
-                                 <span className="text-sm">
-                                    {renderMessageContent(msg.text, isSellerMessage)}
-                                 </span>
+                                 <div className="text-sm">
+                                    {msg.replyingTo && <span className="text-primary font-semibold mr-1">@{msg.replyingTo}</span>}
+                                    {renderWithHashtags(msg.text, isSellerMessage)}
+                                 </div>
                              </div>
                           </div>
                           <DropdownMenu>
