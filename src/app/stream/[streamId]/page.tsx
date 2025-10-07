@@ -1491,21 +1491,24 @@ const ChatPanel = ({
                   }
                   if (!msg.user) return null;
                   
-                  const isSellerMessage = msg.isSeller || msg.userId === seller?.id;
+                  const isSellerMessage = msg.userId === seller?.id;
 
                   return (
                      <div key={msg.id} className="flex items-start gap-3 w-full group text-sm animate-message-in">
-                         <Avatar className="h-9 w-9 mt-0.5 border border-[rgba(255,255,255,0.04)]">
+                         <Avatar className="h-8 w-8 mt-0.5 border border-[rgba(255,255,255,0.04)]">
                             <AvatarImage src={isSellerMessage ? seller.avatarUrl : msg.avatar} />
                             <AvatarFallback className="bg-gradient-to-br from-red-500 to-yellow-500 text-white font-bold">{isSellerMessage ? seller.name.charAt(0) : msg.user.charAt(0)}</AvatarFallback>
                          </Avatar>
                           <div className="flex-grow">
-                             <div className="leading-relaxed break-words text-sm text-[#E6ECEF] mt-0.5">
-                                <span className={cn( "font-semibold text-xs mr-1.5", isSellerMessage && "text-yellow-400" )}>
+                             <div className="leading-relaxed break-words text-[#E6ECEF] mt-0.5">
+                                 <span className={cn(
+                                    "font-semibold text-sm mr-1.5",
+                                    isSellerMessage && "text-yellow-400"
+                                )}>
                                     {isSellerMessage ? seller.name : msg.user}
                                 </span>
-                                {isSellerMessage && <Badge variant="secondary" className="px-1.5 py-0 text-[9px] h-4 mx-1.5 align-middle">Seller</Badge>}
-                                <span className="text-sm">
+                                {isSellerMessage && <Badge variant="secondary" className="px-1.5 py-0 text-[9px] h-4 mx-0.5 align-middle">Seller</Badge>}
+                                <span className="text-xs">
                                     {renderWithHashtagsAndLinks(msg.text)}
                                 </span>
                             </div>
