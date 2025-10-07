@@ -1394,7 +1394,7 @@ const ChatPanel = ({
         return <span key={index} className="text-blue-400 font-semibold">{part}</span>;
       }
       if (part.startsWith('#')) {
-        return <span key={index} className="text-primary font-semibold">{part}</span>;
+        return <Link href={`/feed?filter=${part.substring(1)}`} key={index} className="text-primary font-semibold">{part}</Link>;
       }
       return part;
     });
@@ -1498,7 +1498,7 @@ const ChatPanel = ({
                              <AvatarFallback className="bg-gradient-to-br from-red-500 to-yellow-500 text-white font-bold">{msg.user.charAt(0)}</AvatarFallback>
                          </Avatar>
                           <div className="flex-grow">
-                             <p className="leading-snug break-words text-xs text-[#E6ECEF]">
+                             <div className="leading-snug break-words text-xs text-[#E6ECEF]">
                                  <b className={cn("font-semibold text-xs mr-1.5", isSellerMessage && "text-amber-400")}>
                                      {msg.user}
                                      {isSellerMessage && <Badge variant="secondary" className="ml-1.5 px-1.5 py-0 text-xs">Seller</Badge>}
@@ -1506,7 +1506,7 @@ const ChatPanel = ({
                                  <span className="text-sm">
                                     {renderMessageContent(msg.text)}
                                  </span>
-                             </p>
+                             </div>
                           </div>
                           <DropdownMenu>
                               <DropdownMenuTrigger asChild>
