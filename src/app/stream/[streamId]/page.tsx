@@ -518,14 +518,62 @@ const ProductShelf = ({ sellerProducts, handleAddToCart, handleBuyNow, toast }: 
                 </Button>
             </CollapsibleTrigger>
             <CollapsibleContent className="mt-4">
-                 <ProductShelfContent 
-                    sellerProducts={sellerProducts}
-                    handleAddToCart={handleAddToCart}
-                    handleBuyNow={handleBuyNow}
-                    isMobile={false}
-                    onClose={() => setIsOpen(false)}
-                    toast={toast}
-                />
+                 <Carousel
+                    opts={{
+                        align: "start",
+                    }}
+                    className="w-full"
+                >
+                    <CarouselContent>
+                        {sellerProducts.map((product, index) => (
+                        <CarouselItem key={index} className="basis-1/2 md:basis-1/3 lg:basis-1/4 xl:basis-1/5">
+                            <div className="p-1">
+                            <Card className="w-full overflow-hidden h-full flex flex-col flex-shrink-0 first:ml-0.5 last:mr-0.5">
+                                <Link href={`/product/${product.key}`} className="group block">
+                                    <div className="relative aspect-square bg-muted">
+                                        <Image
+                                            src={product.images[0]?.preview || product.images[0]}
+                                            alt={product.name}
+                                            fill
+                                            sizes="50vw"
+                                            className="object-cover transition-transform group-hover:scale-105"
+                                        />
+                                        {product.stock === 0 && (
+                                            <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                                                <Badge variant="destructive">Out of Stock</Badge>
+                                            </div>
+                                        )}
+                                    </div>
+                                </Link>
+                                <div className="p-2 flex-grow flex flex-col">
+                                    <Link href={`/product/${product.key}`} className="group block">
+                                        <h4 className="font-semibold truncate text-xs group-hover:underline">{product.name}</h4>
+                                        <p className="font-bold text-sm">{product.price}</p>
+                                    </Link>
+                                    <div className="flex items-center justify-between text-xs text-muted-foreground mt-2">
+                                        <div className="flex items-center gap-1 cursor-pointer hover:text-primary"><Package className="h-3 w-3" /> {product.stock} left</div>
+                                        <div className="flex items-center gap-1 cursor-pointer hover:text-primary"><Users className="h-3 w-3" /> {product.sold} sold</div>
+                                        <div className="flex items-center gap-1 cursor-pointer hover:text-primary"><Star className="h-3 w-3" /> {product.reviews}</div>
+                                    </div>
+                                </div>
+                                <CardFooter className="p-2 grid grid-cols-1 gap-2">
+                                    {product.stock > 0 ? (
+                                        <>
+                                            <Button variant="outline" size="sm" className="w-full text-xs h-8" onClick={() => { handleAddToCart(product); }}><ShoppingCart className="mr-1 h-3 w-3" /> Cart</Button>
+                                            <Button size="sm" className="w-full text-xs h-8" onClick={() => { handleBuyNow(product); }}>Buy Now</Button>
+                                        </>
+                                    ) : (
+                                        <Button size="sm" className="w-full text-xs h-8" onClick={() => { toast({ title: "We'll let you know!", description: `You will be notified when ${product.name} is back in stock.`}); }}>Notify Me</Button>
+                                    )}
+                                </CardFooter>
+                            </Card>
+                            </div>
+                        </CarouselItem>
+                        ))}
+                    </CarouselContent>
+                    <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2 z-10" />
+                    <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2 z-10" />
+                    </Carousel>
             </CollapsibleContent>
         </Collapsible>
     );
@@ -1145,6 +1193,8 @@ const DesktopLayout = (props: any) => (
             )}
         </div>
         <div className="flex items-center gap-2">
+            <Button variant="ghost" size="sm" onClick={props.handleShare}><Share2 className="mr-2" /> Share</Button>
+            <Button variant="ghost" size="sm" onClick={() => props.setIsSettingsOpen(true)}><Settings className="mr-2" /> Playback Settings</Button>
              <Button asChild variant="ghost">
                 <Link href="/cart">
                     <ShoppingCart className="mr-2 h-4 w-4" />
@@ -1181,8 +1231,6 @@ const DesktopLayout = (props: any) => (
                             <p className="text-sm font-mono">{props.formatTime(props.currentTime)} / {props.formatTime(props.duration)}</p>
                         </div>
                         <div className="flex items-center gap-1 sm:gap-2">
-                             <Button variant="ghost" size="icon" onClick={props.handleShare}><Share2 /></Button>
-                            <Button variant="ghost" size="icon" onClick={() => props.setIsSettingsOpen(true)}><Settings /></Button>
                             <Button variant="ghost" size="icon" onClick={props.handleMinimize}><PictureInPicture /></Button>
                             <Button variant="ghost" size="icon" onClick={props.handleToggleFullscreen}><Maximize /></Button>
                         </div>
@@ -1287,7 +1335,7 @@ const MobileLayout = (props: any) => {
                 {props.mobileView === 'stream' ? (
                      <ScrollArea className="h-full no-scrollbar">
                         <div className="p-4 space-y-6">
-                            <StreamInfo {...props}/>
+                             <StreamInfo {...props}/>
                             <RelatedContent {...props}/>
                         </div>
                     </ScrollArea>
@@ -1315,7 +1363,7 @@ const StreamInfo = (props: any) => {
     
     return (
         <div className="space-y-4">
-            <div className="mb-4">
+             <div className="mb-4">
                 <h2 className="font-bold text-lg">Topic</h2>
                 <div className="text-sm text-muted-foreground mt-1 space-y-4">
                     <p>{renderWithHashtags(streamData.description || "Welcome to the live stream!")}</p>
@@ -1541,7 +1589,7 @@ const ChatPanel = ({
         </div>
       </header>
       <ScrollArea className="flex-grow" ref={chatContainerRef} onScroll={handleManualScroll}>
-          <div className="space-y-2.5 p-0">
+          <div className="p-1 space-y-0">
              {chatMessages.map((msg) => {
                   if (msg.type === 'system') {
                       return <div key={msg.id} className="text-xs text-center text-[#9AA1A6] italic py-1">{msg.text}</div>
@@ -1552,8 +1600,8 @@ const ChatPanel = ({
                   const isSellerMessage = msg.userId === seller?.uid;
                   
                   return (
-                     <div key={msg.id} className="flex items-start gap-3 w-full group text-sm animate-message-in p-3">
-                         <Avatar className="h-8 w-8 mt-0.5 border border-[rgba(255,255,255,0.04)]">
+                     <div key={msg.id} className="flex items-start gap-2 w-full group text-xs animate-message-in p-1">
+                         <Avatar className="h-6 w-6 mt-0.5 border border-[rgba(255,255,255,0.04)]">
                              <AvatarImage src={msg.avatar} />
                              <AvatarFallback className="bg-gradient-to-br from-red-500 to-yellow-500 text-white font-bold">{msg.user.charAt(0)}</AvatarFallback>
                          </Avatar>
@@ -1645,3 +1693,4 @@ const ChatPanel = ({
     </div>
   );
 };
+
