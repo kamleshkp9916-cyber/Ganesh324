@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import {
@@ -66,7 +67,6 @@ import {
   Package,
   Reply,
   Check,
-  Sparkles,
   FileEdit,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -121,6 +121,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import { Skeleton } from "@/components/ui/skeleton";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Sparkles } from 'lucide-react';
 
 
 const emojis = [
@@ -544,7 +545,7 @@ export default function StreamPage() {
             }
         }
 
-        const intervalSeconds = liveStreamData?.promotionInterval || 20;
+        const intervalSeconds = liveStreamData?.promotionInterval || 300;
 
          const interval = setInterval(() => {
             const productsWithStock = Object.values(productDetails).filter(p => 
@@ -1330,6 +1331,7 @@ const ChatPanel = ({
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const {user} = useAuth();
   
   const handleAutoScroll = useCallback((behavior: 'smooth' | 'auto' = 'smooth') => {
     messagesEndRef.current?.scrollIntoView({ behavior });
@@ -1358,9 +1360,7 @@ const ChatPanel = ({
       messageToSend = `@${replyingTo.name.split(' ')[0]} ${newMessage}`;
     }
 
-    console.log("New Message:", messageToSend); // This simulates sending
-    // In a real app, you would call your sendMessage function here.
-    // handlers.onSendMessage(messageToSend); 
+    console.log("New Message:", messageToSend);
 
     setNewMessage("");
     setReplyingTo(null);
@@ -1450,7 +1450,7 @@ const ChatPanel = ({
         </div>
       </header>
       <ScrollArea className="flex-grow" ref={chatContainerRef} onScroll={handleManualScroll}>
-          <div className="p-3 space-y-2.5">
+          <div className="p-3 space-y-4">
              {chatMessages.map((msg) => {
                   if (msg.type === 'system') {
                       return <div key={msg.id} className="text-xs text-center text-[#9AA1A6] italic py-1">{msg.text}</div>
@@ -1464,7 +1464,7 @@ const ChatPanel = ({
                   
                   return (
                      <div key={msg.id} className="flex items-start gap-2 w-full group animate-message-in">
-                         <Avatar className="h-8 w-8 mt-0.5 border border-[rgba(255,255,255,0.04)]">
+                         <Avatar className="h-7 w-7 mt-0.5 border border-[rgba(255,255,255,0.04)]">
                              <AvatarImage src={msg.avatar} />
                              <AvatarFallback className="bg-gradient-to-br from-red-500 to-yellow-500 text-white font-bold">{msg.user.charAt(0)}</AvatarFallback>
                          </Avatar>
@@ -1475,6 +1475,7 @@ const ChatPanel = ({
                                      {isSellerMessage && <Badge variant="secondary" className="ml-1.5 px-1.5 py-0 text-xs">Seller</Badge>}
                                 :</span>
                                  <span className="text-sm">
+                                    {msg.replyingTo && <span className="text-blue-400 font-semibold mr-1">@{msg.replyingTo}</span>}
                                     {msg.text.split(' ').map((part: string, index: number) => 
                                         part.startsWith('@') ? (
                                             <span key={index} className="text-blue-400 font-semibold">{part} </span>
