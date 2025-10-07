@@ -204,3 +204,4 @@ export const isFollowing = async (currentUserId: string, targetUserId: string): 
     const followDoc = await getDoc(followDocRef);
     return followDoc.exists();
 };
+

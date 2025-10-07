@@ -1,11 +1,12 @@
 
+
 "use client";
 
 import React from 'react';
 import { useAuth } from '@/hooks/use-auth.tsx';
 import { useRouter } from 'next/navigation';
 import { Button, buttonVariants } from '@/components/ui/button';
-import { Edit, Mail, Phone, MapPin, Camera, Truck, Star, ThumbsUp, ShoppingBag, Eye, Award, History, Search, Plus, Trash2, Heart, MessageSquare, StarIcon, UserPlus, Users, PackageSearch, Loader2 } from 'lucide-react';
+import { Edit, Mail, Phone, MapPin, Camera, Truck, Star, ThumbsUp, ShoppingBag, Eye, Award, History, Search, Plus, Trash2, Heart, MessageSquare, StarIcon, UserPlus, Users, PackageSearch, Loader2, UserCheck, Instagram, Twitter, Youtube } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useEffect, useState, useRef, useMemo } from 'react';
@@ -380,20 +381,29 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                     </Dialog>
               </div>
 
-              {!isOwnProfile && profileData.role === 'seller' && (
-                    <div className="mt-4 flex justify-center sm:justify-start gap-2">
-                      <Button
-                          onClick={() => handleFollowToggle(profileData.uid)}
-                          variant={isFollowingState ? "outline" : "default"}
-                      >
-                          <UserPlus className="mr-2 h-4 w-4" />
-                          {isFollowingState ? "Following" : "Follow"}
-                      </Button>
-                      <Button variant="outline" onClick={() => setIsChatOpen(true)}>
-                          <MessageSquare className="mr-2 h-4 w-4" />
-                          Message
-                      </Button>
-                  </div>
+                {!isOwnProfile && profileData.role === 'seller' && (
+                    <Collapsible open={isFollowingState} className="mt-4">
+                        <div className="flex justify-center sm:justify-start gap-2">
+                             <Button onClick={() => handleFollowToggle(profileData.uid)} variant={isFollowingState ? "outline" : "default"}>
+                                {isFollowingState ? <UserCheck className="mr-2 h-4 w-4" /> : <UserPlus className="mr-2 h-4 w-4" />}
+                                {isFollowingState ? "Following" : "Follow"}
+                            </Button>
+                            <Button variant="outline" onClick={() => setIsChatOpen(true)}>
+                                <MessageSquare className="mr-2 h-4 w-4" />
+                                Message
+                            </Button>
+                        </div>
+                         <CollapsibleContent className="mt-4">
+                             <div className="p-3 bg-muted rounded-lg flex items-center justify-between">
+                                 <div className="flex items-center gap-4">
+                                     <Badge variant="success">Premium</Badge>
+                                      <Link href={profileData.instagram || '#'} target="_blank" className="text-muted-foreground hover:text-primary"><Instagram /></Link>
+                                      <Link href={profileData.twitter || '#'} target="_blank" className="text-muted-foreground hover:text-primary"><Twitter /></Link>
+                                      <Link href={profileData.youtube || '#'} target="_blank" className="text-muted-foreground hover:text-primary"><Youtube /></Link>
+                                 </div>
+                             </div>
+                         </CollapsibleContent>
+                    </Collapsible>
               )}
           </div>
       </div>
@@ -772,4 +782,3 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
   );
 }
 
-    
