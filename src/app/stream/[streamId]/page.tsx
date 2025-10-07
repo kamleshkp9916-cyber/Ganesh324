@@ -117,7 +117,7 @@ import { useInView } from "react-intersection-observer";
 import { useMiniPlayer } from "@/context/MiniPlayerContext";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useIsMobile } from "@/hooks/use-is-mobile";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 
@@ -412,7 +412,7 @@ const ProductPromoCard = ({ msg, handlers }: { msg: any, handlers: any }) => {
     const { product } = msg;
 
     return (
-        <Card className="bg-card/50 border-primary/20 flex gap-3 p-2 animate-in fade-in-0 slide-in-from-bottom-2">
+        <Card className="bg-card/80 border-primary/20 flex gap-3 p-2 animate-in fade-in-0 slide-in-from-bottom-2">
             <Link href={`/product/${product.key}`} className="block w-20 h-20 bg-muted rounded-md overflow-hidden flex-shrink-0 relative">
                  <Image src={product.images[0]} alt={product.name} fill sizes="80px" className="object-cover"/>
             </Link>
@@ -529,14 +529,12 @@ export default function StreamPage() {
     }, [seller]);
     
     useEffect(() => {
-        if (sellerProducts.length === 0) return;
-
+        if (!seller) return;
+        
         const interval = setInterval(() => {
-            // Re-fetch sellerProducts inside interval to get current state
-            const currentSellerProducts = Object.values(productDetails).filter(
-                p => productToSellerMapping[p.key]?.name === seller?.name
-            );
-            const availableProducts = currentSellerProducts.filter(p => p.stock > 0);
+            const availableProducts = Object.values(productDetails)
+                .filter(p => productToSellerMapping[p.key]?.name === seller.name && p.stock > 0);
+
             if (availableProducts.length === 0) return;
             
             const randomIndex = Math.floor(Math.random() * availableProducts.length);
@@ -552,7 +550,7 @@ export default function StreamPage() {
         }, 20000); // every 20 seconds
     
         return () => clearInterval(interval);
-    }, [seller, sellerProducts.length]); // Depend on length to restart if products load late
+    }, [seller]); // Depend on seller to restart if it changes
     
     const relatedStreams = useMemo(() => {
         if (!seller) return [];
@@ -1433,13 +1431,13 @@ const ChatPanel = ({
         </div>
       </header>
       <ScrollArea className="flex-grow" ref={chatContainerRef} onScroll={handleManualScroll}>
-          <div className="p-3 space-y-0">
+          <div className="p-3 space-y-0.5">
              {chatMessages.map((msg) => {
                   if (msg.type === 'system') {
                       return <div key={msg.id} className="text-xs text-center text-[#9AA1A6] italic py-1">{msg.text}</div>
                   }
-                  if (msg.type === 'product_promo') {
-                    return <ProductPromoCard key={msg.id} msg={msg} handlers={handlers} />;
+                   if (msg.type === 'product_promo') {
+                    return <div className="p-1.5"><ProductPromoCard key={msg.id} msg={msg} handlers={handlers} /></div>;
                   }
                   if (!msg.user) return null;
 
@@ -1447,15 +1445,15 @@ const ChatPanel = ({
                   const isSellerMessage = msg.userId === seller?.uid;
                   
                   return (
-                     <div key={msg.id} className="flex items-start gap-2 w-full group animate-message-in p-1.5">
-                         <Avatar className="h-8 w-8 mt-0.5 border border-[rgba(255,255,255,0.04)]">
+                     <div key={msg.id} className="flex items-start gap-3 w-full group text-xs animate-message-in p-1">
+                         <Avatar className="h-6 w-6 mt-0.5 border border-[rgba(255,255,255,0.04)]">
                              <AvatarImage src={msg.avatar} />
                              <AvatarFallback className="bg-gradient-to-br from-red-500 to-yellow-500 text-white font-bold text-[10px]">{msg.user.charAt(0)}</AvatarFallback>
                          </Avatar>
                           <div className="flex-grow">
                              <p className="leading-relaxed break-words text-xs text-[#E6ECEF]">
                                  <b className="font-semibold text-xs mr-1.5" style={{ color: msg.userColor || 'inherit' }}>{msg.user}:</b>
-                                 <span className="text-sm">
+                                 <span className="text-xs">
                                     {msg.replyingTo && <span className="text-primary font-semibold mr-1">@{msg.replyingTo}</span>}
                                     {msg.text}
                                  </span>
@@ -1464,7 +1462,7 @@ const ChatPanel = ({
                           <DropdownMenu>
                               <DropdownMenuTrigger asChild>
                                   <button className="text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity p-1">
-                                      <MoreVertical className="w-3 h-3" />
+                                      <MoreVertical className="w-4 h-4" />
                                   </button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end">
