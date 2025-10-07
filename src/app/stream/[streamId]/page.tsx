@@ -188,13 +188,13 @@ const mockChatMessages: any[] = [
     { id: 23, user: 'Noah', text: 'BID ₹9,600', avatar: 'https://placehold.co/40x40.png?text=N', userId: 'user14', isBid: true },
     { id: 24, user: 'Sophia', text: 'Great stream! Thanks!', avatar: 'https://placehold.co/40x40.png?text=S', userId: 'user15' },
     { id: 25, user: 'Ganesh', text: 'Replying to @FashionFinds: That sounds great! Thanks!', avatar: 'https://placehold.co/40x40.png', userId: 'user1', replyingTo: 'FashionFinds' },
-    { id: 26, user: 'FashionFinds', text: "Welcome to the stream, everyone! Today we have some amazing deals. #welcome", isSeller: true, avatar: 'https://placehold.co/40x40.png', userId: '1' },
-    { id: 27, user: 'FashionFinds', text: "Hey Alex, it's 100% genuine leather! https://example.com/leather-info", avatar: 'https://placehold.co/40x40.png', isSeller: true, userId: '1' },
-    { id: 28, user: 'FashionFinds', text: 'Yes David, we offer international shipping!', avatar: 'https://placehold.co/40x40.png', isSeller: true, userId: '1' },
-    { id: 29, user: 'FashionFinds', text: '@Emily It lasts for about a year with average use!', avatar: 'https://placehold.co/40x40.png', isSeller: true, userId: '1' },
-    { id: 30, user: 'FashionFinds', text: 'Sure thing, Ganesh! Here is a view of the back.', avatar: 'https://placehold.co/40x40.png', isSeller: true, userId: '1' },
-    { id: 31, user: 'FashionFinds', text: 'Welcome Chloe! We just finished an auction, but we have more exciting products coming up. Stick around!', avatar: 'https://placehold.co/40x40.png', isSeller: true, userId: '1' },
-    { id: 32, user: 'FashionFinds', text: 'This is a seller message for UI testing purposes. https://google.com', isSeller: true, avatar: 'https://placehold.co/40x40.png', userId: '1' },
+    { id: 26, user: 'FashionFinds', isSeller: true, text: "Welcome to the stream, everyone! Today we have some amazing deals. #welcome", avatar: 'https://placehold.co/40x40.png', userId: '1' },
+    { id: 27, user: 'FashionFinds', isSeller: true, text: "Hey Alex, it's 100% genuine leather! https://example.com/leather-info", avatar: 'https://placehold.co/40x40.png', userId: '1' },
+    { id: 28, user: 'FashionFinds', isSeller: true, text: 'Yes David, we offer international shipping!', avatar: 'https://placehold.co/40x40.png', userId: '1' },
+    { id: 29, user: 'FashionFinds', isSeller: true, text: '@Emily It lasts for about a year with average use!', avatar: 'https://placehold.co/40x40.png', userId: '1' },
+    { id: 30, user: 'FashionFinds', isSeller: true, text: 'Sure thing, Ganesh! Here is a view of the back.', avatar: 'https://placehold.co/40x40.png', userId: '1' },
+    { id: 31, user: 'FashionFinds', isSeller: true, text: 'Welcome Chloe! We just finished an auction, but we have more exciting products coming up. Stick around!', avatar: 'https://placehold.co/40x40.png', userId: '1' },
+    { id: 32, user: 'FashionFinds', isSeller: true, text: 'This is a seller message for UI testing purposes. https://google.com', avatar: 'https://placehold.co/40x40.png', userId: '1' },
     { id: 33, type: 'system', text: 'Michael joined the stream.' },
 ];
 
@@ -1258,7 +1258,7 @@ const StreamInfo = (props: any) => {
                 </div>
             </div>
              <div className="flex items-center justify-between gap-2">
-                <Link href={`/seller/profile?userId=${seller.name}`} className="flex items-center gap-3 group flex-grow overflow-hidden">
+                <Link href={`/seller/profile?userId=${seller.id}`} className="flex items-center gap-3 group flex-grow overflow-hidden">
                     <Avatar className="h-12 w-12 flex-shrink-0">
                         <AvatarImage src={seller.avatarUrl} />
                         <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
@@ -1273,11 +1273,7 @@ const StreamInfo = (props: any) => {
                         )}
                     </div>
                 </Link>
-                 <Button
-                    onClick={handleFollowToggle}
-                    variant={isFollowingState ? "outline" : "default"}
-                    className="flex-shrink-0"
-                >
+                <Button onClick={handleFollowToggle} variant={isFollowingState ? "outline" : "default"} className="flex-shrink-0">
                     {isFollowingState ? <UserCheck className="mr-2 h-4 w-4" /> : <UserPlus className="mr-2 h-4 w-4" />}
                     {isFollowingState ? "Following" : "Follow"}
                 </Button>
@@ -1399,6 +1395,40 @@ const ChatPanel = ({
     textareaRef.current?.focus();
   }
 
+  const AuctionCard = ({ activeAuction, auctionTime, highestBid, totalBids, handlers }: { activeAuction: any, auctionTime: number | null, highestBid: number, totalBids: number, handlers: any }) => {
+    if (!activeAuction) return null;
+    const product = productDetails[activeAuction.productId as keyof typeof productDetails];
+    if (!product) return null;
+
+    return (
+        <Card className="bg-[#1a1b1e] border-[#36393e] text-white">
+            <CardContent className="p-3">
+                <div className="flex items-center gap-3">
+                    <Image src={product.images[0]} alt={product.name} width={64} height={64} className="rounded-md" />
+                    <div className="flex-grow">
+                        <div className="flex justify-between items-center">
+                            <Badge variant="purple"><Gavel className="w-3 h-3 mr-1.5" /> Live Auction</Badge>
+                            <Badge variant="destructive" className="animate-pulse">
+                                <Clock className="w-3 h-3 mr-1.5" />
+                                {auctionTime !== null ? `${Math.floor(auctionTime / 60)}:${(auctionTime % 60).toString().padStart(2, '0')}` : 'Ended'}
+                            </Badge>
+                        </div>
+                        <p className="font-semibold text-sm mt-2 truncate">{product.name}</p>
+                        <div className="flex items-baseline gap-2 text-xs">
+                             <p>Current Bid: <span className="font-bold text-lg text-primary">₹{highestBid.toLocaleString()}</span></p>
+                             <p className="text-muted-foreground">({totalBids} bids)</p>
+                        </div>
+                    </div>
+                </div>
+                 <div className="mt-3 flex gap-2">
+                    <Button variant="outline" size="sm" className="flex-1" onClick={handlers.onViewBids}>View Bids</Button>
+                    <Button size="sm" className="flex-1" onClick={handlers.onBid}>Place Bid</Button>
+                </div>
+            </CardContent>
+        </Card>
+    );
+  };
+
   return (
     <div className='h-full flex flex-col bg-[#0b0b0c]'>
       <header className="p-3 flex items-center justify-between z-10 flex-shrink-0 h-16 border-b border-[rgba(255,255,255,0.04)] sticky top-0 bg-[#0f1113]/80 backdrop-blur-sm">
@@ -1477,14 +1507,15 @@ const ChatPanel = ({
           </Button>
         </div>
       </header>
+       {activeAuction && <div className="p-3 border-b border-[rgba(255,255,255,0.04)]"><AuctionCard {...{ activeAuction, auctionTime, highestBid, totalBids, handlers }} /></div>}
       <ScrollArea className="flex-grow" ref={chatContainerRef} onScroll={handleManualScroll}>
-          <div className="p-3 space-y-3">
+          <div className="p-3 space-y-2">
              {chatMessages.map((msg) => {
                   if (msg.type === 'system') {
                       return <div key={msg.id} className="text-xs text-center text-[#9AA1A6] italic py-1">{msg.text}</div>
                   }
                   if (!msg.user) return null;
-                  
+
                   const isMyMessage = user && msg.userId === user.uid;
                   
                   return (
@@ -1499,10 +1530,10 @@ const ChatPanel = ({
                                      {msg.isSeller ? seller.name : msg.user}
                                  </b>
                                  {msg.isSeller && <Badge variant="secondary" className="px-1.5 py-0 text-[9px] h-4">Seller</Badge>}
-                                 <span className="text-xs ml-1">
+                                 <div className="text-sm">
                                     {msg.replyingTo && <span className="text-primary font-semibold mr-1">@{msg.replyingTo}</span>}
                                     {renderWithHashtagsAndLinks(msg.text)}
-                                 </span>
+                                 </div>
                              </div>
                           </div>
                           <DropdownMenu>
