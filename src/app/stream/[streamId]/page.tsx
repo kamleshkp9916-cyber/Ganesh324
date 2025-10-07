@@ -1268,7 +1268,7 @@ const StreamInfo = (props: any) => {
                     <div className="flex-grow overflow-hidden">
                         <h3 className="font-semibold truncate group-hover:underline">{seller.name}</h3>
                         {seller.hasAuction && (
-                            <Badge variant="info">
+                            <Badge variant="purple">
                                 <Gavel className="mr-1 h-3 w-3" />
                                 Auction
                             </Badge>
@@ -1310,7 +1310,7 @@ const RelatedContent = ({ relatedStreams }: { relatedStreams: any[] }) => (
                             <div className="flex items-center gap-1.5">
                                 <p className="font-semibold text-xs group-hover:underline truncate">{s.name}</p>
                                 {s.hasAuction && (
-                                    <Badge variant="info" className="text-xs font-bold px-1.5 py-0">
+                                    <Badge variant="purple" className="text-xs font-bold px-1.5 py-0">
                                         Auction
                                     </Badge>
                                 )}
@@ -1531,13 +1531,13 @@ const ChatPanel = ({
                          </Avatar>
                           <div className="flex-grow">
                              <p className="leading-relaxed break-words text-sm text-[#E6ECEF]">
-                                 <b className="font-semibold text-sm mr-1.5" style={{ color: msg.userColor || 'inherit' }}>{authorName}</b>
-                                  {isSellerMessage && <Badge variant="secondary" className="px-1.5 py-0 text-[10px] h-4">Seller</Badge>}
-                                 <div className="text-sm mt-0.5">
-                                    {msg.replyingTo && <span className="text-primary font-semibold mr-1">@{msg.replyingTo}</span>}
-                                    {renderWithHashtagsAndLinks(msg.text)}
-                                 </div>
+                                 <b className="font-semibold text-xs mr-1.5" style={{ color: msg.userColor || 'inherit' }}>{authorName}</b>
+                                 {isSellerMessage && <Badge variant="secondary" className="px-1.5 py-0 text-[10px] h-4">Seller</Badge>}
                              </p>
+                              <div className="text-sm">
+                                {msg.replyingTo && <span className="text-primary font-semibold mr-1">@{msg.replyingTo}</span>}
+                                {renderWithHashtagsAndLinks(msg.text)}
+                              </div>
                           </div>
                           <DropdownMenu>
                               <DropdownMenuTrigger asChild>
@@ -1549,7 +1549,7 @@ const ChatPanel = ({
                                   <DropdownMenuItem onSelect={() => handleReply(msg)}>
                                       <Reply className="mr-2 h-4 w-4" />Reply
                                   </DropdownMenuItem>
-                                  {!isMyMessage && (
+                                   {!isMyMessage && (
                                     <DropdownMenuItem onSelect={() => handlers.onReportMessage(msg.id)}>
                                         <Flag className="mr-2 h-4 w-4" />Report
                                     </DropdownMenuItem>
