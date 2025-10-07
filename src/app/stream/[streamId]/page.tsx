@@ -189,13 +189,14 @@ const mockChatMessages: any[] = [
     { id: 23, user: 'Noah', text: 'BID ₹9,600', avatar: 'https://placehold.co/40x40.png?text=N', userId: 'user14', isBid: true },
     { id: 24, user: 'Sophia', text: 'Great stream! Thanks!', avatar: 'https://placehold.co/40x40.png?text=S', userId: 'user15' },
     { id: 25, user: 'Ganesh', text: 'Replying to @FashionFinds: That sounds great! Thanks!', avatar: 'https://placehold.co/40x40.png', userId: 'user1', replyingTo: 'FashionFinds' },
-    { id: 26, user: 'FashionFinds', text: 'Welcome to the stream, everyone! Today we have some amazing deals. #welcome', isSeller: true, avatar: 'https://placehold.co/40x40.png', userId: '1' },
+    { id: 26, user: 'FashionFinds', text: "Welcome to the stream, everyone! Today we have some amazing deals. #welcome. Find more at https://example.com", isSeller: true, avatar: 'https://placehold.co/40x40.png', userId: '1' },
     { id: 27, user: 'FashionFinds', text: "Hey Alex, it's 100% genuine leather!", avatar: 'https://placehold.co/40x40.png', isSeller: true, userId: '1' },
     { id: 28, user: 'FashionFinds', text: 'Yes David, we offer international shipping!', avatar: 'https://placehold.co/40x40.png', isSeller: true, userId: '1' },
     { id: 29, user: 'FashionFinds', text: '@Emily It lasts for about a year with average use!', avatar: 'https://placehold.co/40x40.png', isSeller: true, userId: '1' },
     { id: 30, user: 'FashionFinds', text: 'Sure thing, Ganesh! Here is a view of the back.', avatar: 'https://placehold.co/40x40.png', isSeller: true, userId: '1' },
     { id: 31, user: 'FashionFinds', text: 'Welcome Chloe! We just finished an auction, but we have more exciting products coming up. Stick around!', avatar: 'https://placehold.co/40x40.png', isSeller: true, userId: '1' },
     { id: 32, user: 'FashionFinds', text: '@Liam shipping is a flat rate of ₹50 anywhere in India! #shipping', avatar: 'https://placehold.co/40x40.png', isSeller: true, userId: '1' },
+    { id: 33, user: 'FashionFinds', text: 'This is a seller message for UI testing purposes.', isSeller: true, avatar: 'https://placehold.co/40x40.png', userId: '1' },
 ];
 
 const reportReasons = [
@@ -957,12 +958,25 @@ export default function StreamPage() {
         );
     }
     
-    const renderWithHashtags = (text: string) => {
+    const renderWithHashtags = (text: string, isSeller: boolean) => {
         if (!text) return text;
-        const parts = text.split(/(#\w+)/g);
+        
+        // Regex to match URLs, hashtags, and mentions
+        const regex = isSeller
+            ? /(https?:\/\/[^\s]+|#[a-zA-Z0-9_]+|@[a-zA-Z0-9_]+)/g
+            : /(#[a-zA-Z0-9_]+|@[a-zA-Z0-9_]+)/g;
+            
+        const parts = text.split(regex);
+
         return parts.map((part, index) => {
+            if (isSeller && (part.startsWith('http://') || part.startsWith('https://'))) {
+                return <a key={index} href={part} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline">{part}</a>;
+            }
             if (part.startsWith('#')) {
                 return <Link key={index} href={`/feed?filter=${part.substring(1)}`} className="text-primary font-semibold hover:underline">{part}</Link>;
+            }
+            if (part.startsWith('@')) {
+                return <span key={index} className="text-blue-400 font-semibold">{part}</span>;
             }
             return part;
         });
@@ -1245,7 +1259,7 @@ const StreamInfo = (props: any) => {
              <div className="mb-4">
                 <h2 className="font-bold text-lg">Topic</h2>
                 <div className="text-sm text-muted-foreground mt-1 space-y-4">
-                    <p>{renderWithHashtags(streamData.description || "Welcome to the live stream!")}</p>
+                    <p>{renderWithHashtags(streamData.description || "Welcome to the live stream!", true)}</p>
                 </div>
             </div>
              <div className="flex items-center justify-between gap-2">
@@ -1275,7 +1289,7 @@ const StreamInfo = (props: any) => {
                     </Button>
                     <CollapsibleContent className="mt-2">
                          <div className="p-3 bg-muted rounded-lg flex items-center justify-between">
-                            <Badge variant="success" className="gap-1"><Star className="h-3 w-3" />Premium</Badge>
+                            <Badge variant="secondary" className="gap-1"><Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />Premium</Badge>
                              <div className="flex items-center gap-4">
                                   <Link href="#" target="_blank" className="text-muted-foreground hover:text-primary"><Instagram /></Link>
                                   <Link href="#" target="_blank" className="text-muted-foreground hover:text-primary"><Twitter /></Link>
@@ -1401,17 +1415,30 @@ const ChatPanel = ({
     textareaRef.current?.focus();
   }
 
-  const renderMessageContent = (text: string) => {
+  const renderMessageContent = (text: string, isSeller: boolean) => {
     if (!text) return text;
-    const parts = text.split(/(#[a-zA-Z0-9_]+|@[a-zA-Z0-9_]+)/g);
+
+    const urlRegex = /(https?:\/\/[^\s]+)/g;
+    const hashtagRegex = /(#[a-zA-Z0-9_]+)/g;
+    const mentionRegex = /(@[a-zA-Z0-9_]+)/g;
+    
+    const combinedRegex = isSeller 
+      ? new RegExp(`(${urlRegex.source}|${hashtagRegex.source}|${mentionRegex.source})`, 'g')
+      : new RegExp(`(${hashtagRegex.source}|${mentionRegex.source})`, 'g');
+      
+    const parts = text.split(combinedRegex);
+
     return parts.map((part, index) => {
-      if (part.startsWith('#')) {
-        return <Link key={index} href={`/feed?filter=${part.substring(1)}`} className="text-primary font-semibold hover:underline">{part}</Link>;
-      }
-      if (part.startsWith('@')) {
-        return <span key={index} className="text-blue-400 font-semibold">{part}</span>;
-      }
-      return part;
+        if (isSeller && part && (part.startsWith('http://') || part.startsWith('https://'))) {
+            return <a key={index} href={part} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline">{part}</a>;
+        }
+        if (part && part.startsWith('#')) {
+            return <Link key={index} href={`/feed?filter=${part.substring(1)}`} className="text-primary font-semibold hover:underline">{part}</Link>;
+        }
+        if (part && part.startsWith('@')) {
+            return <span key={index} className="text-blue-400 font-semibold">{part}</span>;
+        }
+        return part;
     });
   };
 
@@ -1513,13 +1540,13 @@ const ChatPanel = ({
                              <AvatarFallback className="bg-gradient-to-br from-red-500 to-yellow-500 text-white font-bold text-xs">{msg.user.charAt(0)}</AvatarFallback>
                          </Avatar>
                           <div className="flex-grow">
-                             <div className="leading-snug break-words text-sm text-[#E6ECEF]">
-                                 <b className={cn("font-semibold text-xs mr-1.5", isSellerMessage && "text-amber-400")}>
+                             <div className="leading-snug break-words text-xs text-[#E6ECEF]">
+                                 <b className={cn("font-semibold mr-1.5", isSellerMessage && "text-amber-400")}>
                                      {msg.user}
                                      {isSellerMessage && <Badge variant="secondary" className="ml-1.5 px-1.5 py-0 text-xs">Seller</Badge>}
                                 :</b>
-                                 <span className="text-xs">
-                                    {renderMessageContent(msg.text)}
+                                 <span className="text-sm">
+                                    {renderMessageContent(msg.text, isSellerMessage)}
                                  </span>
                              </div>
                           </div>
