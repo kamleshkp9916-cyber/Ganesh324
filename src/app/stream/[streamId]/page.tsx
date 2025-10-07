@@ -358,8 +358,8 @@ const ProductShelf = ({ sellerProducts, handleAddToCart, handleBuyNow, toast }: 
                 >
                     <CarouselContent className="-ml-2">
                         {sellerProducts.map((product, index) => (
-                        <CarouselItem key={index} className="basis-1/2 md:basis-1/3 lg:basis-1/4 xl:basis-1/5 pl-2">
-                            <Card className="w-full overflow-hidden h-full flex flex-col flex-shrink-0">
+                        <CarouselItem key={index} className="basis-auto pl-2">
+                            <Card className="w-40 overflow-hidden h-full flex flex-col flex-shrink-0">
                                 <Link href={`/product/${product.key}`} className="group block">
                                     <div className="relative aspect-square bg-muted">
                                         <Image
@@ -500,14 +500,6 @@ export default function StreamPage() {
         let products = Object.values(productDetails).filter(
             p => productToSellerMapping[p.key]?.name === seller.name
         );
-
-        if (products.length < 15) {
-            const needed = 15 - products.length;
-            const otherProducts = Object.values(productDetails)
-                .filter(p => !products.some(sp => sp.key === p.key))
-                .slice(0, needed);
-            products = [...products, ...otherProducts];
-        }
         
         return products.map(p => ({
             ...p,
@@ -928,47 +920,7 @@ export default function StreamPage() {
                      <MobileLayout {...{ router, videoRef, playerRef, handlePlayPause, handleShare, handleMinimize, handleToggleFullscreen, isPaused, seller, streamData, handleFollowToggle, isFollowingState, sellerProducts, handlers, relatedStreams, isChatOpen, setIsChatOpen, renderWithHashtags, chatMessages, pinnedMessages, activeAuction, auctionTime, highestBid, totalBids, walletBalance, inlineAuctionCardRefs, onClose: () => setIsChatOpen(false), handleAddToCart, handleBuyNow, mobileView, setMobileView, isMuted, setIsMuted, handleGoLive, handleSeek, isLive, formatTime, currentTime, duration, buffered, handleProgressClick, progressContainerRef, activeQuality, setActiveQuality }} />
                  ) : (
                     <DesktopLayout 
-                        videoRef={videoRef}
-                        playerRef={playerRef}
-                        progressContainerRef={progressContainerRef}
-                        handleProgressClick={handleProgressClick}
-                        handlePlayPause={handlePlayPause}
-                        handleGoLive={handleGoLive}
-                        handleSeek={handleSeek}
-                        handleToggleFullscreen={handleToggleFullscreen}
-                        handleMinimize={handleMinimize}
-                        handleShare={handleShare}
-                        setIsMuted={setIsMuted}
-                        isLive={isLive}
-                        isPaused={isPaused}
-                        isMuted={isMuted}
-                        currentTime={currentTime}
-                        duration={duration}
-                        buffered={buffered}
-                        streamData={streamData}
-                        seller={seller}
-                        handleFollowToggle={handleFollowToggle}
-                        isFollowingState={isFollowingState}
-                        sellerProducts={sellerProducts}
-                        relatedStreams={relatedStreams}
-                        chatMessages={chatMessages}
-                        pinnedMessages={pinnedMessages}
-                        activeAuction={activeAuction}
-                        auctionTime={auctionTime}
-                        highestBid={highestBid}
-                        totalBids={totalBids}
-                        walletBalance={walletBalance}
-                        handlers={handlers}
-                        inlineAuctionCardRefs={inlineAuctionCardRefs}
-                        mainScrollRef={mainScrollRef}
-                        handleMainScroll={handleMainScroll}
-                        showGoToTop={showGoToTop}
-                        scrollToTop={scrollToTop}
-                        formatTime={formatTime}
-                        router={router}
-                        renderWithHashtags={renderWithHashtags}
-                        activeQuality={activeQuality}
-                        setActiveQuality={setActiveQuality}
+                        {...{ router, videoRef, playerRef, handlePlayPause, handleShare, handleMinimize, handleToggleFullscreen, isPaused, seller, streamData, handleFollowToggle, isFollowingState, sellerProducts, handlers, relatedStreams, isChatOpen, setIsChatOpen, renderWithHashtags, chatMessages, pinnedMessages, activeAuction, auctionTime, highestBid, totalBids, walletBalance, inlineAuctionCardRefs, onClose: () => setIsChatOpen(false), handleAddToCart, handleBuyNow, mobileView, setMobileView, isMuted, setIsMuted, handleGoLive, handleSeek, isLive, formatTime, currentTime, duration, buffered, handleProgressClick, progressContainerRef, mainScrollRef, handleMainScroll, showGoToTop, scrollToTop, activeQuality, setActiveQuality }}
                     />
                  )}
             </div>
@@ -1446,7 +1398,7 @@ const ChatPanel = ({
                   const isSellerMessage = msg.userId === seller?.uid;
                   
                   return (
-                     <div key={msg.id} className="flex items-start gap-2 w-full group text-sm animate-message-in p-1.5">
+                     <div key={msg.id} className="flex items-start gap-3 w-full group text-sm animate-message-in p-1">
                          <Avatar className="h-6 w-6 mt-0.5 border border-[rgba(255,255,255,0.04)]">
                              <AvatarImage src={msg.avatar} />
                              <AvatarFallback className="bg-gradient-to-br from-red-500 to-yellow-500 text-white font-bold text-[10px]">{msg.user.charAt(0)}</AvatarFallback>
