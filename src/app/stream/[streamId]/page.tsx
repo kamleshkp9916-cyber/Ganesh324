@@ -196,6 +196,7 @@ const mockChatMessages: any[] = [
     { id: 30, user: 'FashionFinds', text: 'Sure thing, Ganesh! Here is a view of the back.', avatar: 'https://placehold.co/40x40.png', isSeller: true, userId: '1' },
     { id: 31, user: 'FashionFinds', text: 'Welcome Chloe! We just finished an auction, but we have more exciting products coming up. Stick around!', avatar: 'https://placehold.co/40x40.png', isSeller: true, userId: '1' },
     { id: 32, user: 'FashionFinds', text: 'This is a seller message for UI testing purposes.', isSeller: true, avatar: 'https://placehold.co/40x40.png', userId: '1' },
+    { id: 33, type: 'system', text: 'Michael joined the stream.' },
 ];
 
 const reportReasons = [
@@ -1287,7 +1288,7 @@ const StreamInfo = (props: any) => {
                         </Button>
                     </CollapsibleTrigger>
                     <CollapsibleContent className="mt-2">
-                         <div className="p-3 bg-muted rounded-lg flex items-center justify-between">
+                         <div className="p-3 bg-muted rounded-lg flex items-center justify-center">
                              <div className="flex items-center gap-4">
                                   <Link href="#" target="_blank" className="text-muted-foreground hover:text-primary"><Instagram /></Link>
                                   <Link href="#" target="_blank" className="text-muted-foreground hover:text-primary"><Twitter /></Link>
@@ -1513,7 +1514,7 @@ const ChatPanel = ({
                                  <b className={cn("font-semibold text-xs mr-1.5", isSellerMessage && "text-amber-400")}>
                                      {msg.user}
                                      {isSellerMessage && <Badge variant="secondary" className="ml-1.5 px-1.5 py-0 text-xs">Seller</Badge>}
-                                :</b>
+                                 </b>
                                  <div className="text-sm">
                                     {msg.replyingTo && <span className="text-primary font-semibold mr-1">@{msg.replyingTo}</span>}
                                     {renderWithHashtags(msg.text, isSellerMessage)}
