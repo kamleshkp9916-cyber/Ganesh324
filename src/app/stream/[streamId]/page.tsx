@@ -120,7 +120,7 @@ import { useInView } from "react-intersection-observer";
 import { useMiniPlayer } from "@/context/MiniPlayerContext";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useIsMobile } from "@/hooks/use-is-mobile";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 
@@ -1272,13 +1272,13 @@ const StreamInfo = (props: any) => {
                         )}
                     </div>
                 </Link>
-                 <Collapsible open={isFollowingState}>
-                    <Button onClick={handleFollowToggle} variant={isFollowingState ? "outline" : "default"} className="flex-shrink-0">
+                 <Collapsible open={isFollowingState} className="flex-shrink-0">
+                    <Button onClick={handleFollowToggle} variant={isFollowingState ? "outline" : "default"}>
                         {isFollowingState ? <UserCheck className="mr-2 h-4 w-4" /> : <UserPlus className="mr-2 h-4 w-4" />}
                         {isFollowingState ? "Following" : "Follow"}
                     </Button>
-                     <CollapsibleContent className="mt-4">
-                         <div className="p-3 bg-muted rounded-lg flex items-center justify-center">
+                     <CollapsibleContent className="mt-2">
+                         <div className="p-3 bg-muted rounded-lg flex items-center justify-between">
                              <div className="flex items-center gap-4">
                                   <Link href="#" target="_blank" className="text-muted-foreground hover:text-primary"><Instagram /></Link>
                                   <Link href="#" target="_blank" className="text-muted-foreground hover:text-primary"><Twitter /></Link>
@@ -1488,7 +1488,8 @@ const ChatPanel = ({
                       return <div key={msg.id} className="text-xs text-center text-[#9AA1A6] italic py-1">{msg.text}</div>
                   }
                   if (!msg.user) return null;
-                  
+
+                  const isMyMessage = msg.userId === seller?.uid;
                   const isSellerMessage = msg.userId === seller?.id;
                   
                   return (
