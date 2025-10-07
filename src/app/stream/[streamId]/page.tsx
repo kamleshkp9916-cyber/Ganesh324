@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import {
@@ -1259,7 +1260,7 @@ const StreamInfo = (props: any) => {
                 </div>
             </div>
              <div className="flex items-center justify-between gap-2">
-                <Link href={`/seller/profile?userId=${seller.id}`} className="flex items-center gap-3 group flex-grow overflow-hidden">
+                <Link href={`/seller/profile?userId=${seller.name}`} className="flex items-center gap-3 group flex-grow overflow-hidden">
                     <Avatar className="h-12 w-12 flex-shrink-0">
                         <AvatarImage src={seller.avatarUrl} />
                         <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
@@ -1508,9 +1509,9 @@ const ChatPanel = ({
           </Button>
         </div>
       </header>
-       {activeAuction && <div className="p-3 border-b border-[rgba(255,255,255,0.04)]"><AuctionCard {...{ activeAuction, auctionTime, highestBid, totalBids, handlers }} /></div>}
+       {activeAuction && seller?.hasAuction && <div className="p-3 border-b border-[rgba(255,255,255,0.04)]"><AuctionCard {...{ activeAuction, auctionTime, highestBid, totalBids, handlers }} /></div>}
       <ScrollArea className="flex-grow" ref={chatContainerRef} onScroll={handleManualScroll}>
-          <div className="p-3 space-y-1">
+          <div className="p-3 space-y-4">
              {chatMessages.map((msg) => {
                   if (msg.type === 'system') {
                       return <div key={msg.id} className="text-xs text-center text-[#9AA1A6] italic py-1">{msg.text}</div>
@@ -1523,29 +1524,25 @@ const ChatPanel = ({
                   const authorAvatar = isSellerMessage ? seller.avatarUrl : msg.avatar;
                   
                   return (
-                     <div key={msg.id} className="flex items-start gap-2.5 w-full group animate-message-in">
-                         <Avatar className="h-8 w-8 mt-0.5 border border-[rgba(255,255,255,0.04)]">
+                     <div key={msg.id} className="flex items-start gap-3 w-full group animate-message-in">
+                         <Avatar className="h-10 w-10 mt-0.5 border border-[rgba(255,255,255,0.04)]">
                              <AvatarImage src={authorAvatar} />
-                             <AvatarFallback className="bg-gradient-to-br from-red-500 to-yellow-500 text-white font-bold text-xs">{authorName.charAt(0)}</AvatarFallback>
+                             <AvatarFallback className="bg-gradient-to-br from-red-500 to-yellow-500 text-white font-bold text-sm">{authorName.charAt(0)}</AvatarFallback>
                          </Avatar>
                           <div className="flex-grow">
-                             <div className="leading-normal break-words text-sm text-[#E6ECEF]">
-                                 <div className="flex items-center gap-1.5">
-                                    <b className={cn("font-semibold text-xs", isSellerMessage && "text-yellow-400")}>
-                                         {authorName}
-                                    </b>
-                                    {isSellerMessage && <Badge variant="secondary" className="px-1.5 py-0 text-[9px] h-4">Seller</Badge>}
-                                </div>
-                                <div className="text-sm">
+                             <p className="leading-relaxed break-words text-sm text-[#E6ECEF]">
+                                 <b className="font-semibold text-sm mr-1.5" style={{ color: msg.userColor || 'inherit' }}>{authorName}</b>
+                                  {isSellerMessage && <Badge variant="secondary" className="px-1.5 py-0 text-[10px] h-4">Seller</Badge>}
+                                 <div className="text-sm mt-0.5">
                                     {msg.replyingTo && <span className="text-primary font-semibold mr-1">@{msg.replyingTo}</span>}
                                     {renderWithHashtagsAndLinks(msg.text)}
                                  </div>
-                             </div>
+                             </p>
                           </div>
                           <DropdownMenu>
                               <DropdownMenuTrigger asChild>
                                   <button className="text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity p-1">
-                                      <MoreVertical className="w-3.5 h-3.5" />
+                                      <MoreVertical className="w-4 h-4" />
                                   </button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end">
