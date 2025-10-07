@@ -120,7 +120,7 @@ import { useInView } from "react-intersection-observer";
 import { useMiniPlayer } from "@/context/MiniPlayerContext";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { useIsMobile } from "@/hooks/use-is-mobile";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 
@@ -1253,11 +1253,11 @@ const StreamInfo = (props: any) => {
             <div className="mb-4">
                 <h2 className="font-bold text-lg">Topic</h2>
                 <div className="text-sm text-muted-foreground mt-1 space-y-4">
-                    <p>{renderWithHashtagsAndLinks(streamData.description || "Welcome to the live stream!")}</p>
+                    <div>{renderWithHashtagsAndLinks(streamData.description || "Welcome to the live stream!")}</div>
                 </div>
             </div>
              <div className="flex items-center justify-between gap-2">
-                <Link href={`/seller/profile?userId=${seller.id}`} className="flex items-center gap-3 group flex-grow overflow-hidden">
+                <Link href={`/seller/profile?userId=${seller.name}`} className="flex items-center gap-3 group flex-grow overflow-hidden">
                     <Avatar className="h-12 w-12 flex-shrink-0">
                         <AvatarImage src={seller.avatarUrl} />
                         <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
@@ -1491,7 +1491,7 @@ const ChatPanel = ({
                   }
                   if (!msg.user) return null;
 
-                  const isSellerMessage = msg.userId === seller?.id;
+                  const isSellerMessage = msg.isSeller;
                   
                   return (
                      <div key={msg.id} className="flex items-start gap-3 w-full group text-sm animate-message-in">
@@ -1500,7 +1500,7 @@ const ChatPanel = ({
                              <AvatarFallback className="bg-gradient-to-br from-red-500 to-yellow-500 text-white font-bold">{isSellerMessage ? seller.name.charAt(0) : msg.user.charAt(0)}</AvatarFallback>
                          </Avatar>
                           <div className="flex-grow">
-                             <div className="leading-tight break-words text-sm text-[#E6ECEF]">
+                             <div className="leading-relaxed break-words text-sm text-[#E6ECEF]">
                                  <span className={cn(
                                     "font-semibold text-xs mr-1.5",
                                     isSellerMessage && "text-yellow-400"
@@ -1509,6 +1509,7 @@ const ChatPanel = ({
                                 </span>
                                 {isSellerMessage && <Badge variant="secondary" className="px-1.5 py-0 text-[9px] h-4 mx-0.5 align-middle">Seller</Badge>}
                                 <span className="text-xs">
+                                    {msg.replyingTo && <span className="text-primary font-semibold mr-1">{msg.replyingTo}</span>}
                                     {renderWithHashtagsAndLinks(msg.text)}
                                 </span>
                             </div>
