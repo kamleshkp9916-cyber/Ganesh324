@@ -409,6 +409,27 @@ const ProductShelf = ({ sellerProducts, handleAddToCart, handleBuyNow, toast }: 
     );
 };
 
+const ProductPromoCard = ({ msg, handlers }: { msg: any, handlers: any }) => {
+    const { product } = msg;
+
+    return (
+        <Card className="bg-card/50 border-primary/20 flex gap-3 p-2">
+            <Link href={`/product/${product.key}`} className="block w-20 h-20 bg-muted rounded-md overflow-hidden flex-shrink-0 relative">
+                 <Image src={product.images[0]} alt={product.name} fill sizes="80px" className="object-cover"/>
+            </Link>
+            <div className="flex flex-col flex-grow">
+                <p className="text-xs text-muted-foreground">Featured Product</p>
+                <h4 className="font-semibold text-sm leading-tight">{product.name}</h4>
+                <p className="font-bold text-lg">{product.price}</p>
+                <div className="flex gap-2 mt-auto">
+                    <Button size="sm" variant="outline" className="text-xs h-7" onClick={() => handlers.onAddToCart(product)}><ShoppingCart className="w-3 h-3 mr-1" /> Cart</Button>
+                    <Button size="sm" className="text-xs h-7" onClick={() => handlers.onBuyNow(product)}>Buy Now</Button>
+                </div>
+            </div>
+        </Card>
+    )
+}
+
 
 export default function StreamPage() {
     const router = useRouter();
@@ -507,6 +528,28 @@ export default function StreamPage() {
             sold: Math.floor(Math.random() * 1000)
         }));
     }, [seller]);
+    
+    useEffect(() => {
+        if (sellerProducts.length === 0) return;
+    
+        const interval = setInterval(() => {
+            const availableProducts = sellerProducts.filter(p => p.stock > 0);
+            if (availableProducts.length === 0) return;
+            
+            const randomIndex = Math.floor(Math.random() * availableProducts.length);
+            const randomProduct = availableProducts[randomIndex];
+            
+            const promoMessage = {
+                id: `promo-${Date.now()}`,
+                type: 'product_promo',
+                product: randomProduct,
+            };
+    
+            setChatMessages(prev => [...prev, promoMessage]);
+        }, 20000); // every 20 seconds
+    
+        return () => clearInterval(interval);
+    }, [sellerProducts]);
     
     const relatedStreams = useMemo(() => {
         if (!seller) return [];
@@ -1392,6 +1435,9 @@ const ChatPanel = ({
                   if (msg.type === 'system') {
                       return <div key={msg.id} className="text-xs text-center text-[#9AA1A6] italic py-1">{msg.text}</div>
                   }
+                  if (msg.type === 'product_promo') {
+                    return <ProductPromoCard key={msg.id} msg={msg} handlers={handlers} />;
+                  }
                   if (!msg.user) return null;
 
                   const isMyMessage = msg.userId === seller?.uid;
@@ -1407,8 +1453,18 @@ const ChatPanel = ({
                              <p className="leading-relaxed break-words text-xs text-[#E6ECEF]">
                                  <b className="font-semibold text-xs mr-1.5" style={{ color: msg.userColor || 'inherit' }}>{msg.user}:</b>
                                  <span className="text-xs">
-                                     {msg.replyingTo && <span className="text-primary font-semibold mr-1">@{msg.replyingTo}</span>}
-                                     {msg.text}
+                                    {replyingTo && msg.text.startsWith(`@${replyingTo.name}`) ? (
+                                        <>
+                                            <span className="text-primary font-semibold">{msg.text.split(' ')[0]}</span>
+                                            {msg.text.substring(msg.text.indexOf(' ') + 1)}
+                                        </>
+                                    ) : msg.replyingTo ? (
+                                        <>
+                                             <span className="text-primary font-semibold">@{msg.replyingTo}</span> {msg.text}
+                                        </>
+                                    ) : (
+                                        msg.text
+                                    )}
                                  </span>
                              </p>
                           </div>
