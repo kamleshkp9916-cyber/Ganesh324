@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import {
@@ -981,10 +980,71 @@ export default function StreamPage() {
     return (
         <React.Fragment>
             <Dialog open={isBidDialogOpen} onOpenChange={setIsBidDialogOpen}>
-                {/* Bid Dialog Content */}
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Place a Bid</DialogTitle>
+                        <DialogDescription>
+                            Your bid must be higher than the current bid. Bids are final.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="py-4 space-y-4">
+                        <div className="flex justify-between text-sm">
+                            <span className="text-muted-foreground">Your Wallet Balance</span>
+                            <span className="font-semibold flex items-center gap-2"><Wallet className="w-4 h-4" /> ₹{walletBalance.toLocaleString()}</span>
+                        </div>
+                         <div className="flex justify-between text-sm">
+                            <span className="text-muted-foreground">Current Highest Bid</span>
+                            <span className="font-semibold">₹{highestBid.toLocaleString()}</span>
+                        </div>
+                        <div className="space-y-2">
+                             <Label htmlFor="bid-amount">Your Bid (Min: ₹{(highestBid + 1).toLocaleString()})</Label>
+                             <div className="relative">
+                                 <span className="absolute inset-y-0 left-3 flex items-center text-muted-foreground">₹</span>
+                                <Input 
+                                    id="bid-amount" 
+                                    type="number" 
+                                    placeholder={(highestBid + 1).toString()}
+                                    value={bidAmount}
+                                    onChange={(e) => setBidAmount(e.target.value)}
+                                    className="pl-6"
+                                />
+                             </div>
+                             <div className="flex gap-2 pt-2">
+                                <Button variant="outline" size="sm" onClick={() => setBidAmount(prev => Number(prev || highestBid) + 100)}>+100</Button>
+                                <Button variant="outline" size="sm" onClick={() => setBidAmount(prev => Number(prev || highestBid) + 500)}>+500</Button>
+                                <Button variant="outline" size="sm" onClick={() => setBidAmount(prev => Number(prev || highestBid) + 1000)}>+1000</Button>
+                             </div>
+                        </div>
+                    </div>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setIsBidDialogOpen(false)}>Cancel</Button>
+                        <Button onClick={handlePlaceBid}>Place Bid</Button>
+                    </DialogFooter>
+                </DialogContent>
             </Dialog>
             <Dialog open={isBidHistoryOpen} onOpenChange={setIsBidHistoryOpen}>
-                {/* Bid History Content */}
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Bid History</DialogTitle>
+                        <DialogDescription>History of all bids for this auction.</DialogDescription>
+                    </DialogHeader>
+                    <ScrollArea className="h-80 my-4">
+                        <div className="space-y-2 pr-4">
+                            {[...chatMessages].reverse().filter(m => m.isBid).map(bid => (
+                                <div key={bid.id} className="flex items-center justify-between p-2 bg-muted rounded-md">
+                                    <div className="flex items-center gap-2">
+                                        <Avatar className="h-8 w-8">
+                                            <AvatarImage src={bid.avatar} />
+                                            <AvatarFallback>{bid.user.charAt(0)}</AvatarFallback>
+                                        </Avatar>
+                                        <span className="font-semibold text-sm">{bid.user}</span>
+                                    </div>
+                                    <span className="font-bold text-sm">{bid.text.replace('BID ', '')}</span>
+                                </div>
+                            ))}
+                        </div>
+                    </ScrollArea>
+                </DialogContent>
             </Dialog>
              <Dialog open={isReportOpen} onOpenChange={setIsReportOpen}>
                 <ReportDialog onSubmit={(reason, details) => {
@@ -1260,7 +1320,7 @@ const StreamInfo = (props: any) => {
                 </div>
             </div>
              <div className="flex items-center justify-between gap-2">
-                <Link href={`/seller/profile?userId=${seller.name}`} className="flex items-center gap-3 group flex-grow overflow-hidden">
+                <Link href={`/seller/profile?userId=${seller.id}`} className="flex items-center gap-3 group flex-grow overflow-hidden">
                     <Avatar className="h-12 w-12 flex-shrink-0">
                         <AvatarImage src={seller.avatarUrl} />
                         <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
@@ -1511,12 +1571,12 @@ const ChatPanel = ({
       </header>
        {activeAuction && seller?.hasAuction && <div className="p-3 border-b border-[rgba(255,255,255,0.04)]"><AuctionCard {...{ activeAuction, auctionTime, highestBid, totalBids, handlers }} /></div>}
       <ScrollArea className="flex-grow" ref={chatContainerRef} onScroll={handleManualScroll}>
-          <div className="p-3 space-y-4">
+          <div className="p-3 space-y-2.5">
              {chatMessages.map((msg) => {
                   if (msg.type === 'system') {
                       return <div key={msg.id} className="text-xs text-center text-[#9AA1A6] italic py-1">{msg.text}</div>
                   }
-                  if (!msg.user && !msg.isSeller) return null;
+                  if (!msg.user) return null;
 
                   const isMyMessage = user && msg.userId === user.uid;
                   const isSellerMessage = msg.isSeller;
@@ -1525,16 +1585,16 @@ const ChatPanel = ({
                   
                   return (
                      <div key={msg.id} className="flex items-start gap-3 w-full group animate-message-in">
-                         <Avatar className="h-10 w-10 mt-0.5 border border-[rgba(255,255,255,0.04)]">
+                         <Avatar className="h-9 w-9 mt-0.5 border border-[rgba(255,255,255,0.04)]">
                              <AvatarImage src={authorAvatar} />
                              <AvatarFallback className="bg-gradient-to-br from-red-500 to-yellow-500 text-white font-bold text-sm">{authorName.charAt(0)}</AvatarFallback>
                          </Avatar>
                           <div className="flex-grow">
-                             <p className="leading-relaxed break-words text-sm text-[#E6ECEF]">
-                                 <b className="font-semibold text-xs mr-1.5" style={{ color: msg.userColor || 'inherit' }}>{authorName}</b>
+                             <div className="flex items-center gap-2">
+                                <b className="font-semibold text-xs" style={{ color: msg.userColor || 'inherit' }}>{authorName}</b>
                                  {isSellerMessage && <Badge variant="secondary" className="px-1.5 py-0 text-[10px] h-4">Seller</Badge>}
-                             </p>
-                              <div className="text-sm">
+                             </div>
+                              <div className="leading-normal text-sm">
                                 {msg.replyingTo && <span className="text-primary font-semibold mr-1">@{msg.replyingTo}</span>}
                                 {renderWithHashtagsAndLinks(msg.text)}
                               </div>
@@ -1549,7 +1609,7 @@ const ChatPanel = ({
                                   <DropdownMenuItem onSelect={() => handleReply(msg)}>
                                       <Reply className="mr-2 h-4 w-4" />Reply
                                   </DropdownMenuItem>
-                                   {!isMyMessage && (
+                                  {!isMyMessage && (
                                     <DropdownMenuItem onSelect={() => handlers.onReportMessage(msg.id)}>
                                         <Flag className="mr-2 h-4 w-4" />Report
                                     </DropdownMenuItem>
