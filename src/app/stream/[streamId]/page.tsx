@@ -168,7 +168,7 @@ const mockChatMessages: any[] = [
     { id: 2, user: 'Alex', text: 'What is the material?', avatar: 'https://placehold.co/40x40.png', userId: 'user2' },
     { id: 3, user: 'Jane', text: 'I just bought one! So excited. 🤩 #newpurchase', avatar: 'https://placehold.co/40x40.png', userId: 'user3' },
     { id: 4, type: 'system', text: 'Maria purchased a Vintage Camera.' },
-    { id: 5, type: 'system', text: 'David Garcia joined the stream.' },
+    { id: 5, type: 'system', text: 'Michael joined the stream.' },
     { id: 6, user: 'David', text: 'Do you ship to the US?', avatar: 'https://placehold.co/40x40.png', userId: 'user4' },
     { id: 7, user: 'Sarah', text: 'This is my first time here, loving the vibe!', avatar: 'https://placehold.co/40x40.png', userId: 'user5' },
     { id: 8, type: 'auction', productId: 'prod_1', active: false, initialTime: 0 },
@@ -444,13 +444,10 @@ const ProductPromoCard = ({ msg, handlers }: { msg: any, handlers: any }) => {
     );
 };
 
-
-function renderWithHashtags(text: string, isSeller: boolean) {
+const renderMessageContent = (text: string, isSeller: boolean) => {
     if (!text) return text;
 
-    const regex = isSeller
-        ? /(https?:\/\/[^\s]+|#[a-zA-Z0-9_]+|@[a-zA-Z0-9_]+)/g
-        : /(#[a-zA-Z0-9_]+|@[a-zA-Z0-9_]+)/g;
+    const regex = /(https?:\/\/[^\s]+|#[a-zA-Z0-9_]+|@[a-zA-Z0-9_]+)/g;
         
     const parts = text.split(regex);
 
@@ -1003,10 +1000,10 @@ export default function StreamPage() {
                         <LoadingSpinner />
                     </div>
                  ) : isMobile ? (
-                     <MobileLayout {...{ router, videoRef, playerRef, handlePlayPause, handleShare, handleMinimize, handleToggleFullscreen, isPaused, seller, streamData, handleFollowToggle, isFollowingState, sellerProducts, handlers, relatedStreams, isChatOpen, setIsChatOpen, renderWithHashtags, chatMessages, pinnedMessages, activeAuction, auctionTime, highestBid, totalBids, walletBalance, inlineAuctionCardRefs, onClose: () => setIsChatOpen(false), handleAddToCart, handleBuyNow, mobileView, setMobileView, isMuted, setIsMuted, handleGoLive, handleSeek, isLive, formatTime, currentTime, duration, buffered, handleProgressClick, progressContainerRef, activeQuality, setActiveQuality }} />
+                     <MobileLayout {...{ router, videoRef, playerRef, handlePlayPause, handleShare, handleMinimize, handleToggleFullscreen, isPaused, seller, streamData, handleFollowToggle, isFollowingState, sellerProducts, handlers, relatedStreams, isChatOpen, setIsChatOpen, chatMessages, pinnedMessages, activeAuction, auctionTime, highestBid, totalBids, walletBalance, inlineAuctionCardRefs, onClose: () => setIsChatOpen(false), handleAddToCart, handleBuyNow, mobileView, setMobileView, isMuted, setIsMuted, handleGoLive, handleSeek, isLive, formatTime, currentTime, duration, buffered, handleProgressClick, progressContainerRef, activeQuality, setActiveQuality }} />
                  ) : (
                     <DesktopLayout 
-                        {...{ router, videoRef, playerRef, handlePlayPause, handleShare, handleMinimize, handleToggleFullscreen, isPaused, seller, streamData, handleFollowToggle, isFollowingState, sellerProducts, handlers, relatedStreams, isChatOpen, setIsChatOpen, renderWithHashtags, chatMessages, pinnedMessages, activeAuction, auctionTime, highestBid, totalBids, walletBalance, inlineAuctionCardRefs, onClose: () => setIsChatOpen(false), handleAddToCart, handleBuyNow, mobileView, setMobileView, isMuted, setIsMuted, handleGoLive, handleSeek, isLive, formatTime, currentTime, duration, buffered, handleProgressClick, progressContainerRef, mainScrollRef, handleMainScroll, showGoToTop, scrollToTop, activeQuality, setActiveQuality }}
+                        {...{ router, videoRef, playerRef, handlePlayPause, handleShare, handleMinimize, handleToggleFullscreen, isPaused, seller, streamData, handleFollowToggle, isFollowingState, sellerProducts, handlers, relatedStreams, isChatOpen, setIsChatOpen, chatMessages, pinnedMessages, activeAuction, auctionTime, highestBid, totalBids, walletBalance, inlineAuctionCardRefs, onClose: () => setIsChatOpen(false), handleAddToCart, handleBuyNow, mobileView, setMobileView, isMuted, setIsMuted, handleGoLive, handleSeek, isLive, formatTime, currentTime, duration, buffered, handleProgressClick, progressContainerRef, mainScrollRef, handleMainScroll, showGoToTop, scrollToTop, activeQuality, setActiveQuality }}
                     />
                  )}
             </div>
@@ -1258,11 +1255,11 @@ const StreamInfo = (props: any) => {
              <div className="mb-4">
                 <h2 className="font-bold text-lg">Topic</h2>
                 <div className="text-sm text-muted-foreground mt-1 space-y-4">
-                    <div>{renderWithHashtags(streamData.description || "Welcome to the live stream!", true)}</div>
+                    <div>{renderMessageContent(streamData.description || "Welcome to the live stream!", true)}</div>
                 </div>
             </div>
              <div className="flex items-center justify-between gap-2">
-                <Link href={`/seller/profile?userId=${seller.name}`} className="flex items-center gap-3 group flex-grow overflow-hidden">
+                <Link href={`/seller/profile?userId=${seller.uid}`} className="flex items-center gap-3 group flex-grow overflow-hidden">
                     <Avatar className="h-12 w-12 flex-shrink-0">
                         <AvatarImage src={seller.avatarUrl} />
                         <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
@@ -1277,26 +1274,21 @@ const StreamInfo = (props: any) => {
                         )}
                     </div>
                 </Link>
-                <Collapsible open={isFollowingState} onOpenChange={handleFollowToggle}>
-                    <CollapsibleTrigger asChild>
-                        <Button
-                            variant={isFollowingState ? "outline" : "default"}
-                            className="flex-shrink-0"
-                        >
-                            {isFollowingState ? <UserCheck className="mr-2 h-4 w-4" /> : <UserPlus className="mr-2 h-4 w-4" />}
-                            {isFollowingState ? "Following" : "Follow"}
-                        </Button>
-                    </CollapsibleTrigger>
-                    <CollapsibleContent className="mt-2">
-                         <div className="p-3 bg-muted rounded-lg flex items-center justify-center">
-                             <div className="flex items-center gap-4">
-                                  <Link href="#" target="_blank" className="text-muted-foreground hover:text-primary"><Instagram /></Link>
-                                  <Link href="#" target="_blank" className="text-muted-foreground hover:text-primary"><Twitter /></Link>
-                                  <Link href="#" target="_blank" className="text-muted-foreground hover:text-primary"><Youtube /></Link>
+                <div className="flex flex-col items-end gap-2">
+                     <Button onClick={handleFollowToggle} variant={isFollowingState ? "outline" : "default"} className="flex-shrink-0">
+                        {isFollowingState ? <UserCheck className="mr-2 h-4 w-4" /> : <UserPlus className="mr-2 h-4 w-4" />}
+                        {isFollowingState ? "Following" : "Follow"}
+                    </Button>
+                    {isFollowingState && (
+                         <div className="p-2 bg-muted rounded-lg flex items-center">
+                             <div className="flex items-center gap-3">
+                                  <Link href="#" target="_blank" className="text-muted-foreground hover:text-primary"><Instagram className="w-5 h-5"/></Link>
+                                  <Link href="#" target="_blank" className="text-muted-foreground hover:text-primary"><Twitter className="w-5 h-5"/></Link>
+                                  <Link href="#" target="_blank" className="text-muted-foreground hover:text-primary"><Youtube className="w-5 h-5"/></Link>
                              </div>
                          </div>
-                    </CollapsibleContent>
-                </Collapsible>
+                    )}
+                </div>
             </div>
             
             <ProductShelf {...props} />
@@ -1511,13 +1503,13 @@ const ChatPanel = ({
                          </Avatar>
                           <div className="flex-grow">
                              <div className="leading-relaxed break-words text-sm text-[#E6ECEF]">
-                                 <b className={cn("font-semibold text-xs mr-1.5", isSellerMessage && "text-amber-400")}>
+                                 <b className="font-semibold text-xs mr-1.5" style={{ color: msg.userColor || 'inherit' }}>
                                      {msg.user}
                                      {isSellerMessage && <Badge variant="secondary" className="ml-1.5 px-1.5 py-0 text-xs">Seller</Badge>}
                                  </b>
                                  <div className="text-sm">
                                     {msg.replyingTo && <span className="text-primary font-semibold mr-1">@{msg.replyingTo}</span>}
-                                    {renderWithHashtags(msg.text, isSellerMessage)}
+                                    {renderMessageContent(msg.text, isSellerMessage)}
                                  </div>
                              </div>
                           </div>
