@@ -1303,11 +1303,7 @@ const MobileLayout = (props: any) => {
 
             <div className="w-full aspect-video bg-black relative flex-shrink-0" ref={props.playerRef}>
                 <video ref={props.videoRef} src={props.streamData.streamUrl || "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"} className="w-full h-full object-cover" loop onClick={handlePlayPause}/>
-                 <div className="absolute inset-0 bg-black/10 flex items-center justify-center gap-4">
-                    <Button variant="ghost" size="icon" className="text-white w-12 h-12" onClick={handlePlayPause}>
-                        {isPaused ? <Play className="h-8 w-8 fill-white" /> : <Pause className="h-8 w-8 fill-white" />}
-                    </Button>
-                </div>
+                 <div className="absolute inset-0 bg-black/10" />
                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent flex flex-col justify-end p-2 text-white">
                     <div className="w-full cursor-pointer py-1" ref={progressContainerRef} onClick={handleProgressClick}>
                         <Progress value={(currentTime / duration) * 100} valueBuffer={props.buffered / duration * 100} isLive={isLive} className="h-1.5" />
@@ -1329,8 +1325,6 @@ const MobileLayout = (props: any) => {
                              <Button variant="ghost" size="icon" className="w-9 h-9" onClick={() => setIsMuted((prev: any) => !prev)}>
                                 {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
                             </Button>
-                             <Button variant="ghost" size="icon" className="w-9 h-9" onClick={handleShare}><Share2 className="w-5 h-5"/></Button>
-                            <Button variant="ghost" size="icon" className="w-9 h-9" onClick={() => setIsSettingsOpen(true)}><Settings className="w-5 h-5"/></Button>
                             <Button variant="ghost" size="icon" className="w-9 h-9" onClick={handleToggleFullscreen}>
                                 <Maximize className="w-5 h-5"/>
                             </Button>
@@ -1446,6 +1440,7 @@ const RelatedContent = ({ relatedStreams }: { relatedStreams: any[] }) => (
         </div>
     </div>
 );
+
 
 
 
