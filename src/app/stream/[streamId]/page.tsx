@@ -998,10 +998,10 @@ export default function StreamPage() {
                         <LoadingSpinner />
                     </div>
                  ) : isMobile ? (
-                     <MobileLayout {...{ router, videoRef, playerRef, handlePlayPause, handleShare, handleMinimize, handleToggleFullscreen, isPaused, seller, streamData, handleFollowToggle, isFollowingState, sellerProducts, handlers, relatedStreams, isChatOpen, setIsChatOpen, chatMessages, pinnedMessages, activeAuction, auctionTime, highestBid, totalBids, walletBalance, inlineAuctionCardRefs, onClose: () => setIsChatOpen(false), handleAddToCart, handleBuyNow, mobileView, setMobileView, isMuted, setIsMuted, handleGoLive, handleSeek, isLive, formatTime, currentTime, duration, buffered, handleProgressClick, progressContainerRef, activeQuality, setActiveQuality, product }} />
+                     <MobileLayout {...{ router, videoRef, playerRef, handlePlayPause, handleShare, handleMinimize, handleToggleFullscreen, isPaused, seller, streamData, handleFollowToggle, isFollowingState, sellerProducts, handlers, relatedStreams, isChatOpen, setIsChatOpen, chatMessages, pinnedMessages, activeAuction, auctionTime, highestBid, totalBids, walletBalance, inlineAuctionCardRefs, onClose: () => setIsChatOpen(false), handleAddToCart, handleBuyNow, mobileView, setMobileView, isMuted, setIsMuted, handleGoLive, handleSeek, isLive, formatTime, currentTime, duration, buffered, handleProgressClick, progressContainerRef, activeQuality, setActiveQuality, product, user }} />
                  ) : (
                     <DesktopLayout 
-                        {...{ router, videoRef, playerRef, handlePlayPause, handleShare, handleMinimize, handleToggleFullscreen, isPaused, seller, streamData, handleFollowToggle, isFollowingState, sellerProducts, handlers, relatedStreams, isChatOpen, setIsChatOpen, chatMessages, pinnedMessages, activeAuction, auctionTime, highestBid, totalBids, walletBalance, inlineAuctionCardRefs, onClose: () => setIsChatOpen(false), handleAddToCart, handleBuyNow, mobileView, setMobileView, isMuted, setIsMuted, handleGoLive, handleSeek, isLive, formatTime, currentTime, duration, buffered, handleProgressClick, progressContainerRef, mainScrollRef, handleMainScroll, showGoToTop, scrollToTop, activeQuality, setActiveQuality, product }}
+                        {...{ router, videoRef, playerRef, handlePlayPause, handleShare, handleMinimize, handleToggleFullscreen, isPaused, seller, streamData, handleFollowToggle, isFollowingState, sellerProducts, handlers, relatedStreams, isChatOpen, setIsChatOpen, chatMessages, pinnedMessages, activeAuction, auctionTime, highestBid, totalBids, walletBalance, inlineAuctionCardRefs, onClose: () => setIsChatOpen(false), handleAddToCart, handleBuyNow, mobileView, setMobileView, isMuted, setIsMuted, handleGoLive, handleSeek, isLive, formatTime, currentTime, duration, buffered, handleProgressClick, progressContainerRef, mainScrollRef, handleMainScroll, showGoToTop, scrollToTop, activeQuality, setActiveQuality, product, user }}
                     />
                  )}
             </div>
@@ -1119,6 +1119,7 @@ const DesktopLayout = (props: any) => (
                 handlers={props.handlers}
                 inlineAuctionCardRefs={props.inlineAuctionCardRefs}
                 onClose={() => {}}
+                user={props.user}
             />
         </aside>
     </div>
@@ -1228,7 +1229,7 @@ const MobileLayout = (props: any) => {
                     </ScrollArea>
                 ) : (
                     <div className="h-full flex flex-col bg-background">
-                        <ChatPanel {...props} onClose={() => props.setMobileView('stream')} />
+                        <ChatPanel {...props} onClose={() => props.setMobileView('stream')} user={props.user} />
                     </div>
                 )}
             </div>
@@ -1338,6 +1339,7 @@ const ChatPanel = ({
   handlers,
   inlineAuctionCardRefs,
   onClose,
+  user,
 }: {
   seller: any;
   chatMessages: any[];
@@ -1350,6 +1352,7 @@ const ChatPanel = ({
   handlers: any;
   inlineAuctionCardRefs: React.MutableRefObject<Record<string, HTMLDivElement | null>>;
   onClose: () => void;
+  user: any;
 }) => {
   const [newMessage, setNewMessage] = useState("");
   const [replyingTo, setReplyingTo] = useState<{ name: string; id: string } | null>(null);
@@ -1475,48 +1478,48 @@ const ChatPanel = ({
         </div>
       </header>
       <ScrollArea className="flex-grow" ref={chatContainerRef} onScroll={handleManualScroll}>
-          <div className="p-3 space-y-2.5">
+          <div className="p-3 space-y-3">
              {chatMessages.map((msg) => {
                   if (msg.type === 'system') {
                       return <div key={msg.id} className="text-xs text-center text-[#9AA1A6] italic py-1">{msg.text}</div>
                   }
                   if (!msg.user) return null;
                   
-                  const isSellerMessage = msg.isSeller;
+                  const isMyMessage = user && msg.userId === user.uid;
                   
                   return (
-                     <div key={msg.id} className="flex items-start gap-2 w-full group animate-message-in">
+                     <div key={msg.id} className="flex items-start gap-2.5 w-full group animate-message-in">
                          <Avatar className="h-8 w-8 mt-0.5 border border-[rgba(255,255,255,0.04)]">
                              <AvatarImage src={msg.avatar} />
-                             <AvatarFallback className="bg-gradient-to-br from-red-500 to-yellow-500 text-white font-bold">{msg.user.charAt(0)}</AvatarFallback>
+                             <AvatarFallback className="bg-gradient-to-br from-red-500 to-yellow-500 text-white font-bold text-xs">{msg.user.charAt(0)}</AvatarFallback>
                          </Avatar>
                           <div className="flex-grow">
-                             <div
-                               className="leading-relaxed break-words text-sm text-[#E6ECEF]"
-                             >
-                               <b className={cn("font-semibold text-xs mr-1.5", isSellerMessage && "text-yellow-400")}>
-                                   {isSellerMessage ? seller.name : msg.user}
-                               </b>
-                               {isSellerMessage && <Badge variant="secondary" className="px-1.5 py-0 text-[9px] h-4">Seller</Badge>}
-                               <span className="text-xs ml-1">
-                                   {msg.replyingTo && <span className="text-primary font-semibold mr-1">@{msg.replyingTo}</span>}
-                                   {renderWithHashtagsAndLinks(msg.text)}
-                               </span>
+                             <div className="leading-normal break-words text-sm text-[#E6ECEF]">
+                                 <b className={cn("font-semibold text-xs mr-1.5", msg.isSeller && "text-yellow-400")}>
+                                     {msg.isSeller ? seller.name : msg.user}
+                                 </b>
+                                 {msg.isSeller && <Badge variant="secondary" className="px-1.5 py-0 text-[9px] h-4">Seller</Badge>}
+                                 <span className="text-xs ml-1">
+                                    {msg.replyingTo && <span className="text-primary font-semibold mr-1">@{msg.replyingTo}</span>}
+                                    {renderWithHashtagsAndLinks(msg.text)}
+                                 </span>
                              </div>
                           </div>
                           <DropdownMenu>
                               <DropdownMenuTrigger asChild>
                                   <button className="text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity p-1">
-                                      <MoreVertical className="w-4 h-4" />
+                                      <MoreVertical className="w-3.5 h-3.5" />
                                   </button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end">
                                   <DropdownMenuItem onSelect={() => handleReply(msg)}>
                                       <Reply className="mr-2 h-4 w-4" />Reply
                                   </DropdownMenuItem>
-                                  <DropdownMenuItem onSelect={() => handlers.onReportMessage(msg.id)}>
-                                    <Flag className="mr-2 h-4 w-4" />Report
-                                </DropdownMenuItem>
+                                  {!isMyMessage && (
+                                    <DropdownMenuItem onSelect={() => handlers.onReportMessage(msg.id)}>
+                                        <Flag className="mr-2 h-4 w-4" />Report
+                                    </DropdownMenuItem>
+                                  )}
                               </DropdownMenuContent>
                           </DropdownMenu>
                       </div>
@@ -1554,7 +1557,7 @@ const ChatPanel = ({
                     value={newMessage}
                     onChange={(e) => setNewMessage(e.target.value)}
                     rows={1}
-                    className='flex-grow resize-none max-h-24 px-4 pr-12 py-3 min-h-11 rounded-full bg-[#0f1113] text-white placeholder:text-[#7d8488] border-none focus-visible:ring-2 focus-visible:ring-offset-0 focus-visible:ring-[#E43F3F]/30'
+                    className='flex-grow resize-none max-h-24 px-4 pr-12 py-3 min-h-11 rounded-full bg-[#0f1113] text-white placeholder:text-[#7d8488] border-none focus-visible:ring-2 focus-visible:ring-offset-0 focus-visible:ring-[#E43F3F]/30 text-sm'
                 />
                 <Popover>
                     <PopoverTrigger asChild>
