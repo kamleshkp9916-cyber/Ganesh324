@@ -443,10 +443,25 @@ const ProductPromoCard = ({ msg, handlers }: { msg: any, handlers: any }) => {
     );
 };
 
+const renderWithHashtags = (text: string) => {
+    if (!text) return null;
+    const parts = text.split(/(#\w+)/g);
+    return parts.map((part, index) => {
+        if (part.startsWith('#')) {
+            return (
+                <Link key={index} href={`/feed?filter=${part.substring(1)}`} className="text-primary font-semibold hover:underline">
+                    {part}
+                </Link>
+            );
+        }
+        return part;
+    });
+};
+
 const renderMessageContent = (text: string, isSeller: boolean) => {
     if (!text) return null;
     
-    const regex = /(https?:\/\/[^\s]+|#[a-zA-Z0-9_]+|@[a-zA-Z0-9_]+)/g;
+    const regex = /(https?:\/\/[^\s]+|#\w+|@\w+)/g;
     const parts = text.split(regex);
     
     return parts.map((part, index) => {
@@ -461,7 +476,7 @@ const renderMessageContent = (text: string, isSeller: boolean) => {
         }
         return part;
     });
-}
+};
 
 export default function StreamPage() {
     const router = useRouter();
@@ -528,7 +543,30 @@ export default function StreamPage() {
     const [isChatOpen, setIsChatOpen] = useState(false);
     const [mobileView, setMobileView] = useState<'stream' | 'chat'>('stream');
     const [activeQuality, setActiveQuality] = useState('Auto');
+    
+    const product = productDetails[seller?.productId as keyof typeof productDetails];
 
+    const relatedStreams = useMemo(() => {
+        if (!product) return [];
+        let streams = liveSellers.filter(
+            s => s.category === product.category && s.id !== product.id
+        );
+        if (streams.length > 50) {
+            return streams.slice(0, 51);
+        }
+        // Fallback to show some streams if none match the category, excluding the current one
+        const fallbackStreams = liveSellers.filter(s => s.id !== product.id);
+        
+        // Add from fallback until we have 6 total, avoiding duplicates
+        let i = 0;
+        while(streams.length < 6 && i < fallbackStreams.length) {
+            if (!streams.some(s => s.id === fallbackStreams[i].id)) {
+                streams.push(fallbackStreams[i]);
+            }
+            i++;
+        }
+        return streams.slice(0,51);
+    }, [product]);
 
     useEffect(() => {
         setHydrated(true);
@@ -596,28 +634,7 @@ export default function StreamPage() {
         return () => clearInterval(interval);
     }, [seller]);
     
-    const relatedStreams = useMemo(() => {
-        if (!product) return [];
-        let streams = liveSellers.filter(
-            s => s.category === product.category && s.id !== product.id
-        );
-        if (streams.length > 50) {
-            return streams.slice(0, 51);
-        }
-        // Fallback to show some streams if none match the category, excluding the current one
-        const fallbackStreams = liveSellers.filter(s => s.id !== product.id);
-        
-        // Add from fallback until we have 6 total, avoiding duplicates
-        let i = 0;
-        while(streams.length < 6 && i < fallbackStreams.length) {
-            if (!streams.some(s => s.id === fallbackStreams[i].id)) {
-                streams.push(fallbackStreams[i]);
-            }
-            i++;
-        }
-        return streams.slice(0,51);
-    }, [product]);
-    
+
     const formatTime = (timeInSeconds: number) => {
         if (isNaN(timeInSeconds) || timeInSeconds < 0) return '00:00';
         const date = new Date(0);
@@ -976,8 +993,6 @@ export default function StreamPage() {
         );
     }
     
-    const product = productDetails[seller?.productId as keyof typeof productDetails];
-    
     return (
         <React.Fragment>
             <Dialog open={isBidDialogOpen} onOpenChange={setIsBidDialogOpen}>
@@ -1255,7 +1270,7 @@ const StreamInfo = (props: any) => {
             <div className="mb-4">
                 <h2 className="font-bold text-lg">Topic</h2>
                 <div className="text-sm text-muted-foreground mt-1 space-y-4">
-                    <p>{renderMessageContent(streamData.description || "Welcome to the live stream!", true)}</p>
+                    <p>{renderWithHashtags(streamData.description || "Welcome to the live stream!")}</p>
                 </div>
             </div>
              <div className="flex items-center justify-between gap-2">
@@ -1362,7 +1377,6 @@ const ChatPanel = ({
   inlineAuctionCardRefs: React.MutableRefObject<Record<string, HTMLDivElement | null>>;
   onClose: () => void;
 }) => {
-  const { user } = useAuth();
   const [newMessage, setNewMessage] = useState("");
   const [replyingTo, setReplyingTo] = useState<{ name: string; id: string } | null>(null);
   const [showScrollToBottom, setShowScrollToBottom] = useState(false);
@@ -1493,16 +1507,16 @@ const ChatPanel = ({
                       return <div key={msg.id} className="text-xs text-center text-[#9AA1A6] italic py-1">{msg.text}</div>
                   }
                   if (!msg.user) return null;
-
+                  
                   const isSellerMessage = msg.userId === seller?.id;
                   
                   return (
                      <div key={msg.id} className="flex items-start gap-3 w-full group text-sm animate-message-in">
-                        <Avatar className="h-9 w-9 mt-0.5 border border-[rgba(255,255,255,0.04)]">
+                         <Avatar className="h-9 w-9 mt-0.5 border border-[rgba(255,255,255,0.04)]">
                              <AvatarImage src={msg.avatar} />
                              <AvatarFallback className="bg-gradient-to-br from-red-500 to-yellow-500 text-white font-bold">{msg.user.charAt(0)}</AvatarFallback>
-                        </Avatar>
-                        <div className="flex-grow">
+                         </Avatar>
+                          <div className="flex-grow">
                              <div className="flex items-center gap-2">
                                 <b className={cn("font-semibold text-xs", isSellerMessage && "text-primary")}>{msg.user}</b>
                                 {isSellerMessage && <Badge variant="secondary" className="ml-1.5 px-1.5 py-0 text-[10px] h-4">Seller</Badge>}
