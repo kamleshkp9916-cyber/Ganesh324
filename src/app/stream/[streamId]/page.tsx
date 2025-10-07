@@ -547,14 +547,13 @@ export default function StreamPage() {
         const intervalSeconds = liveStreamData?.promotionInterval || 20;
 
         const interval = setInterval(() => {
-            const inStockProducts = Object.values(productDetails).filter(p => 
-                productToSellerMapping[p.key]?.name === seller.name && p.stock > 0
-            );
-
-            if (inStockProducts.length === 0) return;
+            const productsWithStock = Object.values(productDetails)
+                .filter(p => productToSellerMapping[p.key]?.name === seller.name && p.stock > 0);
             
-            const randomIndex = Math.floor(Math.random() * inStockProducts.length);
-            const randomProduct = inStockProducts[randomIndex];
+            if (productsWithStock.length === 0) return;
+            
+            const randomIndex = Math.floor(Math.random() * productsWithStock.length);
+            const randomProduct = productsWithStock[randomIndex];
             
             if (randomProduct) {
                  const promoMessage = {
@@ -1435,7 +1434,7 @@ const ChatPanel = ({
         </div>
       </header>
       <ScrollArea className="flex-grow" ref={chatContainerRef} onScroll={handleManualScroll}>
-          <div className="p-3 space-y-4">
+          <div className="p-3 space-y-2.5">
              {chatMessages.map((msg) => {
                   if (msg.type === 'system') {
                       return <div key={msg.id} className="text-xs text-center text-[#9AA1A6] italic py-1">{msg.text}</div>
@@ -1446,18 +1445,18 @@ const ChatPanel = ({
                   if (!msg.user) return null;
                   
                   return (
-                     <div key={msg.id} className="flex items-start gap-3 w-full group text-base animate-message-in">
-                         <Avatar className="h-10 w-10 mt-0.5 border border-[rgba(255,255,255,0.04)]">
+                     <div key={msg.id} className="flex items-start gap-3 w-full group text-sm animate-message-in">
+                         <Avatar className="h-9 w-9 mt-0.5 border border-[rgba(255,255,255,0.04)]">
                              <AvatarImage src={msg.avatar} />
                              <AvatarFallback className="bg-gradient-to-br from-red-500 to-yellow-500 text-white font-bold">{msg.user.charAt(0)}</AvatarFallback>
                          </Avatar>
                           <div className="flex-grow">
-                             <p className="leading-relaxed break-words text-base text-[#E6ECEF]">
-                                <b className={cn("font-semibold text-sm mr-1.5", msg.isSeller && "text-amber-400")}>{msg.user}:</b>
-                                <span className="text-base">
+                             <p className="leading-relaxed break-words text-sm text-[#E6ECEF]">
+                                 <b className={cn("font-semibold text-xs mr-1.5", msg.isSeller && "text-amber-400")}>{msg.user}:</b>
+                                 <span className="text-sm">
                                     {msg.replyingTo && <span className="text-primary font-semibold mr-1">@{msg.replyingTo}</span>}
                                     {msg.text}
-                                </span>
+                                 </span>
                              </p>
                           </div>
                           <DropdownMenu>
