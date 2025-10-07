@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import {
@@ -69,7 +70,6 @@ import {
   FileEdit,
   Sparkles,
   UserCheck,
-  Clock,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -1320,7 +1320,7 @@ const StreamInfo = (props: any) => {
                 </div>
             </div>
              <div className="flex items-center justify-between gap-2">
-                <Link href={`/seller/profile?userId=${seller.id}`} className="flex items-center gap-3 group flex-grow overflow-hidden">
+                <Link href={`/seller/profile?userId=${seller.name}`} className="flex items-center gap-3 group flex-grow overflow-hidden">
                     <Avatar className="h-12 w-12 flex-shrink-0">
                         <AvatarImage src={seller.avatarUrl} />
                         <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
@@ -1335,7 +1335,7 @@ const StreamInfo = (props: any) => {
                         )}
                     </div>
                 </Link>
-                <Button onClick={handleFollowToggle} variant={isFollowingState ? "outline" : "default"} className="flex-shrink-0">
+                <Button onClick={handleFollowToggle} variant="default" className="flex-shrink-0">
                     {isFollowingState ? <UserCheck className="mr-2 h-4 w-4" /> : <UserPlus className="mr-2 h-4 w-4" />}
                     {isFollowingState ? "Following" : "Follow"}
                 </Button>
@@ -1471,7 +1471,6 @@ const ChatPanel = ({
                         <div className="flex justify-between items-center">
                             <Badge variant="purple"><Gavel className="w-3 h-3 mr-1.5" /> Live Auction</Badge>
                             <Badge variant="destructive" className="animate-pulse">
-                                <Clock className="w-3 h-3 mr-1.5" />
                                 {auctionTime !== null ? `${Math.floor(auctionTime / 60)}:${(auctionTime % 60).toString().padStart(2, '0')}` : 'Ended'}
                             </Badge>
                         </div>
@@ -1571,51 +1570,63 @@ const ChatPanel = ({
       </header>
        {activeAuction && seller?.hasAuction && <div className="p-3 border-b border-[rgba(255,255,255,0.04)]"><AuctionCard {...{ activeAuction, auctionTime, highestBid, totalBids, handlers }} /></div>}
       <ScrollArea className="flex-grow" ref={chatContainerRef} onScroll={handleManualScroll}>
-          <div className="p-3 space-y-2.5">
+          <div className="p-3 space-y-4">
              {chatMessages.map((msg) => {
                   if (msg.type === 'system') {
                       return <div key={msg.id} className="text-xs text-center text-[#9AA1A6] italic py-1">{msg.text}</div>
                   }
-                  if (!msg.user) return null;
 
+                   if (msg.type === 'auction_end') {
+                    return (
+                        <div key={msg.id} className="p-3 rounded-lg bg-primary/10 border border-primary/20 text-center text-sm">
+                            <p className="font-bold text-lg text-primary">Auction Ended!</p>
+                            <p className="mt-1"><strong className="text-white">{msg.winner}</strong> won <strong className="text-white">{msg.productName}</strong> with a bid of <strong className="text-white">{msg.winningBid}</strong>!</p>
+                        </div>
+                    )
+                }
+
+                  if (!msg.user) return null;
+                  
                   const isMyMessage = user && msg.userId === user.uid;
                   const isSellerMessage = msg.isSeller;
                   const authorName = isSellerMessage ? seller.name : msg.user;
                   const authorAvatar = isSellerMessage ? seller.avatarUrl : msg.avatar;
                   
                   return (
-                     <div key={msg.id} className="flex items-start gap-3 w-full group animate-message-in">
+                     <div key={msg.id} className="flex items-start gap-3 w-full group animate-in fade-in-0 duration-300">
                          <Avatar className="h-9 w-9 mt-0.5 border border-[rgba(255,255,255,0.04)]">
                              <AvatarImage src={authorAvatar} />
                              <AvatarFallback className="bg-gradient-to-br from-red-500 to-yellow-500 text-white font-bold text-sm">{authorName.charAt(0)}</AvatarFallback>
                          </Avatar>
                           <div className="flex-grow">
-                             <div className="flex items-center gap-2">
-                                <b className="font-semibold text-xs" style={{ color: msg.userColor || 'inherit' }}>{authorName}</b>
-                                 {isSellerMessage && <Badge variant="secondary" className="px-1.5 py-0 text-[10px] h-4">Seller</Badge>}
+                             <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                     <b className="font-semibold text-xs" style={{ color: msg.userColor || 'inherit' }}>{authorName}</b>
+                                     {isSellerMessage && <Badge variant="secondary" className="px-1.5 py-0 text-[10px] h-4">Seller</Badge>}
+                                </div>
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <button className="text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity p-1">
+                                            <MoreVertical className="w-4 h-4" />
+                                        </button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end">
+                                        <DropdownMenuItem onSelect={() => handleReply(msg)}>
+                                            <Reply className="mr-2 h-4 w-4" />Reply
+                                        </DropdownMenuItem>
+                                        {!isMyMessage && (
+                                            <DropdownMenuItem onSelect={() => handlers.onReportMessage(msg.id)}>
+                                                <Flag className="mr-2 h-4 w-4" />Report
+                                            </DropdownMenuItem>
+                                        )}
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
                              </div>
-                              <div className="leading-normal text-sm">
+                              <div className="leading-normal text-sm text-[#E6ECEF]">
                                 {msg.replyingTo && <span className="text-primary font-semibold mr-1">@{msg.replyingTo}</span>}
                                 {renderWithHashtagsAndLinks(msg.text)}
                               </div>
                           </div>
-                          <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                  <button className="text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity p-1">
-                                      <MoreVertical className="w-4 h-4" />
-                                  </button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                  <DropdownMenuItem onSelect={() => handleReply(msg)}>
-                                      <Reply className="mr-2 h-4 w-4" />Reply
-                                  </DropdownMenuItem>
-                                  {!isMyMessage && (
-                                    <DropdownMenuItem onSelect={() => handlers.onReportMessage(msg.id)}>
-                                        <Flag className="mr-2 h-4 w-4" />Report
-                                    </DropdownMenuItem>
-                                  )}
-                              </DropdownMenuContent>
-                          </DropdownMenu>
                       </div>
                   )
               })}
