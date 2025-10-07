@@ -417,10 +417,12 @@ const ProductPromoCard = ({ msg, handlers }: { msg: any, handlers: any }) => {
             <div className="relative aspect-[3/1] -m-2 mb-2">
                 <Image src={product.images[0]} alt={product.name} fill className="object-cover" />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-black/0" />
-                <Badge variant="secondary" className="absolute bottom-2 left-2 gap-1.5 bg-gradient-to-r from-primary to-purple-500 text-white border-transparent">
-                    <Sparkles className="w-3 h-3"/>
-                    Featured Product
-                </Badge>
+                 <div className="absolute bottom-2 left-2">
+                    <Badge variant="secondary" className="bg-gradient-to-r from-primary to-purple-500 text-white border-transparent shadow-lg">
+                        <Sparkles className="w-3 h-3 mr-1.5"/>
+                        Featured Product
+                    </Badge>
+                </div>
             </div>
             <div className="flex flex-col flex-grow p-1">
                 <h4 className="font-semibold text-sm leading-tight">{product.name}</h4>
@@ -545,12 +547,14 @@ export default function StreamPage() {
         const intervalSeconds = liveStreamData?.promotionInterval || 20;
 
         const interval = setInterval(() => {
-            const currentSellerProducts = Object.values(productDetails).filter(p => productToSellerMapping[p.key]?.name === seller.name);
+            const inStockProducts = Object.values(productDetails).filter(p => 
+                productToSellerMapping[p.key]?.name === seller.name && p.stock > 0
+            );
 
-            if (currentSellerProducts.length === 0) return;
+            if (inStockProducts.length === 0) return;
             
-            const randomIndex = Math.floor(Math.random() * currentSellerProducts.length);
-            const randomProduct = currentSellerProducts[randomIndex];
+            const randomIndex = Math.floor(Math.random() * inStockProducts.length);
+            const randomProduct = inStockProducts[randomIndex];
             
             if (randomProduct) {
                  const promoMessage = {
@@ -1445,7 +1449,7 @@ const ChatPanel = ({
         </div>
       </header>
       <ScrollArea className="flex-grow" ref={chatContainerRef} onScroll={handleManualScroll}>
-          <div className="p-3 space-y-0.5">
+          <div className="p-3 space-y-2.5">
              {chatMessages.map((msg) => {
                   if (msg.type === 'system') {
                       return <div key={msg.id} className="text-xs text-center text-[#9AA1A6] italic py-1">{msg.text}</div>
@@ -1459,10 +1463,10 @@ const ChatPanel = ({
                   const isSellerMessage = msg.userId === seller?.uid;
                   
                   return (
-                     <div key={msg.id} className="flex items-start gap-2 w-full group p-1 animate-message-in">
-                         <Avatar className="h-6 w-6 mt-0.5 border border-[rgba(255,255,255,0.04)]">
+                     <div key={msg.id} className="flex items-start gap-3 w-full group text-sm animate-message-in">
+                         <Avatar className="h-9 w-9 mt-0.5 border border-[rgba(255,255,255,0.04)]">
                              <AvatarImage src={msg.avatar} />
-                             <AvatarFallback className="bg-gradient-to-br from-red-500 to-yellow-500 text-white font-bold text-[10px]">{msg.user.charAt(0)}</AvatarFallback>
+                             <AvatarFallback className="bg-gradient-to-br from-red-500 to-yellow-500 text-white font-bold">{msg.user.charAt(0)}</AvatarFallback>
                          </Avatar>
                           <div className="flex-grow">
                              <p className="leading-relaxed break-words text-sm text-[#E6ECEF]">
@@ -1553,4 +1557,3 @@ const ChatPanel = ({
   );
 };
 
-    
