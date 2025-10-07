@@ -493,7 +493,7 @@ export default function StreamPage() {
     const { ref: auctionCardRef, inView: auctionCardInView } = useInView({ threshold: 0.99 });
     
     const seller = useMemo(() => liveSellers.find(s => s.id === streamId), [streamId]);
-    const product = productDetails[seller?.productId as keyof typeof productDetails];
+    const product = useMemo(() => productDetails[seller?.productId as keyof typeof productDetails], [seller]);
     
     const relatedStreams = useMemo(() => {
         if (!product) return [];
@@ -1255,11 +1255,11 @@ const StreamInfo = (props: any) => {
             <div className="mb-4">
                 <h2 className="font-bold text-lg">Topic</h2>
                 <div className="text-sm text-muted-foreground mt-1 space-y-4">
-                    <p>{renderWithHashtags(streamData.description || "Welcome to the live stream!")}</p>
+                    <p>{renderWithHashtags(streamData.description || "Welcome to the live stream!", true)}</p>
                 </div>
             </div>
              <div className="flex items-center justify-between gap-2">
-                <Link href={`/seller/profile?userId=${seller.name}`} className="flex items-center gap-3 group flex-grow overflow-hidden">
+                <Link href={`/seller/profile?userId=${seller.id}`} className="flex items-center gap-3 group flex-grow overflow-hidden">
                     <Avatar className="h-12 w-12 flex-shrink-0">
                         <AvatarImage src={seller.avatarUrl} />
                         <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
@@ -1498,19 +1498,13 @@ const ChatPanel = ({
                   return (
                      <div key={msg.id} className="flex items-start gap-3 w-full group text-sm animate-message-in">
                          <Avatar className="h-9 w-9 mt-0.5 border border-[rgba(255,255,255,0.04)]">
-                             <AvatarImage src={msg.avatar} />
-                             <AvatarFallback className="bg-gradient-to-br from-red-500 to-yellow-500 text-white font-bold">{msg.user.charAt(0)}</AvatarFallback>
+                             <AvatarImage src={isSellerMessage ? seller.avatarUrl : msg.avatar} />
+                             <AvatarFallback className="bg-gradient-to-br from-red-500 to-yellow-500 text-white font-bold">{isSellerMessage ? seller.name.charAt(0) : msg.user.charAt(0)}</AvatarFallback>
                          </Avatar>
                           <div className="flex-grow">
-                            <div className="flex items-center gap-2">
-                                <span
-                                    className={cn(
-                                        "font-semibold text-xs",
-                                        isSellerMessage && "text-primary"
-                                    )}
-                                    style={{ color: isSellerMessage ? '' : msg.userColor || 'inherit' }}
-                                >
-                                    {msg.user}:
+                             <div className="flex items-center gap-2">
+                                <span className={cn("font-semibold text-xs", isSellerMessage && "text-primary")}>
+                                     {isSellerMessage ? seller.name : msg.user}:
                                 </span>
                                 {isSellerMessage && <Badge variant="secondary" className="px-1.5 py-0 text-[10px] h-4">Seller</Badge>}
                             </div>
