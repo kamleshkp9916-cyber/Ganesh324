@@ -530,9 +530,9 @@ export default function StreamPage() {
     
     useEffect(() => {
         if (!seller) return;
-        
         const interval = setInterval(() => {
-            const availableProducts = Object.values(productDetails)
+            const allProducts = Object.values(productDetails);
+            const availableProducts = allProducts
                 .filter(p => productToSellerMapping[p.key]?.name === seller.name && p.stock > 0);
 
             if (availableProducts.length === 0) return;
@@ -550,7 +550,7 @@ export default function StreamPage() {
         }, 20000); // every 20 seconds
     
         return () => clearInterval(interval);
-    }, [seller]); // Depend on seller to restart if it changes
+    }, [seller]);
     
     const relatedStreams = useMemo(() => {
         if (!seller) return [];
@@ -1431,13 +1431,13 @@ const ChatPanel = ({
         </div>
       </header>
       <ScrollArea className="flex-grow" ref={chatContainerRef} onScroll={handleManualScroll}>
-          <div className="p-3 space-y-0.5">
+          <div className="p-3 space-y-0">
              {chatMessages.map((msg) => {
                   if (msg.type === 'system') {
                       return <div key={msg.id} className="text-xs text-center text-[#9AA1A6] italic py-1">{msg.text}</div>
                   }
-                   if (msg.type === 'product_promo') {
-                    return <div className="p-1.5"><ProductPromoCard key={msg.id} msg={msg} handlers={handlers} /></div>;
+                  if (msg.type === 'product_promo') {
+                    return <div key={msg.id} className="p-1.5"><ProductPromoCard msg={msg} handlers={handlers} /></div>;
                   }
                   if (!msg.user) return null;
 
@@ -1445,7 +1445,7 @@ const ChatPanel = ({
                   const isSellerMessage = msg.userId === seller?.uid;
                   
                   return (
-                     <div key={msg.id} className="flex items-start gap-3 w-full group text-xs animate-message-in p-1">
+                     <div key={msg.id} className="flex items-start gap-3 w-full group text-sm animate-message-in p-1.5">
                          <Avatar className="h-6 w-6 mt-0.5 border border-[rgba(255,255,255,0.04)]">
                              <AvatarImage src={msg.avatar} />
                              <AvatarFallback className="bg-gradient-to-br from-red-500 to-yellow-500 text-white font-bold text-[10px]">{msg.user.charAt(0)}</AvatarFallback>
