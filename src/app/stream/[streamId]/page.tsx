@@ -194,8 +194,8 @@ const mockChatMessages: any[] = [
     { id: 28, user: 'Noah', text: 'BID ₹9,100', avatar: 'https://placehold.co/40x40.png?text=N', userId: 'user14', isBid: true },
     { id: 29, user: 'Noah', text: 'BID ₹9,600', avatar: 'https://placehold.co/40x40.png?text=N', userId: 'user14', isBid: true },
     { id: 30, user: 'Sophia', text: 'Great stream! Thanks!', avatar: 'https://placehold.co/40x40.png?text=S', userId: 'user15' },
-    { id: 31, user: 'FashionFinds', text: "This is an example of a seller's message in the chat.", avatar: 'https://placehold.co/40x40.png', isSeller: true, userId: '1' },
-    { id: 32, user: 'Ganesh', text: 'Replying to @FashionFinds: That sounds great! Thanks!', avatar: 'https://placehold.co/40x40.png', userId: 'user1', replyingTo: 'FashionFinds' },
+    { id: 31, user: 'Ganesh', text: 'Replying to @FashionFinds: That sounds great! Thanks!', avatar: 'https://placehold.co/40x40.png', userId: 'user1', replyingTo: 'FashionFinds' },
+    { id: 32, user: 'FashionFinds', text: 'This is a test of a seller message. #test', isSeller: true, avatar: 'https://placehold.co/40x40.png', userId: '1' },
 ];
 
 const reportReasons = [
@@ -351,7 +351,7 @@ const ProductShelf = ({ sellerProducts, handleAddToCart, handleBuyNow, toast }: 
                     <div className="flex items-center gap-2">
                         <ShoppingBag className="w-4 h-4 sm:mr-1" />
                         <span>Products ({sellerProducts.length})</span>
-                        <ChevronDown className="h-4 w-4 transition-transform duration-200 group-data-[state=open]:rotate-180" />
+                        <ChevronDown className={cn("h-4 w-4 transition-transform duration-200", isOpen ? "rotate-180" : "rotate-0")} />
                     </div>
                 </Button>
             </CollapsibleTrigger>
@@ -419,25 +419,27 @@ const ProductPromoCard = ({ msg, handlers }: { msg: any, handlers: any }) => {
     const { product } = msg;
 
     return (
-        <Card className="overflow-hidden bg-card/80 border-primary/20 p-0 animate-in fade-in-0 slide-in-from-bottom-2">
-            <div className="relative aspect-video">
-                <Image src={product.images[0]} alt={product.name} fill className="object-cover" />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-black/0" />
-                <div className="absolute top-2 left-2">
-                    <Badge variant="secondary" className="bg-gradient-to-r from-primary to-purple-500 text-white border-transparent shadow-lg">
-                        <Sparkles className="w-3 h-3 mr-1.5" />Featured Product
-                    </Badge>
+       <div className="p-1.5">
+            <Card className="overflow-hidden bg-card/80 border-primary/20 p-0 animate-in fade-in-0 slide-in-from-bottom-2">
+                <div className="relative aspect-video">
+                    <Image src={product.images[0]} alt={product.name} fill className="object-cover" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-black/0" />
+                    <div className="absolute top-2 left-2">
+                         <Badge variant="secondary" className="bg-gradient-to-r from-primary to-purple-500 text-white border-transparent shadow-lg gap-1.5">
+                            <Sparkles className="w-3 h-3" />Featured Product
+                        </Badge>
+                    </div>
                 </div>
-            </div>
-            <div className="p-2">
-                <h4 className="font-semibold text-sm leading-tight">{product.name}</h4>
-                <p className="font-bold text-lg">{product.price}</p>
-                <div className="flex gap-2 mt-2">
-                    <Button size="sm" variant="outline" className="text-xs h-7 flex-1" onClick={() => handlers.onAddToCart(product)}><ShoppingCart className="w-3 h-3 mr-1" /> Cart</Button>
-                    <Button size="sm" className="text-xs h-7 flex-1" onClick={() => handlers.onBuyNow(product)}>Buy Now</Button>
+                <div className="p-2">
+                    <h4 className="font-semibold text-sm leading-tight">{product.name}</h4>
+                    <p className="font-bold text-lg">{product.price}</p>
+                    <div className="flex gap-2 mt-2">
+                        <Button size="sm" variant="outline" className="text-xs h-7 flex-1" onClick={() => handlers.onAddToCart(product)}><ShoppingCart className="w-3 h-3 mr-1" /> Cart</Button>
+                        <Button size="sm" className="text-xs h-7 flex-1" onClick={() => handlers.onBuyNow(product)}>Buy Now</Button>
+                    </div>
                 </div>
-            </div>
-        </Card>
+            </Card>
+       </div>
     );
 };
 
@@ -914,6 +916,17 @@ export default function StreamPage() {
         onTogglePin: handleTogglePinMessage,
         onReportMessage: handleReportMessage,
         onReportStream: () => setIsReportOpen(true),
+        onSendMessage: (text: string) => {
+            if(!user) return;
+            const newMessage = {
+                id: Date.now(),
+                user: user?.displayName || "You",
+                userId: user.uid,
+                text: text,
+                avatar: user.photoURL || 'https://placehold.co/40x40.png',
+            };
+            setChatMessages(prev => [...prev, newMessage]);
+        },
         onAddToCart: handleAddToCart,
         onBuyNow: handleBuyNow,
         onBid: () => setIsBidDialogOpen(true),
@@ -1234,7 +1247,7 @@ const StreamInfo = (props: any) => {
                 </div>
             </div>
              <div className="flex items-center justify-between gap-2">
-                <Link href={`/seller/profile?userId=${seller.id}`} className="flex items-center gap-3 group flex-grow overflow-hidden">
+                <Link href={`/seller/profile?userId=${seller.name}`} className="flex items-center gap-3 group flex-grow overflow-hidden">
                     <Avatar className="h-12 w-12 flex-shrink-0">
                         <AvatarImage src={seller.avatarUrl} />
                         <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
@@ -1374,6 +1387,19 @@ const ChatPanel = ({
     textareaRef.current?.focus();
   }
 
+  const renderMessageContent = (text: string) => {
+    const parts = text.split(/(@\w+|#\w+)/g);
+    return parts.map((part, index) => {
+      if (part.startsWith('@')) {
+        return <span key={index} className="text-blue-400 font-semibold">{part}</span>;
+      }
+      if (part.startsWith('#')) {
+        return <span key={index} className="text-primary font-semibold">{part}</span>;
+      }
+      return part;
+    });
+  };
+
   return (
     <div className='h-full flex flex-col bg-[#0b0b0c]'>
       <header className="p-3 flex items-center justify-between z-10 flex-shrink-0 h-16 border-b border-[rgba(255,255,255,0.04)] sticky top-0 bg-[#0f1113]/80 backdrop-blur-sm">
@@ -1453,13 +1479,13 @@ const ChatPanel = ({
         </div>
       </header>
       <ScrollArea className="flex-grow" ref={chatContainerRef} onScroll={handleManualScroll}>
-          <div className="p-3 space-y-3">
+          <div className="p-3 space-y-2.5">
              {chatMessages.map((msg) => {
                   if (msg.type === 'system') {
                       return <div key={msg.id} className="text-xs text-center text-[#9AA1A6] italic py-1">{msg.text}</div>
                   }
-                   if (msg.type === 'product_promo') {
-                    return <div key={msg.id} className="p-1.5"><ProductPromoCard msg={msg} handlers={handlers} /></div>;
+                  if (msg.type === 'product_promo') {
+                    return <ProductPromoCard key={msg.id} msg={msg} handlers={handlers} />;
                   }
                   if (!msg.user) return null;
 
@@ -1473,19 +1499,12 @@ const ChatPanel = ({
                          </Avatar>
                           <div className="flex-grow">
                              <p className="leading-snug break-words text-xs text-[#E6ECEF]">
-                                 <span className={cn("font-semibold mr-1.5", isSellerMessage && "text-amber-400")}>
+                                 <b className={cn("font-semibold text-xs mr-1.5", isSellerMessage && "text-amber-400")}>
                                      {msg.user}
                                      {isSellerMessage && <Badge variant="secondary" className="ml-1.5 px-1.5 py-0 text-xs">Seller</Badge>}
-                                :</span>
+                                :</b>
                                  <span className="text-sm">
-                                    {msg.replyingTo && <span className="text-primary font-semibold mr-1">@{msg.replyingTo}</span>}
-                                    {msg.text.split(' ').map((part: string, index: number) => 
-                                        part.startsWith('@') ? (
-                                            <span key={index} className="text-blue-400 font-semibold">{part} </span>
-                                        ) : (
-                                            part + ' '
-                                        )
-                                    )}
+                                    {renderMessageContent(msg.text)}
                                  </span>
                              </p>
                           </div>
