@@ -189,7 +189,7 @@ const mockChatMessages: any[] = [
     { id: 24, user: 'Sophia', text: 'Great stream! Thanks!', avatar: 'https://placehold.co/40x40.png?text=S', userId: 'user15' },
     { id: 25, user: 'Ganesh', text: 'Replying to @FashionFinds: That sounds great! Thanks!', avatar: 'https://placehold.co/40x40.png', userId: 'user1', replyingTo: 'FashionFinds' },
     { id: 26, user: 'FashionFinds', text: "Welcome to the stream, everyone! Today we have some amazing deals. #welcome", isSeller: true, avatar: 'https://placehold.co/40x40.png', userId: '1' },
-    { id: 27, user: 'FashionFinds', text: "Hey Alex, it's 100% genuine leather! https://example.com/leather-info", avatar: 'https://placehold.co/40x40.png', isSeller: true, userId: '1' },
+    { id: 27, user: 'FashionFinds', text: "Hey Alex, it\'s 100% genuine leather! https://example.com/leather-info", avatar: 'https://placehold.co/40x40.png', isSeller: true, userId: '1' },
     { id: 28, user: 'FashionFinds', text: 'Yes David, we offer international shipping!', avatar: 'https://placehold.co/40x40.png', isSeller: true, userId: '1' },
     { id: 29, user: 'FashionFinds', text: '@Emily It lasts for about a year with average use!', avatar: 'https://placehold.co/40x40.png', isSeller: true, userId: '1' },
     { id: 30, user: 'FashionFinds', text: 'Sure thing, Ganesh! Here is a view of the back.', avatar: 'https://placehold.co/40x40.png', isSeller: true, userId: '1' },
@@ -443,13 +443,13 @@ const ProductPromoCard = ({ msg, handlers }: { msg: any, handlers: any }) => {
     );
 };
 
-const renderWithHashtags = (text: string, isSeller: boolean = false) => {
+const renderWithHashtagsAndLinks = (text: string, isSeller: boolean) => {
     if (!text) return null;
     const regex = /(https?:\/\/[^\s]+|#\w+|@\w+)/g;
     const parts = text.split(regex);
     
     return parts.map((part, index) => {
-        if ((part.startsWith('http://') || part.startsWith('https://')) && isSeller) {
+        if (isSeller && (part.startsWith('http://') || part.startsWith('https://'))) {
             return <a key={index} href={part} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline">{part}</a>;
         }
         if (part.startsWith('#')) {
@@ -496,15 +496,15 @@ export default function StreamPage() {
     const product = useMemo(() => productDetails[seller?.productId as keyof typeof productDetails], [seller]);
     
     const relatedStreams = useMemo(() => {
-        if (!product) return [];
+        if (!seller) return [];
         let streams = liveSellers.filter(
-            s => s.category === product.category && s.id !== product.id
+            s => s.category === seller.category && s.id !== seller.id
         );
         if (streams.length > 50) {
             return streams.slice(0, 51);
         }
         // Fallback to show some streams if none match the category, excluding the current one
-        const fallbackStreams = liveSellers.filter(s => s.id !== product.id);
+        const fallbackStreams = liveSellers.filter(s => s.id !== seller.id);
         
         // Add from fallback until we have 6 total, avoiding duplicates
         let i = 0;
@@ -515,7 +515,7 @@ export default function StreamPage() {
             i++;
         }
         return streams.slice(0,51);
-    }, [product]);
+    }, [seller]);
 
     const showPinnedAuction = !auctionCardInView && activeAuction && seller?.hasAuction;
     
@@ -1255,7 +1255,7 @@ const StreamInfo = (props: any) => {
             <div className="mb-4">
                 <h2 className="font-bold text-lg">Topic</h2>
                 <div className="text-sm text-muted-foreground mt-1 space-y-4">
-                    <p>{renderWithHashtags(streamData.description || "Welcome to the live stream!", true)}</p>
+                    <p>{renderWithHashtagsAndLinks(streamData.description || "Welcome to the live stream!", true)}</p>
                 </div>
             </div>
              <div className="flex items-center justify-between gap-2">
@@ -1509,7 +1509,7 @@ const ChatPanel = ({
                                 {isSellerMessage && <Badge variant="secondary" className="px-1.5 py-0 text-[10px] h-4">Seller</Badge>}
                             </div>
                             <div className="leading-relaxed break-words text-sm text-[#E6ECEF]">
-                                {renderWithHashtags(msg.text, isSellerMessage)}
+                                {renderWithHashtagsAndLinks(msg.text, isSellerMessage)}
                             </div>
                           </div>
                           <DropdownMenu>
