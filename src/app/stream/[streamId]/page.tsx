@@ -1272,23 +1272,14 @@ const StreamInfo = (props: any) => {
                         )}
                     </div>
                 </Link>
-                 <Collapsible open={isFollowingState} onOpenChange={handleFollowToggle} className="flex-shrink-0">
-                    <CollapsibleTrigger asChild>
-                        <Button variant={isFollowingState ? "outline" : "default"}>
-                            {isFollowingState ? <UserCheck className="mr-2 h-4 w-4" /> : <UserPlus className="mr-2 h-4 w-4" />}
-                            {isFollowingState ? "Following" : "Follow"}
-                        </Button>
-                    </CollapsibleTrigger>
-                     <CollapsibleContent className="mt-4">
-                         <div className="p-3 bg-muted rounded-lg flex items-center justify-between">
-                             <div className="flex items-center gap-4">
-                                  <Link href="#" target="_blank" className="text-muted-foreground hover:text-primary"><Instagram /></Link>
-                                  <Link href="#" target="_blank" className="text-muted-foreground hover:text-primary"><Twitter /></Link>
-                                  <Link href="#" target="_blank" className="text-muted-foreground hover:text-primary"><Youtube /></Link>
-                             </div>
-                         </div>
-                     </CollapsibleContent>
-                </Collapsible>
+                 <Button
+                    onClick={handleFollowToggle}
+                    variant={isFollowingState ? "outline" : "default"}
+                    className="flex-shrink-0"
+                >
+                    {isFollowingState ? <UserCheck className="mr-2 h-4 w-4" /> : <UserPlus className="mr-2 h-4 w-4" />}
+                    {isFollowingState ? "Following" : "Follow"}
+                </Button>
             </div>
             
             <ProductShelf {...props} />
@@ -1495,21 +1486,23 @@ const ChatPanel = ({
                   
                   return (
                      <div key={msg.id} className="flex items-start gap-2 w-full group animate-message-in">
-                         <Avatar className="h-7 w-7 mt-0.5 border border-[rgba(255,255,255,0.04)]">
-                             <AvatarImage src={isSellerMessage ? seller.avatarUrl : msg.avatar} />
-                             <AvatarFallback className="text-xs bg-gradient-to-br from-red-500 to-yellow-500 text-white font-bold">{msg.user.charAt(0)}</AvatarFallback>
+                         <Avatar className="h-8 w-8 mt-0.5 border border-[rgba(255,255,255,0.04)]">
+                             <AvatarImage src={msg.avatar} />
+                             <AvatarFallback className="bg-gradient-to-br from-red-500 to-yellow-500 text-white font-bold">{msg.user.charAt(0)}</AvatarFallback>
                          </Avatar>
                           <div className="flex-grow">
-                             <div className="flex items-center gap-1.5">
-                                <b className={cn("font-semibold text-xs", isSellerMessage && "text-yellow-400")}>
-                                     {isSellerMessage ? seller.name : msg.user}
-                                 </b>
-                                 {isSellerMessage && <Badge variant="secondary" className="px-1.5 py-0 text-[9px] h-4">Seller</Badge>}
+                             <div
+                               className="leading-relaxed break-words text-sm text-[#E6ECEF]"
+                             >
+                               <b className={cn("font-semibold text-xs mr-1.5", isSellerMessage && "text-yellow-400")}>
+                                   {isSellerMessage ? seller.name : msg.user}
+                               </b>
+                               {isSellerMessage && <Badge variant="secondary" className="px-1.5 py-0 text-[9px] h-4">Seller</Badge>}
+                               <span className="text-xs ml-1">
+                                   {msg.replyingTo && <span className="text-primary font-semibold mr-1">@{msg.replyingTo}</span>}
+                                   {renderWithHashtagsAndLinks(msg.text)}
+                               </span>
                              </div>
-                             <div className="text-sm text-[#E6ECEF]">
-                                {msg.replyingTo && <span className="text-primary font-semibold mr-1">@{msg.replyingTo}</span>}
-                                {renderWithHashtagsAndLinks(msg.text)}
-                            </div>
                           </div>
                           <DropdownMenu>
                               <DropdownMenuTrigger asChild>
