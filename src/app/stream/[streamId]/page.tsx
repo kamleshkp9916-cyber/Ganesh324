@@ -69,6 +69,7 @@ import {
   FileEdit,
   Sparkles,
   UserCheck,
+  Clock,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -188,13 +189,13 @@ const mockChatMessages: any[] = [
     { id: 23, user: 'Noah', text: 'BID ₹9,600', avatar: 'https://placehold.co/40x40.png?text=N', userId: 'user14', isBid: true },
     { id: 24, user: 'Sophia', text: 'Great stream! Thanks!', avatar: 'https://placehold.co/40x40.png?text=S', userId: 'user15' },
     { id: 25, user: 'Ganesh', text: 'Replying to @FashionFinds: That sounds great! Thanks!', avatar: 'https://placehold.co/40x40.png', userId: 'user1', replyingTo: 'FashionFinds' },
-    { id: 26, user: 'FashionFinds', isSeller: true, text: "Welcome to the stream, everyone! Today we have some amazing deals. #welcome", avatar: 'https://placehold.co/40x40.png', userId: '1' },
-    { id: 27, user: 'FashionFinds', isSeller: true, text: "Hey Alex, it's 100% genuine leather! https://example.com/leather-info", avatar: 'https://placehold.co/40x40.png', userId: '1' },
-    { id: 28, user: 'FashionFinds', isSeller: true, text: 'Yes David, we offer international shipping!', avatar: 'https://placehold.co/40x40.png', userId: '1' },
-    { id: 29, user: 'FashionFinds', isSeller: true, text: '@Emily It lasts for about a year with average use!', avatar: 'https://placehold.co/40x40.png', userId: '1' },
-    { id: 30, user: 'FashionFinds', isSeller: true, text: 'Sure thing, Ganesh! Here is a view of the back.', avatar: 'https://placehold.co/40x40.png', userId: '1' },
-    { id: 31, user: 'FashionFinds', isSeller: true, text: 'Welcome Chloe! We just finished an auction, but we have more exciting products coming up. Stick around!', avatar: 'https://placehold.co/40x40.png', userId: '1' },
-    { id: 32, user: 'FashionFinds', isSeller: true, text: 'This is a seller message for UI testing purposes. https://google.com', avatar: 'https://placehold.co/40x40.png', userId: '1' },
+    { id: 26, isSeller: true, text: "Welcome to the stream, everyone! Today we have some amazing deals. #welcome", avatar: 'https://placehold.co/40x40.png', userId: '1' },
+    { id: 27, isSeller: true, text: "Hey Alex, it's 100% genuine leather! https://example.com/leather-info", avatar: 'https://placehold.co/40x40.png', userId: '1' },
+    { id: 28, isSeller: true, text: 'Yes David, we offer international shipping!', avatar: 'https://placehold.co/40x40.png', userId: '1' },
+    { id: 29, isSeller: true, text: '@Emily It lasts for about a year with average use!', avatar: 'https://placehold.co/40x40.png', userId: '1' },
+    { id: 30, isSeller: true, text: 'Sure thing, Ganesh! Here is a view of the back.', avatar: 'https://placehold.co/40x40.png', userId: '1' },
+    { id: 31, isSeller: true, text: 'Welcome Chloe! We just finished an auction, but we have more exciting products coming up. Stick around!', avatar: 'https://placehold.co/40x40.png', userId: '1' },
+    { id: 32, isSeller: true, text: 'This is a seller message for UI testing purposes. https://google.com', avatar: 'https://placehold.co/40x40.png', userId: '1' },
     { id: 33, type: 'system', text: 'Michael joined the stream.' },
 ];
 
@@ -1509,28 +1510,33 @@ const ChatPanel = ({
       </header>
        {activeAuction && <div className="p-3 border-b border-[rgba(255,255,255,0.04)]"><AuctionCard {...{ activeAuction, auctionTime, highestBid, totalBids, handlers }} /></div>}
       <ScrollArea className="flex-grow" ref={chatContainerRef} onScroll={handleManualScroll}>
-          <div className="p-3 space-y-2">
+          <div className="p-3 space-y-1">
              {chatMessages.map((msg) => {
                   if (msg.type === 'system') {
                       return <div key={msg.id} className="text-xs text-center text-[#9AA1A6] italic py-1">{msg.text}</div>
                   }
-                  if (!msg.user) return null;
+                  if (!msg.user && !msg.isSeller) return null;
 
                   const isMyMessage = user && msg.userId === user.uid;
+                  const isSellerMessage = msg.isSeller;
+                  const authorName = isSellerMessage ? seller.name : msg.user;
+                  const authorAvatar = isSellerMessage ? seller.avatarUrl : msg.avatar;
                   
                   return (
                      <div key={msg.id} className="flex items-start gap-2.5 w-full group animate-message-in">
                          <Avatar className="h-8 w-8 mt-0.5 border border-[rgba(255,255,255,0.04)]">
-                             <AvatarImage src={msg.avatar} />
-                             <AvatarFallback className="bg-gradient-to-br from-red-500 to-yellow-500 text-white font-bold text-xs">{msg.user.charAt(0)}</AvatarFallback>
+                             <AvatarImage src={authorAvatar} />
+                             <AvatarFallback className="bg-gradient-to-br from-red-500 to-yellow-500 text-white font-bold text-xs">{authorName.charAt(0)}</AvatarFallback>
                          </Avatar>
                           <div className="flex-grow">
                              <div className="leading-normal break-words text-sm text-[#E6ECEF]">
-                                 <b className={cn("font-semibold text-xs mr-1.5", msg.isSeller && "text-yellow-400")}>
-                                     {msg.isSeller ? seller.name : msg.user}
-                                 </b>
-                                 {msg.isSeller && <Badge variant="secondary" className="px-1.5 py-0 text-[9px] h-4">Seller</Badge>}
-                                 <div className="text-sm">
+                                 <div className="flex items-center gap-1.5">
+                                    <b className={cn("font-semibold text-xs", isSellerMessage && "text-yellow-400")}>
+                                         {authorName}
+                                    </b>
+                                    {isSellerMessage && <Badge variant="secondary" className="px-1.5 py-0 text-[9px] h-4">Seller</Badge>}
+                                </div>
+                                <div className="text-sm">
                                     {msg.replyingTo && <span className="text-primary font-semibold mr-1">@{msg.replyingTo}</span>}
                                     {renderWithHashtagsAndLinks(msg.text)}
                                  </div>
@@ -1588,7 +1594,7 @@ const ChatPanel = ({
                     value={newMessage}
                     onChange={(e) => setNewMessage(e.target.value)}
                     rows={1}
-                    className='flex-grow resize-none max-h-24 px-4 pr-12 py-3 min-h-11 rounded-full bg-[#0f1113] text-white placeholder:text-[#7d8488] border-none focus-visible:ring-2 focus-visible:ring-offset-0 focus-visible:ring-[#E43F3F]/30 text-sm'
+                    className='flex-grow resize-none max-h-24 px-4 pr-12 py-3 min-h-11 rounded-full bg-[#0f1113] text-white placeholder:text-[#7d8488] border-none focus-visible:ring-2 focus-visible:ring-offset-0 focus-visible:ring-[#E43F3F]/30'
                 />
                 <Popover>
                     <PopoverTrigger asChild>
