@@ -196,6 +196,7 @@ const mockChatMessages: any[] = [
     { id: 30, user: 'Sophia', text: 'Great stream! Thanks!', avatar: 'https://placehold.co/40x40.png?text=S', userId: 'user15' },
     { id: 31, user: 'Ganesh', text: 'Replying to @FashionFinds: That sounds great! Thanks!', avatar: 'https://placehold.co/40x40.png', userId: 'user1', replyingTo: 'FashionFinds' },
     { id: 32, user: 'FashionFinds', text: 'This is a test of a seller message. #test', isSeller: true, avatar: 'https://placehold.co/40x40.png', userId: '1' },
+    { id: 33, type: 'system', text: 'NewUser123 joined the stream.' },
 ];
 
 const reportReasons = [
@@ -1348,7 +1349,6 @@ const ChatPanel = ({
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const {user} = useAuth();
   
   const handleAutoScroll = useCallback((behavior: 'smooth' | 'auto' = 'smooth') => {
     messagesEndRef.current?.scrollIntoView({ behavior });
@@ -1388,13 +1388,13 @@ const ChatPanel = ({
   }
 
   const renderMessageContent = (text: string) => {
-    const parts = text.split(/(@\w+|#\w+)/g);
+    const parts = text.split(/(#\w+|@\w+)/g);
     return parts.map((part, index) => {
+      if (part.startsWith('#')) {
+        return <Link key={index} href={`/feed?filter=${part.substring(1)}`} className="text-primary font-semibold hover:underline">{part}</Link>;
+      }
       if (part.startsWith('@')) {
         return <span key={index} className="text-blue-400 font-semibold">{part}</span>;
-      }
-      if (part.startsWith('#')) {
-        return <Link href={`/feed?filter=${part.substring(1)}`} key={index} className="text-primary font-semibold">{part}</Link>;
       }
       return part;
     });
@@ -1495,15 +1495,15 @@ const ChatPanel = ({
                      <div key={msg.id} className="flex items-start gap-2 w-full group animate-message-in">
                          <Avatar className="h-7 w-7 mt-0.5 border border-[rgba(255,255,255,0.04)]">
                              <AvatarImage src={msg.avatar} />
-                             <AvatarFallback className="bg-gradient-to-br from-red-500 to-yellow-500 text-white font-bold">{msg.user.charAt(0)}</AvatarFallback>
+                             <AvatarFallback className="bg-gradient-to-br from-red-500 to-yellow-500 text-white font-bold text-xs">{msg.user.charAt(0)}</AvatarFallback>
                          </Avatar>
                           <div className="flex-grow">
-                             <div className="leading-snug break-words text-xs text-[#E6ECEF]">
+                             <div className="leading-snug break-words">
                                  <b className={cn("font-semibold text-xs mr-1.5", isSellerMessage && "text-amber-400")}>
                                      {msg.user}
                                      {isSellerMessage && <Badge variant="secondary" className="ml-1.5 px-1.5 py-0 text-xs">Seller</Badge>}
                                 :</b>
-                                 <span className="text-sm">
+                                 <span className="text-sm text-[#E6ECEF]">
                                     {renderMessageContent(msg.text)}
                                  </span>
                              </div>
@@ -1557,12 +1557,6 @@ const ChatPanel = ({
                     placeholder="Send a message..." 
                     value={newMessage}
                     onChange={(e) => setNewMessage(e.target.value)}
-                    onKeyDown={(e) => {
-                        if (e.key === 'Enter' && !e.shiftKey) {
-                            e.preventDefault();
-                            handleNewMessageSubmit(e);
-                        }
-                    }}
                     rows={1}
                     className='flex-grow resize-none max-h-24 px-4 pr-12 py-3 min-h-11 rounded-full bg-[#0f1113] text-white placeholder:text-[#7d8488] border-none focus-visible:ring-2 focus-visible:ring-offset-0 focus-visible:ring-[#E43F3F]/30'
                 />
