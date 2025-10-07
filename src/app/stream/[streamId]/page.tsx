@@ -70,6 +70,7 @@ import {
   FileEdit,
   Sparkles,
   UserCheck,
+  Clock,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -1320,7 +1321,7 @@ const StreamInfo = (props: any) => {
                 </div>
             </div>
              <div className="flex items-center justify-between gap-2">
-                <Link href={`/seller/profile?userId=${seller.name}`} className="flex items-center gap-3 group flex-grow overflow-hidden">
+                <Link href={`/seller/profile?userId=${seller.id}`} className="flex items-center gap-3 group flex-grow overflow-hidden">
                     <Avatar className="h-12 w-12 flex-shrink-0">
                         <AvatarImage src={seller.avatarUrl} />
                         <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
@@ -1335,7 +1336,7 @@ const StreamInfo = (props: any) => {
                         )}
                     </div>
                 </Link>
-                <Button onClick={handleFollowToggle} variant="default" className="flex-shrink-0">
+                 <Button onClick={handleFollowToggle} variant={isFollowingState ? "outline" : "default"} className="flex-shrink-0">
                     {isFollowingState ? <UserCheck className="mr-2 h-4 w-4" /> : <UserPlus className="mr-2 h-4 w-4" />}
                     {isFollowingState ? "Following" : "Follow"}
                 </Button>
@@ -1458,12 +1459,12 @@ const ChatPanel = ({
   }
 
   const AuctionCard = ({ activeAuction, auctionTime, highestBid, totalBids, handlers }: { activeAuction: any, auctionTime: number | null, highestBid: number, totalBids: number, handlers: any }) => {
-    if (!activeAuction) return null;
+    if (!activeAuction || !seller?.hasAuction) return null;
     const product = productDetails[activeAuction.productId as keyof typeof productDetails];
     if (!product) return null;
 
     return (
-        <Card className="bg-[#1a1b1e] border-[#36393e] text-white">
+        <Card className="bg-gradient-to-br from-purple-900/50 to-primary/30 border-primary/30 text-white">
             <CardContent className="p-3">
                 <div className="flex items-center gap-3">
                     <Image src={product.images[0]} alt={product.name} width={64} height={64} className="rounded-md" />
@@ -1471,6 +1472,7 @@ const ChatPanel = ({
                         <div className="flex justify-between items-center">
                             <Badge variant="purple"><Gavel className="w-3 h-3 mr-1.5" /> Live Auction</Badge>
                             <Badge variant="destructive" className="animate-pulse">
+                                <Clock className="w-3 h-3 mr-1.5" />
                                 {auctionTime !== null ? `${Math.floor(auctionTime / 60)}:${(auctionTime % 60).toString().padStart(2, '0')}` : 'Ended'}
                             </Badge>
                         </div>
@@ -1570,7 +1572,7 @@ const ChatPanel = ({
       </header>
        {activeAuction && seller?.hasAuction && <div className="p-3 border-b border-[rgba(255,255,255,0.04)]"><AuctionCard {...{ activeAuction, auctionTime, highestBid, totalBids, handlers }} /></div>}
       <ScrollArea className="flex-grow" ref={chatContainerRef} onScroll={handleManualScroll}>
-          <div className="p-3 space-y-4">
+          <div className="p-3 space-y-2">
              {chatMessages.map((msg) => {
                   if (msg.type === 'system') {
                       return <div key={msg.id} className="text-xs text-center text-[#9AA1A6] italic py-1">{msg.text}</div>
@@ -1585,6 +1587,26 @@ const ChatPanel = ({
                     )
                 }
 
+                if (msg.isBid) {
+                    return (
+                        <div key={msg.id} className="p-2 rounded-md bg-gradient-to-r from-gold/10 to-yellow-600/10 border-l-4 border-gold animate-in fade-in-0">
+                            <div className="flex items-center gap-2">
+                                <Avatar className="h-6 w-6">
+                                    <AvatarImage src={msg.avatar} />
+                                    <AvatarFallback>{msg.user.charAt(0)}</AvatarFallback>
+                                </Avatar>
+                                <p className="text-xs">
+                                    <span className="font-semibold">{msg.user}</span> placed a bid!
+                                </p>
+                            </div>
+                            <p className="text-lg font-bold text-gold mt-1 flex items-center gap-2">
+                                <Gavel className="w-4 h-4"/>
+                                {msg.text.replace('BID ', '')}
+                            </p>
+                        </div>
+                    );
+                }
+
                   if (!msg.user) return null;
                   
                   const isMyMessage = user && msg.userId === user.uid;
@@ -1593,7 +1615,7 @@ const ChatPanel = ({
                   const authorAvatar = isSellerMessage ? seller.avatarUrl : msg.avatar;
                   
                   return (
-                     <div key={msg.id} className="flex items-start gap-3 w-full group animate-in fade-in-0 duration-300">
+                     <div key={msg.id} className="flex items-start gap-3 w-full group text-sm animate-message-in">
                          <Avatar className="h-9 w-9 mt-0.5 border border-[rgba(255,255,255,0.04)]">
                              <AvatarImage src={authorAvatar} />
                              <AvatarFallback className="bg-gradient-to-br from-red-500 to-yellow-500 text-white font-bold text-sm">{authorName.charAt(0)}</AvatarFallback>
@@ -1601,7 +1623,7 @@ const ChatPanel = ({
                           <div className="flex-grow">
                              <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-2">
-                                     <b className="font-semibold text-xs" style={{ color: msg.userColor || 'inherit' }}>{authorName}</b>
+                                     <b className={cn("font-semibold text-xs", isSellerMessage && "text-yellow-400")}>{authorName}</b>
                                      {isSellerMessage && <Badge variant="secondary" className="px-1.5 py-0 text-[10px] h-4">Seller</Badge>}
                                 </div>
                                 <DropdownMenu>
@@ -1622,7 +1644,7 @@ const ChatPanel = ({
                                     </DropdownMenuContent>
                                 </DropdownMenu>
                              </div>
-                              <div className="leading-normal text-sm text-[#E6ECEF]">
+                              <div className="leading-relaxed text-sm text-[#E6ECEF]">
                                 {msg.replyingTo && <span className="text-primary font-semibold mr-1">@{msg.replyingTo}</span>}
                                 {renderWithHashtagsAndLinks(msg.text)}
                               </div>
