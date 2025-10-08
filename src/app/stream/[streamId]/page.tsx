@@ -124,6 +124,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import { Skeleton } from "@/components/ui/skeleton";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { format, formatDistanceToNow, isThisWeek, isThisYear, parseISO, parse } from 'date-fns';
 
 
 const emojis = [
@@ -757,7 +758,7 @@ export default function StreamPage() {
                 video.removeEventListener("pause", onPause);
             };
         }
-    }, [duration, isLive, isMuted, isMinimized, streamId]);
+    }, [isMuted, isMinimized, streamId]);
     
     const handleToggleFullscreen = () => {
         const elem = playerRef.current;
@@ -791,7 +792,7 @@ export default function StreamPage() {
         });
     };
     
-    const handleAddToCart = (product: any) => {
+    const handleAddToCart = useCallback((product: any) => {
       if (product) {
         addToCart({ ...product, quantity: 1 });
         toast({
@@ -799,12 +800,13 @@ export default function StreamPage() {
           description: `'${product.name}' has been added to your shopping cart.`,
         });
       }
-    };
-    const handleBuyNow = (product: any) => {
+    }, [toast]);
+    
+    const handleBuyNow = useCallback((product: any) => {
       if (product) {
         router.push(`/cart?buyNow=true&productId=${product.key}`);
       }
-    };
+    }, [router]);
 
     const handleWithdraw = (amount: number, bankAccountId: string) => {
         const selectedAccount = bankAccounts.find(acc => String(acc.id) === bankAccountId);
@@ -924,35 +926,54 @@ export default function StreamPage() {
       }
     };
     
-    const handlers = {
-        onReply: (msg: any) => {
-            console.log("Replying to", msg);
-        },
+     const handleReply = useCallback((msg: any) => {
+        console.log("Replying to", msg);
+    }, []);
+    
+    const handleDeleteMessage = useCallback((msgId: number) => {
+        setChatMessages(prev => prev.filter(m => m.id !== msgId));
+    }, []);
+
+    const onReportStream = useCallback(() => {
+        setIsReportOpen(true);
+    }, []);
+
+    const onBid = useCallback(() => {
+        setIsBidDialogOpen(true);
+    }, []);
+
+    const onViewBids = useCallback((e: React.MouseEvent) => {
+        e.stopPropagation();
+        setIsBidHistoryOpen(true);
+    }, []);
+    
+    const onSendMessage = useCallback((text: string) => {
+        if (!user) return;
+        const newMessage = {
+            id: Date.now(),
+            user: user?.displayName || "You",
+            userId: user.uid,
+            text: text,
+            avatar: user.photoURL || 'https://placehold.co/40x40.png',
+        };
+        setChatMessages(prev => [...prev, newMessage]);
+    }, [user]);
+
+    const handlers = useMemo(() => ({
+        onReply: handleReply,
         onTogglePin: handleTogglePinMessage,
         onReportMessage: handleReportMessage,
-        onReportStream: () => setIsReportOpen(true),
-        onSendMessage: (text: string) => {
-            if(!user) return;
-            const newMessage = {
-                id: Date.now(),
-                user: user?.displayName || "You",
-                userId: user.uid,
-                text: text,
-                avatar: user.photoURL || 'https://placehold.co/40x40.png',
-            };
-            setChatMessages(prev => [...prev, newMessage]);
-        },
+        onDeleteMessage: handleDeleteMessage,
+        onReportStream: onReportStream,
+        onSendMessage: onSendMessage,
         onAddToCart: handleAddToCart,
         onBuyNow: handleBuyNow,
-        onBid: () => setIsBidDialogOpen(true),
-        onViewBids: (e: React.MouseEvent) => { e.stopPropagation(); setIsBidHistoryOpen(true); },
+        onBid: onBid,
+        onViewBids: onViewBids,
         toast,
-    };
-
-    const scrollToAuction = (auctionId: string) => {
-        inlineAuctionCardRefs.current[auctionId]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    };
-
+        seller: seller,
+    }), [onReportStream, handleAddToCart, handleBuyNow, onBid, onViewBids, toast, handleReply, handleDeleteMessage, seller, onSendMessage]);
+    
     if (isMinimized(streamId)) {
         return (
             <div className="flex h-screen items-center justify-center bg-black">
@@ -1072,7 +1093,11 @@ export default function StreamPage() {
     );
 }
 
-const DesktopLayout = (props: any) => (
+const MemoizedStreamInfo = React.memo(StreamInfo);
+const MemoizedRelatedContent = React.memo(RelatedContent);
+
+const DesktopLayout = React.memo(({ handlers, chatMessages, ...props }: any) => {
+return (
 <div className="flex flex-col h-screen overflow-hidden">
     <header className="p-3 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-sm z-30 border-b h-16 shrink-0 w-full">
         <div className="flex items-center gap-2">
@@ -1164,22 +1189,22 @@ const DesktopLayout = (props: any) => (
             </div>
 
             <div className="p-4 space-y-6">
-                <StreamInfo {...props}/>
-                <RelatedContent {...props} />
+                <MemoizedStreamInfo {...props}/>
+                <MemoizedRelatedContent {...props} />
             </div>
         </main>
 
         <aside className="relative h-full w-[384px] flex-shrink-0 flex flex-col bg-card overflow-hidden border-l">
             <ChatPanel
                 seller={props.seller}
-                chatMessages={props.chatMessages}
+                chatMessages={chatMessages}
                 pinnedMessages={props.pinnedMessages}
                 activeAuction={props.activeAuction}
                 auctionTime={props.auctionTime}
                 highestBid={props.highestBid}
                 totalBids={props.totalBids}
                 walletBalance={props.walletBalance}
-                handlers={props.handlers}
+                handlers={handlers}
                 inlineAuctionCardRefs={props.inlineAuctionCardRefs}
                 onClose={() => {}}
                 user={props.user}
@@ -1187,9 +1212,10 @@ const DesktopLayout = (props: any) => (
         </aside>
     </div>
 </div>
-);
+)});
+DesktopLayout.displayName = 'DesktopLayout';
 
-const MobileLayout = (props: any) => {
+const MobileLayout = React.memo(({ handlers, chatMessages, ...props }: any) => {
     const { isMuted, setIsMuted, handleGoLive, isLive, formatTime, currentTime, duration, handleShare, handleToggleFullscreen, progressContainerRef, handleProgressClick, isPaused, handlePlayPause, handleSeek, handleMinimize, activeQuality, setActiveQuality } = props;
     return (
         <div className="flex flex-col h-dvh overflow-hidden relative">
@@ -1286,8 +1312,8 @@ const MobileLayout = (props: any) => {
                 {props.mobileView === 'stream' ? (
                      <ScrollArea className="h-full no-scrollbar">
                         <div className="p-4 space-y-6">
-                             <StreamInfo {...props}/>
-                            <RelatedContent {...props}/>
+                             <MemoizedStreamInfo {...props}/>
+                            <MemoizedRelatedContent {...props}/>
                         </div>
                     </ScrollArea>
                 ) : (
@@ -1307,10 +1333,10 @@ const MobileLayout = (props: any) => {
             )}
         </div>
     );
-};
+});
+MobileLayout.displayName = 'MobileLayout';
 
-const StreamInfo = (props: any) => {
-    const { seller, streamData, handleFollowToggle, isFollowingState } = props;
+function StreamInfo({ seller, streamData, handleFollowToggle, isFollowingState, ...props }: any) {
     
     return (
         <div className="space-y-4">
@@ -1347,7 +1373,8 @@ const StreamInfo = (props: any) => {
     );
 };
 
-const RelatedContent = ({ relatedStreams }: { relatedStreams: any[] }) => (
+function RelatedContent({ relatedStreams }: { relatedStreams: any[] }) {
+    return (
      <div className="mt-8">
         <div className="mb-4 flex items-center justify-between">
         <h4 className="font-semibold">Related Streams</h4>
@@ -1384,7 +1411,8 @@ const RelatedContent = ({ relatedStreams }: { relatedStreams: any[] }) => (
             ))}
         </div>
     </div>
-);
+    )
+};
 
 const ChatPanel = ({
   seller,
@@ -1571,84 +1599,47 @@ const ChatPanel = ({
         </div>
       </header>
        {activeAuction && seller?.hasAuction && <div className="p-3 border-b border-[rgba(255,255,255,0.04)]"><AuctionCard {...{ activeAuction, auctionTime, highestBid, totalBids, handlers }} /></div>}
-      <ScrollArea className="flex-grow" ref={chatContainerRef} onScroll={handleManualScroll}>
-          <div className="p-3 space-y-4">
+      <ScrollArea className="flex-grow no-scrollbar" ref={chatContainerRef} onScroll={handleManualScroll}>
+          <div className="p-3 space-y-2.5">
              {chatMessages.map((msg) => {
                   if (msg.type === 'system') {
                       return <div key={msg.id} className="text-xs text-center text-[#9AA1A6] italic py-1">{msg.text}</div>
                   }
-
-                   if (msg.type === 'auction_end') {
-                    return (
-                        <div key={msg.id} className="p-3 rounded-lg bg-primary/10 border border-primary/20 text-center text-sm">
-                            <p className="font-bold text-lg text-primary">Auction Ended!</p>
-                            <p className="mt-1"><strong className="text-white">{msg.winner}</strong> won <strong className="text-white">{msg.productName}</strong> with a bid of <strong className="text-white">{msg.winningBid}</strong>!</p>
-                        </div>
-                    )
-                }
-
-                if (msg.isBid && seller?.hasAuction) {
-                    return (
-                        <div key={msg.id} className="p-2 rounded-md bg-gradient-to-r from-gold/10 to-yellow-600/10 border-l-4 border-gold animate-in fade-in-0">
-                            <div className="flex items-center gap-2">
-                                <Avatar className="h-6 w-6">
-                                    <AvatarImage src={msg.avatar} />
-                                    <AvatarFallback>{msg.user.charAt(0)}</AvatarFallback>
-                                </Avatar>
-                                <p className="text-xs">
-                                    <span className="font-semibold">{msg.user}</span> placed a bid!
-                                </p>
-                            </div>
-                            <p className="text-lg font-bold text-gold mt-1 flex items-center gap-2">
-                                <Gavel className="w-4 h-4"/>
-                                {msg.text.replace('BID ', '')}
-                            </p>
-                        </div>
-                    );
-                }
-
                   if (!msg.user) return null;
-                  
-                  const isMyMessage = user && msg.userId === user.uid;
-                  const isSellerMessage = msg.isSeller;
-                  const authorName = isSellerMessage ? seller.name : msg.user;
-                  const authorAvatar = isSellerMessage ? seller.avatarUrl : msg.avatar;
+
+                  const isMyMessage = msg.userId === seller?.uid;
+                  const isSellerMessage = msg.userId === seller?.uid;
                   
                   return (
-                     <div key={msg.id} className="flex items-start gap-3 w-full group animate-in fade-in-0 duration-300">
+                     <div key={msg.id} className="flex items-start gap-3 w-full group text-sm animate-message-in">
                          <Avatar className="h-9 w-9 mt-0.5 border border-[rgba(255,255,255,0.04)]">
-                             <AvatarImage src={authorAvatar} />
-                             <AvatarFallback className="bg-gradient-to-br from-red-500 to-yellow-500 text-white font-bold text-sm">{authorName.charAt(0)}</AvatarFallback>
+                             <AvatarImage src={msg.avatar} />
+                             <AvatarFallback className="bg-gradient-to-br from-red-500 to-yellow-500 text-white font-bold">{msg.user.charAt(0)}</AvatarFallback>
                          </Avatar>
                           <div className="flex-grow">
-                             <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-2">
-                                     <b className={cn("font-semibold text-xs", isSellerMessage && "text-yellow-400")}>{authorName}</b>
-                                     {isSellerMessage && <Badge variant="secondary" className="px-1.5 py-0 text-[10px] h-4">Seller</Badge>}
-                                </div>
-                                <DropdownMenu>
-                                    <DropdownMenuTrigger asChild>
-                                        <button className="text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity p-1">
-                                            <MoreVertical className="w-4 h-4" />
-                                        </button>
-                                    </DropdownMenuTrigger>
-                                    <DropdownMenuContent align="end">
-                                        <DropdownMenuItem onSelect={() => handleReply(msg)}>
-                                            <Reply className="mr-2 h-4 w-4" />Reply
-                                        </DropdownMenuItem>
-                                        {!isMyMessage && (
-                                            <DropdownMenuItem onSelect={() => handlers.onReportMessage(msg.id)}>
-                                                <Flag className="mr-2 h-4 w-4" />Report
-                                            </DropdownMenuItem>
-                                        )}
-                                    </DropdownMenuContent>
-                                </DropdownMenu>
-                             </div>
-                              <div className="leading-relaxed text-sm text-[#E6ECEF]">
-                                {msg.replyingTo && <span className="text-primary font-semibold mr-1">@{msg.replyingTo}</span>}
-                                {renderWithHashtagsAndLinks(msg.text)}
-                              </div>
+                             <p className="leading-relaxed break-words text-sm text-[#E6ECEF]">
+                                 <b className="font-semibold text-xs mr-1.5" style={{ color: msg.userColor || 'inherit' }}>{msg.user}:</b>
+                                 <span className="text-sm">
+                                    {msg.replyingTo && <span className="text-primary font-semibold mr-1">@{msg.replyingTo}</span>}
+                                    {msg.text}
+                                 </span>
+                             </p>
                           </div>
+                          <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                  <button className="text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity p-1">
+                                      <MoreVertical className="w-4 h-4" />
+                                  </button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                  <DropdownMenuItem onSelect={() => handleReply(msg)}>
+                                      <Reply className="mr-2 h-4 w-4" />Reply
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem onSelect={() => handlers.onReportMessage(msg.id)}>
+                                    <Flag className="mr-2 h-4 w-4" />Report
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                          </DropdownMenu>
                       </div>
                   )
               })}
