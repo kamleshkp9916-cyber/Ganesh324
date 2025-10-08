@@ -464,8 +464,7 @@ const renderWithHashtagsAndLinks = (text: string) => {
     });
 };
 
-const MemoizedStreamInfo = React.memo(function StreamInfo({ seller, streamData, handleFollowToggle, isFollowingState, ...props }: any) {
-    
+const StreamInfo = ({ seller, streamData, handleFollowToggle, isFollowingState, ...props }: any) => {
     return (
         <div className="space-y-4">
             <div className="mb-4">
@@ -499,10 +498,9 @@ const MemoizedStreamInfo = React.memo(function StreamInfo({ seller, streamData, 
             <ProductShelf {...props} />
         </div>
     );
-});
-MemoizedStreamInfo.displayName = "StreamInfo";
+};
 
-const MemoizedRelatedContent = React.memo(function RelatedContent({ relatedStreams }: { relatedStreams: any[] }) {
+const RelatedContent = ({ relatedStreams }: { relatedStreams: any[] }) => {
     return (
      <div className="mt-8">
         <div className="mb-4 flex items-center justify-between">
@@ -541,9 +539,10 @@ const MemoizedRelatedContent = React.memo(function RelatedContent({ relatedStrea
         </div>
     </div>
     )
-});
-MemoizedRelatedContent.displayName = "RelatedContent";
+};
 
+const MemoizedStreamInfo = React.memo(StreamInfo);
+const MemoizedRelatedContent = React.memo(RelatedContent);
 
 const AuctionCard = React.memo(function AuctionCard({ activeAuction, auctionTime, highestBid, totalBids, handlers }: { activeAuction: any, auctionTime: number | null, highestBid: number, totalBids: number, handlers: any }) {
     const seller = liveSellers.find(s => s.productId === activeAuction?.productId);
@@ -554,25 +553,25 @@ const AuctionCard = React.memo(function AuctionCard({ activeAuction, auctionTime
     const timeRemainingPercent = activeAuction.initialTime > 0 && auctionTime !== null ? (auctionTime / activeAuction.initialTime) * 100 : 0;
     
     return (
-        <Card className="bg-black/80 border-border/30 text-foreground shadow-lg animate-in fade-in-0">
+        <Card className="bg-black/80 border-black/30 text-foreground shadow-lg animate-in fade-in-0">
             <CardContent className="p-3">
-                 <div className="flex justify-between items-center mb-3">
+                <div className="flex justify-between items-center mb-3">
                     <Badge variant="destructive" className="animate-pulse gap-1.5 bg-destructive/80 text-white">
                         <Gavel className="w-3 h-3" /> Live Auction
                     </Badge>
-                     <Badge variant="outline" className="bg-black/50 text-white border-white/20">
+                    <Badge variant="outline" className="bg-black/50 text-white border-white/20">
                         <Clock className="w-3 h-3 mr-1.5" />
                         {auctionTime !== null && auctionTime > 0 ? `${Math.floor(auctionTime / 60)}:${(auctionTime % 60).toString().padStart(2, '0')}` : 'Ended'}
                     </Badge>
                 </div>
-                 <div className="flex items-center gap-4 mb-3">
+                <div className="flex items-center gap-4 mb-3">
                     <Image src={product.images[0]} alt={product.name} width={64} height={64} className="rounded-lg border bg-muted" />
                     <div className="flex-grow">
                         <p className="font-semibold text-sm leading-tight truncate">{product.name}</p>
                         <div className="text-xs text-muted-foreground">
-                             Current Bid:
+                            Current Bid:
                         </div>
-                         <p className="font-bold text-2xl text-primary">₹{highestBid.toLocaleString()}</p>
+                        <p className="font-bold text-2xl text-primary">₹{highestBid.toLocaleString()}</p>
                     </div>
                 </div>
                 
@@ -911,12 +910,12 @@ export default function StreamPage() {
         };
     }, []);
     
-    const handleReportMessage = (messageId: number) => {
+    const handleReportMessage = useCallback((messageId: number) => {
         toast({
             title: "Message Reported",
             description: "The message has been reported and will be reviewed by our moderation team.",
         });
-    };
+    }, [toast]);
     
     const handleAddToCart = useCallback((product: any) => {
       if (product) {
@@ -1523,7 +1522,12 @@ const ChatPanel = ({
     e.preventDefault();
     if (!newMessage.trim()) return;
     
-    handlers.handleNewMessageSubmit(newMessage, replyingTo);
+    let messageToSend = newMessage;
+    if (replyingTo) {
+      messageToSend = `@${replyingTo.name.split(' ')[0]} ${newMessage}`;
+    }
+
+    console.log("New Message:", messageToSend);
 
     setNewMessage("");
     setReplyingTo(null);
@@ -1620,6 +1624,9 @@ const ChatPanel = ({
                       return <div key={msg.id} className="text-xs text-center text-[#9AA1A6] italic py-1">{msg.text}</div>
                   }
                   if (!msg.user) return null;
+
+                  const isMyMessage = msg.userId === seller?.uid;
+                  const isSellerMessage = msg.userId === seller?.uid;
                   
                   return (
                      <div key={msg.id} className="flex items-start gap-3 w-full group text-sm animate-message-in">
@@ -1632,7 +1639,7 @@ const ChatPanel = ({
                                  <b className={cn("font-semibold text-xs mr-1.5", msg.isSeller ? "text-yellow-400" : "text-white")}>{msg.user}</b>
                                  {msg.isSeller && <Badge variant="secondary" className="mr-1.5 text-xs px-1.5 py-0">Seller</Badge>}
                                  <span className="text-sm">
-                                    {msg.replyingTo && <span className="text-primary font-semibold mr-1">{msg.replyingTo}</span>}
+                                    {msg.replyingTo && <span className="text-primary font-semibold mr-1">@{msg.replyingTo}</span>}
                                     {renderWithHashtagsAndLinks(msg.text)}
                                  </span>
                              </p>
