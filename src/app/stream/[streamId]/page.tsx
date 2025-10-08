@@ -465,7 +465,7 @@ const renderWithHashtagsAndLinks = (text: string) => {
     });
 };
 
-const StreamInfo = ({ seller, streamData, handleFollowToggle, isFollowingState, ...props }: any) => {
+const StreamInfo = React.memo(function StreamInfo({ seller, streamData, handleFollowToggle, isFollowingState, ...props }: any) {
     
     return (
         <div className="space-y-4">
@@ -500,10 +500,9 @@ const StreamInfo = ({ seller, streamData, handleFollowToggle, isFollowingState, 
             <ProductShelf {...props} />
         </div>
     );
-};
-const MemoizedStreamInfo = React.memo(StreamInfo);
+});
 
-const RelatedContent = ({ relatedStreams }: { relatedStreams: any[] }) => {
+const RelatedContent = React.memo(function RelatedContent({ relatedStreams }: { relatedStreams: any[] }) {
     return (
      <div className="mt-8">
         <div className="mb-4 flex items-center justify-between">
@@ -542,10 +541,9 @@ const RelatedContent = ({ relatedStreams }: { relatedStreams: any[] }) => {
         </div>
     </div>
     )
-};
-const MemoizedRelatedContent = React.memo(RelatedContent);
+});
 
-const AuctionCard = ({ activeAuction, auctionTime, highestBid, totalBids, handlers }: { activeAuction: any, auctionTime: number | null, highestBid: number, totalBids: number, handlers: any }) => {
+const AuctionCard = React.memo(function AuctionCard({ activeAuction, auctionTime, highestBid, totalBids, handlers }: { activeAuction: any, auctionTime: number | null, highestBid: number, totalBids: number, handlers: any }) {
     const seller = liveSellers.find(s => s.productId === activeAuction?.productId);
     if (!activeAuction || !seller?.hasAuction) return null;
     const product = productDetails[activeAuction.productId as keyof typeof productDetails];
@@ -554,15 +552,15 @@ const AuctionCard = ({ activeAuction, auctionTime, highestBid, totalBids, handle
     const timeRemainingPercent = activeAuction.initialTime > 0 && auctionTime !== null ? (auctionTime / activeAuction.initialTime) * 100 : 0;
     
     return (
-        <Card className="bg-gradient-to-br from-purple-900 to-red-900 border-purple-500/50 text-white shadow-2xl animate-in fade-in-0">
+        <Card className="bg-gradient-to-b from-primary/10 to-transparent border-primary/20 text-white shadow-2xl animate-in fade-in-0">
             <CardContent className="p-3">
                 <div className="flex justify-between items-center mb-2">
-                    <Badge variant="secondary" className="border-none bg-purple-400/20 text-purple-200 animate-pulse gap-1.5">
+                    <Badge variant="secondary" className="border-none bg-red-400/20 text-red-200 animate-pulse gap-1.5">
                         <Gavel className="w-3 h-3" /> Live Auction
                     </Badge>
-                     <Badge variant="secondary" className="border-none bg-red-400/20 text-red-200">
+                     <Badge variant="secondary" className="border-none bg-white/10 text-white">
                         <Clock className="w-3 h-3 mr-1.5" />
-                        {auctionTime !== null ? `${Math.floor(auctionTime / 60)}:${(auctionTime % 60).toString().padStart(2, '0')}` : 'Ended'}
+                        {auctionTime !== null && auctionTime > 0 ? `${Math.floor(auctionTime / 60)}:${(auctionTime % 60).toString().padStart(2, '0')}` : 'Ended'}
                     </Badge>
                 </div>
                  <div className="flex items-center gap-3 mb-3">
@@ -587,7 +585,8 @@ const AuctionCard = ({ activeAuction, auctionTime, highestBid, totalBids, handle
             </CardContent>
         </Card>
     );
-};
+});
+AuctionCard.displayName = 'AuctionCard';
 
 export default function StreamPage() {
     const router = useRouter();
@@ -1322,8 +1321,8 @@ return (
             </div>
 
             <div className="p-4 space-y-6">
-                <MemoizedStreamInfo {...props}/>
-                <MemoizedRelatedContent {...props} />
+                <StreamInfo {...props}/>
+                <RelatedContent {...props} />
             </div>
         </main>
 
@@ -1444,8 +1443,8 @@ const MobileLayout = React.memo(({ handlers, chatMessages, ...props }: any) => {
                 {props.mobileView === 'stream' ? (
                      <ScrollArea className="h-full no-scrollbar">
                         <div className="p-4 space-y-6">
-                             <MemoizedStreamInfo {...props}/>
-                            <MemoizedRelatedContent {...props}/>
+                             <StreamInfo {...props}/>
+                            <RelatedContent {...props}/>
                         </div>
                     </ScrollArea>
                 ) : (
@@ -1717,3 +1716,4 @@ const ChatPanel = ({
     </div>
   );
 };
+
