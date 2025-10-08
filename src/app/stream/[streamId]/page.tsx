@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import {
@@ -464,7 +465,7 @@ const renderWithHashtagsAndLinks = (text: string) => {
     });
 };
 
-const StreamInfo = ({ seller, streamData, handleFollowToggle, isFollowingState, ...props }: any) => {
+const MemoizedStreamInfo = React.memo(function StreamInfo({ seller, streamData, handleFollowToggle, isFollowingState, ...props }: any) {
     return (
         <div className="space-y-4">
             <div className="mb-4">
@@ -498,9 +499,10 @@ const StreamInfo = ({ seller, streamData, handleFollowToggle, isFollowingState, 
             <ProductShelf {...props} />
         </div>
     );
-};
+});
+MemoizedStreamInfo.displayName = "MemoizedStreamInfo";
 
-const RelatedContent = ({ relatedStreams }: { relatedStreams: any[] }) => {
+const MemoizedRelatedContent = React.memo(function RelatedContent({ relatedStreams }: { relatedStreams: any[] }) {
     return (
      <div className="mt-8">
         <div className="mb-4 flex items-center justify-between">
@@ -539,10 +541,8 @@ const RelatedContent = ({ relatedStreams }: { relatedStreams: any[] }) => {
         </div>
     </div>
     )
-};
-
-const MemoizedStreamInfo = React.memo(StreamInfo);
-const MemoizedRelatedContent = React.memo(RelatedContent);
+});
+MemoizedRelatedContent.displayName = "MemoizedRelatedContent";
 
 const AuctionCard = React.memo(function AuctionCard({ activeAuction, auctionTime, highestBid, totalBids, handlers }: { activeAuction: any, auctionTime: number | null, highestBid: number, totalBids: number, handlers: any }) {
     const seller = liveSellers.find(s => s.productId === activeAuction?.productId);
@@ -553,13 +553,13 @@ const AuctionCard = React.memo(function AuctionCard({ activeAuction, auctionTime
     const timeRemainingPercent = activeAuction.initialTime > 0 && auctionTime !== null ? (auctionTime / activeAuction.initialTime) * 100 : 0;
     
     return (
-        <Card className="bg-black/80 border-black/30 text-foreground shadow-lg animate-in fade-in-0">
+        <Card className="bg-card border-border shadow-lg animate-in fade-in-0">
             <CardContent className="p-3">
                 <div className="flex justify-between items-center mb-3">
-                    <Badge variant="destructive" className="animate-pulse gap-1.5 bg-destructive/80 text-white">
+                    <Badge variant="destructive" className="animate-pulse gap-1.5">
                         <Gavel className="w-3 h-3" /> Live Auction
                     </Badge>
-                    <Badge variant="outline" className="bg-black/50 text-white border-white/20">
+                    <Badge variant="outline">
                         <Clock className="w-3 h-3 mr-1.5" />
                         {auctionTime !== null && auctionTime > 0 ? `${Math.floor(auctionTime / 60)}:${(auctionTime % 60).toString().padStart(2, '0')}` : 'Ended'}
                     </Badge>
@@ -575,10 +575,10 @@ const AuctionCard = React.memo(function AuctionCard({ activeAuction, auctionTime
                     </div>
                 </div>
                 
-                <Progress value={timeRemainingPercent} className="h-1.5 bg-white/10" />
+                <Progress value={timeRemainingPercent} className="h-1.5" />
                 
                 <div className="mt-3 grid grid-cols-2 gap-2">
-                    <Button variant="secondary" size="sm" className="flex-1 bg-white/10 text-white hover:bg-white/20" onClick={handlers.onViewBids}>
+                    <Button variant="secondary" size="sm" className="flex-1" onClick={handlers.onViewBids}>
                         History ({totalBids} bids)
                     </Button>
                     <Button size="sm" className="font-bold flex-1" onClick={handlers.onBid}>Place Bid</Button>
@@ -1450,7 +1450,7 @@ const MobileLayout = React.memo(({ handlers, chatMessages, ...props }: any) => {
                     </ScrollArea>
                 ) : (
                     <div className="h-full flex flex-col bg-background">
-                        <ChatPanel {...props} onClose={() => props.setMobileView('stream')} />
+                        <ChatPanel {...{...props, handlers, chatMessages}} onClose={() => props.setMobileView('stream')} />
                     </div>
                 )}
             </div>
@@ -1631,7 +1631,7 @@ const ChatPanel = ({
                      <div key={msg.id} className="flex items-start gap-3 w-full group text-sm animate-message-in">
                          <Avatar className="h-9 w-9 mt-0.5 border border-[rgba(255,255,255,0.04)]">
                              <AvatarImage src={msg.avatar} />
-                             <AvatarFallback className="bg-transparent text-white font-bold">{msg.user.charAt(0)}</AvatarFallback>
+                             <AvatarFallback className="bg-gradient-to-br from-red-500 to-yellow-500 text-white font-bold">{msg.user.charAt(0)}</AvatarFallback>
                          </Avatar>
                           <div className="flex-grow">
                              <p className="leading-relaxed break-words text-sm text-[#E6ECEF]">
@@ -1721,3 +1721,4 @@ const ChatPanel = ({
     </div>
   );
 };
+
