@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import {
@@ -552,35 +551,35 @@ const AuctionCard = React.memo(function AuctionCard({ activeAuction, auctionTime
     const timeRemainingPercent = activeAuction.initialTime > 0 && auctionTime !== null ? (auctionTime / activeAuction.initialTime) * 100 : 0;
     
     return (
-        <Card className="bg-gradient-to-b from-primary/10 to-transparent border-primary/20 text-white shadow-2xl animate-in fade-in-0">
+        <Card className="bg-background border-border text-foreground shadow-lg animate-in fade-in-0">
             <CardContent className="p-3">
-                <div className="flex justify-between items-center mb-2">
-                    <Badge variant="secondary" className="border-none bg-red-400/20 text-red-200 animate-pulse gap-1.5">
+                 <div className="flex justify-between items-center mb-3">
+                    <Badge variant="destructive" className="animate-pulse gap-1.5">
                         <Gavel className="w-3 h-3" /> Live Auction
                     </Badge>
-                     <Badge variant="secondary" className="border-none bg-white/10 text-white">
+                     <Badge variant="outline">
                         <Clock className="w-3 h-3 mr-1.5" />
                         {auctionTime !== null && auctionTime > 0 ? `${Math.floor(auctionTime / 60)}:${(auctionTime % 60).toString().padStart(2, '0')}` : 'Ended'}
                     </Badge>
                 </div>
-                 <div className="flex items-center gap-3 mb-3">
-                    <Image src={product.images[0]} alt={product.name} width={56} height={56} className="rounded-md border-2 border-white/10" />
+                 <div className="flex items-center gap-4 mb-3">
+                    <Image src={product.images[0]} alt={product.name} width={64} height={64} className="rounded-lg border bg-muted" />
                     <div className="flex-grow">
                         <p className="font-semibold text-sm leading-tight truncate">{product.name}</p>
-                        <div className="text-xs text-gray-300">
+                        <div className="text-xs text-muted-foreground">
                              Current Bid:
                         </div>
-                         <p className="font-bold text-2xl text-yellow-300">₹{highestBid.toLocaleString()}</p>
+                         <p className="font-bold text-2xl text-primary">₹{highestBid.toLocaleString()}</p>
                     </div>
                 </div>
                 
-                <Progress value={timeRemainingPercent} className="h-1 bg-white/20" indicatorClassName="bg-yellow-400" />
+                <Progress value={timeRemainingPercent} className="h-1.5" />
                 
                 <div className="mt-3 grid grid-cols-2 gap-2">
-                    <Button variant="ghost" size="sm" className="bg-white/10 hover:bg-white/20 text-white flex-1" onClick={handlers.onViewBids}>
+                    <Button variant="secondary" size="sm" className="flex-1" onClick={handlers.onViewBids}>
                         History ({totalBids} bids)
                     </Button>
-                    <Button size="sm" className="bg-yellow-400 hover:bg-yellow-500 text-black font-bold flex-1" onClick={handlers.onBid}>Place Bid</Button>
+                    <Button size="sm" className="font-bold flex-1" onClick={handlers.onBid}>Place Bid</Button>
                 </div>
             </CardContent>
         </Card>
@@ -908,15 +907,15 @@ export default function StreamPage() {
             document.removeEventListener('fullscreenchange', handleFullscreenChange);
         };
     }, []);
-
-    const handleReportMessage = useCallback((messageId: number) => {
+    
+    const handleReportMessage = (messageId: number) => {
         toast({
             title: "Message Reported",
             description: "The message has been reported and will be reviewed by our moderation team.",
         });
-    }, [toast]);
+    };
     
-    const handleAddToCart = useCallback((product: any) => {
+    const handleAddToCart = (product: any) => {
       if (product) {
         addToCart({ ...product, quantity: 1 });
         toast({
@@ -924,15 +923,15 @@ export default function StreamPage() {
           description: `'${product.name}' has been added to your shopping cart.`,
         });
       }
-    }, [toast]);
+    };
     
-    const handleBuyNow = useCallback((product: any) => {
+    const handleBuyNow = (product: any) => {
       if (product) {
         router.push(`/cart?buyNow=true&productId=${product.key}`);
       }
-    }, [router]);
+    };
 
-    const handleWithdraw = useCallback((amount: number, bankAccountId: string) => {
+    const handleWithdraw = (amount: number, bankAccountId: string) => {
         const selectedAccount = bankAccounts.find(acc => String(acc.id) === bankAccountId);
         const cashAvailable = walletBalance - 2640; // Mock blocked margin
         if (amount > cashAvailable) {
@@ -949,7 +948,7 @@ export default function StreamPage() {
            description: `₹${amount} is on its way to ${selectedAccount?.bankName}.`,
        });
         setIsWithdrawOpen(false);
-     }, [bankAccounts, toast, walletBalance]);
+     };
     
     const handleShare = () => {
         navigator.clipboard.writeText(window.location.href);
@@ -959,7 +958,7 @@ export default function StreamPage() {
         });
     };
 
-     const handleTogglePinMessage = useCallback((msgId: number) => {
+     const handleTogglePinMessage = (msgId: number) => {
         const msg = chatMessages.find(m => m.id === msgId);
         if (!msg) return;
 
@@ -1000,7 +999,7 @@ export default function StreamPage() {
             title: pinnedMessages.some(p => p.id === msgId) ? "Message Unpinned" : "Message Pinned",
             description: "The message has been updated in the pinned items."
         });
-    }, [chatMessages, pinnedMessages, toast]);
+    };
     
     const handlePlaceBid = (e: React.MouseEvent) => {
         e.stopPropagation();
@@ -1050,20 +1049,20 @@ export default function StreamPage() {
       }
     };
     
-    const onReportStream = useCallback(() => {
+    const onReportStream = () => {
         setIsReportOpen(true);
-    }, []);
+    };
 
-    const onBid = useCallback(() => {
+    const onBid = () => {
         setIsBidDialogOpen(true);
-    }, []);
+    };
 
-    const onViewBids = useCallback((e: React.MouseEvent) => {
+    const onViewBids = (e: React.MouseEvent) => {
         e.stopPropagation();
         setIsBidHistoryOpen(true);
-    }, []);
-
-    const handleNewMessageSubmit = useCallback((text: string, replyingTo?: { name: string, id: string }) => {
+    };
+    
+    const handleNewMessageSubmit = (text: string, replyingTo?: { name: string, id: string }) => {
         if (!user) return;
         let messageText = text;
         if (replyingTo) {
@@ -1078,17 +1077,17 @@ export default function StreamPage() {
             replyingTo: replyingTo?.name,
         };
         setChatMessages(prev => [...prev, newMessage]);
-    }, [user]);
+    };
     
-    const handleReply = useCallback((msg: any) => {
+    const handleReply = (msg: any) => {
         // This is now handled within ChatPanel's state
-    }, []);
+    };
     
-    const handleDeleteMessage = useCallback((msgId: number) => {
+    const handleDeleteMessage = (msgId: number) => {
         setChatMessages(prev => prev.filter(m => m.id !== msgId));
-    }, []);
+    };
     
-    const handlers = useMemo(() => ({
+    const handlers = {
         onReply: handleReply,
         onTogglePin: handleTogglePinMessage,
         onReportMessage: handleReportMessage,
@@ -1101,7 +1100,7 @@ export default function StreamPage() {
         toast,
         seller: seller,
         handleNewMessageSubmit: handleNewMessageSubmit,
-    }), [onReportStream, onBid, onViewBids, toast, handleReply, handleReportMessage, handleTogglePinMessage, handleDeleteMessage, seller, handleNewMessageSubmit, handleAddToCart, handleBuyNow]);
+    };
 
     if (isMinimized(streamId)) {
         return (
@@ -1716,4 +1715,3 @@ const ChatPanel = ({
     </div>
   );
 };
-
