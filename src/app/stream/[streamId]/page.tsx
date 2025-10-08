@@ -465,6 +465,9 @@ const renderWithHashtagsAndLinks = (text: string) => {
     });
 };
 
+const MemoizedStreamInfo = React.memo(StreamInfo);
+const MemoizedRelatedContent = React.memo(RelatedContent);
+
 export default function StreamPage() {
     const router = useRouter();
     const params = useParams();
@@ -545,7 +548,7 @@ export default function StreamPage() {
     const [playbackRate, setPlaybackRate] = useState(1);
     const [skipInterval, setSkipInterval] = useState(10);
     const [isFullscreen, setIsFullscreen] = useState(false);
-    const [isLive, setIsLive] = useState(isMobile ? false : true);
+    const [isLive, setIsLive] = useState(true);
     const mainScrollRef = useRef<HTMLDivElement>(null);
     const [hydrated, setHydrated] = useState(false);
     const [showGoToTop, setShowGoToTop] = useState(false);
@@ -693,8 +696,7 @@ export default function StreamPage() {
     const handleGoLive = () => {
         const video = videoRef.current;
         if (video) {
-            video.currentTime = duration;
-            setIsLive(true);
+            video.currentTime = video.duration;
         }
     };
     
@@ -758,7 +760,7 @@ export default function StreamPage() {
                 video.removeEventListener("pause", onPause);
             };
         }
-    }, [isMuted, isMinimized, streamId]);
+    }, [isMuted, isMinimized, streamId, isLive]);
     
     const handleToggleFullscreen = () => {
         const elem = playerRef.current;
@@ -926,14 +928,6 @@ export default function StreamPage() {
       }
     };
     
-     const handleReply = useCallback((msg: any) => {
-        console.log("Replying to", msg);
-    }, []);
-    
-    const handleDeleteMessage = useCallback((msgId: number) => {
-        setChatMessages(prev => prev.filter(m => m.id !== msgId));
-    }, []);
-
     const onReportStream = useCallback(() => {
         setIsReportOpen(true);
     }, []);
@@ -946,34 +940,47 @@ export default function StreamPage() {
         e.stopPropagation();
         setIsBidHistoryOpen(true);
     }, []);
-    
-    const onSendMessage = useCallback((text: string) => {
+
+    const handleNewMessageSubmit = useCallback((text: string, replyingTo?: { name: string, id: string }) => {
         if (!user) return;
+        let messageText = text;
+        if (replyingTo) {
+            messageText = `@${replyingTo.name.split(' ')[0]} ${text}`;
+        }
         const newMessage = {
             id: Date.now(),
             user: user?.displayName || "You",
             userId: user.uid,
-            text: text,
+            text: messageText,
             avatar: user.photoURL || 'https://placehold.co/40x40.png',
+            replyingTo: replyingTo?.name,
         };
         setChatMessages(prev => [...prev, newMessage]);
     }, [user]);
-
+    
+    const handleReply = useCallback((msg: any) => {
+        // This is now handled within ChatPanel's state
+    }, []);
+    
+    const handleDeleteMessage = useCallback((msgId: number) => {
+        setChatMessages(prev => prev.filter(m => m.id !== msgId));
+    }, []);
+    
     const handlers = useMemo(() => ({
         onReply: handleReply,
         onTogglePin: handleTogglePinMessage,
         onReportMessage: handleReportMessage,
         onDeleteMessage: handleDeleteMessage,
         onReportStream: onReportStream,
-        onSendMessage: onSendMessage,
         onAddToCart: handleAddToCart,
         onBuyNow: handleBuyNow,
         onBid: onBid,
         onViewBids: onViewBids,
         toast,
         seller: seller,
-    }), [onReportStream, handleAddToCart, handleBuyNow, onBid, onViewBids, toast, handleReply, handleDeleteMessage, seller, onSendMessage]);
-    
+        handleNewMessageSubmit: handleNewMessageSubmit,
+    }), [onReportStream, handleAddToCart, handleBuyNow, onBid, onViewBids, toast, handleReply, handleReportMessage, handleTogglePinMessage, handleDeleteMessage, seller, handleNewMessageSubmit]);
+
     if (isMinimized(streamId)) {
         return (
             <div className="flex h-screen items-center justify-center bg-black">
@@ -1093,9 +1100,6 @@ export default function StreamPage() {
     );
 }
 
-const MemoizedStreamInfo = React.memo(StreamInfo);
-const MemoizedRelatedContent = React.memo(RelatedContent);
-
 const DesktopLayout = React.memo(({ handlers, chatMessages, ...props }: any) => {
 return (
 <div className="flex flex-col h-screen overflow-hidden">
@@ -1207,7 +1211,6 @@ return (
                 handlers={handlers}
                 inlineAuctionCardRefs={props.inlineAuctionCardRefs}
                 onClose={() => {}}
-                user={props.user}
             />
         </aside>
     </div>
@@ -1318,7 +1321,7 @@ const MobileLayout = React.memo(({ handlers, chatMessages, ...props }: any) => {
                     </ScrollArea>
                 ) : (
                     <div className="h-full flex flex-col bg-background">
-                        <ChatPanel {...props} onClose={() => props.setMobileView('stream')} user={props.user} />
+                        <ChatPanel {...props} onClose={() => props.setMobileView('stream')} />
                     </div>
                 )}
             </div>
@@ -1426,7 +1429,6 @@ const ChatPanel = ({
   handlers,
   inlineAuctionCardRefs,
   onClose,
-  user,
 }: {
   seller: any;
   chatMessages: any[];
@@ -1439,7 +1441,6 @@ const ChatPanel = ({
   handlers: any;
   inlineAuctionCardRefs: React.MutableRefObject<Record<string, HTMLDivElement | null>>;
   onClose: () => void;
-  user: any;
 }) => {
   const [newMessage, setNewMessage] = useState("");
   const [replyingTo, setReplyingTo] = useState<{ name: string; id: string } | null>(null);
@@ -1447,6 +1448,7 @@ const ChatPanel = ({
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const { user } = useAuth();
   
   const handleAutoScroll = useCallback((behavior: 'smooth' | 'auto' = 'smooth') => {
     messagesEndRef.current?.scrollIntoView({ behavior });
@@ -1470,12 +1472,7 @@ const ChatPanel = ({
     e.preventDefault();
     if (!newMessage.trim()) return;
     
-    let messageToSend = newMessage;
-    if (replyingTo) {
-      messageToSend = `@${replyingTo.name.split(' ')[0]} ${newMessage}`;
-    }
-
-    handlers.onSendMessage(messageToSend);
+    handlers.handleNewMessageSubmit(newMessage, replyingTo);
 
     setNewMessage("");
     setReplyingTo(null);
@@ -1599,16 +1596,13 @@ const ChatPanel = ({
         </div>
       </header>
        {activeAuction && seller?.hasAuction && <div className="p-3 border-b border-[rgba(255,255,255,0.04)]"><AuctionCard {...{ activeAuction, auctionTime, highestBid, totalBids, handlers }} /></div>}
-      <ScrollArea className="flex-grow no-scrollbar" ref={chatContainerRef} onScroll={handleManualScroll}>
+      <ScrollArea className="flex-grow" ref={chatContainerRef} onScroll={handleManualScroll}>
           <div className="p-3 space-y-2.5">
              {chatMessages.map((msg) => {
                   if (msg.type === 'system') {
                       return <div key={msg.id} className="text-xs text-center text-[#9AA1A6] italic py-1">{msg.text}</div>
                   }
                   if (!msg.user) return null;
-
-                  const isMyMessage = msg.userId === seller?.uid;
-                  const isSellerMessage = msg.userId === seller?.uid;
                   
                   return (
                      <div key={msg.id} className="flex items-start gap-3 w-full group text-sm animate-message-in">
