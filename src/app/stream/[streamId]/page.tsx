@@ -465,7 +465,84 @@ const renderWithHashtagsAndLinks = (text: string) => {
     });
 };
 
+function StreamInfo({ seller, streamData, handleFollowToggle, isFollowingState, ...props }: any) {
+    
+    return (
+        <div className="space-y-4">
+            <div className="mb-4">
+                <h2 className="font-bold text-lg">Topic</h2>
+                <div className="text-sm text-muted-foreground mt-1 space-y-4">
+                    <div>{renderWithHashtagsAndLinks(streamData.description || "Welcome to the live stream!")}</div>
+                </div>
+            </div>
+             <div className="flex items-center justify-between gap-2">
+                <Link href={`/seller/profile?userId=${seller.name}`} className="flex items-center gap-3 group flex-grow overflow-hidden">
+                    <Avatar className="h-12 w-12 flex-shrink-0">
+                        <AvatarImage src={seller.avatarUrl} />
+                        <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                    <div className="flex-grow overflow-hidden">
+                        <h3 className="font-semibold truncate group-hover:underline">{seller.name}</h3>
+                        {seller.hasAuction && (
+                            <Badge variant="purple">
+                                <Gavel className="mr-1 h-3 w-3" />
+                                Auction
+                            </Badge>
+                        )}
+                    </div>
+                </Link>
+                 <Button onClick={handleFollowToggle} variant={isFollowingState ? "outline" : "default"} className="flex-shrink-0">
+                    {isFollowingState ? <UserCheck className="mr-2 h-4 w-4" /> : <UserPlus className="mr-2 h-4 w-4" />}
+                    {isFollowingState ? "Following" : "Follow"}
+                </Button>
+            </div>
+            
+            <ProductShelf {...props} />
+        </div>
+    );
+};
 const MemoizedStreamInfo = React.memo(StreamInfo);
+
+function RelatedContent({ relatedStreams }: { relatedStreams: any[] }) {
+    return (
+     <div className="mt-8">
+        <div className="mb-4 flex items-center justify-between">
+        <h4 className="font-semibold">Related Streams</h4>
+        <Button asChild variant="link" size="sm" className="text-xs">
+            <Link href="/live-selling">More</Link>
+        </Button>
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-4 gap-2 sm:gap-4">
+            {relatedStreams.map((s: any) => (
+                <Link href={`/stream/${s.id}`} key={s.id} className="group">
+                    <div className="relative rounded-lg overflow-hidden aspect-[16/9] bg-muted">
+                        <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
+                        <div className="absolute top-2 right-2 z-10"><Badge variant="secondary" className="bg-background/60 backdrop-blur-sm"><Users className="w-3 h-3 mr-1.5" />{s.viewers.toLocaleString()}</Badge></div>
+                    </div>
+                    <div className="flex items-start gap-2 mt-2">
+                        <Avatar className="w-7 h-7">
+                            <AvatarImage src={s.avatarUrl} alt={s.name} />
+                            <AvatarFallback>{s.name.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 overflow-hidden">
+                            <div className="flex items-center gap-1.5">
+                                <p className="font-semibold text-xs group-hover:underline truncate">{s.name}</p>
+                                {s.hasAuction && (
+                                    <Badge variant="purple" className="text-xs font-bold px-1.5 py-0">
+                                        Auction
+                                    </Badge>
+                                )}
+                            </div>
+                            <p className="text-xs text-muted-foreground">{s.category}</p>
+                            <p className="text-xs text-primary font-semibold mt-0.5">#{s.category.toLowerCase().replace(/\s+/g, '')}</p>
+                        </div>
+                    </div>
+                </Link>
+            ))}
+        </div>
+    </div>
+    )
+};
 const MemoizedRelatedContent = React.memo(RelatedContent);
 
 export default function StreamPage() {
@@ -787,12 +864,12 @@ export default function StreamPage() {
         };
     }, []);
 
-    const handleReportMessage = (messageId: number) => {
+    const handleReportMessage = useCallback((messageId: number) => {
         toast({
             title: "Message Reported",
             description: "The message has been reported and will be reviewed by our moderation team.",
         });
-    };
+    }, [toast]);
     
     const handleAddToCart = useCallback((product: any) => {
       if (product) {
@@ -810,7 +887,7 @@ export default function StreamPage() {
       }
     }, [router]);
 
-    const handleWithdraw = (amount: number, bankAccountId: string) => {
+    const handleWithdraw = useCallback((amount: number, bankAccountId: string) => {
         const selectedAccount = bankAccounts.find(acc => String(acc.id) === bankAccountId);
         const cashAvailable = walletBalance - 2640; // Mock blocked margin
         if (amount > cashAvailable) {
@@ -827,7 +904,7 @@ export default function StreamPage() {
            description: `₹${amount} is on its way to ${selectedAccount?.bankName}.`,
        });
         setIsWithdrawOpen(false);
-     };
+     }, [bankAccounts, toast, walletBalance]);
     
     const handleShare = () => {
         navigator.clipboard.writeText(window.location.href);
@@ -837,7 +914,7 @@ export default function StreamPage() {
         });
     };
 
-     const handleTogglePinMessage = (msgId: number) => {
+     const handleTogglePinMessage = useCallback((msgId: number) => {
         const msg = chatMessages.find(m => m.id === msgId);
         if (!msg) return;
 
@@ -878,7 +955,7 @@ export default function StreamPage() {
             title: pinnedMessages.some(p => p.id === msgId) ? "Message Unpinned" : "Message Pinned",
             description: "The message has been updated in the pinned items."
         });
-    };
+    }, [chatMessages, pinnedMessages, toast]);
     
     const handlePlaceBid = (e: React.MouseEvent) => {
         e.stopPropagation();
@@ -1025,6 +1102,12 @@ export default function StreamPage() {
                             <span className="text-muted-foreground">Current Highest Bid</span>
                             <span className="font-semibold">₹{highestBid.toLocaleString()}</span>
                         </div>
+                        {activeAuction && auctionTime !== null && (
+                            <div className="flex justify-between text-sm font-semibold text-destructive">
+                                <span className="flex items-center gap-2"><Clock className="w-4 h-4"/> Time Remaining</span>
+                                <span>{Math.floor(auctionTime / 60)}:{(auctionTime % 60).toString().padStart(2, '0')}</span>
+                            </div>
+                        )}
                         <div className="space-y-2">
                              <Label htmlFor="bid-amount">Your Bid (Min: ₹{(highestBid + 1).toLocaleString()})</Label>
                              <div className="relative">
@@ -1339,84 +1422,6 @@ const MobileLayout = React.memo(({ handlers, chatMessages, ...props }: any) => {
 });
 MobileLayout.displayName = 'MobileLayout';
 
-function StreamInfo({ seller, streamData, handleFollowToggle, isFollowingState, ...props }: any) {
-    
-    return (
-        <div className="space-y-4">
-            <div className="mb-4">
-                <h2 className="font-bold text-lg">Topic</h2>
-                <div className="text-sm text-muted-foreground mt-1 space-y-4">
-                    <div>{renderWithHashtagsAndLinks(streamData.description || "Welcome to the live stream!")}</div>
-                </div>
-            </div>
-             <div className="flex items-center justify-between gap-2">
-                <Link href={`/seller/profile?userId=${seller.id}`} className="flex items-center gap-3 group flex-grow overflow-hidden">
-                    <Avatar className="h-12 w-12 flex-shrink-0">
-                        <AvatarImage src={seller.avatarUrl} />
-                        <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
-                    </Avatar>
-                    <div className="flex-grow overflow-hidden">
-                        <h3 className="font-semibold truncate group-hover:underline">{seller.name}</h3>
-                        {seller.hasAuction && (
-                            <Badge variant="purple">
-                                <Gavel className="mr-1 h-3 w-3" />
-                                Auction
-                            </Badge>
-                        )}
-                    </div>
-                </Link>
-                 <Button onClick={handleFollowToggle} variant={isFollowingState ? "outline" : "default"} className="flex-shrink-0">
-                    {isFollowingState ? <UserCheck className="mr-2 h-4 w-4" /> : <UserPlus className="mr-2 h-4 w-4" />}
-                    {isFollowingState ? "Following" : "Follow"}
-                </Button>
-            </div>
-            
-            <ProductShelf {...props} />
-        </div>
-    );
-};
-
-function RelatedContent({ relatedStreams }: { relatedStreams: any[] }) {
-    return (
-     <div className="mt-8">
-        <div className="mb-4 flex items-center justify-between">
-        <h4 className="font-semibold">Related Streams</h4>
-        <Button asChild variant="link" size="sm" className="text-xs">
-            <Link href="/live-selling">More</Link>
-        </Button>
-        </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-4 gap-2 sm:gap-4">
-            {relatedStreams.map((s: any) => (
-                <Link href={`/stream/${s.id}`} key={s.id} className="group">
-                    <div className="relative rounded-lg overflow-hidden aspect-[16/9] bg-muted">
-                        <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
-                        <div className="absolute top-2 right-2 z-10"><Badge variant="secondary" className="bg-background/60 backdrop-blur-sm"><Users className="w-3 h-3 mr-1.5" />{s.viewers.toLocaleString()}</Badge></div>
-                    </div>
-                    <div className="flex items-start gap-2 mt-2">
-                        <Avatar className="w-7 h-7">
-                            <AvatarImage src={s.avatarUrl} alt={s.name} />
-                            <AvatarFallback>{s.name.charAt(0)}</AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1 overflow-hidden">
-                            <div className="flex items-center gap-1.5">
-                                <p className="font-semibold text-xs group-hover:underline truncate">{s.name}</p>
-                                {s.hasAuction && (
-                                    <Badge variant="purple" className="text-xs font-bold px-1.5 py-0">
-                                        Auction
-                                    </Badge>
-                                )}
-                            </div>
-                            <p className="text-xs text-muted-foreground">{s.category}</p>
-                            <p className="text-xs text-primary font-semibold mt-0.5">#{s.category.toLowerCase().replace(/\s+/g, '')}</p>
-                        </div>
-                    </div>
-                </Link>
-            ))}
-        </div>
-    </div>
-    )
-};
-
 const ChatPanel = ({
   seller,
   chatMessages,
@@ -1603,6 +1608,9 @@ const ChatPanel = ({
                       return <div key={msg.id} className="text-xs text-center text-[#9AA1A6] italic py-1">{msg.text}</div>
                   }
                   if (!msg.user) return null;
+
+                  const isMyMessage = msg.userId === seller?.uid;
+                  const isSellerMessage = msg.userId === seller?.uid;
                   
                   return (
                      <div key={msg.id} className="flex items-start gap-3 w-full group text-sm animate-message-in">
