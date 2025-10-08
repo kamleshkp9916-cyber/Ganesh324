@@ -1102,8 +1102,8 @@ export default function StreamPage() {
         toast,
         seller: seller,
         handleNewMessageSubmit: handleNewMessageSubmit,
-    }), [onReportStream, onAddToCart, onBuyNow, onBid, onViewBids, toast, handleReply, handleReportMessage, handleTogglePinMessage, handleDeleteMessage, seller, handleNewMessageSubmit]);
-
+    }), [onReportStream, handleAddToCart, handleBuyNow, onBid, onViewBids, toast, handleReply, handleReportMessage, handleTogglePinMessage, handleDeleteMessage, seller, handleNewMessageSubmit]);
+    
     if (isMinimized(streamId)) {
         return (
             <div className="flex h-screen items-center justify-center bg-black">
@@ -1616,7 +1616,6 @@ const ChatPanel = ({
           </Button>
         </div>
       </header>
-       {activeAuction && seller?.hasAuction && <div className="p-3 border-b border-[rgba(255,255,255,0.04)]"><AuctionCard {...{ activeAuction, auctionTime, highestBid, totalBids, handlers }} /></div>}
       <ScrollArea className="flex-grow" ref={chatContainerRef} onScroll={handleManualScroll}>
           <div className="p-3 space-y-2.5">
              {chatMessages.map((msg) => {
@@ -1636,8 +1635,7 @@ const ChatPanel = ({
                          </Avatar>
                           <div className="flex-grow">
                              <p className="leading-relaxed break-words text-sm text-[#E6ECEF]">
-                                 <b className={cn("font-semibold text-xs mr-1.5", msg.isSeller ? "text-yellow-400" : "text-white")}>{msg.user}</b>
-                                 {msg.isSeller && <Badge variant="secondary" className="mr-1.5 text-xs px-1.5 py-0">Seller</Badge>}
+                                 <b className="font-semibold text-xs mr-1.5" style={{ color: msg.userColor || 'inherit' }}>{msg.user}:</b>
                                  <span className="text-sm">
                                     {msg.replyingTo && <span className="text-primary font-semibold mr-1">@{msg.replyingTo}</span>}
                                     {renderWithHashtagsAndLinks(msg.text)}
