@@ -122,7 +122,7 @@ import { useInView } from "react-intersection-observer";
 import { useMiniPlayer } from "@/context/MiniPlayerContext";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { useIsMobile } from "@/hooks/use-is-mobile";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { format, formatDistanceToNow, isThisWeek, isThisYear, parseISO, parse } from 'date-fns';
 
@@ -465,7 +465,7 @@ const renderWithHashtagsAndLinks = (text: string) => {
     });
 };
 
-const MemoizedStreamInfo = React.memo(function StreamInfo({ seller, streamData, handleFollowToggle, isFollowingState, ...props }: any) {
+const StreamInfo = ({ seller, streamData, handleFollowToggle, isFollowingState, ...props }: any) => {
     return (
         <div className="space-y-4">
             <div className="mb-4">
@@ -499,10 +499,9 @@ const MemoizedStreamInfo = React.memo(function StreamInfo({ seller, streamData, 
             <ProductShelf {...props} />
         </div>
     );
-});
-MemoizedStreamInfo.displayName = "MemoizedStreamInfo";
+};
 
-const MemoizedRelatedContent = React.memo(function RelatedContent({ relatedStreams }: { relatedStreams: any[] }) {
+const RelatedContent = ({ relatedStreams }: { relatedStreams: any[] }) => {
     return (
      <div className="mt-8">
         <div className="mb-4 flex items-center justify-between">
@@ -541,8 +540,7 @@ const MemoizedRelatedContent = React.memo(function RelatedContent({ relatedStrea
         </div>
     </div>
     )
-});
-MemoizedRelatedContent.displayName = "MemoizedRelatedContent";
+};
 
 const AuctionCard = React.memo(function AuctionCard({ activeAuction, auctionTime, highestBid, totalBids, handlers }: { activeAuction: any, auctionTime: number | null, highestBid: number, totalBids: number, handlers: any }) {
     const seller = liveSellers.find(s => s.productId === activeAuction?.productId);
@@ -553,15 +551,15 @@ const AuctionCard = React.memo(function AuctionCard({ activeAuction, auctionTime
     const timeRemainingPercent = activeAuction.initialTime > 0 && auctionTime !== null ? (auctionTime / activeAuction.initialTime) * 100 : 0;
     
     return (
-        <Card className="bg-card border-border shadow-lg animate-in fade-in-0">
+        <Card className="bg-black/80 border-border/50 text-white shadow-lg animate-in fade-in-0">
             <CardContent className="p-3">
                 <div className="flex justify-between items-center mb-3">
                     <Badge variant="destructive" className="animate-pulse gap-1.5">
                         <Gavel className="w-3 h-3" /> Live Auction
                     </Badge>
-                    <Badge variant="outline">
+                     <Badge variant="secondary" className="bg-white/10 text-white">
                         <Clock className="w-3 h-3 mr-1.5" />
-                        {auctionTime !== null && auctionTime > 0 ? `${Math.floor(auctionTime / 60)}:${(auctionTime % 60).toString().padStart(2, '0')}` : 'Ended'}
+                        {auctionTime !== null && auctionTime > 0 ? `${String(Math.floor(auctionTime / 60)).padStart(2, '0')}:${String(auctionTime % 60).padStart(2, '0')}` : 'Ended'}
                     </Badge>
                 </div>
                 <div className="flex items-center gap-4 mb-3">
@@ -575,10 +573,10 @@ const AuctionCard = React.memo(function AuctionCard({ activeAuction, auctionTime
                     </div>
                 </div>
                 
-                <Progress value={timeRemainingPercent} className="h-1.5" />
+                <Progress value={timeRemainingPercent} className="h-1.5 bg-white/20" />
                 
                 <div className="mt-3 grid grid-cols-2 gap-2">
-                    <Button variant="secondary" size="sm" className="flex-1" onClick={handlers.onViewBids}>
+                    <Button variant="secondary" size="sm" className="flex-1 bg-white/10 text-white hover:bg-white/20" onClick={handlers.onViewBids}>
                         History ({totalBids} bids)
                     </Button>
                     <Button size="sm" className="font-bold flex-1" onClick={handlers.onBid}>Place Bid</Button>
@@ -1050,20 +1048,11 @@ export default function StreamPage() {
         router.push('/live-selling');
       }
     };
-    
-    const onReportStream = useCallback(() => {
-        setIsReportOpen(true);
+
+    const handleReply = useCallback((msg: any) => {
+        // This is now handled within ChatPanel's state
     }, []);
 
-    const onBid = useCallback(() => {
-        setIsBidDialogOpen(true);
-    }, []);
-
-    const onViewBids = useCallback((e: React.MouseEvent) => {
-        e.stopPropagation();
-        setIsBidHistoryOpen(true);
-    }, []);
-    
     const handleNewMessageSubmit = useCallback((text: string, replyingTo?: { name: string, id: string }) => {
         if (!user) return;
         let messageText = text;
@@ -1080,13 +1069,22 @@ export default function StreamPage() {
         };
         setChatMessages(prev => [...prev, newMessage]);
     }, [user]);
-    
-    const handleReply = useCallback((msg: any) => {
-        // This is now handled within ChatPanel's state
-    }, []);
-    
+
     const handleDeleteMessage = useCallback((msgId: number) => {
         setChatMessages(prev => prev.filter(m => m.id !== msgId));
+    }, []);
+    
+    const onReportStream = useCallback(() => {
+        setIsReportOpen(true);
+    }, []);
+
+    const onBid = useCallback(() => {
+        setIsBidDialogOpen(true);
+    }, []);
+
+    const onViewBids = useCallback((e: React.MouseEvent) => {
+        e.stopPropagation();
+        setIsBidHistoryOpen(true);
     }, []);
     
     const handlers = useMemo(() => ({
@@ -1151,7 +1149,7 @@ export default function StreamPage() {
                         {activeAuction && auctionTime !== null && (
                             <div className="flex justify-between text-sm font-semibold text-destructive">
                                 <span className="flex items-center gap-2"><Clock className="w-4 h-4"/> Time Remaining</span>
-                                <span>{Math.floor(auctionTime / 60)}:{(auctionTime % 60).toString().padStart(2, '0')}</span>
+                                <span>{String(Math.floor(auctionTime / 60)).padStart(2, '0')}:{String(auctionTime % 60).padStart(2, '0')}</span>
                             </div>
                         )}
                         <div className="space-y-2">
@@ -1228,6 +1226,9 @@ export default function StreamPage() {
         </React.Fragment>
     );
 }
+
+const MemoizedStreamInfo = React.memo(StreamInfo);
+const MemoizedRelatedContent = React.memo(RelatedContent);
 
 const DesktopLayout = React.memo(({ handlers, chatMessages, ...props }: any) => {
 return (
@@ -1612,7 +1613,7 @@ const ChatPanel = ({
         </div>
       </header>
       <ScrollArea className="flex-grow" ref={chatContainerRef} onScroll={handleManualScroll}>
-          <div className="p-3 space-y-1">
+          <div className="p-3 space-y-0.5">
              {chatMessages.map((msg) => {
                   if (msg.type === 'system') {
                       return <div key={msg.id} className="text-xs text-center text-[#9AA1A6] italic py-1">{msg.text}</div>
@@ -1623,15 +1624,15 @@ const ChatPanel = ({
                   const isSellerMessage = msg.userId === seller?.uid;
                   
                   return (
-                     <div key={msg.id} className="flex items-start gap-2 w-full group text-sm animate-message-in">
+                     <div key={msg.id} className="flex items-start gap-2.5 w-full group text-sm animate-message-in">
                          <Avatar className="h-6 w-6 mt-0.5 border border-[rgba(255,255,255,0.04)]">
                              <AvatarImage src={msg.avatar} />
                              <AvatarFallback className="bg-gradient-to-br from-red-500 to-yellow-500 text-white font-bold text-xs">{msg.user.charAt(0)}</AvatarFallback>
                          </Avatar>
                           <div className="flex-grow">
-                             <p className="leading-relaxed break-words text-xs text-[#E6ECEF]">
+                             <p className="leading-relaxed break-words text-sm text-[#E6ECEF]">
                                  <b className="font-semibold text-xs mr-1.5" style={{ color: msg.userColor || (isSellerMessage ? 'hsl(var(--primary))' : 'inherit') }}>{msg.user}:</b>
-                                 <span className="text-xs">
+                                 <span className="text-sm">
                                     {msg.replyingTo && <span className="text-primary font-semibold mr-1">@{msg.replyingTo}</span>}
                                     {renderWithHashtagsAndLinks(msg.text)}
                                  </span>
@@ -1640,7 +1641,7 @@ const ChatPanel = ({
                           <DropdownMenu>
                               <DropdownMenuTrigger asChild>
                                   <button className="text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity p-1">
-                                      <MoreVertical className="w-3 h-3" />
+                                      <MoreVertical className="w-4 h-4" />
                                   </button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end">
