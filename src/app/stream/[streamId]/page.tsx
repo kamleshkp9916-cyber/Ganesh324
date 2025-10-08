@@ -464,7 +464,7 @@ const renderWithHashtagsAndLinks = (text: string) => {
     });
 };
 
-const StreamInfo = React.memo(function StreamInfo({ seller, streamData, handleFollowToggle, isFollowingState, ...props }: any) {
+const MemoizedStreamInfo = React.memo(function StreamInfo({ seller, streamData, handleFollowToggle, isFollowingState, ...props }: any) {
     
     return (
         <div className="space-y-4">
@@ -500,8 +500,9 @@ const StreamInfo = React.memo(function StreamInfo({ seller, streamData, handleFo
         </div>
     );
 });
+MemoizedStreamInfo.displayName = "StreamInfo";
 
-const RelatedContent = React.memo(function RelatedContent({ relatedStreams }: { relatedStreams: any[] }) {
+const MemoizedRelatedContent = React.memo(function RelatedContent({ relatedStreams }: { relatedStreams: any[] }) {
     return (
      <div className="mt-8">
         <div className="mb-4 flex items-center justify-between">
@@ -541,6 +542,8 @@ const RelatedContent = React.memo(function RelatedContent({ relatedStreams }: { 
     </div>
     )
 });
+MemoizedRelatedContent.displayName = "RelatedContent";
+
 
 const AuctionCard = React.memo(function AuctionCard({ activeAuction, auctionTime, highestBid, totalBids, handlers }: { activeAuction: any, auctionTime: number | null, highestBid: number, totalBids: number, handlers: any }) {
     const seller = liveSellers.find(s => s.productId === activeAuction?.productId);
@@ -551,13 +554,13 @@ const AuctionCard = React.memo(function AuctionCard({ activeAuction, auctionTime
     const timeRemainingPercent = activeAuction.initialTime > 0 && auctionTime !== null ? (auctionTime / activeAuction.initialTime) * 100 : 0;
     
     return (
-        <Card className="bg-background border-border text-foreground shadow-lg animate-in fade-in-0">
+        <Card className="bg-black/80 border-border/30 text-foreground shadow-lg animate-in fade-in-0">
             <CardContent className="p-3">
                  <div className="flex justify-between items-center mb-3">
-                    <Badge variant="destructive" className="animate-pulse gap-1.5">
+                    <Badge variant="destructive" className="animate-pulse gap-1.5 bg-destructive/80 text-white">
                         <Gavel className="w-3 h-3" /> Live Auction
                     </Badge>
-                     <Badge variant="outline">
+                     <Badge variant="outline" className="bg-black/50 text-white border-white/20">
                         <Clock className="w-3 h-3 mr-1.5" />
                         {auctionTime !== null && auctionTime > 0 ? `${Math.floor(auctionTime / 60)}:${(auctionTime % 60).toString().padStart(2, '0')}` : 'Ended'}
                     </Badge>
@@ -573,10 +576,10 @@ const AuctionCard = React.memo(function AuctionCard({ activeAuction, auctionTime
                     </div>
                 </div>
                 
-                <Progress value={timeRemainingPercent} className="h-1.5" />
+                <Progress value={timeRemainingPercent} className="h-1.5 bg-white/10" />
                 
                 <div className="mt-3 grid grid-cols-2 gap-2">
-                    <Button variant="secondary" size="sm" className="flex-1" onClick={handlers.onViewBids}>
+                    <Button variant="secondary" size="sm" className="flex-1 bg-white/10 text-white hover:bg-white/20" onClick={handlers.onViewBids}>
                         History ({totalBids} bids)
                     </Button>
                     <Button size="sm" className="font-bold flex-1" onClick={handlers.onBid}>Place Bid</Button>
@@ -915,7 +918,7 @@ export default function StreamPage() {
         });
     };
     
-    const handleAddToCart = (product: any) => {
+    const handleAddToCart = useCallback((product: any) => {
       if (product) {
         addToCart({ ...product, quantity: 1 });
         toast({
@@ -923,13 +926,13 @@ export default function StreamPage() {
           description: `'${product.name}' has been added to your shopping cart.`,
         });
       }
-    };
+    }, [toast]);
     
-    const handleBuyNow = (product: any) => {
+    const handleBuyNow = useCallback((product: any) => {
       if (product) {
         router.push(`/cart?buyNow=true&productId=${product.key}`);
       }
-    };
+    }, [router]);
 
     const handleWithdraw = (amount: number, bankAccountId: string) => {
         const selectedAccount = bankAccounts.find(acc => String(acc.id) === bankAccountId);
@@ -958,7 +961,7 @@ export default function StreamPage() {
         });
     };
 
-     const handleTogglePinMessage = (msgId: number) => {
+     const handleTogglePinMessage = useCallback((msgId: number) => {
         const msg = chatMessages.find(m => m.id === msgId);
         if (!msg) return;
 
@@ -999,7 +1002,7 @@ export default function StreamPage() {
             title: pinnedMessages.some(p => p.id === msgId) ? "Message Unpinned" : "Message Pinned",
             description: "The message has been updated in the pinned items."
         });
-    };
+    }, [chatMessages, pinnedMessages, toast]);
     
     const handlePlaceBid = (e: React.MouseEvent) => {
         e.stopPropagation();
@@ -1034,9 +1037,9 @@ export default function StreamPage() {
         toast({ title: 'Bid Placed!', description: `Your bid of ₹${bidValue.toLocaleString()} has been placed.` });
     };
     
-    const handleFollowToggle = () => {
+    const handleFollowToggle = useCallback(() => {
         setIsFollowingState(prev => !prev);
-    };
+    }, []);
 
     const handleMinimize = () => {
       if (streamData && seller) {
@@ -1049,20 +1052,20 @@ export default function StreamPage() {
       }
     };
     
-    const onReportStream = () => {
+    const onReportStream = useCallback(() => {
         setIsReportOpen(true);
-    };
+    }, []);
 
-    const onBid = () => {
+    const onBid = useCallback(() => {
         setIsBidDialogOpen(true);
-    };
+    }, []);
 
-    const onViewBids = (e: React.MouseEvent) => {
+    const onViewBids = useCallback((e: React.MouseEvent) => {
         e.stopPropagation();
         setIsBidHistoryOpen(true);
-    };
+    }, []);
     
-    const handleNewMessageSubmit = (text: string, replyingTo?: { name: string, id: string }) => {
+    const handleNewMessageSubmit = useCallback((text: string, replyingTo?: { name: string, id: string }) => {
         if (!user) return;
         let messageText = text;
         if (replyingTo) {
@@ -1077,17 +1080,17 @@ export default function StreamPage() {
             replyingTo: replyingTo?.name,
         };
         setChatMessages(prev => [...prev, newMessage]);
-    };
+    }, [user]);
     
-    const handleReply = (msg: any) => {
+    const handleReply = useCallback((msg: any) => {
         // This is now handled within ChatPanel's state
-    };
+    }, []);
     
-    const handleDeleteMessage = (msgId: number) => {
+    const handleDeleteMessage = useCallback((msgId: number) => {
         setChatMessages(prev => prev.filter(m => m.id !== msgId));
-    };
+    }, []);
     
-    const handlers = {
+    const handlers = useMemo(() => ({
         onReply: handleReply,
         onTogglePin: handleTogglePinMessage,
         onReportMessage: handleReportMessage,
@@ -1100,7 +1103,7 @@ export default function StreamPage() {
         toast,
         seller: seller,
         handleNewMessageSubmit: handleNewMessageSubmit,
-    };
+    }), [onReportStream, onAddToCart, onBuyNow, onBid, onViewBids, toast, handleReply, handleReportMessage, handleTogglePinMessage, handleDeleteMessage, seller, handleNewMessageSubmit]);
 
     if (isMinimized(streamId)) {
         return (
@@ -1320,8 +1323,8 @@ return (
             </div>
 
             <div className="p-4 space-y-6">
-                <StreamInfo {...props}/>
-                <RelatedContent {...props} />
+                <MemoizedStreamInfo {...props}/>
+                <MemoizedRelatedContent {...props} />
             </div>
         </main>
 
@@ -1343,7 +1346,7 @@ return (
     </div>
 </div>
 )});
-DesktopLayout.displayName = 'DesktopLayout';
+DesktopLayout.displayName = "DesktopLayout";
 
 const MobileLayout = React.memo(({ handlers, chatMessages, ...props }: any) => {
     const { isMuted, setIsMuted, handleGoLive, isLive, formatTime, currentTime, duration, handleShare, handleToggleFullscreen, progressContainerRef, handleProgressClick, isPaused, handlePlayPause, handleSeek, handleMinimize, activeQuality, setActiveQuality } = props;
@@ -1442,8 +1445,8 @@ const MobileLayout = React.memo(({ handlers, chatMessages, ...props }: any) => {
                 {props.mobileView === 'stream' ? (
                      <ScrollArea className="h-full no-scrollbar">
                         <div className="p-4 space-y-6">
-                             <StreamInfo {...props}/>
-                            <RelatedContent {...props}/>
+                             <MemoizedStreamInfo {...props}/>
+                            <MemoizedRelatedContent {...props}/>
                         </div>
                     </ScrollArea>
                 ) : (
@@ -1617,22 +1620,20 @@ const ChatPanel = ({
                       return <div key={msg.id} className="text-xs text-center text-[#9AA1A6] italic py-1">{msg.text}</div>
                   }
                   if (!msg.user) return null;
-
-                  const isMyMessage = msg.userId === seller?.uid;
-                  const isSellerMessage = msg.userId === seller?.uid;
                   
                   return (
                      <div key={msg.id} className="flex items-start gap-3 w-full group text-sm animate-message-in">
                          <Avatar className="h-9 w-9 mt-0.5 border border-[rgba(255,255,255,0.04)]">
                              <AvatarImage src={msg.avatar} />
-                             <AvatarFallback className="bg-gradient-to-br from-red-500 to-yellow-500 text-white font-bold">{msg.user.charAt(0)}</AvatarFallback>
+                             <AvatarFallback className="bg-transparent text-white font-bold">{msg.user.charAt(0)}</AvatarFallback>
                          </Avatar>
                           <div className="flex-grow">
                              <p className="leading-relaxed break-words text-sm text-[#E6ECEF]">
-                                 <b className="font-semibold text-xs mr-1.5" style={{ color: msg.userColor || 'inherit' }}>{msg.user}:</b>
+                                 <b className={cn("font-semibold text-xs mr-1.5", msg.isSeller ? "text-yellow-400" : "text-white")}>{msg.user}</b>
+                                 {msg.isSeller && <Badge variant="secondary" className="mr-1.5 text-xs px-1.5 py-0">Seller</Badge>}
                                  <span className="text-sm">
-                                    {msg.replyingTo && <span className="text-primary font-semibold mr-1">@{msg.replyingTo}</span>}
-                                    {msg.text}
+                                    {msg.replyingTo && <span className="text-primary font-semibold mr-1">{msg.replyingTo}</span>}
+                                    {renderWithHashtagsAndLinks(msg.text)}
                                  </span>
                              </p>
                           </div>
