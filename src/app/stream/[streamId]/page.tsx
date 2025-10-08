@@ -465,7 +465,7 @@ const renderWithHashtagsAndLinks = (text: string) => {
     });
 };
 
-function StreamInfo({ seller, streamData, handleFollowToggle, isFollowingState, ...props }: any) {
+const StreamInfo = ({ seller, streamData, handleFollowToggle, isFollowingState, ...props }: any) => {
     
     return (
         <div className="space-y-4">
@@ -503,7 +503,7 @@ function StreamInfo({ seller, streamData, handleFollowToggle, isFollowingState, 
 };
 const MemoizedStreamInfo = React.memo(StreamInfo);
 
-function RelatedContent({ relatedStreams }: { relatedStreams: any[] }) {
+const RelatedContent = ({ relatedStreams }: { relatedStreams: any[] }) => {
     return (
      <div className="mt-8">
         <div className="mb-4 flex items-center justify-between">
@@ -544,6 +544,50 @@ function RelatedContent({ relatedStreams }: { relatedStreams: any[] }) {
     )
 };
 const MemoizedRelatedContent = React.memo(RelatedContent);
+
+const AuctionCard = ({ activeAuction, auctionTime, highestBid, totalBids, handlers }: { activeAuction: any, auctionTime: number | null, highestBid: number, totalBids: number, handlers: any }) => {
+    const seller = liveSellers.find(s => s.productId === activeAuction?.productId);
+    if (!activeAuction || !seller?.hasAuction) return null;
+    const product = productDetails[activeAuction.productId as keyof typeof productDetails];
+    if (!product) return null;
+
+    const timeRemainingPercent = activeAuction.initialTime > 0 && auctionTime !== null ? (auctionTime / activeAuction.initialTime) * 100 : 0;
+    
+    return (
+        <Card className="bg-gradient-to-br from-purple-900 to-red-900 border-purple-500/50 text-white shadow-2xl animate-in fade-in-0">
+            <CardContent className="p-3">
+                <div className="flex justify-between items-center mb-2">
+                    <Badge variant="secondary" className="border-none bg-purple-400/20 text-purple-200 animate-pulse gap-1.5">
+                        <Gavel className="w-3 h-3" /> Live Auction
+                    </Badge>
+                     <Badge variant="secondary" className="border-none bg-red-400/20 text-red-200">
+                        <Clock className="w-3 h-3 mr-1.5" />
+                        {auctionTime !== null ? `${Math.floor(auctionTime / 60)}:${(auctionTime % 60).toString().padStart(2, '0')}` : 'Ended'}
+                    </Badge>
+                </div>
+                 <div className="flex items-center gap-3 mb-3">
+                    <Image src={product.images[0]} alt={product.name} width={56} height={56} className="rounded-md border-2 border-white/10" />
+                    <div className="flex-grow">
+                        <p className="font-semibold text-sm leading-tight truncate">{product.name}</p>
+                        <div className="text-xs text-gray-300">
+                             Current Bid:
+                        </div>
+                         <p className="font-bold text-2xl text-yellow-300">₹{highestBid.toLocaleString()}</p>
+                    </div>
+                </div>
+                
+                <Progress value={timeRemainingPercent} className="h-1 bg-white/20" indicatorClassName="bg-yellow-400" />
+                
+                <div className="mt-3 grid grid-cols-2 gap-2">
+                    <Button variant="ghost" size="sm" className="bg-white/10 hover:bg-white/20 text-white flex-1" onClick={handlers.onViewBids}>
+                        History ({totalBids} bids)
+                    </Button>
+                    <Button size="sm" className="bg-yellow-400 hover:bg-yellow-500 text-black font-bold flex-1" onClick={handlers.onBid}>Place Bid</Button>
+                </div>
+            </CardContent>
+        </Card>
+    );
+};
 
 export default function StreamPage() {
     const router = useRouter();
@@ -586,8 +630,10 @@ export default function StreamPage() {
         if (streams.length > 50) {
             return streams.slice(0, 51);
         }
+        // Fallback to show some streams if none match the category, excluding the current one
         const fallbackStreams = liveSellers.filter(s => s.id !== streamId);
         
+        // Add from fallback until we have 6 total, avoiding duplicates
         let i = 0;
         while(streams.length < 6 && i < fallbackStreams.length) {
             if (!streams.some(s => s.id === fallbackStreams[i].id)) {
@@ -1056,7 +1102,7 @@ export default function StreamPage() {
         toast,
         seller: seller,
         handleNewMessageSubmit: handleNewMessageSubmit,
-    }), [onReportStream, handleAddToCart, handleBuyNow, onBid, onViewBids, toast, handleReply, handleReportMessage, handleTogglePinMessage, handleDeleteMessage, seller, handleNewMessageSubmit]);
+    }), [onReportStream, onBid, onViewBids, toast, handleReply, handleReportMessage, handleTogglePinMessage, handleDeleteMessage, seller, handleNewMessageSubmit, handleAddToCart, handleBuyNow]);
 
     if (isMinimized(streamId)) {
         return (
@@ -1453,7 +1499,6 @@ const ChatPanel = ({
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const { user } = useAuth();
   
   const handleAutoScroll = useCallback((behavior: 'smooth' | 'auto' = 'smooth') => {
     messagesEndRef.current?.scrollIntoView({ behavior });
@@ -1487,40 +1532,6 @@ const ChatPanel = ({
     setReplyingTo({ name: msg.user, id: msg.userId });
     textareaRef.current?.focus();
   }
-
-  const AuctionCard = ({ activeAuction, auctionTime, highestBid, totalBids, handlers }: { activeAuction: any, auctionTime: number | null, highestBid: number, totalBids: number, handlers: any }) => {
-    if (!activeAuction || !seller?.hasAuction) return null;
-    const product = productDetails[activeAuction.productId as keyof typeof productDetails];
-    if (!product) return null;
-
-    return (
-        <Card className="bg-gradient-to-br from-purple-900/50 to-primary/30 border-primary/30 text-white">
-            <CardContent className="p-3">
-                <div className="flex items-center gap-3">
-                    <Image src={product.images[0]} alt={product.name} width={64} height={64} className="rounded-md" />
-                    <div className="flex-grow">
-                        <div className="flex justify-between items-center">
-                            <Badge variant="purple"><Gavel className="w-3 h-3 mr-1.5" /> Live Auction</Badge>
-                            <Badge variant="destructive" className="animate-pulse">
-                                <Clock className="w-3 h-3 mr-1.5" />
-                                {auctionTime !== null ? `${Math.floor(auctionTime / 60)}:${(auctionTime % 60).toString().padStart(2, '0')}` : 'Ended'}
-                            </Badge>
-                        </div>
-                        <p className="font-semibold text-sm mt-2 truncate">{product.name}</p>
-                        <div className="flex items-baseline gap-2 text-xs">
-                             <p>Current Bid: <span className="font-bold text-lg text-primary">₹{highestBid.toLocaleString()}</span></p>
-                             <p className="text-muted-foreground">({totalBids} bids)</p>
-                        </div>
-                    </div>
-                </div>
-                 <div className="mt-3 flex gap-2">
-                    <Button variant="outline" size="sm" className="flex-1" onClick={handlers.onViewBids}>View Bids</Button>
-                    <Button size="sm" className="flex-1" onClick={handlers.onBid}>Place Bid</Button>
-                </div>
-            </CardContent>
-        </Card>
-    );
-  };
 
   return (
     <div className='h-full flex flex-col bg-[#0b0b0c]'>
