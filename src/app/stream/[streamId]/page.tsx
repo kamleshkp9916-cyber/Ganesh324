@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import {
@@ -1092,8 +1093,8 @@ export default function StreamPage() {
         onReportMessage: handleReportMessage,
         onDeleteMessage: handleDeleteMessage,
         onReportStream,
-        onAddToCart: handleAddToCart,
-        onBuyNow: handleBuyNow,
+        onAddToCart,
+        onBuyNow,
         onBid,
         onViewBids,
         toast,
@@ -1611,36 +1612,37 @@ const ChatPanel = ({
           </Button>
         </div>
       </header>
-
-      {activeAuction && seller?.hasAuction && auctionTime && auctionTime > 0 && (
-          <div className="p-3 border-b border-[rgba(255,255,255,0.04)] sticky top-16 z-10 bg-[#0f1113]/80 backdrop-blur-sm">
-              <AuctionCard
-                  activeAuction={activeAuction}
-                  auctionTime={auctionTime}
-                  highestBid={highestBid}
-                  totalBids={totalBids}
-                  handlers={handlers}
-              />
-          </div>
-      )}
+        <div className="p-3 border-b border-[rgba(255,255,255,0.04)] sticky top-16 z-10 bg-[#0f1113]/80 backdrop-blur-sm">
+            <div className="flex items-start gap-2.5 w-full group text-sm my-2">
+                <Avatar className="h-9 w-9 mt-0.5 border border-[rgba(255,255,255,0.04)]">
+                    <AvatarImage src={seller.avatarUrl} />
+                    <AvatarFallback className="bg-gradient-to-br from-red-500 to-yellow-500 text-white font-bold text-xs">{seller.name.charAt(0)}</AvatarFallback>
+                </Avatar>
+                <div className="leading-relaxed break-words text-sm text-[#E6ECEF]">
+                    <div className="flex items-center gap-1.5">
+                       <span className="font-semibold text-yellow-400 text-sm">{seller.name}</span>
+                       <Badge variant="secondary" className="text-xs px-1.5 py-0">Seller</Badge>
+                    </div>
+                    <span className="text-sm">
+                        Welcome to the stream! Feel free to ask any questions.
+                    </span>
+                </div>
+            </div>
+            {activeAuction && seller?.hasAuction && auctionTime && auctionTime > 0 && (
+                <div className="mt-2">
+                    <AuctionCard
+                        activeAuction={activeAuction}
+                        auctionTime={auctionTime}
+                        highestBid={highestBid}
+                        totalBids={totalBids}
+                        handlers={handlers}
+                    />
+                </div>
+            )}
+        </div>
 
       <ScrollArea className="flex-grow" ref={chatContainerRef} onScroll={handleManualScroll}>
           <div className="p-3 space-y-2.5">
-               <div className="flex items-start gap-2.5 w-full group text-sm my-2">
-                  <Avatar className="h-9 w-9 mt-0.5 border border-[rgba(255,255,255,0.04)]">
-                      <AvatarImage src={seller.avatarUrl} />
-                      <AvatarFallback className="bg-gradient-to-br from-red-500 to-yellow-500 text-white font-bold text-xs">{seller.name.charAt(0)}</AvatarFallback>
-                  </Avatar>
-                  <div className="leading-relaxed break-words text-sm text-[#E6ECEF]">
-                      <span className="font-semibold text-yellow-400 text-xs mr-1.5 flex items-center gap-1.5">
-                          {seller.name}
-                          <Badge variant="secondary" className="text-xs px-1.5 py-0">Seller</Badge>
-                      </span>
-                      <span className="text-sm">
-                          Welcome to the stream! Feel free to ask any questions.
-                      </span>
-                  </div>
-              </div>
              {chatMessages.map((msg) => {
                   if (msg.type === 'system') {
                       return <div key={msg.id} className="text-xs text-center text-[#9AA1A6] italic py-1">{msg.text}</div>
