@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import {
@@ -1050,7 +1049,7 @@ export default function StreamPage() {
         e.stopPropagation();
         setIsBidHistoryOpen(true);
     }, []);
-
+    
     const handleAddToCart = useCallback((product: any) => {
         if (product) {
           addToCart({ ...product, quantity: 1 });
@@ -1062,9 +1061,9 @@ export default function StreamPage() {
       }, [toast]);
       
     const handleBuyNow = useCallback((product: any) => {
-    if (product) {
-        router.push(`/cart?buyNow=true&productId=${product.key}`);
-    }
+        if (product) {
+            router.push(`/cart?buyNow=true&productId=${product.key}`);
+        }
     }, [router]);
     
     const handlers = useMemo(() => ({
@@ -1503,11 +1502,6 @@ const ChatPanel = ({
     e.preventDefault();
     if (!newMessage.trim()) return;
     
-    let messageToSend = newMessage;
-    if (replyingTo) {
-      messageToSend = `@${replyingTo.name.split(' ')[0]} ${newMessage}`;
-    }
-
     handlers.handleNewMessageSubmit(newMessage, replyingTo);
 
     setNewMessage("");
