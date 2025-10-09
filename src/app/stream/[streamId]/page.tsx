@@ -436,8 +436,8 @@ const ProductPromoCard = ({ msg, handlers }: { msg: any, handlers: any }) => {
                     <h4 className="font-semibold text-sm leading-tight">{product.name}</h4>
                     <p className="font-bold text-lg">{product.price}</p>
                     <div className="flex gap-2 mt-2">
-                        <Button size="sm" variant="outline" className="text-xs h-7 flex-1" onClick={() => handlers.onAddToCart(product)}><ShoppingCart className="w-3 h-3 mr-1" /> Cart</Button>
-                        <Button size="sm" className="text-xs h-7 flex-1" onClick={() => handlers.onBuyNow(product)}>Buy Now</Button>
+                        <Button size="sm" variant="outline" className="text-xs h-7 flex-1" onClick={() => handlers.handleAddToCart(product)}><ShoppingCart className="w-3 h-3 mr-1" /> Cart</Button>
+                        <Button size="sm" className="text-xs h-7 flex-1" onClick={() => handlers.handleBuyNow(product)}>Buy Now</Button>
                     </div>
                 </div>
             </Card>
@@ -914,42 +914,6 @@ export default function StreamPage() {
         });
     }, [toast]);
     
-    const handleAddToCart = useCallback((product: any) => {
-      if (product) {
-        addToCart({ ...product, quantity: 1 });
-        toast({
-          title: "Added to Cart!",
-          description: `'${product.name}' has been added to your shopping cart.`,
-        });
-      }
-    }, [toast]);
-    
-    const handleBuyNow = useCallback((product: any) => {
-      if (product) {
-        router.push(`/cart?buyNow=true&productId=${product.key}`);
-      }
-    }, [router]);
-
-
-    const handleWithdraw = (amount: number, bankAccountId: string) => {
-        const selectedAccount = bankAccounts.find(acc => String(acc.id) === bankAccountId);
-        const cashAvailable = walletBalance - 2640; // Mock blocked margin
-        if (amount > cashAvailable) {
-           toast({
-               variant: 'destructive',
-               title: 'Insufficient Balance',
-               description: 'You do not have enough funds to complete this withdrawal.'
-           });
-           return;
-        }
-        setWalletBalance(prev => prev - amount);
-        toast({
-           title: "Withdrawal Initiated!",
-           description: `₹${amount} is on its way to ${selectedAccount?.bankName}.`,
-       });
-        setIsWithdrawOpen(false);
-     };
-    
     const handleShare = () => {
         navigator.clipboard.writeText(window.location.href);
         toast({
@@ -1086,6 +1050,22 @@ export default function StreamPage() {
         e.stopPropagation();
         setIsBidHistoryOpen(true);
     }, []);
+
+    const handleAddToCart = useCallback((product: any) => {
+        if (product) {
+          addToCart({ ...product, quantity: 1 });
+          toast({
+            title: "Added to Cart!",
+            description: `'${product.name}' has been added to your shopping cart.`,
+          });
+        }
+      }, [toast]);
+      
+      const handleBuyNow = useCallback((product: any) => {
+        if (product) {
+          router.push(`/cart?buyNow=true&productId=${product.key}`);
+        }
+      }, [router]);
     
     const handlers = useMemo(() => ({
         onReply: handleReply,
@@ -1592,7 +1572,7 @@ const ChatPanel = ({
                         </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                        <DropdownMenuItem onSelect={handlers.onReportStream}>
+                         <DropdownMenuItem onSelect={handlers.onReportStream}>
                             <Flag className="mr-2 h-4 w-4" /> Report Stream
                         </DropdownMenuItem>
                         <FeedbackDialog>
@@ -1610,37 +1590,37 @@ const ChatPanel = ({
                 </Button>
             </div>
         </header>
-        <div className="p-3 border-b border-[rgba(255,255,255,0.04)] sticky top-16 z-10 bg-[#0f1113]/80 backdrop-blur-sm">
-            <div className="flex items-start gap-2.5 w-full group text-sm my-2">
-                <Avatar className="h-9 w-9 mt-0.5 border border-[rgba(255,255,255,0.04)]">
-                    <AvatarImage src={seller.avatarUrl} />
-                    <AvatarFallback className="bg-gradient-to-br from-red-500 to-yellow-500 text-white font-bold text-xs">{seller.name.charAt(0)}</AvatarFallback>
-                </Avatar>
-                <div className="leading-relaxed break-words text-sm text-[#E6ECEF]">
-                    <div className="flex items-center gap-1.5">
-                       <span className="font-semibold text-yellow-400 text-sm">{seller.name}</span>
-                       <Badge variant="secondary" className="text-xs px-1.5 py-0">Seller</Badge>
-                    </div>
-                    <div className="text-sm">
-                        Welcome to the stream! Feel free to ask any questions.
-                    </div>
-                </div>
-            </div>
-            {activeAuction && seller?.hasAuction && auctionTime && auctionTime > 0 && (
-                <div className="mt-2">
-                    <AuctionCard
-                        activeAuction={activeAuction}
-                        auctionTime={auctionTime}
-                        highestBid={highestBid}
-                        totalBids={totalBids}
-                        handlers={handlers}
-                    />
-                </div>
-            )}
-        </div>
 
       <ScrollArea className="flex-grow" ref={chatContainerRef} onScroll={handleManualScroll}>
           <div className="p-3 space-y-2.5">
+             <div className="p-3 border-b border-[rgba(255,255,255,0.04)] sticky top-0 z-10 bg-[#0b0b0c] -mt-2 -mx-3 mb-2">
+                <div className="flex items-start gap-2.5 w-full group text-sm my-2">
+                    <Avatar className="h-9 w-9 mt-0.5 border border-[rgba(255,255,255,0.04)]">
+                        <AvatarImage src={seller.avatarUrl} />
+                        <AvatarFallback className="bg-gradient-to-br from-red-500 to-yellow-500 text-white font-bold text-xs">{seller.name.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                    <div className="leading-relaxed break-words text-sm text-[#E6ECEF]">
+                        <div className="flex items-center gap-1.5">
+                           <span className="font-semibold text-yellow-400 text-sm">{seller.name}</span>
+                           <Badge variant="secondary" className="text-xs px-1.5 py-0">Seller</Badge>
+                        </div>
+                        <div className="text-sm">
+                            Welcome to the stream! Feel free to ask any questions.
+                        </div>
+                    </div>
+                </div>
+                {activeAuction && seller?.hasAuction && auctionTime && auctionTime > 0 && (
+                    <div className="mt-2">
+                        <AuctionCard
+                            activeAuction={activeAuction}
+                            auctionTime={auctionTime}
+                            highestBid={highestBid}
+                            totalBids={totalBids}
+                            handlers={handlers}
+                        />
+                    </div>
+                )}
+            </div>
              {chatMessages.map((msg) => {
                   if (msg.type === 'system') {
                       return <div key={msg.id} className="text-xs text-center text-[#9AA1A6] italic py-1">{msg.text}</div>
@@ -1769,4 +1749,4 @@ const ChatPanel = ({
         </footer>
     </div>
   );
-}
+};
