@@ -1040,7 +1040,7 @@ export default function StreamPage() {
     const onReportStream = useCallback(() => {
         setIsReportOpen(true);
     }, []);
-
+    
     const handleAddToCart = useCallback((product: any) => {
         if (product) {
           addToCart({ ...product, quantity: 1 });
@@ -1079,7 +1079,7 @@ export default function StreamPage() {
         toast,
         seller,
         handleNewMessageSubmit,
-    }), [onReportStream, handleAddToCart, onBuyNow, onBid, onViewBids, toast, handleReply, handleReportMessage, handleTogglePinMessage, handleDeleteMessage, seller, handleNewMessageSubmit]);
+    }), [onReportStream, handleAddToCart, handleBuyNow, onBid, onViewBids, toast, handleReply, handleReportMessage, handleTogglePinMessage, handleDeleteMessage, seller, handleNewMessageSubmit]);
     
     if (isMinimized(streamId)) {
         return (
@@ -1515,8 +1515,85 @@ const ChatPanel = ({
 
   return (
     <div className='h-full flex flex-col bg-[#0b0b0c]'>
-        <div className="p-3 border-b border-[rgba(255,255,255,0.04)] sticky top-16 z-10 bg-[#0f1113]/80 backdrop-blur-sm">
-            <div className="flex items-start gap-2.5 w-full group text-sm my-2">
+      <header className="p-3 flex items-center justify-between z-10 flex-shrink-0 h-16 border-b border-[rgba(255,255,255,0.04)] sticky top-0 bg-[#0f1113]/80 backdrop-blur-sm">
+        <h3 className="font-bold text-lg text-white">Live Chat</h3>
+        <div className="flex items-center gap-1">
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-8 w-8 relative text-muted-foreground hover:text-white">
+                <Pin className="h-5 w-5" />
+                {pinnedMessages && pinnedMessages.length > 0 && <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-primary" />}
+              </Button>
+            </PopoverTrigger>
+             <PopoverContent align="end" className="w-80 bg-[#141516] border-gray-800 text-white p-0">
+                <div className="p-3 border-b border-gray-700">
+                    <h4 className="font-semibold text-sm flex items-center gap-2">
+                        <Pin className="h-4 w-4" /> Pinned Items
+                    </h4>
+                </div>
+                 <ScrollArea className="h-80">
+                     <div className="p-3 space-y-3">
+                        {pinnedMessages && pinnedMessages.length > 0 ? (
+                            pinnedMessages.map((item) => (
+                                <div key={item.id} className="text-xs p-2 rounded-md bg-white/5">
+                                    {item.type === 'message' && (
+                                        <>
+                                            <p className="font-bold text-primary">{item.user}</p>
+                                            <p>{item.text}</p>
+                                        </>
+                                    )}
+                                    {item.type === 'offer' && (
+                                        <>
+                                            <p className="font-bold text-primary">{item.title}</p>
+                                            <p>{item.description}</p>
+                                        </>
+                                    )}
+                                    {item.type === 'product' && (
+                                        <div className="flex items-center gap-2">
+                                            <Image src={item.product.images[0]} alt={item.product.name} width={40} height={40} className="rounded-md" />
+                                            <div>
+                                                <p className="font-semibold">{item.product.name}</p>
+                                                <p className="font-bold text-primary">{item.product.price}</p>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            ))
+                        ) : (
+                            <p className="text-center text-muted-foreground text-xs py-4">Pinned items will appear here.</p>
+                        )}
+                    </div>
+                 </ScrollArea>
+            </PopoverContent>
+          </Popover>
+          <DropdownMenu>
+             <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-white">
+                    <MoreVertical className="h-5 w-5" />
+                </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+                 <DropdownMenuItem onSelect={handlers.onReportStream}>
+                    <Flag className="mr-2 h-4 w-4" /> Report Stream
+                </DropdownMenuItem>
+                <FeedbackDialog>
+                    <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                        <MessageCircle className="mr-2 h-4 w-4" />Feedback
+                    </DropdownMenuItem>
+                </FeedbackDialog>
+                <DropdownMenuItem>
+                    <LifeBuoy className="mr-2 h-4 w-4" />Help
+                </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-white lg:hidden" onClick={onClose}>
+            <X className="h-5 w-5" />
+          </Button>
+        </div>
+      </header>
+      <ScrollArea className="flex-grow" ref={chatContainerRef} onScroll={handleManualScroll}>
+          <div className="p-3 space-y-2.5">
+             <div className="flex items-start gap-2.5 w-full group text-sm my-2">
                 <Avatar className="h-9 w-9 mt-0.5 border border-[rgba(255,255,255,0.04)]">
                     <AvatarImage src={seller.avatarUrl} />
                     <AvatarFallback className="bg-gradient-to-br from-red-500 to-yellow-500 text-white font-bold text-xs">{seller.name.charAt(0)}</AvatarFallback>
@@ -1529,9 +1606,6 @@ const ChatPanel = ({
                     <div className="text-sm text-[#E6ECEF]">Welcome to the stream! Feel free to ask any questions.</div>
                 </div>
             </div>
-        </div>
-      <ScrollArea className="flex-grow" ref={chatContainerRef} onScroll={handleManualScroll}>
-          <div className="p-3 space-y-2.5">
              {chatMessages.map((msg) => {
                   if (msg.type === 'system') {
                       return <div key={msg.id} className="text-xs text-center text-[#9AA1A6] italic py-1">{msg.text}</div>
