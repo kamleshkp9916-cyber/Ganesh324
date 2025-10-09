@@ -1616,8 +1616,21 @@ const ChatPanel = ({
           </Button>
         </div>
       </header>
+
+      {activeAuction && seller?.hasAuction && auctionTime && auctionTime > 0 && (
+          <div className="p-3 border-b border-[rgba(255,255,255,0.04)] sticky top-16 z-10 bg-[#0f1113]/80 backdrop-blur-sm">
+              <AuctionCard
+                  activeAuction={activeAuction}
+                  auctionTime={auctionTime}
+                  highestBid={highestBid}
+                  totalBids={totalBids}
+                  handlers={handlers}
+              />
+          </div>
+      )}
+
       <ScrollArea className="flex-grow" ref={chatContainerRef} onScroll={handleManualScroll}>
-          <div className="p-3 space-y-2.5">
+          <div className="p-3 space-y-1">
              <div className="flex items-start gap-2.5 w-full group text-sm my-2">
                   <Avatar className="h-8 w-8 mt-0.5 border border-[rgba(255,255,255,0.04)]">
                       <AvatarImage src={seller.avatarUrl} />
@@ -1625,7 +1638,7 @@ const ChatPanel = ({
                   </Avatar>
                   <div className="flex-grow">
                       <div className="leading-relaxed break-words text-sm text-[#E6ECEF]">
-                          <span className="font-semibold text-yellow-400 text-sm mr-1.5 flex items-center gap-1.5">
+                          <span className="font-semibold text-yellow-400 text-xs mr-1.5 flex items-center gap-1.5">
                               {seller.name}
                               <Badge variant="secondary" className="text-xs px-1.5 py-0">Seller</Badge>
                           </span>
@@ -1637,8 +1650,34 @@ const ChatPanel = ({
               </div>
              {chatMessages.map((msg) => {
                   if (msg.type === 'system') {
-                      return <div key={msg.id} className="text-xs text-center text-[#9AA1A6] italic py-1">{msg.text}</div>
+                      return <div key={msg.id} className="text-[11px] text-center text-[#9AA1A6] italic py-1">{msg.text}</div>
                   }
+                   if (msg.type === 'auction_end') {
+                       return (
+                           <Card key={msg.id} className="bg-muted/10 border-border/30 my-2">
+                               <CardHeader className="p-3">
+                                   <CardTitle className="text-base flex items-center justify-between">
+                                       <span>Auction Ended</span>
+                                        <Badge variant="outline">Expired</Badge>
+                                   </CardTitle>
+                                   <CardDescription className="text-xs">The auction for {msg.productName} has finished.</CardDescription>
+                               </CardHeader>
+                               <CardContent className="p-3 pt-0">
+                                   <div className="flex items-center gap-2 text-sm">
+                                       <Award className="w-5 h-5 text-yellow-500"/>
+                                       <div>
+                                           <p className="text-xs text-muted-foreground">Winner</p>
+                                           <p className="font-semibold">{msg.winner}</p>
+                                       </div>
+                                       <div className="ml-auto text-right">
+                                           <p className="text-xs text-muted-foreground">Winning Bid</p>
+                                           <p className="font-bold text-lg text-primary">{msg.winningBid}</p>
+                                       </div>
+                                   </div>
+                               </CardContent>
+                           </Card>
+                       )
+                   }
                   if (!msg.user) return null;
 
                   const isMyMessage = msg.userId === seller?.uid;
@@ -1652,8 +1691,8 @@ const ChatPanel = ({
                          </Avatar>
                           <div className="flex-grow">
                              <div className="leading-relaxed break-words text-sm text-[#E6ECEF]">
-                                 <b className="font-semibold text-xs mr-1.5" style={{ color: msg.userColor || 'inherit' }}>{msg.user}:</b>
-                                 <span className="text-sm">
+                                 <b className={cn("font-semibold text-xs mr-1.5", isSellerMessage && 'text-yellow-400')}>{msg.user}:</b>
+                                 <span className="text-xs">
                                     {msg.replyingTo && <span className="text-primary font-semibold mr-1">@{msg.replyingTo}</span>}
                                     {renderWithHashtagsAndLinks(msg.text)}
                                  </span>
