@@ -1099,7 +1099,7 @@ export default function StreamPage() {
         toast,
         seller,
         handleNewMessageSubmit,
-    }), [onReportStream, onAddToCart, onBuyNow, onBid, onViewBids, toast, handleReply, handleReportMessage, handleTogglePinMessage, handleDeleteMessage, seller, handleNewMessageSubmit]);
+    }), [onReportStream, handleAddToCart, onBuyNow, onBid, onViewBids, toast, handleReply, handleReportMessage, handleTogglePinMessage, handleDeleteMessage, seller, handleNewMessageSubmit]);
     
     if (isMinimized(streamId)) {
         return (
@@ -1630,7 +1630,7 @@ const ChatPanel = ({
       )}
 
       <ScrollArea className="flex-grow" ref={chatContainerRef} onScroll={handleManualScroll}>
-          <div className="p-3 space-y-2">
+          <div className="p-3 space-y-2.5">
                <div className="flex items-start gap-2.5 w-full group text-sm my-2">
                   <Avatar className="h-6 w-6 mt-0.5 border border-[rgba(255,255,255,0.04)]">
                       <AvatarImage src={seller.avatarUrl} />
@@ -1689,10 +1689,10 @@ const ChatPanel = ({
                          </Avatar>
                           <div className="flex-grow">
                              <div className="leading-relaxed break-words text-sm text-[#E6ECEF]">
-                                 <b className={cn("font-semibold text-xs mr-1.5", isSellerMessage && 'text-yellow-400')} style={{ color: msg.userColor || (isSellerMessage ? '' : 'inherit') }}>{msg.user}:</b>
-                                 <span className="text-xs">
+                                 <b className="font-semibold text-xs mr-1.5" style={{ color: msg.userColor || 'inherit' }}>{msg.user}:</b>
+                                 <span className="text-sm">
                                     {msg.replyingTo && <span className="text-primary font-semibold mr-1">@{msg.replyingTo}</span>}
-                                    {renderWithHashtagsAndLinks(msg.text)}
+                                    {msg.text}
                                  </span>
                              </div>
                           </div>
@@ -1774,4 +1774,6 @@ const ChatPanel = ({
         </footer>
     </div>
   );
-};
+}
+
+    
