@@ -191,14 +191,13 @@ const mockChatMessages: any[] = [
     { id: 23, user: 'Noah', text: 'BID ₹9,600', avatar: 'https://placehold.co/40x40.png?text=N', userId: 'user14', isBid: true },
     { id: 24, user: 'Sophia', text: 'Great stream! Thanks!', avatar: 'https://placehold.co/40x40.png?text=S', userId: 'user15' },
     { id: 25, user: 'Ganesh', text: 'Replying to @FashionFinds: That sounds great! Thanks!', avatar: 'https://placehold.co/40x40.png', userId: 'user1', replyingTo: 'FashionFinds' },
-    { id: 26, isSeller: true, text: "Welcome to the stream, everyone! Today we have some amazing deals. #welcome", avatar: 'https://placehold.co/40x40.png', userId: '1' },
-    { id: 27, isSeller: true, text: "Hey Alex, it's 100% genuine leather! https://example.com/leather-info", avatar: 'https://placehold.co/40x40.png', userId: '1' },
-    { id: 28, isSeller: true, text: 'Yes David, we offer international shipping!', avatar: 'https://placehold.co/40x40.png', userId: '1' },
-    { id: 29, isSeller: true, text: '@Emily It lasts for about a year with average use!', avatar: 'https://placehold.co/40x40.png', userId: '1' },
-    { id: 30, isSeller: true, text: 'Sure thing, Ganesh! Here is a view of the back.', avatar: 'https://placehold.co/40x40.png', userId: '1' },
-    { id: 31, isSeller: true, text: 'Welcome Chloe! We just finished an auction, but we have more exciting products coming up. Stick around!', avatar: 'https://placehold.co/40x40.png', userId: '1' },
-    { id: 32, isSeller: true, text: 'This is a seller message for UI testing purposes. https://google.com', avatar: 'https://placehold.co/40x40.png', userId: '1' },
-    { id: 33, type: 'system', text: 'Michael joined the stream.' },
+    { id: 26, isSeller: true, text: "Hey Alex, it's 100% genuine leather! https://example.com/leather-info", avatar: 'https://placehold.co/40x40.png', userId: '1' },
+    { id: 27, isSeller: true, text: 'Yes David, we offer international shipping!', avatar: 'https://placehold.co/40x40.png', userId: '1' },
+    { id: 28, isSeller: true, text: '@Emily It lasts for about a year with average use!', avatar: 'https://placehold.co/40x40.png', userId: '1' },
+    { id: 29, isSeller: true, text: 'Sure thing, Ganesh! Here is a view of the back.', avatar: 'https://placehold.co/40x40.png', userId: '1' },
+    { id: 30, isSeller: true, text: 'Welcome Chloe! We just finished an auction, but we have more exciting products coming up. Stick around!', avatar: 'https://placehold.co/40x40.png', userId: '1' },
+    { id: 31, isSeller: true, text: 'This is a seller message for UI testing purposes. https://google.com', avatar: 'https://placehold.co/40x40.png', userId: '1' },
+    { id: 32, type: 'system', text: 'Michael joined the stream.' },
 ];
 
 const reportReasons = [
@@ -1522,7 +1521,14 @@ const ChatPanel = ({
   const handleNewMessageSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newMessage.trim()) return;
-    handlers.handleNewMessageSubmit(newMessage, replyingTo || undefined);
+    
+    let messageToSend = newMessage;
+    if (replyingTo) {
+      messageToSend = `@${replyingTo.name.split(' ')[0]} ${newMessage}`;
+    }
+
+    console.log("New Message:", messageToSend);
+
     setNewMessage("");
     setReplyingTo(null);
   };
@@ -1611,14 +1617,14 @@ const ChatPanel = ({
         </div>
       </header>
       <ScrollArea className="flex-grow" ref={chatContainerRef} onScroll={handleManualScroll}>
-          <div className="p-3 space-y-0.5">
+          <div className="p-3 space-y-2.5">
              <div className="flex items-start gap-2.5 w-full group text-sm my-2">
                   <Avatar className="h-8 w-8 mt-0.5 border border-[rgba(255,255,255,0.04)]">
                       <AvatarImage src={seller.avatarUrl} />
                       <AvatarFallback className="bg-gradient-to-br from-red-500 to-yellow-500 text-white font-bold text-xs">{seller.name.charAt(0)}</AvatarFallback>
                   </Avatar>
                   <div className="flex-grow">
-                      <p className="leading-relaxed break-words text-sm text-[#E6ECEF]">
+                      <div className="leading-relaxed break-words text-sm text-[#E6ECEF]">
                           <span className="font-semibold text-yellow-400 text-sm mr-1.5 flex items-center gap-1.5">
                               {seller.name}
                               <Badge variant="secondary" className="text-xs px-1.5 py-0">Seller</Badge>
@@ -1626,7 +1632,7 @@ const ChatPanel = ({
                           <span className="text-xs">
                               Welcome to the stream! Feel free to ask any questions.
                           </span>
-                      </p>
+                      </div>
                   </div>
               </div>
              {chatMessages.map((msg) => {
@@ -1642,20 +1648,16 @@ const ChatPanel = ({
                      <div key={msg.id} className="flex items-start gap-2.5 w-full group text-sm animate-message-in">
                          <Avatar className="h-8 w-8 mt-0.5 border border-[rgba(255,255,255,0.04)]">
                              <AvatarImage src={msg.avatar} />
-                             <AvatarFallback className="bg-gradient-to-br from-red-500 to-yellow-500 text-white font-bold text-xs">{msg.user.charAt(0)}</AvatarFallback>
+                             <AvatarFallback className="bg-gradient-to-br from-red-500 to-yellow-500 text-white font-bold">{msg.user.charAt(0)}</AvatarFallback>
                          </Avatar>
                           <div className="flex-grow">
-                             <p className="leading-relaxed break-words text-sm text-[#E6ECEF]">
-                                 <b className={cn("font-semibold text-xs mr-1.5", isSellerMessage && "text-yellow-400")} style={{ color: !isSellerMessage ? msg.userColor : undefined }}>
-                                     {msg.user}
-                                     {isSellerMessage && <Badge variant="secondary" className="text-xs px-1.5 py-0 ml-1.5">Seller</Badge>}
-                                    :
-                                 </b>
-                                 <span className="text-xs">
+                             <div className="leading-relaxed break-words text-sm text-[#E6ECEF]">
+                                 <b className="font-semibold text-xs mr-1.5" style={{ color: msg.userColor || 'inherit' }}>{msg.user}:</b>
+                                 <span className="text-sm">
                                     {msg.replyingTo && <span className="text-primary font-semibold mr-1">@{msg.replyingTo}</span>}
                                     {renderWithHashtagsAndLinks(msg.text)}
                                  </span>
-                             </p>
+                             </div>
                           </div>
                           <DropdownMenu>
                               <DropdownMenuTrigger asChild>
@@ -1735,4 +1737,4 @@ const ChatPanel = ({
         </footer>
     </div>
   )
-};
+}
