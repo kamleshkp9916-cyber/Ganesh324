@@ -1042,7 +1042,7 @@ export default function StreamPage() {
         setIsReportOpen(true);
     }, []);
 
-    const handleAddToCart = useCallback((product: any) => {
+     const handleAddToCart = useCallback((product: any) => {
         if (product) {
           addToCart({ ...product, quantity: 1 });
           toast({
@@ -1615,6 +1615,9 @@ const ChatPanel = ({
                   if (msg.type === 'system') {
                       return <div key={msg.id} className="text-xs text-center text-[#9AA1A6] italic py-1">{msg.text}</div>
                   }
+                  if (msg.type === 'auction') {
+                     return null; // This is now handled by the sticky card
+                   }
                    if (msg.type === 'auction_end') {
                        return (
                            <Card key={msg.id} className="bg-muted/10 border-border/30 my-2">
@@ -1641,14 +1644,24 @@ const ChatPanel = ({
                            </Card>
                        )
                    }
-                   if (msg.type === 'auction') {
-                     // Auctions are now handled by the sticky card at the top
-                     return null;
-                   }
+                    if (msg.type === 'product_promo') {
+                        return <ProductPromoCard key={msg.id} msg={msg} handlers={handlers} />
+                    }
                   if (!msg.user) return null;
 
-                  const isMyMessage = msg.userId === seller?.uid;
-                  const isSellerMessage = msg.userId === seller?.uid;
+                  if (msg.isBid) {
+                    return (
+                        <div key={msg.id} className="p-2.5 rounded-lg border border-purple-500/20 bg-purple-500/10 flex items-center gap-3 animate-in fade-in-0">
+                            <div className="p-2 bg-purple-500/20 rounded-full">
+                                <Gavel className="w-5 h-5 text-purple-300" />
+                            </div>
+                            <div className="flex-grow">
+                                <p className="text-sm font-semibold text-white">{msg.user} placed a bid!</p>
+                                <p className="text-xl font-bold text-purple-300">{msg.text.replace('BID ', '')}</p>
+                            </div>
+                        </div>
+                    )
+                  }
                   
                   return (
                      <div key={msg.id} className="flex items-start gap-3 w-full group text-sm animate-message-in">
@@ -1661,7 +1674,7 @@ const ChatPanel = ({
                                  <b className="font-semibold text-xs mr-1.5" style={{ color: msg.userColor || 'inherit' }}>{msg.user}:</b>
                                  <span className="text-sm">
                                     {msg.replyingTo && <span className="text-primary font-semibold mr-1">@{msg.replyingTo}</span>}
-                                    {msg.text}
+                                    {renderWithHashtagsAndLinks(msg.text)}
                                  </span>
                              </p>
                           </div>
