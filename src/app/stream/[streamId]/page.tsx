@@ -1630,7 +1630,7 @@ const ChatPanel = ({
       )}
 
       <ScrollArea className="flex-grow" ref={chatContainerRef} onScroll={handleManualScroll}>
-          <div className="p-3 space-y-2.5">
+          <div className="p-3 space-y-2">
                <div className="flex items-start gap-2.5 w-full group text-sm my-2">
                   <Avatar className="h-6 w-6 mt-0.5 border border-[rgba(255,255,255,0.04)]">
                       <AvatarImage src={seller.avatarUrl} />
@@ -1682,7 +1682,7 @@ const ChatPanel = ({
                   const isSellerMessage = msg.userId === seller?.uid;
                   
                   return (
-                     <div key={msg.id} className="flex items-start gap-3 w-full group text-sm animate-message-in">
+                     <div key={msg.id} className="flex items-start gap-2.5 w-full group text-sm animate-message-in">
                          <Avatar className="h-6 w-6 mt-0.5 border border-[rgba(255,255,255,0.04)]">
                              <AvatarImage src={msg.avatar} />
                              <AvatarFallback className="bg-gradient-to-br from-red-500 to-yellow-500 text-white font-bold text-xs">{msg.user.charAt(0)}</AvatarFallback>
