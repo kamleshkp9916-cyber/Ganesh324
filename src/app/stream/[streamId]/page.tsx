@@ -1079,7 +1079,8 @@ export default function StreamPage() {
         toast,
         seller,
         handleNewMessageSubmit,
-    }), [onReportStream, handleAddToCart, onBid, onViewBids, toast, handleReply, handleReportMessage, handleTogglePinMessage, handleDeleteMessage, seller, handleNewMessageSubmit]);
+        onBuyNow,
+    }), [onReportStream, handleAddToCart, onBuyNow, onBid, onViewBids, toast, handleReply, handleReportMessage, handleTogglePinMessage, handleDeleteMessage, seller, handleNewMessageSubmit]);
     
     if (isMinimized(streamId)) {
         return (
@@ -1318,6 +1319,7 @@ return (
                 totalBids={props.totalBids}
                 walletBalance={props.walletBalance}
                 handlers={handlers}
+                inlineAuctionCardRefs={props.inlineAuctionCardRefs}
                 onClose={() => {}}
             />
         </aside>
@@ -1661,8 +1663,8 @@ const ChatPanel = ({
                   }
                   
                   return (
-                     <div key={msg.id} className="flex items-start gap-2 w-full group animate-message-in">
-                         <Avatar className="h-8 w-8 mt-0.5 border border-[rgba(255,255,255,0.04)]">
+                     <div key={msg.id} className="flex items-start gap-3 w-full group text-sm animate-message-in">
+                         <Avatar className="h-9 w-9 mt-0.5 border border-[rgba(255,255,255,0.04)]">
                              <AvatarImage src={msg.avatar} />
                              <AvatarFallback className="bg-gradient-to-br from-red-500 to-yellow-500 text-white font-bold text-xs">{msg.user.charAt(0)}</AvatarFallback>
                          </Avatar>
