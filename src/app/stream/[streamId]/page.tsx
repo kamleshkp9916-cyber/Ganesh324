@@ -1092,8 +1092,8 @@ export default function StreamPage() {
         onReportMessage: handleReportMessage,
         onDeleteMessage: handleDeleteMessage,
         onReportStream,
-        onAddToCart,
-        onBuyNow,
+        onAddToCart: handleAddToCart,
+        onBuyNow: handleBuyNow,
         onBid,
         onViewBids,
         toast,
@@ -1522,12 +1522,7 @@ const ChatPanel = ({
     e.preventDefault();
     if (!newMessage.trim()) return;
     
-    let messageToSend = newMessage;
-    if (replyingTo) {
-      messageToSend = `@${replyingTo.name.split(' ')[0]} ${newMessage}`;
-    }
-
-    console.log("New Message:", messageToSend);
+    handlers.handleNewMessageSubmit(newMessage, replyingTo || undefined);
 
     setNewMessage("");
     setReplyingTo(null);
@@ -1632,7 +1627,7 @@ const ChatPanel = ({
       <ScrollArea className="flex-grow" ref={chatContainerRef} onScroll={handleManualScroll}>
           <div className="p-3 space-y-2.5">
                <div className="flex items-start gap-2.5 w-full group text-sm my-2">
-                  <Avatar className="h-6 w-6 mt-0.5 border border-[rgba(255,255,255,0.04)]">
+                  <Avatar className="h-9 w-9 mt-0.5 border border-[rgba(255,255,255,0.04)]">
                       <AvatarImage src={seller.avatarUrl} />
                       <AvatarFallback className="bg-gradient-to-br from-red-500 to-yellow-500 text-white font-bold text-xs">{seller.name.charAt(0)}</AvatarFallback>
                   </Avatar>
@@ -1641,7 +1636,7 @@ const ChatPanel = ({
                           {seller.name}
                           <Badge variant="secondary" className="text-xs px-1.5 py-0">Seller</Badge>
                       </span>
-                      <span className="text-xs">
+                      <span className="text-sm">
                           Welcome to the stream! Feel free to ask any questions.
                       </span>
                   </div>
@@ -1682,10 +1677,10 @@ const ChatPanel = ({
                   const isSellerMessage = msg.userId === seller?.uid;
                   
                   return (
-                     <div key={msg.id} className="flex items-start gap-2.5 w-full group text-sm animate-message-in">
-                         <Avatar className="h-6 w-6 mt-0.5 border border-[rgba(255,255,255,0.04)]">
+                     <div key={msg.id} className="flex items-start gap-3 w-full group text-sm animate-message-in">
+                         <Avatar className="h-9 w-9 mt-0.5 border border-[rgba(255,255,255,0.04)]">
                              <AvatarImage src={msg.avatar} />
-                             <AvatarFallback className="bg-gradient-to-br from-red-500 to-yellow-500 text-white font-bold text-xs">{msg.user.charAt(0)}</AvatarFallback>
+                             <AvatarFallback className="bg-gradient-to-br from-red-500 to-yellow-500 text-white font-bold">{msg.user.charAt(0)}</AvatarFallback>
                          </Avatar>
                           <div className="flex-grow">
                              <div className="leading-relaxed break-words text-sm text-[#E6ECEF]">
@@ -1776,4 +1771,3 @@ const ChatPanel = ({
   );
 }
 
-    
