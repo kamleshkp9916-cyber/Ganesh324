@@ -161,7 +161,7 @@ const productToSellerMapping: { [key: string]: { name: string; avatarUrl: string
     'prod_7': { name: 'ArtisanAlley', avatarUrl: 'https://placehold.co/80x80.png', uid: '7' },
     'prod_8': { name: 'PetPalace', avatarUrl: 'https://placehold.co/80x80.png', uid: '8' },
     'prod_9': { name: 'BookNook', avatarUrl: 'https://placehold.co/80x80.png', uid: '9' },
-    'prod_10': { name: 'GamerGuild', avatarUrl: 'https://placehold.co/80x80.png', uid: '10' }
+    'prod_10': { name: 'GamerGuild', avatarUrl: 'https://placehold.co/80x80.png', uid: '10' },
 };
 
 const mockChatMessages: any[] = [
@@ -1466,7 +1466,7 @@ const MobileLayout = React.memo(({ handlers, chatMessages, ...props }: any) => {
         </div>
     );
 });
-MobileLayout.displayName = 'MobileLayout';
+MobileLayout.displayName = "MobileLayout";
 
 const ChatPanel = ({
   seller,
@@ -1630,24 +1630,20 @@ const ChatPanel = ({
       )}
 
       <ScrollArea className="flex-grow" ref={chatContainerRef} onScroll={handleManualScroll}>
-          <div className="p-3 space-y-1">
-              <div className="flex items-start gap-2.5 w-full group text-sm my-2">
+          <div className="p-3 space-y-2.5">
+               <div className="flex items-start gap-2.5 w-full group text-sm my-2">
                   <Avatar className="h-6 w-6 mt-0.5 border border-[rgba(255,255,255,0.04)]">
                       <AvatarImage src={seller.avatarUrl} />
                       <AvatarFallback className="bg-gradient-to-br from-red-500 to-yellow-500 text-white font-bold text-xs">{seller.name.charAt(0)}</AvatarFallback>
                   </Avatar>
-                  <div>
-                      <div className="leading-relaxed break-words text-sm text-[#E6ECEF]">
-                        <div>
-                          <span className="font-semibold text-yellow-400 text-xs mr-1.5 flex items-center gap-1.5">
-                              {seller.name}
-                              <Badge variant="secondary" className="text-xs px-1.5 py-0">Seller</Badge>
-                          </span>
-                          <span className="text-xs">
-                              Welcome to the stream! Feel free to ask any questions.
-                          </span>
-                        </div>
-                      </div>
+                  <div className="leading-relaxed break-words text-sm text-[#E6ECEF]">
+                      <span className="font-semibold text-yellow-400 text-xs mr-1.5 flex items-center gap-1.5">
+                          {seller.name}
+                          <Badge variant="secondary" className="text-xs px-1.5 py-0">Seller</Badge>
+                      </span>
+                      <span className="text-xs">
+                          Welcome to the stream! Feel free to ask any questions.
+                      </span>
                   </div>
               </div>
              {chatMessages.map((msg) => {
@@ -1694,7 +1690,7 @@ const ChatPanel = ({
                           <div className="flex-grow">
                              <div className="leading-relaxed break-words text-sm text-[#E6ECEF]">
                                  <b className={cn("font-semibold text-xs mr-1.5", isSellerMessage && 'text-yellow-400')} style={{ color: msg.userColor || (isSellerMessage ? '' : 'inherit') }}>{msg.user}:</b>
-                                 <span className="text-sm">
+                                 <span className="text-xs">
                                     {msg.replyingTo && <span className="text-primary font-semibold mr-1">@{msg.replyingTo}</span>}
                                     {renderWithHashtagsAndLinks(msg.text)}
                                  </span>
@@ -1777,5 +1773,5 @@ const ChatPanel = ({
           </form>
         </footer>
     </div>
-  )
+  );
 };
