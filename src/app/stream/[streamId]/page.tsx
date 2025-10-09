@@ -162,7 +162,7 @@ const productToSellerMapping: { [key: string]: { name: string; avatarUrl: string
     'prod_7': { name: 'ArtisanAlley', avatarUrl: 'https://placehold.co/80x80.png', uid: '7' },
     'prod_8': { name: 'PetPalace', avatarUrl: 'https://placehold.co/80x80.png', uid: '8' },
     'prod_9': { name: 'BookNook', avatarUrl: 'https://placehold.co/80x80.png', uid: '9' },
-    'prod_10': { name: 'GamerGuild', avatarUrl: 'https://placehold.co/80x80.png', uid: '10' },
+    'prod_10': { name: 'GamerGuild', avatarUrl: 'https://placehold.co/80x80.png', uid: '10' }
 };
 
 const mockChatMessages: any[] = [
@@ -1093,14 +1093,14 @@ export default function StreamPage() {
         onReportMessage: handleReportMessage,
         onDeleteMessage: handleDeleteMessage,
         onReportStream,
-        onAddToCart,
-        onBuyNow,
+        handleAddToCart,
+        handleBuyNow,
         onBid,
         onViewBids,
         toast,
         seller,
         handleNewMessageSubmit,
-    }), [onReportStream, handleAddToCart, onBuyNow, onBid, onViewBids, toast, handleReply, handleReportMessage, handleTogglePinMessage, handleDeleteMessage, seller, handleNewMessageSubmit]);
+    }), [onReportStream, handleAddToCart, handleBuyNow, onBid, onViewBids, toast, handleReply, handleReportMessage, handleTogglePinMessage, handleDeleteMessage, seller, handleNewMessageSubmit]);
     
     if (isMinimized(streamId)) {
         return (
@@ -1522,9 +1522,7 @@ const ChatPanel = ({
   const handleNewMessageSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newMessage.trim()) return;
-    
     handlers.handleNewMessageSubmit(newMessage, replyingTo || undefined);
-
     setNewMessage("");
     setReplyingTo(null);
   };
@@ -1536,82 +1534,82 @@ const ChatPanel = ({
 
   return (
     <div className='h-full flex flex-col bg-[#0b0b0c]'>
-      <header className="p-3 flex items-center justify-between z-10 flex-shrink-0 h-16 border-b border-[rgba(255,255,255,0.04)] sticky top-0 bg-[#0f1113]/80 backdrop-blur-sm">
-        <h3 className="font-bold text-lg text-white">Live Chat</h3>
-        <div className="flex items-center gap-1">
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8 relative text-muted-foreground hover:text-white">
-                <Pin className="h-5 w-5" />
-                {pinnedMessages && pinnedMessages.length > 0 && <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-primary" />}
-              </Button>
-            </PopoverTrigger>
-             <PopoverContent align="end" className="w-80 bg-[#141516] border-gray-800 text-white p-0">
-                <div className="p-3 border-b border-gray-700">
-                    <h4 className="font-semibold text-sm flex items-center gap-2">
-                        <Pin className="h-4 w-4" /> Pinned Items
-                    </h4>
-                </div>
-                 <ScrollArea className="h-80">
-                     <div className="p-3 space-y-3">
-                        {pinnedMessages && pinnedMessages.length > 0 ? (
-                            pinnedMessages.map((item) => (
-                                <div key={item.id} className="text-xs p-2 rounded-md bg-white/5">
-                                    {item.type === 'message' && (
-                                        <>
-                                            <p className="font-bold text-primary">{item.user}</p>
-                                            <p>{item.text}</p>
-                                        </>
-                                    )}
-                                    {item.type === 'offer' && (
-                                        <>
-                                            <p className="font-bold text-primary">{item.title}</p>
-                                            <p>{item.description}</p>
-                                        </>
-                                    )}
-                                    {item.type === 'product' && (
-                                        <div className="flex items-center gap-2">
-                                            <Image src={item.product.images[0]} alt={item.product.name} width={40} height={40} className="rounded-md" />
-                                            <div>
-                                                <p className="font-semibold">{item.product.name}</p>
-                                                <p className="font-bold text-primary">{item.product.price}</p>
-                                            </div>
+        <header className="p-3 flex items-center justify-between z-10 flex-shrink-0 h-16 border-b border-[rgba(255,255,255,0.04)] sticky top-0 bg-[#0f1113]/80 backdrop-blur-sm">
+            <h3 className="font-bold text-lg text-white">Live Chat</h3>
+            <div className="flex items-center gap-1">
+                <Popover>
+                    <PopoverTrigger asChild>
+                    <Button variant="ghost" size="icon" className="h-8 w-8 relative text-muted-foreground hover:text-white">
+                        <Pin className="h-5 w-5" />
+                        {pinnedMessages && pinnedMessages.length > 0 && <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-primary" />}
+                    </Button>
+                    </PopoverTrigger>
+                    <PopoverContent align="end" className="w-80 bg-[#141516] border-gray-800 text-white p-0">
+                        <div className="p-3 border-b border-gray-700">
+                            <h4 className="font-semibold text-sm flex items-center gap-2">
+                                <Pin className="h-4 w-4" /> Pinned Items
+                            </h4>
+                        </div>
+                        <ScrollArea className="h-80">
+                            <div className="p-3 space-y-3">
+                                {pinnedMessages && pinnedMessages.length > 0 ? (
+                                    pinnedMessages.map((item) => (
+                                        <div key={item.id} className="text-xs p-2 rounded-md bg-white/5">
+                                            {item.type === 'message' && (
+                                                <>
+                                                    <p className="font-bold text-primary">{item.user}</p>
+                                                    <p>{item.text}</p>
+                                                </>
+                                            )}
+                                            {item.type === 'offer' && (
+                                                <>
+                                                    <p className="font-bold text-primary">{item.title}</p>
+                                                    <p>{item.description}</p>
+                                                </>
+                                            )}
+                                            {item.type === 'product' && (
+                                                <div className="flex items-center gap-2">
+                                                    <Image src={item.product.images[0]} alt={item.product.name} width={40} height={40} className="rounded-md" />
+                                                    <div>
+                                                        <p className="font-semibold">{item.product.name}</p>
+                                                        <p className="font-bold text-primary">{item.product.price}</p>
+                                                    </div>
+                                                </div>
+                                            )}
                                         </div>
-                                    )}
-                                </div>
-                            ))
-                        ) : (
-                            <p className="text-center text-muted-foreground text-xs py-4">Pinned items will appear here.</p>
-                        )}
-                    </div>
-                 </ScrollArea>
-            </PopoverContent>
-          </Popover>
-          <DropdownMenu>
-             <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-white">
-                    <MoreVertical className="h-5 w-5" />
+                                    ))
+                                ) : (
+                                    <p className="text-center text-muted-foreground text-xs py-4">Pinned items will appear here.</p>
+                                )}
+                            </div>
+                        </ScrollArea>
+                    </PopoverContent>
+                </Popover>
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-white">
+                            <MoreVertical className="h-5 w-5" />
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                        <DropdownMenuItem onSelect={handlers.onReportStream}>
+                            <Flag className="mr-2 h-4 w-4" /> Report Stream
+                        </DropdownMenuItem>
+                        <FeedbackDialog>
+                            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                                <MessageCircle className="mr-2 h-4 w-4" />Feedback
+                            </DropdownMenuItem>
+                        </FeedbackDialog>
+                        <DropdownMenuItem>
+                            <LifeBuoy className="mr-2 h-4 w-4" />Help
+                        </DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
+                <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-white lg:hidden" onClick={onClose}>
+                    <X className="h-5 w-5" />
                 </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-                 <DropdownMenuItem onSelect={handlers.onReportStream}>
-                    <Flag className="mr-2 h-4 w-4" /> Report Stream
-                </DropdownMenuItem>
-                <FeedbackDialog>
-                    <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                        <MessageCircle className="mr-2 h-4 w-4" />Feedback
-                    </DropdownMenuItem>
-                </FeedbackDialog>
-                <DropdownMenuItem>
-                    <LifeBuoy className="mr-2 h-4 w-4" />Help
-                </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-          <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-white lg:hidden" onClick={onClose}>
-            <X className="h-5 w-5" />
-          </Button>
-        </div>
-      </header>
+            </div>
+        </header>
         <div className="p-3 border-b border-[rgba(255,255,255,0.04)] sticky top-16 z-10 bg-[#0f1113]/80 backdrop-blur-sm">
             <div className="flex items-start gap-2.5 w-full group text-sm my-2">
                 <Avatar className="h-9 w-9 mt-0.5 border border-[rgba(255,255,255,0.04)]">
@@ -1623,9 +1621,9 @@ const ChatPanel = ({
                        <span className="font-semibold text-yellow-400 text-sm">{seller.name}</span>
                        <Badge variant="secondary" className="text-xs px-1.5 py-0">Seller</Badge>
                     </div>
-                    <span className="text-sm">
+                    <div className="text-sm">
                         Welcome to the stream! Feel free to ask any questions.
-                    </span>
+                    </div>
                 </div>
             </div>
             {activeAuction && seller?.hasAuction && auctionTime && auctionTime > 0 && (
