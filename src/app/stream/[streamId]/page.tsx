@@ -75,7 +75,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardFooter, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardFooter, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import Image from 'next/image';
 import Link from "next/link";
@@ -162,7 +162,7 @@ const productToSellerMapping: { [key: string]: { name: string; avatarUrl: string
     'prod_7': { name: 'ArtisanAlley', avatarUrl: 'https://placehold.co/80x80.png', uid: '7' },
     'prod_8': { name: 'PetPalace', avatarUrl: 'https://placehold.co/80x80.png', uid: '8' },
     'prod_9': { name: 'BookNook', avatarUrl: 'https://placehold.co/80x80.png', uid: '9' },
-    'prod_10': { name: 'GamerGuild', avatarUrl: 'https://placehold.co/80x80.png', uid: '10' },
+    'prod_10': { name: 'GamerGuild', avatarUrl: 'https://placehold.co/80x80.png', uid: '10' }
 };
 
 const mockChatMessages: any[] = [
@@ -671,7 +671,7 @@ export default function StreamPage() {
     const [isLive, setIsLive] = useState(true);
     const mainScrollRef = useRef<HTMLDivElement>(null);
     const [hydrated, setHydrated] = useState(false);
-    const [showGoToTop, setShowGoToTop] = useState(false);
+    const [showGoToTop, setShowGoToTop] = useState(showGoToTop);
     const [isChatOpen, setIsChatOpen] = useState(false);
     const [mobileView, setMobileView] = useState<'stream' | 'chat'>('stream');
     const [activeQuality, setActiveQuality] = useState('Auto');
@@ -930,6 +930,7 @@ export default function StreamPage() {
       }
     }, [router]);
 
+
     const handleWithdraw = (amount: number, bankAccountId: string) => {
         const selectedAccount = bankAccounts.find(acc => String(acc.id) === bankAccountId);
         const cashAvailable = walletBalance - 2640; // Mock blocked margin
@@ -1091,15 +1092,15 @@ export default function StreamPage() {
         onTogglePin: handleTogglePinMessage,
         onReportMessage: handleReportMessage,
         onDeleteMessage: handleDeleteMessage,
-        onReportStream: onReportStream,
-        onAddToCart: handleAddToCart,
-        onBuyNow: handleBuyNow,
-        onBid: onBid,
-        onViewBids: onViewBids,
+        onReportStream,
+        onAddToCart,
+        onBuyNow,
+        onBid,
+        onViewBids,
         toast,
-        seller: seller,
-        handleNewMessageSubmit: handleNewMessageSubmit,
-    }), [onReportStream, handleAddToCart, handleBuyNow, onBid, onViewBids, toast, handleReply, handleReportMessage, handleTogglePinMessage, handleDeleteMessage, seller, handleNewMessageSubmit]);
+        seller,
+        handleNewMessageSubmit,
+    }), [onReportStream, onAddToCart, onBuyNow, onBid, onViewBids, toast, handleReply, handleReportMessage, handleTogglePinMessage, handleDeleteMessage, seller, handleNewMessageSubmit]);
     
     if (isMinimized(streamId)) {
         return (
@@ -1630,13 +1631,13 @@ const ChatPanel = ({
       )}
 
       <ScrollArea className="flex-grow" ref={chatContainerRef} onScroll={handleManualScroll}>
-          <div className="p-3 space-y-1">
-             <div className="flex items-start gap-2.5 w-full group text-sm my-2">
-                  <Avatar className="h-8 w-8 mt-0.5 border border-[rgba(255,255,255,0.04)]">
+          <div className="p-3 space-y-0.5">
+              <div className="flex items-start gap-2.5 w-full group text-sm my-2">
+                  <Avatar className="h-6 w-6 mt-0.5 border border-[rgba(255,255,255,0.04)]">
                       <AvatarImage src={seller.avatarUrl} />
                       <AvatarFallback className="bg-gradient-to-br from-red-500 to-yellow-500 text-white font-bold text-xs">{seller.name.charAt(0)}</AvatarFallback>
                   </Avatar>
-                  <div className="flex-grow">
+                  <div>
                       <div className="leading-relaxed break-words text-sm text-[#E6ECEF]">
                           <span className="font-semibold text-yellow-400 text-xs mr-1.5 flex items-center gap-1.5">
                               {seller.name}
@@ -1685,13 +1686,13 @@ const ChatPanel = ({
                   
                   return (
                      <div key={msg.id} className="flex items-start gap-2.5 w-full group text-sm animate-message-in">
-                         <Avatar className="h-8 w-8 mt-0.5 border border-[rgba(255,255,255,0.04)]">
+                         <Avatar className="h-6 w-6 mt-0.5 border border-[rgba(255,255,255,0.04)]">
                              <AvatarImage src={msg.avatar} />
-                             <AvatarFallback className="bg-gradient-to-br from-red-500 to-yellow-500 text-white font-bold">{msg.user.charAt(0)}</AvatarFallback>
+                             <AvatarFallback className="bg-gradient-to-br from-red-500 to-yellow-500 text-white font-bold text-xs">{msg.user.charAt(0)}</AvatarFallback>
                          </Avatar>
-                          <div className="flex-grow">
+                          <div>
                              <div className="leading-relaxed break-words text-sm text-[#E6ECEF]">
-                                 <b className={cn("font-semibold text-xs mr-1.5", isSellerMessage && 'text-yellow-400')}>{msg.user}:</b>
+                                 <b className={cn("font-semibold text-xs mr-1.5", isSellerMessage && 'text-yellow-400')} style={{ color: msg.userColor || (isSellerMessage ? '' : 'inherit') }}>{msg.user}:</b>
                                  <span className="text-xs">
                                     {msg.replyingTo && <span className="text-primary font-semibold mr-1">@{msg.replyingTo}</span>}
                                     {renderWithHashtagsAndLinks(msg.text)}
@@ -1776,4 +1777,4 @@ const ChatPanel = ({
         </footer>
     </div>
   )
-}
+};
