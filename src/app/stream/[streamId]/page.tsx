@@ -122,7 +122,7 @@ import { useInView } from "react-intersection-observer";
 import { useMiniPlayer } from "@/context/MiniPlayerContext";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { useIsMobile } from "@/hooks/use-is-mobile";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { format, formatDistanceToNow, isThisWeek, isThisYear, parseISO, parse } from 'date-fns';
 
@@ -191,7 +191,7 @@ const mockChatMessages: any[] = [
     { id: 23, user: 'Noah', text: 'BID ₹9,600', avatar: 'https://placehold.co/40x40.png?text=N', userId: 'user14', isBid: true },
     { id: 24, user: 'Sophia', text: 'Great stream! Thanks!', avatar: 'https://placehold.co/40x40.png?text=S', userId: 'user15' },
     { id: 25, user: 'Ganesh', text: 'Replying to @FashionFinds: That sounds great! Thanks!', avatar: 'https://placehold.co/40x40.png', userId: 'user1', replyingTo: 'FashionFinds' },
-    { id: 26, isSeller: true, text: "Hey Alex, it's 100% genuine leather! https://example.com/leather-info", avatar: 'https://placehold.co/40x40.png', userId: '1' },
+    { id: 26, isSeller: true, text: "Hey Alex, it\'s 100% genuine leather! https://example.com/leather-info", avatar: 'https://placehold.co/40x40.png', userId: '1' },
     { id: 27, isSeller: true, text: 'Yes David, we offer international shipping!', avatar: 'https://placehold.co/40x40.png', userId: '1' },
     { id: 28, isSeller: true, text: '@Emily It lasts for about a year with average use!', avatar: 'https://placehold.co/40x40.png', userId: '1' },
     { id: 29, isSeller: true, text: 'Sure thing, Ganesh! Here is a view of the back.', avatar: 'https://placehold.co/40x40.png', userId: '1' },
@@ -1593,33 +1593,20 @@ const ChatPanel = ({
 
       <ScrollArea className="flex-grow" ref={chatContainerRef} onScroll={handleManualScroll}>
           <div className="p-3 space-y-2.5">
-             <div className="p-3 border-b border-[rgba(255,255,255,0.04)] sticky top-0 z-10 bg-[#0b0b0c] -mt-2 -mx-3 mb-2">
-                <div className="flex items-start gap-2.5 w-full group text-sm my-2">
-                    <Avatar className="h-9 w-9 mt-0.5 border border-[rgba(255,255,255,0.04)]">
-                        <AvatarImage src={seller.avatarUrl} />
-                        <AvatarFallback className="bg-gradient-to-br from-red-500 to-yellow-500 text-white font-bold text-xs">{seller.name.charAt(0)}</AvatarFallback>
-                    </Avatar>
-                    <div className="leading-relaxed break-words text-sm text-[#E6ECEF]">
-                        <div className="flex items-center gap-1.5">
-                           <span className="font-semibold text-yellow-400 text-sm">{seller.name}</span>
-                           <Badge variant="secondary" className="text-xs px-1.5 py-0">Seller</Badge>
-                        </div>
-                        <div className="text-sm">
-                            Welcome to the stream! Feel free to ask any questions.
-                        </div>
+             <div className="flex items-start gap-2.5 w-full group text-sm my-2">
+                <Avatar className="h-9 w-9 mt-0.5 border border-[rgba(255,255,255,0.04)]">
+                    <AvatarImage src={seller.avatarUrl} />
+                    <AvatarFallback className="bg-gradient-to-br from-red-500 to-yellow-500 text-white font-bold text-xs">{seller.name.charAt(0)}</AvatarFallback>
+                </Avatar>
+                <div className="leading-relaxed break-words text-sm text-[#E6ECEF]">
+                    <div className="flex items-center gap-1.5">
+                        <span className="font-semibold text-yellow-400 text-sm">{seller.name}</span>
+                        <Badge variant="secondary" className="text-xs px-1.5 py-0">Seller</Badge>
+                    </div>
+                    <div className="text-sm">
+                        Welcome to the stream! Feel free to ask any questions.
                     </div>
                 </div>
-                {activeAuction && seller?.hasAuction && auctionTime && auctionTime > 0 && (
-                    <div className="mt-2">
-                        <AuctionCard
-                            activeAuction={activeAuction}
-                            auctionTime={auctionTime}
-                            highestBid={highestBid}
-                            totalBids={totalBids}
-                            handlers={handlers}
-                        />
-                    </div>
-                )}
             </div>
              {chatMessages.map((msg) => {
                   if (msg.type === 'system') {
