@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import {
@@ -671,7 +670,7 @@ export default function StreamPage() {
     const [isLive, setIsLive] = useState(true);
     const mainScrollRef = useRef<HTMLDivElement>(null);
     const [hydrated, setHydrated] = useState(false);
-    const [showGoToTop, setShowGoToTop] = useState(showGoToTop);
+    const [showGoToTop, setShowGoToTop] = useState(false);
     const [isChatOpen, setIsChatOpen] = useState(false);
     const [mobileView, setMobileView] = useState<'stream' | 'chat'>('stream');
     const [activeQuality, setActiveQuality] = useState('Auto');
@@ -1631,7 +1630,7 @@ const ChatPanel = ({
       )}
 
       <ScrollArea className="flex-grow" ref={chatContainerRef} onScroll={handleManualScroll}>
-          <div className="p-3 space-y-0.5">
+          <div className="p-3 space-y-1">
               <div className="flex items-start gap-2.5 w-full group text-sm my-2">
                   <Avatar className="h-6 w-6 mt-0.5 border border-[rgba(255,255,255,0.04)]">
                       <AvatarImage src={seller.avatarUrl} />
@@ -1639,6 +1638,7 @@ const ChatPanel = ({
                   </Avatar>
                   <div>
                       <div className="leading-relaxed break-words text-sm text-[#E6ECEF]">
+                        <div>
                           <span className="font-semibold text-yellow-400 text-xs mr-1.5 flex items-center gap-1.5">
                               {seller.name}
                               <Badge variant="secondary" className="text-xs px-1.5 py-0">Seller</Badge>
@@ -1646,12 +1646,13 @@ const ChatPanel = ({
                           <span className="text-xs">
                               Welcome to the stream! Feel free to ask any questions.
                           </span>
+                        </div>
                       </div>
                   </div>
               </div>
              {chatMessages.map((msg) => {
                   if (msg.type === 'system') {
-                      return <div key={msg.id} className="text-[11px] text-center text-[#9AA1A6] italic py-1">{msg.text}</div>
+                      return <div key={msg.id} className="text-xs text-center text-[#9AA1A6] italic py-1">{msg.text}</div>
                   }
                    if (msg.type === 'auction_end') {
                        return (
@@ -1685,15 +1686,15 @@ const ChatPanel = ({
                   const isSellerMessage = msg.userId === seller?.uid;
                   
                   return (
-                     <div key={msg.id} className="flex items-start gap-2.5 w-full group text-sm animate-message-in">
+                     <div key={msg.id} className="flex items-start gap-3 w-full group text-sm animate-message-in">
                          <Avatar className="h-6 w-6 mt-0.5 border border-[rgba(255,255,255,0.04)]">
                              <AvatarImage src={msg.avatar} />
                              <AvatarFallback className="bg-gradient-to-br from-red-500 to-yellow-500 text-white font-bold text-xs">{msg.user.charAt(0)}</AvatarFallback>
                          </Avatar>
-                          <div>
+                          <div className="flex-grow">
                              <div className="leading-relaxed break-words text-sm text-[#E6ECEF]">
                                  <b className={cn("font-semibold text-xs mr-1.5", isSellerMessage && 'text-yellow-400')} style={{ color: msg.userColor || (isSellerMessage ? '' : 'inherit') }}>{msg.user}:</b>
-                                 <span className="text-xs">
+                                 <span className="text-sm">
                                     {msg.replyingTo && <span className="text-primary font-semibold mr-1">@{msg.replyingTo}</span>}
                                     {renderWithHashtagsAndLinks(msg.text)}
                                  </span>
