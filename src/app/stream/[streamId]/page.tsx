@@ -1770,4 +1770,3 @@ const ChatPanel = ({
     </div>
   );
 }
-
