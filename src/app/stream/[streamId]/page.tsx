@@ -1319,7 +1319,6 @@ return (
                 totalBids={props.totalBids}
                 walletBalance={props.walletBalance}
                 handlers={handlers}
-                inlineAuctionCardRefs={props.inlineAuctionCardRefs}
                 onClose={() => {}}
             />
         </aside>
@@ -1459,7 +1458,6 @@ const ChatPanel = ({
   totalBids,
   walletBalance,
   handlers,
-  inlineAuctionCardRefs,
   onClose,
 }: {
   seller: any;
@@ -1471,7 +1469,6 @@ const ChatPanel = ({
   totalBids: number;
   walletBalance: number;
   handlers: any;
-  inlineAuctionCardRefs: React.MutableRefObject<Record<string, HTMLDivElement | null>>;
   onClose: () => void;
 }) => {
   const [newMessage, setNewMessage] = useState("");
@@ -1601,6 +1598,17 @@ const ChatPanel = ({
           </Button>
         </div>
       </header>
+       {activeAuction && (
+         <div className="p-3 border-b border-[rgba(255,255,255,0.04)] sticky top-16 z-10 bg-[#0f1113]/80 backdrop-blur-sm">
+            <AuctionCard
+                activeAuction={activeAuction}
+                auctionTime={auctionTime}
+                highestBid={highestBid}
+                totalBids={totalBids}
+                handlers={handlers}
+            />
+         </div>
+       )}
       <ScrollArea className="flex-grow" ref={chatContainerRef} onScroll={handleManualScroll}>
           <div className="p-3 space-y-2.5">
              {chatMessages.map((msg) => {
@@ -1634,17 +1642,8 @@ const ChatPanel = ({
                        )
                    }
                    if (msg.type === 'auction') {
-                     return (
-                       <div key={msg.id} ref={(el) => (inlineAuctionCardRefs.current[msg.id] = el)}>
-                         <AuctionCard 
-                           activeAuction={msg}
-                           auctionTime={auctionTime}
-                           highestBid={highestBid}
-                           totalBids={totalBids}
-                           handlers={handlers}
-                         />
-                       </div>
-                     )
+                     // Auctions are now handled by the sticky card at the top
+                     return null;
                    }
                   if (!msg.user) return null;
 
