@@ -1074,13 +1074,12 @@ export default function StreamPage() {
         onDeleteMessage: handleDeleteMessage,
         onReportStream,
         handleAddToCart,
-        handleBuyNow,
         onBid,
         onViewBids,
         toast,
         seller,
         handleNewMessageSubmit,
-    }), [onReportStream, handleAddToCart, handleBuyNow, onBid, onViewBids, toast, handleReply, handleReportMessage, handleTogglePinMessage, handleDeleteMessage, seller, handleNewMessageSubmit]);
+    }), [onReportStream, handleAddToCart, onBid, onViewBids, toast, handleReply, handleReportMessage, handleTogglePinMessage, handleDeleteMessage, seller, handleNewMessageSubmit]);
     
     if (isMinimized(streamId)) {
         return (
@@ -1458,6 +1457,7 @@ const ChatPanel = ({
   totalBids,
   walletBalance,
   handlers,
+  inlineAuctionCardRefs,
   onClose,
 }: {
   seller: any;
@@ -1469,6 +1469,7 @@ const ChatPanel = ({
   totalBids: number;
   walletBalance: number;
   handlers: any;
+  inlineAuctionCardRefs: React.MutableRefObject<Record<string, HTMLDivElement | null>>;
   onClose: () => void;
 }) => {
   const [newMessage, setNewMessage] = useState("");
@@ -1500,7 +1501,12 @@ const ChatPanel = ({
     e.preventDefault();
     if (!newMessage.trim()) return;
     
-    handlers.handleNewMessageSubmit(newMessage, replyingTo);
+    let messageToSend = newMessage;
+    if (replyingTo) {
+      messageToSend = `@${replyingTo.name.split(' ')[0]} ${newMessage}`;
+    }
+
+    console.log("New Message:", messageToSend);
 
     setNewMessage("");
     setReplyingTo(null);
@@ -1514,16 +1520,7 @@ const ChatPanel = ({
   return (
     <div className='h-full flex flex-col bg-[#0b0b0c]'>
       <header className="p-3 flex items-center justify-between z-10 flex-shrink-0 h-16 border-b border-[rgba(255,255,255,0.04)] sticky top-0 bg-[#0f1113]/80 backdrop-blur-sm">
-        <div className="flex items-center gap-3">
-          <Avatar className="h-8 w-8">
-            <AvatarImage src={seller.avatarUrl} />
-            <AvatarFallback className="bg-gradient-to-br from-red-500 to-yellow-500 text-white font-bold text-xs">{seller.name.charAt(0)}</AvatarFallback>
-          </Avatar>
-          <div>
-            <h3 className="font-semibold text-sm text-white">{seller.name}</h3>
-            <p className="text-xs text-muted-foreground">Live Chat</p>
-          </div>
-        </div>
+        <h3 className="font-bold text-lg text-white">Live Chat</h3>
         <div className="flex items-center gap-1">
           <Popover>
             <PopoverTrigger asChild>
@@ -1610,7 +1607,7 @@ const ChatPanel = ({
          </div>
        )}
       <ScrollArea className="flex-grow" ref={chatContainerRef} onScroll={handleManualScroll}>
-          <div className="p-3 space-y-2.5">
+          <div className="p-3 space-y-1">
              {chatMessages.map((msg) => {
                   if (msg.type === 'system') {
                       return <div key={msg.id} className="text-xs text-center text-[#9AA1A6] italic py-1">{msg.text}</div>
@@ -1651,28 +1648,28 @@ const ChatPanel = ({
 
                   if (msg.isBid) {
                     return (
-                        <div key={msg.id} className="p-2.5 rounded-lg border border-purple-500/20 bg-purple-500/10 flex items-center gap-3 animate-in fade-in-0">
-                            <div className="p-2 bg-purple-500/20 rounded-full">
-                                <Gavel className="w-5 h-5 text-purple-300" />
+                        <div key={msg.id} className="p-2 rounded-lg border border-purple-500/20 bg-purple-500/10 flex items-center gap-2 animate-in fade-in-0">
+                            <div className="p-1.5 bg-purple-500/20 rounded-full">
+                                <Gavel className="w-4 h-4 text-purple-300" />
                             </div>
                             <div className="flex-grow">
-                                <p className="text-sm font-semibold text-white">{msg.user} placed a bid!</p>
-                                <p className="text-xl font-bold text-purple-300">{msg.text.replace('BID ', '')}</p>
+                                <p className="text-xs font-semibold text-white">{msg.user} placed a bid!</p>
+                                <p className="text-lg font-bold text-purple-300">{msg.text.replace('BID ', '')}</p>
                             </div>
                         </div>
                     )
                   }
                   
                   return (
-                     <div key={msg.id} className="flex items-start gap-3 w-full group text-sm animate-message-in">
-                         <Avatar className="h-9 w-9 mt-0.5 border border-[rgba(255,255,255,0.04)]">
+                     <div key={msg.id} className="flex items-start gap-2 w-full group animate-message-in">
+                         <Avatar className="h-8 w-8 mt-0.5 border border-[rgba(255,255,255,0.04)]">
                              <AvatarImage src={msg.avatar} />
-                             <AvatarFallback className="bg-gradient-to-br from-red-500 to-yellow-500 text-white font-bold">{msg.user.charAt(0)}</AvatarFallback>
+                             <AvatarFallback className="bg-gradient-to-br from-red-500 to-yellow-500 text-white font-bold text-xs">{msg.user.charAt(0)}</AvatarFallback>
                          </Avatar>
                           <div className="flex-grow">
-                             <p className="leading-relaxed break-words text-sm text-[#E6ECEF]">
+                             <p className="leading-relaxed break-words">
                                  <b className="font-semibold text-xs mr-1.5" style={{ color: msg.userColor || 'inherit' }}>{msg.user}:</b>
-                                 <span className="text-sm">
+                                 <span className="text-sm text-[#E6ECEF]">
                                     {msg.replyingTo && <span className="text-primary font-semibold mr-1">@{msg.replyingTo}</span>}
                                     {renderWithHashtagsAndLinks(msg.text)}
                                  </span>
