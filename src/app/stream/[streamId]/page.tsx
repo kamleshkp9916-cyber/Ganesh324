@@ -191,7 +191,7 @@ const mockChatMessages: any[] = [
     { id: 23, user: 'Noah', text: 'BID ₹9,600', avatar: 'https://placehold.co/40x40.png?text=N', userId: 'user14', isBid: true },
     { id: 24, user: 'Sophia', text: 'Great stream! Thanks!', avatar: 'https://placehold.co/40x40.png?text=S', userId: 'user15' },
     { id: 25, user: 'Ganesh', text: 'Replying to @FashionFinds: That sounds great! Thanks!', avatar: 'https://placehold.co/40x40.png', userId: 'user1', replyingTo: 'FashionFinds' },
-    { id: 26, isSeller: true, text: "Hey Alex, it\'s 100% genuine leather! https://example.com/leather-info", avatar: 'https://placehold.co/40x40.png', userId: '1' },
+    { id: 26, isSeller: true, text: "Hey Alex, it's 100% genuine leather! https://example.com/leather-info", avatar: 'https://placehold.co/40x40.png', userId: '1' },
     { id: 27, isSeller: true, text: 'Yes David, we offer international shipping!', avatar: 'https://placehold.co/40x40.png', userId: '1' },
     { id: 28, isSeller: true, text: '@Emily It lasts for about a year with average use!', avatar: 'https://placehold.co/40x40.png', userId: '1' },
     { id: 29, isSeller: true, text: 'Sure thing, Ganesh! Here is a view of the back.', avatar: 'https://placehold.co/40x40.png', userId: '1' },
@@ -1597,25 +1597,24 @@ const ChatPanel = ({
           </Button>
         </div>
       </header>
-       {activeAuction && (
-         <div className="p-3 border-b border-[rgba(255,255,255,0.04)] sticky top-16 z-10 bg-[#0f1113]/80 backdrop-blur-sm">
-            <AuctionCard
-                activeAuction={activeAuction}
-                auctionTime={auctionTime}
-                highestBid={highestBid}
-                totalBids={totalBids}
-                handlers={handlers}
-            />
-         </div>
-       )}
       <ScrollArea className="flex-grow" ref={chatContainerRef} onScroll={handleManualScroll}>
-          <div className="p-3 space-y-1">
+          <div className="p-3 space-y-2.5">
              {chatMessages.map((msg) => {
                   if (msg.type === 'system') {
                       return <div key={msg.id} className="text-xs text-center text-[#9AA1A6] italic py-1">{msg.text}</div>
                   }
-                  if (msg.type === 'auction') {
-                     return null; // This is now handled by the sticky card
+                   if (msg.type === 'auction') {
+                     return (
+                        <div key={msg.id} ref={el => inlineAuctionCardRefs.current[msg.id] = el}>
+                            <AuctionCard 
+                                activeAuction={msg}
+                                auctionTime={auctionTime}
+                                highestBid={highestBid}
+                                totalBids={totalBids}
+                                handlers={handlers}
+                            />
+                        </div>
+                     )
                    }
                    if (msg.type === 'auction_end') {
                        return (
