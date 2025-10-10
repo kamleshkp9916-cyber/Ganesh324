@@ -122,7 +122,7 @@ import { useInView } from "react-intersection-observer";
 import { useMiniPlayer } from "@/context/MiniPlayerContext";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { useIsMobile } from "@/hooks/use-is-mobile";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { format, formatDistanceToNow, isThisWeek, isThisYear, parseISO, parse } from 'date-fns';
 
@@ -1041,7 +1041,7 @@ export default function StreamPage() {
     const onReportStream = useCallback(() => {
         setIsReportOpen(true);
     }, []);
-
+    
     const handleAddToCart = useCallback((product: any) => {
         if (product) {
           addToCart({ ...product, quantity: 1 });
@@ -1609,7 +1609,7 @@ const ChatPanel = ({
             </div>
         )}
       <ScrollArea className="flex-grow" ref={chatContainerRef} onScroll={handleManualScroll}>
-          <div className="p-3 space-y-1">
+          <div className="p-3 space-y-2.5">
              {chatMessages.map((msg) => {
                   if (msg.type === 'system') {
                       return <div key={msg.id} className="text-xs text-center text-[#9AA1A6] italic py-1">{msg.text}</div>
@@ -1651,21 +1651,21 @@ const ChatPanel = ({
 
                   if (msg.isBid) {
                     return (
-                        <div key={msg.id} className="p-1.5 rounded-lg border border-purple-500/20 bg-purple-500/10 flex items-center gap-2 animate-in fade-in-0">
-                            <div className="p-1 bg-purple-500/20 rounded-full">
-                                <Gavel className="w-3 h-3 text-purple-300" />
+                        <div key={msg.id} className="p-1.5 rounded-lg border border-purple-500/20 bg-purple-500/10 flex items-center gap-3 animate-in fade-in-0">
+                            <div className="p-1.5 bg-purple-500/20 rounded-full">
+                                <Gavel className="w-4 h-4 text-purple-300" />
                             </div>
                             <div className="flex-grow">
-                                <p className="text-xs font-semibold text-white">{msg.user} placed a bid!</p>
-                                <p className="text-base font-bold text-purple-300">{msg.text.replace('BID ', '')}</p>
+                                <p className="text-sm font-semibold text-white">{msg.user} placed a bid!</p>
+                                <p className="text-lg font-bold text-purple-300">{msg.text.replace('BID ', '')}</p>
                             </div>
                         </div>
                     )
                   }
                   
                   return (
-                     <div key={msg.id} className="flex items-start gap-2 w-full group text-sm animate-message-in">
-                         <Avatar className="h-8 w-8 mt-0.5 border border-[rgba(255,255,255,0.04)]">
+                     <div key={msg.id} className="flex items-start gap-3 w-full group text-sm animate-message-in">
+                         <Avatar className="h-9 w-9 mt-0.5 border border-[rgba(255,255,255,0.04)]">
                              <AvatarImage src={msg.avatar} />
                              <AvatarFallback className="bg-gradient-to-br from-red-500 to-yellow-500 text-white font-bold text-xs">{msg.user.charAt(0)}</AvatarFallback>
                          </Avatar>
