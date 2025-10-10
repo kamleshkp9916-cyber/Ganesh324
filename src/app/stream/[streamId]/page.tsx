@@ -61,7 +61,6 @@ import {
   Youtube,
   Twitch,
   Facebook,
-  Reddit,
   ArrowUp,
   GripHorizontal,
   Package,
@@ -122,7 +121,7 @@ import { useInView } from "react-intersection-observer";
 import { useMiniPlayer } from "@/context/MiniPlayerContext";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useIsMobile } from "@/hooks/use-is-mobile";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { format, formatDistanceToNow, isThisWeek, isThisYear, parseISO, parse } from 'date-fns';
 
@@ -1080,7 +1079,7 @@ export default function StreamPage() {
         toast,
         seller,
         handleNewMessageSubmit,
-    }), [onReportStream, handleAddToCart, onBuyNow, onBid, onViewBids, toast, handleReply, handleReportMessage, handleTogglePinMessage, handleDeleteMessage, seller, handleNewMessageSubmit]);
+    }), [onReportStream, handleAddToCart, handleBuyNow, onBid, onViewBids, toast, handleReply, handleReportMessage, handleTogglePinMessage, handleDeleteMessage, seller, handleNewMessageSubmit]);
     
     if (isMinimized(streamId)) {
         return (
@@ -1614,67 +1613,23 @@ const ChatPanel = ({
                   if (msg.type === 'system') {
                       return <div key={msg.id} className="text-xs text-center text-[#9AA1A6] italic py-1">{msg.text}</div>
                   }
-                   if (msg.type === 'auction') {
-                     // This is handled by the sticky card now
-                     return null
-                   }
-                   if (msg.type === 'auction_end') {
-                       return (
-                           <Card key={msg.id} className="bg-muted/10 border-border/30 my-2">
-                               <CardHeader className="p-3">
-                                   <CardTitle className="text-base flex items-center justify-between">
-                                       <span>Auction Ended</span>
-                                        <Badge variant="outline">Expired</Badge>
-                                   </CardTitle>
-                                   <CardDescription className="text-xs">The auction for {msg.productName} has finished.</CardDescription>
-                               </CardHeader>
-                               <CardContent className="p-3 pt-0">
-                                   <div className="flex items-center gap-2 text-sm">
-                                       <Award className="w-5 h-5 text-yellow-500"/>
-                                       <div>
-                                           <p className="text-xs text-muted-foreground">Winner</p>
-                                           <p className="font-semibold">{msg.winner}</p>
-                                       </div>
-                                       <div className="ml-auto text-right">
-                                           <p className="text-xs text-muted-foreground">Winning Bid</p>
-                                           <p className="font-bold text-lg text-primary">{msg.winningBid}</p>
-                                       </div>
-                                   </div>
-                               </CardContent>
-                           </Card>
-                       )
-                   }
-                    if (msg.type === 'product_promo') {
-                        return <ProductPromoCard key={msg.id} msg={msg} handlers={handlers} />
-                    }
                   if (!msg.user) return null;
 
-                  if (msg.isBid) {
-                    return (
-                        <div key={msg.id} className="p-1.5 rounded-lg border border-purple-500/20 bg-purple-500/10 flex items-center gap-3 animate-in fade-in-0">
-                            <div className="p-1.5 bg-purple-500/20 rounded-full">
-                                <Gavel className="w-4 h-4 text-purple-300" />
-                            </div>
-                            <div className="flex-grow">
-                                <p className="text-sm font-semibold text-white">{msg.user} placed a bid!</p>
-                                <p className="text-lg font-bold text-purple-300">{msg.text.replace('BID ', '')}</p>
-                            </div>
-                        </div>
-                    )
-                  }
+                  const isMyMessage = msg.userId === seller?.uid;
+                  const isSellerMessage = msg.userId === seller?.uid;
                   
                   return (
                      <div key={msg.id} className="flex items-start gap-3 w-full group text-sm animate-message-in">
                          <Avatar className="h-9 w-9 mt-0.5 border border-[rgba(255,255,255,0.04)]">
                              <AvatarImage src={msg.avatar} />
-                             <AvatarFallback className="bg-gradient-to-br from-red-500 to-yellow-500 text-white font-bold text-xs">{msg.user.charAt(0)}</AvatarFallback>
+                             <AvatarFallback className="bg-gradient-to-br from-red-500 to-yellow-500 text-white font-bold">{msg.user.charAt(0)}</AvatarFallback>
                          </Avatar>
                           <div className="flex-grow">
-                             <p className="leading-relaxed break-words">
+                             <p className="leading-relaxed break-words text-sm text-[#E6ECEF]">
                                  <b className="font-semibold text-xs mr-1.5" style={{ color: msg.userColor || 'inherit' }}>{msg.user}:</b>
-                                 <span className="text-sm text-[#E6ECEF]">
+                                 <span className="text-sm">
                                     {msg.replyingTo && <span className="text-primary font-semibold mr-1">@{msg.replyingTo}</span>}
-                                    {renderWithHashtagsAndLinks(msg.text)}
+                                    {msg.text}
                                  </span>
                              </p>
                           </div>
