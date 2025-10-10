@@ -1608,10 +1608,53 @@ const ChatPanel = ({
             </div>
         )}
       <ScrollArea className="flex-grow" ref={chatContainerRef} onScroll={handleManualScroll}>
-          <div className="p-3 space-y-2.5">
+          <div className="p-3 space-y-1">
              {chatMessages.map((msg) => {
                   if (msg.type === 'system') {
                       return <div key={msg.id} className="text-xs text-center text-[#9AA1A6] italic py-1">{msg.text}</div>
+                  }
+                  if (msg.type === 'auction_end') {
+                    return (
+                        <div key={msg.id} className="p-2.5 my-2">
+                             <Card className="bg-[#141516] border-gray-800 text-white shadow-lg animate-in fade-in-0">
+                                <CardHeader className="p-3">
+                                    <div className="flex justify-between items-center">
+                                        <CardTitle className="text-base font-bold">Auction Ended</CardTitle>
+                                        <Badge variant="outline">Expired</Badge>
+                                    </div>
+                                    <CardDescription className="text-xs">The auction for {msg.productName} has finished.</CardDescription>
+                                </CardHeader>
+                                <CardContent className="p-3 pt-0 flex justify-between items-center">
+                                    <div className="text-center">
+                                        <p className="text-xs text-muted-foreground mb-1">Winner</p>
+                                        <div className="flex items-center gap-2">
+                                            <Award className="w-5 h-5 text-yellow-400" />
+                                            <p className="font-bold text-base">{msg.winner}</p>
+                                        </div>
+                                    </div>
+                                    <div className="text-center">
+                                        <p className="text-xs text-muted-foreground mb-1">Winning Bid</p>
+                                        <p className="font-bold text-base text-red-500">{msg.winningBid}</p>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        </div>
+                    )
+                  }
+                  if (msg.isBid) {
+                    return (
+                        <div key={msg.id} className="p-1.5 my-1">
+                             <div className="p-2 rounded-lg border border-purple-500/20 bg-purple-500/10 flex items-center gap-3 animate-in fade-in-0">
+                                <div className="p-1.5 bg-purple-500/20 rounded-full">
+                                    <Gavel className="w-4 h-4 text-purple-300" />
+                                </div>
+                                <div className="flex-grow">
+                                    <p className="text-xs text-purple-300">{msg.user} placed a bid!</p>
+                                    <p className="text-sm font-bold text-white">{msg.text.replace('BID ', '')}</p>
+                                </div>
+                             </div>
+                        </div>
+                    )
                   }
                   if (!msg.user) return null;
 
