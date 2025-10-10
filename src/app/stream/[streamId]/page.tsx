@@ -190,13 +190,14 @@ const mockChatMessages: any[] = [
     { id: 23, user: 'Noah', text: 'BID ₹9,600', avatar: 'https://placehold.co/40x40.png?text=N', userId: 'user14', isBid: true },
     { id: 24, user: 'Sophia', text: 'Great stream! Thanks!', avatar: 'https://placehold.co/40x40.png?text=S', userId: 'user15' },
     { id: 25, user: 'Ganesh', text: 'Replying to @FashionFinds: That sounds great! Thanks!', avatar: 'https://placehold.co/40x40.png', userId: 'user1', replyingTo: 'FashionFinds' },
-    { id: 26, isSeller: true, text: "Hey Alex, it's 100% genuine leather! https://example.com/leather-info", avatar: 'https://placehold.co/40x40.png', userId: '1' },
-    { id: 27, isSeller: true, text: 'Yes David, we offer international shipping!', avatar: 'https://placehold.co/40x40.png', userId: '1' },
-    { id: 28, isSeller: true, text: '@Emily It lasts for about a year with average use!', avatar: 'https://placehold.co/40x40.png', userId: '1' },
-    { id: 29, isSeller: true, text: 'Sure thing, Ganesh! Here is a view of the back.', avatar: 'https://placehold.co/40x40.png', userId: '1' },
-    { id: 30, isSeller: true, text: 'Welcome Chloe! We just finished an auction, but we have more exciting products coming up. Stick around!', avatar: 'https://placehold.co/40x40.png', userId: '1' },
-    { id: 31, isSeller: true, text: 'This is a seller message for UI testing purposes. https://google.com', avatar: 'https://placehold.co/40x40.png', userId: '1' },
+    { id: 26, isSeller: true, user: 'FashionFinds', text: "Hey Alex, it's 100% genuine leather! https://example.com/leather-info", avatar: 'https://placehold.co/40x40.png', userId: '1' },
+    { id: 27, isSeller: true, user: 'FashionFinds', text: 'Yes David, we offer international shipping!', avatar: 'https://placehold.co/40x40.png', userId: '1' },
+    { id: 28, isSeller: true, user: 'FashionFinds', text: '@Emily It lasts for about a year with average use!', avatar: 'https://placehold.co/40x40.png', userId: '1' },
+    { id: 29, isSeller: true, user: 'FashionFinds', text: 'Sure thing, Ganesh! Here is a view of the back.', avatar: 'https://placehold.co/40x40.png', userId: '1' },
+    { id: 30, isSeller: true, user: 'FashionFinds', text: 'Welcome Chloe! We just finished an auction, but we have more exciting products coming up. Stick around!', avatar: 'https://placehold.co/40x40.png', userId: '1' },
+    { id: 31, isSeller: true, user: 'FashionFinds', text: 'This is a seller message for UI testing purposes. https://google.com', avatar: 'https://placehold.co/40x40.png', userId: '1' },
     { id: 32, type: 'system', text: 'Michael joined the stream.' },
+    { id: 33, type: 'system', text: 'Seller FashionFinds shared a post: "Behind the scenes of our new collection!"' },
 ];
 
 const reportReasons = [
@@ -1593,10 +1594,25 @@ const ChatPanel = ({
         </div>
       </header>
       <ScrollArea className="flex-grow" ref={chatContainerRef} onScroll={handleManualScroll}>
-          <div className="p-3 space-y-1">
+          <div className="p-3 space-y-2.5">
              {chatMessages.map((msg) => {
                   if (msg.type === 'system') {
-                      return <div key={msg.id} className="text-xs text-center text-[#9AA1A6] italic py-1">{msg.text}</div>
+                    if (msg.text.includes('shared a post')) {
+                        return (
+                            <div key={msg.id} className="p-1.5 my-1">
+                                <div className="p-2.5 rounded-lg border border-border/10 bg-black flex items-center gap-2 animate-in fade-in-0">
+                                    <div className="p-1 bg-muted rounded-full">
+                                        <Share2 className="w-4 h-4 text-muted-foreground" />
+                                    </div>
+                                    <div className="flex-grow">
+                                        <p className="text-xs text-muted-foreground">{msg.text.split(':')[0]}: <span className="font-semibold text-foreground italic">"{msg.text.split(':')[1].trim()}"</span></p>
+                                    </div>
+                                    <Button variant="ghost" size="sm" className="text-xs">View Post</Button>
+                                </div>
+                            </div>
+                        )
+                    }
+                    return <div key={msg.id} className="text-xs text-center text-[#9AA1A6] italic py-1">{msg.text}</div>
                   }
                   if (msg.type === 'auction_end') {
                     return (
@@ -1644,17 +1660,21 @@ const ChatPanel = ({
                   if (!msg.user) return null;
 
                   const isMyMessage = msg.userId === seller?.uid;
-                  const isSellerMessage = msg.userId === seller?.uid;
+                  const isSellerMessage = msg.isSeller;
                   
                   return (
-                     <div key={msg.id} className="flex items-start gap-2 w-full group animate-message-in">
+                     <div key={msg.id} className="flex items-start gap-2 w-full group text-sm animate-message-in">
                          <Avatar className="h-8 w-8 mt-0.5 border border-[rgba(255,255,255,0.04)]">
                              <AvatarImage src={msg.avatar} />
                              <AvatarFallback className="bg-gradient-to-br from-red-500 to-yellow-500 text-white font-bold">{msg.user.charAt(0)}</AvatarFallback>
                          </Avatar>
                           <div className="flex-grow">
                              <p className="leading-relaxed break-words text-sm text-[#E6ECEF]">
-                                 <b className="font-semibold text-xs mr-1.5" style={{ color: msg.userColor || 'inherit' }}>{msg.user}:</b>
+                                 <b className={cn("font-semibold text-xs mr-1.5", isSellerMessage && "text-yellow-400")}>
+                                     {msg.user}
+                                     {isSellerMessage && <Badge variant="secondary" className="ml-1.5 bg-yellow-400/10 text-yellow-400 border-none h-auto px-1.5 py-0.5 text-[10px]">Seller</Badge>}
+                                     :
+                                 </b>
                                  <span className="text-[13px]">
                                     {msg.replyingTo && <span className="text-primary font-semibold mr-1">@{msg.replyingTo}</span>}
                                     {msg.text}
