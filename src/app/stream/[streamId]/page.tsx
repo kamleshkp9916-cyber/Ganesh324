@@ -1076,7 +1076,7 @@ export default function StreamPage() {
         toast,
         seller,
         handleNewMessageSubmit,
-    }), [handleAddToCart, handleBuyNow, onBid, onViewBids, toast, handleReply, handleReportMessage, handleTogglePinMessage, handleDeleteMessage, seller, handleNewMessageSubmit, onReportStream]);
+    }), [onBid, onViewBids, toast, handleReply, handleReportMessage, handleTogglePinMessage, handleDeleteMessage, seller, handleNewMessageSubmit, onReportStream, handleAddToCart, handleBuyNow]);
     
     if (isMinimized(streamId)) {
         return (
@@ -1499,12 +1499,7 @@ const ChatPanel = ({
     e.preventDefault();
     if (!newMessage.trim()) return;
     
-    let messageToSend = newMessage;
-    if (replyingTo) {
-      messageToSend = `@${replyingTo.name.split(' ')[0]} ${newMessage}`;
-    }
-
-    console.log("New Message:", messageToSend);
+    handlers.handleNewMessageSubmit(newMessage, replyingTo || undefined);
 
     setNewMessage("");
     setReplyingTo(null);
@@ -1597,7 +1592,7 @@ const ChatPanel = ({
           <div className="p-3 space-y-2.5">
              {chatMessages.map((msg) => {
                   if (msg.type === 'system') {
-                    if (msg.text.includes('shared a post')) {
+                      if (msg.text.includes('shared a post')) {
                         return (
                             <div key={msg.id} className="p-1.5 my-1">
                                 <div className="p-2.5 rounded-lg border border-border/10 bg-black flex items-center gap-2 animate-in fade-in-0">
@@ -1614,7 +1609,7 @@ const ChatPanel = ({
                     }
                     return <div key={msg.id} className="text-xs text-center text-[#9AA1A6] italic py-1">{msg.text}</div>
                   }
-                  if (msg.type === 'auction_end') {
+                   if (msg.type === 'auction_end') {
                     return (
                         <div key={msg.id} className="p-2.5 my-2">
                              <Card className="bg-[#141516] border-gray-800 text-white shadow-lg animate-in fade-in-0">
@@ -1659,12 +1654,11 @@ const ChatPanel = ({
                   }
                   if (!msg.user) return null;
 
-                  const isMyMessage = msg.userId === seller?.uid;
-                  const isSellerMessage = msg.isSeller;
+                  const isSellerMessage = msg.userId === seller?.id;
                   
                   return (
                      <div key={msg.id} className="flex items-start gap-2 w-full group text-sm animate-message-in">
-                         <Avatar className="h-8 w-8 mt-0.5 border border-[rgba(255,255,255,0.04)]">
+                         <Avatar className="h-9 w-9 mt-0.5 border border-[rgba(255,255,255,0.04)]">
                              <AvatarImage src={msg.avatar} />
                              <AvatarFallback className="bg-gradient-to-br from-red-500 to-yellow-500 text-white font-bold">{msg.user.charAt(0)}</AvatarFallback>
                          </Avatar>
@@ -1675,9 +1669,8 @@ const ChatPanel = ({
                                      {isSellerMessage && <Badge variant="secondary" className="ml-1.5 bg-yellow-400/10 text-yellow-400 border-none h-auto px-1.5 py-0.5 text-[10px]">Seller</Badge>}
                                      :
                                  </b>
-                                 <span className="text-[13px]">
-                                    {msg.replyingTo && <span className="text-primary font-semibold mr-1">@{msg.replyingTo}</span>}
-                                    {msg.text}
+                                 <span className="text-sm">
+                                    {renderWithHashtagsAndLinks(msg.text)}
                                  </span>
                              </p>
                           </div>
