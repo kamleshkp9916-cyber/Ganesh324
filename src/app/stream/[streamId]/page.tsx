@@ -436,8 +436,8 @@ const ProductPromoCard = ({ msg, handlers }: { msg: any, handlers: any }) => {
                     <h4 className="font-semibold text-sm leading-tight">{product.name}</h4>
                     <p className="font-bold text-lg">{product.price}</p>
                     <div className="flex gap-2 mt-2">
-                        <Button size="sm" variant="outline" className="text-xs h-7 flex-1" onClick={() => handlers.handleAddToCart(product)}><ShoppingCart className="w-3 h-3 mr-1" /> Cart</Button>
-                        <Button size="sm" className="text-xs h-7 flex-1" onClick={() => handlers.handleBuyNow(product)}>Buy Now</Button>
+                        <Button size="sm" variant="outline" className="text-xs h-7 flex-1" onClick={() => handlers.onAddToCart(product)}><ShoppingCart className="w-3 h-3 mr-1" /> Cart</Button>
+                        <Button size="sm" className="text-xs h-7 flex-1" onClick={() => handlers.onBuyNow(product)}>Buy Now</Button>
                     </div>
                 </div>
             </Card>
@@ -1597,24 +1597,26 @@ const ChatPanel = ({
           </Button>
         </div>
       </header>
+       {activeAuction && (
+            <div className="p-2 border-b border-border/10">
+                <AuctionCard
+                    activeAuction={activeAuction}
+                    auctionTime={auctionTime}
+                    highestBid={highestBid}
+                    totalBids={totalBids}
+                    handlers={handlers}
+                />
+            </div>
+        )}
       <ScrollArea className="flex-grow" ref={chatContainerRef} onScroll={handleManualScroll}>
-          <div className="p-3 space-y-2.5">
+          <div className="p-3 space-y-1">
              {chatMessages.map((msg) => {
                   if (msg.type === 'system') {
                       return <div key={msg.id} className="text-xs text-center text-[#9AA1A6] italic py-1">{msg.text}</div>
                   }
                    if (msg.type === 'auction') {
-                     return (
-                        <div key={msg.id} ref={el => inlineAuctionCardRefs.current[msg.id] = el}>
-                            <AuctionCard 
-                                activeAuction={msg}
-                                auctionTime={auctionTime}
-                                highestBid={highestBid}
-                                totalBids={totalBids}
-                                handlers={handlers}
-                            />
-                        </div>
-                     )
+                     // This is handled by the sticky card now
+                     return null
                    }
                    if (msg.type === 'auction_end') {
                        return (
@@ -1649,21 +1651,21 @@ const ChatPanel = ({
 
                   if (msg.isBid) {
                     return (
-                        <div key={msg.id} className="p-2 rounded-lg border border-purple-500/20 bg-purple-500/10 flex items-center gap-2 animate-in fade-in-0">
-                            <div className="p-1.5 bg-purple-500/20 rounded-full">
-                                <Gavel className="w-4 h-4 text-purple-300" />
+                        <div key={msg.id} className="p-1.5 rounded-lg border border-purple-500/20 bg-purple-500/10 flex items-center gap-2 animate-in fade-in-0">
+                            <div className="p-1 bg-purple-500/20 rounded-full">
+                                <Gavel className="w-3 h-3 text-purple-300" />
                             </div>
                             <div className="flex-grow">
                                 <p className="text-xs font-semibold text-white">{msg.user} placed a bid!</p>
-                                <p className="text-lg font-bold text-purple-300">{msg.text.replace('BID ', '')}</p>
+                                <p className="text-base font-bold text-purple-300">{msg.text.replace('BID ', '')}</p>
                             </div>
                         </div>
                     )
                   }
                   
                   return (
-                     <div key={msg.id} className="flex items-start gap-3 w-full group text-sm animate-message-in">
-                         <Avatar className="h-9 w-9 mt-0.5 border border-[rgba(255,255,255,0.04)]">
+                     <div key={msg.id} className="flex items-start gap-2 w-full group text-sm animate-message-in">
+                         <Avatar className="h-8 w-8 mt-0.5 border border-[rgba(255,255,255,0.04)]">
                              <AvatarImage src={msg.avatar} />
                              <AvatarFallback className="bg-gradient-to-br from-red-500 to-yellow-500 text-white font-bold text-xs">{msg.user.charAt(0)}</AvatarFallback>
                          </Avatar>
