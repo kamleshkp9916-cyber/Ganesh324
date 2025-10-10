@@ -1040,7 +1040,7 @@ export default function StreamPage() {
     const onReportStream = useCallback(() => {
         setIsReportOpen(true);
     }, []);
-    
+
     const handleAddToCart = useCallback((product: any) => {
         if (product) {
           addToCart({ ...product, quantity: 1 });
@@ -1049,7 +1049,7 @@ export default function StreamPage() {
             description: `'${product.name}' has been added to your shopping cart.`,
           });
         }
-      }, [toast]);
+    }, [toast]);
       
     const handleBuyNow = useCallback((product: any) => {
         if (product) {
@@ -1597,14 +1597,10 @@ const ChatPanel = ({
         </div>
       </header>
       <ScrollArea className="flex-grow" ref={chatContainerRef} onScroll={handleManualScroll}>
-          <div className="p-3 space-y-1">
+          <div className="p-3 space-y-2">
              {chatMessages.map((msg) => {
                   if (msg.type === 'system') {
                       return <div key={msg.id} className="text-xs text-center text-[#9AA1A6] italic py-1">{msg.text}</div>
-                  }
-                  if (msg.type === 'auction') {
-                     // This is where the scrollable auction card used to be. It's now handled by the sticky card.
-                    return null;
                   }
                   if (msg.type === 'auction_end') {
                     return (
@@ -1637,7 +1633,7 @@ const ChatPanel = ({
                   if (msg.isBid) {
                     return (
                          <div key={msg.id} className="p-1.5 my-1">
-                             <div className="p-2 rounded-lg border border-purple-500/20 bg-purple-500/10 flex items-center gap-3 animate-in fade-in-0">
+                             <div className="p-2.5 rounded-lg border border-purple-500/20 bg-purple-500/10 flex items-center gap-3 animate-in fade-in-0">
                                 <div className="p-1.5 bg-purple-500/20 rounded-full">
                                     <Gavel className="w-4 h-4 text-purple-300" />
                                 </div>
@@ -1656,14 +1652,14 @@ const ChatPanel = ({
                   
                   return (
                      <div key={msg.id} className="flex items-start gap-2 w-full group text-sm animate-message-in">
-                         <Avatar className="h-9 w-9 mt-0.5 border border-[rgba(255,255,255,0.04)]">
+                         <Avatar className="h-8 w-8 mt-0.5 border border-[rgba(255,255,255,0.04)]">
                              <AvatarImage src={msg.avatar} />
                              <AvatarFallback className="bg-gradient-to-br from-red-500 to-yellow-500 text-white font-bold">{msg.user.charAt(0)}</AvatarFallback>
                          </Avatar>
                           <div className="flex-grow">
-                             <p className="leading-relaxed break-words text-sm text-[#E6ECEF]">
+                             <p className="leading-relaxed break-words text-[#E6ECEF]">
                                  <b className="font-semibold text-xs mr-1.5" style={{ color: msg.userColor || 'inherit' }}>{msg.user}:</b>
-                                 <span className="text-sm">
+                                 <span className="text-[13px]">
                                     {msg.replyingTo && <span className="text-primary font-semibold mr-1">@{msg.replyingTo}</span>}
                                     {msg.text}
                                  </span>
