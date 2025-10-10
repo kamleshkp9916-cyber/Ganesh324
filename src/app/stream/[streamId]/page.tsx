@@ -1042,7 +1042,7 @@ export default function StreamPage() {
         setIsReportOpen(true);
     }, []);
 
-     const handleAddToCart = useCallback((product: any) => {
+    const handleAddToCart = useCallback((product: any) => {
         if (product) {
           addToCart({ ...product, quantity: 1 });
           toast({
@@ -1073,13 +1073,13 @@ export default function StreamPage() {
         onReportMessage: handleReportMessage,
         onDeleteMessage: handleDeleteMessage,
         onReportStream,
-        handleAddToCart,
+        onAddToCart: handleAddToCart,
+        onBuyNow: handleBuyNow,
         onBid,
         onViewBids,
         toast,
         seller,
         handleNewMessageSubmit,
-        onBuyNow,
     }), [onReportStream, handleAddToCart, onBuyNow, onBid, onViewBids, toast, handleReply, handleReportMessage, handleTogglePinMessage, handleDeleteMessage, seller, handleNewMessageSubmit]);
     
     if (isMinimized(streamId)) {
