@@ -1596,22 +1596,15 @@ const ChatPanel = ({
           </Button>
         </div>
       </header>
-       {activeAuction && (
-            <div className="p-2 border-b border-border/10">
-                <AuctionCard
-                    activeAuction={activeAuction}
-                    auctionTime={auctionTime}
-                    highestBid={highestBid}
-                    totalBids={totalBids}
-                    handlers={handlers}
-                />
-            </div>
-        )}
       <ScrollArea className="flex-grow" ref={chatContainerRef} onScroll={handleManualScroll}>
           <div className="p-3 space-y-1">
              {chatMessages.map((msg) => {
                   if (msg.type === 'system') {
                       return <div key={msg.id} className="text-xs text-center text-[#9AA1A6] italic py-1">{msg.text}</div>
+                  }
+                  if (msg.type === 'auction') {
+                     // This is where the scrollable auction card used to be. It's now handled by the sticky card.
+                    return null;
                   }
                   if (msg.type === 'auction_end') {
                     return (
@@ -1643,7 +1636,7 @@ const ChatPanel = ({
                   }
                   if (msg.isBid) {
                     return (
-                        <div key={msg.id} className="p-1.5 my-1">
+                         <div key={msg.id} className="p-1.5 my-1">
                              <div className="p-2 rounded-lg border border-purple-500/20 bg-purple-500/10 flex items-center gap-3 animate-in fade-in-0">
                                 <div className="p-1.5 bg-purple-500/20 rounded-full">
                                     <Gavel className="w-4 h-4 text-purple-300" />
@@ -1662,7 +1655,7 @@ const ChatPanel = ({
                   const isSellerMessage = msg.userId === seller?.uid;
                   
                   return (
-                     <div key={msg.id} className="flex items-start gap-3 w-full group text-sm animate-message-in">
+                     <div key={msg.id} className="flex items-start gap-2 w-full group text-sm animate-message-in">
                          <Avatar className="h-9 w-9 mt-0.5 border border-[rgba(255,255,255,0.04)]">
                              <AvatarImage src={msg.avatar} />
                              <AvatarFallback className="bg-gradient-to-br from-red-500 to-yellow-500 text-white font-bold">{msg.user.charAt(0)}</AvatarFallback>
@@ -1708,6 +1701,17 @@ const ChatPanel = ({
               Jump to latest
             </Button>
           </div>
+        )}
+        {activeAuction && (
+            <div className="p-2 border-t border-border/10">
+                <AuctionCard
+                    activeAuction={activeAuction}
+                    auctionTime={auctionTime}
+                    highestBid={highestBid}
+                    totalBids={totalBids}
+                    handlers={handlers}
+                />
+            </div>
         )}
       <footer className="p-3 bg-transparent flex-shrink-0">
           {replyingTo && (
