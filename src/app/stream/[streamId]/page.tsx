@@ -190,11 +190,11 @@ const mockChatMessages: any[] = [
     { id: 23, user: 'Noah', text: 'BID ₹9,600', avatar: 'https://placehold.co/40x40.png?text=N', userId: 'user14', isBid: true },
     { id: 24, user: 'Sophia', text: 'Great stream! Thanks!', avatar: 'https://placehold.co/40x40.png?text=S', userId: 'user15' },
     { id: 25, user: 'Ganesh', text: '@FashionFinds That sounds great! Thanks!', avatar: 'https://placehold.co/40x40.png', userId: 'user1' },
-    { id: 26, isSeller: true, text: "Hey Alex, it's 100% genuine leather! https://example.com/leather-info" },
-    { id: 27, isSeller: true, text: 'Yes David, we offer international shipping!' },
+    { id: 26, isSeller: true, text: "Hey @Alex, it's 100% genuine leather! https://example.com/leather-info" },
+    { id: 27, isSeller: true, text: 'Yes @David, we offer international shipping!' },
     { id: 28, isSeller: true, text: '@Emily It lasts for about a year with average use!' },
-    { id: 29, isSeller: true, text: 'Sure thing, Ganesh! Here is a view of the back.' },
-    { id: 30, isSeller: true, text: 'Welcome Chloe! We just finished an auction, but we have more exciting products coming up. Stick around!' },
+    { id: 29, isSeller: true, text: 'Sure thing, @Ganesh! Here is a view of the back.' },
+    { id: 30, isSeller: true, text: 'Welcome @Chloe! We just finished an auction, but we have more exciting products coming up. Stick around!' },
     { id: 31, isSeller: true, text: 'This is a seller message for UI testing purposes. https://google.com' },
     { id: 32, type: 'system', text: 'Michael joined the stream.' },
     { id: 33, type: 'system', text: 'Seller FashionFinds shared a post: "Behind the scenes of our new collection!"' },
@@ -474,7 +474,7 @@ const StreamInfo = ({ seller, streamData, handleFollowToggle, isFollowingState, 
                 </div>
             </div>
              <div className="flex items-center justify-between gap-2">
-                <Link href={`/seller/profile?userId=${seller.name}`} className="flex items-center gap-3 group flex-grow overflow-hidden">
+                <Link href={`/seller/profile?userId=${seller.id}`} className="flex items-center gap-3 group flex-grow overflow-hidden">
                     <Avatar className="h-12 w-12 flex-shrink-0">
                         <AvatarImage src={seller.avatarUrl} />
                         <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
@@ -554,6 +554,12 @@ const AuctionCard = React.memo(function AuctionCard({ activeAuction, auctionTime
                     <Badge variant="destructive" className="animate-pulse gap-1.5">
                         <Gavel className="w-3 h-3" /> Live Auction
                     </Badge>
+                    {auctionTime !== null && (
+                         <Badge variant="secondary" className="font-mono font-bold text-lg tabular-nums">
+                            <Clock className="w-4 h-4 mr-1.5" />
+                            {String(Math.floor(auctionTime / 60)).padStart(2, '0')}:{String(auctionTime % 60).padStart(2, '0')}
+                        </Badge>
+                    )}
                 </div>
                 <div className="flex items-center gap-4 mb-3">
                     <Image src={product.images[0]} alt={product.name} width={64} height={64} className="rounded-lg border bg-muted" />
@@ -1500,8 +1506,8 @@ const ChatPanel = ({
       messageToSend = `@${replyingTo.name.split(' ')[0]} ${newMessage}`;
     }
 
-    console.log("New Message:", messageToSend);
-
+    handlers.handleNewMessageSubmit(messageToSend, replyingTo);
+    
     setNewMessage("");
     setReplyingTo(null);
   };
@@ -1589,28 +1595,65 @@ const ChatPanel = ({
           </Button>
         </div>
       </header>
+       {activeAuction && (
+         <div className="p-3 border-b border-[rgba(255,255,255,0.04)]">
+             <AuctionCard
+                activeAuction={activeAuction}
+                auctionTime={auctionTime}
+                highestBid={highestBid}
+                totalBids={totalBids}
+                handlers={handlers}
+            />
+         </div>
+       )}
       <ScrollArea className="flex-grow" ref={chatContainerRef} onScroll={handleManualScroll}>
-          <div className="p-3 space-y-2.5">
+          <div className="p-3 space-y-2">
              {chatMessages.map((msg) => {
                   if (msg.type === 'system') {
                       return <div key={msg.id} className="text-xs text-center text-[#9AA1A6] italic py-1">{msg.text}</div>
                   }
+                   if (msg.type === 'auction_end') {
+                    return (
+                        <Card key={msg.id} className="bg-gradient-to-br from-purple-500/10 to-primary/10 border-primary/20">
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-2 text-base">
+                                    <Gavel className="w-5 h-5 text-primary" />
+                                    Auction for {msg.productName} has ended!
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent className="text-center">
+                                <p className="text-muted-foreground">Winning Bid</p>
+                                <p className="text-3xl font-bold">{msg.winningBid}</p>
+                                <div className="flex items-center justify-center gap-2 mt-4">
+                                    <Avatar className="h-8 w-8">
+                                        <AvatarImage src={msg.winnerAvatar} />
+                                        <AvatarFallback>{msg.winner?.charAt(0)}</AvatarFallback>
+                                    </Avatar>
+                                    <p className="font-semibold">{msg.winner}</p>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    );
+                }
+                if (msg.type === 'product_promo') {
+                    return <ProductPromoCard key={msg.id} msg={msg} handlers={handlers} />;
+                }
                   if (!msg.user) return null;
 
                   const isMyMessage = msg.userId === seller?.uid;
-                  const isSellerMessage = msg.isSeller;
+                  const isSellerMessage = msg.userId === seller?.uid;
                   
                   return (
                      <div key={msg.id} className="flex items-start gap-2 w-full group text-sm animate-message-in">
                          <Avatar className="h-8 w-8 mt-0.5 border border-[rgba(255,255,255,0.04)]">
-                             <AvatarImage src={isSellerMessage ? seller.avatarUrl : msg.avatar} />
-                             <AvatarFallback className="bg-gradient-to-br from-red-500 to-yellow-500 text-white font-bold">{isSellerMessage ? seller.name.charAt(0) : msg.user.charAt(0)}</AvatarFallback>
+                             <AvatarImage src={msg.isSeller ? seller.avatarUrl : msg.avatar} />
+                             <AvatarFallback className="bg-gradient-to-br from-red-500 to-yellow-500 text-white font-bold">{msg.isSeller ? seller.name.charAt(0) : msg.user.charAt(0)}</AvatarFallback>
                          </Avatar>
                           <div className="flex-grow">
                              <p className="leading-relaxed break-words text-[13px] text-[#E6ECEF]">
-                                 <b className={cn("font-semibold text-xs mr-1.5", isSellerMessage && "text-yellow-400")}>
-                                     {isSellerMessage ? seller.name : msg.user}
-                                     {isSellerMessage && <Badge variant="secondary" className="ml-1.5 bg-yellow-400/10 text-yellow-400 border-none h-auto px-1.5 py-0.5 text-[10px]">Seller</Badge>}
+                                 <b className={cn("font-semibold text-xs mr-1.5", msg.isSeller && "text-yellow-400")}>
+                                     {msg.isSeller ? seller.name : msg.user}
+                                     {msg.isSeller && <Badge variant="secondary" className="ml-1.5 bg-yellow-400/10 text-yellow-400 border-none h-auto px-1.5 py-0.5 text-[10px]">Seller</Badge>}
                                      :
                                  </b>
                                  <span className="text-[13px]">
