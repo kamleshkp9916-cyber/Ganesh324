@@ -554,10 +554,6 @@ const AuctionCard = React.memo(function AuctionCard({ activeAuction, auctionTime
                     <Badge variant="destructive" className="animate-pulse gap-1.5">
                         <Gavel className="w-3 h-3" /> Live Auction
                     </Badge>
-                     <Badge variant="secondary" className="bg-background text-foreground">
-                        <Clock className="w-3 h-3 mr-1.5" />
-                        {auctionTime !== null && auctionTime > 0 ? `${String(Math.floor(auctionTime / 60)).padStart(2, '0')}:${String(auctionTime % 60).padStart(2, '0')}` : 'Ended'}
-                    </Badge>
                 </div>
                 <div className="flex items-center gap-4 mb-3">
                     <Image src={product.images[0]} alt={product.name} width={64} height={64} className="rounded-lg border bg-muted" />
@@ -1499,7 +1495,12 @@ const ChatPanel = ({
     e.preventDefault();
     if (!newMessage.trim()) return;
     
-    handlers.handleNewMessageSubmit(newMessage, replyingTo || undefined);
+    let messageToSend = newMessage;
+    if (replyingTo) {
+      messageToSend = `@${replyingTo.name.split(' ')[0]} ${newMessage}`;
+    }
+
+    console.log("New Message:", messageToSend);
 
     setNewMessage("");
     setReplyingTo(null);
@@ -1589,92 +1590,33 @@ const ChatPanel = ({
         </div>
       </header>
       <ScrollArea className="flex-grow" ref={chatContainerRef} onScroll={handleManualScroll}>
-          <div className="p-3 space-y-2">
+          <div className="p-3 space-y-2.5">
              {chatMessages.map((msg) => {
                   if (msg.type === 'system') {
-                    if (msg.text.includes('shared a post')) {
-                        return (
-                            <div key={msg.id} className="p-1.5 my-1">
-                                <div className="p-2.5 rounded-lg border border-border/10 bg-black flex items-center gap-2 animate-in fade-in-0">
-                                    <div className="p-1 bg-muted rounded-full">
-                                        <Share2 className="w-4 h-4 text-muted-foreground" />
-                                    </div>
-                                    <div className="flex-grow">
-                                        <p className="text-xs text-muted-foreground">{msg.text.split(':')[0]}: <span className="font-semibold text-foreground italic">"{msg.text.split(':')[1].trim()}"</span></p>
-                                    </div>
-                                    <Button variant="ghost" size="sm" className="text-xs">View Post</Button>
-                                </div>
-                            </div>
-                        )
-                    }
-                    return <div key={msg.id} className="text-xs text-center text-[#9AA1A6] italic py-1">{msg.text}</div>
-                  }
-                   if (msg.type === 'auction_end') {
-                    return (
-                        <div key={msg.id} className="p-2.5 my-2">
-                             <Card className="bg-[#141516] border-gray-800 text-white shadow-lg animate-in fade-in-0">
-                                <CardHeader className="p-3">
-                                    <div className="flex justify-between items-center">
-                                        <CardTitle className="text-base font-bold">Auction Ended</CardTitle>
-                                        <Badge variant="outline">Expired</Badge>
-                                    </div>
-                                    <CardDescription className="text-xs">The auction for {msg.productName} has finished.</CardDescription>
-                                </CardHeader>
-                                <CardContent className="p-3 pt-0 flex justify-between items-center">
-                                    <div className="text-center">
-                                        <p className="text-xs text-muted-foreground mb-1">Winner</p>
-                                        <div className="flex items-center gap-2">
-                                            <Award className="w-5 h-5 text-yellow-400" />
-                                            <p className="font-bold text-base">{msg.winner}</p>
-                                        </div>
-                                    </div>
-                                    <div className="text-center">
-                                        <p className="text-xs text-muted-foreground mb-1">Winning Bid</p>
-                                        <p className="font-bold text-base text-red-500">{msg.winningBid}</p>
-                                    </div>
-                                </CardContent>
-                            </Card>
-                        </div>
-                    )
-                  }
-                  if (msg.isBid) {
-                    return (
-                         <div key={msg.id} className="p-1.5 my-1">
-                             <div className="p-2 rounded-lg border border-purple-500/20 bg-purple-500/10 flex items-center gap-2 animate-in fade-in-0">
-                                <div className="p-1 bg-purple-500/20 rounded-full">
-                                    <Gavel className="w-4 h-4 text-purple-300" />
-                                </div>
-                                <div className="flex-grow">
-                                    <p className="text-[10px] text-purple-300">{msg.user} placed a bid!</p>
-                                    <p className="text-xs font-bold text-white">{msg.text.replace('BID ', '')}</p>
-                                </div>
-                             </div>
-                        </div>
-                    )
+                      return <div key={msg.id} className="text-xs text-center text-[#9AA1A6] italic py-1">{msg.text}</div>
                   }
                   if (!msg.user) return null;
-                  
-                  const isSellerMessage = msg.isSeller;
 
+                  const isMyMessage = msg.userId === seller?.uid;
+                  const isSellerMessage = msg.isSeller;
+                  
                   return (
-                     <div key={msg.id} className="flex items-start gap-2 w-full group animate-message-in">
+                     <div key={msg.id} className="flex items-start gap-2 w-full group text-sm animate-message-in">
                          <Avatar className="h-8 w-8 mt-0.5 border border-[rgba(255,255,255,0.04)]">
-                            <AvatarImage src={isSellerMessage ? seller.avatarUrl : msg.avatar} />
-                             <AvatarFallback className="bg-gradient-to-br from-red-500 to-yellow-500 text-white font-bold">
-                                 {(isSellerMessage ? seller.name : msg.user).charAt(0)}
-                             </AvatarFallback>
+                             <AvatarImage src={isSellerMessage ? seller.avatarUrl : msg.avatar} />
+                             <AvatarFallback className="bg-gradient-to-br from-red-500 to-yellow-500 text-white font-bold">{isSellerMessage ? seller.name.charAt(0) : msg.user.charAt(0)}</AvatarFallback>
                          </Avatar>
                           <div className="flex-grow">
-                            <p className="leading-relaxed break-words">
-                                <b className={cn("font-semibold text-xs mr-1.5", isSellerMessage && "text-yellow-400")}>
-                                    {isSellerMessage ? seller.name : msg.user}
-                                    {isSellerMessage && <Badge variant="secondary" className="ml-1.5 bg-yellow-400/10 text-yellow-400 border-none h-auto px-1.5 py-0.5 text-[10px]">Seller</Badge>}
-                                    :
-                                </b>
-                                <span className="text-[13px] text-[#E6ECEF]">
-                                  {renderWithHashtagsAndLinks(msg.text)}
-                                </span>
-                            </p>
+                             <p className="leading-relaxed break-words text-[13px] text-[#E6ECEF]">
+                                 <b className={cn("font-semibold text-xs mr-1.5", isSellerMessage && "text-yellow-400")}>
+                                     {isSellerMessage ? seller.name : msg.user}
+                                     {isSellerMessage && <Badge variant="secondary" className="ml-1.5 bg-yellow-400/10 text-yellow-400 border-none h-auto px-1.5 py-0.5 text-[10px]">Seller</Badge>}
+                                     :
+                                 </b>
+                                 <span className="text-[13px]">
+                                    {renderWithHashtagsAndLinks(msg.text)}
+                                 </span>
+                             </p>
                           </div>
                           <DropdownMenu>
                               <DropdownMenuTrigger asChild>
@@ -1708,17 +1650,6 @@ const ChatPanel = ({
               Jump to latest
             </Button>
           </div>
-        )}
-        {activeAuction && (
-            <div className="p-2 border-t border-border/10">
-                <AuctionCard
-                    activeAuction={activeAuction}
-                    auctionTime={auctionTime}
-                    highestBid={highestBid}
-                    totalBids={totalBids}
-                    handlers={handlers}
-                />
-            </div>
         )}
       <footer className="p-3 bg-transparent flex-shrink-0">
           {replyingTo && (
