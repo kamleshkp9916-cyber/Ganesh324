@@ -190,7 +190,7 @@ const mockChatMessages: any[] = [
     { id: 23, user: 'Noah', text: 'BID ₹9,600', avatar: 'https://placehold.co/40x40.png?text=N', userId: 'user14', isBid: true },
     { id: 24, user: 'Sophia', text: 'Great stream! Thanks!', avatar: 'https://placehold.co/40x40.png?text=S', userId: 'user15' },
     { id: 25, user: 'Ganesh', text: '@FashionFinds That sounds great! Thanks!', avatar: 'https://placehold.co/40x40.png', userId: 'user1' },
-    { id: 26, isSeller: true, text: "Hey @Alex, it's 100% genuine leather! https://example.com/leather-info" },
+    { id: 26, isSeller: true, text: "Hey @Alex, it's 100% genuine leather! Check the description for more info: https://example.com/leather-info" },
     { id: 27, isSeller: true, text: 'Yes @David, we offer international shipping!' },
     { id: 28, isSeller: true, text: '@Emily It lasts for about a year with average use!' },
     { id: 29, isSeller: true, text: 'Sure thing, @Ganesh! Here is a view of the back.' },
@@ -1501,12 +1501,7 @@ const ChatPanel = ({
     e.preventDefault();
     if (!newMessage.trim()) return;
     
-    let messageToSend = newMessage;
-    if (replyingTo) {
-      messageToSend = `@${replyingTo.name.split(' ')[0]} ${newMessage}`;
-    }
-
-    handlers.handleNewMessageSubmit(messageToSend, replyingTo);
+    handlers.handleNewMessageSubmit(newMessage, replyingTo);
     
     setNewMessage("");
     setReplyingTo(null);
@@ -1640,20 +1635,20 @@ const ChatPanel = ({
                 }
                   if (!msg.user) return null;
 
-                  const isMyMessage = msg.userId === seller?.uid;
-                  const isSellerMessage = msg.userId === seller?.uid;
+                  const isMyMessage = msg.userId === handlers.user?.uid;
+                  const isSellerMessage = msg.isSeller;
                   
                   return (
                      <div key={msg.id} className="flex items-start gap-3 w-full group text-sm animate-message-in">
                          <Avatar className="h-9 w-9 mt-0.5 border border-[rgba(255,255,255,0.04)]">
-                             <AvatarImage src={msg.isSeller ? seller.avatarUrl : msg.avatar} />
-                             <AvatarFallback className="bg-gradient-to-br from-red-500 to-yellow-500 text-white font-bold">{msg.isSeller ? seller.name.charAt(0) : msg.user.charAt(0)}</AvatarFallback>
+                             <AvatarImage src={isSellerMessage ? seller.avatarUrl : msg.avatar} />
+                             <AvatarFallback className="bg-gradient-to-br from-red-500 to-yellow-500 text-white font-bold">{isSellerMessage ? seller.name.charAt(0) : msg.user.charAt(0)}</AvatarFallback>
                          </Avatar>
                           <div className="flex-grow">
                              <p className="leading-relaxed break-words text-sm text-[#E6ECEF]">
-                                 <b className={cn("font-semibold text-xs mr-1.5", msg.isSeller && "text-yellow-400")}>
-                                     {msg.isSeller ? seller.name : msg.user}
-                                     {msg.isSeller && <Badge variant="secondary" className="ml-1.5 bg-yellow-400/10 text-yellow-400 border-none h-auto px-1.5 py-0.5 text-[10px]">Seller</Badge>}
+                                 <b className={cn("font-semibold text-xs mr-1.5", isSellerMessage && "text-yellow-400")}>
+                                     {isSellerMessage ? seller.name : msg.user}
+                                     {isSellerMessage && <Badge variant="secondary" className="ml-1.5 bg-yellow-400/10 text-yellow-400 border-none h-auto px-1.5 py-0.5 text-[10px]">Seller</Badge>}
                                      :
                                  </b>
                                  <span className="text-sm">
