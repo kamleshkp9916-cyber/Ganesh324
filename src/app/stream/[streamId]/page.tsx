@@ -189,7 +189,7 @@ const mockChatMessages: any[] = [
     { id: 25, user: 'Ganesh', text: '@FashionFinds That sounds great! Thanks!', avatar: 'https://placehold.co/40x40.png', userId: 'user1' },
     { id: 31, isSeller: true, text: 'You are welcome, @Ganesh! Glad I could help.' },
     { id: 32, type: 'system', text: 'Michael joined the stream.' },
-    { id: 33, type: 'system', text: 'Seller FashionFinds shared a post: "Behind the scenes of our new collection!"' },
+    { id: 33, type: 'post_share', sellerName: 'FashionFinds', text: 'Behind the scenes of our new collection!', product: productDetails['prod_5'] },
 ];
 
 const reportReasons = [
@@ -430,6 +430,35 @@ const ProductPromoCard = ({ msg, handlers }: { msg: any, handlers: any }) => {
                     <div className="flex gap-2 mt-2">
                         <Button size="sm" variant="outline" className="text-xs h-7 flex-1" onClick={() => handlers.onAddToCart(product)}><ShoppingCart className="w-3 h-3 mr-1" /> Cart</Button>
                         <Button size="sm" className="text-xs h-7 flex-1" onClick={() => handlers.onBuyNow(product)}>Buy Now</Button>
+                    </div>
+                </div>
+            </Card>
+       </div>
+    );
+};
+
+const PostShareCard = ({ msg, handlers }: { msg: any, handlers: any }) => {
+    const { product } = msg;
+
+    return (
+       <div className="p-1.5">
+            <Card className="overflow-hidden bg-card/80 border-primary/20 p-3 animate-in fade-in-0 slide-in-from-bottom-2">
+                <div className="flex items-center gap-2 mb-2 text-xs text-muted-foreground">
+                    <FileEdit className="w-4 h-4"/>
+                    <strong>{msg.sellerName}</strong> shared a post
+                </div>
+                <p className="text-sm italic mb-3">"{msg.text}"</p>
+                <div className="flex gap-3">
+                     <div className="relative w-20 h-20 bg-muted rounded-md overflow-hidden flex-shrink-0">
+                        <Image src={product.images[0]} alt={product.name} fill sizes="80px" className="object-cover" />
+                    </div>
+                    <div className="flex-grow">
+                        <h4 className="font-semibold text-sm">{product.name}</h4>
+                        <p className="font-bold text-lg">{product.price}</p>
+                        <div className="flex gap-2 mt-2">
+                            <Button size="sm" variant="outline" className="text-xs h-7" onClick={() => handlers.onAddToCart(product)}><ShoppingCart className="w-3 h-3 mr-1" /> Cart</Button>
+                            <Button size="sm" className="text-xs h-7" onClick={() => handlers.onBuyNow(product)}>Buy Now</Button>
+                        </div>
                     </div>
                 </div>
             </Card>
@@ -1343,24 +1372,27 @@ const ChatPanel = ({
                 if (msg.type === 'product_promo') {
                     return <ProductPromoCard key={msg.id} msg={msg} handlers={handlers} />;
                 }
+                if (msg.type === 'post_share') {
+                    return <PostShareCard key={msg.id} msg={msg} handlers={handlers} />;
+                }
                   if (!msg.user && !msg.isSeller) return null;
 
                   const isSellerMessage = msg.isSeller;
                   
                   return (
-                     <div key={msg.id} className="flex items-start gap-2 w-full group animate-message-in">
+                     <div key={msg.id} className="flex items-start gap-2 w-full group text-sm animate-message-in">
                          <Avatar className="h-8 w-8 mt-0.5 border border-[rgba(255,255,255,0.04)]">
                              <AvatarImage src={msg.avatar} />
                              <AvatarFallback className="bg-gradient-to-br from-red-500 to-yellow-500 text-white font-bold text-[10px]">{msg.user?.charAt(0)}</AvatarFallback>
                          </Avatar>
                           <div className="flex-grow">
-                             <p className="leading-relaxed break-words text-[13px] text-[#E6ECEF]">
+                             <p className="leading-relaxed break-words text-sm text-[#E6ECEF]">
                                  <b className={cn("font-semibold text-xs mr-1.5", isSellerMessage && "text-yellow-400")}>
                                      {isSellerMessage ? seller.name : msg.user}
                                      {isSellerMessage && <Badge variant="secondary" className="ml-1.5 bg-yellow-400/10 text-yellow-400 border-none h-auto px-1.5 py-0.5 text-[9px] font-bold">Seller</Badge>}
                                      :
                                  </b>
-                                 <span className="text-[13px]">
+                                 <span className="text-sm">
                                     {renderWithHashtagsAndLinks(msg.text)}
                                  </span>
                              </p>
@@ -1444,4 +1476,3 @@ const ChatPanel = ({
     </div>
   );
 };
-
