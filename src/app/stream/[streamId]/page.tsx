@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import {
@@ -68,7 +69,6 @@ import {
   Sparkles,
   UserCheck,
   Clock,
-  Trash2,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -186,7 +186,6 @@ const mockChatMessages: any[] = [
     { id: 20, type: 'system', text: 'Emma purchased a Smart Watch.' },
     { id: 21, user: 'Ava', text: 'Can you show a close-up of the stitching?', avatar: 'https://placehold.co/40x40.png?text=A', userId: 'user13' },
     { id: 24, user: 'Sophia', text: 'Great stream! Thanks!', avatar: 'https://placehold.co/40x40.png?text=S', userId: 'user15' },
-    { id: 25, user: 'Ganesh', text: '@FashionFinds That sounds great! Thanks!', avatar: 'https://placehold.co/40x40.png', userId: 'user1' },
     { id: 31, isSeller: true, user: 'FashionFinds', text: 'You are welcome, @Ganesh! Glad I could help.' },
     { id: 32, type: 'system', text: 'Michael joined the stream.' },
     { id: 33, type: 'post_share', sellerName: 'FashionFinds', text: 'Behind the scenes of our new collection!', product: productDetails['prod_5'] },
@@ -1265,7 +1264,7 @@ const ChatMessage = ({ msg, handlers }: { msg: any, handlers: any }) => {
             </Avatar>
             <div className="flex-grow">
                  <p className="break-words text-sm text-[#E6ECEF]">
-                    <span className={cn("font-semibold text-xs mr-1.5", isSellerMessage ? "text-yellow-400" : "text-muted-foreground")} style={{ color: msg.userColor || 'inherit' }}>
+                    <span className={cn("font-semibold text-xs mr-1.5", isSellerMessage ? "text-yellow-400" : "text-muted-foreground")} style={{ color: isSellerMessage ? undefined : msg.userColor }}>
                         {isSellerMessage && <Badge variant="outline" className="mr-1.5 border-yellow-400/50 text-yellow-400 h-4">Seller</Badge>}
                         {isSellerMessage ? handlers.seller.name : msg.user}:
                     </span>
