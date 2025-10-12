@@ -1264,12 +1264,14 @@ const ChatMessage = ({ msg, handlers }: { msg: any, handlers: any }) => {
                 </AvatarFallback>
             </Avatar>
             <div className="flex-grow">
-                 <div className="text-sm text-[#E6ECEF]">
-                    <span className={cn("font-semibold text-xs mr-1.5", isSellerMessage && "text-yellow-400")}>
-                        {isSellerMessage && <Badge variant="outline" className="mr-1.5 border-yellow-400/50 text-yellow-400 h-4">Seller</Badge>}
-                        {isSellerMessage ? handlers.seller.name : msg.user}:
-                    </span>
-                    <span className="text-sm">
+                 <div className="text-sm text-[#E6ECEF] leading-tight">
+                    <div className="flex items-baseline gap-1.5">
+                        <span className={cn("font-semibold text-xs", isSellerMessage && "text-yellow-400")}>
+                            {isSellerMessage ? handlers.seller.name : msg.user}:
+                        </span>
+                        {isSellerMessage && <Badge variant="outline" className="h-4 border-yellow-400/50 px-1.5 text-yellow-400">Seller</Badge>}
+                    </div>
+                    <span className="text-sm whitespace-pre-wrap break-words">
                         {msg.replyingTo && <span className="text-primary font-semibold mr-1">@{msg.replyingTo}</span>}
                         {renderWithHashtagsAndLinks(msg.text)}
                     </span>
