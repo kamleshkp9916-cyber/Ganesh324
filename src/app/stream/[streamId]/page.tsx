@@ -82,7 +82,7 @@ import React, { useEffect, useState, useRef, useMemo, useCallback } from "react"
 import { productDetails } from "@/lib/product-data";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { useToast } from "@/hooks/use-toast";
-import { addToCart, isProductInCart } from '@/lib/product-history';
+import { addToCart, isProductInCart, getCart } from '@/lib/product-history';
 import { cn } from "@/lib/utils";
 import {
   DropdownMenu,
@@ -495,7 +495,7 @@ const StreamInfo = ({ seller, streamData, handleFollowToggle, isFollowingState, 
                 </div>
             </div>
              <div className="flex items-center justify-between gap-2">
-                <Link href={`/seller/profile?userId=${seller.id}`} className="flex items-center gap-3 group flex-grow overflow-hidden">
+                <Link href={`/seller/profile?userId=${seller.name}`} className="flex items-center gap-3 group flex-grow overflow-hidden">
                     <Avatar className="h-12 w-12 flex-shrink-0">
                         <AvatarImage src={seller.avatarUrl} />
                         <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
@@ -565,6 +565,7 @@ export default function StreamPage() {
     const [isFollowingState, setIsFollowingState] = useState(false);
     
     const [chatMessages, setChatMessages] = useState(mockChatMessages);
+    const [cartCount, setCartCount] = useState(0);
     
     const isMobile = useIsMobile();
         
@@ -632,6 +633,19 @@ export default function StreamPage() {
             closeMinimizedStream();
         }
     }, [minimizedStream, streamId, closeMinimizedStream]);
+    
+    useEffect(() => {
+        const updateCartCount = () => {
+            const items = getCart();
+            const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
+            setCartCount(totalItems);
+        };
+
+        updateCartCount(); // Initial count
+
+        window.addEventListener('storage', updateCartCount);
+        return () => window.removeEventListener('storage', updateCartCount);
+    }, []);
 
     const handleMainScroll = (e: React.UIEvent<HTMLDivElement>) => {
         const shouldShow = e.currentTarget.scrollTop > 200;
@@ -980,7 +994,7 @@ export default function StreamPage() {
                      <MobileLayout {...{ router, videoRef, playerRef, handlePlayPause, handleShare, handleMinimize, handleToggleFullscreen, isPaused, seller, streamData, handleFollowToggle, isFollowingState, sellerProducts, handlers, relatedStreams, isChatOpen, setIsChatOpen, chatMessages, pinnedMessages, onClose: () => setIsChatOpen(false), handleAddToCart, handleBuyNow, mobileView, setMobileView, isMuted, setIsMuted, handleGoLive, handleSeek, isLive, formatTime, currentTime, duration, buffered, handleProgressClick, progressContainerRef, activeQuality, setActiveQuality, product, user }} />
                  ) : (
                     <DesktopLayout 
-                        {...{ router, videoRef, playerRef, handlePlayPause, handleShare, handleMinimize, handleToggleFullscreen, isPaused, seller, streamData, handleFollowToggle, isFollowingState, sellerProducts, handlers, relatedStreams, isChatOpen, setIsChatOpen, chatMessages, pinnedMessages, onClose: () => setIsChatOpen(false), handleAddToCart, handleBuyNow, mobileView, setMobileView, isMuted, setIsMuted, handleGoLive, handleSeek, isLive, formatTime, currentTime, duration, buffered, handleProgressClick, progressContainerRef, mainScrollRef, handleMainScroll, showGoToTop, scrollToTop, activeQuality, setActiveQuality, product, user }}
+                        {...{ router, videoRef, playerRef, handlePlayPause, handleShare, handleMinimize, handleToggleFullscreen, isPaused, seller, streamData, handleFollowToggle, isFollowingState, sellerProducts, handlers, relatedStreams, isChatOpen, setIsChatOpen, chatMessages, pinnedMessages, onClose: () => setIsChatOpen(false), handleAddToCart, handleBuyNow, mobileView, setMobileView, isMuted, setIsMuted, handleGoLive, handleSeek, isLive, formatTime, currentTime, duration, buffered, handleProgressClick, progressContainerRef, mainScrollRef, handleMainScroll, showGoToTop, scrollToTop, activeQuality, setActiveQuality, product, user, cartCount }}
                     />
                  )}
             </div>
@@ -991,7 +1005,7 @@ export default function StreamPage() {
 const MemoizedStreamInfo = React.memo(StreamInfo);
 const MemoizedRelatedContent = React.memo(RelatedContent);
 
-const DesktopLayout = React.memo(({ handlers, chatMessages, ...props }: any) => {
+const DesktopLayout = React.memo(({ handlers, chatMessages, cartCount, ...props }: any) => {
 return (
 <div className="flex flex-col h-screen overflow-hidden">
     <header className="p-3 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-sm z-30 border-b h-16 shrink-0 w-full">
@@ -1014,9 +1028,14 @@ return (
         </div>
         <div className="flex items-center gap-2">
             <Button asChild variant="ghost">
-                <Link href="/cart">
+                <Link href="/cart" className="relative">
                     <ShoppingCart className="mr-2 h-4 w-4" />
                     My Cart
+                    {cartCount > 0 && (
+                        <Badge variant="destructive" className="absolute -top-1 -right-2 h-5 w-5 p-0 flex items-center justify-center text-xs">
+                            {cartCount}
+                        </Badge>
+                    )}
                 </Link>
             </Button>
         </div>
@@ -1385,7 +1404,7 @@ const ChatPanel = ({
                   const isSellerMessage = msg.isSeller;
                   
                   return (
-                     <div key={msg.id} className="flex items-start gap-2.5 w-full group animate-message-in">
+                     <div key={msg.id} className="flex items-start gap-2 w-full group animate-message-in">
                          <Avatar className="h-8 w-8 mt-0.5 border border-[rgba(255,255,255,0.04)]">
                              <AvatarImage src={msg.avatar} />
                              <AvatarFallback className="bg-gradient-to-br from-red-500 to-yellow-500 text-white font-bold text-[10px]">
