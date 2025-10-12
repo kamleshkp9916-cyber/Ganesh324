@@ -1264,7 +1264,7 @@ const ChatMessage = ({ msg, handlers }: { msg: any, handlers: any }) => {
                 </AvatarFallback>
             </Avatar>
             <div className="flex-grow">
-                 <p className="text-sm text-[#E6ECEF]">
+                 <div className="text-sm text-[#E6ECEF]">
                     <span className={cn("font-semibold text-xs mr-1.5", isSellerMessage && "text-yellow-400")}>
                         {isSellerMessage && <Badge variant="outline" className="mr-1.5 border-yellow-400/50 text-yellow-400 h-4">Seller</Badge>}
                         {isSellerMessage ? handlers.seller.name : msg.user}:
@@ -1273,7 +1273,7 @@ const ChatMessage = ({ msg, handlers }: { msg: any, handlers: any }) => {
                         {msg.replyingTo && <span className="text-primary font-semibold mr-1">@{msg.replyingTo}</span>}
                         {renderWithHashtagsAndLinks(msg.text)}
                     </span>
-                 </p>
+                 </div>
             </div>
             <DropdownMenu>
                 <DropdownMenuTrigger asChild>
