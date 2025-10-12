@@ -1264,11 +1264,11 @@ const ChatMessage = ({ msg, handlers }: { msg: any, handlers: any }) => {
                 </AvatarFallback>
             </Avatar>
             <div className="flex-grow">
-                 <p className="leading-relaxed break-words text-sm text-[#E6ECEF]">
-                    <b className={cn("font-semibold text-xs mr-1.5", isSellerMessage ? "text-yellow-400" : "text-muted-foreground")} style={{ color: msg.userColor || 'inherit' }}>
+                 <p className="break-words text-sm text-[#E6ECEF]">
+                    <span className={cn("font-semibold text-xs mr-1.5", isSellerMessage ? "text-yellow-400" : "text-muted-foreground")} style={{ color: msg.userColor || 'inherit' }}>
                         {isSellerMessage && <Badge variant="outline" className="mr-1.5 border-yellow-400/50 text-yellow-400 h-4">Seller</Badge>}
                         {isSellerMessage ? handlers.seller.name : msg.user}:
-                    </b>
+                    </span>
                     <span className="text-sm">
                         {msg.replyingTo && <span className="text-primary font-semibold mr-1">@{msg.replyingTo}</span>}
                         {renderWithHashtagsAndLinks(msg.text)}
@@ -1452,13 +1452,16 @@ const ChatPanel = ({
                       return <div key={msg.id} className="text-xs text-center text-[#9AA1A6] italic py-1">{msg.text}</div>
                   }
                   if (msg.type === 'post_share') {
-                      return <PostShareCard key={msg.id} msg={msg} handlers={handlers} sellerName={msg.sellerName} />;
+                      return <PostShareCard key={msg.id} msg={msg} handlers={handlers} sellerName={seller.name} />;
                   }
                   if (msg.type === 'product_promo') {
                     return <ProductPromoCard key={msg.id} msg={msg} handlers={handlers} />;
                   }
                   if (!msg.user) return null;
-                  return <ChatMessage key={msg.id} msg={msg} handlers={{...handlers, onReply: () => handleReply(msg)}} />;
+                  
+                  return (
+                     <ChatMessage key={msg.id} msg={msg} handlers={{...handlers, onReply: () => handleReply(msg)}} />
+                  )
               })}
             <div ref={messagesEndRef} />
           </div>
