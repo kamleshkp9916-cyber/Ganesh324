@@ -189,7 +189,7 @@ const mockChatMessages: any[] = [
     { id: 25, user: 'Ganesh', text: '@FashionFinds That sounds great! Thanks!', avatar: 'https://placehold.co/40x40.png', userId: 'user1' },
     { id: 31, isSeller: true, text: 'You are welcome, @Ganesh! Glad I could help.' },
     { id: 32, type: 'system', text: 'Michael joined the stream.' },
-    { id: 33, type: 'post_share', sellerName: 'FashionFinds', text: 'Behind the scenes of our new collection!', product: productDetails['prod_5'] },
+    { id: 33, type: 'post_share', text: 'Behind the scenes of our new collection!', product: productDetails['prod_5'] },
 ];
 
 const reportReasons = [
@@ -495,7 +495,7 @@ const StreamInfo = ({ seller, streamData, handleFollowToggle, isFollowingState, 
                 </div>
             </div>
              <div className="flex items-center justify-between gap-2">
-                <Link href={`/seller/profile?userId=${seller.name}`} className="flex items-center gap-3 group flex-grow overflow-hidden">
+                <Link href={`/seller/profile?userId=${seller.id}`} className="flex items-center gap-3 group flex-grow overflow-hidden">
                     <Avatar className="h-12 w-12 flex-shrink-0">
                         <AvatarImage src={seller.avatarUrl} />
                         <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
@@ -636,12 +636,14 @@ export default function StreamPage() {
     
     useEffect(() => {
         const updateCartCount = () => {
-            const items = getCart();
-            const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
-            setCartCount(totalItems);
+            if (typeof window !== 'undefined') {
+                const items = getCart();
+                const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
+                setCartCount(totalItems);
+            }
         };
 
-        updateCartCount(); // Initial count
+        updateCartCount();
 
         window.addEventListener('storage', updateCartCount);
         return () => window.removeEventListener('storage', updateCartCount);
@@ -1247,25 +1249,13 @@ const ChatPanel = ({
   seller,
   chatMessages,
   pinnedMessages,
-  activeAuction,
-  auctionTime,
-  highestBid,
-  totalBids,
-  walletBalance,
   handlers,
-  inlineAuctionCardRefs,
   onClose,
 }: {
   seller: any;
   chatMessages: any[];
   pinnedMessages: any[];
-  activeAuction: any;
-  auctionTime: number | null;
-  highestBid: number;
-  totalBids: number;
-  walletBalance: number;
   handlers: any;
-  inlineAuctionCardRefs: React.MutableRefObject<Record<string, HTMLDivElement | null>>;
   onClose: () => void;
 }) => {
   const [newMessage, setNewMessage] = useState("");
@@ -1307,6 +1297,16 @@ const ChatPanel = ({
     setReplyingTo({ name: msg.user, id: msg.userId });
     textareaRef.current?.focus();
   }
+
+  const renderChatMessageContent = (text: string) => {
+    const parts = text.split(/(@\w+)/g);
+    return parts.map((part, index) => {
+      if (part.startsWith('@')) {
+        return <span key={index} className="text-primary font-semibold">{part}</span>;
+      }
+      return part;
+    });
+  };
 
   return (
     <div className='h-full flex flex-col bg-[#0b0b0c]'>
@@ -1398,9 +1398,7 @@ const ChatPanel = ({
                   if (msg.type === 'product_promo') {
                     return <ProductPromoCard key={msg.id} msg={msg} handlers={handlers} />;
                   }
-                  if (!msg.user && !msg.isSeller) return null;
 
-                  const isMyMessage = msg.userId === seller?.uid;
                   const isSellerMessage = msg.isSeller;
                   
                   return (
@@ -1412,16 +1410,17 @@ const ChatPanel = ({
                             </AvatarFallback>
                          </Avatar>
                           <div className="flex-grow">
-                             <p className="break-words text-sm text-[#E6ECEF]">
+                             <p className="leading-relaxed text-sm text-[#E6ECEF]">
                                  <b className={cn("font-semibold text-xs mr-1.5", isSellerMessage && "text-yellow-400")}>
-                                     {isSellerMessage ? <>
-                                        <Badge variant="outline" className="mr-1.5 border-yellow-400/50 text-yellow-400 h-4">Seller</Badge>
-                                        {seller.name}
-                                     </> : msg.user}:
+                                     {isSellerMessage ? (
+                                        <>
+                                            <Badge variant="outline" className="mr-1.5 border-yellow-400/50 text-yellow-400 h-4">Seller</Badge>
+                                            {seller.name}
+                                        </>
+                                     ) : msg.user}:
                                  </b>
                                  <span className="text-sm">
-                                    {msg.replyingTo && <span className="text-primary font-semibold mr-1">@{msg.replyingTo}</span>}
-                                    {msg.text}
+                                    {renderChatMessageContent(msg.text)}
                                  </span>
                              </p>
                           </div>
