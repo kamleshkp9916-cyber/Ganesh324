@@ -18,8 +18,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { EditAddressForm } from '@/components/edit-address-form';
 import { productDetails } from '@/lib/product-data';
 import { UserData, updateUserData } from '@/lib/follow-data';
-import { COUPONS_KEY } from '@/app/admin/settings/page';
-
+import { COUPONS_KEY, SHIPPING_SETTINGS_KEY, ShippingSettings } from '@/app/admin/settings/page';
+import { useLocalStorage } from '@/hooks/use-local-storage';
 
 function EmptyCart() {
     const router = useRouter();
@@ -32,6 +32,10 @@ function EmptyCart() {
         </div>
     );
 }
+
+const defaultShippingSettings: ShippingSettings = {
+    deliveryCharge: 50.00
+};
 
 export default function CartPage() {
   const router = useRouter();
@@ -46,6 +50,8 @@ export default function CartPage() {
   const [isCheckingOut, setIsCheckingOut] = useState(false);
   const [availableCoupons, setAvailableCoupons] = useState<any[]>([]);
   const [estimatedDeliveryDate, setEstimatedDeliveryDate] = useState('');
+  const [shippingSettings] = useLocalStorage<ShippingSettings>(SHIPPING_SETTINGS_KEY, defaultShippingSettings);
+
 
   const buyNowProductId = searchParams.get('productId');
   const isBuyNow = searchParams.get('buyNow') === 'true';
@@ -152,7 +158,7 @@ export default function CartPage() {
     return 0;
   }, [appliedCoupon, subtotal]);
 
-  const shippingCost = 50.00;
+  const shippingCost = shippingSettings?.deliveryCharge ?? 50.00;
   const total = subtotal - couponDiscount + shippingCost;
 
   const handleApplyCoupon = (coupon: any) => {

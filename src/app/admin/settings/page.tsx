@@ -27,6 +27,7 @@ import {
   Contact,
   Info,
   Link2,
+  Truck,
 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
@@ -42,6 +43,7 @@ import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
@@ -91,6 +93,7 @@ export const CATEGORY_BANNERS_KEY = 'streamcart_category_banners';
 export const FOOTER_CONTENT_KEY = 'streamcart_footer_content';
 export const HUB_BANNER_KEY = 'streamcart_hub_banner';
 export const HUB_FEATURED_PRODUCTS_KEY = 'streamcart_hub_featured_products';
+export const SHIPPING_SETTINGS_KEY = 'streamcart_shipping_settings';
 
 
 const announcementSchema = z.object({
@@ -158,6 +161,11 @@ const footerContentSchema = z.object({
 });
 export type FooterContent = z.infer<typeof footerContentSchema>;
 
+const shippingSettingsSchema = z.object({
+  deliveryCharge: z.coerce.number().min(0, "Charge must be non-negative."),
+});
+export type ShippingSettings = z.infer<typeof shippingSettingsSchema>;
+
 const defaultFooterContent: FooterContent = {
   description: "Your one-stop shop for live shopping. Discover, engage, and buy in real-time.",
   address: "123 Stream St, Commerce City, IN",
@@ -167,6 +175,10 @@ const defaultFooterContent: FooterContent = {
   twitter: "https://twitter.com",
   linkedin: "https://linkedin.com",
   instagram: "https://instagram.com",
+};
+
+const defaultShippingSettings: ShippingSettings = {
+    deliveryCharge: 50.00
 };
 
 
@@ -508,6 +520,49 @@ const FooterContentForm = ({ storedValue, onSave }: { storedValue: FooterContent
     );
 };
 
+const ShippingSettingsForm = ({ storedValue, onSave }: { storedValue: ShippingSettings, onSave: (data: ShippingSettings) => void }) => {
+    const [isLoading, setIsLoading] = useState(false);
+    const form = useForm<z.infer<typeof shippingSettingsSchema>>({
+        resolver: zodResolver(shippingSettingsSchema),
+        defaultValues: storedValue,
+    });
+    
+    useEffect(() => {
+        form.reset(storedValue);
+    }, [storedValue, form]);
+
+    const onSubmit = (values: z.infer<typeof shippingSettingsSchema>) => {
+        setIsLoading(true);
+        setTimeout(() => {
+            onSave(values);
+            setIsLoading(false);
+        }, 500);
+    };
+
+    return (
+        <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                <FormField control={form.control} name="deliveryCharge" render={({ field }) => (
+                    <FormItem>
+                        <FormLabel>Flat-Rate Delivery Charge (₹)</FormLabel>
+                        <FormControl>
+                            <Input type="number" step="0.01" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                    </FormItem>
+                )} />
+
+                <div className="flex justify-end pt-2">
+                    <Button type="submit" disabled={isLoading}>
+                        {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        Save Shipping Settings
+                    </Button>
+                </div>
+            </form>
+        </Form>
+    );
+};
+
 
 export default function AdminSettingsPage() {
   const { user, userData, loading } = useAuth();
@@ -524,6 +579,7 @@ export default function AdminSettingsPage() {
   const [footerContent, setFooterContent] = useLocalStorage<FooterContent>(FOOTER_CONTENT_KEY, defaultFooterContent);
   const [hubBanner, setHubBanner] = useLocalStorage<HubBanner>(HUB_BANNER_KEY, defaultHubBanner);
   const [featuredProducts, setFeaturedProducts] = useLocalStorage<FeaturedProduct[]>(HUB_FEATURED_PRODUCTS_KEY, defaultFeaturedProducts);
+  const [shippingSettings, setShippingSettings] = useLocalStorage<ShippingSettings>(SHIPPING_SETTINGS_KEY, defaultShippingSettings);
   
   const [isCouponFormOpen, setIsCouponFormOpen] = useState(false);
   const [editingCoupon, setEditingCoupon] = useState<Coupon | undefined>(undefined);
@@ -619,6 +675,11 @@ export default function AdminSettingsPage() {
    const handleSaveFooter = (data: FooterContent) => {
         setFooterContent(data);
         toast({ title: "Footer Content Saved!", description: "Your footer has been updated successfully." });
+    };
+    
+    const handleSaveShipping = (data: ShippingSettings) => {
+        setShippingSettings(data);
+        toast({ title: "Shipping Settings Saved!", description: `Delivery charge has been set to ₹${data.deliveryCharge.toFixed(2)}.` });
     };
 
   const announcementForm = useForm<z.infer<typeof announcementSchema>>({
@@ -840,6 +901,16 @@ export default function AdminSettingsPage() {
                         )) : (
                             isMounted ? <p className="text-center text-muted-foreground py-4">No coupons have been created yet.</p> : <Skeleton className="w-full h-24" />
                         )}
+                    </CardContent>
+                </Card>
+
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2"><Truck /> Shipping & Delivery</CardTitle>
+                        <CardDescription>Manage shipping costs and other delivery settings.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <ShippingSettingsForm storedValue={shippingSettings} onSave={handleSaveShipping} />
                     </CardContent>
                 </Card>
                 
