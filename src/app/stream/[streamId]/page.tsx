@@ -166,7 +166,7 @@ const productToSellerMapping: { [key: string]: { name: string; avatarUrl: string
 const mockChatMessages: any[] = [
     { id: 1, user: 'Ganesh', text: 'This looks amazing! 🔥 #newpurchase', avatar: 'https://placehold.co/40x40.png', userId: 'user1' },
     { id: 2, user: 'Alex', text: 'What is the material?', avatar: 'https://placehold.co/40x40.png', userId: 'user2' },
-    { id: 26, isSeller: true, text: "Hey @Alex, it's 100% genuine leather! Check the description for more info: https://example.com/leather-info" },
+    { id: 26, isSeller: true, text: "Hey @Alex, it's 100% genuine leather! Check the description for more info." },
     { id: 3, user: 'Jane', text: 'I just bought one! So excited. 🤩 #newpurchase', avatar: 'https://placehold.co/40x40.png', userId: 'user3' },
     { id: 4, type: 'system', text: 'Maria purchased a Vintage Camera.' },
     { id: 5, type: 'system', text: 'Michael joined the stream.' },
@@ -175,7 +175,6 @@ const mockChatMessages: any[] = [
     { id: 7, user: 'Sarah', text: 'This is my first time here, loving the vibe!', avatar: 'https://placehold.co/40x40.png', userId: 'user5' },
     { id: 11, user: 'Emily', text: 'How long does the battery last on the light meter?', avatar: 'https://placehold.co/40x40.png', userId: 'user8' },
     { id: 28, isSeller: true, text: '@Emily It lasts for about a year with average use!' },
-    { id: 13, type: 'product_pin', productId: 'prod_2', text: 'Special offer on these headphones!' },
     { id: 14, type: 'system', text: 'Robert purchased Wireless Headphones.' },
     { id: 15, user: 'Ganesh', text: 'Can you show the back of the camera?', avatar: 'https://placehold.co/40x40.png', userId: 'user1' },
     { id: 29, isSeller: true, text: 'Sure thing, @Ganesh! Here is a view of the back.' },
@@ -188,7 +187,7 @@ const mockChatMessages: any[] = [
     { id: 21, user: 'Ava', text: 'Can you show a close-up of the stitching?', avatar: 'https://placehold.co/40x40.png?text=A', userId: 'user13' },
     { id: 24, user: 'Sophia', text: 'Great stream! Thanks!', avatar: 'https://placehold.co/40x40.png?text=S', userId: 'user15' },
     { id: 25, user: 'Ganesh', text: '@FashionFinds That sounds great! Thanks!', avatar: 'https://placehold.co/40x40.png', userId: 'user1' },
-    { id: 31, isSeller: true, text: 'This is a seller message for UI testing purposes. https://google.com' },
+    { id: 31, isSeller: true, text: 'You are welcome, @Ganesh! Glad I could help.' },
     { id: 32, type: 'system', text: 'Michael joined the stream.' },
     { id: 33, type: 'system', text: 'Seller FashionFinds shared a post: "Behind the scenes of our new collection!"' },
 ];
@@ -1344,16 +1343,15 @@ const ChatPanel = ({
                 if (msg.type === 'product_promo') {
                     return <ProductPromoCard key={msg.id} msg={msg} handlers={handlers} />;
                 }
-                  if (!msg.user) return null;
+                  if (!msg.user && !msg.isSeller) return null;
 
-                  const isMyMessage = msg.userId === seller?.uid;
-                  const isSellerMessage = msg.userId === seller?.uid;
+                  const isSellerMessage = msg.isSeller;
                   
                   return (
-                     <div key={msg.id} className="flex items-start gap-3 w-full group text-sm animate-message-in">
+                     <div key={msg.id} className="flex items-start gap-2 w-full group animate-message-in">
                          <Avatar className="h-8 w-8 mt-0.5 border border-[rgba(255,255,255,0.04)]">
                              <AvatarImage src={msg.avatar} />
-                             <AvatarFallback className="bg-gradient-to-br from-red-500 to-yellow-500 text-white font-bold text-[10px]">{msg.user.charAt(0)}</AvatarFallback>
+                             <AvatarFallback className="bg-gradient-to-br from-red-500 to-yellow-500 text-white font-bold text-[10px]">{msg.user?.charAt(0)}</AvatarFallback>
                          </Avatar>
                           <div className="flex-grow">
                              <p className="leading-relaxed break-words text-[13px] text-[#E6ECEF]">
