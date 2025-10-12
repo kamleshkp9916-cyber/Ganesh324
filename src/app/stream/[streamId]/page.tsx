@@ -120,7 +120,7 @@ import { useInView } from "react-intersection-observer";
 import { useMiniPlayer } from "@/context/MiniPlayerContext";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { useIsMobile } from "@/hooks/use-is-mobile";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { format, formatDistanceToNow, isThisWeek, isThisYear, parseISO, parse } from 'date-fns';
 
@@ -1245,6 +1245,57 @@ const MobileLayout = React.memo(({ handlers, chatMessages, ...props }: any) => {
 });
 MobileLayout.displayName = "MobileLayout";
 
+const ChatMessage = ({ msg, handlers }: { msg: any, handlers: any }) => {
+    const { user } = useAuth();
+    const isMyMessage = msg.userId === user?.uid;
+    const isSellerMessage = msg.isSeller || msg.userId === handlers.seller.id;
+    
+    const handleReply = () => handlers.onReply(msg);
+    const handleTogglePin = () => handlers.onTogglePin(msg.id);
+    const handleReport = () => handlers.onReportMessage(msg.id);
+    const handleDelete = () => handlers.onDeleteMessage(msg.id);
+
+    return (
+        <div className="flex items-start gap-2 w-full group animate-message-in">
+            <Avatar className="h-8 w-8">
+                <AvatarImage src={msg.avatar} />
+                <AvatarFallback className="bg-gradient-to-br from-red-500 to-yellow-500 text-white font-bold text-[10px]">
+                    {msg.user ? msg.user.charAt(0) : 'S'}
+                </AvatarFallback>
+            </Avatar>
+            <div className="flex-grow">
+                <p className="text-xs">
+                    <b className={cn("font-semibold mr-1.5", isSellerMessage ? "text-yellow-400" : "text-muted-foreground")} style={{ color: msg.userColor || 'inherit' }}>
+                        {isSellerMessage && <Badge variant="outline" className="mr-1.5 border-yellow-400/50 text-yellow-400 h-4">Seller</Badge>}
+                        {isSellerMessage ? handlers.seller.name : msg.user}
+                    </b>
+                </p>
+                <p className="text-sm whitespace-pre-wrap break-words text-[#E6ECEF]">
+                    {renderWithHashtagsAndLinks(msg.text)}
+                </p>
+            </div>
+            <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                    <button className="text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity p-1">
+                        <MoreVertical className="w-4 h-4" />
+                    </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                    <DropdownMenuItem onSelect={handleReply}><Reply className="mr-2 h-4 w-4" />Reply</DropdownMenuItem>
+                    {isMyMessage && (
+                        <>
+                            <DropdownMenuItem onSelect={handleTogglePin}><Pin className="mr-2 h-4 w-4" />Pin Message</DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem className="text-destructive" onSelect={handleDelete}><Trash2 className="mr-2 h-4 w-4" />Delete</DropdownMenuItem>
+                        </>
+                    )}
+                    {!isMyMessage && <DropdownMenuItem onSelect={handleReport}><Flag className="mr-2 h-4 w-4" />Report</DropdownMenuItem>}
+                </DropdownMenuContent>
+            </DropdownMenu>
+        </div>
+    );
+};
+
 const ChatPanel = ({
   seller,
   chatMessages,
@@ -1258,6 +1309,7 @@ const ChatPanel = ({
   handlers: any;
   onClose: () => void;
 }) => {
+  const { user } = useAuth();
   const [newMessage, setNewMessage] = useState("");
   const [replyingTo, setReplyingTo] = useState<{ name: string; id: string } | null>(null);
   const [showScrollToBottom, setShowScrollToBottom] = useState(false);
@@ -1283,31 +1335,14 @@ const ChatPanel = ({
     setNewMessage(prev => prev + emoji);
   };
 
-  const handleNewMessageSubmit = (e: React.FormEvent) => {
+  const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newMessage.trim()) return;
-    
     handlers.handleNewMessageSubmit(newMessage, replyingTo);
-    
     setNewMessage("");
     setReplyingTo(null);
   };
   
-  const handleReply = (msg: any) => {
-    setReplyingTo({ name: msg.user, id: msg.userId });
-    textareaRef.current?.focus();
-  }
-
-  const renderChatMessageContent = (text: string) => {
-    const parts = text.split(/(@\w+)/g);
-    return parts.map((part, index) => {
-      if (part.startsWith('@')) {
-        return <span key={index} className="text-primary font-semibold">{part}</span>;
-      }
-      return part;
-    });
-  };
-
   return (
     <div className='h-full flex flex-col bg-[#0b0b0c]'>
       <header className="p-3 flex items-center justify-between z-10 flex-shrink-0 h-16 border-b border-[rgba(255,255,255,0.04)] sticky top-0 bg-[#0f1113]/80 backdrop-blur-sm">
@@ -1398,49 +1433,8 @@ const ChatPanel = ({
                   if (msg.type === 'product_promo') {
                     return <ProductPromoCard key={msg.id} msg={msg} handlers={handlers} />;
                   }
-
-                  const isSellerMessage = msg.isSeller;
-                  
-                  return (
-                     <div key={msg.id} className="flex items-start gap-3 w-full group animate-message-in">
-                         <Avatar className="h-8 w-8 mt-0.5 border border-[rgba(255,255,255,0.04)]">
-                             <AvatarImage src={msg.avatar} />
-                             <AvatarFallback className="bg-gradient-to-br from-red-500 to-yellow-500 text-white font-bold text-[10px]">
-                                {msg.user ? msg.user.charAt(0) : 'S'}
-                            </AvatarFallback>
-                         </Avatar>
-                          <div className="flex-grow">
-                             <p className="leading-relaxed text-sm text-[#E6ECEF]">
-                                 <b className={cn("font-semibold text-xs mr-1.5", isSellerMessage && "text-yellow-400")}>
-                                     {isSellerMessage ? (
-                                        <>
-                                            <Badge variant="outline" className="mr-1.5 border-yellow-400/50 text-yellow-400 h-4">Seller</Badge>
-                                            {seller.name}
-                                        </>
-                                     ) : msg.user}:
-                                 </b>
-                                 <span className="text-sm">
-                                    {renderChatMessageContent(msg.text)}
-                                 </span>
-                             </p>
-                          </div>
-                          <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                  <button className="text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity p-1">
-                                      <MoreVertical className="w-4 h-4" />
-                                  </button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                  <DropdownMenuItem onSelect={() => handleReply(msg)}>
-                                      <Reply className="mr-2 h-4 w-4" />Reply
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem onSelect={() => handlers.onReportMessage(msg.id)}>
-                                    <Flag className="mr-2 h-4 w-4" />Report
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                          </DropdownMenu>
-                      </div>
-                  )
+                  if (!msg.user) return null; // Add this check
+                  return <ChatMessage key={msg.id} msg={msg} handlers={handlers} />;
               })}
             <div ref={messagesEndRef} />
           </div>
@@ -1466,7 +1460,7 @@ const ChatPanel = ({
               </button>
             </div>
           )}
-          <form onSubmit={handleNewMessageSubmit} className="flex items-center gap-2">
+          <form onSubmit={handleFormSubmit} className="flex items-center gap-2">
              <div className="relative flex-grow">
                  <Textarea
                     ref={textareaRef}
