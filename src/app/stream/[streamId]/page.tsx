@@ -167,20 +167,25 @@ const productToSellerMapping: { [key: string]: { name: string; avatarUrl: string
 const mockChatMessages: any[] = [
     { id: 1, user: 'Ganesh', text: 'This looks amazing! 🔥 #newpurchase', avatar: 'https://placehold.co/40x40.png', userId: 'user1' },
     { id: 2, user: 'Alex', text: 'What is the material?', avatar: 'https://placehold.co/40x40.png', userId: 'user2' },
+    { id: 26, isSeller: true, text: "Hey @Alex, it's 100% genuine leather! Check the description for more info: https://example.com/leather-info" },
     { id: 3, user: 'Jane', text: 'I just bought one! So excited. 🤩 #newpurchase', avatar: 'https://placehold.co/40x40.png', userId: 'user3' },
     { id: 4, type: 'system', text: 'Maria purchased a Vintage Camera.' },
     { id: 5, type: 'system', text: 'Michael joined the stream.' },
     { id: 6, user: 'David', text: 'Do you ship to the US?', avatar: 'https://placehold.co/40x40.png', userId: 'user4' },
+    { id: 27, isSeller: true, text: 'Yes @David, we offer international shipping!' },
     { id: 7, user: 'Sarah', text: 'This is my first time here, loving the vibe!', avatar: 'https://placehold.co/40x40.png', userId: 'user5' },
     { id: 8, type: 'auction', productId: 'prod_1', active: false, initialTime: 0 },
     { id: 9, user: 'Mike', text: 'BID ₹8,500', avatar: 'https://placehold.co/40x40.png', userId: 'user6', isBid: true },
     { id: 10, user: 'Laura', text: 'BID ₹9,000', avatar: 'https://placehold.co/40x40.png', userId: 'user7', isBid: true },
     { id: 11, user: 'Emily', text: 'How long does the battery last on the light meter?', avatar: 'https://placehold.co/40x40.png', userId: 'user8' },
+    { id: 28, isSeller: true, text: '@Emily It lasts for about a year with average use!' },
     { id: 12, type: 'auction', productId: 'prod_4', active: true, initialTime: 30 },
     { id: 13, type: 'product_pin', productId: 'prod_2', text: 'Special offer on these headphones!' },
     { id: 14, type: 'system', text: 'Robert purchased Wireless Headphones.' },
     { id: 15, user: 'Ganesh', text: 'Can you show the back of the camera?', avatar: 'https://placehold.co/40x40.png', userId: 'user1' },
+    { id: 29, isSeller: true, text: 'Sure thing, @Ganesh! Here is a view of the back.' },
     { id: 16, user: 'Chloe', text: 'Just tuned in, what did I miss?', avatar: 'https://placehold.co/40x40.png', userId: 'user9' },
+    { id: 30, isSeller: true, text: 'Welcome @Chloe! We just finished an auction, but we have more exciting products coming up. Stick around!' },
     { id: 17, user: 'Oliver', text: 'Is this real leather?', avatar: 'https://placehold.co/40x40.png?text=O', userId: 'user10' },
     { id: 18, user: 'Mia', text: 'Just followed! Love your stuff.', avatar: 'https://placehold.co/40x40.png?text=M', userId: 'user11' },
     { id: 19, user: 'Liam', text: 'How much is shipping?', avatar: 'https://placehold.co/40x40.png?text=L', userId: 'user12' },
@@ -190,11 +195,6 @@ const mockChatMessages: any[] = [
     { id: 23, user: 'Noah', text: 'BID ₹9,600', avatar: 'https://placehold.co/40x40.png?text=N', userId: 'user14', isBid: true },
     { id: 24, user: 'Sophia', text: 'Great stream! Thanks!', avatar: 'https://placehold.co/40x40.png?text=S', userId: 'user15' },
     { id: 25, user: 'Ganesh', text: '@FashionFinds That sounds great! Thanks!', avatar: 'https://placehold.co/40x40.png', userId: 'user1' },
-    { id: 26, isSeller: true, text: "Hey @Alex, it's 100% genuine leather! Check the description for more info: https://example.com/leather-info" },
-    { id: 27, isSeller: true, text: 'Yes @David, we offer international shipping!' },
-    { id: 28, isSeller: true, text: '@Emily It lasts for about a year with average use!' },
-    { id: 29, isSeller: true, text: 'Sure thing, @Ganesh! Here is a view of the back.' },
-    { id: 30, isSeller: true, text: 'Welcome @Chloe! We just finished an auction, but we have more exciting products coming up. Stick around!' },
     { id: 31, isSeller: true, text: 'This is a seller message for UI testing purposes. https://google.com' },
     { id: 32, type: 'system', text: 'Michael joined the stream.' },
     { id: 33, type: 'system', text: 'Seller FashionFinds shared a post: "Behind the scenes of our new collection!"' },
@@ -1602,7 +1602,7 @@ const ChatPanel = ({
          </div>
        )}
       <ScrollArea className="flex-grow" ref={chatContainerRef} onScroll={handleManualScroll}>
-          <div className="p-3 space-y-2.5">
+          <div className="p-3 space-y-2">
              {chatMessages.map((msg) => {
                   if (msg.type === 'system') {
                       return <div key={msg.id} className="text-xs text-center text-[#9AA1A6] italic py-1">{msg.text}</div>
@@ -1639,19 +1639,19 @@ const ChatPanel = ({
                   const isSellerMessage = msg.isSeller;
                   
                   return (
-                     <div key={msg.id} className="flex items-start gap-3 w-full group text-sm animate-message-in">
-                         <Avatar className="h-9 w-9 mt-0.5 border border-[rgba(255,255,255,0.04)]">
+                     <div key={msg.id} className="flex items-start gap-2 w-full group animate-message-in">
+                         <Avatar className="h-8 w-8 mt-0.5 border border-[rgba(255,255,255,0.04)]">
                              <AvatarImage src={isSellerMessage ? seller.avatarUrl : msg.avatar} />
-                             <AvatarFallback className="bg-gradient-to-br from-red-500 to-yellow-500 text-white font-bold">{isSellerMessage ? seller.name.charAt(0) : msg.user.charAt(0)}</AvatarFallback>
+                             <AvatarFallback className="bg-gradient-to-br from-red-500 to-yellow-500 text-white font-bold text-xs">{isSellerMessage ? seller.name.charAt(0) : msg.user.charAt(0)}</AvatarFallback>
                          </Avatar>
                           <div className="flex-grow">
-                             <p className="leading-relaxed break-words text-sm text-[#E6ECEF]">
+                             <p className="leading-relaxed break-words text-[13px] text-[#E6ECEF]">
                                  <b className={cn("font-semibold text-xs mr-1.5", isSellerMessage && "text-yellow-400")}>
                                      {isSellerMessage ? seller.name : msg.user}
-                                     {isSellerMessage && <Badge variant="secondary" className="ml-1.5 bg-yellow-400/10 text-yellow-400 border-none h-auto px-1.5 py-0.5 text-[10px]">Seller</Badge>}
+                                     {isSellerMessage && <Badge variant="secondary" className="ml-1.5 bg-yellow-400/10 text-yellow-400 border-none h-auto px-1.5 py-0.5 text-[9px] font-bold">Seller</Badge>}
                                      :
                                  </b>
-                                 <span className="text-sm">
+                                 <span className="text-[13px]">
                                     {renderWithHashtagsAndLinks(msg.text)}
                                  </span>
                              </p>
