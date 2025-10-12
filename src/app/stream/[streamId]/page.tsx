@@ -120,7 +120,7 @@ import { useInView } from "react-intersection-observer";
 import { useMiniPlayer } from "@/context/MiniPlayerContext";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useIsMobile } from "@/hooks/use-is-mobile";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { format, formatDistanceToNow, isThisWeek, isThisYear, parseISO, parse } from 'date-fns';
 
@@ -166,20 +166,20 @@ const productToSellerMapping: { [key: string]: { name: string; avatarUrl: string
 const mockChatMessages: any[] = [
     { id: 1, user: 'Ganesh', text: 'This looks amazing! 🔥 #newpurchase', avatar: 'https://placehold.co/40x40.png', userId: 'user1' },
     { id: 2, user: 'Alex', text: 'What is the material?', avatar: 'https://placehold.co/40x40.png', userId: 'user2' },
-    { id: 26, isSeller: true, text: "Hey @Alex, it's 100% genuine leather! Check the description for more info." },
+    { id: 26, isSeller: true, user: 'FashionFinds', text: "Hey @Alex, it's 100% genuine leather! Check the description for more info." },
     { id: 3, user: 'Jane', text: 'I just bought one! So excited. 🤩 #newpurchase', avatar: 'https://placehold.co/40x40.png', userId: 'user3' },
     { id: 4, type: 'system', text: 'Maria purchased a Vintage Camera.' },
     { id: 5, type: 'system', text: 'Michael joined the stream.' },
     { id: 6, user: 'David', text: 'Do you ship to the US?', avatar: 'https://placehold.co/40x40.png', userId: 'user4' },
-    { id: 27, isSeller: true, text: 'Yes @David, we offer international shipping!' },
+    { id: 27, isSeller: true, user: 'FashionFinds', text: 'Yes @David, we offer international shipping!' },
     { id: 7, user: 'Sarah', text: 'This is my first time here, loving the vibe!', avatar: 'https://placehold.co/40x40.png', userId: 'user5' },
     { id: 11, user: 'Emily', text: 'How long does the battery last on the light meter?', avatar: 'https://placehold.co/40x40.png', userId: 'user8' },
-    { id: 28, isSeller: true, text: '@Emily It lasts for about a year with average use!' },
+    { id: 28, isSeller: true, user: 'FashionFinds', text: '@Emily It lasts for about a year with average use!' },
     { id: 14, type: 'system', text: 'Robert purchased Wireless Headphones.' },
     { id: 15, user: 'Ganesh', text: 'Can you show the back of the camera?', avatar: 'https://placehold.co/40x40.png', userId: 'user1' },
-    { id: 29, isSeller: true, text: 'Sure thing, @Ganesh! Here is a view of the back.' },
+    { id: 29, isSeller: true, user: 'FashionFinds', text: 'Sure thing, @Ganesh! Here is a view of the back.' },
     { id: 16, user: 'Chloe', text: 'Just tuned in, what did I miss?', avatar: 'https://placehold.co/40x40.png', userId: 'user9' },
-    { id: 30, isSeller: true, text: 'Welcome @Chloe! We are showcasing our new collection. Stick around!' },
+    { id: 30, isSeller: true, user: 'FashionFinds', text: 'Welcome @Chloe! We are showcasing our new collection. Stick around!' },
     { id: 17, user: 'Oliver', text: 'Is this real leather?', avatar: 'https://placehold.co/40x40.png?text=O', userId: 'user10' },
     { id: 18, user: 'Mia', text: 'Just followed! Love your stuff.', avatar: 'https://placehold.co/40x40.png?text=M', userId: 'user11' },
     { id: 19, user: 'Liam', text: 'How much is shipping?', avatar: 'https://placehold.co/40x40.png?text=L', userId: 'user12' },
@@ -187,7 +187,7 @@ const mockChatMessages: any[] = [
     { id: 21, user: 'Ava', text: 'Can you show a close-up of the stitching?', avatar: 'https://placehold.co/40x40.png?text=A', userId: 'user13' },
     { id: 24, user: 'Sophia', text: 'Great stream! Thanks!', avatar: 'https://placehold.co/40x40.png?text=S', userId: 'user15' },
     { id: 25, user: 'Ganesh', text: '@FashionFinds That sounds great! Thanks!', avatar: 'https://placehold.co/40x40.png', userId: 'user1' },
-    { id: 31, isSeller: true, text: 'You are welcome, @Ganesh! Glad I could help.' },
+    { id: 31, isSeller: true, user: 'FashionFinds', text: 'You are welcome, @Ganesh! Glad I could help.' },
     { id: 32, type: 'system', text: 'Michael joined the stream.' },
     { id: 33, type: 'post_share', text: 'Behind the scenes of our new collection!', product: productDetails['prod_5'] },
 ];
@@ -1260,7 +1260,7 @@ const ChatMessage = ({ msg, handlers }: { msg: any, handlers: any }) => {
             <Avatar className="h-8 w-8">
                 <AvatarImage src={msg.avatar} />
                 <AvatarFallback className="bg-gradient-to-br from-red-500 to-yellow-500 text-white font-bold text-[10px]">
-                    {msg.user ? msg.user.charAt(0) : 'S'}
+                     {msg.user ? msg.user.charAt(0) : 'S'}
                 </AvatarFallback>
             </Avatar>
             <div className="flex-grow">
@@ -1300,16 +1300,27 @@ const ChatPanel = ({
   seller,
   chatMessages,
   pinnedMessages,
+  activeAuction,
+  auctionTime,
+  highestBid,
+  totalBids,
+  walletBalance,
   handlers,
+  inlineAuctionCardRefs,
   onClose,
 }: {
   seller: any;
   chatMessages: any[];
   pinnedMessages: any[];
+  activeAuction: any;
+  auctionTime: number | null;
+  highestBid: number;
+  totalBids: number;
+  walletBalance: number;
   handlers: any;
+  inlineAuctionCardRefs: React.MutableRefObject<Record<string, HTMLDivElement | null>>;
   onClose: () => void;
 }) => {
-  const { user } = useAuth();
   const [newMessage, setNewMessage] = useState("");
   const [replyingTo, setReplyingTo] = useState<{ name: string; id: string } | null>(null);
   const [showScrollToBottom, setShowScrollToBottom] = useState(false);
@@ -1335,14 +1346,26 @@ const ChatPanel = ({
     setNewMessage(prev => prev + emoji);
   };
 
-  const handleFormSubmit = (e: React.FormEvent) => {
+  const handleNewMessageSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newMessage.trim()) return;
-    handlers.handleNewMessageSubmit(newMessage, replyingTo);
+    
+    let messageToSend = newMessage;
+    if (replyingTo) {
+      messageToSend = `@${replyingTo.name.split(' ')[0]} ${newMessage}`;
+    }
+
+    handlers.handleNewMessageSubmit(messageToSend, replyingTo);
+
     setNewMessage("");
     setReplyingTo(null);
   };
   
+  const handleReply = (msg: any) => {
+    setReplyingTo({ name: msg.user, id: msg.userId });
+    textareaRef.current?.focus();
+  }
+
   return (
     <div className='h-full flex flex-col bg-[#0b0b0c]'>
       <header className="p-3 flex items-center justify-between z-10 flex-shrink-0 h-16 border-b border-[rgba(255,255,255,0.04)] sticky top-0 bg-[#0f1113]/80 backdrop-blur-sm">
@@ -1433,8 +1456,8 @@ const ChatPanel = ({
                   if (msg.type === 'product_promo') {
                     return <ProductPromoCard key={msg.id} msg={msg} handlers={handlers} />;
                   }
-                  if (!msg.user) return null; // Add this check
-                  return <ChatMessage key={msg.id} msg={msg} handlers={handlers} />;
+                  if (!msg.user) return null;
+                  return <ChatMessage key={msg.id} msg={msg} handlers={{...handlers, onReply: () => handleReply(msg)}} />;
               })}
             <div ref={messagesEndRef} />
           </div>
@@ -1460,7 +1483,7 @@ const ChatPanel = ({
               </button>
             </div>
           )}
-          <form onSubmit={handleFormSubmit} className="flex items-center gap-2">
+          <form onSubmit={handleNewMessageSubmit} className="flex items-center gap-2">
              <div className="relative flex-grow">
                  <Textarea
                     ref={textareaRef}
