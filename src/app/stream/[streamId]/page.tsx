@@ -69,6 +69,7 @@ import {
   Sparkles,
   UserCheck,
   Clock,
+  Trash2,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -1256,15 +1257,15 @@ const ChatMessage = ({ msg, handlers }: { msg: any, handlers: any }) => {
 
     return (
         <div className="flex items-start gap-2 w-full group animate-message-in">
-             <Avatar className="h-8 w-8">
+             <Avatar className="h-8 w-8 mt-0.5">
                 <AvatarImage src={msg.avatar} />
                 <AvatarFallback className="bg-gradient-to-br from-red-500 to-yellow-500 text-white font-bold text-[10px]">
                      {msg.user ? msg.user.charAt(0) : 'S'}
                 </AvatarFallback>
             </Avatar>
             <div className="flex-grow">
-                 <p className="break-words text-sm text-[#E6ECEF]">
-                    <span className={cn("font-semibold text-xs mr-1.5", isSellerMessage ? "text-yellow-400" : "text-muted-foreground")} style={{ color: isSellerMessage ? undefined : msg.userColor }}>
+                 <p className="text-sm text-[#E6ECEF]">
+                    <span className={cn("font-semibold text-xs mr-1.5", isSellerMessage && "text-yellow-400")}>
                         {isSellerMessage && <Badge variant="outline" className="mr-1.5 border-yellow-400/50 text-yellow-400 h-4">Seller</Badge>}
                         {isSellerMessage ? handlers.seller.name : msg.user}:
                     </span>
