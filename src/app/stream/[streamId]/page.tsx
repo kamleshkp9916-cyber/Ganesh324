@@ -82,7 +82,7 @@ import React, { useEffect, useState, useRef, useMemo, useCallback } from "react"
 import { productDetails } from "@/lib/product-data";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { useToast } from "@/hooks/use-toast";
-import { addToCart, isProductInCart } from "@/lib/product-history";
+import { addToCart, isProductInCart } from '@/lib/product-history';
 import { cn } from "@/lib/utils";
 import {
   DropdownMenu,
@@ -1236,13 +1236,25 @@ const ChatPanel = ({
   seller,
   chatMessages,
   pinnedMessages,
+  activeAuction,
+  auctionTime,
+  highestBid,
+  totalBids,
+  walletBalance,
   handlers,
+  inlineAuctionCardRefs,
   onClose,
 }: {
   seller: any;
   chatMessages: any[];
   pinnedMessages: any[];
+  activeAuction: any;
+  auctionTime: number | null;
+  highestBid: number;
+  totalBids: number;
+  walletBalance: number;
   handlers: any;
+  inlineAuctionCardRefs: React.MutableRefObject<Record<string, HTMLDivElement | null>>;
   onClose: () => void;
 }) => {
   const [newMessage, setNewMessage] = useState("");
@@ -1377,10 +1389,11 @@ const ChatPanel = ({
                 }
                   if (!msg.user && !msg.isSeller) return null;
 
+                  const isMyMessage = msg.userId === seller?.uid;
                   const isSellerMessage = msg.isSeller;
                   
                   return (
-                     <div key={msg.id} className="flex items-start gap-2 w-full group text-sm animate-message-in">
+                     <div key={msg.id} className="flex items-start gap-2 w-full group animate-message-in">
                          <Avatar className="h-8 w-8 mt-0.5 border border-[rgba(255,255,255,0.04)]">
                              <AvatarImage src={msg.avatar} />
                              <AvatarFallback className="bg-gradient-to-br from-red-500 to-yellow-500 text-white font-bold text-[10px]">{msg.user?.charAt(0)}</AvatarFallback>
