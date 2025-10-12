@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import {
@@ -69,6 +68,7 @@ import {
   Sparkles,
   UserCheck,
   Clock,
+  Trash2,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -189,7 +189,7 @@ const mockChatMessages: any[] = [
     { id: 25, user: 'Ganesh', text: '@FashionFinds That sounds great! Thanks!', avatar: 'https://placehold.co/40x40.png', userId: 'user1' },
     { id: 31, isSeller: true, user: 'FashionFinds', text: 'You are welcome, @Ganesh! Glad I could help.' },
     { id: 32, type: 'system', text: 'Michael joined the stream.' },
-    { id: 33, type: 'post_share', text: 'Behind the scenes of our new collection!', product: productDetails['prod_5'] },
+    { id: 33, type: 'post_share', sellerName: 'FashionFinds', text: 'Behind the scenes of our new collection!', product: productDetails['prod_5'] },
 ];
 
 const reportReasons = [
@@ -495,7 +495,7 @@ const StreamInfo = ({ seller, streamData, handleFollowToggle, isFollowingState, 
                 </div>
             </div>
              <div className="flex items-center justify-between gap-2">
-                <Link href={`/seller/profile?userId=${seller.id}`} className="flex items-center gap-3 group flex-grow overflow-hidden">
+                <Link href={`/seller/profile?userId=${seller.name}`} className="flex items-center gap-3 group flex-grow overflow-hidden">
                     <Avatar className="h-12 w-12 flex-shrink-0">
                         <AvatarImage src={seller.avatarUrl} />
                         <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
@@ -1257,22 +1257,23 @@ const ChatMessage = ({ msg, handlers }: { msg: any, handlers: any }) => {
 
     return (
         <div className="flex items-start gap-2 w-full group animate-message-in">
-            <Avatar className="h-8 w-8">
+             <Avatar className="h-8 w-8">
                 <AvatarImage src={msg.avatar} />
                 <AvatarFallback className="bg-gradient-to-br from-red-500 to-yellow-500 text-white font-bold text-[10px]">
                      {msg.user ? msg.user.charAt(0) : 'S'}
                 </AvatarFallback>
             </Avatar>
             <div className="flex-grow">
-                <p className="text-xs">
-                    <b className={cn("font-semibold mr-1.5", isSellerMessage ? "text-yellow-400" : "text-muted-foreground")} style={{ color: msg.userColor || 'inherit' }}>
+                 <p className="leading-relaxed break-words text-sm text-[#E6ECEF]">
+                    <b className={cn("font-semibold text-xs mr-1.5", isSellerMessage ? "text-yellow-400" : "text-muted-foreground")} style={{ color: msg.userColor || 'inherit' }}>
                         {isSellerMessage && <Badge variant="outline" className="mr-1.5 border-yellow-400/50 text-yellow-400 h-4">Seller</Badge>}
-                        {isSellerMessage ? handlers.seller.name : msg.user}
+                        {isSellerMessage ? handlers.seller.name : msg.user}:
                     </b>
-                </p>
-                <p className="text-sm whitespace-pre-wrap break-words text-[#E6ECEF]">
-                    {renderWithHashtagsAndLinks(msg.text)}
-                </p>
+                    <span className="text-sm">
+                        {msg.replyingTo && <span className="text-primary font-semibold mr-1">@{msg.replyingTo}</span>}
+                        {renderWithHashtagsAndLinks(msg.text)}
+                    </span>
+                 </p>
             </div>
             <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -1451,7 +1452,7 @@ const ChatPanel = ({
                       return <div key={msg.id} className="text-xs text-center text-[#9AA1A6] italic py-1">{msg.text}</div>
                   }
                   if (msg.type === 'post_share') {
-                      return <PostShareCard key={msg.id} msg={msg} handlers={handlers} sellerName={seller.name} />;
+                      return <PostShareCard key={msg.id} msg={msg} handlers={handlers} sellerName={msg.sellerName} />;
                   }
                   if (msg.type === 'product_promo') {
                     return <ProductPromoCard key={msg.id} msg={msg} handlers={handlers} />;
