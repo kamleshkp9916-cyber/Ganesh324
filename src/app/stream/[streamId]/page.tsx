@@ -1388,14 +1388,14 @@ const ChatPanel = ({
                      <div key={msg.id} className="flex items-start gap-2.5 w-full group animate-message-in">
                          <Avatar className="h-8 w-8 mt-0.5 border border-[rgba(255,255,255,0.04)]">
                              <AvatarImage src={msg.avatar} />
-                             <AvatarFallback className="bg-gradient-to-br from-red-500 to-yellow-500 text-white font-bold text-[10px]">{msg.user.charAt(0)}</AvatarFallback>
+                             <AvatarFallback className="bg-gradient-to-br from-red-500 to-yellow-500 text-white font-bold text-[10px]">
+                                {msg.user ? msg.user.charAt(0) : 'S'}
+                            </AvatarFallback>
                          </Avatar>
                           <div className="flex-grow">
                              <p className="break-words text-sm text-[#E6ECEF]">
                                  <b className={cn("font-semibold text-xs mr-1.5", isSellerMessage && "text-yellow-400")}>
-                                     {isSellerMessage ? seller.name : msg.user}
-                                     {isSellerMessage && <Badge variant="secondary" className="ml-1.5 bg-yellow-400/10 text-yellow-400 border-none h-auto px-1.5 py-0.5 text-[9px] font-bold">Seller</Badge>}
-                                     :
+                                     {isSellerMessage ? seller.name : msg.user}:
                                  </b>
                                  <span className="text-sm">
                                     {renderWithHashtagsAndLinks(msg.text)}
@@ -1481,6 +1481,3 @@ const ChatPanel = ({
     </div>
   );
 };
-
-
-    
