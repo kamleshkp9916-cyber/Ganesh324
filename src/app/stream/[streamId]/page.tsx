@@ -437,7 +437,7 @@ const ProductPromoCard = ({ msg, handlers }: { msg: any, handlers: any }) => {
     );
 };
 
-const PostShareCard = ({ msg, handlers }: { msg: any, handlers: any }) => {
+const PostShareCard = ({ msg, handlers, sellerName }: { msg: any, handlers: any, sellerName: string }) => {
     const { product } = msg;
 
     return (
@@ -445,7 +445,7 @@ const PostShareCard = ({ msg, handlers }: { msg: any, handlers: any }) => {
             <Card className="overflow-hidden bg-card/80 border-primary/20 p-3 animate-in fade-in-0 slide-in-from-bottom-2">
                 <div className="flex items-center gap-2 mb-2 text-xs text-muted-foreground">
                     <FileEdit className="w-4 h-4"/>
-                    <strong>{msg.sellerName}</strong> shared a post
+                    <strong>{sellerName}</strong> shared a post
                 </div>
                 <p className="text-sm italic mb-3">"{msg.text}"</p>
                 <div className="flex gap-3">
@@ -1393,7 +1393,7 @@ const ChatPanel = ({
                       return <div key={msg.id} className="text-xs text-center text-[#9AA1A6] italic py-1">{msg.text}</div>
                   }
                   if (msg.type === 'post_share') {
-                      return <PostShareCard key={msg.id} msg={msg} handlers={handlers} />;
+                      return <PostShareCard key={msg.id} msg={msg} handlers={handlers} sellerName={seller.name} />;
                   }
                   if (msg.type === 'product_promo') {
                     return <ProductPromoCard key={msg.id} msg={msg} handlers={handlers} />;
@@ -1404,7 +1404,7 @@ const ChatPanel = ({
                   const isSellerMessage = msg.isSeller;
                   
                   return (
-                     <div key={msg.id} className="flex items-start gap-2 w-full group animate-message-in">
+                     <div key={msg.id} className="flex items-start gap-3 w-full group animate-message-in">
                          <Avatar className="h-8 w-8 mt-0.5 border border-[rgba(255,255,255,0.04)]">
                              <AvatarImage src={msg.avatar} />
                              <AvatarFallback className="bg-gradient-to-br from-red-500 to-yellow-500 text-white font-bold text-[10px]">
@@ -1414,10 +1414,14 @@ const ChatPanel = ({
                           <div className="flex-grow">
                              <p className="break-words text-sm text-[#E6ECEF]">
                                  <b className={cn("font-semibold text-xs mr-1.5", isSellerMessage && "text-yellow-400")}>
-                                     {isSellerMessage ? seller.name : msg.user}:
+                                     {isSellerMessage ? <>
+                                        <Badge variant="outline" className="mr-1.5 border-yellow-400/50 text-yellow-400 h-4">Seller</Badge>
+                                        {seller.name}
+                                     </> : msg.user}:
                                  </b>
                                  <span className="text-sm">
-                                    {renderWithHashtagsAndLinks(msg.text)}
+                                    {msg.replyingTo && <span className="text-primary font-semibold mr-1">@{msg.replyingTo}</span>}
+                                    {msg.text}
                                  </span>
                              </p>
                           </div>
