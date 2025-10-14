@@ -45,16 +45,16 @@ export default function SellerProfilePage() {
     const fetchProfileData = async () => {
         if (loading || !isMounted) return;
 
-        // This page should ONLY render a profile if a userId is in the query.
-        // It should never default to the logged-in user.
         if (!userIdFromQuery) {
-            setProfileData(null); // Explicitly clear data if no ID
-            // Optionally, redirect to a "not found" or home page
-            // For now, we'll just show a loading/empty state.
+            setProfileData(null);
             return;
         }
         
-        const data = await getUserData(userIdFromQuery);
+        // First try to get user by display name, then fallback to UID
+        let data = await getUserByDisplayName(userIdFromQuery);
+        if (!data) {
+           data = await getUserData(userIdFromQuery);
+        }
         
         if (data) {
             setProfileData(data);
