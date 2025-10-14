@@ -121,7 +121,7 @@ import { useInView } from "react-intersection-observer";
 import { useMiniPlayer } from "@/context/MiniPlayerContext";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { useIsMobile } from "@/hooks/use-is-mobile";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { format, formatDistanceToNow, isThisWeek, isThisYear, parseISO, parse } from 'date-fns';
 
@@ -190,6 +190,38 @@ const reportReasons = [
 ];
 
 const qualityLevels = ["1080p", "720p", "480p", "360p", "144p"];
+
+const productToSellerMapping: { [key: string]: { name: string; avatarUrl: string, uid: string } } = {
+    'prod_1': { name: 'FashionFinds', avatarUrl: 'https://placehold.co/80x80.png', uid: 'fashionfinds-uid' },
+    'prod_2': { name: 'GadgetGuru', avatarUrl: 'https://placehold.co/80x80.png', uid: 'gadgetguru-uid' },
+    'prod_3': { name: 'HomeHaven', avatarUrl: 'https://placehold.co/80x80.png', uid: 'homehaven-uid' },
+    'prod_4': { name: 'BeautyBox', avatarUrl: 'https://placehold.co/80x80.png', uid: 'beautybox-uid' },
+    'prod_5': { name: 'KitchenWiz', avatarUrl: 'https://placehold.co/80x80.png', uid: 'kitchenwiz-uid' },
+    'prod_6': { name: 'FitFlow', avatarUrl: 'https://placehold.co/80x80.png', uid: 'fitflow-uid' },
+    'prod_7': { name: 'ArtisanAlley', avatarUrl: 'https://placehold.co/80x80.png', uid: 'artisanalley-uid' },
+    'prod_8': { name: 'PetPalace', avatarUrl: 'https://placehold.co/80x80.png', uid: 'petpalace-uid' },
+    'prod_9': { name: 'BookNook', avatarUrl: 'https://placehold.co/80x80.png', uid: 'booknook-uid' },
+    'prod_10': { name: 'GamerGuild', avatarUrl: 'https://placehold.co/80x80.png', uid: 'gamerguild-uid' },
+    'prod_11': { name: 'FashionFinds', avatarUrl: 'https://placehold.co/80x80.png', uid: 'fashionfinds-uid' },
+    'prod_12': { name: 'FashionFinds', avatarUrl: 'https://placehold.co/80x80.png', uid: 'fashionfinds-uid' },
+    'prod_13': { name: 'Modern Man', avatarUrl: 'https://placehold.co/80x80.png', uid: 'modernman-uid' },
+    'prod_14': { name: 'Casual Co.', avatarUrl: 'https://placehold.co/80x80.png', uid: 'casualco-uid' },
+    'prod_15': { name: 'BeautyBox', avatarUrl: 'https://placehold.co/80x80.png', uid: 'beautybox-uid' },
+    'prod_16': { name: 'BeautyBox', avatarUrl: 'https://placehold.co/80x80.png', uid: 'beautybox-uid' },
+    'prod_17': { name: 'BeautyBox', avatarUrl: 'https://placehold.co/80x80.png', uid: 'beautybox-uid' },
+    'prod_18': { name: 'BeautyBox', avatarUrl: 'https://placehold.co/80x80.png', uid: 'beautybox-uid' },
+    'prod_19': { name: 'QuickFlex', avatarUrl: 'https://placehold.co/80x80.png', uid: 'quickflex-uid' },
+    'prod_20': { name: 'GentleStep', avatarUrl: 'https://placehold.co/80x80.png', uid: 'gentlestep-uid' },
+    'prod_21': { name: 'SunShield', avatarUrl: 'https://placehold.co/80x80.png', uid: 'sunshield-uid' },
+    'prod_22': { name: 'Aura Jewels', avatarUrl: 'https://placehold.co/80x80.png', uid: 'aurajewels-uid' },
+    'prod_23': { name: 'BreezyWear', avatarUrl: 'https://placehold.co/80x80.png', uid: 'breezywear-uid' },
+    'prod_24': { name: 'Elegance', avatarUrl: 'https://placehold.co/80x80.png', uid: 'elegance-uid' },
+    'prod_25': { name: 'KitchenPro', avatarUrl: 'https://placehold.co/80x80.png', uid: 'kitchenpro-uid' },
+    'prod_26': { name: 'CozyHome', avatarUrl: 'https://placehold.co/80x80.png', uid: 'cozyhome-uid' },
+    'prod_27': { name: 'AudioBlast', avatarUrl: 'https://placehold.co/80x80.png', uid: 'audioblast-uid' },
+    'prod_28': { name: 'LittleSprout', avatarUrl: 'https://placehold.co/80x80.png', uid: 'littlesprout-uid' },
+    'prod_29': { name: 'StretchyPants', avatarUrl: 'https://placehold.co/80x80.png', uid: 'stretchypants-uid' },
+};
 
 const ReportDialog = ({ onSubmit }: { onSubmit: (reason: string, details: string) => void }) => {
     const [reason, setReason] = useState("");
@@ -668,7 +700,7 @@ export default function StreamPage() {
     const sellerProducts = useMemo(() => {
         if (!seller) return [];
         return Object.values(productDetails)
-            .filter(p => p.brand === seller.name) // Using brand as a proxy for seller name in mock data
+            .filter(p => productToSellerMapping[p.key]?.name === seller.name)
             .map(p => ({
                 ...p,
                 reviews: Math.floor(Math.random() * 200),
@@ -691,7 +723,7 @@ export default function StreamPage() {
 
          const interval = setInterval(() => {
             const productsWithStock = Object.values(productDetails).filter(p => 
-                p.brand === seller.name && p.stock > 0
+                productToSellerMapping[p.key]?.name === seller.name && p.stock > 0
             );
             
             if (productsWithStock.length === 0) return;
@@ -1358,12 +1390,7 @@ const ChatPanel = ({
     e.preventDefault();
     if (!newMessage.trim()) return;
     
-    let messageToSend = newMessage;
-    if (replyingTo) {
-      messageToSend = `@${replyingTo.name.split(' ')[0]} ${newMessage}`;
-    }
-
-    console.log("New Message:", messageToSend);
+    handlers.handleNewMessageSubmit(newMessage, replyingTo);
 
     setNewMessage("");
     setReplyingTo(null);
