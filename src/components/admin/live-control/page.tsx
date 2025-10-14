@@ -1,4 +1,5 @@
 
+
 "use client"
 
 import {
@@ -63,9 +64,9 @@ import { Input } from "@/components/ui/input"
 import { useDebounce } from "@/hooks/use-debounce";
 
 const mockLiveStreams = [
-    { id: 1, seller: { name: 'FashionFinds', avatarUrl: 'https://placehold.co/40x40.png' }, product: { name: 'Vintage Camera', imageUrl: 'https://placehold.co/80x80.png', hint: 'vintage camera' }, viewers: 1200, streamId: '1', hasAuction: true },
-    { id: 2, seller: { name: 'GadgetGuru', avatarUrl: 'https://placehold.co/40x40.png' }, product: { name: 'Wireless Headphones', imageUrl: 'https://placehold.co/80x80.png', hint: 'headphones' }, viewers: 2500, streamId: '2', hasAuction: false },
-    { id: 3, seller: { name: 'BeautyBox', avatarUrl: 'https://placehold.co/40x40.png' }, product: { name: 'Skincare Set', imageUrl: 'https://placehold.co/80x80.png', hint: 'skincare' }, viewers: 3100, streamId: '4', hasAuction: true },
+    { id: 1, seller: { name: 'FashionFinds', avatarUrl: 'https://placehold.co/40x40.png' }, product: { name: 'Vintage Camera', imageUrl: 'https://placehold.co/80x80.png', hint: 'vintage camera' }, viewers: 1200, streamId: 'seller1', hasAuction: true },
+    { id: 2, seller: { name: 'GadgetGuru', avatarUrl: 'https://placehold.co/40x40.png' }, product: { name: 'Wireless Headphones', imageUrl: 'https://placehold.co/80x80.png', hint: 'headphones' }, viewers: 2500, streamId: 'seller2', hasAuction: false },
+    { id: 3, seller: { name: 'BeautyBox', avatarUrl: 'https://placehold.co/40x40.png' }, product: { name: 'Skincare Set', imageUrl: 'https://placehold.co/80x80.png', hint: 'skincare' }, viewers: 3100, streamId: 'seller4', hasAuction: true },
 ];
 
 export default function AdminLiveControlPage() {

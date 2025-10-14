@@ -1,4 +1,5 @@
 
+
 "use client"
 
 import { useAuth } from '@/hooks/use-auth.tsx';
@@ -45,9 +46,9 @@ export default function SellerProfilePage() {
     const fetchProfileData = async () => {
         if (!isMounted || !userIdFromQuery) {
             if (isMounted && !userIdFromQuery) {
-                console.error("Seller profile page loaded without a userId.");
-                setProfileData(null);
+                 console.error("Seller profile page loaded without a userId.");
             }
+            setProfileData(null); // Clear profile data if no ID
             return;
         }
 
@@ -57,7 +58,7 @@ export default function SellerProfilePage() {
             setProfileData(data);
         } else {
             console.error("Seller not found with UID:", userIdFromQuery);
-            setProfileData(null);
+            setProfileData(null); // Explicitly set to null if not found
         }
     };
     

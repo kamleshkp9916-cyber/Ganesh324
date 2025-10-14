@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import {
@@ -151,16 +152,16 @@ const liveSellers = [
 ];
 
 const productToSellerMapping: { [key: string]: { name: string; avatarUrl: string, uid: string } } = {
-    'prod_1': { name: 'FashionFinds', avatarUrl: 'https://placehold.co/80x80.png', uid: '1' },
-    'prod_2': { name: 'GadgetGuru', avatarUrl: 'https://placehold.co/80x80.png', uid: '2' },
-    'prod_3': { name: 'HomeHaven', avatarUrl: 'https://placehold.co/80x80.png', uid: '3' },
-    'prod_4': { name: 'BeautyBox', avatarUrl: 'https://placehold.co/80x80.png', uid: '4' },
-    'prod_5': { name: 'KitchenWiz', avatarUrl: 'https://placehold.co/80x80.png', uid: '5' },
-    'prod_6': { name: 'FitFlow', avatarUrl: 'https://placehold.co/80x80.png', uid: '6' },
-    'prod_7': { name: 'ArtisanAlley', avatarUrl: 'https://placehold.co/80x80.png', uid: '7' },
-    'prod_8': { name: 'PetPalace', avatarUrl: 'https://placehold.co/80x80.png', uid: '8' },
-    'prod_9': { name: 'BookNook', avatarUrl: 'https://placehold.co/80x80.png', uid: '9' },
-    'prod_10': { name: 'GamerGuild', avatarUrl: 'https://placehold.co/80x80.png', uid: '10' },
+    'prod_1': { name: 'FashionFinds', avatarUrl: 'https://placehold.co/80x80.png', uid: 'seller1' },
+    'prod_2': { name: 'GadgetGuru', avatarUrl: 'https://placehold.co/80x80.png', uid: 'seller2' },
+    'prod_3': { name: 'HomeHaven', avatarUrl: 'https://placehold.co/80x80.png', uid: 'seller3' },
+    'prod_4': { name: 'BeautyBox', avatarUrl: 'https://placehold.co/80x80.png', uid: 'seller4' },
+    'prod_5': { name: 'KitchenWiz', avatarUrl: 'https://placehold.co/80x80.png', uid: 'seller5' },
+    'prod_6': { name: 'FitFlow', avatarUrl: 'https://placehold.co/80x80.png', uid: 'seller6' },
+    'prod_7': { name: 'ArtisanAlley', avatarUrl: 'https://placehold.co/80x80.png', uid: 'seller7' },
+    'prod_8': { name: 'PetPalace', avatarUrl: 'https://placehold.co/80x80.png', uid: 'seller8' },
+    'prod_9': { name: 'BookNook', avatarUrl: 'https://placehold.co/80x80.png', uid: 'seller9' },
+    'prod_10': { name: 'GamerGuild', avatarUrl: 'https://placehold.co/80x80.png', uid: 'seller10' },
 };
 
 const mockChatMessages: any[] = [
@@ -1275,13 +1276,13 @@ const ChatMessage = ({ msg, handlers }: { msg: any, handlers: any }) => {
             </Avatar>
             <div className="flex-grow">
                  <div className="text-sm leading-tight text-[#E6ECEF]">
-                    <div className="flex items-center gap-1.5">
-                        <span className={cn("font-semibold text-xs", isSellerMessage && "text-yellow-400")}>
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className={cn("font-semibold text-xs", msg.isSeller && "text-yellow-400")}>
                             {msg.user}:
                         </span>
-                        {isSellerMessage && <Badge variant="outline" className="mr-1.5 border-yellow-400/50 text-yellow-400 h-4">Seller</Badge>}
+                        {msg.isSeller && <Badge variant="outline" className="mr-1.5 border-yellow-400/50 text-yellow-400 h-4 text-[10px] px-1.5">Seller</Badge>}
                     </div>
-                    <div className="text-sm whitespace-pre-wrap break-words">
+                    <div className="text-sm whitespace-pre-wrap break-words leading-normal">
                         {msg.replyingTo && <span className="text-primary font-semibold mr-1">@{msg.replyingTo}</span>}
                         {renderWithHashtagsAndLinks(msg.text)}
                     </div>
@@ -1458,7 +1459,7 @@ const ChatPanel = ({
         </div>
       </header>
       <ScrollArea className="flex-grow" ref={chatContainerRef} onScroll={handleManualScroll}>
-          <div className="p-3 space-y-2">
+          <div className="p-3 space-y-2.5">
              {chatMessages.map((msg: any) => {
                   if (msg.type === 'system') {
                       return <div key={msg.id} className="text-xs text-center text-[#9AA1A6] italic py-1">{msg.text}</div>
