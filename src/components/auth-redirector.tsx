@@ -58,7 +58,9 @@ export function AuthRedirector() {
                 }
             } 
             else { // Customer
-                 if (pathname.startsWith('/seller/') || pathname.startsWith('/admin/')) {
+                 if (pathname.startsWith('/seller/') && !pathname.startsWith('/seller/profile')) {
+                    targetPath = '/live-selling';
+                } else if(pathname.startsWith('/admin/')) {
                     targetPath = '/live-selling';
                 } else if (publicOnlyPaths.includes(pathname) || pathname === emailVerificationPath) {
                     targetPath = '/live-selling';
