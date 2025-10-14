@@ -236,7 +236,7 @@ export default function CartPage() {
                                     {cartItems.map(item => (
                                         <div key={item.id} className="p-4 flex flex-col sm:flex-row items-start sm:items-center gap-4">
                                             <Link href={`/product/${item.key}`} className="block flex-shrink-0">
-                                                <Image src={item.imageUrl} alt={item.name} width={100} height={100} className="rounded-lg object-cover" data-ai-hint={item.hint} />
+                                                <Image src={item.imageUrl || 'https://placehold.co/100x100.png'} alt={item.name} width={100} height={100} className="rounded-lg object-cover" data-ai-hint={item.hint} />
                                             </Link>
                                             <div className="flex-grow">
                                                 <Link href={`/product/${item.key}`} className="hover:underline">
