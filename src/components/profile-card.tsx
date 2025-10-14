@@ -61,6 +61,19 @@ const mockBeautyBoxProducts = [
     { id: 'bb_prod_4', name: 'Hydrating Face Mask', category: "Beauty", price: 800, stock: 75, images: [{ preview: "https://placehold.co/200x200.png?text=Mask" }], hint: "face mask" },
 ];
 
+const liveSellers = [
+    { id: 'fashionfinds-uid', name: 'FashionFinds', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Fashion', viewers: 1200, buyers: 25, rating: 4.8, reviews: 12, hint: 'woman posing stylish outfit', productId: 'prod_1', hasAuction: true },
+    { id: 'gadgetguru-uid', name: 'GadgetGuru', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Electronics', viewers: 2500, buyers: 42, rating: 4.9, reviews: 28, hint: 'unboxing new phone', productId: 'prod_2', hasAuction: false },
+    { id: 'homehaven-uid', name: 'HomeHaven', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Home Goods', viewers: 850, buyers: 15, rating: 4.7, reviews: 9, hint: 'modern living room decor', productId: 'prod_3', hasAuction: false },
+    { id: 'beautybox-uid', name: 'BeautyBox', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Beauty', viewers: 3100, buyers: 78, rating: 4.9, reviews: 55, hint: 'makeup tutorial', productId: 'prod_4', hasAuction: true },
+    { id: 'kitchenwiz-uid', name: 'KitchenWiz', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Kitchenware', viewers: 975, buyers: 0, rating: 0, reviews: 0, hint: 'cooking demonstration', productId: 'prod_5', hasAuction: false },
+    { id: 'fitflow-uid', name: 'FitFlow', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Fitness', viewers: 1500, buyers: 33, rating: 4.6, reviews: 18, hint: 'yoga session', productId: 'prod_6', hasAuction: false },
+    { id: 'artisanalley-uid', name: 'ArtisanAlley', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Handmade', viewers: 450, buyers: 8, rating: 5.0, reviews: 6, hint: 'pottery making', productId: 'prod_7', hasAuction: true },
+    { id: 'petpalace-uid', name: 'PetPalace', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Pet Supplies', viewers: 1800, buyers: 50, rating: 4.8, reviews: 30, hint: 'playing with puppy', productId: 'prod_8', hasAuction: false },
+    { id: 'booknook-uid', name: 'BookNook', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Books', viewers: 620, buyers: 12, rating: 4.9, reviews: 10, hint: 'reading book cozy', productId: 'prod_9', hasAuction: false },
+    { id: 'gamerguild-uid', name: 'GamerGuild', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Gaming', viewers: 4200, buyers: 102, rating: 4.9, reviews: 80, hint: 'esports competition', productId: 'prod_10', hasAuction: true },
+];
+
 
 function ProductSkeletonGrid() {
     return (
@@ -244,6 +257,10 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
     }
     return products;
   }, [searchTerm, sellerProducts, activeCategory]);
+
+   const sellerLiveStreams = useMemo(() => {
+        return liveSellers.filter(s => s.id === profileData.uid);
+    }, [profileData.uid]);
 
 
   const filteredRecentlyViewed = useMemo(() => {
@@ -500,7 +517,7 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
 
 
               <div className="w-full max-w-full mx-auto">
-                  <Tabs defaultValue={isOwnProfile ? "posts" : (profileData.role === 'seller' ? 'products' : 'recent')} className="w-full">
+                   <Tabs defaultValue={isOwnProfile ? "posts" : (profileData.role === 'seller' ? 'products' : 'recent')} className="w-full">
                       <ScrollArea className="w-full whitespace-nowrap">
                             <TabsList className="inline-flex">
                               {profileData.role === 'seller' && <TabsTrigger value="products">Listed Products</TabsTrigger>}
@@ -518,6 +535,35 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                                )}
                           </TabsList>
                       </ScrollArea>
+                        <TabsContent value="live-streams" className="mt-4">
+                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                                {sellerLiveStreams.length > 0 ? sellerLiveStreams.map((stream) => (
+                                    <Link href={`/stream/${stream.id}`} key={stream.id} className="group">
+                                        <div className="relative rounded-lg overflow-hidden aspect-[9/16] bg-muted group-hover:ring-2 ring-primary ring-offset-2 ring-offset-background transition-all">
+                                            <Image 
+                                                src={stream.thumbnailUrl}
+                                                alt={`Stream by ${stream.name}`}
+                                                fill
+                                                className="object-cover"
+                                            />
+                                            <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
+                                            <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
+                                            <div className="absolute bottom-2 left-2 z-10 text-white">
+                                                <div className="flex items-center gap-1.5 text-xs">
+                                                    <Users className="w-3 h-3" />
+                                                    <span>{stream.viewers.toLocaleString()}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </Link>
+                                )) : (
+                                    <div className="col-span-full text-center py-12 text-muted-foreground">
+                                        <Video className="w-12 h-12 mx-auto mb-2" />
+                                        <p>{displayName} is not currently live.</p>
+                                    </div>
+                                )}
+                            </div>
+                        </TabsContent>
 
                       <TabsContent value="orders" className="mt-4">
                            <Card>
@@ -580,7 +626,7 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
                                       {filteredProducts.map((product: any) => (
                                           <Link href={`/product/${product.id}`} key={product.id} className="group block">
-                                              <Card className="w-full overflow-hidden h-full flex flex-col">
+                                              <Card className="w-full group overflow-hidden">
                                                   <div className="aspect-square bg-muted rounded-t-lg overflow-hidden relative">
                                                       <Image 
                                                           src={product.images?.[0]?.preview || "https://placehold.co/200x200.png"}
@@ -595,8 +641,8 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                                                             </div>
                                                         )}
                                                   </div>
-                                                  <div className="p-3 flex-grow flex flex-col">
-                                                      <h4 className="font-semibold truncate text-sm flex-grow">{product.name}</h4>
+                                                  <div className="p-3">
+                                                      <h4 className="font-semibold truncate text-sm">{product.name}</h4>
                                                       <p className="font-bold text-foreground">₹{product.price.toLocaleString()}</p>
                                                       <div className="flex items-center gap-1 text-xs text-amber-400 mt-1">
                                                           <Star className="w-4 h-4 fill-current" />
@@ -664,18 +710,8 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                               <p className="text-muted-foreground text-center py-8">No posts yet.</p>
                           )}
                       </TabsContent>
-                      
-                        <TabsContent value="live-streams" className="mt-4">
-                            <Card>
-                                <CardContent className="p-6 text-center text-muted-foreground">
-                                    <Video className="w-12 h-12 mx-auto mb-4" />
-                                    <h3 className="font-semibold">No Active Live Streams</h3>
-                                    <p className="text-sm">This seller is not currently live. Follow them to get notified!</p>
-                                </CardContent>
-                            </Card>
-                        </TabsContent>
 
-                        <TabsContent value="sessions" className="mt-4">
+                      <TabsContent value="sessions" className="mt-4">
                              <Card>
                                 <CardContent className="p-6 text-center text-muted-foreground">
                                     <History className="w-12 h-12 mx-auto mb-4" />
@@ -807,4 +843,3 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
     </>
   );
 }
-
