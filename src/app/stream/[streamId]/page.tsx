@@ -151,19 +151,6 @@ const liveSellers = [
     { id: 'gamerguild-uid', name: 'GamerGuild', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Gaming', viewers: 4200, buyers: 102, rating: 4.9, reviews: 80, hint: 'esports competition', productId: 'prod_10' },
 ];
 
-const productToSellerMapping: { [key: string]: { name: string; avatarUrl: string, uid: string } } = {
-    'prod_1': { name: 'FashionFinds', avatarUrl: 'https://placehold.co/80x80.png', uid: 'fashionfinds-uid' },
-    'prod_2': { name: 'GadgetGuru', avatarUrl: 'https://placehold.co/80x80.png', uid: 'gadgetguru-uid' },
-    'prod_3': { name: 'HomeHaven', avatarUrl: 'https://placehold.co/80x80.png', uid: 'homehaven-uid' },
-    'prod_4': { name: 'BeautyBox', avatarUrl: 'https://placehold.co/80x80.png', uid: 'beautybox-uid' },
-    'prod_5': { name: 'KitchenWiz', avatarUrl: 'https://placehold.co/80x80.png', uid: 'kitchenwiz-uid' },
-    'prod_6': { name: 'FitFlow', avatarUrl: 'https://placehold.co/80x80.png', uid: 'fitflow-uid' },
-    'prod_7': { name: 'ArtisanAlley', avatarUrl: 'https://placehold.co/80x80.png', uid: 'artisanalley-uid' },
-    'prod_8': { name: 'PetPalace', avatarUrl: 'https://placehold.co/80x80.png', uid: 'petpalace-uid' },
-    'prod_9': { name: 'BookNook', avatarUrl: 'https://placehold.co/80x80.png', uid: 'booknook-uid' },
-    'prod_10': { name: 'GamerGuild', avatarUrl: 'https://placehold.co/80x80.png', uid: 'gamerguild-uid' },
-};
-
 const mockChatMessages: any[] = [
     { id: 1, user: 'Ganesh', text: 'This looks amazing! 🔥 #newpurchase', avatar: 'https://placehold.co/40x40.png', userId: 'user1' },
     { id: 2, user: 'Alex', text: 'What is the material?', avatar: 'https://placehold.co/40x40.png', userId: 'user2' },
@@ -486,6 +473,15 @@ const renderWithHashtagsAndLinks = (text: string) => {
 };
 
 const StreamInfo = ({ seller, streamData, handleFollowToggle, isFollowingState, ...props }: any) => {
+    if (!seller) {
+        return (
+            <div className="space-y-4">
+                <Skeleton className="h-8 w-3/4" />
+                <Skeleton className="h-12 w-full" />
+                <Skeleton className="h-10 w-full" />
+            </div>
+        );
+    }
     return (
         <div className="space-y-4">
             <div className="mb-4">
@@ -494,23 +490,21 @@ const StreamInfo = ({ seller, streamData, handleFollowToggle, isFollowingState, 
                     <div>{renderWithHashtagsAndLinks(streamData.description || "Welcome to the live stream!")}</div>
                 </div>
             </div>
-             {seller && (
-                <div className="flex items-center justify-between gap-2">
-                    <Link href={`/seller/profile?userId=${seller.uid}`} className="flex items-center gap-3 group flex-grow overflow-hidden">
-                        <Avatar className="h-12 w-12 flex-shrink-0">
-                            <AvatarImage src={seller.avatarUrl} />
-                            <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
-                        </Avatar>
-                        <div className="flex-grow overflow-hidden">
-                            <h3 className="font-semibold truncate group-hover:underline">{seller.name}</h3>
-                        </div>
-                    </Link>
-                    <Button onClick={handleFollowToggle} variant={isFollowingState ? "outline" : "default"} className="flex-shrink-0">
-                        {isFollowingState ? <UserCheck className="mr-2 h-4 w-4" /> : <UserPlus className="mr-2 h-4 w-4" />}
-                        {isFollowingState ? "Following" : "Follow"}
-                    </Button>
-                </div>
-            )}
+            <div className="flex items-center justify-between gap-2">
+                <Link href={`/seller/profile?userId=${seller.id}`} className="flex items-center gap-3 group flex-grow overflow-hidden">
+                    <Avatar className="h-12 w-12 flex-shrink-0">
+                        <AvatarImage src={seller.avatarUrl} />
+                        <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                    <div className="flex-grow overflow-hidden">
+                        <h3 className="font-semibold truncate group-hover:underline">{seller.name}</h3>
+                    </div>
+                </Link>
+                <Button onClick={handleFollowToggle} variant={isFollowingState ? "outline" : "default"} className="flex-shrink-0">
+                    {isFollowingState ? <UserCheck className="mr-2 h-4 w-4" /> : <UserPlus className="mr-2 h-4 w-4" />}
+                    {isFollowingState ? "Following" : "Follow"}
+                </Button>
+            </div>
             
             <ProductShelf {...props} />
         </div>
@@ -518,6 +512,9 @@ const StreamInfo = ({ seller, streamData, handleFollowToggle, isFollowingState, 
 };
 
 const RelatedContent = ({ relatedStreams }: { relatedStreams: any[] }) => {
+    if (!relatedStreams || relatedStreams.length === 0) {
+        return null;
+    }
     return (
      <div className="mt-8">
         <div className="mb-4 flex items-center justify-between">
@@ -571,24 +568,21 @@ export default function StreamPage() {
     
     const isMobile = useIsMobile();
         
+    const liveStreamDetails = useMemo(() => liveSellers.find(s => s.id === streamId), [streamId]);
+
     const product = useMemo(() => {
-        const liveSeller = liveSellers.find(s => s.id === streamId);
-        if (!liveSeller) return null;
-        return productDetails[liveSeller.productId as keyof typeof productDetails] || null;
-    }, [streamId]);
+        if (!liveStreamDetails) return null;
+        return productDetails[liveStreamDetails.productId as keyof typeof productDetails] || null;
+    }, [liveStreamDetails]);
 
-    const seller = useMemo(() => {
-        if (!product) return null;
-        return productToSellerMapping[product.key];
-    }, [product]);
+    const seller = liveStreamDetails;
 
-    
-     const relatedStreams = useMemo(() => {
-        if (!product) return [];
+    const relatedStreams = useMemo(() => {
+        if (!liveStreamDetails) return [];
         let streams = liveSellers.filter(
-            s => s.category === product.category && s.id !== streamId
+            s => s.category === liveStreamDetails.category && s.id !== streamId
         );
-        if (streams.length > 50) {
+         if (streams.length > 50) {
             return streams.slice(0, 51);
         }
         // Fallback to show some streams if none match the category, excluding the current one
@@ -603,7 +597,7 @@ export default function StreamPage() {
             i++;
         }
         return streams.slice(0,51);
-    }, [product, streamId]);
+    }, [liveStreamDetails, streamId]);
     
     const mockStreamData = {
         id: streamId,
@@ -611,7 +605,7 @@ export default function StreamPage() {
         description: "Join us for exclusive deals and a first look at our new collection! #fashion #live Check this out: https://google.com",
         status: "live",
         startedAt: new Timestamp(Math.floor(Date.now() / 1000) - 300, 0), // 5 minutes ago
-        viewerCount: 12400,
+        viewerCount: liveStreamDetails?.viewers || 0,
         streamUrl: "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"
     };
 
@@ -674,7 +668,7 @@ export default function StreamPage() {
     const sellerProducts = useMemo(() => {
         if (!seller) return [];
         return Object.values(productDetails)
-            .filter(p => productToSellerMapping[p.key]?.name === seller.name)
+            .filter(p => p.brand === seller.name) // Using brand as a proxy for seller name in mock data
             .map(p => ({
                 ...p,
                 reviews: Math.floor(Math.random() * 200),
@@ -697,7 +691,7 @@ export default function StreamPage() {
 
          const interval = setInterval(() => {
             const productsWithStock = Object.values(productDetails).filter(p => 
-                productToSellerMapping[p.key]?.name === seller.name && p.stock > 0
+                p.brand === seller.name && p.stock > 0
             );
             
             if (productsWithStock.length === 0) return;
