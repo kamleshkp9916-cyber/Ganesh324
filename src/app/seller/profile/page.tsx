@@ -50,7 +50,6 @@ export default function SellerProfilePage() {
             return;
         }
         
-        // First try to get user by display name, then fallback to UID
         let data = await getUserByDisplayName(userIdFromQuery);
         if (!data) {
            data = await getUserData(userIdFromQuery);
