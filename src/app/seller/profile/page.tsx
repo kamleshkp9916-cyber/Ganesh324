@@ -43,10 +43,14 @@ export default function SellerProfilePage() {
 
   useEffect(() => {
     const fetchProfileData = async () => {
-        if (loading || !isMounted || !userIdFromQuery) return;
+        if (loading || !isMounted || !userIdFromQuery) {
+            if (isMounted && !loading && !userIdFromQuery) {
+                console.error("Seller profile page loaded without a userId.");
+                setProfileData(null); // Explicitly set to null if no ID
+            }
+            return;
+        }
 
-        // Simplify the logic: always assume userIdFromQuery is a UID.
-        // The linking component is now responsible for providing the correct UID.
         const data = await getUserData(userIdFromQuery);
         
         if (data) {

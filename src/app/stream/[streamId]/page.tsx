@@ -493,21 +493,23 @@ const StreamInfo = ({ seller, streamData, handleFollowToggle, isFollowingState, 
                     <div>{renderWithHashtagsAndLinks(streamData.description || "Welcome to the live stream!")}</div>
                 </div>
             </div>
-             <div className="flex items-center justify-between gap-2">
-                <Link href={`/seller/profile?userId=${seller.uid}`} className="flex items-center gap-3 group flex-grow overflow-hidden">
-                    <Avatar className="h-12 w-12 flex-shrink-0">
-                        <AvatarImage src={seller.avatarUrl} />
-                        <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
-                    </Avatar>
-                    <div className="flex-grow overflow-hidden">
-                        <h3 className="font-semibold truncate group-hover:underline">{seller.name}</h3>
-                    </div>
-                </Link>
-                 <Button onClick={handleFollowToggle} variant={isFollowingState ? "outline" : "default"} className="flex-shrink-0">
-                    {isFollowingState ? <UserCheck className="mr-2 h-4 w-4" /> : <UserPlus className="mr-2 h-4 w-4" />}
-                    {isFollowingState ? "Following" : "Follow"}
-                </Button>
-            </div>
+             {seller && (
+                <div className="flex items-center justify-between gap-2">
+                    <Link href={`/seller/profile?userId=${seller.uid}`} className="flex items-center gap-3 group flex-grow overflow-hidden">
+                        <Avatar className="h-12 w-12 flex-shrink-0">
+                            <AvatarImage src={seller.avatarUrl} />
+                            <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                        <div className="flex-grow overflow-hidden">
+                            <h3 className="font-semibold truncate group-hover:underline">{seller.name}</h3>
+                        </div>
+                    </Link>
+                    <Button onClick={handleFollowToggle} variant={isFollowingState ? "outline" : "default"} className="flex-shrink-0">
+                        {isFollowingState ? <UserCheck className="mr-2 h-4 w-4" /> : <UserPlus className="mr-2 h-4 w-4" />}
+                        {isFollowingState ? "Following" : "Follow"}
+                    </Button>
+                </div>
+            )}
             
             <ProductShelf {...props} />
         </div>
@@ -1252,7 +1254,7 @@ const ChatMessage = ({ msg, handlers }: { msg: any, handlers: any }) => {
     const handleReply = () => handlers.onReply(msg);
     const handleTogglePin = () => handlers.onTogglePin(msg.id);
     const handleReport = () => handlers.onReportMessage(msg.id);
-    const handleDelete = () => handlers.onDeleteMessage(msg.id);
+    const handleDelete = () => handlers.onDelete(msg.id);
 
     return (
         <div className="flex items-start gap-2 w-full group animate-message-in">
@@ -1270,10 +1272,10 @@ const ChatMessage = ({ msg, handlers }: { msg: any, handlers: any }) => {
                         </span>
                         {isSellerMessage && <Badge variant="outline" className="mr-1.5 border-yellow-400/50 text-yellow-400 h-4">Seller</Badge>}
                     </div>
-                    <span className="text-sm whitespace-pre-wrap break-words">
+                    <div className="text-sm whitespace-pre-wrap break-words">
                         {msg.replyingTo && <span className="text-primary font-semibold mr-1">@{msg.replyingTo}</span>}
                         {renderWithHashtagsAndLinks(msg.text)}
-                    </span>
+                    </div>
                  </div>
             </div>
             <DropdownMenu>
