@@ -43,13 +43,8 @@ export default function SellerProfilePage() {
 
   useEffect(() => {
     const fetchProfileData = async () => {
-        if (loading || !isMounted) return;
+        if (loading || !isMounted || !userIdFromQuery) return;
 
-        if (!userIdFromQuery) {
-            setProfileData(null);
-            return;
-        }
-        
         let data = await getUserByDisplayName(userIdFromQuery);
         if (!data) {
            data = await getUserData(userIdFromQuery);
