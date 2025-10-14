@@ -70,6 +70,7 @@ import {
   UserCheck,
   Clock,
   Trash2,
+  MoreHorizontal,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -458,7 +459,7 @@ const ProductPromoCard = ({ msg, handlers }: { msg: any, handlers: any }) => {
     );
 };
 
-const PostShareCard = ({ msg, handlers }: { msg: any, handlers: any }) => {
+const PostShareCard = ({ msg, handlers, sellerName }: { msg: any, handlers: any, sellerName: string }) => {
     const { product } = msg;
 
     return (
@@ -466,7 +467,7 @@ const PostShareCard = ({ msg, handlers }: { msg: any, handlers: any }) => {
             <Card className="overflow-hidden bg-card/80 border-primary/20 p-3 animate-in fade-in-0 slide-in-from-bottom-2">
                 <div className="flex items-center gap-2 mb-2 text-xs text-muted-foreground">
                     <FileEdit className="w-4 h-4"/>
-                    <strong>{msg.sellerName}</strong> shared a post
+                    <strong>{sellerName}</strong> shared a post
                 </div>
                 <p className="text-sm italic mb-3">"{msg.text}"</p>
                 <div className="flex gap-3">
@@ -1487,7 +1488,7 @@ const ChatPanel = ({
                       return <div key={msg.id} className="text-xs text-center text-[#9AA1A6] italic py-1">{msg.text}</div>
                   }
                   if (msg.type === 'post_share') {
-                      return <PostShareCard key={msg.id} msg={msg} handlers={handlers} />;
+                      return <PostShareCard key={msg.id} msg={msg} handlers={handlers} sellerName={seller.name} />;
                   }
                   if (msg.type === 'product_promo') {
                     return <ProductPromoCard key={msg.id} msg={msg} handlers={handlers} />;
