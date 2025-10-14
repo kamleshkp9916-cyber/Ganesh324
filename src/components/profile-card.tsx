@@ -366,7 +366,7 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                                   <div className="p-4 space-y-4">
                                     {followerList.map(follower => (
                                         <div key={follower?.uid} className="flex items-center justify-between group">
-                                            <Link href={`/profile?userId=${follower?.uid}`} className="flex items-center gap-3">
+                                            <Link href={`/seller/profile?userId=${follower?.uid}`} className="flex items-center gap-3">
                                                 <Avatar>
                                                     <AvatarImage src={follower?.photoURL} />
                                                     <AvatarFallback>{follower?.displayName?.charAt(0) || 'U'}</AvatarFallback>
