@@ -540,38 +540,56 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                                )}
                           </TabsList>
                       </ScrollArea>
-                        <TabsContent value="sessions" className="mt-4">
-                            {sellerLiveStreams.length > 0 ? (
-                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                      <TabsContent value="sessions" className="mt-4">
+                        {sellerLiveStreams.length > 0 ? (
+                            <div className="mb-8">
+                                <h3 className="text-lg font-semibold mb-2">Currently Live</h3>
                                 {sellerLiveStreams.map((stream: any) => (
-                                    <Link href={`/stream/${stream.id}`} key={stream.id} className="group">
-                                    <div className="relative rounded-lg overflow-hidden aspect-[9/16] bg-muted">
-                                        <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
-                                        <div className="absolute top-2 right-2 z-10">
-                                            <Badge variant="secondary" className="bg-background/60 backdrop-blur-sm gap-1.5">
-                                                <Users className="h-3 w-3"/>
-                                                {stream.viewers}
-                                            </Badge>
-                                        </div>
-                                        <Image src={stream.thumbnailUrl} alt={stream.name} fill className="object-cover group-hover:scale-105 transition-transform" />
-                                    </div>
-                                    <div className="mt-2">
-                                        <p className="font-semibold text-sm group-hover:underline truncate">{stream.name}</p>
-                                        <p className="text-xs text-muted-foreground">{stream.category}</p>
-                                    </div>
-                                </Link>
+                                    <Link href={`/stream/${stream.id}`} key={stream.id} className="group block">
+                                        <Card className="overflow-hidden">
+                                            <div className="relative aspect-[16/9] bg-muted">
+                                                <Image src={stream.thumbnailUrl} alt={stream.name} layout="fill" className="object-cover group-hover:scale-105 transition-transform" />
+                                                <div className="absolute inset-0 bg-black/30" />
+                                                <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
+                                                <div className="absolute bottom-2 left-2 z-10 text-white">
+                                                    <h4 className="font-bold">{stream.title || `${stream.name}'s Stream`}</h4>
+                                                    <p className="text-xs">{stream.viewers.toLocaleString()} viewers</p>
+                                                </div>
+                                            </div>
+                                        </Card>
+                                    </Link>
                                 ))}
                             </div>
-                            ) : (
-                            <Card className="col-span-full">
+                        ) : (
+                            <Card className="col-span-full mb-8">
                                 <CardContent className="p-6 text-center text-muted-foreground">
-                                <Video className="w-12 h-12 mx-auto mb-4" />
-                                <h3 className="font-semibold">{displayName} isn't live right now.</h3>
-                                <p className="text-sm">Check back later or explore their products below.</p>
+                                    <Video className="w-12 h-12 mx-auto mb-4" />
+                                    <h3 className="font-semibold">{displayName} isn't live right now.</h3>
                                 </CardContent>
                             </Card>
-                            )}
-                        </TabsContent>
+                        )}
+                        <div>
+                            <h3 className="text-lg font-semibold mb-4">Past Streams</h3>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                {mockPastStreams.map(stream => (
+                                    <Link href="#" key={stream.id} className="group">
+                                        <Card className="overflow-hidden">
+                                            <div className="relative aspect-video bg-muted">
+                                                <Image src={stream.thumbnailUrl} alt={stream.title} layout="fill" className="object-cover group-hover:scale-105 transition-transform" />
+                                            </div>
+                                            <div className="p-3">
+                                                <h4 className="font-semibold text-sm truncate group-hover:underline">{stream.title}</h4>
+                                                <div className="flex justify-between items-center text-xs text-muted-foreground mt-1">
+                                                    <span>{stream.date}</span>
+                                                    <span>{stream.views} views</span>
+                                                </div>
+                                            </div>
+                                        </Card>
+                                    </Link>
+                                ))}
+                            </div>
+                        </div>
+                    </TabsContent>
                       <TabsContent value="orders" className="mt-4">
                            <Card>
                                 <CardHeader>
@@ -840,3 +858,4 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
     </>
   );
 }
+
