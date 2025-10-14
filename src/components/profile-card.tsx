@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import React from 'react';
@@ -72,6 +71,13 @@ const liveSellers = [
     { id: 'petpalace-uid', name: 'PetPalace', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Pet Supplies', viewers: 1800, buyers: 50, rating: 4.8, reviews: 30, hint: 'playing with puppy', productId: 'prod_8', hasAuction: false },
     { id: 'booknook-uid', name: 'BookNook', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Books', viewers: 620, buyers: 12, rating: 4.9, reviews: 10, hint: 'reading book cozy', productId: 'prod_9', hasAuction: false },
     { id: 'gamerguild-uid', name: 'GamerGuild', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Gaming', viewers: 4200, buyers: 102, rating: 4.9, reviews: 80, hint: 'esports competition', productId: 'prod_10', hasAuction: true },
+];
+
+const mockPastStreams = [
+    { id: 1, title: 'Unboxing the Latest Tech', date: '3 days ago', views: '1.2M', thumbnailUrl: 'https://placehold.co/400x225.png?text=Past+Stream+1' },
+    { id: 2, title: 'Fall Fashion Lookbook', date: '1 week ago', views: '890k', thumbnailUrl: 'https://placehold.co/400x225.png?text=Past+Stream+2' },
+    { id: 3, title: 'Kitchen Gadgets You Need', date: '2 weeks ago', views: '2.1M', thumbnailUrl: 'https://placehold.co/400x225.png?text=Past+Stream+3' },
+    { id: 4, title: 'Morning Skincare Routine', date: '1 month ago', views: '500k', thumbnailUrl: 'https://placehold.co/400x225.png?text=Past+Stream+4' },
 ];
 
 
@@ -712,13 +718,29 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                       </TabsContent>
 
                       <TabsContent value="sessions" className="mt-4">
-                             <Card>
-                                <CardContent className="p-6 text-center text-muted-foreground">
-                                    <History className="w-12 h-12 mx-auto mb-4" />
-                                    <h3 className="font-semibold">No Past Sessions</h3>
-                                    <p className="text-sm">Recorded sessions from this seller will appear here.</p>
-                                </CardContent>
-                            </Card>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                                {mockPastStreams.map(stream => (
+                                    <Link href="#" key={stream.id} className="group">
+                                        <div className="relative aspect-video rounded-lg overflow-hidden bg-muted">
+                                            <Image src={stream.thumbnailUrl} alt={stream.title} fill className="object-cover transition-transform group-hover:scale-105" />
+                                            <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
+                                            <div className="absolute bottom-2 left-2 text-white text-xs">
+                                                <p className="font-bold">{stream.title}</p>
+                                                <p>{stream.views} views • {stream.date}</p>
+                                            </div>
+                                        </div>
+                                    </Link>
+                                ))}
+                                {mockPastStreams.length === 0 && (
+                                     <Card className="col-span-full">
+                                        <CardContent className="p-6 text-center text-muted-foreground">
+                                            <History className="w-12 h-12 mx-auto mb-4" />
+                                            <h3 className="font-semibold">No Past Sessions</h3>
+                                            <p className="text-sm">Recorded sessions from this seller will appear here.</p>
+                                        </CardContent>
+                                    </Card>
+                                )}
+                            </div>
                         </TabsContent>
 
                       <TabsContent value="recent" className="mt-4">
@@ -843,3 +865,5 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
     </>
   );
 }
+
+    
