@@ -528,7 +528,6 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                             <TabsList className="inline-flex">
                               {profileData.role === 'seller' && <TabsTrigger value="products">Listed Products</TabsTrigger>}
                               <TabsTrigger value="posts">Posts</TabsTrigger>
-                              {profileData.role === 'seller' && <TabsTrigger value="live-streams">Live Streams</TabsTrigger>}
                               {profileData.role === 'seller' && <TabsTrigger value="sessions">Sessions</TabsTrigger>}
                               
                                {(isOwnProfile) && (
@@ -541,35 +540,6 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                                )}
                           </TabsList>
                       </ScrollArea>
-                        <TabsContent value="live-streams" className="mt-4">
-                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                                {sellerLiveStreams.length > 0 ? sellerLiveStreams.map((stream: any) => (
-                                    <Link href={`/stream/${stream.id}`} key={stream.id} className="group">
-                                        <div className="relative rounded-lg overflow-hidden aspect-[9/16] bg-muted group-hover:ring-2 ring-primary ring-offset-2 ring-offset-background transition-all">
-                                            <Image 
-                                                src={stream.thumbnailUrl}
-                                                alt={`Stream by ${stream.name}`}
-                                                fill
-                                                className="object-cover"
-                                            />
-                                            <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
-                                            <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
-                                            <div className="absolute bottom-2 left-2 z-10 text-white">
-                                                <div className="flex items-center gap-1.5 text-xs">
-                                                    <Users className="w-3 h-3" />
-                                                    <span>{stream.viewers.toLocaleString()}</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </Link>
-                                )) : (
-                                    <div className="col-span-full text-center py-12 text-muted-foreground">
-                                        <Video className="w-12 h-12 mx-auto mb-2" />
-                                        <p>{displayName} is not currently live.</p>
-                                    </div>
-                                )}
-                            </div>
-                        </TabsContent>
                         <TabsContent value="sessions" className="mt-4">
                             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                                 {mockPastStreams.map(stream => (
@@ -863,3 +833,5 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
     </>
   );
 }
+
+    
