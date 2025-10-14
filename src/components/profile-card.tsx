@@ -6,7 +6,7 @@ import React from 'react';
 import { useAuth } from '@/hooks/use-auth.tsx';
 import { useRouter } from 'next/navigation';
 import { Button, buttonVariants } from '@/components/ui/button';
-import { Edit, Mail, Phone, MapPin, Camera, Truck, Star, ThumbsUp, ShoppingBag, Eye, Award, History, Search, Plus, Trash2, Heart, MessageSquare, StarIcon, UserPlus, Users, PackageSearch, Loader2, UserCheck, Instagram, Twitter, Youtube } from 'lucide-react';
+import { Edit, Mail, Phone, MapPin, Camera, Truck, Star, ThumbsUp, ShoppingBag, Eye, Award, History, Search, Plus, Trash2, Heart, MessageSquare, StarIcon, UserPlus, Users, PackageSearch, Loader2, UserCheck, Instagram, Twitter, Youtube, Video } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useEffect, useState, useRef, useMemo } from 'react';
@@ -503,13 +503,10 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                   <Tabs defaultValue={isOwnProfile ? "posts" : (profileData.role === 'seller' ? 'products' : 'recent')} className="w-full">
                       <ScrollArea className="w-full whitespace-nowrap">
                             <TabsList className="inline-flex">
-                              {isOwnProfile && (
-                                <TabsTrigger value="posts">My Posts</TabsTrigger>
-                              )}
-                              {profileData.role === 'seller' && (
-                                <TabsTrigger value="products">Listed Products</TabsTrigger>
-                              )}
-                              {profileData.role === 'customer' && !isOwnProfile && <p className="p-2 text-sm text-muted-foreground">This is a customer profile.</p>}
+                              {profileData.role === 'seller' && <TabsTrigger value="products">Listed Products</TabsTrigger>}
+                              <TabsTrigger value="posts">Posts</TabsTrigger>
+                              {profileData.role === 'seller' && <TabsTrigger value="live-streams">Live Streams</TabsTrigger>}
+                              {profileData.role === 'seller' && <TabsTrigger value="sessions">Sessions</TabsTrigger>}
                               
                                {(isOwnProfile) && (
                                 <>
@@ -616,6 +613,7 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                               )
                           )}
                       </TabsContent>
+
                         <TabsContent value="posts" className="mt-4 space-y-4">
                           {isOwnProfile && ( 
                               <div className="mb-6 sticky top-20 z-40">
@@ -667,6 +665,25 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                           )}
                       </TabsContent>
                       
+                        <TabsContent value="live-streams" className="mt-4">
+                            <Card>
+                                <CardContent className="p-6 text-center text-muted-foreground">
+                                    <Video className="w-12 h-12 mx-auto mb-4" />
+                                    <h3 className="font-semibold">No Active Live Streams</h3>
+                                    <p className="text-sm">This seller is not currently live. Follow them to get notified!</p>
+                                </CardContent>
+                            </Card>
+                        </TabsContent>
+
+                        <TabsContent value="sessions" className="mt-4">
+                             <Card>
+                                <CardContent className="p-6 text-center text-muted-foreground">
+                                    <History className="w-12 h-12 mx-auto mb-4" />
+                                    <h3 className="font-semibold">No Past Sessions</h3>
+                                    <p className="text-sm">Recorded sessions from this seller will appear here.</p>
+                                </CardContent>
+                            </Card>
+                        </TabsContent>
 
                       <TabsContent value="recent" className="mt-4">
                             {isLoadingContent ? <ProductSkeletonGrid /> : (
@@ -790,3 +807,4 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
     </>
   );
 }
+
