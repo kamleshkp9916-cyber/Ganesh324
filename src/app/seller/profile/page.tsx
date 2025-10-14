@@ -45,16 +45,15 @@ export default function SellerProfilePage() {
     const fetchProfileData = async () => {
         if (loading || !isMounted || !userIdFromQuery) return;
 
-        let data = await getUserByDisplayName(userIdFromQuery);
-        if (!data) {
-           data = await getUserData(userIdFromQuery);
-        }
+        // Simplify the logic: always assume userIdFromQuery is a UID.
+        // The linking component is now responsible for providing the correct UID.
+        const data = await getUserData(userIdFromQuery);
         
         if (data) {
             setProfileData(data);
         } else {
-            console.error("Seller not found:", userIdFromQuery);
-            setProfileData(null);
+            console.error("Seller not found with UID:", userIdFromQuery);
+            setProfileData(null); // Explicitly set to null if not found
         }
     };
     

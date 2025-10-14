@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import {
@@ -495,7 +494,7 @@ const StreamInfo = ({ seller, streamData, handleFollowToggle, isFollowingState, 
                 </div>
             </div>
              <div className="flex items-center justify-between gap-2">
-                <Link href={`/seller/profile?userId=${seller.name}`} className="flex items-center gap-3 group flex-grow overflow-hidden">
+                <Link href={`/seller/profile?userId=${seller.uid}`} className="flex items-center gap-3 group flex-grow overflow-hidden">
                     <Avatar className="h-12 w-12 flex-shrink-0">
                         <AvatarImage src={seller.avatarUrl} />
                         <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
@@ -1248,7 +1247,7 @@ MobileLayout.displayName = "MobileLayout";
 const ChatMessage = ({ msg, handlers }: { msg: any, handlers: any }) => {
     const { user } = useAuth();
     const isMyMessage = msg.userId === user?.uid;
-    const isSellerMessage = msg.isSeller || msg.userId === handlers.seller.id;
+    const isSellerMessage = msg.isSeller || msg.userId === handlers.seller?.id;
     
     const handleReply = () => handlers.onReply(msg);
     const handleTogglePin = () => handlers.onTogglePin(msg.id);
@@ -1269,7 +1268,7 @@ const ChatMessage = ({ msg, handlers }: { msg: any, handlers: any }) => {
                         <span className={cn("font-semibold text-xs", isSellerMessage && "text-yellow-400")}>
                             {isSellerMessage ? handlers.seller.name : msg.user}:
                         </span>
-                        {isSellerMessage && <Badge variant="outline" className="h-4 border-yellow-400/50 px-1.5 text-yellow-400">Seller</Badge>}
+                        {isSellerMessage && <Badge variant="outline" className="mr-1.5 border-yellow-400/50 text-yellow-400 h-4">Seller</Badge>}
                     </div>
                     <span className="text-sm whitespace-pre-wrap break-words">
                         {msg.replyingTo && <span className="text-primary font-semibold mr-1">@{msg.replyingTo}</span>}
@@ -1449,7 +1448,7 @@ const ChatPanel = ({
       </header>
       <ScrollArea className="flex-grow" ref={chatContainerRef} onScroll={handleManualScroll}>
           <div className="p-3 space-y-2">
-             {chatMessages.map((msg) => {
+             {chatMessages.map((msg: any) => {
                   if (msg.type === 'system') {
                       return <div key={msg.id} className="text-xs text-center text-[#9AA1A6] italic py-1">{msg.text}</div>
                   }
