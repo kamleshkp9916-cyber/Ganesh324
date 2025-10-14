@@ -68,7 +68,7 @@ export const getUserData = async (uid: string): Promise<UserData | null> => {
         const userDoc = await getDoc(userDocRef);
 
         if (userDoc.exists()) {
-            return userDoc.data() as UserData;
+            return { ...userDoc.data(), uid: userDoc.id } as UserData;
         } else {
             console.warn(`No user document found for UID: ${uid}`);
             return null;
@@ -183,26 +183,3 @@ export const isFollowing = async (currentUserId: string, targetUserId: string): 
     const followDoc = await getDoc(followDocRef);
     return followDoc.exists();
 };
-
-// Deprecated: getUserByDisplayName is unreliable. Use getUserData with UID instead.
-export const getUserByDisplayName = async (displayName: string): Promise<UserData | null> => {
-    if (!displayName) return null;
-    try {
-        const db = getFirestoreDb();
-        const usersRef = collection(db, "users");
-        // This is not a reliable way to get a user. Display names are not unique.
-        const q = query(usersRef, where("displayName", "==", displayName), limit(1));
-        const querySnapshot = await getDocs(q);
-
-        if (!querySnapshot.empty) {
-            return querySnapshot.docs[0].data() as UserData;
-        } else {
-            console.warn(`No user found with displayName: ${displayName}`);
-            return null;
-        }
-    } catch (error) {
-        console.error("Error getting user by display name:", error);
-        return null;
-    }
-};
-

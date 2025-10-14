@@ -4,7 +4,7 @@
 
 import { useAuth } from '@/hooks/use-auth.tsx';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Button } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button';
 import { ArrowLeft, MoreHorizontal, Edit, UserPlus, MessageSquare, Star, Users, Video, Search, ShoppingBag } from 'lucide-react';
 import React, { useEffect, useState, useMemo } from 'react';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
@@ -45,20 +45,17 @@ export default function SellerProfilePage() {
   useEffect(() => {
     const fetchProfileData = async () => {
         if (!isMounted || !userIdFromQuery) {
-            if (isMounted && !userIdFromQuery) {
-                 console.error("Seller profile page loaded without a userId.");
-            }
-            setProfileData(null); // Clear profile data if no ID
+            setProfileData(null);
             return;
         }
-
+        
         const data = await getUserData(userIdFromQuery);
         
         if (data) {
             setProfileData(data);
         } else {
             console.error("Seller not found with UID:", userIdFromQuery);
-            setProfileData(null); // Explicitly set to null if not found
+            setProfileData(null);
         }
     };
     
