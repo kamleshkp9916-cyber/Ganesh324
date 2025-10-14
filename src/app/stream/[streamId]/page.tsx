@@ -570,8 +570,17 @@ export default function StreamPage() {
     
     const isMobile = useIsMobile();
         
-    const seller = useMemo(() => liveSellers.find(s => s.id === streamId), [streamId]);
-    const product = useMemo(() => seller ? productDetails[seller.productId as keyof typeof productDetails] : null, [seller]);
+    const product = useMemo(() => {
+        const liveSeller = liveSellers.find(s => s.id === streamId);
+        if (!liveSeller) return null;
+        return productDetails[liveSeller.productId as keyof typeof productDetails] || null;
+    }, [streamId]);
+
+    const seller = useMemo(() => {
+        if (!product) return null;
+        return productToSellerMapping[product.key];
+    }, [product]);
+
     
      const relatedStreams = useMemo(() => {
         if (!product) return [];
@@ -1249,7 +1258,7 @@ MobileLayout.displayName = "MobileLayout";
 const ChatMessage = ({ msg, handlers }: { msg: any, handlers: any }) => {
     const { user } = useAuth();
     const isMyMessage = msg.userId === user?.uid;
-    const isSellerMessage = msg.isSeller || msg.userId === handlers.seller?.id;
+    const isSellerMessage = msg.userId === handlers.seller?.id;
     
     const handleReply = () => handlers.onReply(msg);
     const handleTogglePin = () => handlers.onTogglePin(msg.id);
@@ -1265,10 +1274,10 @@ const ChatMessage = ({ msg, handlers }: { msg: any, handlers: any }) => {
                 </AvatarFallback>
             </Avatar>
             <div className="flex-grow">
-                 <div className="text-sm text-[#E6ECEF] leading-tight">
-                    <div className="flex items-baseline gap-1.5">
+                 <div className="text-sm leading-tight text-[#E6ECEF]">
+                    <div className="flex items-center gap-1.5">
                         <span className={cn("font-semibold text-xs", isSellerMessage && "text-yellow-400")}>
-                            {isSellerMessage ? handlers.seller.name : msg.user}:
+                            {msg.user}:
                         </span>
                         {isSellerMessage && <Badge variant="outline" className="mr-1.5 border-yellow-400/50 text-yellow-400 h-4">Seller</Badge>}
                     </div>

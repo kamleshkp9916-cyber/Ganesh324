@@ -20,7 +20,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { getUserData, updateUserData, UserData, toggleFollow, isFollowing, getUserByDisplayName } from '@/lib/follow-data';
+import { getUserData, updateUserData, UserData } from '@/lib/follow-data';
 import { useAuthActions } from '@/lib/auth';
 import { ProfileCard } from '@/components/profile-card';
 
@@ -43,10 +43,10 @@ export default function SellerProfilePage() {
 
   useEffect(() => {
     const fetchProfileData = async () => {
-        if (loading || !isMounted || !userIdFromQuery) {
-            if (isMounted && !loading && !userIdFromQuery) {
+        if (!isMounted || !userIdFromQuery) {
+            if (isMounted && !userIdFromQuery) {
                 console.error("Seller profile page loaded without a userId.");
-                setProfileData(null); // Explicitly set to null if no ID
+                setProfileData(null);
             }
             return;
         }
@@ -57,13 +57,13 @@ export default function SellerProfilePage() {
             setProfileData(data);
         } else {
             console.error("Seller not found with UID:", userIdFromQuery);
-            setProfileData(null); // Explicitly set to null if not found
+            setProfileData(null);
         }
     };
     
     fetchProfileData();
 
-  }, [user, userData, loading, isMounted, key, userIdFromQuery]);
+  }, [isMounted, key, userIdFromQuery]);
 
 
   const handleProfileSave = async (data: any) => {

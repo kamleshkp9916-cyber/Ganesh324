@@ -1,3 +1,4 @@
+
 "use client";
 
 import React from 'react';
@@ -315,7 +316,7 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                   <Dialog>
                       <DialogTrigger asChild>
                           <div className="text-left cursor-pointer">
-                              <p className="text-xl sm:text-2xl font-bold">{profileData.following || 0}</p>
+                              <p className="text-xl sm:text-2xl font-bold">{followingList.length}</p>
                               <p className="text-xs sm:text-sm text-muted-foreground">Following</p>
                           </div>
                       </DialogTrigger>
@@ -352,7 +353,7 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                   <Dialog>
                         <DialogTrigger asChild>
                             <div className="cursor-pointer">
-                                <p className="text-xl sm:text-2xl font-bold">{(profileData.followers || 0) > 1000 ? `${((profileData.followers || 0)/1000).toFixed(1)}k` : (profileData.followers || 0)}</p>
+                                <p className="text-xl sm:text-2xl font-bold">{(followerList.length) > 1000 ? `${(followerList.length/1000).toFixed(1)}k` : (followerList.length)}</p>
                                 <p className="text-xs sm:text-sm text-muted-foreground">Followers</p>
                             </div>
                         </DialogTrigger>
@@ -617,7 +618,7 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                         <TabsContent value="posts" className="mt-4 space-y-4">
                           {isOwnProfile && ( 
                               <div className="mb-6 sticky top-20 z-40">
-                                    <CreatePostForm />
+                                    <CreatePostForm onPost={async () => {}} onFinishEditing={() => {}} isSubmitting={false}/>
                               </div>
                           )}
                             {userPosts.length > 0 ? userPosts.map(post => (
