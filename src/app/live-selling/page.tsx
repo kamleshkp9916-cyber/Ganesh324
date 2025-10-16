@@ -1,4 +1,3 @@
-
 "use client";
 
 import Link from 'next/link';
@@ -756,11 +755,11 @@ export default function LiveSellingPage() {
                                     </DropdownMenuItem>
                                      <DropdownMenuItem onSelect={() => router.push('/help')}>
                                         <LifeBuoy className="mr-2 h-4 w-4" />
-                                        <span>Help</span>
+                                        <span>Help &amp; Support</span>
                                     </DropdownMenuItem>
                                     <DropdownMenuItem onSelect={() => router.push('/privacy-and-security')}>
                                         <Shield className="mr-2 h-4 w-4" />
-                                        <span>Privacy & Security</span>
+                                        <span>Privacy &amp; Security</span>
                                     </DropdownMenuItem>
                                     <DropdownMenuSeparator />
                                     <DropdownMenuSub>
