@@ -1,12 +1,11 @@
 
-
 "use client"
 
 import { useAuth } from '@/hooks/use-auth.tsx';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Button, buttonVariants } from '@/components/ui/button';
-import { ArrowLeft, MoreHorizontal, Edit, UserPlus, MessageSquare, Star, Users, Video, Search, ShoppingBag } from 'lucide-react';
-import React, { useEffect, useState, useMemo } from 'react';
+import { ArrowLeft, MoreHorizontal, Edit, UserPlus, MessageSquare, Star, Users, Video, Search, ShoppingBag, Flag, Share2, MessageCircle, LifeBuoy } from 'lucide-react';
+import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import {
   Dialog,
@@ -20,10 +19,14 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu"
 import { getUserData, updateUserData, UserData } from '@/lib/follow-data';
 import { useAuthActions } from '@/lib/auth';
 import { ProfileCard } from '@/components/profile-card';
+import { FeedbackDialog } from '@/components/feedback-dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { useToast } from '@/hooks/use-toast';
 
 
 const mockSellers: Record<string, UserData> = {
@@ -46,11 +49,13 @@ export default function SellerProfilePage() {
   const userIdFromQuery = searchParams.get('userId');
   const { user, userData, loading } = useAuth();
   const { updateUserProfile } = useAuthActions();
+  const { toast } = useToast();
 
   const [profileData, setProfileData] = useState<UserData | null>(null);
   const [isProfileEditDialogOpen, setIsProfileEditDialogOpen] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
   const [key, setKey] = useState(0);
+  const [isReportDialogOpen, setIsReportDialogOpen] = useState(false);
 
   useEffect(() => {
     setIsMounted(true);
@@ -115,6 +120,26 @@ export default function SellerProfilePage() {
       }
   };
 
+  const handleShare = () => {
+    navigator.clipboard.writeText(window.location.href);
+    toast({
+        title: "Link Copied!",
+        description: "Profile link copied to clipboard.",
+    });
+  };
+
+  const handleReport = () => {
+      setIsReportDialogOpen(true);
+  };
+  
+  const confirmReport = () => {
+    toast({
+        title: "Profile Reported",
+        description: "Thank you for your feedback. Our team will review this profile.",
+    });
+    setIsReportDialogOpen(false);
+  };
+
   if (!isMounted || loading || !profileData) {
       return (
           <div className="flex items-center justify-center min-h-screen">
@@ -126,6 +151,21 @@ export default function SellerProfilePage() {
   const isOwnProfile = user?.uid === profileData.uid;
 
   return (
+    <>
+     <AlertDialog open={isReportDialogOpen} onOpenChange={setIsReportDialogOpen}>
+            <AlertDialogContent>
+                <AlertDialogHeader>
+                    <AlertDialogTitle>Report this profile?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                        If this user is violating community guidelines, please report them.
+                    </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={confirmReport}>Report</AlertDialogAction>
+                </AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
     <Dialog open={isProfileEditDialogOpen} onOpenChange={setIsProfileEditDialogOpen}>
         <div className="min-h-screen bg-background text-foreground flex flex-col">
             <header className="p-4 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-sm z-30 border-b">
@@ -141,12 +181,32 @@ export default function SellerProfilePage() {
                         </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                         {isOwnProfile && (
-                            <DropdownMenuItem onSelect={() => setIsProfileEditDialogOpen(true)}>
+                         {isOwnProfile ? (
+                             <DropdownMenuItem onSelect={() => setIsProfileEditDialogOpen(true)}>
                                 <Edit className="mr-2 h-4 w-4" />
                                 <span>Edit Profile</span>
                             </DropdownMenuItem>
+                         ) : (
+                             <DropdownMenuItem onSelect={handleReport}>
+                                <Flag className="mr-2 h-4 w-4" />
+                                <span>Report User</span>
+                            </DropdownMenuItem>
                          )}
+                        <DropdownMenuItem onSelect={handleShare}>
+                            <Share2 className="mr-2 h-4 w-4" />
+                            <span>Share Profile</span>
+                        </DropdownMenuItem>
+                         <DropdownMenuSeparator />
+                        <FeedbackDialog>
+                            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                                <MessageCircle className="mr-2 h-4 w-4" />
+                                <span>Feedback</span>
+                            </DropdownMenuItem>
+                        </FeedbackDialog>
+                         <DropdownMenuItem onSelect={() => router.push('/help')}>
+                            <LifeBuoy className="mr-2 h-4 w-4" />
+                            <span>Help & Support</span>
+                        </DropdownMenuItem>
                     </DropdownMenuContent>
                 </DropdownMenu>
             </header>
@@ -174,5 +234,6 @@ export default function SellerProfilePage() {
             </DialogContent>
         )}
     </Dialog>
+    </>
   );
 }
