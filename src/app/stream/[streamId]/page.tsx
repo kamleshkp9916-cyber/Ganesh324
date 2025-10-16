@@ -849,7 +849,7 @@ export default function StreamPage() {
     
         if (!document.fullscreenElement) {
             elem.requestFullscreen().catch(err => {
-                alert(`Error attempting to enable full-screen mode: \`\${err.message}\` (\`\${err.name}\`)`);
+                alert(`Error attempting to enable full-screen mode: \`${err.message}\` (\`${err.name}\`)`);
             });
         } else {
             document.exitFullscreen();
@@ -1156,6 +1156,7 @@ return (
                 pinnedMessages={props.pinnedMessages}
                 handlers={handlers}
                 onClose={() => {}}
+                router={props.router}
             />
         </aside>
     </div>
@@ -1350,6 +1351,7 @@ const ChatPanel = ({
   handlers,
   inlineAuctionCardRefs,
   onClose,
+  router,
 }: {
   seller: any;
   chatMessages: any[];
@@ -1362,6 +1364,7 @@ const ChatPanel = ({
   handlers: any;
   inlineAuctionCardRefs: React.MutableRefObject<Record<string, HTMLDivElement | null>>;
   onClose: () => void;
+  router: any;
 }) => {
   const [newMessage, setNewMessage] = useState("");
   const [replyingTo, setReplyingTo] = useState<{ name: string; id: string } | null>(null);
@@ -1477,7 +1480,7 @@ const ChatPanel = ({
                     </DropdownMenuItem>
                 </FeedbackDialog>
                 <DropdownMenuItem onSelect={() => router.push('/help')}>
-                    <LifeBuoy className="mr-2 h-4 w-4" />Help &amp; Support
+                    <LifeBuoy className="mr-2 h-4 w-4" />Help & Support
                 </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -1499,7 +1502,7 @@ const ChatPanel = ({
                     return <ProductPromoCard key={msg.id} msg={msg} handlers={handlers} />;
                   }
                   if (!msg.user) return null;
-                  
+
                   const isMyMessage = msg.userId === seller?.uid;
                   const isSellerMessage = msg.userId === seller?.uid;
                   
