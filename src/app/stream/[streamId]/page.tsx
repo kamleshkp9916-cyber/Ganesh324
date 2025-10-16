@@ -103,7 +103,7 @@ import { toggleFollow, getUserData } from '@/lib/follow-data';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
-import { doc, onSnapshot, Timestamp } from 'firebase/firestore';
+import { doc, Timestamp, onSnapshot } from 'firebase/firestore';
 import { getFirestoreDb } from '@/lib/firebase';
 import { Slider } from "@/components/ui/slider";
 import { FeedbackDialog } from "@/components/feedback-dialog";
@@ -638,7 +638,7 @@ export default function StreamPage() {
         title: "Live Shopping Event",
         description: "Join us for exclusive deals and a first look at our new collection! #fashion #live Check this out: https://google.com",
         status: "live",
-        startedAt: new Timestamp(Math.floor(Date.now() / 1000) - 300, 0), // 5 minutes ago
+        startedAt: new Date(Date.now() - 5 * 60 * 1000), // 5 minutes ago
         viewerCount: seller?.viewers || 0,
         streamUrl: "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"
     };
@@ -1479,8 +1479,8 @@ const ChatPanel = ({
                         <MessageCircle className="mr-2 h-4 w-4" />Feedback
                     </DropdownMenuItem>
                 </FeedbackDialog>
-                <DropdownMenuItem onSelect={() => router.push('/help')}>
-                    <LifeBuoy className="mr-2 h-4 w-4" />Help & Support
+                <DropdownMenuItem onClick={() => router.push('/help')}>
+                    <LifeBuoy className="mr-2 h-4 w-4" />Help
                 </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
