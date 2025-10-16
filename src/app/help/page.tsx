@@ -24,6 +24,15 @@ const faqData = [
     ]
   },
   {
+      category: "Live Streams & Auctions",
+      questions: [
+          { q: "What is a Live Stream?", a: "A live stream is a real-time video broadcast hosted by a seller to showcase their products. You can watch product demonstrations, ask questions in the live chat, and interact with the seller and other viewers." },
+          { q: "How can I buy a product from a stream?", a: "Products featured in the stream are displayed in the 'Product Shelf' section. You can click on a product to view its details, add it to your cart, or buy it directly using the 'Buy Now' button." },
+          { q: "What is an Auction?", a: "Some live streams feature auctions where you can bid on a special product. The seller will start the auction, and the highest bidder at the end of the timer wins the item. You must have sufficient funds in your wallet to place a bid." },
+          { q: "Can I chat with the seller during a stream?", a: "Yes! The live chat is the primary way to interact. You can ask questions, leave comments, and react with emojis. Please be respectful and follow our community guidelines." },
+      ]
+  },
+  {
     category: "Feed & Community",
     questions: [
         { q: "What is the Feed page?", a: "The Feed is your central hub for community content. Here you can see posts from sellers you follow, discover new creators, and interact with other users. It is divided into three main tabs: Feed, Saves, and Messages." },
@@ -48,6 +57,7 @@ const faqData = [
           { q: "What is the 7-Day Return Policy?", a: "Most items on StreamCart are eligible for return within 7 days of delivery. The item must be in its original condition, with all tags and packaging intact. To initiate a return, go to your 'My Orders' page, select the delivered order, and click the 'Return Product' button. Some items, like personal care products or perishables, may not be returnable." },
           { q: "How does 'Pay on Delivery' work?", a: "Pay on Delivery (POD) is a payment method where you can pay for your order in cash at the time of delivery. This option is available for select locations and orders. If your order is eligible, you will see the POD option at checkout. Please have the exact amount ready to avoid inconvenience." },
           { q: "What does '100% Genuine' mean?", a: "We guarantee that all products sold on StreamCart are authentic and sourced directly from verified sellers or trusted brand partners. Our seller verification process (KYC) ensures that only legitimate businesses sell on our platform. If you ever receive a product that you believe is not genuine, please contact our support team immediately through the Help Center for a full investigation and refund." },
+          { q: "Is it safe to share my contact information in the chat?", a: "No. For your safety and privacy, you are strictly prohibited from sharing personal contact information (such as phone numbers, email addresses, or social media profiles) in public chats, including live stream chats. All communication and transactions should be kept within the StreamCart platform." },
       ]
   },
   {
