@@ -80,6 +80,10 @@ const mockPastStreams = [
     { id: 4, title: 'Morning Skincare Routine', date: '1 month ago', views: '500k', thumbnailUrl: 'https://placehold.co/400x225.png?text=Past+Stream+4' },
 ];
 
+const mockPosts = [
+    { id: 1, content: 'Just unboxed this amazing vintage camera! The quality is incredible. Going live to show it off soon! #vintage #camera #filmisnotdead', likes: 15, replies: 3, timestamp: '2h ago', mediaUrl: 'https://placehold.co/600x400.png', mediaType: 'image', avatarUrl: 'https://placehold.co/40x40.png', sellerName: 'FashionFinds' },
+    { id: 2, content: 'Excited to announce our new fall collection is dropping next week. Here’s a sneak peek of one of our favorite pieces. What do you all think?', likes: 42, replies: 12, timestamp: '1d ago', mediaUrl: null, mediaType: null, avatarUrl: 'https://placehold.co/40x40.png', sellerName: 'FashionFinds' },
+];
 
 function ProductSkeletonGrid() {
     return (
@@ -555,15 +559,26 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                             <div>
                                 <h3 className="text-lg font-semibold mb-4">Past Streams</h3>
                                 <div className="md:hidden space-y-4">
-                                    {mockPastStreams.map(stream => (
+                                     {mockPastStreams.map(stream => (
                                         <Link href="#" key={stream.id} className="group block">
-                                            <Card className="overflow-hidden bg-card border-border/50 shadow-sm">
-                                                <div className="relative aspect-video bg-muted">
-                                                    <Image src={stream.thumbnailUrl} alt={stream.title} fill className="object-cover" />
+                                            <Card className="overflow-hidden bg-card border-border/50 shadow-sm transition-all hover:shadow-md">
+                                                <div className="relative aspect-video bg-muted overflow-hidden">
+                                                    <Image 
+                                                        src={stream.thumbnailUrl} 
+                                                        alt={stream.title} 
+                                                        fill
+                                                        className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-300"
+                                                    />
+                                                    <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors flex items-center justify-center">
+                                                        <Play className="h-12 w-12 text-white/70 group-hover:text-white group-hover:scale-110 transition-all" />
+                                                    </div>
                                                 </div>
                                                 <div className="p-3">
-                                                    <h4 className="font-semibold text-sm truncate">{stream.title}</h4>
-                                                    <div className="flex justify-between text-xs text-muted-foreground mt-1"><span>{stream.date}</span><span>{stream.views} views</span></div>
+                                                    <h4 className="font-semibold text-sm truncate group-hover:text-primary transition-colors">{stream.title}</h4>
+                                                    <div className="flex justify-between items-center text-xs text-muted-foreground mt-1">
+                                                        <span>{stream.date}</span>
+                                                        <span>{stream.views} views</span>
+                                                    </div>
                                                 </div>
                                             </Card>
                                         </Link>
@@ -698,54 +713,61 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                       </TabsContent>
 
                         <TabsContent value="posts" className="mt-4 space-y-4">
-                          {isOwnProfile && ( 
-                              <div className="mb-6 sticky top-20 z-40">
-                                    <CreatePostForm onPost={async () => {}} onFinishEditing={() => {}} isSubmitting={false}/>
-                              </div>
-                          )}
-                            {userPosts.length > 0 ? userPosts.map(post => (
-                              <Card key={post.id} className="overflow-hidden">
-                                  <div className="p-4">
-                                      <div className="flex items-center gap-3 mb-3">
-                                          <Avatar className="h-10 w-10">
-                                              <AvatarImage src={post.avatarUrl} alt={post.sellerName} />
-                                              <AvatarFallback>{post.sellerName.charAt(0)}</AvatarFallback>
-                                          </Avatar>
-                                          <div className="flex-grow">
-                                              <p className="font-semibold">{post.sellerName}</p>
-                                              <p className="text-xs text-muted-foreground">{post.timestamp}</p>
-                                          </div>
+                           {(userPosts.length > 0 || isOwnProfile) ? (
+                               <>
+                                   {isOwnProfile && ( 
+                                      <div className="mb-6 sticky top-20 z-40">
+                                            <CreatePostForm onPost={async () => {}} onFinishEditing={() => {}} isSubmitting={false}/>
                                       </div>
-                                  </div>
-                                  <div className="px-4 pb-4">
-                                      <p className="text-sm mb-2">{post.content}</p>
-                                       {post.mediaUrl &&
-                                          <div className="w-full max-w-sm bg-muted rounded-lg overflow-hidden">
-                                              {post.mediaType === 'video' ? (
-                                                  <video src={post.mediaUrl} controls className="w-full h-auto object-cover" />
-                                              ) : (
-                                                  <Image src={post.mediaUrl} alt="Feed item" width={400} height={300} className="w-full h-auto object-cover" />
-                                              )}
+                                  )}
+                                   {userPosts.map(post => (
+                                      <Card key={post.id} className="overflow-hidden">
+                                          <div className="p-4">
+                                              <div className="flex items-center gap-3 mb-3">
+                                                  <Avatar className="h-10 w-10">
+                                                      <AvatarImage src={post.avatarUrl} alt={post.sellerName} />
+                                                      <AvatarFallback>{post.sellerName.charAt(0)}</AvatarFallback>
+                                                  </Avatar>
+                                                  <div className="flex-grow">
+                                                      <p className="font-semibold">{post.sellerName}</p>
+                                                      <p className="text-xs text-muted-foreground">{post.timestamp}</p>
+                                                  </div>
+                                              </div>
                                           </div>
-                                      }
-                                  </div>
-                                  <div className="px-4 pb-3 flex justify-between items-center text-sm text-muted-foreground">
-                                      <div className="flex items-center gap-4">
-                                          <button className="flex items-center gap-1.5 hover:text-primary">
-                                              <Heart className="w-4 h-4" />
-                                              <span>{post.likes}</span>
-                                          </button>
-                                          <button className="flex items-center gap-1.5 hover:text-primary">
-                                              <MessageSquare className="w-4 h-4" />
-                                              <span>{post.replies}</span>
-                                          </button>
-                                      </div>
-                                      {post.location && <span className="text-xs">{post.location}</span>}
-                                  </div>
-                              </Card>
-                          )) : (
-                              <p className="text-muted-foreground text-center py-8">No posts yet.</p>
-                          )}
+                                          <div className="px-4 pb-4">
+                                              <p className="text-sm mb-2">{post.content}</p>
+                                               {post.mediaUrl &&
+                                                  <div className="w-full max-w-sm bg-muted rounded-lg overflow-hidden">
+                                                      {post.mediaType === 'video' ? (
+                                                          <video src={post.mediaUrl} controls className="w-full h-auto object-cover" />
+                                                      ) : (
+                                                          <Image src={post.mediaUrl} alt="Feed item" width={400} height={300} className="w-full h-auto object-cover" />
+                                                      )}
+                                                  </div>
+                                              }
+                                          </div>
+                                          <div className="px-4 pb-3 flex justify-between items-center text-sm text-muted-foreground">
+                                              <div className="flex items-center gap-4">
+                                                  <button className="flex items-center gap-1.5 hover:text-primary">
+                                                      <Heart className="w-4 h-4" />
+                                                      <span>{post.likes}</span>
+                                                  </button>
+                                                  <button className="flex items-center gap-1.5 hover:text-primary">
+                                                      <MessageSquare className="w-4 h-4" />
+                                                      <span>{post.replies}</span>
+                                                  </button>
+                                              </div>
+                                              {post.location && <span className="text-xs">{post.location}</span>}
+                                          </div>
+                                      </Card>
+                                  ))}
+                                  {(userPosts.length === 0 && isOwnProfile) && (
+                                    <p className="text-muted-foreground text-center py-8">You haven't made any posts yet.</p>
+                                  )}
+                               </>
+                           ) : (
+                               <p className="text-muted-foreground text-center py-8">No posts yet.</p>
+                           )}
                       </TabsContent>
 
                       <TabsContent value="recent" className="mt-4">
@@ -870,3 +892,5 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
     </>
   );
 }
+
+    
