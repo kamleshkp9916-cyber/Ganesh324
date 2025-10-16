@@ -13,7 +13,7 @@ const defaultFooterContent: FooterContent = {
   description: "Your one-stop shop for live shopping. Discover, engage, and buy in real-time.",
   address: "123 Stream St, Commerce City, IN",
   phone: "(+91) 98765 43210",
-  email: "support@streamcart.com",
+  email: "streamcartcom@gmail.com",
   facebook: "https://facebook.com",
   twitter: "https://twitter.com",
   linkedin: "https://linkedin.com",
