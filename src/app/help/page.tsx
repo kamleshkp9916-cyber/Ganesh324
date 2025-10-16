@@ -28,7 +28,7 @@ const faqData = [
       questions: [
           { q: "What is a Live Stream?", a: "A live stream is a real-time video broadcast hosted by a seller to showcase their products. You can watch product demonstrations, ask questions in the live chat, and interact with the seller and other viewers." },
           { q: "How can I buy a product from a stream?", a: "Products featured in the stream are displayed in the 'Product Shelf' section. You can click on a product to view its details, add it to your cart, or buy it directly using the 'Buy Now' button." },
-          { q: "What is an Auction?", a: "Some live streams feature auctions where you can bid on a special product. The seller will start the auction, and the highest bidder at the end of the timer wins the item. You must have sufficient funds in your wallet to place a bid." },
+          { q: "What is an Auction?", a: "Auctions are a 'coming soon' feature! They will allow you to bid on special products during a live stream. The highest bidder at the end of the timer will win the item. You will need to have sufficient funds in your wallet to place a bid." },
           { q: "Can I chat with the seller during a stream?", a: "Yes! The live chat is the primary way to interact. You can ask questions, leave comments, and react with emojis. Please be respectful and follow our community guidelines." },
       ]
   },
