@@ -1476,8 +1476,8 @@ const ChatPanel = ({
                         <MessageCircle className="mr-2 h-4 w-4" />Feedback
                     </DropdownMenuItem>
                 </FeedbackDialog>
-                <DropdownMenuItem>
-                    <LifeBuoy className="mr-2 h-4 w-4" />Help
+                <DropdownMenuItem onSelect={() => router.push('/help')}>
+                    <LifeBuoy className="mr-2 h-4 w-4" />Help &amp; Support
                 </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -1488,7 +1488,7 @@ const ChatPanel = ({
       </header>
       <ScrollArea className="flex-grow" ref={chatContainerRef} onScroll={handleManualScroll}>
           <div className="p-3 space-y-2.5">
-             {chatMessages.map((msg: any) => {
+             {chatMessages.map((msg) => {
                   if (msg.type === 'system') {
                       return <div key={msg.id} className="text-xs text-center text-[#9AA1A6] italic py-1">{msg.text}</div>
                   }
