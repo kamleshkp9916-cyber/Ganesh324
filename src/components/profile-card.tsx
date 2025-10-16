@@ -8,7 +8,7 @@ import { Button, buttonVariants } from '@/components/ui/button';
 import { Edit, Mail, Phone, MapPin, Camera, Truck, Star, ThumbsUp, ShoppingBag, Eye, Award, History, Search, Plus, Trash2, Heart, MessageSquare, StarIcon, UserPlus, Users, PackageSearch, Loader2, UserCheck, Instagram, Twitter, Youtube, Video, Facebook, Twitch } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { useEffect, useState, useRef, useMemo } from 'react';
+import { useEffect, useState, useRef, useMemo, useCallback } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog';
 import { cn } from '@/lib/utils';
 import { Separator } from './ui/separator';
@@ -129,15 +129,7 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
   const [wishlist, setWishlist] = useState<number[]>([]);
   const displayName = profileData.displayName || (profileData as any).name || "";
   const getProductsKey = (name: string) => `sellerProducts_${name}`;
-  const [sellerProducts, setSellerProducts] = useState<any[]>(() => {
-    if (typeof window !== 'undefined' && profileData.role === 'seller') {
-      const productsKey = getProductsKey(displayName);
-      const storedProducts = localStorage.getItem(productsKey);
-      if (storedProducts) return JSON.parse(storedProducts);
-      if (displayName === 'BeautyBox') return mockBeautyBoxProducts;
-    }
-    return [];
-  });
+  const [sellerProducts, setSellerProducts] = useState<any[]>([]);
   const [userPosts, setUserPosts] = useState<any[]>([]);
   const [followingList, setFollowingList] = useState<any[]>([]);
   const [followerList, setFollowerList] = useState<any[]>([]);
@@ -164,9 +156,8 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
   useEffect(() => {
     if (user) {
        loadFollowData();
-       setMyReviews(getUserReviews(user.uid));
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, profileData.uid, isOwnProfile]);
   
   // Fetch user orders
@@ -195,32 +186,35 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
   // Load data from localStorage on mount and add storage listener
   useEffect(() => {
     const productsKey = getProductsKey(displayName);
-    const loadSellerProducts = () => {
-        if (profileData.role === 'seller') {
-            const storedProducts = localStorage.getItem(productsKey);
-            let productsToShow = [];
-            if (storedProducts) {
-                productsToShow = JSON.parse(storedProducts);
-            } else if (displayName === 'BeautyBox') {
-                productsToShow = mockBeautyBoxProducts;
-            }
-            setSellerProducts(productsToShow);
-        }
+    const loadData = () => {
+      setRecentlyViewedItems(getRecentlyViewed());
+      setWishlist(getWishlist().map(p => p.id));
+      if (profileData.role === 'seller') {
+          const storedProducts = localStorage.getItem(productsKey);
+          let productsToShow = [];
+          if (storedProducts) {
+              productsToShow = JSON.parse(storedProducts);
+          } else if (displayName === 'BeautyBox') {
+              productsToShow = mockBeautyBoxProducts;
+          }
+          setSellerProducts(productsToShow);
+      }
+      if (user) {
+          setMyReviews(getUserReviews(user.uid));
+      }
     };
+    
+    loadData();
 
     const handleStorageChange = (event: StorageEvent) => {
-      if (event.key === productsKey) {
-        loadSellerProducts();
+      if (event.key === productsKey || event.key === 'streamcart_recently_viewed' || event.key === 'streamcart_wishlist' || event.key === 'streamcart_reviews') {
+        loadData();
       }
       if(event.key?.startsWith('following_')) {
           loadFollowData();
       }
     };
     
-    setRecentlyViewedItems(getRecentlyViewed());
-    setWishlist(getWishlist().map(p => p.id));
-    loadSellerProducts();
-
     // Listen to firestore posts
     const db = getFirestoreDb();
     const postsQuery = query(collection(db, "posts"), where("sellerId", "==", profileData.uid), orderBy("timestamp", "desc"));
@@ -243,7 +237,7 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
         unsubscribe();
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [profileData.role, displayName, profileData.uid]);
+  }, [profileData.role, displayName, profileData.uid, user]);
 
 
   const productCategories = useMemo(() => {
@@ -537,7 +531,7 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                                )}
                           </TabsList>
                       </ScrollArea>
-                       <TabsContent value="sessions" className="mt-4">
+                      <TabsContent value="sessions" className="mt-4">
                             {sellerLiveStreams.length > 0 && (
                                 <div className="mb-8">
                                     <h3 className="text-lg font-semibold mb-2">Currently Live</h3>

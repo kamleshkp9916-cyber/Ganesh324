@@ -305,8 +305,13 @@ export default function LiveSellingPage() {
 
    const productFilterButtons = ['All', 'Electronics', 'Fashion', 'Home', 'Beauty'];
   
-  const loadData = useCallback(() => {
-    if (typeof window !== 'undefined') {
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (isMounted) {
+      const loadData = () => {
         setCartCount(getCart().reduce((sum, item) => sum + item.quantity, 0));
         
         const liveStreamDataRaw = localStorage.getItem('liveStream');
@@ -337,12 +342,22 @@ export default function LiveSellingPage() {
         } else {
             setAllSellers(currentSellers => currentSellers.filter(s => !s.isMyStream));
         }
-    }
-  }, []);
+      };
 
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
+      loadData();
+      
+      const handleStorageChange = (event: StorageEvent) => {
+          if (event.key === 'liveStream' || event.key === 'streamcart_cart' || event.key === null) {
+              loadData();
+          }
+      };
+      window.addEventListener('storage', handleStorageChange);
+
+      return () => {
+          window.removeEventListener('storage', handleStorageChange);
+      };
+    }
+  }, [isMounted]);
 
   const trendingTopics = useMemo(() => {
     const hashtagCounts: { [key: string]: number } = {};
@@ -421,23 +436,6 @@ export default function LiveSellingPage() {
       }
     }
   }, [isMounted, activeTab, user, followingIds]);
-  
-   useEffect(() => {
-    if (isMounted) {
-      loadData();
-      
-      const handleStorageChange = (event: StorageEvent) => {
-          if (event.key === 'liveStream' || event.key === 'streamcart_cart' || event.key === null) {
-              loadData();
-          }
-      };
-      window.addEventListener('storage', handleStorageChange);
-
-      return () => {
-          window.removeEventListener('storage', handleStorageChange);
-      };
-    }
-  }, [isMounted, loadData]);
   
   const handleFollowToggle = async (targetId: string) => {
     if (!user) {
