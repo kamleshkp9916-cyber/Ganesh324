@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import React from 'react';
@@ -13,7 +12,7 @@ import { useEffect, useState, useRef, useMemo, useCallback } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog';
 import { cn } from '@/lib/utils';
 import { Separator } from './ui/separator';
-import { ScrollArea } from './ui/scroll-area';
+import { ScrollArea, ScrollBar } from './ui/scroll-area';
 import { EditAddressForm } from './edit-address-form';
 import { Skeleton } from './ui/skeleton';
 import { Badge } from './ui/badge';
@@ -598,6 +597,7 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                                                 </Link>
                                             ))}
                                         </div>
+                                        <ScrollBar orientation="horizontal" />
                                     </ScrollArea>
                                 </div>
                             </div>
