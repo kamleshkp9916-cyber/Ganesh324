@@ -414,37 +414,42 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
               </div>
 
                 {!isOwnProfile && profileData.role === 'seller' && (
-                    <Collapsible open={isFollowed} onOpenChange={setIsFollowed} className="mt-4">
-                        <div className="flex justify-center sm:justify-start gap-2">
-                             <Button onClick={handleFollowToggle} variant={isFollowed ? "outline" : "default"}>
-                                {isFollowed ? <UserCheck className="mr-2 h-4 w-4" /> : <UserPlus className="mr-2 h-4 w-4" />}
-                                {isFollowed ? "Following" : "Follow"}
-                            </Button>
-                            <Button variant="outline" onClick={() => setIsChatOpen(true)}>
-                                <MessageSquare className="mr-2 h-4 w-4" />
-                                Message
-                            </Button>
-                        </div>
-                         <CollapsibleContent className="mt-4">
-                             <div className="p-3 bg-muted rounded-lg flex items-center justify-between">
-                                 <div className="flex items-center gap-4">
-                                     <Badge variant="success">Premium</Badge>
-                                      <Link href={profileData.instagram || '#'} target="_blank" className="text-muted-foreground hover:text-primary"><Instagram /></Link>
-                                      <Link href={profileData.twitter || '#'} target="_blank" className="text-muted-foreground hover:text-primary"><Twitter /></Link>
-                                      <Link href={profileData.youtube || '#'} target="_blank" className="text-muted-foreground hover:text-primary"><Youtube /></Link>
-                                 </div>
-                             </div>
-                         </CollapsibleContent>
-                    </Collapsible>
+                    <div className="flex justify-center sm:justify-start gap-2 mt-4">
+                         <Button onClick={handleFollowToggle} variant={isFollowed ? "outline" : "default"}>
+                            {isFollowed ? <UserCheck className="mr-2 h-4 w-4" /> : <UserPlus className="mr-2 h-4 w-4" />}
+                            {isFollowed ? "Following" : "Follow"}
+                        </Button>
+                        <Button variant="outline" onClick={() => setIsChatOpen(true)}>
+                            <MessageSquare className="mr-2 h-4 w-4" />
+                            Message
+                        </Button>
+                    </div>
               )}
           </div>
       </div>
 
       <div className="p-4 sm:p-6">
           <CardContent className="p-0 space-y-6">
+              <div>
+                  <h3 className="text-lg font-semibold mb-2">About {displayName.split(' ')[0]}</h3>
+                  <p className="text-sm text-muted-foreground italic">"{profileData.bio || 'No bio provided.'}"</p>
+                    {(profileData.instagram || profileData.twitter || profileData.youtube || profileData.facebook || profileData.twitch) && (
+                      <div className="mt-4 space-y-3 text-sm">
+                          <h4 className="font-semibold">Socials</h4>
+                          <div className="flex flex-col space-y-2">
+                            {profileData.instagram && <a href={profileData.instagram} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-muted-foreground hover:text-primary"><Instagram /><span>{profileData.instagram}</span></a>}
+                            {profileData.twitter && <a href={profileData.twitter} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-muted-foreground hover:text-primary"><Twitter /><span>{profileData.twitter}</span></a>}
+                            {profileData.youtube && <a href={profileData.youtube} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-muted-foreground hover:text-primary"><Youtube /><span>{profileData.youtube}</span></a>}
+                            {profileData.facebook && <a href={profileData.facebook} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-muted-foreground hover:text-primary"><Facebook /><span>{profileData.facebook}</span></a>}
+                            {profileData.twitch && <a href={profileData.twitch} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-muted-foreground hover:text-primary"><Twitch /><span>{profileData.twitch}</span></a>}
+                          </div>
+                      </div>
+                  )}
+              </div>
               
               {(isOwnProfile || showAdminView) && (
                   <>
+                  <Separator />
                   <div>
                       <h3 className="text-lg font-semibold mb-4">Personal Information</h3>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 text-sm">
@@ -515,25 +520,6 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                   </>
               )}
               
-              <div>
-                  <h3 className="text-lg font-semibold mb-2">About {displayName.split(' ')[0]}</h3>
-                  <p className="text-sm text-muted-foreground italic">"{profileData.bio || 'No bio provided.'}"</p>
-                    {(profileData.instagram || profileData.twitter || profileData.youtube || profileData.facebook || profileData.twitch) && (
-                      <div className="mt-4 space-y-3 text-sm">
-                          <h4 className="font-semibold">Socials</h4>
-                          <div className="flex flex-col space-y-2">
-                            {profileData.instagram && <a href={profileData.instagram} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-muted-foreground hover:text-primary"><Instagram /><span>{profileData.instagram}</span></a>}
-                            {profileData.twitter && <a href={profileData.twitter} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-muted-foreground hover:text-primary"><Twitter /><span>{profileData.twitter}</span></a>}
-                            {profileData.youtube && <a href={profileData.youtube} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-muted-foreground hover:text-primary"><Youtube /><span>{profileData.youtube}</span></a>}
-                            {profileData.facebook && <a href={profileData.facebook} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-muted-foreground hover:text-primary"><Facebook /><span>{profileData.facebook}</span></a>}
-                            {profileData.twitch && <a href={profileData.twitch} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-muted-foreground hover:text-primary"><Twitch /><span>{profileData.twitch}</span></a>}
-                          </div>
-                      </div>
-                  )}
-              </div>
-              <Separator />
-
-
               <div className="w-full max-w-full mx-auto">
                    <Tabs defaultValue={isOwnProfile ? "posts" : (profileData.role === 'seller' ? 'products' : 'recent')} className="w-full">
                       <ScrollArea className="w-full whitespace-nowrap">
@@ -553,7 +539,7 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                           </TabsList>
                       </ScrollArea>
                         <TabsContent value="sessions" className="mt-4">
-                            {sellerLiveStreams.length > 0 && (
+                            {sellerLiveStreams.length > 0 ? (
                                 <div className="mb-8">
                                     <h3 className="text-lg font-semibold mb-2">Currently Live</h3>
                                     {sellerLiveStreams.map((stream: any) => (
@@ -571,6 +557,10 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                                             </Card>
                                         </Link>
                                     ))}
+                                </div>
+                            ) : (
+                                <div className="text-center py-8 text-muted-foreground">
+                                    <p>{displayName} is not currently live.</p>
                                 </div>
                             )}
                             <div>
@@ -863,5 +853,3 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
     </>
   );
 }
-
-    
