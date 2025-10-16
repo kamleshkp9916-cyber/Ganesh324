@@ -3,17 +3,13 @@
 
 import { useState, useEffect, useCallback } from 'react';
 
+// SSR-safe useLocalStorage hook
 export function useLocalStorage<T>(key: string, initialValue: T): [T, (value: T | ((val: T) => T)) => void] {
   
-  const [storedValue, setStoredValue] = useState<T>(initialValue);
-  const [isMounted, setIsMounted] = useState(false);
-
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
-
+  // This function will only be called on the client side after hydration.
   const readValue = useCallback((): T => {
-    if (!isMounted) {
+    // Prevent build errors "window is not defined"
+    if (typeof window === 'undefined') {
       return initialValue;
     }
 
@@ -24,17 +20,30 @@ export function useLocalStorage<T>(key: string, initialValue: T): [T, (value: T 
       console.warn(`Error reading localStorage key “${key}”:`, error);
       return initialValue;
     }
-  }, [initialValue, key, isMounted]);
+  }, [initialValue, key]);
+
+  // State to store our value. 
+  // We pass a function to useState so it only runs on the client.
+  const [storedValue, setStoredValue] = useState<T>(initialValue);
+  
+  // We need this to safely read from local storage on the client.
+  const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
-      if(isMounted) {
-        setStoredValue(readValue());
-      }
-  }, [isMounted, readValue]);
+    setIsMounted(true);
+  }, []);
+
+  // Read from local storage only after the component has mounted.
+  useEffect(() => {
+    if (isMounted) {
+      setStoredValue(readValue());
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isMounted]);
 
 
   const setValue = (value: T | ((val: T) => T)) => {
-    if (!isMounted) {
+    if (typeof window === 'undefined') {
       console.warn(`Tried to set localStorage key “${key}” even though it is not supported`);
       return;
     }
@@ -49,12 +58,11 @@ export function useLocalStorage<T>(key: string, initialValue: T): [T, (value: T 
     }
   };
   
+  // Listen to storage changes
   useEffect(() => {
     const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === key) {
-        if(isMounted) {
-            setStoredValue(readValue());
-        }
+      if (e.key === key && isMounted) {
+        setStoredValue(readValue());
       }
     };
 

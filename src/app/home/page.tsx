@@ -35,7 +35,7 @@ const defaultBanners: CategoryBanners = {
 
 export default function HomePage() {
   const router = useRouter();
-  const [banners, setBanners] = useLocalStorage<CategoryBanners>(CATEGORY_BANNERS_KEY, defaultBanners);
+  const [banners] = useLocalStorage<CategoryBanners>(CATEGORY_BANNERS_KEY, defaultBanners);
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
@@ -133,3 +133,5 @@ export default function HomePage() {
     </div>
   );
 }
+
+    
