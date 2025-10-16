@@ -1392,7 +1392,12 @@ const ChatPanel = ({
     e.preventDefault();
     if (!newMessage.trim()) return;
     
-    handlers.handleNewMessageSubmit(newMessage, replyingTo);
+    let messageToSend = newMessage;
+    if (replyingTo) {
+      messageToSend = `@${replyingTo.name.split(' ')[0]} ${newMessage}`;
+    }
+
+    console.log("New Message:", messageToSend);
 
     setNewMessage("");
     setReplyingTo(null);
@@ -1495,8 +1500,40 @@ const ChatPanel = ({
                   }
                   if (!msg.user) return null;
                   
+                  const isMyMessage = msg.userId === seller?.uid;
+                  const isSellerMessage = msg.userId === seller?.uid;
+                  
                   return (
-                     <ChatMessage key={msg.id} msg={msg} handlers={{...handlers, onReply: () => handleReply(msg)}} />
+                     <div key={msg.id} className="flex items-start gap-3 w-full group text-sm animate-message-in">
+                         <Avatar className="h-9 w-9 mt-0.5 border border-[rgba(255,255,255,0.04)]">
+                             <AvatarImage src={msg.avatar} />
+                             <AvatarFallback className="bg-gradient-to-br from-red-500 to-yellow-500 text-white font-bold">{msg.user.charAt(0)}</AvatarFallback>
+                         </Avatar>
+                          <div className="flex-grow">
+                             <p className="leading-relaxed break-words text-sm text-[#E6ECEF]">
+                                 <b className="font-semibold text-xs mr-1.5" style={{ color: msg.userColor || 'inherit' }}>{msg.user}:</b>
+                                 <span className="text-sm">
+                                    {msg.replyingTo && <span className="text-primary font-semibold mr-1">@{msg.replyingTo}</span>}
+                                    {msg.text}
+                                 </span>
+                             </p>
+                          </div>
+                          <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                  <button className="text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity p-1">
+                                      <MoreHorizontal className="w-4 h-4" />
+                                  </button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                  <DropdownMenuItem onSelect={() => handleReply(msg)}>
+                                      <Reply className="mr-2 h-4 w-4" />Reply
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem onSelect={() => handlers.onReportMessage(msg.id)}>
+                                    <Flag className="mr-2 h-4 w-4" />Report
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                          </DropdownMenu>
+                      </div>
                   )
               })}
             <div ref={messagesEndRef} />
