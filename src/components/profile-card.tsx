@@ -228,7 +228,11 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
             ...doc.data(),
             timestamp: doc.data().timestamp ? formatDistanceToNow(new Date((doc.data().timestamp as Timestamp).seconds * 1000), { addSuffix: true }) : 'just now'
         }));
-        setUserPosts(postsData);
+        if(postsData.length === 0) {
+            setUserPosts(mockPosts.map(p => ({...p, sellerName: displayName, avatarUrl: profileData.photoURL || p.avatarUrl})));
+        } else {
+            setUserPosts(postsData);
+        }
     });
     
     setTimeout(() => {
@@ -713,7 +717,7 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                       </TabsContent>
 
                         <TabsContent value="posts" className="mt-4 space-y-4">
-                           {(userPosts.length > 0 || isOwnProfile) ? (
+                           {(userPosts.length > 0) ? (
                                <>
                                    {isOwnProfile && ( 
                                       <div className="mb-6 sticky top-20 z-40">
@@ -761,9 +765,6 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                                           </div>
                                       </Card>
                                   ))}
-                                  {(userPosts.length === 0 && isOwnProfile) && (
-                                    <p className="text-muted-foreground text-center py-8">You haven't made any posts yet.</p>
-                                  )}
                                </>
                            ) : (
                                <p className="text-muted-foreground text-center py-8">No posts yet.</p>
@@ -892,5 +893,3 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
     </>
   );
 }
-
-    
