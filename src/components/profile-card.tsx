@@ -550,8 +550,8 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                                )}
                           </TabsList>
                       </ScrollArea>
-                      <TabsContent value="sessions" className="mt-4">
-                        {sellerLiveStreams.length > 0 ? (
+                        <TabsContent value="sessions" className="mt-4">
+                        {sellerLiveStreams.length > 0 && (
                             <div className="mb-8">
                                 <h3 className="text-lg font-semibold mb-2">Currently Live</h3>
                                 {sellerLiveStreams.map((stream: any) => (
@@ -570,13 +570,6 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                                     </Link>
                                 ))}
                             </div>
-                        ) : (
-                            <Card className="col-span-full mb-8">
-                                <CardContent className="p-6 text-center text-muted-foreground">
-                                    <Video className="w-12 h-12 mx-auto mb-4" />
-                                    <h3 className="font-semibold">{displayName} isn't live right now.</h3>
-                                </CardContent>
-                            </Card>
                         )}
                         <div>
                             <h3 className="text-lg font-semibold mb-4">Past Streams</h3>
@@ -868,3 +861,5 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
     </>
   );
 }
+
+    
