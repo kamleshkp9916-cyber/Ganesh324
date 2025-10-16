@@ -5,7 +5,7 @@ import React from 'react';
 import { useAuth } from '@/hooks/use-auth.tsx';
 import { useRouter } from 'next/navigation';
 import { Button, buttonVariants } from '@/components/ui/button';
-import { Edit, Mail, Phone, MapPin, Camera, Truck, Star, ThumbsUp, ShoppingBag, Eye, Award, History, Search, Plus, Trash2, Heart, MessageSquare, StarIcon, UserPlus, Users, PackageSearch, Loader2, UserCheck, Instagram, Twitter, Youtube, Video } from 'lucide-react';
+import { Edit, Mail, Phone, MapPin, Camera, Truck, Star, ThumbsUp, ShoppingBag, Eye, Award, History, Search, Plus, Trash2, Heart, MessageSquare, StarIcon, UserPlus, Users, PackageSearch, Loader2, UserCheck, Instagram, Twitter, Youtube, Video, Facebook, Twitch } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useEffect, useState, useRef, useMemo } from 'react';
@@ -518,6 +518,16 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
               <div>
                   <h3 className="text-lg font-semibold mb-2">About {displayName.split(' ')[0]}</h3>
                   <p className="text-sm text-muted-foreground italic">"{profileData.bio || 'No bio provided.'}"</p>
+                  {(profileData.instagram || profileData.twitter || profileData.youtube || profileData.facebook || profileData.twitch) && (
+                      <div className="mt-4 space-y-3 text-sm">
+                          <h4 className="font-semibold">Socials</h4>
+                          {profileData.instagram && <a href={profileData.instagram} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-muted-foreground hover:text-primary"><Instagram /><span>{profileData.instagram}</span></a>}
+                          {profileData.twitter && <a href={profileData.twitter} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-muted-foreground hover:text-primary"><Twitter /><span>{profileData.twitter}</span></a>}
+                          {profileData.youtube && <a href={profileData.youtube} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-muted-foreground hover:text-primary"><Youtube /><span>{profileData.youtube}</span></a>}
+                           {profileData.facebook && <a href={profileData.facebook} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-muted-foreground hover:text-primary"><Facebook /><span>{profileData.facebook}</span></a>}
+                           {profileData.twitch && <a href={profileData.twitch} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-muted-foreground hover:text-primary"><Twitch /><span>{profileData.twitch}</span></a>}
+                      </div>
+                  )}
               </div>
               <Separator />
 
@@ -858,4 +868,3 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
     </>
   );
 }
-
