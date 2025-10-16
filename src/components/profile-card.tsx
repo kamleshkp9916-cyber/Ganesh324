@@ -430,19 +430,18 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
 
       <div className="p-4 sm:p-6">
           <CardContent className="p-0 space-y-6">
-              <div>
+              <div className="space-y-3">
                   <h3 className="text-lg font-semibold mb-2">About {displayName.split(' ')[0]}</h3>
                   <p className="text-sm text-muted-foreground italic">"{profileData.bio || 'No bio provided.'}"</p>
-                    {(profileData.instagram || profileData.twitter || profileData.youtube || profileData.facebook || profileData.twitch) && (
-                      <div className="mt-4 space-y-3 text-sm">
-                          <h4 className="font-semibold">Socials</h4>
-                          <div className="flex flex-col space-y-2">
-                            {profileData.instagram && <a href={profileData.instagram} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-muted-foreground hover:text-primary"><Instagram /><span>{profileData.instagram}</span></a>}
-                            {profileData.twitter && <a href={profileData.twitter} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-muted-foreground hover:text-primary"><Twitter /><span>{profileData.twitter}</span></a>}
-                            {profileData.youtube && <a href={profileData.youtube} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-muted-foreground hover:text-primary"><Youtube /><span>{profileData.youtube}</span></a>}
-                            {profileData.facebook && <a href={profileData.facebook} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-muted-foreground hover:text-primary"><Facebook /><span>{profileData.facebook}</span></a>}
-                            {profileData.twitch && <a href={profileData.twitch} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-muted-foreground hover:text-primary"><Twitch /><span>{profileData.twitch}</span></a>}
-                          </div>
+                   {(profileData.instagram || profileData.twitter || profileData.youtube || profileData.facebook || profileData.twitch) && (
+                      <div className="pt-2 space-y-2 text-sm">
+                        <div className="flex flex-col space-y-2">
+                          {profileData.instagram && <a href={profileData.instagram} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-muted-foreground hover:text-primary"><Instagram /><span>{profileData.instagram}</span></a>}
+                          {profileData.twitter && <a href={profileData.twitter} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-muted-foreground hover:text-primary"><Twitter /><span>{profileData.twitter}</span></a>}
+                          {profileData.youtube && <a href={profileData.youtube} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-muted-foreground hover:text-primary"><Youtube /><span>{profileData.youtube}</span></a>}
+                          {profileData.facebook && <a href={profileData.facebook} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-muted-foreground hover:text-primary"><Facebook /><span>{profileData.facebook}</span></a>}
+                          {profileData.twitch && <a href={profileData.twitch} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-muted-foreground hover:text-primary"><Twitch /><span>{profileData.twitch}</span></a>}
+                        </div>
                       </div>
                   )}
               </div>
@@ -521,12 +520,12 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
               )}
               
               <div className="w-full max-w-full mx-auto">
-                   <Tabs defaultValue={isOwnProfile ? "posts" : (profileData.role === 'seller' ? 'products' : 'recent')} className="w-full">
+                   <Tabs defaultValue="posts" className="w-full">
                       <ScrollArea className="w-full whitespace-nowrap">
                             <TabsList className="inline-flex">
                               {profileData.role === 'seller' && <TabsTrigger value="products">Listed Products</TabsTrigger>}
                               <TabsTrigger value="posts">Posts</TabsTrigger>
-                              {profileData.role === 'seller' && <TabsTrigger value="sessions">Sessions</TabsTrigger>}
+                              <TabsTrigger value="sessions">Sessions</TabsTrigger>
                               
                                {(isOwnProfile) && (
                                 <>
@@ -538,13 +537,13 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                                )}
                           </TabsList>
                       </ScrollArea>
-                        <TabsContent value="sessions" className="mt-4">
-                            {sellerLiveStreams.length > 0 ? (
+                       <TabsContent value="sessions" className="mt-4">
+                            {sellerLiveStreams.length > 0 && (
                                 <div className="mb-8">
                                     <h3 className="text-lg font-semibold mb-2">Currently Live</h3>
                                     {sellerLiveStreams.map((stream: any) => (
                                         <Link href={`/stream/${stream.id}`} key={stream.id} className="group block">
-                                            <Card className="overflow-hidden">
+                                            <Card className="overflow-hidden bg-muted/50">
                                                 <div className="relative aspect-[16/9] bg-muted">
                                                     <Image src={stream.thumbnailUrl} alt={stream.name} layout="fill" className="object-cover group-hover:scale-105 transition-transform" />
                                                     <div className="absolute inset-0 bg-black/30" />
@@ -557,10 +556,6 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                                             </Card>
                                         </Link>
                                     ))}
-                                </div>
-                            ) : (
-                                <div className="text-center py-8 text-muted-foreground">
-                                    <p>{displayName} is not currently live.</p>
                                 </div>
                             )}
                             <div>

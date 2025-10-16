@@ -12,6 +12,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog"
 import { EditProfileForm } from '@/components/edit-profile-form';
 import {
@@ -19,10 +20,14 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu"
 import { ProfileCard } from '@/components/profile-card';
 import { getUserData, updateUserData, UserData } from '@/lib/follow-data';
 import { useAuthActions } from '@/lib/auth';
+import { FeedbackDialog } from '@/components/feedback-dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { useToast } from '@/hooks/use-toast';
 
 
 export default function ProfilePage() {
@@ -31,10 +36,12 @@ export default function ProfilePage() {
   const userId = searchParams.get('userId');
   const { user, userData, loading } = useAuth();
   const { updateUserProfile } = useAuthActions();
+  const { toast } = useToast();
 
   // The profileData state will now hold data for OTHER users being viewed
   const [profileData, setProfileData] = useState<UserData | null>(null);
   const [isProfileEditDialogOpen, setProfileEditDialogOpen] = useState(false);
+  const [isReportDialogOpen, setIsReportDialogOpen] = useState(false);
   const [key, setKey] = useState(0);
 
   const isOwnProfile = !userId || (user && user.uid === userId);
@@ -63,6 +70,12 @@ export default function ProfilePage() {
               location: data.location,
               phone: `+91 ${data.phone}`,
               photoURL: data.photoURL,
+              instagram: data.instagram,
+              twitter: data.twitter,
+              youtube: data.youtube,
+              facebook: data.facebook,
+              twitch: data.twitch,
+              color: data.color
           };
           
           await updateUserProfile(user, updatedData);
@@ -81,6 +94,26 @@ export default function ProfilePage() {
   
   const onFollowToggle = () => {
     setKey(prev => prev + 1);
+  };
+  
+  const handleShare = () => {
+    navigator.clipboard.writeText(window.location.href);
+    toast({
+        title: "Link Copied!",
+        description: "Profile link copied to clipboard.",
+    });
+  };
+
+  const handleReport = () => {
+      setIsReportDialogOpen(true);
+  };
+  
+  const confirmReport = () => {
+    toast({
+        title: "Profile Reported",
+        description: "Thank you for your feedback. Our team will review this profile.",
+    });
+    setIsReportDialogOpen(false);
   };
 
 
@@ -101,6 +134,21 @@ export default function ProfilePage() {
 
   return (
     <>
+      <AlertDialog open={isReportDialogOpen} onOpenChange={setIsReportDialogOpen}>
+            <AlertDialogContent>
+                <AlertDialogHeader>
+                    <AlertDialogTitle>Report this profile?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                        If this user is violating community guidelines, please report them.
+                    </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={confirmReport}>Report</AlertDialogAction>
+                </AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
+
     <Dialog open={isProfileEditDialogOpen} onOpenChange={setProfileEditDialogOpen}>
         <div className="min-h-screen bg-background text-foreground flex flex-col">
             
@@ -117,16 +165,27 @@ export default function ProfilePage() {
                         </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                         {isOwnProfile && (
+                         {isOwnProfile ? (
                              <DropdownMenuItem onSelect={() => setProfileEditDialogOpen(true)}>
                                 <Edit className="mr-2 h-4 w-4" />
                                 <span>Edit Profile</span>
                             </DropdownMenuItem>
-                        )}
-                        <DropdownMenuItem>
+                         ) : (
+                             <DropdownMenuItem onSelect={handleReport}>
+                                <Flag className="mr-2 h-4 w-4" />
+                                <span>Report User</span>
+                            </DropdownMenuItem>
+                         )}
+                        <DropdownMenuItem onSelect={handleShare}>
                             <Share2 className="mr-2 h-4 w-4" />
                             <span>Share Profile</span>
                         </DropdownMenuItem>
+                         <DropdownMenuSeparator />
+                        <FeedbackDialog>
+                            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                                Feedback
+                            </DropdownMenuItem>
+                        </FeedbackDialog>
                     </DropdownMenuContent>
                 </DropdownMenu>
             </header>
