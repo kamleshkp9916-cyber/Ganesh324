@@ -317,3 +317,9 @@ INFO: Connected to new websocket client
 
 [debug] [2025-10-16T05:29:48.723Z] Got response code 400; body Failed to generate manifest from function source: Error [ERR_PACKAGE_PATH_NOT_EXPORTED]: Package subpath './v2/onRequest' is not defined by "exports" in /home/user/studio/functions/node_modules/firebase-functions/package.json
 [error] ⬢  functions: Failed to load function definition from source: FirebaseError: Functions codebase could not be analyzed successfully. It may have a syntax or runtime error {"metadata":{"emulator":{"name":"functions"},"message":"Failed to load function definition from source: FirebaseError: Functions codebase could not be analyzed successfully. It may have a syntax or runtime error"}}
+[debug] [2025-10-16T05:50:56.962Z] Oct 16, 2025 5:50:56 AM com.google.cloud.datastore.emulator.firestore.websocket.WebSocketChannelHandler channelClosed
+INFO: Websocket client disconnected
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Oct 16, 2025 5:50:56 AM com.google.cloud.datastore.emulator.firestore.websocket.WebSocketChannelHandler channelClosed\nINFO: Websocket client disconnected\n"}}
+[debug] [2025-10-16T05:55:53.264Z] Oct 16, 2025 5:55:53 AM com.google.cloud.datastore.emulator.firestore.websocket.WebSocketChannelHandler initChannel
+INFO: Connected to new websocket client
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Oct 16, 2025 5:55:53 AM com.google.cloud.datastore.emulator.firestore.websocket.WebSocketChannelHandler initChannel\nINFO: Connected to new websocket client\n"}}
