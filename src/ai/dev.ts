@@ -6,7 +6,7 @@
  */
 
 import { nextDev } from '@genkit-ai/next';
-import { defineDevApp } from '@genkit-ai/app';
+import { defineDevApp } from 'genkit';
 
 export default defineDevApp({
   plugins: [
