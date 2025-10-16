@@ -430,11 +430,11 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                    {(profileData.instagram || profileData.twitter || profileData.youtube || profileData.facebook || profileData.twitch) && (
                       <div className="pt-2 space-y-2 text-sm">
                         <div className="flex flex-col space-y-2">
-                          {profileData.instagram && <a href={profileData.instagram} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-primary hover:underline"><Instagram /><span>{profileData.instagram}</span></a>}
-                          {profileData.twitter && <a href={profileData.twitter} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-primary hover:underline"><Twitter /><span>{profileData.twitter}</span></a>}
-                          {profileData.youtube && <a href={profileData.youtube} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-primary hover:underline"><Youtube /><span>{profileData.youtube}</span></a>}
-                          {profileData.facebook && <a href={profileData.facebook} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-primary hover:underline"><Facebook /><span>{profileData.facebook}</span></a>}
-                          {profileData.twitch && <a href={profileData.twitch} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-primary hover:underline"><Twitch /><span>{profileData.twitch}</span></a>}
+                          {profileData.instagram && <a href={profileData.instagram} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-blue-500 hover:underline"><Instagram /><span>{profileData.instagram}</span></a>}
+                          {profileData.twitter && <a href={profileData.twitter} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-blue-500 hover:underline"><Twitter /><span>{profileData.twitter}</span></a>}
+                          {profileData.youtube && <a href={profileData.youtube} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-blue-500 hover:underline"><Youtube /><span>{profileData.youtube}</span></a>}
+                          {profileData.facebook && <a href={profileData.facebook} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-blue-500 hover:underline"><Facebook /><span>{profileData.facebook}</span></a>}
+                          {profileData.twitch && <a href={profileData.twitch} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-blue-500 hover:underline"><Twitch /><span>{profileData.twitch}</span></a>}
                         </div>
                       </div>
                   )}
@@ -842,3 +842,5 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
     </>
   );
 }
+
+    
