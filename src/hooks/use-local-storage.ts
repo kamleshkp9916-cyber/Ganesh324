@@ -4,8 +4,16 @@
 import { useState, useEffect, useCallback } from 'react';
 
 export function useLocalStorage<T>(key: string, initialValue: T): [T, (value: T | ((val: T) => T)) => void] {
+  
+  const [storedValue, setStoredValue] = useState<T>(initialValue);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
   const readValue = useCallback((): T => {
-    if (typeof window === 'undefined') {
+    if (!isMounted) {
       return initialValue;
     }
 
@@ -16,46 +24,46 @@ export function useLocalStorage<T>(key: string, initialValue: T): [T, (value: T 
       console.warn(`Error reading localStorage key “${key}”:`, error);
       return initialValue;
     }
-  }, [initialValue, key]);
+  }, [initialValue, key, isMounted]);
 
-  const [storedValue, setStoredValue] = useState<T>(readValue);
+  useEffect(() => {
+      if(isMounted) {
+        setStoredValue(readValue());
+      }
+  }, [isMounted, readValue]);
+
 
   const setValue = (value: T | ((val: T) => T)) => {
-    if (typeof window === 'undefined') {
+    if (!isMounted) {
       console.warn(`Tried to set localStorage key “${key}” even though it is not supported`);
       return;
     }
 
     try {
-      const newValue = value instanceof Function ? value(storedValue) : value;
-      window.localStorage.setItem(key, JSON.stringify(newValue));
-      setStoredValue(newValue);
-      window.dispatchEvent(new StorageEvent('local-storage', { key }));
+      const valueToStore = value instanceof Function ? value(storedValue) : value;
+      window.localStorage.setItem(key, JSON.stringify(valueToStore));
+      setStoredValue(valueToStore);
+      window.dispatchEvent(new StorageEvent('storage', { key }));
     } catch (error) {
       console.warn(`Error setting localStorage key “${key}”:`, error);
     }
   };
   
   useEffect(() => {
-    setStoredValue(readValue());
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-  
-  useEffect(() => {
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === key) {
-        setStoredValue(readValue());
+        if(isMounted) {
+            setStoredValue(readValue());
+        }
       }
     };
 
     window.addEventListener('storage', handleStorageChange);
-    window.addEventListener('local-storage', handleStorageChange);
 
     return () => {
         window.removeEventListener('storage', handleStorageChange);
-        window.removeEventListener('local-storage', handleStorageChange);
     };
-  }, [key, readValue]);
+  }, [key, readValue, isMounted]);
 
 
   return [storedValue, setValue];

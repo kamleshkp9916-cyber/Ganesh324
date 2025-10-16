@@ -53,30 +53,32 @@ export default function CartPage() {
   
   const [shippingSettings, setShippingSettings] = useState(defaultShippingSettings);
   const [storedShippingSettings] = useLocalStorage<ShippingSettings>(SHIPPING_SETTINGS_KEY, defaultShippingSettings);
-
-  useEffect(() => {
-    setShippingSettings(storedShippingSettings);
-  }, [storedShippingSettings]);
-
+  const [storedCoupons] = useLocalStorage<any[]>(COUPONS_KEY, []);
 
   const buyNowProductId = searchParams.get('productId');
   const isBuyNow = searchParams.get('buyNow') === 'true';
 
   useEffect(() => {
     setIsClient(true);
-    // Load coupons from local storage
-    const storedCoupons = localStorage.getItem(COUPONS_KEY);
-    if (storedCoupons) {
-        try {
-            const parsedCoupons = JSON.parse(storedCoupons).map((c: any) => ({...c, expiresAt: c.expiresAt ? new Date(c.expiresAt) : undefined }));
-            const now = new Date();
-            const activeCoupons = parsedCoupons.filter((c: any) => !c.expiresAt || c.expiresAt >= now);
-            setAvailableCoupons(activeCoupons);
-        } catch(e) {
-            console.error("Failed to parse coupons from local storage", e);
-        }
-    }
   }, []);
+  
+  useEffect(() => {
+    if (isClient) {
+      setShippingSettings(storedShippingSettings);
+      
+      if (storedCoupons) {
+          try {
+              const parsedCoupons = storedCoupons.map((c: any) => ({...c, expiresAt: c.expiresAt ? new Date(c.expiresAt) : undefined }));
+              const now = new Date();
+              const activeCoupons = parsedCoupons.filter((c: any) => !c.expiresAt || c.expiresAt >= now);
+              setAvailableCoupons(activeCoupons);
+          } catch(e) {
+              console.error("Failed to parse coupons from local storage", e);
+          }
+      }
+    }
+  }, [isClient, storedShippingSettings, storedCoupons]);
+
 
   useEffect(() => {
     if (!loading && isClient) {

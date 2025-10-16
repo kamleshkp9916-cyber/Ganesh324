@@ -54,13 +54,23 @@ const collageCategories = [
 export default function ListedProductsPage() {
   const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
-  const [hubBanner] = useLocalStorage<HubBanner>(HUB_BANNER_KEY, defaultHubBanner);
-  const [featuredProducts] = useLocalStorage<FeaturedProduct[]>(HUB_FEATURED_PRODUCTS_KEY, defaultFeaturedProducts);
+  const [hubBanner, setHubBanner] = useState<HubBanner>(defaultHubBanner);
+  const [featuredProducts, setFeaturedProducts] = useState<FeaturedProduct[]>(defaultFeaturedProducts);
   const [isMounted, setIsMounted] = useState(false);
+  
+  const [storedHubBanner] = useLocalStorage<HubBanner>(HUB_BANNER_KEY, defaultHubBanner);
+  const [storedFeaturedProducts] = useLocalStorage<FeaturedProduct[]>(HUB_FEATURED_PRODUCTS_KEY, defaultFeaturedProducts);
 
   useEffect(() => {
     setIsMounted(true);
   }, []);
+  
+  useEffect(() => {
+    if(isMounted) {
+        setHubBanner(storedHubBanner);
+        setFeaturedProducts(storedFeaturedProducts);
+    }
+  }, [isMounted, storedHubBanner, storedFeaturedProducts])
 
   const getCategoryPath = (categoryName: string, subcategoryName?: string) => {
     const basePath = `/${categoryName.toLowerCase().replace(/\s+/g, '-')}`;

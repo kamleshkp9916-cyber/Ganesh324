@@ -573,43 +573,53 @@ export default function AdminSettingsPage() {
   const [isSendingWarning, setIsSendingWarning] = useState(false)
   
   const [contentList, setContentList] = useState(initialFlaggedContent);
-  const [coupons, setCoupons] = useLocalStorage<Coupon[]>(COUPONS_KEY, initialCoupons);
-  const [slides, setSlides] = useLocalStorage<Slide[]>(PROMOTIONAL_SLIDES_KEY, initialSlides);
-  const [categoryBanners, setCategoryBanners] = useLocalStorage<CategoryBanners>(CATEGORY_BANNERS_KEY, defaultCategoryBanners);
+  const [isMounted, setIsMounted] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<string>(categories[0].name);
+
+  // useLocalStorage will be initialized with default values, and then updated in useEffect
+  const [coupons, setCoupons] = useLocalStorage<Coupon[]>(COUPONS_KEY, []);
+  const [slides, setSlides] = useLocalStorage<Slide[]>(PROMOTIONAL_SLIDES_KEY, []);
+  const [categoryBanners, setCategoryBanners] = useLocalStorage<CategoryBanners>(CATEGORY_BANNERS_KEY, {} as CategoryBanners);
   const [footerContent, setFooterContent] = useLocalStorage<FooterContent>(FOOTER_CONTENT_KEY, defaultFooterContent);
   const [hubBanner, setHubBanner] = useLocalStorage<HubBanner>(HUB_BANNER_KEY, defaultHubBanner);
-  const [featuredProducts, setFeaturedProducts] = useLocalStorage<FeaturedProduct[]>(HUB_FEATURED_PRODUCTS_KEY, defaultFeaturedProducts);
+  const [featuredProducts, setFeaturedProducts] = useLocalStorage<FeaturedProduct[]>(HUB_FEATURED_PRODUCTS_KEY, []);
   const [shippingSettings, setShippingSettings] = useLocalStorage<ShippingSettings>(SHIPPING_SETTINGS_KEY, defaultShippingSettings);
   
   const [isCouponFormOpen, setIsCouponFormOpen] = useState(false);
   const [editingCoupon, setEditingCoupon] = useState<Coupon | undefined>(undefined);
   const [isSlideFormOpen, setIsSlideFormOpen] = useState(false);
   const [editingSlide, setEditingSlide] = useState<Slide | undefined>(undefined);
-  const [isMounted, setIsMounted] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState<string>(categories[0].name);
 
 
   // Load data from local storage on mount
   useEffect(() => {
     setIsMounted(true);
-    // This part now uses the useLocalStorage hook, so direct loading is not needed.
-    // The flagging logic remains.
-    const storedFlaggedComments = JSON.parse(localStorage.getItem(FLAGGED_COMMENTS_KEY) || '[]');
-    const newFlaggedItems = storedFlaggedComments.map((comment: any, index: number) => ({
-        id: initialFlaggedContent.length + index + 1,
-        type: 'Chat Message',
-        content: `Reported comment: "${comment.message}"`,
-        targetId: comment.streamId,
-        reporter: 'User',
-        status: 'Pending',
-    }));
-
-    setContentList(prev => {
-        const existingIds = new Set(prev.map(item => item.content));
-        const uniqueNewItems = newFlaggedItems.filter((item: any) => !existingIds.has(item.content));
-        return [...prev, ...uniqueNewItems];
-    });
   }, []);
+
+  useEffect(() => {
+    if (isMounted) {
+      if(localStorage.getItem(COUPONS_KEY) === null) setCoupons(initialCoupons);
+      if(localStorage.getItem(PROMOTIONAL_SLIDES_KEY) === null) setSlides(initialSlides);
+      if(localStorage.getItem(CATEGORY_BANNERS_KEY) === null) setCategoryBanners(defaultCategoryBanners);
+      if(localStorage.getItem(HUB_FEATURED_PRODUCTS_KEY) === null) setFeaturedProducts(defaultFeaturedProducts);
+
+      const storedFlaggedComments = JSON.parse(localStorage.getItem(FLAGGED_COMMENTS_KEY) || '[]');
+      const newFlaggedItems = storedFlaggedComments.map((comment: any, index: number) => ({
+          id: initialFlaggedContent.length + index + 1,
+          type: 'Chat Message',
+          content: `Reported comment: "${comment.message}"`,
+          targetId: comment.streamId,
+          reporter: 'User',
+          status: 'Pending',
+      }));
+
+      setContentList(prev => {
+          const existingIds = new Set(prev.map(item => item.content));
+          const uniqueNewItems = newFlaggedItems.filter((item: any) => !existingIds.has(item.content));
+          return [...prev, ...uniqueNewItems];
+      });
+    }
+  }, [isMounted, setCategoryBanners, setCoupons, setFeaturedProducts, setSlides]);
 
   const handleSaveCoupon = (coupon: Coupon) => {
     const newCoupons = [...coupons];
@@ -653,7 +663,7 @@ export default function AdminSettingsPage() {
     setCategoryBanners(prev => ({
         ...prev,
         [selectedCategory]: {
-            ...prev[selectedCategory],
+            ...(prev[selectedCategory] || {}),
             [bannerNumber]: data,
         }
     }));
@@ -736,6 +746,7 @@ export default function AdminSettingsPage() {
   }
 
   if (userData?.role !== 'admin') {
+      router.replace('/live-selling');
       return <div className="flex items-center justify-center min-h-screen"><LoadingSpinner /></div>
   }
   
