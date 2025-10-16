@@ -31,7 +31,7 @@ const defaultBanners: CategoryBanners = {
 
 export default function ShoesPage() {
   const router = useRouter();
-  const [banners, setBanners] = useLocalStorage<CategoryBanners>(CATEGORY_BANNERS_KEY, defaultBanners);
+  const [banners] = useLocalStorage<CategoryBanners>(CATEGORY_BANNERS_KEY, defaultBanners);
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
@@ -129,3 +129,5 @@ export default function ShoesPage() {
     </div>
   );
 }
+
+    

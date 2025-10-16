@@ -266,7 +266,7 @@ const CouponForm = ({ onSave, existingCoupon, closeDialog }: { onSave: (coupon: 
                     )} />
                 </div>
                 <FormField control={form.control} name="expiresAt" render={({ field }) => (
-                    <FormItem className="flex flex-col"><FormLabel>Expiration Date (Optional)</FormLabel><Popover><PopoverTrigger asChild><FormControl><Button variant={"outline"} className={cn("w-[240px] pl-3 text-left font-normal", !field.value && "text-muted-foreground")}>{field.value ? format(field.value, "PPP") : <span>Pick a date</span>}<CalendarIcon className="ml-auto h-4 w-4 opacity-50" /></Button></FormControl></PopoverTrigger><PopoverContent className="w-auto p-0" align="start"><Calendar mode="single" selected={field.value} onSelect={field.onChange} disabled={(date) => date < new Date(new Date().setDate(new Date().getDate()-1)) } initialFocus /></PopoverContent></Popover><FormMessage /></FormItem>
+                    <FormItem className="flex flex-col"><FormLabel>Expiration Date (Optional)</FormLabel><Popover><PopoverTrigger asChild><FormControl><Button variant={"outline"} className={cn("w-[240px] pl-3 text-left font-normal", !field.value && "text-muted-foreground")}>{field.value ? format(new Date(field.value), "PPP") : <span>Pick a date</span>}<CalendarIcon className="ml-auto h-4 w-4 opacity-50" /></Button></FormControl></PopoverTrigger><PopoverContent className="w-auto p-0" align="start"><Calendar mode="single" selected={field.value ? new Date(field.value) : undefined} onSelect={field.onChange} disabled={(date) => date < new Date(new Date().setDate(new Date().getDate()-1)) } initialFocus /></PopoverContent></Popover><FormMessage /></FormItem>
                 )}/>
                 <DialogFooter className="pt-4"><Button type="button" variant="ghost" onClick={closeDialog}>Cancel</Button><Button type="submit" disabled={isLoading}>{isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}Save Coupon</Button></DialogFooter>
             </form>
@@ -305,8 +305,8 @@ const SlideForm = ({ onSave, existingSlide, closeDialog }: { onSave: (slide: Sli
                  <FormField control={form.control} name="expiresAt" render={({ field }) => (
                     <FormItem className="flex flex-col"><FormLabel>Expiration Date (Optional)</FormLabel>
                         <Popover>
-                            <PopoverTrigger asChild><FormControl><Button variant={"outline"} className={cn("w-[240px] pl-3 text-left font-normal", !field.value && "text-muted-foreground")}>{field.value ? format(field.value, "PPP") : <span>Pick a date</span>}<CalendarIcon className="ml-auto h-4 w-4 opacity-50" /></Button></FormControl></PopoverTrigger>
-                            <PopoverContent className="w-auto p-0" align="start"><Calendar mode="single" selected={field.value} onSelect={field.onChange} disabled={(date) => date < new Date(new Date().setDate(new Date().getDate() - 1))} initialFocus/></PopoverContent>
+                            <PopoverTrigger asChild><FormControl><Button variant={"outline"} className={cn("w-[240px] pl-3 text-left font-normal", !field.value && "text-muted-foreground")}>{field.value ? format(new Date(field.value), "PPP") : <span>Pick a date</span>}<CalendarIcon className="ml-auto h-4 w-4 opacity-50" /></Button></FormControl></PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="start"><Calendar mode="single" selected={field.value ? new Date(field.value): undefined} onSelect={field.onChange} disabled={(date) => date < new Date(new Date().setDate(new Date().getDate() - 1))} initialFocus/></PopoverContent>
                         </Popover>
                         <FormDescription>
                             The promotion will be automatically hidden after this date.
@@ -595,31 +595,6 @@ export default function AdminSettingsPage() {
   useEffect(() => {
     setIsMounted(true);
   }, []);
-
-  useEffect(() => {
-    if (isMounted) {
-      if(localStorage.getItem(COUPONS_KEY) === null) setCoupons(initialCoupons);
-      if(localStorage.getItem(PROMOTIONAL_SLIDES_KEY) === null) setSlides(initialSlides);
-      if(localStorage.getItem(CATEGORY_BANNERS_KEY) === null) setCategoryBanners(defaultCategoryBanners);
-      if(localStorage.getItem(HUB_FEATURED_PRODUCTS_KEY) === null) setFeaturedProducts(defaultFeaturedProducts);
-
-      const storedFlaggedComments = JSON.parse(localStorage.getItem(FLAGGED_COMMENTS_KEY) || '[]');
-      const newFlaggedItems = storedFlaggedComments.map((comment: any, index: number) => ({
-          id: initialFlaggedContent.length + index + 1,
-          type: 'Chat Message',
-          content: `Reported comment: "${comment.message}"`,
-          targetId: comment.streamId,
-          reporter: 'User',
-          status: 'Pending',
-      }));
-
-      setContentList(prev => {
-          const existingIds = new Set(prev.map(item => item.content));
-          const uniqueNewItems = newFlaggedItems.filter((item: any) => !existingIds.has(item.content));
-          return [...prev, ...uniqueNewItems];
-      });
-    }
-  }, [isMounted, setCategoryBanners, setCoupons, setFeaturedProducts, setSlides]);
 
   const handleSaveCoupon = (coupon: Coupon) => {
     const newCoupons = [...coupons];
@@ -1004,3 +979,5 @@ export default function AdminSettingsPage() {
     </>
   )
 }
+
+    
