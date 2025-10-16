@@ -518,14 +518,16 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
               <div>
                   <h3 className="text-lg font-semibold mb-2">About {displayName.split(' ')[0]}</h3>
                   <p className="text-sm text-muted-foreground italic">"{profileData.bio || 'No bio provided.'}"</p>
-                  {(profileData.instagram || profileData.twitter || profileData.youtube || profileData.facebook || profileData.twitch) && (
+                    {(profileData.instagram || profileData.twitter || profileData.youtube || profileData.facebook || profileData.twitch) && (
                       <div className="mt-4 space-y-3 text-sm">
                           <h4 className="font-semibold">Socials</h4>
-                          {profileData.instagram && <a href={profileData.instagram} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-muted-foreground hover:text-primary"><Instagram /><span>{profileData.instagram}</span></a>}
-                          {profileData.twitter && <a href={profileData.twitter} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-muted-foreground hover:text-primary"><Twitter /><span>{profileData.twitter}</span></a>}
-                          {profileData.youtube && <a href={profileData.youtube} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-muted-foreground hover:text-primary"><Youtube /><span>{profileData.youtube}</span></a>}
-                           {profileData.facebook && <a href={profileData.facebook} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-muted-foreground hover:text-primary"><Facebook /><span>{profileData.facebook}</span></a>}
-                           {profileData.twitch && <a href={profileData.twitch} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-muted-foreground hover:text-primary"><Twitch /><span>{profileData.twitch}</span></a>}
+                          <div className="flex flex-col space-y-2">
+                            {profileData.instagram && <a href={profileData.instagram} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-muted-foreground hover:text-primary"><Instagram /><span>{profileData.instagram}</span></a>}
+                            {profileData.twitter && <a href={profileData.twitter} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-muted-foreground hover:text-primary"><Twitter /><span>{profileData.twitter}</span></a>}
+                            {profileData.youtube && <a href={profileData.youtube} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-muted-foreground hover:text-primary"><Youtube /><span>{profileData.youtube}</span></a>}
+                            {profileData.facebook && <a href={profileData.facebook} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-muted-foreground hover:text-primary"><Facebook /><span>{profileData.facebook}</span></a>}
+                            {profileData.twitch && <a href={profileData.twitch} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-muted-foreground hover:text-primary"><Twitch /><span>{profileData.twitch}</span></a>}
+                          </div>
                       </div>
                   )}
               </div>
@@ -551,48 +553,48 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                           </TabsList>
                       </ScrollArea>
                         <TabsContent value="sessions" className="mt-4">
-                        {sellerLiveStreams.length > 0 && (
-                            <div className="mb-8">
-                                <h3 className="text-lg font-semibold mb-2">Currently Live</h3>
-                                {sellerLiveStreams.map((stream: any) => (
-                                    <Link href={`/stream/${stream.id}`} key={stream.id} className="group block">
-                                        <Card className="overflow-hidden">
-                                            <div className="relative aspect-[16/9] bg-muted">
-                                                <Image src={stream.thumbnailUrl} alt={stream.name} layout="fill" className="object-cover group-hover:scale-105 transition-transform" />
-                                                <div className="absolute inset-0 bg-black/30" />
-                                                <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
-                                                <div className="absolute bottom-2 left-2 z-10 text-white">
-                                                    <h4 className="font-bold">{stream.title || `${stream.name}'s Stream`}</h4>
-                                                    <p className="text-xs">{stream.viewers.toLocaleString()} viewers</p>
+                            {sellerLiveStreams.length > 0 && (
+                                <div className="mb-8">
+                                    <h3 className="text-lg font-semibold mb-2">Currently Live</h3>
+                                    {sellerLiveStreams.map((stream: any) => (
+                                        <Link href={`/stream/${stream.id}`} key={stream.id} className="group block">
+                                            <Card className="overflow-hidden">
+                                                <div className="relative aspect-[16/9] bg-muted">
+                                                    <Image src={stream.thumbnailUrl} alt={stream.name} layout="fill" className="object-cover group-hover:scale-105 transition-transform" />
+                                                    <div className="absolute inset-0 bg-black/30" />
+                                                    <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
+                                                    <div className="absolute bottom-2 left-2 z-10 text-white">
+                                                        <h4 className="font-bold">{stream.title || `${stream.name}'s Stream`}</h4>
+                                                        <p className="text-xs">{stream.viewers.toLocaleString()} viewers</p>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        </Card>
-                                    </Link>
-                                ))}
-                            </div>
-                        )}
-                        <div>
-                            <h3 className="text-lg font-semibold mb-4">Past Streams</h3>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                {mockPastStreams.map(stream => (
-                                    <Link href="#" key={stream.id} className="group">
-                                        <Card className="overflow-hidden">
-                                            <div className="relative aspect-video bg-muted">
-                                                <Image src={stream.thumbnailUrl} alt={stream.title} layout="fill" className="object-cover group-hover:scale-105 transition-transform" />
-                                            </div>
-                                            <div className="p-3">
-                                                <h4 className="font-semibold text-sm truncate group-hover:underline">{stream.title}</h4>
-                                                <div className="flex justify-between items-center text-xs text-muted-foreground mt-1">
-                                                    <span>{stream.date}</span>
-                                                    <span>{stream.views} views</span>
+                                            </Card>
+                                        </Link>
+                                    ))}
+                                </div>
+                            )}
+                            <div>
+                                <h3 className="text-lg font-semibold mb-4">Past Streams</h3>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    {mockPastStreams.map(stream => (
+                                        <Link href="#" key={stream.id} className="group">
+                                            <Card className="overflow-hidden">
+                                                <div className="relative aspect-video bg-muted">
+                                                    <Image src={stream.thumbnailUrl} alt={stream.title} layout="fill" className="object-cover group-hover:scale-105 transition-transform" />
                                                 </div>
-                                            </div>
-                                        </Card>
-                                    </Link>
-                                ))}
+                                                <div className="p-3">
+                                                    <h4 className="font-semibold text-sm truncate group-hover:underline">{stream.title}</h4>
+                                                    <div className="flex justify-between items-center text-xs text-muted-foreground mt-1">
+                                                        <span>{stream.date}</span>
+                                                        <span>{stream.views} views</span>
+                                                    </div>
+                                                </div>
+                                            </Card>
+                                        </Link>
+                                    ))}
+                                </div>
                             </div>
-                        </div>
-                    </TabsContent>
+                        </TabsContent>
                       <TabsContent value="orders" className="mt-4">
                            <Card>
                                 <CardHeader>
