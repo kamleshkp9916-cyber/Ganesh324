@@ -1,8 +1,9 @@
 
+
 "use client";
 
 import React from 'react';
-import { useAuth } from '@/hooks/use-auth.tsx';
+import { useAuth } from '@/hooks/use-auth';
 import { useRouter } from 'next/navigation';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Edit, Mail, Phone, MapPin, Camera, Truck, Star, ThumbsUp, ShoppingBag, Eye, Award, History, Search, Plus, Trash2, Heart, MessageSquare, StarIcon, UserPlus, Users, PackageSearch, Loader2, UserCheck, Instagram, Twitter, Youtube, Video, Facebook, Twitch, Play } from 'lucide-react';
@@ -554,31 +555,50 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                             )}
                             <div>
                                 <h3 className="text-lg font-semibold mb-4">Past Streams</h3>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                     {mockPastStreams.map(stream => (
+                                <div className="md:hidden space-y-4">
+                                    {mockPastStreams.map(stream => (
                                         <Link href="#" key={stream.id} className="group block">
-                                            <Card className="overflow-hidden bg-card border-border/50 shadow-sm transition-all hover:shadow-md">
-                                                <div className="relative aspect-video bg-muted overflow-hidden">
-                                                    <Image 
-                                                        src={stream.thumbnailUrl} 
-                                                        alt={stream.title} 
-                                                        fill
-                                                        className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-300"
-                                                    />
-                                                     <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors flex items-center justify-center">
-                                                        <Play className="h-12 w-12 text-white/70 group-hover:text-white group-hover:scale-110 transition-all" />
-                                                    </div>
+                                            <Card className="overflow-hidden bg-card border-border/50 shadow-sm">
+                                                <div className="relative aspect-video bg-muted">
+                                                    <Image src={stream.thumbnailUrl} alt={stream.title} fill className="object-cover" />
                                                 </div>
                                                 <div className="p-3">
-                                                    <h4 className="font-semibold text-sm truncate group-hover:text-primary transition-colors">{stream.title}</h4>
-                                                    <div className="flex justify-between items-center text-xs text-muted-foreground mt-1">
-                                                        <span>{stream.date}</span>
-                                                        <span>{stream.views} views</span>
-                                                    </div>
+                                                    <h4 className="font-semibold text-sm truncate">{stream.title}</h4>
+                                                    <div className="flex justify-between text-xs text-muted-foreground mt-1"><span>{stream.date}</span><span>{stream.views} views</span></div>
                                                 </div>
                                             </Card>
                                         </Link>
                                     ))}
+                                </div>
+                                <div className="hidden md:block">
+                                    <ScrollArea>
+                                        <div className="flex gap-4 pb-4">
+                                            {mockPastStreams.map(stream => (
+                                                <Link href="#" key={stream.id} className="group block w-64 flex-shrink-0">
+                                                    <Card className="overflow-hidden bg-card border-border/50 shadow-sm transition-all hover:shadow-md">
+                                                        <div className="relative aspect-video bg-muted overflow-hidden">
+                                                            <Image 
+                                                                src={stream.thumbnailUrl} 
+                                                                alt={stream.title} 
+                                                                fill
+                                                                className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-300"
+                                                            />
+                                                            <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors flex items-center justify-center">
+                                                                <Play className="h-12 w-12 text-white/70 group-hover:text-white group-hover:scale-110 transition-all" />
+                                                            </div>
+                                                        </div>
+                                                        <div className="p-3">
+                                                            <h4 className="font-semibold text-sm truncate group-hover:text-primary transition-colors">{stream.title}</h4>
+                                                            <div className="flex justify-between items-center text-xs text-muted-foreground mt-1">
+                                                                <span>{stream.date}</span>
+                                                                <span>{stream.views} views</span>
+                                                            </div>
+                                                        </div>
+                                                    </Card>
+                                                </Link>
+                                            ))}
+                                        </div>
+                                    </ScrollArea>
                                 </div>
                             </div>
                         </TabsContent>
@@ -850,5 +870,3 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
     </>
   );
 }
-
-    
