@@ -111,10 +111,10 @@ export default function HelpPage() {
               <p className="text-muted-foreground mb-6">If you couldn't find the answer you were looking for, here are a few ways to get in touch with us.</p>
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                   <Button asChild variant="outline" className="w-full sm:w-auto">
-                      <Link href="/contact">
+                      <a href="mailto:support@streamcart.com">
                           <Mail className="mr-2 h-4 w-4" />
                           Send us an Email
-                      </Link>
+                      </a>
                   </Button>
                    <Button asChild className="w-full sm:w-auto">
                       <Link href="/message">
