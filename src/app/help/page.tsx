@@ -33,6 +33,15 @@ const faqData = [
         { q: "How do I send a private message?", a: "You can start a conversation by visiting a seller's profile and clicking the 'Message' button. All your private conversations can be found in the 'Messages' tab on the Feed page." },
     ]
   },
+  {
+    category: "Seller Profiles",
+    questions: [
+      { q: "What is a seller profile page?", a: "A seller's profile page is their dedicated space on StreamCart. Here you can learn more about them, see their follower count, and view all their activity, including listed products, posts, and live streams." },
+      { q: "How do I follow a seller?", a: "On a seller's profile page, you can click the 'Follow' button to subscribe to their updates. Their posts and live streams will then appear in your 'Following' feed." },
+      { q: "How can I find a seller's social media links?", a: "If a seller has added their social media accounts, you will find them displayed with icons (like Instagram, Twitter, etc.) in the 'About' section of their profile. You can click these links to visit their pages." },
+      { q: "What are the different tabs on a seller's profile?", a: "The tabs allow you to explore different aspects of a seller's activity. 'Listed Products' shows all items they have for sale. 'Posts' displays their feed updates. 'Sessions' shows their live and past streams." },
+    ]
+  },
     {
       category: "Platform Policies",
       questions: [
