@@ -625,28 +625,23 @@ export default function StreamPage() {
     const [chatMessages, setChatMessages] = useState<any[]>([]);
 
     useEffect(() => {
-    if (seller) {
-        const initialMessages = mockChatMessages.map(msg => {
-            let finalMsg = { ...msg };
-            if (finalMsg.isSeller) {
-                finalMsg.user = seller.name;
-            }
-            if (finalMsg.type === 'post_share') {
-                const isSellerPost = msg.sellerName === seller.name;
-                if (!isSellerPost) return null; // Filter out posts from other sellers
-                finalMsg.sellerName = seller.name; // Ensure correct seller name
-            }
-            return finalMsg;
-        }).filter(Boolean); // Remove nulls from the array
-
-        const relevantMessages = initialMessages.filter(msg => {
-            if (msg.isSeller && msg.user !== seller.name) return false;
-            return true;
-        });
-
-        setChatMessages(relevantMessages as any[]);
-    }
-}, [seller]);
+        if (seller) {
+            const initialMessages = mockChatMessages.map(msg => {
+                let finalMsg = { ...msg };
+                if (finalMsg.isSeller) {
+                    finalMsg.user = seller.name;
+                }
+                if (finalMsg.type === 'post_share' && msg.sellerName === seller.name) {
+                    return finalMsg;
+                } else if (finalMsg.type === 'post_share') {
+                    return null;
+                }
+                return finalMsg;
+            }).filter(Boolean);
+    
+            setChatMessages(initialMessages as any[]);
+        }
+    }, [seller]);
 
     const relatedStreams = useMemo(() => {
         if (!seller) return [];
@@ -1343,7 +1338,7 @@ const SuperChatMessage = ({ msg }: { msg: any }) => (
              </div>
              <p className="font-bold text-base">₹{msg.amount}</p>
         </div>
-        <p className="text-sm font-medium">{msg.text}</p>
+        <p className="text-sm font-medium">{renderWithHashtagsAndLinks(msg.text)}</p>
     </div>
 );
 
@@ -1407,7 +1402,13 @@ const ChatPanel = ({
   seller: any;
   chatMessages: any[];
   pinnedMessages: any[];
+  activeAuction: any;
+  auctionTime: number | null;
+  highestBid: number;
+  totalBids: number;
+  walletBalance: number;
   handlers: any;
+  inlineAuctionCardRefs: React.MutableRefObject<Record<string, HTMLDivElement | null>>;
   onClose: () => void;
 }) => {
   const [newMessage, setNewMessage] = useState("");
@@ -1416,6 +1417,7 @@ const ChatPanel = ({
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const walletBalance = 42580.22; // Mock balance
   
   const handleAutoScroll = useCallback((behavior: 'smooth' | 'auto' = 'smooth') => {
     messagesEndRef.current?.scrollIntoView({ behavior });
@@ -1439,7 +1441,12 @@ const ChatPanel = ({
     e.preventDefault();
     if (!newMessage.trim()) return;
     
-    handlers.handleNewMessageSubmit({ text: newMessage, replyingTo });
+    let messageToSend = newMessage;
+    if (replyingTo) {
+      messageToSend = `@${replyingTo.name.split(' ')[0]} ${newMessage}`;
+    }
+
+    handlers.handleNewMessageSubmit({ text: messageToSend, replyingTo });
 
     setNewMessage("");
     setReplyingTo(null);
@@ -1458,6 +1465,10 @@ const ChatPanel = ({
     const handleSendSuperChat = () => {
         if (!message.trim()) {
             handlers.toast({ variant: 'destructive', title: 'Message is empty' });
+            return;
+        }
+        if (paymentMethod === 'wallet' && amount > walletBalance) {
+            handlers.toast({ variant: 'destructive', title: 'Insufficient Wallet Balance' });
             return;
         }
         handlers.handleNewMessageSubmit({ text: message, amount });
@@ -1485,7 +1496,11 @@ const ChatPanel = ({
                 <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod} className="flex gap-4 pt-2">
                     <Label htmlFor="pay-wallet" className="flex-1 flex items-center gap-2 p-3 border rounded-md cursor-pointer has-[:checked]:border-primary has-[:checked]:bg-primary/10">
                         <RadioGroupItem value="wallet" id="pay-wallet" />
-                        <Wallet className="w-5 h-5"/> Wallet
+                        <Wallet className="w-5 h-5"/>
+                        <div>
+                          Wallet
+                          <span className="text-xs text-muted-foreground block">Bal: ₹{walletBalance.toFixed(2)}</span>
+                        </div>
                     </Label>
                     <Label htmlFor="pay-upi" className="flex-1 flex items-center gap-2 p-3 border rounded-md cursor-pointer has-[:checked]:border-primary has-[:checked]:bg-primary/10">
                         <RadioGroupItem value="upi" id="pay-upi" />
