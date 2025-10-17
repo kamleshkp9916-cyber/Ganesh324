@@ -1,4 +1,5 @@
 
+
 "use client"
 
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -56,6 +57,11 @@ const productFormSchema = z.object({
   status: z.enum(["draft", "active", "archived"]),
   category: z.string().min(1, "Category is required."),
   subcategory: z.string().min(1, "Sub-category is required."),
+  brand: z.string().optional(),
+  modelNumber: z.string().optional(),
+  size: z.string().optional(),
+  color: z.string().optional(),
+  origin: z.string().optional(),
   variants: z.array(variantSchema).optional(),
   highlights: z.string().optional(),
 })
@@ -138,6 +144,11 @@ export function ProductForm({ onSave, productToEdit }: ProductFormProps) {
       status: "draft",
       category: "",
       subcategory: "",
+      brand: "",
+      modelNumber: "",
+      size: "",
+      color: "",
+      origin: "",
       variants: [],
       highlights: "",
     };
@@ -235,6 +246,27 @@ export function ProductForm({ onSave, productToEdit }: ProductFormProps) {
                     <FormItem><FormLabel>Sub-category</FormLabel><Select onValueChange={field.onChange} value={field.value || ""} disabled={!selectedCategory}><FormControl><SelectTrigger><SelectValue placeholder="Select a sub-category" /></SelectTrigger></FormControl><SelectContent>{subcategories.map(sub => <SelectItem key={sub.name} value={sub.name}>{sub.name}</SelectItem>)}</SelectContent></Select><FormMessage /></FormItem>
                   )}/>
               </div>
+
+               <div className="grid grid-cols-2 gap-4">
+                   <FormField name="brand" control={form.control} render={({ field }) => (
+                       <FormItem><FormLabel>Brand</FormLabel><FormControl><Input placeholder="e.g., RetroCam" {...field} /></FormControl><FormMessage /></FormItem>
+                   )}/>
+                   <FormField name="modelNumber" control={form.control} render={({ field }) => (
+                       <FormItem><FormLabel>Model Number</FormLabel><FormControl><Input placeholder="e.g., RC-1975" {...field} /></FormControl><FormMessage /></FormItem>
+                   )}/>
+               </div>
+
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <FormField name="size" control={form.control} render={({ field }) => (
+                        <FormItem><FormLabel>Size (Default)</FormLabel><FormControl><Input placeholder="e.g., Large" {...field} /></FormControl><FormMessage /></FormItem>
+                    )}/>
+                    <FormField name="color" control={form.control} render={({ field }) => (
+                        <FormItem><FormLabel>Color (Default)</FormLabel><FormControl><Input placeholder="e.g., Brown" {...field} /></FormControl><FormMessage /></FormItem>
+                    )}/>
+                    <FormField name="origin" control={form.control} render={({ field }) => (
+                        <FormItem><FormLabel>Country of Origin</FormLabel><FormControl><Input placeholder="e.g., India" {...field} /></FormControl><FormMessage /></FormItem>
+                    )}/>
+                </div>
 
                <FormField name="price" control={form.control} render={({ field }) => (
                 <FormItem><FormLabel>Base Price</FormLabel><div className="relative"><span className="absolute inset-y-0 left-0 flex items-center pl-3 text-muted-foreground">₹</span><FormControl><Input type="number" placeholder="0.00" className="pl-6" {...field} /></FormControl></div><FormDescription>This will be used if a variant has no specific price.</FormDescription><FormMessage /></FormItem>
