@@ -289,9 +289,18 @@ export function ProductDetailClient({ productId }: { productId: string }) {
             toast({ variant: 'destructive', title: "Error", description: "You must be logged in to submit a review." });
             return;
         }
-        if (review.id) { // Editing existing review
-            updateReview(product.key, review);
-            toast({ title: "Review Updated!", description: "Your review has been successfully updated." });
+        if (editingReview) {
+             updateReview(product.key, review);
+             toast({
+                title: "Review Updated!",
+                description: "Thank you for updating your feedback.",
+            });
+        } else {
+             addReview(product.key, review);
+             toast({
+                title: "Review Submitted!",
+                description: "Thank you for your feedback. It is now visible on the product page.",
+            });
         }
         fetchReviews(); // Re-fetch to show updated list
     };
@@ -332,14 +341,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
     }
 
     const seller = productToSellerMapping[product.key];
-    const sellerProducts = Object.values(productDetails)
-        .filter(p => productToSellerMapping[p.key]?.name === seller.name && p.id !== product.id)
-        .slice(0, 10);
-
-    const relatedProducts = Object.values(productDetails).filter(
-        p => p.category === product.category && p.id !== product.id
-    ).slice(0, 10);
-
+    
     const productSpecificDetails = [
         { label: 'Brand', value: product.brand },
         { label: 'Category', value: product.category },
@@ -363,8 +365,8 @@ export function ProductDetailClient({ productId }: { productId: string }) {
 
             <main className="container mx-auto py-6">
                 <div className="grid md:grid-cols-2 gap-8 lg:gap-12">
-                    {/* Product Image Gallery */}
-                    <div className="space-y-4 md:sticky md:top-24">
+                     {/* Product Image Gallery */}
+                    <div className="space-y-4">
                         <div className="relative aspect-square w-full bg-muted rounded-lg overflow-hidden">
                              {selectedImage && (
                                 <Image
@@ -838,11 +840,11 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                     </Link>
                                     <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/80 to-transparent">
                                         <div className="flex items-start gap-2">
-                                            <Link href={`/seller/profile?userId=${stream.name}`} onClick={(e) => e.stopPropagation()} className="relative z-20">
+                                            <Link href={`/seller/profile?userId=${stream.id}`} onClick={(e) => e.stopPropagation()} className="relative z-20">
                                                 <Avatar className="h-8 w-8 border-2 border-primary"><AvatarImage src={stream.avatarUrl} alt={stream.name} /><AvatarFallback>{stream.name.charAt(0)}</AvatarFallback></Avatar>
                                             </Link>
                                             <div className="flex-1">
-                                                <Link href={`/seller/profile?userId=${stream.name}`} onClick={(e) => e.stopPropagation()} className="relative z-20 hover:underline"><h3 className="font-semibold text-sm text-primary-foreground truncate">{stream.name}</h3></Link>
+                                                <Link href={`/seller/profile?userId=${stream.id}`} onClick={(e) => e.stopPropagation()} className="relative z-20 hover:underline"><h3 className="font-semibold text-sm text-primary-foreground truncate">{stream.name}</h3></Link>
                                             </div>
                                         </div>
                                     </div>
@@ -923,4 +925,3 @@ export function ProductDetailClient({ productId }: { productId: string }) {
         </div>
     );
 }
-
