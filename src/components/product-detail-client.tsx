@@ -400,12 +400,9 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <Dialog>
                         <Card>
-                            <CardHeader>
-                                <CardTitle>Image Gallery</CardTitle>
-                            </CardHeader>
                             <CardContent className="p-4">
                                 <DialogTrigger asChild>
-                                    <div className="aspect-square w-full relative bg-muted rounded-lg overflow-hidden mb-4 cursor-pointer">
+                                    <div className="aspect-[5/4] w-full relative bg-muted rounded-lg overflow-hidden mb-4 cursor-pointer">
                                         {selectedImage && (
                                             <Image
                                                 src={selectedImage}
@@ -462,15 +459,6 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                 <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">{product.name}</h1>
                                 <div className="flex items-center gap-2 mt-2">
                                     <Badge variant="secondary">{product.key}</Badge>
-                                        {reviews.length > 0 && (
-                                        <div className="flex items-center gap-2">
-                                            <div className="flex items-center gap-1">
-                                                <Star className="h-4 w-4 text-yellow-400 fill-yellow-400" />
-                                                <span className="font-semibold text-sm">{averageRating}</span>
-                                            </div>
-                                            <span className="text-muted-foreground text-sm">({reviews.length} reviews)</span>
-                                        </div>
-                                    )}
                                 </div>
                             </div>
                             <div className="flex items-center">
@@ -483,7 +471,18 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                             </div>
                         </div>
                         <div>
-                            <p className="text-3xl font-bold text-foreground">{product.price}</p>
+                            <div className="flex items-center gap-4">
+                                <p className="text-3xl font-bold text-foreground">{product.price}</p>
+                                {reviews.length > 0 && (
+                                    <div className="flex items-center gap-2">
+                                        <div className="flex items-center gap-1 text-amber-400">
+                                            <Star className="h-5 w-5 fill-current" />
+                                            <span className="font-bold text-lg text-foreground">{averageRating}</span>
+                                        </div>
+                                        <span className="text-muted-foreground text-sm">({reviews.length} reviews)</span>
+                                    </div>
+                                )}
+                            </div>
                             <p className="text-sm text-muted-foreground">(inclusive of all taxes)</p>
                         </div>
                          {availableColors.length > 0 && (
