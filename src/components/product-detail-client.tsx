@@ -387,7 +387,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                             <CardTitle>Image Gallery</CardTitle>
                         </CardHeader>
                         <CardContent className="p-4">
-                            <div className="aspect-video w-full relative bg-muted rounded-lg overflow-hidden mb-4">
+                            <div className="aspect-[2/1] w-full relative bg-muted rounded-lg overflow-hidden mb-4">
                                 {selectedImage && (
                                     <Image
                                         src={selectedImage}
@@ -638,7 +638,8 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                     </Card>
 
                     <Separator />
-                     <div className="mt-8">
+
+                    <div className="mt-8">
                         <h2 className="text-2xl font-bold mb-4">Similar Products</h2>
                          <ScrollArea className="w-full whitespace-nowrap">
                             <div className="flex gap-4 pb-4">
@@ -662,7 +663,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                     
                      <div className="mt-8">
                         <h2 className="text-2xl font-bold mb-4">Related Product Streams</h2>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                             {relatedStreams.slice(0, 3).map((stream: any) => (
                                  <Link href={`/stream/${stream.id}`} key={stream.id} className="group">
                                     <div className="relative rounded-lg overflow-hidden aspect-[16/9] bg-muted">
@@ -736,3 +737,5 @@ export function ProductDetailClient({ productId }: { productId: string }) {
         </div>
     );
 }
+
+    
