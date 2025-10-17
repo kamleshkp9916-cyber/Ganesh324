@@ -518,7 +518,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                 <p className="text-sm font-medium text-primary mb-1">{product.brand}</p>
                                 <div className="flex items-center gap-2 flex-wrap">
                                     <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">{product.name}</h1>
-                                    {product.key && <Badge variant="outline">{product.key}</Badge>}
+                                     {product.key && <Badge variant="outline">{product.key}</Badge>}
                                     {product.isFromStream && <Badge variant="purple"><Video className="mr-1 h-3 w-3" /> From Stream</Badge>}
                                 </div>
                                 <p className="text-muted-foreground mt-2">{product.description}</p>
@@ -725,8 +725,9 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                     </Card>
                     <Separator />
                      <Card>
-                        <CardHeader>
+                        <CardHeader className="flex items-center justify-between flex-row">
                             <CardTitle>Highlights</CardTitle>
+                             <Button variant="link">View Details</Button>
                         </CardHeader>
                         <CardContent className="overflow-hidden">
                             <div className="grid md:grid-cols-2 gap-6 items-center">
