@@ -701,6 +701,7 @@ export default function StreamPage() {
     const [isChatOpen, setIsChatOpen] = useState(false);
     const [mobileView, setMobileView] = useState<'stream' | 'chat'>('stream');
     const [activeQuality, setActiveQuality] = useState('Auto');
+    const [isSuperChatOpen, setIsSuperChatOpen] = useState(false);
     
 
     useEffect(() => {
@@ -1073,16 +1074,20 @@ export default function StreamPage() {
                 }} />
             </Dialog>
             
+            <Dialog open={isSuperChatOpen} onOpenChange={setIsSuperChatOpen}>
+                <SuperChatDialog walletBalance={walletBalance} handlers={handlers} />
+            </Dialog>
+
              <div className={cn("bg-black text-foreground", isMobile ? 'flex flex-col h-dvh' : 'h-screen')}>
                  {isMobile === undefined ? (
                     <div className="flex h-screen items-center justify-center">
                         <LoadingSpinner />
                     </div>
                  ) : isMobile ? (
-                     <MobileLayout {...{ router, videoRef, playerRef, handlePlayPause, handleShare, handleMinimize, handleToggleFullscreen, isPaused, seller, streamData, handleFollowToggle, isFollowingState, sellerProducts, handlers, relatedStreams, isChatOpen, setIsChatOpen, chatMessages, pinnedMessages, onClose: () => setIsChatOpen(false), handleAddToCart, handleBuyNow, mobileView, setMobileView, isMuted, setIsMuted, handleGoLive, handleSeek, isLive, formatTime, currentTime, duration, buffered, handleProgressClick, progressContainerRef, activeQuality, setActiveQuality, product, user, walletBalance }} />
+                     <MobileLayout {...{ router, videoRef, playerRef, handlePlayPause, handleShare, handleMinimize, handleToggleFullscreen, isPaused, seller, streamData, handleFollowToggle, isFollowingState, sellerProducts, handlers, relatedStreams, isChatOpen, setIsChatOpen, chatMessages, pinnedMessages, onClose: () => setIsChatOpen(false), handleAddToCart, handleBuyNow, mobileView, setMobileView, isMuted, setIsMuted, handleGoLive, handleSeek, isLive, formatTime, currentTime, duration, buffered, handleProgressClick, progressContainerRef, activeQuality, setActiveQuality, product, user, walletBalance, setIsSuperChatOpen }} />
                  ) : (
                     <DesktopLayout 
-                        {...{ router, videoRef, playerRef, handlePlayPause, handleShare, handleMinimize, handleToggleFullscreen, isPaused, seller, streamData, handleFollowToggle, isFollowingState, sellerProducts, handlers, relatedStreams, isChatOpen, setIsChatOpen, chatMessages, pinnedMessages, onClose: () => setIsChatOpen(false), handleAddToCart, handleBuyNow, mobileView, setMobileView, isMuted, setIsMuted, handleGoLive, handleSeek, isLive, formatTime, currentTime, duration, buffered, handleProgressClick, progressContainerRef, mainScrollRef, handleMainScroll, showGoToTop, scrollToTop, activeQuality, setActiveQuality, product, user, cartCount, walletBalance }}
+                        {...{ router, videoRef, playerRef, handlePlayPause, handleShare, handleMinimize, handleToggleFullscreen, isPaused, seller, streamData, handleFollowToggle, isFollowingState, sellerProducts, handlers, relatedStreams, isChatOpen, setIsChatOpen, chatMessages, pinnedMessages, onClose: () => setIsChatOpen(false), handleAddToCart, handleBuyNow, mobileView, setMobileView, isMuted, setIsMuted, handleGoLive, handleSeek, isLive, formatTime, currentTime, duration, buffered, handleProgressClick, progressContainerRef, mainScrollRef, handleMainScroll, showGoToTop, scrollToTop, activeQuality, setActiveQuality, product, user, cartCount, walletBalance, setIsSuperChatOpen }}
                     />
                  )}
             </div>
@@ -1093,10 +1098,10 @@ export default function StreamPage() {
 const MemoizedStreamInfo = React.memo(StreamInfo);
 const MemoizedRelatedContent = React.memo(RelatedContent);
 
-const DesktopLayout = React.memo(({ handlers, chatMessages, cartCount, walletBalance, ...props }: any) => {
+const DesktopLayout = React.memo(({ handlers, chatMessages, cartCount, walletBalance, setIsSuperChatOpen, ...props }: any) => {
 return (
 <div className="flex flex-col h-screen overflow-hidden">
-    <header className="p-3 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-sm z-30 border-b h-16 shrink-0 w-full">
+    <header className="p-3 flex items-center justify-between sticky top-0 z-40 h-16 shrink-0 w-full">
         <div className="flex items-center gap-2">
             <Button variant="ghost" size="icon" onClick={() => props.router.back()}>
                 <ArrowLeft className="h-6 w-6" />
@@ -1204,6 +1209,7 @@ return (
                 handlers={handlers}
                 onClose={() => {}}
                 walletBalance={walletBalance}
+                onSuperChatClick={() => setIsSuperChatOpen(true)}
             />
         </aside>
     </div>
@@ -1211,7 +1217,7 @@ return (
 )});
 DesktopLayout.displayName = "DesktopLayout";
 
-const MobileLayout = React.memo(({ handlers, chatMessages, walletBalance, ...props }: any) => {
+const MobileLayout = React.memo(({ handlers, chatMessages, walletBalance, setIsSuperChatOpen, ...props }: any) => {
     const { isMuted, setIsMuted, handleGoLive, isLive, formatTime, currentTime, duration, handleShare, handleToggleFullscreen, progressContainerRef, handleProgressClick, isPaused, handlePlayPause, handleSeek, handleMinimize, activeQuality, setActiveQuality } = props;
     return (
         <div className="flex flex-col h-dvh overflow-hidden relative">
@@ -1314,7 +1320,7 @@ const MobileLayout = React.memo(({ handlers, chatMessages, walletBalance, ...pro
                     </ScrollArea>
                 ) : (
                     <div className="h-full flex flex-col bg-background">
-                        <ChatPanel {...{...props, handlers, chatMessages, walletBalance}} onClose={() => props.setMobileView('stream')} />
+                        <ChatPanel {...{...props, handlers, chatMessages, walletBalance}} onSuperChatClick={() => setIsSuperChatOpen(true)} onClose={() => props.setMobileView('stream')} />
                     </div>
                 )}
             </div>
@@ -1348,127 +1354,7 @@ const SuperChatMessage = ({ msg }: { msg: any }) => (
     </div>
 );
 
-const ChatMessage = ({ msg, handlers, seller }: { msg: any, handlers: any, seller: any }) => {
-    const { user } = useAuth();
-    const isMyMessage = msg.userId === user?.uid;
-    
-    const handleReply = () => handlers.onReply(msg);
-    const handleTogglePin = () => handlers.onTogglePin(msg.id);
-    const handleReport = () => handlers.onReportMessage(msg.id);
-    const handleDelete = () => handlers.onDeleteMessage(msg.id);
-
-    return (
-        <div className="flex items-start gap-2 w-full group py-0.5 animate-message-in">
-             <Avatar className="h-6 w-6 mt-0.5">
-                <AvatarImage src={msg.avatar} />
-                <AvatarFallback className="bg-gradient-to-br from-red-500 to-yellow-500 text-white font-bold text-[10px]">
-                     {msg.user ? msg.user.charAt(0) : 'S'}
-                </AvatarFallback>
-            </Avatar>
-            <div className="flex-grow">
-                <div className="flex items-center gap-1.5 flex-wrap">
-                    <span className={cn("font-semibold text-xs", msg.isSeller && "text-yellow-400")}>
-                        {msg.user}:
-                    </span>
-                    {msg.isSeller && <Badge variant="outline" className="mr-1.5 border-yellow-400/50 text-yellow-400 h-4 text-[10px] px-1.5">Seller</Badge>}
-                </div>
-                 <div className="text-sm whitespace-pre-wrap break-words leading-snug text-[#E6ECEF]">
-                    {renderWithHashtagsAndLinks(msg.text)}
-                 </div>
-            </div>
-            <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                    <button className="text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity p-1">
-                        <MoreHorizontal className="w-3 h-3" />
-                    </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                    <DropdownMenuItem onSelect={handleReply}><Reply className="mr-2 h-4 w-4" />Reply</DropdownMenuItem>
-                    {isMyMessage && (
-                        <>
-                            <DropdownMenuItem onSelect={handleTogglePin}><Pin className="mr-2 h-4 w-4" />Pin Message</DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem className="text-destructive" onSelect={handleDelete}><Trash2 className="mr-2 h-4 w-4" />Delete</DropdownMenuItem>
-                        </>
-                    )}
-                    {!isMyMessage && <DropdownMenuItem onSelect={handleReport}><Flag className="mr-2 h-4 w-4" />Report</DropdownMenuItem>}
-                </DropdownMenuContent>
-            </DropdownMenu>
-        </div>
-    );
-};
-
-const ChatPanel = ({
-  seller,
-  chatMessages,
-  pinnedMessages,
-  activeAuction,
-  auctionTime,
-  highestBid,
-  totalBids,
-  walletBalance,
-  handlers,
-  inlineAuctionCardRefs,
-  onClose,
-}: {
-  seller: any;
-  chatMessages: any[];
-  pinnedMessages: any[];
-  activeAuction: any;
-  auctionTime: number | null;
-  highestBid: number;
-  totalBids: number;
-  walletBalance: number;
-  handlers: any;
-  inlineAuctionCardRefs: React.MutableRefObject<Record<string, HTMLDivElement | null>>;
-  onClose: () => void;
-}) => {
-  const [newMessage, setNewMessage] = useState("");
-  const [replyingTo, setReplyingTo] = useState<{ name: string; id: string } | null>(null);
-  const [showScrollToBottom, setShowScrollToBottom] = useState(false);
-  const chatContainerRef = useRef<HTMLDivElement>(null);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
-  
-  const handleAutoScroll = useCallback((behavior: 'smooth' | 'auto' = 'smooth') => {
-    messagesEndRef.current?.scrollIntoView({ behavior });
-  }, []);
-
-  const handleManualScroll = (e: React.UIEvent<HTMLDivElement>) => {
-    const target = e.currentTarget;
-    const isScrolledUp = target.scrollHeight - target.scrollTop > target.clientHeight + 200;
-    setShowScrollToBottom(isScrolledUp);
-  };
-  
-  useEffect(() => {
-    handleAutoScroll('auto');
-  }, [chatMessages, handleAutoScroll]);
-
-  const addEmoji = (emoji: string) => {
-    setNewMessage(prev => prev + emoji);
-  };
-
-  const handleNewMessageSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newMessage.trim()) return;
-    
-    let messageToSend = newMessage;
-    if (replyingTo) {
-      messageToSend = `@${replyingTo.name.split(' ')[0]} ${newMessage}`;
-    }
-
-    handlers.handleNewMessageSubmit({ text: messageToSend, replyingTo });
-
-    setNewMessage("");
-    setReplyingTo(null);
-  };
-  
-  const handleReply = (msg: any) => {
-    setReplyingTo({ name: msg.user, id: msg.userId });
-    textareaRef.current?.focus();
-  }
-
-  const SuperChatDialog = () => {
+const SuperChatDialog = ({ walletBalance, handlers, onSuperChatClick }: { walletBalance: number, handlers: any, onSuperChatClick: () => void }) => {
     const [amount, setAmount] = useState(50);
     const [message, setMessage] = useState('');
     const [paymentMethod, setPaymentMethod] = useState('wallet');
@@ -1527,7 +1413,119 @@ const ChatPanel = ({
             </DialogFooter>
         </DialogContent>
     );
+};
+
+const ChatMessage = ({ msg, handlers, seller }: { msg: any, handlers: any, seller: any }) => {
+    const { user } = useAuth();
+    const isMyMessage = msg.userId === user?.uid;
+    
+    const handleReply = () => handlers.onReply(msg);
+    const handleTogglePin = () => handlers.onTogglePin(msg.id);
+    const handleReport = () => handlers.onReportMessage(msg.id);
+    const handleDelete = () => handlers.onDeleteMessage(msg.id);
+
+    return (
+        <div className="flex items-start gap-2 w-full group py-0.5 animate-message-in">
+             <Avatar className="h-6 w-6 mt-0.5">
+                <AvatarImage src={msg.avatar} />
+                <AvatarFallback className="bg-gradient-to-br from-red-500 to-yellow-500 text-white font-bold text-[10px]">
+                     {msg.user ? msg.user.charAt(0) : 'S'}
+                </AvatarFallback>
+            </Avatar>
+            <div className="flex-grow">
+                <div className="flex items-center gap-1.5 flex-wrap">
+                    <span className={cn("font-semibold text-xs", msg.isSeller && "text-yellow-400")}>
+                        {msg.user}:
+                    </span>
+                    {msg.isSeller && <Badge variant="outline" className="mr-1.5 border-yellow-400/50 text-yellow-400 h-4 text-[10px] px-1.5">Seller</Badge>}
+                </div>
+                 <div className="text-sm whitespace-pre-wrap break-words leading-snug text-[#E6ECEF]">
+                    {renderWithHashtagsAndLinks(msg.text)}
+                 </div>
+            </div>
+            <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                    <button className="text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity p-1">
+                        <MoreHorizontal className="w-3 h-3" />
+                    </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                    <DropdownMenuItem onSelect={handleReply}><Reply className="mr-2 h-4 w-4" />Reply</DropdownMenuItem>
+                    {isMyMessage && (
+                        <>
+                            <DropdownMenuItem onSelect={handleTogglePin}><Pin className="mr-2 h-4 w-4" />Pin Message</DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem className="text-destructive" onSelect={handleDelete}><Trash2 className="mr-2 h-4 w-4" />Delete</DropdownMenuItem>
+                        </>
+                    )}
+                    {!isMyMessage && <DropdownMenuItem onSelect={handleReport}><Flag className="mr-2 h-4 w-4" />Report</DropdownMenuItem>}
+                </DropdownMenuContent>
+            </DropdownMenu>
+        </div>
+    );
+};
+
+const ChatPanel = ({
+  seller,
+  chatMessages,
+  pinnedMessages,
+  handlers,
+  onClose,
+  walletBalance,
+  onSuperChatClick,
+}: {
+  seller: any;
+  chatMessages: any[];
+  pinnedMessages: any[];
+  handlers: any;
+  onClose: () => void;
+  walletBalance: number;
+  onSuperChatClick: () => void;
+}) => {
+  const [newMessage, setNewMessage] = useState("");
+  const [replyingTo, setReplyingTo] = useState<{ name: string; id: string } | null>(null);
+  const [showScrollToBottom, setShowScrollToBottom] = useState(false);
+  const chatContainerRef = useRef<HTMLDivElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  
+  const handleAutoScroll = useCallback((behavior: 'smooth' | 'auto' = 'smooth') => {
+    messagesEndRef.current?.scrollIntoView({ behavior });
+  }, []);
+
+  const handleManualScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const target = e.currentTarget;
+    const isScrolledUp = target.scrollHeight - target.scrollTop > target.clientHeight + 200;
+    setShowScrollToBottom(isScrolledUp);
   };
+  
+  useEffect(() => {
+    handleAutoScroll('auto');
+  }, [chatMessages, handleAutoScroll]);
+
+  const addEmoji = (emoji: string) => {
+    setNewMessage(prev => prev + emoji);
+  };
+
+  const handleNewMessageSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newMessage.trim()) return;
+    
+    let messageToSend = newMessage;
+    if (replyingTo) {
+      messageToSend = `@${replyingTo.name.split(' ')[0]} ${newMessage}`;
+    }
+
+    handlers.handleNewMessageSubmit({ text: messageToSend, replyingTo });
+
+    setNewMessage("");
+    setReplyingTo(null);
+  };
+  
+  const handleReply = (msg: any) => {
+    setReplyingTo({ name: msg.user, id: msg.userId });
+    textareaRef.current?.focus();
+  }
 
   return (
     <div className='h-full flex flex-col bg-[#0b0b0c]'>
@@ -1684,14 +1682,9 @@ const ChatPanel = ({
                      </PopoverContent>
                 </Popover>
              </div>
-             <Dialog>
-                <DialogTrigger asChild>
-                    <Button variant="ghost" size="icon" className="rounded-full flex-shrink-0 h-11 w-11 text-muted-foreground hover:text-white">
-                        <DollarSign className="h-5 w-5"/>
-                    </Button>
-                </DialogTrigger>
-                <SuperChatDialog />
-             </Dialog>
+             <Button type="button" variant="ghost" size="icon" className="rounded-full flex-shrink-0 h-11 w-11 text-muted-foreground hover:text-white" onClick={onSuperChatClick}>
+                 <DollarSign className="h-5 w-5"/>
+             </Button>
              <Button type="submit" size="icon" disabled={!newMessage.trim()} className="rounded-full flex-shrink-0 h-11 w-11 bg-[#E43F3F] hover:bg-[#E43F3F]/90 active:scale-105 transition-transform">
                 <Send className="h-5 w-5" />
             </Button>
