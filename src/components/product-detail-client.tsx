@@ -112,28 +112,33 @@ export function ProductDetailClient({ productId }: { productId: string }) {
     const [recentlyViewedItems, setRecentlyViewedItems] = useState<Product[]>([]);
     const [sellerProducts, setSellerProducts] = useState<any[]>([]);
     const [isQnaDialogOpen, setIsQnaDialogOpen] = useState(false);
-    const [selectedImage, setSelectedImage] = useState<string | null>(null);
     const [selectedSize, setSelectedSize] = useState<string | null>(null);
     const [selectedColor, setSelectedColor] = useState<string | null>(null);
 
-    const availableSizes = useMemo(() => product?.availableSizes ? product.availableSizes.split(',').map((s: string) => s.trim()) : [], [product]);
-    const availableColors = useMemo(() => product?.availableColors ? product.availableColors.split(',').map((s: string) => s.trim()) : [], [product]);
-
+    const [currentPrice, setCurrentPrice] = useState<string | null>(null);
+    const [currentHighlights, setCurrentHighlights] = useState<string[]>([]);
+    const [selectedImage, setSelectedImage] = useState<string | null>(null);
+    
     useEffect(() => {
         const details = productDetails[productId as keyof typeof productDetails] || null;
         setProduct(details);
         if(details) {
+            setCurrentPrice(details.price);
+            setCurrentHighlights(details.highlights ? details.highlights.split('\\n').filter((h:string) => h.trim() !== '') : []);
             if(details.images.length > 0) {
                 setSelectedImage(details.images[0]);
             }
-             if (availableSizes.length > 0) {
-                setSelectedSize(availableSizes[0]);
+            if (details.availableSizes?.split(',').map((s:string) => s.trim()).length > 0) {
+                setSelectedSize(details.availableSizes.split(',').map((s:string) => s.trim())[0]);
             }
-            if (availableColors.length > 0) {
-                setSelectedColor(availableColors[0]);
+            if (details.availableColors?.split(',').map((s:string) => s.trim()).length > 0) {
+                setSelectedColor(details.availableColors.split(',').map((s:string) => s.trim())[0]);
             }
         }
-    }, [productId, availableSizes, availableColors]);
+    }, [productId]);
+
+    const availableSizes = useMemo(() => product?.availableSizes ? product.availableSizes.split(',').map((s: string) => s.trim()) : [], [product]);
+    const availableColors = useMemo(() => product?.availableColors ? product.availableColors.split(',').map((s: string) => s.trim()) : [], [product]);
 
     const variantStock = useMemo(() => {
         if (!product || !product.variants || product.variants.length === 0) {
@@ -145,6 +150,30 @@ export function ProductDetailClient({ productId }: { productId: string }) {
         );
         return variant ? variant.stock : 0;
     }, [product, selectedSize, selectedColor]);
+    
+     useEffect(() => {
+        if (product?.variants?.length > 0) {
+            const variant = product.variants.find((v: any) => 
+                (v.size ? v.size === selectedSize : true) && 
+                (v.color ? v.color === selectedColor : true)
+            );
+            if (variant) {
+                if (variant.price) setCurrentPrice(`₹${variant.price.toFixed(2)}`);
+                else setCurrentPrice(product.price);
+
+                if (variant.image?.preview) setSelectedImage(variant.image.preview);
+                else setSelectedImage(product.images[0]);
+                
+                if (variant.highlights) setCurrentHighlights(variant.highlights.split('\\n').filter((h: string) => h.trim() !== ''));
+                else setCurrentHighlights(product.highlights ? product.highlights.split('\\n').filter((h: string) => h.trim() !== '') : []);
+
+            } else {
+                 setCurrentPrice(product.price);
+                 setSelectedImage(product.images[0]);
+                 setCurrentHighlights(product.highlights ? product.highlights.split('\\n').filter((h:string) => h.trim() !== '') : []);
+            }
+        }
+    }, [selectedSize, selectedColor, product]);
 
 
     const averageRating = useMemo(() => {
@@ -417,9 +446,6 @@ export function ProductDetailClient({ productId }: { productId: string }) {
         { label: 'Country of Origin', value: (product as any).origin },
     ].filter(detail => detail.value);
 
-    const productHighlights = product.highlights ? product.highlights.split('\\n').filter((h:string) => h.trim() !== '') : [];
-
-
     return (
         <div className="min-h-screen bg-background">
             <header className="p-4 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-sm z-30 border-b">
@@ -508,7 +534,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                         </div>
                         <div>
                              <div className="flex items-center gap-4 flex-wrap">
-                                <p className="text-3xl font-bold text-foreground">{product.price}</p>
+                                <p className="text-3xl font-bold text-foreground">{currentPrice}</p>
                                 <div className="flex items-center gap-2">
                                         <div className="flex items-center gap-1 text-amber-400">
                                             <Star className="h-5 w-5 fill-current" />
@@ -585,9 +611,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                         </div>
                          <Card>
                              <CardHeader className="flex flex-row items-center justify-between py-3 px-4">
-                                <div>
-                                    <CardTitle className="text-base">Delivery Information</CardTitle>
-                                </div>
+                                <CardTitle className="text-base">Delivery Information</CardTitle>
                                 {user && (
                                      <Dialog open={isAddressDialogOpen} onOpenChange={setIsAddressDialogOpen}>
                                         <DialogTrigger asChild>
@@ -718,7 +742,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                 </div>
                                 <div className="p-2">
                                     <ul className="space-y-3 text-sm">
-                                        {productHighlights.map((highlight: string, index: number) => (
+                                        {currentHighlights.map((highlight: string, index: number) => (
                                             <li key={index} className="flex items-start gap-3">
                                                 <CheckCircle className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
                                                 <span className="text-muted-foreground">{highlight}</span>
