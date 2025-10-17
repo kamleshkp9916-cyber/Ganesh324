@@ -19,7 +19,7 @@ import { format, addDays, parse, differenceInDays } from 'date-fns';
 import { Input } from '@/components/ui/input';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from './ui/dialog';
-import { ScrollArea } from './ui/scroll-area';
+import { ScrollArea, ScrollBar } from './ui/scroll-area';
 import { Textarea } from './ui/textarea';
 import { productDetails } from '@/lib/product-data';
 import { getReviews, Review, updateReview, deleteReview } from '@/lib/review-data';
@@ -349,7 +349,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
         { label: 'Country of Origin', value: (product as any).origin },
     ].filter(detail => detail.value);
 
-    const productHighlights = product.highlights ? product.highlights.split('\n').filter(h => h.trim() !== '') : [];
+    const productHighlights = product.highlights ? product.highlights.split('\\n').filter(h => h.trim() !== '') : [];
 
     return (
         <div className="min-h-screen bg-background">
@@ -524,7 +524,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                         maxLength={6}
                                         className="max-w-[150px]"
                                         value={pincode}
-                                        onChange={(e) => setPincode(e.target.value.replace(/\D/g, ''))}
+                                        onChange={(e) => setPincode(e.target.value.replace(/\\D/g, ''))}
                                     />
                                     <Button variant="link" className="p-0 h-auto" onClick={handlePincodeCheck} disabled={checkingPincode}>
                                         {checkingPincode ? <LoadingSpinner className="h-4 w-4" /> : "Check"}
@@ -656,6 +656,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                             </Link>
                                         ))}
                                     </div>
+                                    <ScrollBar orientation="horizontal" />
                                 </ScrollArea>
                             </div>
                         </CardContent>
@@ -930,3 +931,5 @@ export function ProductDetailClient({ productId }: { productId: string }) {
         </div>
     );
 }
+
+    
