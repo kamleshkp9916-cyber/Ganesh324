@@ -384,7 +384,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                 <div className="max-w-4xl mx-auto space-y-8">
                      <Card>
                         <CardContent className="p-4">
-                            <div className="aspect-square w-full relative bg-muted rounded-lg overflow-hidden mb-4">
+                            <div className="aspect-[4/3] w-full relative bg-muted rounded-lg overflow-hidden mb-4">
                                 {selectedImage && (
                                     <Image
                                         src={selectedImage}
@@ -506,10 +506,10 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                 <div className="relative aspect-square md:aspect-auto bg-muted">
                                     <Image
                                         src={product.images[1] || product.images[0]}
-                                        alt={`${'${product.name}'} highlight`}
+                                        alt={`${product.name} highlight`}
                                         fill
                                         className="object-cover"
-                                        data-ai-hint={`${'${product.hint}'} detail`}
+                                        data-ai-hint={`${product.hint} detail`}
                                     />
                                 </div>
                                 <div className="p-6">
@@ -630,7 +630,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
 
                     <Separator />
                     
-                     <div className="mt-8">
+                    <div className="mt-8">
                         <h2 className="text-2xl font-bold mb-4">Similar Products</h2>
                          <ScrollArea className="w-full whitespace-nowrap">
                             <div className="flex gap-4 pb-4">
@@ -656,8 +656,8 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                         <h2 className="text-2xl font-bold mb-4">Related Product Streams</h2>
                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                             {relatedStreams.slice(0, 3).map((stream: any) => (
-                                <Link href={`/stream/${stream.id}`} key={stream.id} className="group">
-                                    <div className="relative rounded-lg overflow-hidden aspect-video bg-muted">
+                                 <Link href={`/stream/${stream.id}`} key={stream.id} className="group">
+                                    <div className="relative rounded-lg overflow-hidden aspect-[16/9] bg-muted">
                                         <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
                                         <div className="absolute top-2 right-2 z-10">
                                             <Badge variant="secondary" className="bg-background/60 backdrop-blur-sm gap-1.5">
