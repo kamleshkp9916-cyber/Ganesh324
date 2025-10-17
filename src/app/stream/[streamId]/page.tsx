@@ -629,22 +629,22 @@ export default function StreamPage() {
     useEffect(() => {
         if (seller) {
             const mockPost = {
-                id: 33, // This should be unique
+                id: 33,
                 type: 'post_share',
                 sellerName: seller.name,
                 text: 'Behind the scenes of our new collection!',
                 product: productDetails['prod_5']
             };
     
-            const initialMessages = mockChatMessages.map(msg => {
+             const initialMessages = mockChatMessages.map(msg => {
                 let finalMsg = { ...msg };
                 if (finalMsg.isSeller) {
                     finalMsg.user = seller.name;
                 }
                 return finalMsg;
             }).filter(msg => msg.type !== 'post_share');
-    
-            setChatMessages([...initialMessages, mockPost]);
+
+             setChatMessages([...initialMessages, mockPost]);
         }
     }, [seller]);
 
@@ -1066,7 +1066,7 @@ export default function StreamPage() {
     
     return (
         <React.Fragment>
-             <Dialog open={isReportOpen} onOpenChange={setIsReportOpen}>
+            <Dialog open={isReportOpen} onOpenChange={setIsReportOpen}>
                 <ReportDialog onSubmit={(reason, details) => {
                     console.log("Report submitted", { reason, details });
                     toast({ title: "Report Submitted", description: "Thank you for your feedback. Our team will review this stream." });
@@ -1075,7 +1075,7 @@ export default function StreamPage() {
             </Dialog>
             
             <Dialog open={isSuperChatOpen} onOpenChange={setIsSuperChatOpen}>
-                <SuperChatDialog walletBalance={walletBalance} handlers={handlers} />
+                <SuperChatDialog walletBalance={walletBalance} handlers={handlers} onSuperChatClick={() => setIsSuperChatOpen(true)} />
             </Dialog>
 
              <div className={cn("bg-black text-foreground", isMobile ? 'flex flex-col h-dvh' : 'h-screen')}>
@@ -1101,7 +1101,7 @@ const MemoizedRelatedContent = React.memo(RelatedContent);
 const DesktopLayout = React.memo(({ handlers, chatMessages, cartCount, walletBalance, setIsSuperChatOpen, ...props }: any) => {
 return (
 <div className="flex flex-col h-screen overflow-hidden">
-    <header className="p-3 flex items-center justify-between sticky top-0 z-40 h-16 shrink-0 w-full">
+    <header className="p-3 flex items-center justify-between z-40 h-16 shrink-0 w-full">
         <div className="flex items-center gap-2">
             <Button variant="ghost" size="icon" onClick={() => props.router.back()}>
                 <ArrowLeft className="h-6 w-6" />
@@ -1354,7 +1354,7 @@ const SuperChatMessage = ({ msg }: { msg: any }) => (
     </div>
 );
 
-const SuperChatDialog = ({ walletBalance, handlers, onSuperChatClick }: { walletBalance: number, handlers: any, onSuperChatClick: () => void }) => {
+const SuperChatDialog = ({ walletBalance, handlers, onSuperChatClick }: { walletBalance?: number, handlers: any, onSuperChatClick: () => void }) => {
     const [amount, setAmount] = useState(50);
     const [message, setMessage] = useState('');
     const [paymentMethod, setPaymentMethod] = useState('wallet');
@@ -1529,7 +1529,7 @@ const ChatPanel = ({
 
   return (
     <div className='h-full flex flex-col bg-[#0b0b0c]'>
-      <header className="p-3 flex items-center justify-between z-10 flex-shrink-0 h-16 sticky top-0">
+      <header className="p-3 flex items-center justify-between z-10 flex-shrink-0 h-16">
         <h3 className="font-bold text-lg text-white">Live Chat</h3>
         <div className="flex items-center gap-1">
           <Popover>
