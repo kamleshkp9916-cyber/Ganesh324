@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { Button } from "@/components/ui/button";
@@ -138,7 +137,7 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
     useEffect(() => {
         if (textareaRef.current) {
             textareaRef.current.style.height = 'auto';
-            textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
+            textareaRef.current.style.height = `${'${textareaRef.current.scrollHeight}'}px`;
         }
     }, [content]);
   
@@ -169,7 +168,7 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
         
         const tagName = tagging.type === '@' ? suggestion.displayName : suggestion.name;
         
-        setContent(`${textBefore}${tagging.type}${tagName} ${textAfter}`);
+        setContent(`${'${textBefore}'}${tagging.type}${tagName} ${'${textAfter}'}`);
         setTagging(null);
         setSuggestions([]);
         textareaRef.current?.focus();
@@ -192,7 +191,7 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
                     };
                     reader.readAsDataURL(file);
                 } else {
-                    toast({ variant: 'destructive', title: 'Invalid File', description: `Please select ${type} files.` });
+                    toast({ variant: 'destructive', title: 'Invalid File', description: `Please select ${'${type}'} files.` });
                 }
             }
         }
@@ -387,3 +386,5 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
     );
 });
 CreatePostForm.displayName = 'CreatePostForm';
+
+    
