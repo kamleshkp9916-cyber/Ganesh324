@@ -399,6 +399,9 @@ export function ProductDetailClient({ productId }: { productId: string }) {
             <main className="container mx-auto py-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <Card>
+                        <CardHeader>
+                            <CardTitle>Image Gallery</CardTitle>
+                        </CardHeader>
                         <CardContent className="p-4">
                             <div className="aspect-[2/1] w-full relative bg-muted rounded-lg overflow-hidden mb-4">
                                 {selectedImage && (
@@ -532,19 +535,29 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                 Buy Now
                             </Button>
                         </div>
-                         <Card>
-                            <CardContent className="p-4 space-y-3">
-                                {userData && userData.addresses && userData.addresses.length > 0 ? (
-                                    <div className="text-sm">
-                                        <div className="flex items-center gap-2">
-                                            <Truck className="h-5 w-5 text-muted-foreground"/>
-                                            <span>Deliver to <b>{userData.addresses[0].name}</b> - {userData.addresses[0].pincode}</span>
+                        <Card>
+                             <CardContent className="p-4 space-y-3">
+                                {user ? (
+                                    userData?.addresses && userData.addresses.length > 0 ? (
+                                        <div className="text-sm">
+                                            <div className="flex items-center gap-2">
+                                                <Truck className="h-5 w-5 text-muted-foreground"/>
+                                                <span>Deliver to <b>{userData.addresses[0].name}</b> - {userData.addresses[0].pincode}</span>
+                                            </div>
+                                            <p className="pl-7 text-muted-foreground">{userData.addresses[0].village}, {userData.addresses[0].city}</p>
+                                            <p className="pl-7 text-green-600 font-semibold mt-1">Delivery by {estimatedDeliveryDate}</p>
                                         </div>
-                                        <p className="pl-7 text-muted-foreground">{userData.addresses[0].village}, {userData.addresses[0].city}</p>
-                                        <p className="pl-7 text-green-600 font-semibold mt-1">Delivery by {estimatedDeliveryDate}</p>
-                                    </div>
+                                    ) : (
+                                        <div className="text-sm text-center text-muted-foreground">
+                                            <p>You have no saved addresses.</p>
+                                            <Button asChild variant="link" className="p-0 h-auto">
+                                                <Link href="/setting">Add an address</Link>
+                                            </Button>
+                                             <p>to see delivery information.</p>
+                                        </div>
+                                    )
                                 ) : (
-                                    <div className="space-y-2">
+                                     <div className="space-y-2">
                                         <Label htmlFor="pincode">Check Delivery</Label>
                                         <div className="flex items-center gap-2">
                                             <Input
@@ -748,7 +761,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                             {relatedStreams.slice(0, 3).map((stream: any) => (
                                  <Link href={`/stream/${stream.id}`} key={stream.id} className="group block">
-                                    <div className="relative rounded-lg overflow-hidden aspect-video bg-muted">
+                                    <div className="relative rounded-lg overflow-hidden aspect-[16/9] bg-muted">
                                         <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
                                         <div className="absolute top-2 right-2 z-10">
                                             <Badge variant="secondary" className="bg-background/60 backdrop-blur-sm gap-1.5">
