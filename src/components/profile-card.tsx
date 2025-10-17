@@ -656,7 +656,7 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                       </TabsContent>
 
                       <TabsContent value="products" className="mt-4">
-                          <div className="flex flex-wrap gap-2 mb-4">
+                           <div className="flex flex-wrap gap-2 mb-4">
                               {productCategories.map(category => (
                                   <Button
                                       key={category}
@@ -754,8 +754,8 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                                ))
                             ) : (
                                 <Card className="text-center py-12 text-muted-foreground flex flex-col items-center gap-4">
-                                     <h3 className="text-xl font-semibold">No Posts Yet</h3>
-                                     <p>This seller hasn't posted anything yet.</p>
+                                    <h3 className="text-xl font-semibold">No Posts Yet</h3>
+                                    <p>This seller hasn't posted anything yet.</p>
                                 </Card>
                             )}
                       </TabsContent>
