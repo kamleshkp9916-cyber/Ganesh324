@@ -513,14 +513,15 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                             </CardContent>
                         </Card>
                         <div className="flex flex-col gap-4">
-                            <div className="flex justify-between items-start">
+                             <div className="flex justify-between items-start">
                                 <div>
-                                    <p className="text-sm font-medium text-primary mb-1">{product.brand}</p>
+                                    {product.brand && <p className="text-sm font-medium text-primary mb-1">{product.brand}</p>}
                                     <div className="flex items-center gap-2 flex-wrap">
                                         <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">{product.name}</h1>
                                         {product.key && <Badge variant="outline">{product.key}</Badge>}
                                         {product.isFromStream && <Badge variant="purple"><Video className="mr-1 h-3 w-3" /> From Stream</Badge>}
                                     </div>
+                                    <p className="text-muted-foreground mt-2">{product.description}</p>
                                 </div>
                                 <div className="flex items-center">
                                     <Button variant="ghost" size="icon" onClick={handleWishlistToggle}>
@@ -534,10 +535,9 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                     </Button>
                                 </div>
                             </div>
-                            <p className="text-muted-foreground mt-2">{product.description}</p>
                             <div>
                                 <div className="flex items-center gap-4 flex-wrap">
-                                    <p className="text-3xl font-bold text-foreground">{currentPrice}</p>
+                                    {currentPrice && <p className="text-3xl font-bold text-foreground">{currentPrice}</p>}
                                     <div className="flex items-center gap-2">
                                             <div className="flex items-center gap-1 text-amber-400">
                                                 <Star className="h-5 w-5 fill-current" />
@@ -598,19 +598,19 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                 {(variantStock !== undefined && variantStock > 0) ? (
                                     <>
                                         {inCart ? (
-                                            <Button size="lg" className="w-full" asChild>
+                                             <Button size="lg" variant="outline" className="w-full" asChild>
                                                 <Link href="/cart">
                                                     <ShoppingCart className="mr-2 h-5 w-5" />
                                                     Proceed Further
                                                 </Link>
                                             </Button>
                                         ) : (
-                                            <Button size="lg" className="w-full" onClick={handleAddToCart}>
+                                            <Button size="lg" variant="outline" className="w-full" onClick={handleAddToCart}>
                                                 <ShoppingCart className="mr-2 h-5 w-5" />
                                                 Add to Cart
                                             </Button>
                                         )}
-                                        <Button size="lg" className="w-full" variant="outline" onClick={handleBuyNow}>
+                                        <Button size="lg" className="w-full" onClick={handleBuyNow}>
                                             Buy Now
                                         </Button>
                                     </>
@@ -751,11 +751,9 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                         <Separator />
                         
                         <Card>
-                            <CardHeader>
-                                <CardTitle className="flex items-center justify-between">
-                                    <span>Ratings &amp; Reviews</span>
-                                    <span className="text-sm font-medium text-muted-foreground">{reviews.length} Reviews</span>
-                                </CardTitle>
+                             <CardHeader className="flex items-center justify-between">
+                                <CardTitle>Ratings &amp; Reviews</CardTitle>
+                                <span className="text-sm font-medium text-muted-foreground">{reviews.length} Reviews</span>
                             </CardHeader>
                             <CardContent className="space-y-4">
                                 {reviews.length > 0 ? (
@@ -796,11 +794,9 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                         <Separator />
                         
                         <Card>
-                            <CardHeader>
-                                <CardTitle className="flex items-center justify-between">
-                                    <span>Questions &amp; Answers</span>
-                                    <span className="text-sm font-medium text-muted-foreground">{mockQandA.length} Q&amp;As</span>
-                                </CardTitle>
+                            <CardHeader className="flex items-center justify-between">
+                                <CardTitle>Questions &amp; Answers</CardTitle>
+                                <span className="text-sm font-medium text-muted-foreground">{mockQandA.length} Q&amp;As</span>
                             </CardHeader>
                             <CardContent className="space-y-4">
                                 {mockQandA.slice(0,3).map(qa => (
