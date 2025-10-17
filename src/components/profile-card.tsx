@@ -216,7 +216,7 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
     
     // Listen to firestore posts
     const db = getFirestoreDb();
-    const postsQuery = query(collection(db, "posts"), where("sellerId", "==", profileData.uid), orderBy("timestamp", "desc"));
+    const postsQuery = query(collection(db, "posts"), where("sellerId", "==", profileData.uid), orderBy("sellerId", "desc"));
     const unsubscribe = onSnapshot(postsQuery, (snapshot) => {
         const postsData = snapshot.docs.map(doc => ({
             id: doc.id,
@@ -562,6 +562,7 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                                                         src={stream.thumbnailUrl} 
                                                         alt={stream.title} 
                                                         fill
+                                                        sizes="100vw"
                                                         className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-300"
                                                     />
                                                     <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors flex items-center justify-center">
@@ -590,6 +591,7 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                                                                 src={stream.thumbnailUrl} 
                                                                 alt={stream.title} 
                                                                 fill
+                                                                sizes="256px"
                                                                 className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-300"
                                                             />
                                                             <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors flex items-center justify-center">
@@ -679,6 +681,7 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                                                           src={product.images?.[0]?.preview || "https://placehold.co/200x200.png"}
                                                           alt={product.name}
                                                           fill
+                                                          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
                                                           className="object-cover w-full h-full group-hover:scale-105 transition-transform"
                                                           data-ai-hint={product.hint || 'product image'}
                                                       />
@@ -772,6 +775,7 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                                                           src={item.imageUrl}
                                                           alt={item.name}
                                                           fill
+                                                          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
                                                           className="object-cover"
                                                           data-ai-hint={item.hint}
                                                       />
