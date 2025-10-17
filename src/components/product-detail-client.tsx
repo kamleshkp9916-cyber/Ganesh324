@@ -382,7 +382,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                 ))}
                                 </div>
                                 <div className="relative aspect-square flex-1 bg-muted rounded-lg overflow-hidden">
-                                    {selectedImage && <Image src={selectedImage} alt={product.name} width={500} height={500} className="object-contain w-full h-full" data-ai-hint={product.hint} />}
+                                    {selectedImage && <Image src={selectedImage} alt={product.name} fill sizes="(max-width: 768px) 100vw, 50vw" className="object-contain w-full h-full" data-ai-hint={product.hint} />}
                                     <div className="absolute top-3 right-3 z-10 flex flex-col gap-2">
                                         <Button
                                             size="icon"
@@ -830,8 +830,8 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                         <Image
                                             src={stream.thumbnailUrl}
                                             alt={`Live stream from ${stream.name}`}
-                                            width={300}
-                                            height={450}
+                                            fill
+                                            sizes="50vw"
                                             className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                                             data-ai-hint={stream.hint}
                                         />
@@ -863,7 +863,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                 <Link href={`/product/${p.key}`} key={p.id}>
                                     <Card className="overflow-hidden group">
                                         <div className="aspect-square bg-muted relative">
-                                            <Image src={p.imageUrl} alt={p.name} fill sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 16vw" className="object-cover group-hover:scale-105 transition-transform" data-ai-hint={p.hint} />
+                                            <Image src={p.imageUrl} alt={p.name} fill sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 16vw" className="object-cover group-hover:scale-105 transition-transform" data-ai-hint={p.hint} />
                                         </div>
                                         <div className="p-2 sm:p-3">
                                             <h4 className="font-semibold text-xs sm:text-sm truncate">{p.name}</h4>
@@ -928,3 +928,6 @@ export function ProductDetailClient({ productId }: { productId: string }) {
 
     
 
+
+
+    
