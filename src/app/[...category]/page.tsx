@@ -143,8 +143,11 @@ export default function CategoryPage() {
                                             <div className="flex items-center gap-1 text-xs text-amber-400 mt-1">
                                                 <Star className="w-4 h-4 fill-current" />
                                                 <span>4.8</span>
-                                                <span className="text-muted-foreground">(1.2k)</span>
+                                                <span className="text-muted-foreground">(1.2k reviews)</span>
                                             </div>
+                                             {product.stock > 0 && product.stock < 10 && (
+                                                <p className="text-xs text-destructive font-semibold mt-1">Only {product.stock} left!</p>
+                                            )}
                                         </div>
                                     </Card>
                                 </Link>

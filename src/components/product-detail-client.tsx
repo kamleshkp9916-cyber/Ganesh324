@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
@@ -401,7 +400,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
                     <Card>
                         <CardContent className="p-4">
-                            <Dialog>
+                             <Dialog>
                                 <DialogTrigger asChild>
                                     <div className="aspect-[5/4] w-full relative bg-muted rounded-lg overflow-hidden mb-4 cursor-pointer">
                                         {selectedImage && (
@@ -766,6 +765,10 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                         <div className="p-3">
                                             <h4 className="font-semibold truncate text-sm">{p.name}</h4>
                                             <p className="font-bold">{p.price}</p>
+                                            <div className="flex items-center gap-1 text-xs text-amber-400 mt-1">
+                                                <Star className="w-4 h-4 fill-current" />
+                                                <span>4.8</span>
+                                            </div>
                                         </div>
                                     </Card>
                                 </Link>
