@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { ArrowLeft, Star, ThumbsUp, ThumbsDown, MessageSquare, ShoppingCart, ShieldCheck, Heart, Share2, Truck, Tag, Banknote, Ticket, ChevronDown, RotateCcw, Sparkles, CheckCircle, Users, HelpCircle, Send, Image as ImageIcon, Edit, Trash2, Flag, Play } from 'lucide-react';
+import { ArrowLeft, Star, ThumbsUp, ThumbsDown, MessageSquare, ShoppingCart, ShieldCheck, Heart, Share2, Truck, Tag, Banknote, Ticket, ChevronDown, RotateCcw, Sparkles, CheckCircle, Users, HelpCircle, Send, Image as ImageIcon, Edit, Trash2, Flag, Play, Loader2 } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import Image from 'next/image';
@@ -92,7 +92,7 @@ const liveSellers = [
 
 export function ProductDetailClient({ productId }: { productId: string }) {
     const router = useRouter();
-    const { user } = useAuth();
+    const { user, userData } = useAuth();
     const [product, setProduct] = useState<any>(null);
     const { toast } = useToast();
     const [wishlisted, setWishlisted] = useState(false);
@@ -122,7 +122,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
             if(details.images.length > 0) {
                 setSelectedImage(details.images[0]);
             }
-            if (details.availableSizes) {
+             if (details.availableSizes) {
                 setSelectedSize(details.availableSizes.split(',')[0].trim());
             }
             if (details.availableColors) {
@@ -399,9 +399,6 @@ export function ProductDetailClient({ productId }: { productId: string }) {
             <main className="container mx-auto py-6">
                 <div className="max-w-4xl mx-auto space-y-8">
                      <Card>
-                        <CardHeader>
-                            <CardTitle>Image Gallery</CardTitle>
-                        </CardHeader>
                         <CardContent className="p-4">
                             <div className="aspect-[2/1] w-full relative bg-muted rounded-lg overflow-hidden mb-4">
                                 {selectedImage && (
@@ -535,6 +532,45 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                 Buy Now
                             </Button>
                         </div>
+                         <Card>
+                            <CardContent className="p-4 space-y-3">
+                                {userData && userData.addresses && userData.addresses.length > 0 ? (
+                                    <div className="text-sm">
+                                        <div className="flex items-center gap-2">
+                                            <Truck className="h-5 w-5 text-muted-foreground"/>
+                                            <span>Deliver to <b>{userData.addresses[0].name}</b> - {userData.addresses[0].pincode}</span>
+                                        </div>
+                                        <p className="pl-7 text-muted-foreground">{userData.addresses[0].village}, {userData.addresses[0].city}</p>
+                                        <p className="pl-7 text-green-600 font-semibold mt-1">Delivery by {estimatedDeliveryDate}</p>
+                                    </div>
+                                ) : (
+                                    <div className="space-y-2">
+                                        <Label htmlFor="pincode">Check Delivery</Label>
+                                        <div className="flex items-center gap-2">
+                                            <Input
+                                                id="pincode"
+                                                placeholder="Enter Pincode"
+                                                value={pincode}
+                                                onChange={(e) => {
+                                                    setPincode(e.target.value.replace(/\D/g, '').slice(0, 6));
+                                                    setIsDeliverable(null);
+                                                }}
+                                            />
+                                            <Button onClick={handlePincodeCheck} disabled={pincode.length !== 6 || checkingPincode}>
+                                                {checkingPincode ? <Loader2 className="h-4 w-4 animate-spin"/> : "Check"}
+                                            </Button>
+                                        </div>
+                                        {isDeliverable !== null && (
+                                            isDeliverable ? (
+                                                <p className="text-sm text-green-600">✓ Delivery available to this pincode. Estimated by {estimatedDeliveryDate}.</p>
+                                            ) : (
+                                                <p className="text-sm text-destructive">✗ Sorry, delivery is not available to this pincode.</p>
+                                            )
+                                        )}
+                                    </div>
+                                )}
+                            </CardContent>
+                        </Card>
                         <div className="grid grid-cols-3 gap-2 text-center text-xs text-muted-foreground pt-4">
                             <Link href="/help" className="flex flex-col items-center gap-1 hover:text-primary">
                                 <RotateCcw className="h-6 w-6" />
@@ -692,9 +728,8 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                         <h2 className="text-2xl font-bold mb-4">Related Product Streams</h2>
                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                             {relatedStreams.slice(0, 3).map((stream: any) => (
-                                <Link href={`/stream/${stream.id}`} key={stream.id} className="group block">
+                                 <Link href={`/stream/${stream.id}`} key={stream.id} className="group block">
                                     <div className="relative rounded-lg overflow-hidden aspect-[16/9] bg-muted">
-                                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
                                         <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
                                         <div className="absolute top-2 right-2 z-10">
                                             <Badge variant="secondary" className="bg-background/60 backdrop-blur-sm gap-1.5">
@@ -709,13 +744,13 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                                             className="object-cover w-full h-full group-hover:scale-105 transition-transform"
                                         />
-                                        <div className="absolute bottom-2 left-2 z-10 text-white">
-                                            <div className="flex items-start gap-2 mt-2">
-                                                <Avatar className="w-7 h-7 border-2 border-background">
+                                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex flex-col justify-end p-2">
+                                            <div className="flex items-start gap-2 text-white">
+                                                <Avatar className="w-8 h-8 border-2 border-background">
                                                     <AvatarImage src={stream.avatarUrl} />
                                                     <AvatarFallback>{stream.name.charAt(0)}</AvatarFallback>
                                                 </Avatar>
-                                                <div className="flex-1">
+                                                <div className="flex-1 overflow-hidden">
                                                     <p className="font-semibold text-xs group-hover:underline truncate">{stream.name}</p>
                                                     <p className="text-xs opacity-80">{stream.category}</p>
                                                 </div>
@@ -764,5 +799,3 @@ export function ProductDetailClient({ productId }: { productId: string }) {
         </div>
     );
 }
-
-    
