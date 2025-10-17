@@ -417,7 +417,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
         { label: 'Country of Origin', value: (product as any).origin },
     ].filter(detail => detail.value);
 
-    const productHighlights = product.highlights ? product.highlights.split('\n').filter((h:string) => h.trim() !== '') : [];
+    const productHighlights = product.highlights ? product.highlights.split('\\n').filter((h:string) => h.trim() !== '') : [];
 
 
     return (
@@ -490,7 +490,10 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                         <div className="flex justify-between items-start">
                             <div>
                                 <p className="text-sm font-medium text-primary mb-1">{product.brand}</p>
-                                <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">{product.name}</h1>
+                                <div className="flex items-center gap-2 flex-wrap">
+                                    <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">{product.name}</h1>
+                                    {product.key && <Badge variant="outline">{product.key}</Badge>}
+                                </div>
                                 <p className="text-muted-foreground mt-2">{product.description}</p>
                             </div>
                             <div className="flex items-center">
@@ -670,7 +673,6 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                     </div>
                 </div>
                 <div className="md:col-span-2 space-y-8 mt-8">
-                    <Separator />
                     <Card>
                         <CardHeader>
                            <CardTitle>Available Offers</CardTitle>
