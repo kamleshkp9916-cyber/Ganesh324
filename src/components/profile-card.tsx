@@ -2,7 +2,7 @@
 "use client";
 
 import React from 'react';
-import { useAuth } from '@/lib/providers';
+import { useAuth } from '@/hooks/use-auth.tsx';
 import { useRouter } from 'next/navigation';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Edit, Mail, Phone, MapPin, Camera, Truck, Star, ThumbsUp, ShoppingBag, Eye, Award, History, Search, Plus, Trash2, Heart, MessageSquare, StarIcon, UserPlus, Users, PackageSearch, Loader2, UserCheck, Instagram, Twitter, Youtube, Video, Facebook, Twitch, Play } from 'lucide-react';
@@ -715,8 +715,8 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                         <TabsContent value="posts" className="mt-4 space-y-4">
                            {(!isLoadingContent && userPosts.length === 0) ? (
                                 <Card className="text-center py-12 text-muted-foreground flex flex-col items-center gap-4">
-                                    <h3 className="text-xl font-semibold">No Posts Yet</h3>
-                                    <p>This seller hasn't posted anything yet.</p>
+                                     <h3 className="text-xl font-semibold">No Posts Yet</h3>
+                                     <p>This seller hasn't posted anything yet.</p>
                                 </Card>
                             ) : (
                                 <>
@@ -909,5 +909,3 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
     </>
   );
 }
-
-    
