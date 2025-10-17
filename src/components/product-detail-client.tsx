@@ -154,17 +154,6 @@ export function ProductDetailClient({ productId }: { productId: string }) {
     }, [productId]);
 
     useEffect(() => {
-        const fetchSellerProducts = () => {
-            if(product && productToSellerMapping[product.key]) {
-                const sellerName = productToSellerMapping[product.key].name;
-                const productsKey = `sellerProducts_${sellerName}`;
-                const storedProducts = localStorage.getItem(productsKey);
-                 if (storedProducts) {
-                    setSellerProducts(JSON.parse(storedProducts));
-                }
-            }
-        };
-
         const fetchTaggedPosts = async () => {
             if (!product) return;
             try {
@@ -203,7 +192,6 @@ export function ProductDetailClient({ productId }: { productId: string }) {
             setRecentlyViewedItems(getRecentlyViewed().filter(p => p.id !== product.id)); // Exclude current product
             fetchReviews();
             fetchTaggedPosts();
-            fetchSellerProducts();
         }
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [product]);
@@ -346,9 +334,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
     if (!product) {
         return (
              <div className="flex flex-col h-screen items-center justify-center text-center p-4">
-                <p className="text-2xl font-semibold mb-4">Product Not Found</p>
-                <p className="text-muted-foreground mb-6">The product you are looking for does not exist or has been removed.</p>
-                <Button onClick={() => router.back()}>Go Back</Button>
+                <LoadingSpinner />
             </div>
         );
     }
@@ -378,9 +364,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
 
             <main className="container mx-auto py-6">
                 <div className="grid md:grid-cols-2 gap-8 lg:gap-12">
-                     <div>
-                        {/* This space is intentionally left blank as requested */}
-                    </div>
+                    <div />
 
                     {/* Product Details */}
                     <div className="flex flex-col gap-4">
