@@ -55,6 +55,25 @@ const productToSellerMapping: { [key: string]: { name: string; avatarUrl: string
     'prod_8': { name: 'PetPalace', avatarUrl: 'https://placehold.co/80x80.png', uid: 'petpalace-uid' },
     'prod_9': { name: 'BookNook', avatarUrl: 'https://placehold.co/80x80.png', uid: 'booknook-uid' },
     'prod_10': { name: 'GamerGuild', avatarUrl: 'https://placehold.co/80x80.png', uid: 'gamerguild-uid' },
+    'prod_11': { name: 'FashionFinds', avatarUrl: 'https://placehold.co/80x80.png', uid: 'fashionfinds-uid' },
+    'prod_12': { name: 'FashionFinds', avatarUrl: 'https://placehold.co/80x80.png', uid: 'fashionfinds-uid' },
+    'prod_13': { name: 'Modern Man', avatarUrl: 'https://placehold.co/80x80.png', uid: 'modernman-uid' },
+    'prod_14': { name: 'Casual Co.', avatarUrl: 'https://placehold.co/80x80.png', uid: 'casualco-uid' },
+    'prod_15': { name: 'BeautyBox', avatarUrl: 'https://placehold.co/80x80.png', uid: 'beautybox-uid' },
+    'prod_16': { name: 'BeautyBox', avatarUrl: 'https://placehold.co/80x80.png', uid: 'beautybox-uid' },
+    'prod_17': { name: 'BeautyBox', avatarUrl: 'https://placehold.co/80x80.png', uid: 'beautybox-uid' },
+    'prod_18': { name: 'BeautyBox', avatarUrl: 'https://placehold.co/80x80.png', uid: 'beautybox-uid' },
+    'prod_19': { name: 'QuickFlex', avatarUrl: 'https://placehold.co/80x80.png', uid: 'quickflex-uid' },
+    'prod_20': { name: 'GentleStep', avatarUrl: 'https://placehold.co/80x80.png', uid: 'gentlestep-uid' },
+    'prod_21': { name: 'SunShield', avatarUrl: 'https://placehold.co/80x80.png', uid: 'sunshield-uid' },
+    'prod_22': { name: 'Aura Jewels', avatarUrl: 'https://placehold.co/80x80.png', uid: 'aurajewels-uid' },
+    'prod_23': { name: 'BreezyWear', avatarUrl: 'https://placehold.co/80x80.png', uid: 'breezywear-uid' },
+    'prod_24': { name: 'Elegance', avatarUrl: 'https://placehold.co/80x80.png', uid: 'elegance-uid' },
+    'prod_25': { name: 'KitchenPro', avatarUrl: 'https://placehold.co/80x80.png', uid: 'kitchenpro-uid' },
+    'prod_26': { name: 'CozyHome', avatarUrl: 'https://placehold.co/80x80.png', uid: 'cozyhome-uid' },
+    'prod_27': { name: 'AudioBlast', avatarUrl: 'https://placehold.co/80x80.png', uid: 'audioblast-uid' },
+    'prod_28': { name: 'LittleSprout', avatarUrl: 'https://placehold.co/80x80.png', uid: 'littlesprout-uid' },
+    'prod_29': { name: 'StretchyPants', avatarUrl: 'https://placehold.co/80x80.png', uid: 'stretchypants-uid' },
 };
 
 const liveSellers = [
@@ -100,8 +119,8 @@ export function ProductDetailClient({ productId }: { productId: string }) {
         let streams = liveSellers.filter(
             s => s.category === product.category && s.productId !== product.key
         );
-        if (streams.length > 5) {
-            return streams.slice(0, 6);
+         if (streams.length > 50) {
+            return streams.slice(0, 51);
         }
         // Fallback to show some streams if none match the category, excluding the current one
         const fallbackStreams = liveSellers.filter(s => s.productId !== product.key);
@@ -114,7 +133,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
             }
             i++;
         }
-        return streams.slice(0,6);
+        return streams.slice(0,51);
     }, [product]);
 
     const estimatedDeliveryDate = useMemo(() => {
@@ -582,7 +601,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                             )}
                             {product.images.length > 1 && (
                                  <div className="aspect-square bg-muted rounded-lg overflow-hidden cursor-pointer group">
-                                     <Image src={product.images[1]} alt={`${product.name} highlight`} fill sizes="(max-width: 768px) 100vw, 50vw" className="object-cover w-full h-full group-hover:scale-105 transition-transform" />
+                                     <Image src={product.images[1]} alt={`${product.name} highlight`} fill sizes="100vw" className="object-cover w-full h-full group-hover:scale-105 transition-transform" />
                                  </div>
                             )}
                         </CardContent>
@@ -740,7 +759,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                         </div>
                                          <div className="flex items-center gap-1 mt-1">
                                              {[...Array(5)].map((_, i) => (
-                                                <Star key={i} className={cn("h-4 w-4", i < review.rating ? 'text-yellow-400 fill-yellow-400' : 'text-muted-foreground')} />
+                                                <Star key={i} className={cn("w-4 h-4", i < review.rating ? 'text-yellow-400 fill-yellow-400' : 'text-muted-foreground')} />
                                             ))}
                                         </div>
                                         <p className="text-sm text-muted-foreground mt-2">{review.text}</p>
