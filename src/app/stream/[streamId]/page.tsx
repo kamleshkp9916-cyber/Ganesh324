@@ -71,6 +71,7 @@ import {
   Trash2,
   MoreHorizontal,
   Banknote,
+  DollarSign, // Added for Super Chat
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -466,7 +467,7 @@ const ProductPromoCard = ({ msg, handlers }: { msg: any, handlers: any }) => {
 
 const PostShareCard = ({ msg, handlers }: { msg: any, handlers: any }) => {
     const { product, sellerName, text } = msg;
-    if (!product) return null; // Safety check
+    if (!product) return null;
 
     return (
         <div className="p-1.5">
@@ -559,6 +560,8 @@ const RelatedContent = ({ relatedStreams }: { relatedStreams: any[] }) => {
     if (!relatedStreams || relatedStreams.length === 0) {
         return null;
     }
+    const isMobile = useIsMobile();
+    
     return (
      <div className="mt-8">
         <div className="mb-4 flex items-center justify-between">
@@ -567,7 +570,7 @@ const RelatedContent = ({ relatedStreams }: { relatedStreams: any[] }) => {
             <Link href="/live-selling">More</Link>
         </Button>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className={cn("grid gap-4", isMobile ? "grid-cols-1" : "grid-cols-2")}>
             {relatedStreams.slice(0,4).map((s: any) => (
                 <Link href={`/stream/${s.id}`} key={s.id} className="group">
                     <div className="relative rounded-lg overflow-hidden aspect-[16/9] bg-muted">
@@ -625,7 +628,6 @@ export default function StreamPage() {
         if (seller) {
              const initialMessages = mockChatMessages.map(msg => {
                 let finalMsg = { ...msg };
-                // If it's a seller message or post share, dynamically set the user name
                 if (finalMsg.isSeller) {
                     finalMsg.user = seller.name;
                 }
@@ -634,10 +636,10 @@ export default function StreamPage() {
                 }
                 return finalMsg;
             });
-            // Now filter out messages relevant only to *other* sellers
+
             const relevantMessages = initialMessages.filter(msg => {
-                if(msg.isSeller && msg.user !== seller.name) return false;
-                if(msg.type === 'post_share' && msg.sellerName !== seller.name) return false;
+                if (msg.isSeller && msg.user !== seller.name) return false;
+                if (msg.type === 'post_share' && msg.sellerName !== seller.name) return false;
                 return true;
             });
             setChatMessages(relevantMessages);
@@ -652,10 +654,8 @@ export default function StreamPage() {
          if (streams.length > 50) {
             return streams.slice(0, 51);
         }
-        // Fallback to show some streams if none match the category, excluding the current one
         const fallbackStreams = liveSellers.filter(s => s.id !== streamId);
         
-        // Add from fallback until we have 6 total, avoiding duplicates
         let i = 0;
         while(streams.length < 6 && i < fallbackStreams.length) {
             if (!streams.some(s => s.id === fallbackStreams[i].id)) {
@@ -746,7 +746,7 @@ export default function StreamPage() {
     useEffect(() => {
         if (!seller) return;
 
-        let promotionInterval = 300000; // Default to 5 minutes
+        let promotionInterval = 300000;
 
         if (typeof window !== 'undefined') {
             try {
@@ -1377,25 +1377,13 @@ const ChatPanel = ({
   seller,
   chatMessages,
   pinnedMessages,
-  activeAuction,
-  auctionTime,
-  highestBid,
-  totalBids,
-  walletBalance,
   handlers,
-  inlineAuctionCardRefs,
   onClose,
 }: {
   seller: any;
   chatMessages: any[];
   pinnedMessages: any[];
-  activeAuction: any;
-  auctionTime: number | null;
-  highestBid: number;
-  totalBids: number;
-  walletBalance: number;
   handlers: any;
-  inlineAuctionCardRefs: React.MutableRefObject<Record<string, HTMLDivElement | null>>;
   onClose: () => void;
 }) => {
   const [newMessage, setNewMessage] = useState("");
@@ -1438,6 +1426,48 @@ const ChatPanel = ({
     textareaRef.current?.focus();
   }
 
+  const SuperChatDialog = () => {
+    const [amount, setAmount] = useState(50);
+    const [message, setMessage] = useState('');
+
+    const handleSendSuperChat = () => {
+        if (!message.trim()) {
+            handlers.toast({ variant: 'destructive', title: 'Message is empty' });
+            return;
+        }
+        handlers.handleNewMessageSubmit(`SUPER CHAT (₹${amount}): ${message}`);
+        handlers.toast({ title: 'Super Chat Sent!', description: `You donated ₹${amount}` });
+        document.getElementById('closeSuperChatDialog')?.click();
+    };
+
+    return (
+        <DialogContent>
+            <DialogHeader>
+                <DialogTitle>Send a Super Chat</DialogTitle>
+                <DialogDescription>Highlight your message and support the creator!</DialogDescription>
+            </DialogHeader>
+            <div className="py-4 space-y-4">
+                <div className="text-center">
+                    <p className="text-4xl font-bold">₹{amount}</p>
+                </div>
+                <Slider defaultValue={[50]} value={[amount]} max={5000} step={10} onValueChange={(value) => setAmount(value[0])} />
+                <div className="grid grid-cols-4 gap-2">
+                    {[50, 100, 250, 500].map(val => (
+                        <Button key={val} variant="outline" onClick={() => setAmount(val)}>₹{val}</Button>
+                    ))}
+                </div>
+                <Textarea placeholder="Your highlighted message..." value={message} onChange={(e) => setMessage(e.target.value)} />
+            </div>
+            <DialogFooter>
+                <DialogClose asChild>
+                    <Button type="button" variant="ghost" id="closeSuperChatDialog">Cancel</Button>
+                </DialogClose>
+                <Button onClick={handleSendSuperChat} disabled={!message.trim()}>Send Super Chat for ₹{amount}</Button>
+            </DialogFooter>
+        </DialogContent>
+    );
+  };
+
   return (
     <div className='h-full flex flex-col bg-[#0b0b0c]'>
       <header className="p-3 flex items-center justify-between z-10 flex-shrink-0 h-16 border-b border-[rgba(255,255,255,0.04)] sticky top-0 bg-[#0f1113]/80 backdrop-blur-sm">
@@ -1468,7 +1498,7 @@ const ChatPanel = ({
                                         </>
                                     )}
                                     {item.type === 'offer' && (
-                                        <div className="flex items-start gap-3">
+                                         <div className="flex items-start gap-3">
                                             <div className="flex-shrink-0 mt-1">{item.icon}</div>
                                             <div>
                                                 <h5 className="font-semibold">{item.title}</h5>
@@ -1590,6 +1620,14 @@ const ChatPanel = ({
                      </PopoverContent>
                 </Popover>
              </div>
+             <Dialog>
+                <DialogTrigger asChild>
+                    <Button variant="ghost" size="icon" className="rounded-full flex-shrink-0 h-11 w-11 text-muted-foreground hover:text-white">
+                        <DollarSign className="h-5 w-5"/>
+                    </Button>
+                </DialogTrigger>
+                <SuperChatDialog />
+             </Dialog>
              <Button type="submit" size="icon" disabled={!newMessage.trim()} className="rounded-full flex-shrink-0 h-11 w-11 bg-[#E43F3F] hover:bg-[#E43F3F]/90 active:scale-105 transition-transform">
                 <Send className="h-5 w-5" />
             </Button>
