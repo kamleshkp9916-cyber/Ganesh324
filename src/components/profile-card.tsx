@@ -196,7 +196,7 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
           } else if (displayName === 'BeautyBox') {
               productsToShow = mockBeautyBoxProducts;
           }
-          setSellerProducts(productsToShow);
+          setSellerProducts(productsToShow.length > 0 ? productsToShow : mockBeautyBoxProducts);
       }
       if (user) {
           setMyReviews(getUserReviews(user.uid));
@@ -756,9 +756,15 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                                    </Card>
                                ))
                             ) : (
-                                <Card className="text-center py-12 text-muted-foreground flex flex-col items-center gap-4">
+                               <Card className="text-center py-12 text-muted-foreground flex flex-col items-center gap-4">
                                     <h3 className="text-xl font-semibold">No Posts Yet</h3>
                                     <p>This seller hasn't posted anything yet.</p>
+                                    {isOwnProfile && <p>Why not create your first post?</p>}
+                                    {isOwnProfile && (
+                                        <div className="w-full max-w-lg p-4">
+                                            <CreatePostForm onPost={async (data) => console.log(data)} onFinishEditing={() => {}} isSubmitting={false} />
+                                        </div>
+                                    )}
                                 </Card>
                             )}
                       </TabsContent>
@@ -886,3 +892,5 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
     </>
   );
 }
+
+    
