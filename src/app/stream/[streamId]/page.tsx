@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import {
@@ -497,7 +498,7 @@ const renderWithHashtagsAndLinks = (text: string) => {
             return <a key={index} href={part} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline">{part}</a>;
         }
         if (part.startsWith('#')) {
-            return <Link key={index} href={`/feed?filter=${part.substring(1)}`} className="text-primary font-semibold hover:underline">{part}</Link>;
+            return <button key={index} className="text-primary font-semibold hover:underline">{part}</button>;
         }
         if (part.startsWith('@')) {
             return <span key={index} className="text-blue-400 font-semibold">{part}</span>;
@@ -1155,7 +1156,6 @@ return (
                 pinnedMessages={props.pinnedMessages}
                 handlers={handlers}
                 onClose={() => {}}
-                router={props.router}
             />
         </aside>
     </div>
@@ -1284,7 +1284,7 @@ const MobileLayout = React.memo(({ handlers, chatMessages, ...props }: any) => {
 });
 MobileLayout.displayName = "MobileLayout";
 
-const ChatMessage = ({ msg, handlers }: { msg: any, handlers: any }) => {
+const ChatMessage = ({ msg, handlers, seller }: { msg: any, handlers: any, seller: any }) => {
     const { user } = useAuth();
     const isMyMessage = msg.userId === user?.uid;
     const isSellerMessage = msg.isSeller;
@@ -1311,8 +1311,7 @@ const ChatMessage = ({ msg, handlers }: { msg: any, handlers: any }) => {
                         {isSellerMessage && <Badge variant="outline" className="mr-1.5 border-yellow-400/50 text-yellow-400 h-4 text-[10px] px-1.5">Seller</Badge>}
                     </div>
                     <div className="text-sm whitespace-pre-wrap break-words leading-normal">
-                        {msg.replyingTo && <span className="text-primary font-semibold mr-1">@{msg.replyingTo}</span>}
-                        {renderWithHashtagsAndLinks(msg.text)}
+                         {renderWithHashtagsAndLinks(msg.text)}
                     </div>
                  </div>
             </div>
@@ -1342,26 +1341,14 @@ const ChatPanel = ({
   seller,
   chatMessages,
   pinnedMessages,
-  activeAuction,
-  auctionTime,
-  highestBid,
-  totalBids,
-  walletBalance,
   handlers,
-  inlineAuctionCardRefs,
   onClose,
   router,
 }: {
   seller: any;
   chatMessages: any[];
   pinnedMessages: any[];
-  activeAuction: any;
-  auctionTime: number | null;
-  highestBid: number;
-  totalBids: number;
-  walletBalance: number;
   handlers: any;
-  inlineAuctionCardRefs: React.MutableRefObject<Record<string, HTMLDivElement | null>>;
   onClose: () => void;
   router: any;
 }) => {
@@ -1393,14 +1380,7 @@ const ChatPanel = ({
   const handleNewMessageSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newMessage.trim()) return;
-    
-    let messageToSend = newMessage;
-    if (replyingTo) {
-      messageToSend = `@${replyingTo.name.split(' ')[0]} ${newMessage}`;
-    }
-
-    console.log("New Message:", messageToSend);
-
+    handlers.handleNewMessageSubmit(newMessage, replyingTo);
     setNewMessage("");
     setReplyingTo(null);
   };
@@ -1489,47 +1469,14 @@ const ChatPanel = ({
         </div>
       </header>
       <ScrollArea className="flex-grow" ref={chatContainerRef} onScroll={handleManualScroll}>
-          <div className="p-3 space-y-2.5">
+          <div className="p-3 space-y-2">
              {chatMessages.map((msg) => {
                   if (msg.type === 'system') {
                       return <div key={msg.id} className="text-xs text-center text-[#9AA1A6] italic py-1">{msg.text}</div>
                   }
                   if (!msg.user) return null;
-
-                  const isMyMessage = msg.userId === seller?.uid;
-                  const isSellerMessage = msg.userId === seller?.uid;
-                  
                   return (
-                     <div key={msg.id} className="flex items-start gap-3 w-full group text-sm animate-message-in">
-                         <Avatar className="h-9 w-9 mt-0.5 border border-[rgba(255,255,255,0.04)]">
-                             <AvatarImage src={msg.avatar} />
-                             <AvatarFallback className="bg-gradient-to-br from-red-500 to-yellow-500 text-white font-bold">{msg.user.charAt(0)}</AvatarFallback>
-                         </Avatar>
-                          <div className="flex-grow">
-                             <p className="leading-relaxed break-words text-sm text-[#E6ECEF]">
-                                 <b className="font-semibold text-xs mr-1.5" style={{ color: msg.userColor || 'inherit' }}>{msg.user}:</b>
-                                 <span className="text-sm">
-                                    {msg.replyingTo && <span className="text-primary font-semibold mr-1">@{msg.replyingTo}</span>}
-                                    {msg.text}
-                                 </span>
-                             </p>
-                          </div>
-                          <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                  <button className="text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity p-1">
-                                      <MoreHorizontal className="w-4 h-4" />
-                                  </button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                  <DropdownMenuItem onSelect={() => handleReply(msg)}>
-                                      <Reply className="mr-2 h-4 w-4" />Reply
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem onSelect={() => handlers.onReportMessage(msg.id)}>
-                                    <Flag className="mr-2 h-4 w-4" />Report
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                          </DropdownMenu>
-                      </div>
+                     <ChatMessage key={msg.id} msg={msg} handlers={{...handlers, onReply: handleReply}} seller={seller} />
                   )
               })}
             <div ref={messagesEndRef} />
@@ -1563,6 +1510,12 @@ const ChatPanel = ({
                     placeholder="Send a message..." 
                     value={newMessage}
                     onChange={(e) => setNewMessage(e.target.value)}
+                    onKeyDown={(e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                            e.preventDefault();
+                            handleNewMessageSubmit(e);
+                        }
+                    }}
                     rows={1}
                     className='flex-grow resize-none max-h-24 px-4 pr-12 py-3 min-h-11 rounded-full bg-[#0f1113] text-white placeholder:text-[#7d8488] border-none focus-visible:ring-2 focus-visible:ring-offset-0 focus-visible:ring-[#E43F3F]/30'
                 />
