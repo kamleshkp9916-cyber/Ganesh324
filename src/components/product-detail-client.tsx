@@ -164,7 +164,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                 else setSelectedImage(product.images[0]);
                 
                 if (variant.highlights) setCurrentHighlights(variant.highlights.split('\\n').filter((h: string) => h.trim() !== ''));
-                else setCurrentHighlights(product.highlights ? product.highlights.split('\\n').filter((h: string) => h.trim() !== '') : []);
+                else setCurrentHighlights(product.highlights ? product.highlights.split('\\n').filter((h:string) => h.trim() !== '') : []);
 
             } else {
                  setCurrentPrice(product.price);
@@ -446,546 +446,548 @@ export function ProductDetailClient({ productId }: { productId: string }) {
     ].filter(detail => detail.value);
 
     return (
-        <div className="min-h-screen bg-background">
-            <header className="p-4 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-sm z-30 border-b">
-                <Button variant="ghost" size="icon" onClick={() => router.back()}>
-                    <ArrowLeft className="h-6 w-6" />
-                </Button>
-                <h1 className="text-xl font-bold truncate">{product.name}</h1>
-                <div className="w-10"></div>
-            </header>
+        <>
+            <div className="min-h-screen bg-background">
+                <header className="p-4 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-sm z-30 border-b">
+                    <Button variant="ghost" size="icon" onClick={() => router.back()}>
+                        <ArrowLeft className="h-6 w-6" />
+                    </Button>
+                    <h1 className="text-xl font-bold truncate">{product.name}</h1>
+                    <div className="w-10"></div>
+                </header>
 
-            <main className="container mx-auto py-6">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-                    <Card>
-                        <CardContent className="p-4">
-                             <Dialog>
-                                <DialogTrigger asChild>
-                                    <div className="aspect-square w-full relative bg-muted rounded-lg overflow-hidden mb-4 cursor-pointer">
-                                        {selectedImage && (
-                                            <Image
-                                                src={selectedImage}
-                                                alt={product.name}
-                                                fill
-                                                sizes="(max-width: 768px) 100vw, 50vw"
-                                                className="object-contain"
-                                            />
-                                        )}
-                                    </div>
-                                </DialogTrigger>
-                                <DialogContent className="max-w-3xl max-h-[90vh]">
-                                    <div className="relative aspect-square w-full">
-                                        {selectedImage && (
-                                            <Image
-                                                src={selectedImage}
-                                                alt={product.name}
-                                                fill
-                                                className="object-contain"
-                                            />
-                                        )}
-                                    </div>
-                                </DialogContent>
-                            </Dialog>
-                            <ScrollArea>
-                                <div className="flex gap-2 pb-2">
-                                    {product.images.map((img: string, index: number) => (
-                                        <button
-                                            key={index}
-                                            onClick={() => setSelectedImage(img)}
-                                            className={cn(
-                                                "w-16 h-16 rounded-md overflow-hidden border-2 flex-shrink-0",
-                                                selectedImage === img ? 'border-primary' : 'border-transparent'
+                <main className="container mx-auto py-6">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+                        <Card>
+                            <CardContent className="p-4">
+                                <Dialog>
+                                    <DialogTrigger asChild>
+                                        <div className="aspect-square w-full relative bg-muted rounded-lg overflow-hidden mb-4 cursor-pointer">
+                                            {selectedImage && (
+                                                <Image
+                                                    src={selectedImage}
+                                                    alt={product.name}
+                                                    fill
+                                                    sizes="(max-width: 768px) 100vw, 50vw"
+                                                    className="object-contain"
+                                                />
                                             )}
-                                        >
-                                            <Image
-                                                src={img}
-                                                alt={`Thumbnail ${index + 1}`}
-                                                width={64}
-                                                height={64}
-                                                className="object-cover w-full h-full"
-                                            />
-                                        </button>
-                                    ))}
-                                </div>
-                                <ScrollBar orientation="horizontal" />
-                            </ScrollArea>
-                        </CardContent>
-                    </Card>
-                    <div className="flex flex-col gap-4">
-                        <div className="flex justify-between items-start">
-                            <div>
-                                <p className="text-sm font-medium text-primary mb-1">{product.brand}</p>
-                                <div className="flex items-center gap-2 flex-wrap">
-                                    <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">{product.name}</h1>
-                                     {product.key && <Badge variant="outline">{product.key}</Badge>}
-                                    {product.isFromStream && <Badge variant="purple"><Video className="mr-1 h-3 w-3" /> From Stream</Badge>}
-                                </div>
-                                 <p className="text-muted-foreground mt-2">{product.description}</p>
-                            </div>
-                            <div className="flex items-center">
-                                <Button variant="ghost" size="icon" onClick={handleWishlistToggle}>
-                                    <Heart className={cn("h-6 w-6", wishlisted ? "fill-red-500 text-red-500" : "text-muted-foreground")} />
-                                </Button>
-                                <Button variant="ghost" size="icon" onClick={handleShare}>
-                                    <Share2 className="h-6 w-6" />
-                                </Button>
-                                <Button variant="ghost" size="icon" onClick={handleReportProduct}>
-                                    <Flag className="h-6 w-6" />
-                                </Button>
-                            </div>
-                        </div>
-                        <div>
-                             <div className="flex items-center gap-4 flex-wrap">
-                                <p className="text-3xl font-bold text-foreground">{currentPrice}</p>
-                                <div className="flex items-center gap-2">
-                                        <div className="flex items-center gap-1 text-amber-400">
-                                            <Star className="h-5 w-5 fill-current" />
-                                            <span className="font-bold text-lg text-foreground">{averageRating}</span>
                                         </div>
-                                        <span className="text-muted-foreground text-sm">({reviews.length} reviews)</span>
-                                </div>
-                                <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                                    <div className="flex items-center gap-1">
-                                        <Package className="w-4 h-4" />
-                                        <span>{variantStock ?? product.stock} in stock</span>
+                                    </DialogTrigger>
+                                    <DialogContent className="max-w-3xl max-h-[90vh]">
+                                        <div className="relative aspect-square w-full">
+                                            {selectedImage && (
+                                                <Image
+                                                    src={selectedImage}
+                                                    alt={product.name}
+                                                    fill
+                                                    className="object-contain"
+                                                />
+                                            )}
+                                        </div>
+                                    </DialogContent>
+                                </Dialog>
+                                <ScrollArea>
+                                    <div className="flex gap-2 pb-2">
+                                        {product.images.map((img: string, index: number) => (
+                                            <button
+                                                key={index}
+                                                onClick={() => setSelectedImage(img)}
+                                                className={cn(
+                                                    "w-16 h-16 rounded-md overflow-hidden border-2 flex-shrink-0",
+                                                    selectedImage === img ? 'border-primary' : 'border-transparent'
+                                                )}
+                                            >
+                                                <Image
+                                                    src={img}
+                                                    alt={`Thumbnail ${index + 1}`}
+                                                    width={64}
+                                                    height={64}
+                                                    className="object-cover w-full h-full"
+                                                />
+                                            </button>
+                                        ))}
                                     </div>
-                                    <div className="flex items-center gap-1">
-                                        <Users className="w-4 h-4" />
-                                        <span>{product.sold} sold</span>
+                                    <ScrollBar orientation="horizontal" />
+                                </ScrollArea>
+                            </CardContent>
+                        </Card>
+                        <div className="flex flex-col gap-4">
+                            <div className="flex justify-between items-start">
+                                <div>
+                                    <p className="text-sm font-medium text-primary mb-1">{product.brand}</p>
+                                    <div className="flex items-center gap-2 flex-wrap">
+                                        <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">{product.name}</h1>
+                                        {product.key && <Badge variant="outline">{product.key}</Badge>}
+                                        {product.isFromStream && <Badge variant="purple"><Video className="mr-1 h-3 w-3" /> From Stream</Badge>}
                                     </div>
+                                    <p className="text-muted-foreground mt-2">{product.description}</p>
                                 </div>
-                            </div>
-                            <p className="text-sm text-muted-foreground mt-1">(inclusive of all taxes)</p>
-                        </div>
-                         {availableColors.length > 0 && (
-                            <div className="space-y-2">
-                                <Label className="font-semibold">Color: <span className="font-normal">{selectedColor}</span></Label>
-                                <div className="flex flex-wrap gap-2">
-                                    {availableColors.map((color: string) => (
-                                        <Button
-                                            key={color}
-                                            variant={selectedColor === color ? 'default' : 'outline'}
-                                            size="sm"
-                                            onClick={() => setSelectedColor(color)}
-                                        >
-                                            {color}
-                                        </Button>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-                        {availableSizes.length > 0 && (
-                            <div className="space-y-2">
-                                <Label className="font-semibold">Size: <span className="font-normal">{selectedSize}</span></Label>
-                                <div className="flex flex-wrap gap-2">
-                                    {availableSizes.map((size: string) => (
-                                        <Button
-                                            key={size}
-                                            variant={selectedSize === size ? 'default' : 'outline'}
-                                            size="sm"
-                                            onClick={() => setSelectedSize(size)}
-                                            className="w-12"
-                                        >
-                                            {size}
-                                        </Button>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-                       
-                        <div className="flex flex-col gap-2">
-                            {variantStock !== undefined && variantStock > 0 ? (
-                                <>
-                                    {inCart ? (
-                                        <Button size="lg" className="w-full" variant="outline" asChild>
-                                            <Link href="/cart">
-                                                <ShoppingCart className="mr-2 h-5 w-5" />
-                                                Go to Cart
-                                            </Link>
-                                        </Button>
-                                    ) : (
-                                        <Button size="lg" className="w-full" variant="outline" onClick={handleAddToCart}>
-                                            <ShoppingCart className="mr-2 h-5 w-5" />
-                                            Add to Cart
-                                        </Button>
-                                    )}
-                                    <Button size="lg" className="w-full" onClick={handleBuyNow}>
-                                        Buy Now
+                                <div className="flex items-center">
+                                    <Button variant="ghost" size="icon" onClick={handleWishlistToggle}>
+                                        <Heart className={cn("h-6 w-6", wishlisted ? "fill-red-500 text-red-500" : "text-muted-foreground")} />
                                     </Button>
-                                </>
-                            ) : (
-                                <Button size="lg" className="w-full" disabled>
-                                    Out of Stock
-                                </Button>
-                            )}
-                        </div>
-                         <Card>
-                            <CardHeader className="flex flex-row items-center justify-between py-3 px-4">
-                                <CardTitle className="text-base">Delivery Information</CardTitle>
-                                {user && (
-                                     <Dialog open={isAddressDialogOpen} onOpenChange={setIsAddressDialogOpen}>
-                                        <DialogTrigger asChild>
-                                             <Button variant="outline" size="sm">
-                                                <Edit className="mr-2 h-3 w-3" />
-                                                Change
-                                            </Button>
-                                        </DialogTrigger>
-                                        <DialogContent>
-                                            <DialogHeader>
-                                                <DialogTitle>Change Delivery Address</DialogTitle>
-                                            </DialogHeader>
-                                            <EditAddressForm 
-                                                onSave={handleAddressSave} 
-                                                onCancel={() => setIsAddressDialogOpen(false)}
-                                                onAddressesUpdate={handleAddressesUpdate}
-                                            />
-                                        </DialogContent>
-                                    </Dialog>
-                                )}
-                            </CardHeader>
-                            <CardContent className="px-4 pb-4">
-                                {user ? (
-                                    userData?.addresses && userData.addresses.length > 0 ? (
-                                        <div className="text-sm">
-                                            <div className="flex items-center gap-2">
-                                                <Truck className="h-5 w-5 text-muted-foreground"/>
-                                                <span>Deliver to <b>{userData.addresses[0].name}</b> - {userData.addresses[0].pincode}</span>
+                                    <Button variant="ghost" size="icon" onClick={handleShare}>
+                                        <Share2 className="h-6 w-6" />
+                                    </Button>
+                                    <Button variant="ghost" size="icon" onClick={handleReportProduct}>
+                                        <Flag className="h-6 w-6" />
+                                    </Button>
+                                </div>
+                            </div>
+                            <div>
+                                <div className="flex items-center gap-4 flex-wrap">
+                                    <p className="text-3xl font-bold text-foreground">{currentPrice}</p>
+                                    <div className="flex items-center gap-2">
+                                            <div className="flex items-center gap-1 text-amber-400">
+                                                <Star className="h-5 w-5 fill-current" />
+                                                <span className="font-bold text-lg text-foreground">{averageRating}</span>
                                             </div>
-                                            <p className="pl-7 text-muted-foreground">{userData.addresses[0].village}, {userData.addresses[0].city}</p>
-                                            <p className="pl-7 text-green-600 font-semibold mt-1">Delivery by {estimatedDeliveryDate}</p>
+                                            <span className="text-muted-foreground text-sm">({reviews.length} reviews)</span>
+                                    </div>
+                                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                                        <div className="flex items-center gap-1">
+                                            <Package className="w-4 h-4" />
+                                            <span>{variantStock ?? product.stock} in stock</span>
                                         </div>
-                                    ) : (
-                                        <div className="text-sm text-center text-muted-foreground">
-                                            <p>You have no saved addresses.</p>
-                                            <Button asChild variant="link" className="p-0 h-auto">
-                                                <Link href="/setting">Add an address</Link>
+                                        <div className="flex items-center gap-1">
+                                            <Users className="w-4 h-4" />
+                                            <span>{product.sold} sold</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <p className="text-sm text-muted-foreground mt-1">(inclusive of all taxes)</p>
+                            </div>
+                            {availableColors.length > 0 && (
+                                <div className="space-y-2">
+                                    <Label className="font-semibold">Color: <span className="font-normal">{selectedColor}</span></Label>
+                                    <div className="flex flex-wrap gap-2">
+                                        {availableColors.map((color: string) => (
+                                            <Button
+                                                key={color}
+                                                variant={selectedColor === color ? 'default' : 'outline'}
+                                                size="sm"
+                                                onClick={() => setSelectedColor(color)}
+                                            >
+                                                {color}
                                             </Button>
-                                             <p>to see delivery information.</p>
-                                        </div>
-                                    )
-                                ) : (
-                                     <div className="space-y-2">
-                                        <Label htmlFor="pincode">Check Delivery</Label>
-                                        <div className="flex items-center gap-2">
-                                            <Input
-                                                id="pincode"
-                                                placeholder="Enter Pincode"
-                                                value={pincode}
-                                                onChange={(e) => {
-                                                    setPincode(e.target.value.replace(/\D/g, '').slice(0, 6));
-                                                    setIsDeliverable(null);
-                                                }}
-                                            />
-                                            <Button onClick={handlePincodeCheck} disabled={pincode.length !== 6 || checkingPincode}>
-                                                {checkingPincode ? <Loader2 className="h-4 w-4 animate-spin"/> : "Check"}
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                            {availableSizes.length > 0 && (
+                                <div className="space-y-2">
+                                    <Label className="font-semibold">Size: <span className="font-normal">{selectedSize}</span></Label>
+                                    <div className="flex flex-wrap gap-2">
+                                        {availableSizes.map((size: string) => (
+                                            <Button
+                                                key={size}
+                                                variant={selectedSize === size ? 'default' : 'outline'}
+                                                size="sm"
+                                                onClick={() => setSelectedSize(size)}
+                                                className="w-12"
+                                            >
+                                                {size}
                                             </Button>
-                                        </div>
-                                        {isDeliverable !== null && (
-                                            isDeliverable ? (
-                                                <p className="text-sm text-green-600">✓ Delivery available to this pincode. Estimated by {estimatedDeliveryDate}.</p>
-                                            ) : (
-                                                <p className="text-sm text-destructive">✗ Sorry, delivery is not available to this pincode.</p>
-                                            )
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                        
+                            <div className="flex flex-col gap-2">
+                                {(variantStock !== undefined && variantStock > 0) ? (
+                                    <>
+                                        {inCart ? (
+                                            <Button size="lg" className="w-full" asChild>
+                                                <Link href="/cart">
+                                                    <ShoppingCart className="mr-2 h-5 w-5" />
+                                                    One Step to Buy
+                                                </Link>
+                                            </Button>
+                                        ) : (
+                                            <Button size="lg" className="w-full" variant="outline" onClick={handleAddToCart}>
+                                                <ShoppingCart className="mr-2 h-5 w-5" />
+                                                Add to Cart
+                                            </Button>
                                         )}
+                                        <Button size="lg" className="w-full" onClick={handleBuyNow}>
+                                            Buy Now
+                                        </Button>
+                                    </>
+                                ) : (
+                                    <Button size="lg" className="w-full" disabled>
+                                        Out of Stock
+                                    </Button>
+                                )}
+                            </div>
+                            <Card>
+                                <CardHeader className="flex flex-row items-center justify-between p-3">
+                                    <CardTitle className="text-base">Delivery Information</CardTitle>
+                                    {user && (
+                                        <Dialog open={isAddressDialogOpen} onOpenChange={setIsAddressDialogOpen}>
+                                            <DialogTrigger asChild>
+                                                <Button variant="outline" size="sm">
+                                                    <Edit className="mr-2 h-3 w-3" />
+                                                    Change
+                                                </Button>
+                                            </DialogTrigger>
+                                            <DialogContent>
+                                                <DialogHeader>
+                                                    <DialogTitle>Change Delivery Address</DialogTitle>
+                                                </DialogHeader>
+                                                <EditAddressForm 
+                                                    onSave={handleAddressSave} 
+                                                    onCancel={() => setIsAddressDialogOpen(false)}
+                                                    onAddressesUpdate={handleAddressesUpdate}
+                                                />
+                                            </DialogContent>
+                                        </Dialog>
+                                    )}
+                                </CardHeader>
+                                <CardContent className="p-3 pt-0">
+                                    {user ? (
+                                        userData?.addresses && userData.addresses.length > 0 ? (
+                                            <div className="text-sm">
+                                                <div className="flex items-center gap-2">
+                                                    <Truck className="h-5 w-5 text-muted-foreground"/>
+                                                    <span>Deliver to <b>{userData.addresses[0].name}</b> - {userData.addresses[0].pincode}</span>
+                                                </div>
+                                                <p className="pl-7 text-muted-foreground">{userData.addresses[0].village}, {userData.addresses[0].city}</p>
+                                                <p className="pl-7 text-green-600 font-semibold mt-1">Delivery by {estimatedDeliveryDate}</p>
+                                            </div>
+                                        ) : (
+                                            <div className="text-sm text-center text-muted-foreground">
+                                                <p>You have no saved addresses.</p>
+                                                <Button asChild variant="link" className="p-0 h-auto">
+                                                    <Link href="/setting">Add an address</Link>
+                                                </Button>
+                                                <p>to see delivery information.</p>
+                                            </div>
+                                        )
+                                    ) : (
+                                        <div className="space-y-2">
+                                            <Label htmlFor="pincode">Check Delivery</Label>
+                                            <div className="flex items-center gap-2">
+                                                <Input
+                                                    id="pincode"
+                                                    placeholder="Enter Pincode"
+                                                    value={pincode}
+                                                    onChange={(e) => {
+                                                        setPincode(e.target.value.replace(/\D/g, '').slice(0, 6));
+                                                        setIsDeliverable(null);
+                                                    }}
+                                                />
+                                                <Button onClick={handlePincodeCheck} disabled={pincode.length !== 6 || checkingPincode}>
+                                                    {checkingPincode ? <Loader2 className="h-4 w-4 animate-spin"/> : "Check"}
+                                                </Button>
+                                            </div>
+                                            {isDeliverable !== null && (
+                                                isDeliverable ? (
+                                                    <p className="text-sm text-green-600">✓ Delivery available to this pincode. Estimated by {estimatedDeliveryDate}.</p>
+                                                ) : (
+                                                    <p className="text-sm text-destructive">✗ Sorry, delivery is not available to this pincode.</p>
+                                                )
+                                            )}
+                                        </div>
+                                    )}
+                                </CardContent>
+                            </Card>
+                            <div className="grid grid-cols-3 gap-2 text-center text-xs text-muted-foreground pt-4">
+                                <Link href="/help" className="flex flex-col items-center gap-1 hover:text-primary">
+                                    <RotateCcw className="h-6 w-6" />
+                                    <span>7-Day Return Policy</span>
+                                </Link>
+                                <Link href="/help" className="flex flex-col items-center gap-1 hover:text-primary">
+                                    <Banknote className="h-6 w-6" />
+                                    <span>Pay on Delivery</span>
+                                </Link>
+                                <Link href="/help" className="flex flex-col items-center gap-1 hover:text-primary">
+                                    <ShieldCheck className="h-6 w-6" />
+                                    <span>100% Genuine</span>
+                                </Link>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="md:col-span-2 space-y-8 mt-8">
+                        <Card>
+                            <CardHeader>
+                            <CardTitle>Available Offers</CardTitle>
+                            </CardHeader>
+                            <CardContent className="space-y-3">
+                            {mockAdminOffers.map((offer, index) => (
+                                <div key={index} className="flex items-start gap-3 text-sm">
+                                    <div className="flex-shrink-0 mt-1">{offer.icon}</div>
+                                    <div>
+                                        <h5 className="font-semibold">{offer.title}</h5>
+                                        <p className="text-muted-foreground">{offer.description}</p>
+                                    </div>
+                                </div>
+                            ))}
+                            {(product as any).offer?.title && (
+                                    <div className="flex items-start gap-3 text-sm">
+                                        <div className="flex-shrink-0 mt-1"><Ticket className="h-5 w-5 text-primary" /></div>
+                                        <div>
+                                            <h5 className="font-semibold">{(product as any).offer.title}</h5>
+                                            <p className="text-muted-foreground">{(product as any).offer.description}</p>
+                                        </div>
                                     </div>
                                 )}
                             </CardContent>
                         </Card>
-                        <div className="grid grid-cols-3 gap-2 text-center text-xs text-muted-foreground pt-4">
-                            <Link href="/help" className="flex flex-col items-center gap-1 hover:text-primary">
-                                <RotateCcw className="h-6 w-6" />
-                                <span>7-Day Return Policy</span>
-                            </Link>
-                            <Link href="/help" className="flex flex-col items-center gap-1 hover:text-primary">
-                                <Banknote className="h-6 w-6" />
-                                <span>Pay on Delivery</span>
-                            </Link>
-                            <Link href="/help" className="flex flex-col items-center gap-1 hover:text-primary">
-                                <ShieldCheck className="h-6 w-6" />
-                                <span>100% Genuine</span>
-                            </Link>
-                        </div>
-                    </div>
-                </div>
-                <div className="md:col-span-2 space-y-8 mt-8">
-                     <Card>
-                        <CardHeader>
-                           <CardTitle>Available Offers</CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-3">
-                           {mockAdminOffers.map((offer, index) => (
-                               <div key={index} className="flex items-start gap-3 text-sm">
-                                   <div className="flex-shrink-0 mt-1">{offer.icon}</div>
-                                   <div>
-                                       <h5 className="font-semibold">{offer.title}</h5>
-                                       <p className="text-muted-foreground">{offer.description}</p>
-                                   </div>
-                               </div>
-                           ))}
-                           {product.offer?.title && (
-                                <div className="flex items-start gap-3 text-sm">
-                                    <div className="flex-shrink-0 mt-1"><Ticket className="h-5 w-5 text-primary" /></div>
-                                    <div>
-                                        <h5 className="font-semibold">{product.offer.title}</h5>
-                                        <p className="text-muted-foreground">{product.offer.description}</p>
-                                    </div>
-                                </div>
-                            )}
-                        </CardContent>
-                    </Card>
-                    <Separator />
-                     <Card>
-                        <CardHeader className="flex items-center justify-between flex-row">
-                            <CardTitle>Highlights</CardTitle>
-                             <Button asChild variant="link">
-                                <Link href={`/product/${productId}/details`}>View Details</Link>
-                            </Button>
-                        </CardHeader>
-                        <CardContent className="overflow-hidden">
-                            <div className="grid md:grid-cols-2 gap-6 items-center">
-                                <div className="relative aspect-square md:aspect-[4/3] bg-muted rounded-lg overflow-hidden">
-                                    <Image
-                                        src={product.images[1] || product.images[0]}
-                                        alt={`${product.name} highlight`}
-                                        fill
-                                        sizes="(max-width: 768px) 100vw, 50vw"
-                                        className="object-cover"
-                                        data-ai-hint={`${product.hint} detail`}
-                                    />
-                                </div>
-                                <div className="p-2">
-                                    <ul className="space-y-3 text-sm">
-                                        {currentHighlights.map((highlight: string, index: number) => (
-                                            <li key={index} className="flex items-start gap-3">
-                                                <CheckCircle className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
-                                                <span className="text-muted-foreground">{highlight}</span>
-                                            </li>
-                                        ))}
-                                    </ul>
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
-
-                    <Separator />
-                    
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="flex items-center justify-between">
-                                <span>Ratings & Reviews</span>
-                                <span className="text-sm font-medium text-muted-foreground">{reviews.length} Reviews</span>
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                            {reviews.length > 0 ? (
-                                reviews.slice(0, 3).map((review) => (
-                                    <Card key={review.id} className="bg-muted/50">
-                                        <CardContent className="p-4">
-                                            <div className="flex gap-4">
-                                                <Avatar>
-                                                    <AvatarImage src={review.avatar} alt={review.author} />
-                                                    <AvatarFallback>{review.author.charAt(0)}</AvatarFallback>
-                                                </Avatar>
-                                                <div className="flex-grow">
-                                                    <div className="flex items-center justify-between">
-                                                        <h5 className="font-semibold">{review.author}</h5>
-                                                        <p className="text-xs text-muted-foreground">{formatDistanceToNow(new Date(review.date), { addSuffix: true })}</p>
-                                                    </div>
-                                                    <div className="flex items-center gap-1 mt-1">
-                                                        {[...Array(5)].map((_, i) => (
-                                                            <Star key={i} className={cn("h-4 w-4", i < review.rating ? 'text-yellow-400 fill-yellow-400' : 'text-muted-foreground')} />
-                                                        ))}
-                                                    </div>
-                                                    <p className="text-sm text-muted-foreground mt-2">{review.text}</p>
-                                                </div>
-                                            </div>
-                                        </CardContent>
-                                    </Card>
-                                ))
-                            ) : (
-                                <p className="text-sm text-muted-foreground text-center py-4">No reviews yet. Be the first to write one!</p>
-                            )}
-                        </CardContent>
-                        <CardFooter className="flex-col items-stretch gap-4">
-                             {reviews.length > 3 && <Button variant="link" className="w-full">View All {reviews.length} Reviews</Button>}
-                             <Button variant="outline" onClick={openReviewDialog}>Write a Review</Button>
-                        </CardFooter>
-                    </Card>
-                    
-                    <Separator />
-                    
-                     <Card>
-                        <CardHeader>
-                            <CardTitle className="flex items-center justify-between">
-                                <span>Questions & Answers</span>
-                                <span className="text-sm font-medium text-muted-foreground">{mockQandA.length} Q&As</span>
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                            {mockQandA.slice(0,3).map(qa => (
-                                <div key={qa.id}>
-                                    <p className="font-semibold text-sm">Q: {qa.question}</p>
-                                    {qa.answer ? (
-                                        <p className="text-sm text-muted-foreground mt-1">A: {qa.answer}</p>
-                                    ) : (
-                                        <p className="text-sm text-muted-foreground mt-1 italic">No answer yet.</p>
-                                    )}
-                                </div>
-                            ))}
-                        </CardContent>
-                         <CardFooter>
-                            <Dialog open={isQnaDialogOpen} onOpenChange={setIsQnaDialogOpen}>
-                                <DialogTrigger asChild>
-                                    <Button variant="outline" className="w-full">View All &amp; Ask a Question</Button>
-                                </DialogTrigger>
-                                <DialogContent className="max-w-2xl">
-                                    <DialogHeader>
-                                        <DialogTitle>Questions &amp; Answers</DialogTitle>
-                                        <DialogDescription>
-                                            Find answers to your questions or ask a new one.
-                                        </DialogDescription>
-                                    </DialogHeader>
-                                    <ScrollArea className="h-96 pr-6 -mr-6">
-                                        <div className="space-y-6">
-                                            {mockQandA.map(qa => (
-                                                <div key={qa.id}>
-                                                    <p className="font-semibold text-sm">Q: {qa.question}</p>
-                                                    {qa.answer ? (
-                                                        <p className="text-sm text-muted-foreground mt-1">A: {qa.answer}</p>
-                                                    ) : (
-                                                        <p className="text-sm text-muted-foreground mt-1 italic">No answer yet.</p>
-                                                    )}
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </ScrollArea>
-                                    <div className="mt-4 pt-4 border-t">
-                                        <h4 className="font-semibold mb-2">Ask a New Question</h4>
-                                        <div className="flex items-center gap-2">
-                                            <Input
-                                                value={newQuestion}
-                                                onChange={(e) => setNewQuestion(e.target.value)}
-                                                placeholder="Type your question here..."
-                                            />
-                                            <Button onClick={handleAskQuestion} disabled={!newQuestion.trim()}>
-                                                <Send className="w-4 h-4" />
-                                            </Button>
-                                        </div>
-                                    </div>
-                                </DialogContent>
-                            </Dialog>
-                        </CardFooter>
-                    </Card>
-
-                    <Separator />
-                    <div className="mt-8">
-                        <h2 className="text-2xl font-bold mb-4">Similar Products</h2>
-                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                            {similarProducts.map((p) => (
-                                <Link href={`/product/${p.key}`} key={p.id} className="group block">
-                                    <Card className="w-full group overflow-hidden h-full flex flex-col">
-                                        <div className="relative aspect-square bg-muted">
-                                            <Image src={p.images[0]} alt={p.name} fill sizes="(max-width: 640px) 50vw, 20vw" className="object-cover transition-transform group-hover:scale-105" data-ai-hint={p.hint} />
-                                        </div>
-                                        <div className="p-3">
-                                            <h4 className="font-semibold truncate text-sm">{p.name}</h4>
-                                            <p className="font-bold">{p.price}</p>
-                                             <div className="flex items-center gap-1 text-xs text-amber-400 mt-1">
-                                                <Star className="w-4 h-4 fill-current" />
-                                                <span>4.8</span>
-                                                <span className="text-muted-foreground">({(p as any).reviews || '1.2k'})</span>
-                                            </div>
-                                             <div className="flex items-center gap-4 text-xs text-muted-foreground mt-1">
-                                                <div className="flex items-center gap-1"><Package className="w-3 h-3" /> {p.stock} left</div>
-                                                <div className="flex items-center gap-1"><Users className="w-3 h-3" /> {p.sold} sold</div>
-                                            </div>
-                                        </div>
-                                    </Card>
-                                </Link>
-                            ))}
-                        </div>
-                    </div>
-                     <div className="mt-8">
-                        <h2 className="text-2xl font-bold mb-4">Related Product Streams</h2>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                            {relatedStreams.slice(0, 3).map((stream: any) => (
-                                 <Link href={`/stream/${stream.id}`} key={stream.id} className="group block">
-                                    <div className="relative rounded-lg overflow-hidden aspect-[16/9] bg-muted">
-                                        <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
-                                        <div className="absolute top-2 right-2 z-10">
-                                            <Badge variant="secondary" className="bg-black/50 text-white gap-1.5">
-                                                <Users className="h-3 w-3"/>
-                                                {stream.viewers}
-                                            </Badge>
-                                        </div>
+                        <Separator />
+                        <Card>
+                            <CardHeader className="flex items-center justify-between flex-row">
+                                <CardTitle>Highlights</CardTitle>
+                                <Button asChild variant="link">
+                                    <Link href={`/product/${productId}/details`}>View Details</Link>
+                                </Button>
+                            </CardHeader>
+                            <CardContent className="overflow-hidden">
+                                <div className="grid md:grid-cols-2 gap-6 items-center">
+                                    <div className="relative aspect-square md:aspect-[4/3] bg-muted rounded-lg overflow-hidden">
                                         <Image
-                                            src={stream.thumbnailUrl}
-                                            alt={`Live stream from ${stream.name}`}
+                                            src={product.images[1] || product.images[0]}
+                                            alt={`${product.name} highlight`}
                                             fill
-                                            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                                            className="object-cover w-full h-full group-hover:scale-105 transition-transform"
+                                            sizes="(max-width: 768px) 100vw, 50vw"
+                                            className="object-cover"
+                                            data-ai-hint={`${product.hint} detail`}
                                         />
-                                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex flex-col justify-end p-2">
-                                            <div className="flex items-start gap-2 text-white">
-                                                <Avatar className="w-8 h-8 border-2 border-background">
-                                                    <AvatarImage src={stream.avatarUrl} />
-                                                    <AvatarFallback>{stream.name.charAt(0)}</AvatarFallback>
-                                                </Avatar>
-                                                <div className="flex-1 overflow-hidden">
-                                                    <p className="font-semibold text-xs group-hover:underline truncate">{stream.name}</p>
-                                                    <p className="text-xs opacity-80">{stream.category}</p>
+                                    </div>
+                                    <div className="p-2">
+                                        <ul className="space-y-3 text-sm">
+                                            {currentHighlights.map((highlight: string, index: number) => (
+                                                <li key={index} className="flex items-start gap-3">
+                                                    <CheckCircle className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
+                                                    <span className="text-muted-foreground">{highlight}</span>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+
+                        <Separator />
+                        
+                        <Card>
+                            <CardHeader>
+                                <CardTitle className="flex items-center justify-between">
+                                    <span>Ratings &amp; Reviews</span>
+                                    <span className="text-sm font-medium text-muted-foreground">{reviews.length} Reviews</span>
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                {reviews.length > 0 ? (
+                                    reviews.slice(0, 3).map((review) => (
+                                        <Card key={review.id} className="bg-muted/50">
+                                            <CardContent className="p-4">
+                                                <div className="flex gap-4">
+                                                    <Avatar>
+                                                        <AvatarImage src={review.avatar} alt={review.author} />
+                                                        <AvatarFallback>{review.author.charAt(0)}</AvatarFallback>
+                                                    </Avatar>
+                                                    <div className="flex-grow">
+                                                        <div className="flex items-center justify-between">
+                                                            <h5 className="font-semibold">{review.author}</h5>
+                                                            <p className="text-xs text-muted-foreground">{formatDistanceToNow(new Date(review.date), { addSuffix: true })}</p>
+                                                        </div>
+                                                        <div className="flex items-center gap-1 mt-1">
+                                                            {[...Array(5)].map((_, i) => (
+                                                                <Star key={i} className={cn("h-4 w-4", i < review.rating ? 'text-yellow-400 fill-yellow-400' : 'text-muted-foreground')} />
+                                                            ))}
+                                                        </div>
+                                                        <p className="text-sm text-muted-foreground mt-2">{review.text}</p>
+                                                    </div>
+                                                </div>
+                                            </CardContent>
+                                        </Card>
+                                    ))
+                                ) : (
+                                    <p className="text-sm text-muted-foreground text-center py-4">No reviews yet. Be the first to write one!</p>
+                                )}
+                            </CardContent>
+                            <CardFooter className="flex-col items-stretch gap-4">
+                                {reviews.length > 3 && <Button variant="link" className="w-full">View All {reviews.length} Reviews</Button>}
+                                <Button variant="outline" onClick={openReviewDialog}>Write a Review</Button>
+                            </CardFooter>
+                        </Card>
+                        
+                        <Separator />
+                        
+                        <Card>
+                            <CardHeader>
+                                <CardTitle className="flex items-center justify-between">
+                                    <span>Questions &amp; Answers</span>
+                                    <span className="text-sm font-medium text-muted-foreground">{mockQandA.length} Q&amp;As</span>
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                {mockQandA.slice(0,3).map(qa => (
+                                    <div key={qa.id}>
+                                        <p className="font-semibold text-sm">Q: {qa.question}</p>
+                                        {qa.answer ? (
+                                            <p className="text-sm text-muted-foreground mt-1">A: {qa.answer}</p>
+                                        ) : (
+                                            <p className="text-sm text-muted-foreground mt-1 italic">No answer yet.</p>
+                                        )}
+                                    </div>
+                                ))}
+                            </CardContent>
+                            <CardFooter>
+                                <Dialog open={isQnaDialogOpen} onOpenChange={setIsQnaDialogOpen}>
+                                    <DialogTrigger asChild>
+                                        <Button variant="outline" className="w-full">View All &amp; Ask a Question</Button>
+                                    </DialogTrigger>
+                                    <DialogContent className="max-w-2xl">
+                                        <DialogHeader>
+                                            <DialogTitle>Questions &amp; Answers</DialogTitle>
+                                            <DialogDescription>
+                                                Find answers to your questions or ask a new one.
+                                            </DialogDescription>
+                                        </DialogHeader>
+                                        <ScrollArea className="h-96 pr-6 -mr-6">
+                                            <div className="space-y-6">
+                                                {mockQandA.map(qa => (
+                                                    <div key={qa.id}>
+                                                        <p className="font-semibold text-sm">Q: {qa.question}</p>
+                                                        {qa.answer ? (
+                                                            <p className="text-sm text-muted-foreground mt-1">A: {qa.answer}</p>
+                                                        ) : (
+                                                            <p className="text-sm text-muted-foreground mt-1 italic">No answer yet.</p>
+                                                        )}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </ScrollArea>
+                                        <div className="mt-4 pt-4 border-t">
+                                            <h4 className="font-semibold mb-2">Ask a New Question</h4>
+                                            <div className="flex items-center gap-2">
+                                                <Input
+                                                    value={newQuestion}
+                                                    onChange={(e) => setNewQuestion(e.target.value)}
+                                                    placeholder="Type your question here..."
+                                                />
+                                                <Button onClick={handleAskQuestion} disabled={!newQuestion.trim()}>
+                                                    <Send className="w-4 h-4" />
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    </DialogContent>
+                                </Dialog>
+                            </CardFooter>
+                        </Card>
+
+                        <Separator />
+                        <div className="mt-8">
+                            <h2 className="text-2xl font-bold mb-4">Similar Products</h2>
+                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                                {similarProducts.map((p) => (
+                                    <Link href={`/product/${p.key}`} key={p.id} className="group block">
+                                        <Card className="w-full group overflow-hidden h-full flex flex-col">
+                                            <div className="relative aspect-square bg-muted">
+                                                <Image src={p.images[0]} alt={p.name} fill sizes="(max-width: 640px) 50vw, 20vw" className="object-cover transition-transform group-hover:scale-105" data-ai-hint={p.hint} />
+                                            </div>
+                                            <div className="p-3">
+                                                <h4 className="font-semibold truncate text-sm">{p.name}</h4>
+                                                <p className="font-bold">{p.price}</p>
+                                                <div className="flex items-center gap-1 text-xs text-amber-400 mt-1">
+                                                    <Star className="w-4 h-4 fill-current" />
+                                                    <span>4.8</span>
+                                                    <span className="text-muted-foreground">({(p as any).reviews || '1.2k'})</span>
+                                                </div>
+                                                <div className="flex items-center gap-4 text-xs text-muted-foreground mt-1">
+                                                    <div className="flex items-center gap-1"><Package className="w-3 h-3" /> {p.stock} left</div>
+                                                    <div className="flex items-center gap-1"><Users className="w-3 h-3" /> {p.sold} sold</div>
                                                 </div>
                                             </div>
-                                        </div>
-                                    </div>
-                                </Link>
-                            ))}
-                        </div>
-                    </div>
-                    
-                    {recentlyViewedItems.length > 0 && (
-                        <div className="mt-8">
-                            <h2 className="text-2xl font-bold mb-4">Recently Viewed</h2>
-                            <ScrollArea className="w-full whitespace-nowrap">
-                                <div className="flex gap-4 pb-4">
-                                    {recentlyViewedItems.map((item) => (
-                                    <Link href={`/product/${item.key}`} key={item.id} className="w-40 flex-shrink-0">
-                                        <Card className="overflow-hidden group h-full">
-                                        <div className="aspect-square bg-muted relative">
-                                            <Image src={item.imageUrl} alt={item.name} fill sizes="160px" className="object-cover" />
-                                        </div>
-                                        <div className="p-2">
-                                            <p className="text-xs font-semibold truncate group-hover:underline">{item.name}</p>
-                                            <p className="text-sm font-bold">{item.price}</p>
-                                             <div className="flex items-center gap-1 text-xs text-amber-400 mt-1">
-                                                <Star className="w-3 h-3 fill-current" />
-                                                <span>4.8</span>
-                                                <span className="text-muted-foreground">({(product as any).reviews || '1.2k'})</span>
-                                            </div>
-                                            <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
-                                                <div className="flex items-center gap-1"><Package className="w-2.5 h-2.5" /> {(product as any).stock} left</div>
-                                                <div className="flex items-center gap-1"><Users className="w-2.5 h-2.5" /> {(product as any).sold} sold</div>
-                                            </div>
-                                        </div>
                                         </Card>
                                     </Link>
-                                    ))}
-                                </div>
-                                <ScrollBar orientation="horizontal" />
-                            </ScrollArea>
+                                ))}
+                            </div>
                         </div>
-                    )}
-                </div>
-            </main>
-             <Dialog open={isReviewDialogOpen} onOpenChange={setIsReviewDialogOpen}>
-                 <ReviewDialog 
-                    order={{ products: [product] } as any} 
-                    user={user}
-                    reviewToEdit={editingReview}
-                    onReviewSubmit={handleReviewSubmit}
-                    closeDialog={() => setIsReviewDialogOpen(false)}
-                />
-            </Dialog>
-        </div>
+                        <div className="mt-8">
+                            <h2 className="text-2xl font-bold mb-4">Related Product Streams</h2>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                                {relatedStreams.map((stream: any) => (
+                                    <Link href={`/stream/${stream.id}`} key={stream.id} className="group block">
+                                        <div className="relative rounded-lg overflow-hidden aspect-[16/9] bg-muted">
+                                            <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
+                                            <div className="absolute top-2 right-2 z-10">
+                                                <Badge variant="secondary" className="bg-black/50 text-white gap-1.5">
+                                                    <Users className="h-3 w-3"/>
+                                                    {stream.viewers}
+                                                </Badge>
+                                            </div>
+                                            <Image
+                                                src={stream.thumbnailUrl}
+                                                alt={`Live stream from ${stream.name}`}
+                                                fill
+                                                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                                                className="object-cover w-full h-full group-hover:scale-105 transition-transform"
+                                            />
+                                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex flex-col justify-end p-2">
+                                                <div className="flex items-start gap-2 text-white">
+                                                    <Avatar className="w-8 h-8 border-2 border-background">
+                                                        <AvatarImage src={stream.avatarUrl} />
+                                                        <AvatarFallback>{stream.name.charAt(0)}</AvatarFallback>
+                                                    </Avatar>
+                                                    <div className="flex-1 overflow-hidden">
+                                                        <p className="font-semibold text-xs group-hover:underline truncate">{stream.name}</p>
+                                                        <p className="text-xs opacity-80">{stream.category}</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </Link>
+                                ))}
+                            </div>
+                        </div>
+                        
+                        {recentlyViewedItems.length > 0 && (
+                            <div className="mt-8">
+                                <h2 className="text-2xl font-bold mb-4">Recently Viewed</h2>
+                                <ScrollArea className="w-full whitespace-nowrap">
+                                    <div className="flex gap-4 pb-4">
+                                        {recentlyViewedItems.map((item) => (
+                                        <Link href={`/product/${item.key}`} key={item.id} className="w-40 flex-shrink-0">
+                                            <Card className="overflow-hidden group h-full">
+                                            <div className="aspect-square bg-muted relative">
+                                                <Image src={item.imageUrl} alt={item.name} fill sizes="160px" className="object-cover" />
+                                            </div>
+                                            <div className="p-2">
+                                                <p className="text-xs font-semibold truncate group-hover:underline">{item.name}</p>
+                                                <p className="text-sm font-bold">{item.price}</p>
+                                                <div className="flex items-center gap-1 text-xs text-amber-400 mt-1">
+                                                    <Star className="w-3 h-3 fill-current" />
+                                                    <span>4.8</span>
+                                                    <span className="text-muted-foreground">({(product as any).reviews || '1.2k'})</span>
+                                                </div>
+                                                <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
+                                                    <div className="flex items-center gap-1"><Package className="w-2.5 h-2.5" /> {(product as any).stock} left</div>
+                                                    <div className="flex items-center gap-1"><Users className="w-2.5 h-2.5" /> {(product as any).sold} sold</div>
+                                                </div>
+                                            </div>
+                                            </Card>
+                                        </Link>
+                                        ))}
+                                    </div>
+                                    <ScrollBar orientation="horizontal" />
+                                </ScrollArea>
+                            </div>
+                        )}
+                    </div>
+                </main>
+                <Dialog open={isReviewDialogOpen} onOpenChange={setIsReviewDialogOpen}>
+                    <ReviewDialog 
+                        order={{ products: [product] } as any} 
+                        user={user}
+                        reviewToEdit={editingReview}
+                        onReviewSubmit={handleReviewSubmit}
+                        closeDialog={() => setIsReviewDialogOpen(false)}
+                    />
+                </Dialog>
+            </div>
+        </>
     );
 }
