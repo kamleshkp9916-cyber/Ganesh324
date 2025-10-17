@@ -107,6 +107,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
     const [recentlyViewedItems, setRecentlyViewedItems] = useState<Product[]>([]);
     const [sellerProducts, setSellerProducts] = useState<any[]>([]);
     const [isQnaDialogOpen, setIsQnaDialogOpen] = useState(false);
+    const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
     const averageRating = useMemo(() => {
         if (reviews.length === 0) return '0.0';
@@ -155,6 +156,9 @@ export function ProductDetailClient({ productId }: { productId: string }) {
     useEffect(() => {
         const details = productDetails[productId as keyof typeof productDetails] || null;
         setProduct(details);
+        if(details && details.images.length > 0) {
+            setSelectedImage(details.images[0]);
+        }
     }, [productId]);
 
     useEffect(() => {
@@ -378,7 +382,46 @@ export function ProductDetailClient({ productId }: { productId: string }) {
 
             <main className="container mx-auto py-6">
                 <div className="max-w-4xl mx-auto space-y-8">
-                     <div className="flex flex-col gap-4">
+                     <Card>
+                        <CardContent className="p-4">
+                            <div className="aspect-square w-full relative bg-muted rounded-lg overflow-hidden mb-4">
+                                {selectedImage && (
+                                    <Image
+                                        src={selectedImage}
+                                        alt={product.name}
+                                        fill
+                                        sizes="(max-width: 768px) 100vw, 50vw"
+                                        className="object-contain"
+                                    />
+                                )}
+                            </div>
+                             <ScrollArea>
+                                <div className="flex gap-2 pb-2">
+                                    {product.images.map((img: string, index: number) => (
+                                        <button
+                                            key={index}
+                                            onClick={() => setSelectedImage(img)}
+                                            className={cn(
+                                                "w-16 h-16 rounded-md overflow-hidden border-2 flex-shrink-0",
+                                                selectedImage === img ? 'border-primary' : 'border-transparent'
+                                            )}
+                                        >
+                                            <Image
+                                                src={img}
+                                                alt={`Thumbnail ${index + 1}`}
+                                                width={64}
+                                                height={64}
+                                                className="object-cover w-full h-full"
+                                            />
+                                        </button>
+                                    ))}
+                                </div>
+                                <ScrollBar orientation="horizontal" />
+                            </ScrollArea>
+                        </CardContent>
+                    </Card>
+
+                    <div className="flex flex-col gap-4">
                         <div className="flex justify-between items-start">
                             <div>
                                 <p className="text-sm font-medium text-primary mb-1">{product.brand}</p>
@@ -458,39 +501,36 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                     <Separator />
 
                     {productHighlights.length > 0 && (
-                        <div>
-                            <Card className="overflow-hidden">
-                                <div className="grid md:grid-cols-2">
-                                    <div className="relative aspect-square md:aspect-auto bg-muted">
-                                        <Image
-                                            src={product.images[1] || product.images[0]}
-                                            alt={`${product.name} highlight`}
-                                            fill
-                                            className="object-cover"
-                                            data-ai-hint={`${product.hint} detail`}
-                                        />
-                                    </div>
-                                    <div className="p-6">
-                                        <h3 className="font-bold text-lg mb-4">Highlights</h3>
-                                        <ul className="list-disc list-inside space-y-2 text-sm">
-                                            {productHighlights.map((highlight: string, index: number) => (
-                                                <li key={index} className="text-muted-foreground">{highlight}</li>
-                                            ))}
-                                        </ul>
-                                    </div>
+                        <Card className="overflow-hidden">
+                            <div className="grid md:grid-cols-2">
+                                <div className="relative aspect-square md:aspect-auto bg-muted">
+                                    <Image
+                                        src={product.images[1] || product.images[0]}
+                                        alt={`${'${product.name}'} highlight`}
+                                        fill
+                                        className="object-cover"
+                                        data-ai-hint={`${'${product.hint}'} detail`}
+                                    />
                                 </div>
-                            </Card>
-                        </div>
+                                <div className="p-6">
+                                    <h3 className="font-bold text-lg mb-4">Highlights</h3>
+                                    <ul className="list-disc list-inside space-y-2 text-sm">
+                                        {productHighlights.map((highlight: string, index: number) => (
+                                            <li key={index} className="text-muted-foreground">{highlight}</li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            </div>
+                        </Card>
                     )}
                     
                     <Separator />
                     
-                    <div>
-                        <div className="flex justify-between items-center mb-4">
-                            <h3 className="text-xl font-bold">Ratings &amp; Reviews</h3>
-                            <Button variant="outline" onClick={openReviewDialog}>Write a Review</Button>
-                        </div>
-                        <div className="space-y-4">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Ratings & Reviews</CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
                             {reviews.length > 0 ? (
                                 reviews.slice(0, 3).map((review) => (
                                     <Card key={review.id} className="bg-muted/50">
@@ -519,22 +559,39 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                             ) : (
                                 <p className="text-sm text-muted-foreground text-center py-4">No reviews yet. Be the first to write one!</p>
                             )}
-                            {reviews.length > 3 && <Button variant="link" className="w-full">View All {reviews.length} Reviews</Button>}
-                        </div>
-                    </div>
+                        </CardContent>
+                        <CardFooter className="flex-col items-stretch gap-4">
+                             {reviews.length > 3 && <Button variant="link" className="w-full">View All {reviews.length} Reviews</Button>}
+                             <Button variant="outline" onClick={openReviewDialog}>Write a Review</Button>
+                        </CardFooter>
+                    </Card>
                     
                     <Separator />
                     
-                     <div>
-                        <div className="flex justify-between items-center mb-4">
-                            <h3 className="text-xl font-bold">Questions &amp; Answers</h3>
+                     <Card>
+                        <CardHeader>
+                            <CardTitle>Questions & Answers</CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            {mockQandA.slice(0,3).map(qa => (
+                                <div key={qa.id}>
+                                    <p className="font-semibold text-sm">Q: {qa.question}</p>
+                                    {qa.answer ? (
+                                        <p className="text-sm text-muted-foreground mt-1">A: {qa.answer}</p>
+                                    ) : (
+                                        <p className="text-sm text-muted-foreground mt-1 italic">No answer yet.</p>
+                                    )}
+                                </div>
+                            ))}
+                        </CardContent>
+                         <CardFooter>
                             <Dialog open={isQnaDialogOpen} onOpenChange={setIsQnaDialogOpen}>
                                 <DialogTrigger asChild>
-                                    <Button variant="outline">View All Q&amp;A</Button>
+                                    <Button variant="outline" className="w-full">View All & Ask a Question</Button>
                                 </DialogTrigger>
                                 <DialogContent className="max-w-2xl">
                                     <DialogHeader>
-                                        <DialogTitle>Questions &amp; Answers</DialogTitle>
+                                        <DialogTitle>Questions & Answers</DialogTitle>
                                         <DialogDescription>
                                             Find answers to your questions or ask a new one.
                                         </DialogDescription>
@@ -568,20 +625,8 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                     </div>
                                 </DialogContent>
                             </Dialog>
-                        </div>
-                        <div className="space-y-4">
-                            {mockQandA.slice(0,3).map(qa => (
-                                <div key={qa.id}>
-                                    <p className="font-semibold text-sm">Q: {qa.question}</p>
-                                    {qa.answer ? (
-                                        <p className="text-sm text-muted-foreground mt-1">A: {qa.answer}</p>
-                                    ) : (
-                                        <p className="text-sm text-muted-foreground mt-1 italic">No answer yet.</p>
-                                    )}
-                                </div>
-                            ))}
-                        </div>
-                    </div>
+                        </CardFooter>
+                    </Card>
 
                     <Separator />
                     
@@ -607,12 +652,12 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                         </ScrollArea>
                     </div>
                     
-                    <div className="mt-8">
+                     <div className="mt-8">
                         <h2 className="text-2xl font-bold mb-4">Related Product Streams</h2>
                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                            {relatedStreams.slice(0, 3).map((stream) => (
+                            {relatedStreams.slice(0, 3).map((stream: any) => (
                                 <Link href={`/stream/${stream.id}`} key={stream.id} className="group">
-                                    <div className="relative rounded-lg overflow-hidden aspect-[16/9] bg-muted">
+                                    <div className="relative rounded-lg overflow-hidden aspect-video bg-muted">
                                         <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
                                         <div className="absolute top-2 right-2 z-10">
                                             <Badge variant="secondary" className="bg-background/60 backdrop-blur-sm gap-1.5">
