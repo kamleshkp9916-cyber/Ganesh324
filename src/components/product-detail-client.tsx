@@ -525,7 +525,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                     
                     <Separator />
                     
-                    <div>
+                     <div>
                         <div className="flex justify-between items-center mb-4">
                             <h3 className="text-xl font-bold">Questions &amp; Answers</h3>
                             <Dialog open={isQnaDialogOpen} onOpenChange={setIsQnaDialogOpen}>
@@ -585,7 +585,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
 
                     <Separator />
                     
-                    <div className="mt-8">
+                     <div className="mt-8">
                         <h2 className="text-2xl font-bold mb-4">Similar Products</h2>
                          <ScrollArea className="w-full whitespace-nowrap">
                             <div className="flex gap-4 pb-4">
@@ -612,17 +612,26 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                             {relatedStreams.slice(0, 3).map((stream) => (
                                 <Link href={`/stream/${stream.id}`} key={stream.id} className="group">
-                                    <Card className="overflow-hidden">
-                                        <div className="relative aspect-video bg-muted">
-                                            <Image src={stream.thumbnailUrl} alt={stream.name} layout="fill" className="object-cover group-hover:scale-105 transition-transform" />
-                                            <div className="absolute inset-0 bg-black/20" />
-                                            <Badge variant="destructive" className="absolute top-2 left-2">LIVE</Badge>
+                                    <div className="relative rounded-lg overflow-hidden aspect-[16/9] bg-muted">
+                                        <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
+                                        <div className="absolute top-2 right-2 z-10">
+                                            <Badge variant="secondary" className="bg-background/60 backdrop-blur-sm gap-1.5">
+                                                <Users className="h-3 w-3"/>
+                                                {stream.viewers}
+                                            </Badge>
                                         </div>
-                                        <div className="p-3">
-                                            <p className="font-semibold truncate">{stream.name}</p>
+                                    </div>
+                                    <div className="flex items-start gap-2 mt-2">
+                                        <Avatar className="w-7 h-7">
+                                            <AvatarImage src={stream.avatarUrl} />
+                                            <AvatarFallback>{stream.name.charAt(0)}</AvatarFallback>
+                                        </Avatar>
+                                        <div className="flex-1">
+                                            <p className="font-semibold text-xs group-hover:underline truncate">{stream.name}</p>
                                             <p className="text-xs text-muted-foreground">{stream.category}</p>
+                                            <p className="text-xs text-primary font-semibold mt-0.5">#{stream.category.toLowerCase()}</p>
                                         </div>
-                                    </Card>
+                                    </div>
                                 </Link>
                             ))}
                         </div>
