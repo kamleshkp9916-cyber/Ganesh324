@@ -438,7 +438,7 @@ const ProductPromoCard = ({ msg, handlers }: { msg: any, handlers: any }) => {
        <div className="p-1.5">
             <Card className="overflow-hidden bg-card/80 border-primary/20 p-0 animate-in fade-in-0 slide-in-from-bottom-2">
                 <div className="relative aspect-video">
-                    <Image src={product.images[0]} alt={product.name} fill className="object-cover" />
+                    <Image src={product.images[0]} alt={product.name} fill sizes="100vw" className="object-cover" />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-black/0" />
                     <div className="absolute top-2 left-2">
                          <Badge variant="secondary" className="bg-gradient-to-r from-primary to-purple-500 text-white border-transparent shadow-lg gap-1.5">
@@ -1494,12 +1494,6 @@ const ChatPanel = ({
              {chatMessages.map((msg) => {
                   if (msg.type === 'system') {
                       return <div key={msg.id} className="text-xs text-center text-[#9AA1A6] italic py-1">{msg.text}</div>
-                  }
-                  if (msg.type === 'post_share') {
-                      return <PostShareCard key={msg.id} msg={msg} handlers={handlers} sellerName={seller.name} />;
-                  }
-                  if (msg.type === 'product_promo') {
-                    return <ProductPromoCard key={msg.id} msg={msg} handlers={handlers} />;
                   }
                   if (!msg.user) return null;
 
