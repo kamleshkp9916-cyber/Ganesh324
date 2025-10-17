@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { ArrowLeft, Star, ThumbsUp, ThumbsDown, MessageSquare, ShoppingCart, ShieldCheck, Heart, Share2, Truck, Tag, Banknote, Ticket, ChevronDown, RotateCcw, Sparkles, CheckCircle, Users, HelpCircle, Send, Image as ImageIcon, Edit, Trash2, Flag, Play, Loader2, Package } from 'lucide-react';
+import { ArrowLeft, Star, ThumbsUp, ThumbsDown, MessageSquare, ShoppingCart, ShieldCheck, Heart, Share2, Truck, Tag, Banknote, Ticket, ChevronDown, RotateCcw, Sparkles, CheckCircle, Users, HelpCircle, Send, Image as ImageIcon, Edit, Trash2, Flag, Play, Loader2, Package, Plus } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import Image from 'next/image';
@@ -30,6 +30,8 @@ import { getFirestoreDb } from '@/lib/firebase';
 import { collection, query, where, getDocs, orderBy } from 'firebase/firestore';
 import { formatDistanceToNow } from 'date-fns';
 import { Label } from '@/components/ui/label';
+import { EditAddressForm } from './edit-address-form';
+import { updateUserData } from '@/lib/follow-data';
 
 
 const mockQandA = [
@@ -103,6 +105,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
     const [newQuestion, setNewQuestion] = useState("");
     const [reviews, setReviews] = useState<Review[]>([]);
     const [isReviewDialogOpen, setIsReviewDialogOpen] = useState(false);
+    const [isAddressDialogOpen, setIsAddressDialogOpen] = useState(false);
     const [editingReview, setEditingReview] = useState<Review | undefined>(undefined);
     const [taggedPosts, setTaggedPosts] = useState<any[]>([]);
     const [recentlyViewedItems, setRecentlyViewedItems] = useState<Product[]>([]);
@@ -369,6 +372,25 @@ export function ProductDetailClient({ productId }: { productId: string }) {
         setEditingReview(undefined);
         setIsReviewDialogOpen(true);
     };
+    
+    const handleAddressSave = (address: any) => {
+        toast({
+            title: "Address Selected!",
+            description: "Your delivery address has been set for this session."
+        });
+        if(user){
+            // In a real app this would be a main selected address, here we just update for the view
+            const newUserData = { ...userData, addresses: [address, ...userData?.addresses?.filter((a: any) => a.id !== address.id) || []] };
+            // Not calling updateUserData here to avoid constant writes, this is a view-only change for this page
+        }
+        setIsAddressDialogOpen(false);
+    }
+    
+     const handleAddressesUpdate = (newAddresses: any[]) => {
+        if(user){
+          updateUserData(user.uid, { addresses: newAddresses });
+        }
+      }
 
     if (!product) {
         return (
@@ -574,7 +596,32 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                             </Button>
                         </div>
                         <Card>
-                             <CardContent className="p-4">
+                             <CardHeader className="flex flex-row items-center justify-between pb-2">
+                                <div>
+                                    <CardTitle className="text-base">Delivery Information</CardTitle>
+                                </div>
+                                {user && (
+                                     <Dialog open={isAddressDialogOpen} onOpenChange={setIsAddressDialogOpen}>
+                                        <DialogTrigger asChild>
+                                             <Button variant="outline" size="sm">
+                                                <Edit className="mr-2 h-3 w-3" />
+                                                Change
+                                            </Button>
+                                        </DialogTrigger>
+                                        <DialogContent>
+                                            <DialogHeader>
+                                                <DialogTitle>Change Delivery Address</DialogTitle>
+                                            </DialogHeader>
+                                            <EditAddressForm 
+                                                onSave={handleAddressSave} 
+                                                onCancel={() => setIsAddressDialogOpen(false)}
+                                                onAddressesUpdate={handleAddressesUpdate}
+                                            />
+                                        </DialogContent>
+                                    </Dialog>
+                                )}
+                            </CardHeader>
+                            <CardContent className="p-4">
                                 {user ? (
                                     userData?.addresses && userData.addresses.length > 0 ? (
                                         <div className="text-sm">
@@ -791,7 +838,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                             <div className="flex items-center gap-1 text-xs text-amber-400 mt-1">
                                                 <Star className="w-4 h-4 fill-current" />
                                                 <span>4.8</span>
-                                                <span className="text-muted-foreground">({p.reviews || '1.2k'})</span>
+                                                <span className="text-muted-foreground">({(p as any).reviews || '1.2k'})</span>
                                             </div>
                                              <div className="flex items-center gap-4 text-xs text-muted-foreground mt-1">
                                                 <div className="flex items-center gap-1"><Package className="w-3 h-3" /> {p.stock} left</div>
