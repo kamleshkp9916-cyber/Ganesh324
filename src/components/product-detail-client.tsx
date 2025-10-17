@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { ArrowLeft, Star, ThumbsUp, ThumbsDown, MessageSquare, ShoppingCart, ShieldCheck, Heart, Share2, Truck, Tag, Banknote, Ticket, ChevronDown, RotateCcw, Sparkles, CheckCircle, Users, HelpCircle, Send, Image as ImageIcon, Edit, Trash2, Flag, Play, Loader2 } from 'lucide-react';
+import { ArrowLeft, Star, ThumbsUp, ThumbsDown, MessageSquare, ShoppingCart, ShieldCheck, Heart, Share2, Truck, Tag, Banknote, Ticket, ChevronDown, RotateCcw, Sparkles, CheckCircle, Users, HelpCircle, Send, Image as ImageIcon, Edit, Trash2, Flag, Play, Loader2, Package } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import Image from 'next/image';
@@ -627,11 +627,11 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                 <div className="relative aspect-square md:aspect-[4/3] bg-muted rounded-lg overflow-hidden">
                                     <Image
                                         src={product.images[1] || product.images[0]}
-                                        alt={`'${product.name}' highlight`}
+                                        alt={`${product.name} highlight`}
                                         fill
                                         sizes="(max-width: 768px) 100vw, 50vw"
                                         className="object-cover"
-                                        data-ai-hint={`'${product.hint}' detail`}
+                                        data-ai-hint={`${product.hint} detail`}
                                     />
                                 </div>
                                 <div className="p-2">
@@ -768,6 +768,11 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                             <div className="flex items-center gap-1 text-xs text-amber-400 mt-1">
                                                 <Star className="w-4 h-4 fill-current" />
                                                 <span>4.8</span>
+                                                <span className="text-muted-foreground">({p.reviews || '1.2k'})</span>
+                                            </div>
+                                             <div className="flex items-center gap-4 text-xs text-muted-foreground mt-1">
+                                                <div className="flex items-center gap-1"><Package className="w-3 h-3" /> {p.stock} left</div>
+                                                <div className="flex items-center gap-1"><Users className="w-3 h-3" /> {p.sold} sold</div>
                                             </div>
                                         </div>
                                     </Card>
@@ -819,14 +824,22 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                             <ScrollArea className="w-full whitespace-nowrap">
                                 <div className="flex gap-4 pb-4">
                                     {recentlyViewedItems.map((item) => (
-                                    <Link href={`/product/${item.key}`} key={item.id} className="w-36 flex-shrink-0">
+                                    <Link href={`/product/${item.key}`} key={item.id} className="w-40 flex-shrink-0">
                                         <Card className="overflow-hidden group h-full">
                                         <div className="aspect-square bg-muted relative">
-                                            <Image src={item.imageUrl} alt={item.name} fill sizes="144px" className="object-cover" />
+                                            <Image src={item.imageUrl} alt={item.name} fill sizes="160px" className="object-cover" />
                                         </div>
                                         <div className="p-2">
                                             <p className="text-xs font-semibold truncate group-hover:underline">{item.name}</p>
                                             <p className="text-sm font-bold">{item.price}</p>
+                                             <div className="flex items-center gap-1 text-xs text-amber-400 mt-1">
+                                                <Star className="w-3 h-3 fill-current" />
+                                                <span>4.8</span>
+                                            </div>
+                                            <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
+                                                <div className="flex items-center gap-1"><Package className="w-2.5 h-2.5" /> 15 left</div>
+                                                <div className="flex items-center gap-1"><Users className="w-2.5 h-2.5" /> 125 sold</div>
+                                            </div>
                                         </div>
                                         </Card>
                                     </Link>
