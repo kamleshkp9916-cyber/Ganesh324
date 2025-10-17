@@ -29,6 +29,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { getFirestoreDb } from '@/lib/firebase';
 import { collection, query, where, getDocs, orderBy } from 'firebase/firestore';
 import { formatDistanceToNow } from 'date-fns';
+import { Label } from '@/components/ui/label';
 
 
 const mockQandA = [
@@ -370,7 +371,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
         { label: 'Country of Origin', value: (product as any).origin },
     ].filter(detail => detail.value);
 
-    const productHighlights = product.highlights ? product.highlights.split('\\n').filter(h => h.trim() !== '') : [];
+    const productHighlights = product.highlights ? product.highlights.split('\n').filter((h:string) => h.trim() !== '') : [];
 
     const availableSizes = product.availableSizes ? product.availableSizes.split(',').map((s: string) => s.trim()) : [];
     const availableColors = product.availableColors ? product.availableColors.split(',').map((s: string) => s.trim()) : [];
@@ -387,7 +388,10 @@ export function ProductDetailClient({ productId }: { productId: string }) {
 
             <main className="container mx-auto py-6">
                 <div className="max-w-4xl mx-auto space-y-8">
-                     <Card>
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Image Gallery</CardTitle>
+                        </CardHeader>
                         <CardContent className="p-4">
                             <div className="aspect-[2/1] w-full relative bg-muted rounded-lg overflow-hidden mb-4">
                                 {selectedImage && (
@@ -413,7 +417,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                         >
                                             <Image
                                                 src={img}
-                                                alt={`Thumbnail ${index + 1}`}
+                                                alt={`Thumbnail ${'${index + 1}'}`}
                                                 width={64}
                                                 height={64}
                                                 className="object-cover w-full h-full"
@@ -548,11 +552,11 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                 <div className="relative aspect-square md:aspect-[4/3] bg-muted rounded-lg overflow-hidden">
                                     <Image
                                         src={product.images[1] || product.images[0]}
-                                        alt={`${product.name} highlight`}
+                                        alt={`'${product.name}' highlight`}
                                         fill
                                         sizes="(max-width: 768px) 100vw, 50vw"
                                         className="object-cover"
-                                        data-ai-hint={`${product.hint} detail`}
+                                        data-ai-hint={`'${product.hint}' detail`}
                                     />
                                 </div>
                                 <div className="p-2">
@@ -674,8 +678,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                     </Card>
 
                     <Separator />
-
-                    <div className="mt-8">
+                     <div className="mt-8">
                         <h2 className="text-2xl font-bold mb-4">Similar Products</h2>
                          <ScrollArea className="w-full whitespace-nowrap">
                             <div className="flex gap-4 pb-4">
@@ -773,3 +776,5 @@ export function ProductDetailClient({ productId }: { productId: string }) {
         </div>
     );
 }
+
+    
