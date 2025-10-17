@@ -570,7 +570,7 @@ const RelatedContent = ({ relatedStreams }: { relatedStreams: any[] }) => {
             <Link href="/live-selling">More</Link>
         </Button>
         </div>
-        <div className={cn("grid gap-4", isMobile ? "grid-cols-1" : "grid-cols-2")}>
+         <div className={cn("grid gap-4", isMobile ? "grid-cols-1" : "grid-cols-2")}>
             {relatedStreams.slice(0,4).map((s: any) => (
                 <Link href={`/stream/${s.id}`} key={s.id} className="group">
                     <div className="relative rounded-lg overflow-hidden aspect-[16/9] bg-muted">
@@ -625,26 +625,28 @@ export default function StreamPage() {
     const [chatMessages, setChatMessages] = useState<any[]>([]);
 
     useEffect(() => {
-        if (seller) {
-             const initialMessages = mockChatMessages.map(msg => {
-                let finalMsg = { ...msg };
-                if (finalMsg.isSeller) {
-                    finalMsg.user = seller.name;
-                }
-                if (finalMsg.type === 'post_share' && msg.product) {
-                    finalMsg.sellerName = seller.name;
-                }
-                return finalMsg;
-            });
+    if (seller) {
+        const initialMessages = mockChatMessages.map(msg => {
+            let finalMsg = { ...msg };
+            if (finalMsg.isSeller) {
+                finalMsg.user = seller.name;
+            }
+            if (finalMsg.type === 'post_share') {
+                const isSellerPost = msg.sellerName === seller.name;
+                if (!isSellerPost) return null; // Filter out posts from other sellers
+                finalMsg.sellerName = seller.name; // Ensure correct seller name
+            }
+            return finalMsg;
+        }).filter(Boolean); // Remove nulls from the array
 
-            const relevantMessages = initialMessages.filter(msg => {
-                if (msg.isSeller && msg.user !== seller.name) return false;
-                if (msg.type === 'post_share' && msg.sellerName !== seller.name) return false;
-                return true;
-            });
-            setChatMessages(relevantMessages);
-        }
-    }, [seller]);
+        const relevantMessages = initialMessages.filter(msg => {
+            if (msg.isSeller && msg.user !== seller.name) return false;
+            return true;
+        });
+
+        setChatMessages(relevantMessages as any[]);
+    }
+}, [seller]);
 
     const relatedStreams = useMemo(() => {
         if (!seller) return [];
@@ -654,8 +656,10 @@ export default function StreamPage() {
          if (streams.length > 50) {
             return streams.slice(0, 51);
         }
+        // Fallback to show some streams if none match the category, excluding the current one
         const fallbackStreams = liveSellers.filter(s => s.id !== streamId);
         
+        // Add from fallback until we have 6 total, avoiding duplicates
         let i = 0;
         while(streams.length < 6 && i < fallbackStreams.length) {
             if (!streams.some(s => s.id === fallbackStreams[i].id)) {
@@ -744,46 +748,46 @@ export default function StreamPage() {
     }, [seller]);
     
     useEffect(() => {
-        if (!seller) return;
-
-        let promotionInterval = 300000;
-
-        if (typeof window !== 'undefined') {
-            try {
-                const storedData = localStorage.getItem('liveStream');
-                if (storedData) {
-                    const liveStreamData = JSON.parse(storedData);
-                    if (liveStreamData.seller.uid === seller.id) {
-                        promotionInterval = liveStreamData.promotionInterval * 1000;
-                    }
-                }
-            } catch (error) {
-                console.error("Error reading live stream data from local storage:", error);
-            }
-        }
-        
-         const interval = setInterval(() => {
-            const productsWithStock = Object.values(productDetails).filter(p => 
-                productToSellerMapping[p.key]?.name === seller.name && p.stock > 0
-            );
-            
-            if (productsWithStock.length === 0) return;
-            
-            const randomIndex = Math.floor(Math.random() * productsWithStock.length);
-            const randomProduct = productsWithStock[randomIndex];
-            
-            if (randomProduct) {
-                 const promoMessage = {
-                    id: `promo-${Date.now()}`,
-                    type: 'product_promo',
-                    product: randomProduct,
-                };
-                setChatMessages(prev => [...prev, promoMessage]);
-            }
-
-        }, promotionInterval);
+        if (seller) {
+             let promotionInterval = 300000;
     
-        return () => clearInterval(interval);
+            if (typeof window !== 'undefined') {
+                try {
+                    const storedData = localStorage.getItem('liveStream');
+                    if (storedData) {
+                        const liveStreamData = JSON.parse(storedData);
+                        if (liveStreamData.seller.uid === seller.id && liveStreamData.promotionInterval) {
+                            promotionInterval = liveStreamData.promotionInterval * 1000;
+                        }
+                    }
+                } catch (error) {
+                    console.error("Error reading live stream data from local storage:", error);
+                }
+            }
+            
+             const interval = setInterval(() => {
+                const productsWithStock = Object.values(productDetails).filter(p => 
+                    productToSellerMapping[p.key]?.name === seller.name && p.stock > 0
+                );
+                
+                if (productsWithStock.length === 0) return;
+                
+                const randomIndex = Math.floor(Math.random() * productsWithStock.length);
+                const randomProduct = productsWithStock[randomIndex];
+                
+                if (randomProduct) {
+                     const promoMessage = {
+                        id: `promo-${Date.now()}`,
+                        type: 'product_promo',
+                        product: randomProduct,
+                    };
+                    setChatMessages(prev => [...prev, promoMessage]);
+                }
+    
+            }, promotionInterval);
+        
+            return () => clearInterval(interval);
+        }
     }, [seller]);
     
 
@@ -976,20 +980,24 @@ export default function StreamPage() {
         // This is now handled within ChatPanel's state
     }, []);
 
-    const handleNewMessageSubmit = useCallback((text: string, replyingTo?: { name: string, id: string }) => {
+    const handleNewMessageSubmit = useCallback((data: { text: string, amount?: number, paymentMethod?: string }) => {
         if (!user) return;
-        let messageText = text;
-        if (replyingTo) {
-            messageText = `@${replyingTo.name.split(' ')[0]} ${text}`;
-        }
-        const newMessage = {
+
+        const { text, amount } = data;
+
+        const newMessage: any = {
             id: Date.now(),
             user: user?.displayName || "You",
             userId: user.uid,
-            text: messageText,
+            text: text,
             avatar: user.photoURL || 'https://placehold.co/40x40.png',
-            replyingTo: replyingTo?.name,
         };
+        
+        if (amount) {
+            newMessage.type = 'super_chat';
+            newMessage.amount = amount;
+        }
+
         setChatMessages(prev => [...prev, newMessage]);
     }, [user]);
 
@@ -1323,6 +1331,22 @@ const MobileLayout = React.memo(({ handlers, chatMessages, ...props }: any) => {
 });
 MobileLayout.displayName = "MobileLayout";
 
+const SuperChatMessage = ({ msg }: { msg: any }) => (
+    <div className="my-2 p-3 rounded-lg bg-gradient-to-r from-yellow-300 via-orange-400 to-red-500 text-black shadow-lg">
+        <div className="flex items-center justify-between mb-1">
+             <div className="flex items-center gap-2">
+                <Avatar className="h-7 w-7 border-2 border-white/50">
+                    <AvatarImage src={msg.avatar} />
+                    <AvatarFallback className="bg-yellow-500 text-black font-bold text-xs">{msg.user.charAt(0)}</AvatarFallback>
+                </Avatar>
+                <p className="font-bold text-sm">{msg.user}</p>
+             </div>
+             <p className="font-bold text-base">₹{msg.amount}</p>
+        </div>
+        <p className="text-sm font-medium">{msg.text}</p>
+    </div>
+);
+
 const ChatMessage = ({ msg, handlers, seller }: { msg: any, handlers: any, seller: any }) => {
     const { user } = useAuth();
     const isMyMessage = msg.userId === user?.uid;
@@ -1415,7 +1439,7 @@ const ChatPanel = ({
     e.preventDefault();
     if (!newMessage.trim()) return;
     
-    handlers.handleNewMessageSubmit(newMessage, replyingTo);
+    handlers.handleNewMessageSubmit({ text: newMessage, replyingTo });
 
     setNewMessage("");
     setReplyingTo(null);
@@ -1429,13 +1453,14 @@ const ChatPanel = ({
   const SuperChatDialog = () => {
     const [amount, setAmount] = useState(50);
     const [message, setMessage] = useState('');
+    const [paymentMethod, setPaymentMethod] = useState('wallet');
 
     const handleSendSuperChat = () => {
         if (!message.trim()) {
             handlers.toast({ variant: 'destructive', title: 'Message is empty' });
             return;
         }
-        handlers.handleNewMessageSubmit(`SUPER CHAT (₹${amount}): ${message}`);
+        handlers.handleNewMessageSubmit({ text: message, amount });
         handlers.toast({ title: 'Super Chat Sent!', description: `You donated ₹${amount}` });
         document.getElementById('closeSuperChatDialog')?.click();
     };
@@ -1457,6 +1482,16 @@ const ChatPanel = ({
                     ))}
                 </div>
                 <Textarea placeholder="Your highlighted message..." value={message} onChange={(e) => setMessage(e.target.value)} />
+                <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod} className="flex gap-4 pt-2">
+                    <Label htmlFor="pay-wallet" className="flex-1 flex items-center gap-2 p-3 border rounded-md cursor-pointer has-[:checked]:border-primary has-[:checked]:bg-primary/10">
+                        <RadioGroupItem value="wallet" id="pay-wallet" />
+                        <Wallet className="w-5 h-5"/> Wallet
+                    </Label>
+                    <Label htmlFor="pay-upi" className="flex-1 flex items-center gap-2 p-3 border rounded-md cursor-pointer has-[:checked]:border-primary has-[:checked]:bg-primary/10">
+                        <RadioGroupItem value="upi" id="pay-upi" />
+                        <Image src="https://upload.wikimedia.org/wikipedia/commons/e/e1/UPI-Logo-vector.svg" alt="UPI" width={24} height={24} /> UPI
+                    </Label>
+                </RadioGroup>
             </div>
             <DialogFooter>
                 <DialogClose asChild>
@@ -1560,6 +1595,9 @@ const ChatPanel = ({
                   }
                   if (msg.type === 'post_share') {
                     return <PostShareCard key={msg.id} msg={msg} handlers={handlers} />
+                  }
+                  if (msg.type === 'super_chat') {
+                      return <SuperChatMessage key={msg.id} msg={msg} />;
                   }
                   if (!msg.user) return null;
                   
