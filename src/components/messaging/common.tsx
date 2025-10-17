@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -9,7 +8,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useAuth } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
 import { UserData } from "@/lib/follow-data";
-import { Menu, MoreVertical, Search, Send, Trash2, CheckCheck, Check, Flag, Paperclip, FileText, PlusCircle, Home, Pin, Award, History, Gavel, ShoppingBag, X, Smile, Reply } from "lucide-react";
+import { ArrowLeft, Menu, MoreVertical, Search, Send, Trash2, CheckCheck, Check, Flag, Paperclip, FileText, PlusCircle, Home, Pin, Award, History, Gavel, ShoppingBag, X, Smile, Reply } from "lucide-react";
 import { useEffect, useMemo, useRef, useState, useCallback, forwardRef } from "react";
 import { Skeleton } from "../ui/skeleton";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -415,7 +414,7 @@ export const ChatPanel = ({
   }
 
   return (
-    <div className='h-full flex flex-col bg-[#0b0b0c]'>
+    <div className='h-full flex flex-col bg-black'>
       <header className="p-3 flex items-center justify-between z-10 flex-shrink-0 h-16 border-b border-[rgba(255,255,255,0.04)] sticky top-0 bg-[#0f1113]/80 backdrop-blur-sm">
         <h3 className="font-bold text-lg text-white">Live Chat</h3>
         <div className="flex items-center gap-1">
