@@ -437,34 +437,6 @@ const ProductShelf = ({ sellerProducts, handleAddToCart, handleBuyNow, toast }: 
     );
 };
 
-const ProductPromoCard = ({ msg, handlers }: { msg: any, handlers: any }) => {
-    const { product } = msg;
-
-    return (
-       <div className="p-1.5">
-            <Card className="overflow-hidden bg-card/80 border-primary/20 p-0 animate-in fade-in-0 slide-in-from-bottom-2">
-                <div className="relative aspect-video">
-                    <Image src={product.images[0]} alt={product.name} fill sizes="100vw" className="object-cover" />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-black/0" />
-                    <div className="absolute top-2 left-2">
-                         <Badge variant="secondary" className="bg-gradient-to-r from-primary to-purple-500 text-white border-transparent shadow-lg gap-1.5">
-                            <Sparkles className="w-3 h-3" />Featured Product
-                        </Badge>
-                    </div>
-                </div>
-                <div className="p-2">
-                    <h4 className="font-semibold text-sm leading-tight">{product.name}</h4>
-                    <p className="font-bold text-lg">{product.price}</p>
-                    <div className="flex gap-2 mt-2">
-                        <Button size="sm" variant="outline" className="text-xs h-7 flex-1" onClick={() => handlers.onAddToCart(product)}><ShoppingCart className="w-3 h-3 mr-1" /> Cart</Button>
-                        <Button size="sm" className="text-xs h-7 flex-1" onClick={() => handlers.onBuyNow(product)}>Buy Now</Button>
-                    </div>
-                </div>
-            </Card>
-       </div>
-    );
-};
-
 const PostShareCard = ({ msg, handlers }: { msg: any, handlers: any }) => {
     const { product, sellerName, text } = msg;
     if (!product) return null;
@@ -494,6 +466,35 @@ const PostShareCard = ({ msg, handlers }: { msg: any, handlers: any }) => {
                 </div>
             </Card>
         </div>
+    );
+};
+
+
+const ProductPromoCard = ({ msg, handlers }: { msg: any, handlers: any }) => {
+    const { product } = msg;
+
+    return (
+       <div className="p-1.5">
+            <Card className="overflow-hidden bg-card/80 border-primary/20 p-0 animate-in fade-in-0 slide-in-from-bottom-2">
+                <div className="relative aspect-video">
+                    <Image src={product.images[0]} alt={product.name} fill sizes="100vw" className="object-cover" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-black/0" />
+                    <div className="absolute top-2 left-2">
+                         <Badge variant="secondary" className="bg-gradient-to-r from-primary to-purple-500 text-white border-transparent shadow-lg gap-1.5">
+                            <Sparkles className="w-3 h-3" />Featured Product
+                        </Badge>
+                    </div>
+                </div>
+                <div className="p-2">
+                    <h4 className="font-semibold text-sm leading-tight">{product.name}</h4>
+                    <p className="font-bold text-lg">{product.price}</p>
+                    <div className="flex gap-2 mt-2">
+                        <Button size="sm" variant="outline" className="text-xs h-7 flex-1" onClick={() => handlers.onAddToCart(product)}><ShoppingCart className="w-3 h-3 mr-1" /> Cart</Button>
+                        <Button size="sm" className="text-xs h-7 flex-1" onClick={() => handlers.onBuyNow(product)}>Buy Now</Button>
+                    </div>
+                </div>
+            </Card>
+       </div>
     );
 };
 
@@ -570,10 +571,10 @@ const RelatedContent = ({ relatedStreams }: { relatedStreams: any[] }) => {
             <Link href="/live-selling">More</Link>
         </Button>
         </div>
-         <div className={cn("grid gap-4", isMobile ? "grid-cols-1" : "grid-cols-2")}>
+         <div className={cn("grid gap-3", isMobile ? "grid-cols-1" : "grid-cols-2")}>
             {relatedStreams.slice(0,4).map((s: any) => (
                  <Link href={`/stream/${s.id}`} key={s.id} className="group flex sm:block gap-3">
-                    <div className="relative rounded-lg overflow-hidden aspect-[16/9] bg-muted w-32 sm:w-full flex-shrink-0">
+                    <div className="relative rounded-lg overflow-hidden aspect-video bg-muted w-32 sm:w-full flex-shrink-0">
                         <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
                         <div className="absolute top-2 right-2 z-10"><Badge variant="secondary" className="bg-black/50 text-white"><Users className="w-3 h-3 mr-1.5" />{s.viewers.toLocaleString()}</Badge></div>
                          <Image src={s.thumbnailUrl} alt={`Live stream from ${s.name}`} fill sizes="50vw" className="object-cover transition-transform group-hover:scale-105" />
@@ -612,6 +613,7 @@ export default function StreamPage() {
     const [isFollowingState, setIsFollowingState] = useState(false);
     
     const [cartCount, setCartCount] = useState(0);
+    const [walletBalance, setWalletBalance] = useState(0);
     
     const isMobile = useIsMobile();
         
@@ -625,26 +627,26 @@ export default function StreamPage() {
     const [chatMessages, setChatMessages] = useState<any[]>([]);
 
     useEffect(() => {
-      if (seller) {
-          const mockPost = {
-              id: 33, // This should be unique
-              type: 'post_share',
-              sellerName: seller.name,
-              text: 'Behind the scenes of our new collection!',
-              product: productDetails['prod_5']
-          };
-  
-          const initialMessages = mockChatMessages.map(msg => {
-              let finalMsg = { ...msg };
-              if (finalMsg.isSeller) {
-                  finalMsg.user = seller.name;
-              }
-              return finalMsg;
-          });
-  
-          setChatMessages([...initialMessages, mockPost]);
-      }
-  }, [seller]);
+        if (seller) {
+            const mockPost = {
+                id: 33, // This should be unique
+                type: 'post_share',
+                sellerName: seller.name,
+                text: 'Behind the scenes of our new collection!',
+                product: productDetails['prod_5']
+            };
+    
+            const initialMessages = mockChatMessages.map(msg => {
+                let finalMsg = { ...msg };
+                if (finalMsg.isSeller) {
+                    finalMsg.user = seller.name;
+                }
+                return finalMsg;
+            }).filter(msg => msg.type !== 'post_share');
+    
+            setChatMessages([...initialMessages, mockPost]);
+        }
+    }, [seller]);
 
     const relatedStreams = useMemo(() => {
         if (!seller) return [];
@@ -747,7 +749,7 @@ export default function StreamPage() {
     
     useEffect(() => {
         if (seller) {
-            let promotionInterval = 300000;
+            let promotionInterval = 300000; // 5 minutes default
     
             if (typeof window !== 'undefined') {
                 try {
@@ -1077,10 +1079,10 @@ export default function StreamPage() {
                         <LoadingSpinner />
                     </div>
                  ) : isMobile ? (
-                     <MobileLayout {...{ router, videoRef, playerRef, handlePlayPause, handleShare, handleMinimize, handleToggleFullscreen, isPaused, seller, streamData, handleFollowToggle, isFollowingState, sellerProducts, handlers, relatedStreams, isChatOpen, setIsChatOpen, chatMessages, pinnedMessages, onClose: () => setIsChatOpen(false), handleAddToCart, handleBuyNow, mobileView, setMobileView, isMuted, setIsMuted, handleGoLive, handleSeek, isLive, formatTime, currentTime, duration, buffered, handleProgressClick, progressContainerRef, activeQuality, setActiveQuality, product, user }} />
+                     <MobileLayout {...{ router, videoRef, playerRef, handlePlayPause, handleShare, handleMinimize, handleToggleFullscreen, isPaused, seller, streamData, handleFollowToggle, isFollowingState, sellerProducts, handlers, relatedStreams, isChatOpen, setIsChatOpen, chatMessages, pinnedMessages, onClose: () => setIsChatOpen(false), handleAddToCart, handleBuyNow, mobileView, setMobileView, isMuted, setIsMuted, handleGoLive, handleSeek, isLive, formatTime, currentTime, duration, buffered, handleProgressClick, progressContainerRef, activeQuality, setActiveQuality, product, user, walletBalance }} />
                  ) : (
                     <DesktopLayout 
-                        {...{ router, videoRef, playerRef, handlePlayPause, handleShare, handleMinimize, handleToggleFullscreen, isPaused, seller, streamData, handleFollowToggle, isFollowingState, sellerProducts, handlers, relatedStreams, isChatOpen, setIsChatOpen, chatMessages, pinnedMessages, onClose: () => setIsChatOpen(false), handleAddToCart, handleBuyNow, mobileView, setMobileView, isMuted, setIsMuted, handleGoLive, handleSeek, isLive, formatTime, currentTime, duration, buffered, handleProgressClick, progressContainerRef, mainScrollRef, handleMainScroll, showGoToTop, scrollToTop, activeQuality, setActiveQuality, product, user, cartCount }}
+                        {...{ router, videoRef, playerRef, handlePlayPause, handleShare, handleMinimize, handleToggleFullscreen, isPaused, seller, streamData, handleFollowToggle, isFollowingState, sellerProducts, handlers, relatedStreams, isChatOpen, setIsChatOpen, chatMessages, pinnedMessages, onClose: () => setIsChatOpen(false), handleAddToCart, handleBuyNow, mobileView, setMobileView, isMuted, setIsMuted, handleGoLive, handleSeek, isLive, formatTime, currentTime, duration, buffered, handleProgressClick, progressContainerRef, mainScrollRef, handleMainScroll, showGoToTop, scrollToTop, activeQuality, setActiveQuality, product, user, cartCount, walletBalance }}
                     />
                  )}
             </div>
@@ -1091,7 +1093,7 @@ export default function StreamPage() {
 const MemoizedStreamInfo = React.memo(StreamInfo);
 const MemoizedRelatedContent = React.memo(RelatedContent);
 
-const DesktopLayout = React.memo(({ handlers, chatMessages, cartCount, ...props }: any) => {
+const DesktopLayout = React.memo(({ handlers, chatMessages, cartCount, walletBalance, ...props }: any) => {
 return (
 <div className="flex flex-col h-screen overflow-hidden">
     <header className="p-3 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-sm z-30 border-b h-16 shrink-0 w-full">
@@ -1201,6 +1203,7 @@ return (
                 pinnedMessages={props.pinnedMessages}
                 handlers={handlers}
                 onClose={() => {}}
+                walletBalance={walletBalance}
             />
         </aside>
     </div>
@@ -1208,7 +1211,7 @@ return (
 )});
 DesktopLayout.displayName = "DesktopLayout";
 
-const MobileLayout = React.memo(({ handlers, chatMessages, ...props }: any) => {
+const MobileLayout = React.memo(({ handlers, chatMessages, walletBalance, ...props }: any) => {
     const { isMuted, setIsMuted, handleGoLive, isLive, formatTime, currentTime, duration, handleShare, handleToggleFullscreen, progressContainerRef, handleProgressClick, isPaused, handlePlayPause, handleSeek, handleMinimize, activeQuality, setActiveQuality } = props;
     return (
         <div className="flex flex-col h-dvh overflow-hidden relative">
@@ -1311,7 +1314,7 @@ const MobileLayout = React.memo(({ handlers, chatMessages, ...props }: any) => {
                     </ScrollArea>
                 ) : (
                     <div className="h-full flex flex-col bg-background">
-                        <ChatPanel {...{...props, handlers, chatMessages}} onClose={() => props.setMobileView('stream')} />
+                        <ChatPanel {...{...props, handlers, chatMessages, walletBalance}} onClose={() => props.setMobileView('stream')} />
                     </div>
                 )}
             </div>
@@ -1475,7 +1478,7 @@ const ChatPanel = ({
             handlers.toast({ variant: 'destructive', title: 'Message is empty' });
             return;
         }
-        if (paymentMethod === 'wallet' && amount > walletBalance) {
+        if (paymentMethod === 'wallet' && walletBalance !== undefined && amount > walletBalance) {
             handlers.toast({ variant: 'destructive', title: 'Insufficient Wallet Balance' });
             return;
         }
@@ -1507,7 +1510,7 @@ const ChatPanel = ({
                         <Wallet className="w-5 h-5"/>
                         <div>
                           Wallet
-                          <span className="text-xs text-muted-foreground block">Bal: ₹{walletBalance.toFixed(2)}</span>
+                          <span className="text-xs text-muted-foreground block">Bal: ₹{typeof walletBalance === 'number' ? walletBalance.toFixed(2) : '0.00'}</span>
                         </div>
                     </Label>
                     <Label htmlFor="pay-upi" className="flex-1 flex items-center gap-2 p-3 border rounded-md cursor-pointer has-[:checked]:border-primary has-[:checked]:bg-primary/10">
@@ -1608,12 +1611,12 @@ const ChatPanel = ({
         </div>
       </header>
       <ScrollArea className="flex-grow" ref={chatContainerRef} onScroll={handleManualScroll}>
-          <div className="p-3 space-y-0.5">
+          <div className="p-3 space-y-2.5">
              {chatMessages.map((msg) => {
                   if (msg.type === 'system') {
                       return <div key={msg.id} className="text-xs text-center text-[#9AA1A6] italic py-1">{msg.text}</div>
                   }
-                  if (msg.type === 'product_promo') {
+                   if (msg.type === 'product_promo') {
                     return <ProductPromoCard key={msg.id} msg={msg} handlers={handlers} />
                   }
                   if (msg.type === 'post_share') {
