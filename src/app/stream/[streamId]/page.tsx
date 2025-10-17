@@ -616,15 +616,25 @@ export default function StreamPage() {
 
     useEffect(() => {
         if (seller) {
-            const filteredMessages = mockChatMessages.map(msg =>
-                msg.isSeller ? { ...msg, user: seller.name } : msg
-            ).filter(msg => {
-                if (msg.type === 'post_share' || msg.isSeller) {
-                    return msg.sellerName === seller.name || msg.user === seller.name;
+            const initialMessages = mockChatMessages.map(msg => {
+                let finalMsg = { ...msg };
+                // If it's a seller message or post share, dynamically set the user name
+                if (finalMsg.isSeller) {
+                    finalMsg.user = seller.name;
                 }
-                return true;
+                if (finalMsg.type === 'post_share') {
+                    finalMsg.sellerName = seller.name;
+                }
+                return finalMsg;
             });
-            setChatMessages(filteredMessages);
+            // Now filter out messages not relevant to this seller
+            const relevantMessages = initialMessages.filter(msg => {
+                if(msg.isSeller) return msg.user === seller.name;
+                if(msg.type === 'post_share') return msg.sellerName === seller.name;
+                // Keep all non-seller, non-post-share messages (system, customer)
+                return true; 
+            });
+            setChatMessages(relevantMessages);
         }
     }, [seller]);
 
@@ -738,7 +748,7 @@ export default function StreamPage() {
             }
         }
 
-        const intervalSeconds = liveStreamData.promotionInterval || 300; 
+        const intervalSeconds = 300; 
 
          const interval = setInterval(() => {
             const productsWithStock = Object.values(productDetails).filter(p => 
