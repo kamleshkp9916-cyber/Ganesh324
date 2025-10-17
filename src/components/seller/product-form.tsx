@@ -46,6 +46,8 @@ const productFormSchema = z.object({
   status: z.enum(["draft", "active", "archived"]),
   category: z.string().min(1, "Category is required."),
   subcategory: z.string().min(1, "Sub-category is required."),
+  availableSizes: z.string().optional(),
+  availableColors: z.string().optional(),
 })
 
 export type Product = z.infer<typeof productFormSchema>;
@@ -72,6 +74,8 @@ export function ProductForm({ onSave, productToEdit }: ProductFormProps) {
       status: "draft",
       category: "",
       subcategory: "",
+      availableSizes: "",
+      availableColors: "",
     };
   }, [productToEdit]);
 
@@ -195,7 +199,7 @@ export function ProductForm({ onSave, productToEdit }: ProductFormProps) {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {subcategories.map(sub => <SelectItem key={sub} value={sub}>{sub}</SelectItem>)}
+                          {subcategories.map(sub => <SelectItem key={sub.name} value={sub.name}>{sub.name}</SelectItem>)}
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -235,6 +239,42 @@ export function ProductForm({ onSave, productToEdit }: ProductFormProps) {
                   )}
                 />
               </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="availableSizes"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Available Sizes</FormLabel>
+                      <FormControl>
+                        <Input placeholder="e.g., S, M, L, XL" {...field} />
+                      </FormControl>
+                       <FormDescription>
+                        Comma-separated values.
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                 <FormField
+                  control={form.control}
+                  name="availableColors"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Available Colors</FormLabel>
+                      <FormControl>
+                        <Input placeholder="e.g., Red, Blue, Green" {...field} />
+                      </FormControl>
+                       <FormDescription>
+                        Comma-separated values.
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
                <FormField
                     control={form.control}
                     name="images"
