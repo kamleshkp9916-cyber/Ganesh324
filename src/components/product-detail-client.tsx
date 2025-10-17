@@ -520,7 +520,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                      {product.key && <Badge variant="outline">{product.key}</Badge>}
                                     {product.isFromStream && <Badge variant="purple"><Video className="mr-1 h-3 w-3" /> From Stream</Badge>}
                                 </div>
-                                <p className="text-muted-foreground mt-2">{product.description}</p>
+                                 <p className="text-muted-foreground mt-2">{product.description}</p>
                             </div>
                             <div className="flex items-center">
                                 <Button variant="ghost" size="icon" onClick={handleWishlistToggle}>
@@ -528,6 +528,9 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                 </Button>
                                     <Button variant="ghost" size="icon" onClick={handleShare}>
                                     <Share2 className="h-6 w-6" />
+                                </Button>
+                                 <Button variant="ghost" size="icon" onClick={handleReportProduct}>
+                                    <Flag className="h-6 w-6" />
                                 </Button>
                             </div>
                         </div>
@@ -591,25 +594,24 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                         )}
                        
                         <div className="flex flex-col gap-2">
-                            {inCart ? (
-                                <Button asChild size="lg" className="w-full">
-                                    <Link href="/cart">
+                             {variantStock !== undefined && variantStock > 0 ? (
+                                <>
+                                    <Button size="lg" className="w-full" variant="outline" onClick={handleAddToCart} disabled={inCart}>
                                         <ShoppingCart className="mr-2 h-5 w-5" />
-                                        Go to Cart
-                                    </Link>
-                                </Button>
+                                        {inCart ? "Added to Cart" : "Add to Cart"}
+                                    </Button>
+                                    <Button size="lg" className="w-full" onClick={handleBuyNow}>
+                                        Buy Now
+                                    </Button>
+                                </>
                             ) : (
-                                <Button size="lg" className="w-full" onClick={handleAddToCart}>
-                                    <ShoppingCart className="mr-2 h-5 w-5" />
-                                    Add to Cart
+                                <Button size="lg" className="w-full" disabled>
+                                    Out of Stock
                                 </Button>
                             )}
-                            <Button size="lg" className="w-full" variant="secondary" onClick={handleBuyNow}>
-                                Buy Now
-                            </Button>
                         </div>
                          <Card>
-                             <CardHeader className="flex flex-row items-center justify-between py-3 px-4">
+                            <CardHeader className="flex flex-row items-center justify-between py-3 px-4">
                                 <CardTitle className="text-base">Delivery Information</CardTitle>
                                 {user && (
                                      <Dialog open={isAddressDialogOpen} onOpenChange={setIsAddressDialogOpen}>
@@ -697,7 +699,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                     </div>
                 </div>
                 <div className="md:col-span-2 space-y-8 mt-8">
-                    <Card>
+                     <Card>
                         <CardHeader>
                            <CardTitle>Available Offers</CardTitle>
                         </CardHeader>
@@ -760,7 +762,10 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                     
                     <Card>
                         <CardHeader>
-                            <CardTitle>Ratings & Reviews</CardTitle>
+                            <CardTitle className="flex items-center justify-between">
+                                <span>Ratings & Reviews</span>
+                                <span className="text-sm font-medium text-muted-foreground">{reviews.length} Reviews</span>
+                            </CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
                             {reviews.length > 0 ? (
@@ -802,7 +807,10 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                     
                      <Card>
                         <CardHeader>
-                            <CardTitle>Questions & Answers</CardTitle>
+                            <CardTitle className="flex items-center justify-between">
+                                <span>Questions & Answers</span>
+                                <span className="text-sm font-medium text-muted-foreground">{mockQandA.length} Q&As</span>
+                            </CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
                             {mockQandA.slice(0,3).map(qa => (
