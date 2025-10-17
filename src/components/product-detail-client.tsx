@@ -372,163 +372,154 @@ export function ProductDetailClient({ productId }: { productId: string }) {
             </header>
 
             <main className="container mx-auto py-6">
-                <Card>
-                    <CardContent className="p-4 md:p-6">
-                         <div className="flex flex-col gap-8">
-                            {/* Main Product Info Section */}
-                            <div className="flex flex-col gap-4">
-                                <div className="flex justify-between items-start">
-                                    <div>
-                                        <p className="text-sm font-medium text-primary mb-1">{product.brand}</p>
-                                        <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">{product.name}</h1>
-                                        <div className="flex items-center gap-2 mt-2">
-                                            <Badge variant="secondary">{product.key}</Badge>
-                                             {reviews.length > 0 && (
-                                                <div className="flex items-center gap-2">
-                                                    <div className="flex items-center gap-1">
-                                                        <Star className="h-4 w-4 text-yellow-400 fill-yellow-400" />
-                                                        <span className="font-semibold text-sm">{averageRating}</span>
-                                                    </div>
-                                                    <span className="text-muted-foreground text-sm">({reviews.length} reviews)</span>
-                                                </div>
-                                            )}
+                <div className="flex flex-col gap-8">
+                    <div className="flex flex-col gap-4">
+                        <div className="flex justify-between items-start">
+                            <div>
+                                <p className="text-sm font-medium text-primary mb-1">{product.brand}</p>
+                                <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">{product.name}</h1>
+                                <div className="flex items-center gap-2 mt-2">
+                                    <Badge variant="secondary">{product.key}</Badge>
+                                        {reviews.length > 0 && (
+                                        <div className="flex items-center gap-2">
+                                            <div className="flex items-center gap-1">
+                                                <Star className="h-4 w-4 text-yellow-400 fill-yellow-400" />
+                                                <span className="font-semibold text-sm">{averageRating}</span>
+                                            </div>
+                                            <span className="text-muted-foreground text-sm">({reviews.length} reviews)</span>
                                         </div>
-                                    </div>
-                                    <div className="flex items-center">
-                                        <Button variant="ghost" size="icon" onClick={handleWishlistToggle}>
-                                            <Heart className={cn("h-6 w-6", wishlisted ? "fill-red-500 text-red-500" : "text-muted-foreground")} />
-                                        </Button>
-                                         <Button variant="ghost" size="icon" onClick={handleShare}>
-                                            <Share2 className="h-6 w-6" />
-                                        </Button>
-                                    </div>
-                                </div>
-                                <div>
-                                    <p className="text-3xl font-bold text-foreground">{product.price}</p>
-                                    <p className="text-sm text-muted-foreground">(inclusive of all taxes)</p>
-                                </div>
-                                {product.offer?.title && (
-                                    <Card className="bg-primary/10 border-primary/20">
-                                        <CardHeader>
-                                            <CardTitle className="text-lg flex items-center gap-2">
-                                                <Ticket className="h-5 w-5 text-primary" />
-                                                {product.offer.title}
-                                            </CardTitle>
-                                            <CardDescription>{product.offer.description}</CardDescription>
-                                        </CardHeader>
-                                    </Card>
-                                )}
-                                <p className="text-muted-foreground">{product.description}</p>
-                                <div className="flex flex-col gap-2">
-                                    {inCart ? (
-                                        <Button asChild size="lg" className="w-full">
-                                            <Link href="/cart">
-                                                <ShoppingCart className="mr-2 h-5 w-5" />
-                                                Go to Cart
-                                            </Link>
-                                        </Button>
-                                    ) : (
-                                        <Button size="lg" className="w-full" onClick={handleAddToCart}>
-                                            <ShoppingCart className="mr-2 h-5 w-5" />
-                                            Add to Cart
-                                        </Button>
                                     )}
-                                    <Button size="lg" className="w-full" variant="secondary" onClick={handleBuyNow}>
-                                        Buy Now
-                                    </Button>
-                                </div>
-                                <div className="grid grid-cols-3 gap-2 text-center text-xs text-muted-foreground pt-4">
-                                    <Link href="/help" className="flex flex-col items-center gap-1 hover:text-primary">
-                                        <RotateCcw className="h-6 w-6" />
-                                        <span>7-Day Return Policy</span>
-                                    </Link>
-                                    <Link href="/help" className="flex flex-col items-center gap-1 hover:text-primary">
-                                        <Banknote className="h-6 w-6" />
-                                        <span>Pay on Delivery</span>
-                                    </Link>
-                                    <Link href="/help" className="flex flex-col items-center gap-1 hover:text-primary">
-                                        <ShieldCheck className="h-6 w-6" />
-                                        <span>100% Genuine</span>
-                                    </Link>
                                 </div>
                             </div>
-                            
-                            <div className="space-y-8">
-                                <Separator />
-                                {/* Highlights Section */}
-                                {productHighlights.length > 0 && (
-                                    <div>
-                                        <h3 className="font-semibold mb-2">Highlights</h3>
-                                        <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground">
-                                            {productHighlights.map((highlight: string, index: number) => (
-                                                <li key={index}>{highlight}</li>
-                                            ))}
-                                        </ul>
-                                    </div>
-                                )}
-                                 <Separator />
-                                {/* Reviews Section */}
-                                <div>
-                                    <div className="flex justify-between items-center mb-4">
-                                        <h3 className="text-xl font-bold">Ratings & Reviews</h3>
-                                        <Button variant="outline" onClick={openReviewDialog}>Write a Review</Button>
-                                    </div>
-                                    <div className="space-y-4">
-                                        {reviews.length > 0 ? (
-                                            reviews.slice(0, 3).map((review) => (
-                                                <Card key={review.id} className="bg-muted/50">
-                                                    <CardContent className="p-4">
-                                                        <div className="flex gap-4">
-                                                            <Avatar>
-                                                                <AvatarImage src={review.avatar} alt={review.author} />
-                                                                <AvatarFallback>{review.author.charAt(0)}</AvatarFallback>
-                                                            </Avatar>
-                                                            <div className="flex-grow">
-                                                                <div className="flex items-center justify-between">
-                                                                    <h5 className="font-semibold">{review.author}</h5>
-                                                                    <p className="text-xs text-muted-foreground">{formatDistanceToNow(new Date(review.date), { addSuffix: true })}</p>
-                                                                </div>
-                                                                <div className="flex items-center gap-1 mt-1">
-                                                                    {[...Array(5)].map((_, i) => (
-                                                                        <Star key={i} className={cn("h-4 w-4", i < review.rating ? 'text-yellow-400 fill-yellow-400' : 'text-muted-foreground')} />
-                                                                    ))}
-                                                                </div>
-                                                                <p className="text-sm text-muted-foreground mt-2">{review.text}</p>
-                                                            </div>
-                                                        </div>
-                                                    </CardContent>
-                                                </Card>
-                                            ))
-                                        ) : (
-                                            <p className="text-sm text-muted-foreground text-center py-4">No reviews yet. Be the first to write one!</p>
-                                        )}
-                                        {reviews.length > 3 && <Button variant="link" className="w-full">View All {reviews.length} Reviews</Button>}
-                                    </div>
-                                </div>
-                                <Separator />
-                                {/* Q&A Section */}
-                                <div>
-                                    <h3 className="text-xl font-bold mb-4">Questions & Answers</h3>
-                                    <div className="space-y-4">
-                                        {mockQandA.slice(0,3).map(qa => (
-                                            <div key={qa.id}>
-                                                <p className="font-semibold text-sm">Q: {qa.question}</p>
-                                                {qa.answer ? (
-                                                    <p className="text-sm text-muted-foreground mt-1">A: {qa.answer}</p>
-                                                ) : (
-                                                    <p className="text-sm text-muted-foreground mt-1 italic">No answer yet.</p>
-                                                )}
-                                            </div>
-                                        ))}
-                                    </div>
-                                    <Button variant="link" className="w-full mt-2">View All Q&A</Button>
-                                </div>
+                            <div className="flex items-center">
+                                <Button variant="ghost" size="icon" onClick={handleWishlistToggle}>
+                                    <Heart className={cn("h-6 w-6", wishlisted ? "fill-red-500 text-red-500" : "text-muted-foreground")} />
+                                </Button>
+                                    <Button variant="ghost" size="icon" onClick={handleShare}>
+                                    <Share2 className="h-6 w-6" />
+                                </Button>
                             </div>
                         </div>
-                    </CardContent>
-                </Card>
+                        <div>
+                            <p className="text-3xl font-bold text-foreground">{product.price}</p>
+                            <p className="text-sm text-muted-foreground">(inclusive of all taxes)</p>
+                        </div>
+                        {product.offer?.title && (
+                            <Card className="bg-primary/10 border-primary/20">
+                                <CardHeader>
+                                    <CardTitle className="text-lg flex items-center gap-2">
+                                        <Ticket className="h-5 w-5 text-primary" />
+                                        {product.offer.title}
+                                    </CardTitle>
+                                    <CardDescription>{product.offer.description}</CardDescription>
+                                </CardHeader>
+                            </Card>
+                        )}
+                        <p className="text-muted-foreground">{product.description}</p>
+                        <div className="flex flex-col gap-2">
+                            {inCart ? (
+                                <Button asChild size="lg" className="w-full">
+                                    <Link href="/cart">
+                                        <ShoppingCart className="mr-2 h-5 w-5" />
+                                        Go to Cart
+                                    </Link>
+                                </Button>
+                            ) : (
+                                <Button size="lg" className="w-full" onClick={handleAddToCart}>
+                                    <ShoppingCart className="mr-2 h-5 w-5" />
+                                    Add to Cart
+                                </Button>
+                            )}
+                            <Button size="lg" className="w-full" variant="secondary" onClick={handleBuyNow}>
+                                Buy Now
+                            </Button>
+                        </div>
+                        <div className="grid grid-cols-3 gap-2 text-center text-xs text-muted-foreground pt-4">
+                            <Link href="/help" className="flex flex-col items-center gap-1 hover:text-primary">
+                                <RotateCcw className="h-6 w-6" />
+                                <span>7-Day Return Policy</span>
+                            </Link>
+                            <Link href="/help" className="flex flex-col items-center gap-1 hover:text-primary">
+                                <Banknote className="h-6 w-6" />
+                                <span>Pay on Delivery</span>
+                            </Link>
+                            <Link href="/help" className="flex flex-col items-center gap-1 hover:text-primary">
+                                <ShieldCheck className="h-6 w-6" />
+                                <span>100% Genuine</span>
+                            </Link>
+                        </div>
+                    </div>
+                    
+                    <div className="space-y-8">
+                        <Separator />
+                        {productHighlights.length > 0 && (
+                            <div>
+                                <h3 className="font-semibold mb-2">Highlights</h3>
+                                <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground">
+                                    {productHighlights.map((highlight: string, index: number) => (
+                                        <li key={index}>{highlight}</li>
+                                    ))}
+                                </ul>
+                            </div>
+                        )}
+                         <Separator />
+                        <div>
+                            <div className="flex justify-between items-center mb-4">
+                                <h3 className="text-xl font-bold">Ratings & Reviews</h3>
+                                <Button variant="outline" onClick={openReviewDialog}>Write a Review</Button>
+                            </div>
+                            <div className="space-y-4">
+                                {reviews.length > 0 ? (
+                                    reviews.slice(0, 3).map((review) => (
+                                        <Card key={review.id} className="bg-muted/50">
+                                            <CardContent className="p-4">
+                                                <div className="flex gap-4">
+                                                    <Avatar>
+                                                        <AvatarImage src={review.avatar} alt={review.author} />
+                                                        <AvatarFallback>{review.author.charAt(0)}</AvatarFallback>
+                                                    </Avatar>
+                                                    <div className="flex-grow">
+                                                        <div className="flex items-center justify-between">
+                                                            <h5 className="font-semibold">{review.author}</h5>
+                                                            <p className="text-xs text-muted-foreground">{formatDistanceToNow(new Date(review.date), { addSuffix: true })}</p>
+                                                        </div>
+                                                        <div className="flex items-center gap-1 mt-1">
+                                                            {[...Array(5)].map((_, i) => (
+                                                                <Star key={i} className={cn("h-4 w-4", i < review.rating ? 'text-yellow-400 fill-yellow-400' : 'text-muted-foreground')} />
+                                                            ))}
+                                                        </div>
+                                                        <p className="text-sm text-muted-foreground mt-2">{review.text}</p>
+                                                    </div>
+                                                </div>
+                                            </CardContent>
+                                        </Card>
+                                    ))
+                                ) : (
+                                    <p className="text-sm text-muted-foreground text-center py-4">No reviews yet. Be the first to write one!</p>
+                                )}
+                                {reviews.length > 3 && <Button variant="link" className="w-full">View All {reviews.length} Reviews</Button>}
+                            </div>
+                        </div>
+                        <Separator />
+                        <div>
+                            <h3 className="text-xl font-bold mb-4">Questions & Answers</h3>
+                            <div className="space-y-4">
+                                {mockQandA.slice(0,3).map(qa => (
+                                    <div key={qa.id}>
+                                        <p className="font-semibold text-sm">Q: {qa.question}</p>
+                                        {qa.answer ? (
+                                            <p className="text-sm text-muted-foreground mt-1">A: {qa.answer}</p>
+                                        ) : (
+                                            <p className="text-sm text-muted-foreground mt-1 italic">No answer yet.</p>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                            <Button variant="link" className="w-full mt-2">View All Q&A</Button>
+                        </div>
+                    </div>
+                </div>
 
-                 {/* Recently Viewed Section */}
                 {recentlyViewedItems.length > 0 && (
                     <div className="mt-8">
                         <h2 className="text-2xl font-bold mb-4">Recently Viewed</h2>
