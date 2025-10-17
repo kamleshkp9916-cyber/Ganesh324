@@ -71,6 +71,7 @@ import {
   Clock,
   Trash2,
   MoreHorizontal,
+  Banknote,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -150,6 +151,11 @@ const liveSellers = [
     { id: 'petpalace-uid', name: 'PetPalace', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Pet Supplies', viewers: 1800, buyers: 50, rating: 4.8, reviews: 30, hint: 'playing with puppy', productId: 'prod_8', hasAuction: false },
     { id: 'booknook-uid', name: 'BookNook', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Books', viewers: 620, buyers: 12, rating: 4.9, reviews: 10, hint: 'reading book cozy', productId: 'prod_9', hasAuction: false },
     { id: 'gamerguild-uid', name: 'GamerGuild', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Gaming', viewers: 4200, buyers: 102, rating: 4.9, reviews: 80, hint: 'esports competition', productId: 'prod_10', hasAuction: true },
+];
+
+const mockAdminOffers = [
+    { icon: <Ticket className="h-5 w-5 text-primary" />, title: "Special Price", description: "Get this for ₹11,000 using the code VINTAGE10" },
+    { icon: <Banknote className="h-5 w-5 text-primary" />, title: "Bank Offer", description: "10% Instant Discount on HDFC Bank Credit Card" },
 ];
 
 
@@ -461,6 +467,7 @@ const ProductPromoCard = ({ msg, handlers }: { msg: any, handlers: any }) => {
 
 const PostShareCard = ({ msg, handlers }: { msg: any, handlers: any }) => {
     const { product, sellerName, text } = msg;
+    if (!product) return null; // Safety check
 
     return (
         <div className="p-1.5">
@@ -598,7 +605,7 @@ export default function StreamPage() {
     const { minimizedStream, minimizeStream, closeMinimizedStream, isMinimized } = useMiniPlayer();
     
     const [isReportOpen, setIsReportOpen] = useState(false);
-    const [pinnedMessages, setPinnedMessages] = useState<any[]>([]);
+    const [pinnedMessages, setPinnedMessages] = useState<any[]>(mockAdminOffers.map(o => ({...o, type: 'offer', id: o.title })));
     const [isFollowingState, setIsFollowingState] = useState(false);
     
     const [cartCount, setCartCount] = useState(0);
@@ -616,7 +623,7 @@ export default function StreamPage() {
 
     useEffect(() => {
         if (seller) {
-            const initialMessages = mockChatMessages.map(msg => {
+             const initialMessages = mockChatMessages.map(msg => {
                 let finalMsg = { ...msg };
                 // If it's a seller message or post share, dynamically set the user name
                 if (finalMsg.isSeller) {
@@ -627,12 +634,11 @@ export default function StreamPage() {
                 }
                 return finalMsg;
             });
-            // Now filter out messages not relevant to this seller
+            // Now filter out messages relevant only to *other* sellers
             const relevantMessages = initialMessages.filter(msg => {
-                if(msg.isSeller) return msg.user === seller.name;
-                if(msg.type === 'post_share') return msg.sellerName === seller.name;
-                // Keep all non-seller, non-post-share messages (system, customer)
-                return true; 
+                if(msg.isSeller && msg.user !== seller.name) return false;
+                if(msg.type === 'post_share' && msg.sellerName !== seller.name) return false;
+                return true;
             });
             setChatMessages(relevantMessages);
         }
@@ -739,17 +745,23 @@ export default function StreamPage() {
     
     useEffect(() => {
         if (!seller) return;
-        
-        let liveStreamData: any = {};
+
+        let promotionInterval = 300000; // Default to 5 minutes
+
         if (typeof window !== 'undefined') {
-            const storedData = localStorage.getItem('liveStream');
-            if (storedData) {
-                liveStreamData = JSON.parse(storedData);
+            try {
+                const storedData = localStorage.getItem('liveStream');
+                if (storedData) {
+                    const liveStreamData = JSON.parse(storedData);
+                    if (liveStreamData.seller.uid === seller.id) {
+                        promotionInterval = liveStreamData.promotionInterval * 1000;
+                    }
+                }
+            } catch (error) {
+                console.error("Error reading live stream data from local storage:", error);
             }
         }
-
-        const intervalSeconds = 300; 
-
+        
          const interval = setInterval(() => {
             const productsWithStock = Object.values(productDetails).filter(p => 
                 productToSellerMapping[p.key]?.name === seller.name && p.stock > 0
@@ -769,7 +781,7 @@ export default function StreamPage() {
                 setChatMessages(prev => [...prev, promoMessage]);
             }
 
-        }, intervalSeconds * 1000);
+        }, promotionInterval);
     
         return () => clearInterval(interval);
     }, [seller]);
@@ -1321,7 +1333,7 @@ const ChatMessage = ({ msg, handlers, seller }: { msg: any, handlers: any, selle
     const handleDelete = () => handlers.onDeleteMessage(msg.id);
 
     return (
-        <div className="flex items-start gap-2.5 w-full group py-1.5 animate-message-in">
+        <div className="flex items-start gap-2.5 w-full group py-1 animate-message-in">
              <Avatar className="h-7 w-7 mt-0.5">
                 <AvatarImage src={msg.avatar} />
                 <AvatarFallback className="bg-gradient-to-br from-red-500 to-yellow-500 text-white font-bold text-[10px]">
@@ -1365,13 +1377,25 @@ const ChatPanel = ({
   seller,
   chatMessages,
   pinnedMessages,
+  activeAuction,
+  auctionTime,
+  highestBid,
+  totalBids,
+  walletBalance,
   handlers,
+  inlineAuctionCardRefs,
   onClose,
 }: {
   seller: any;
   chatMessages: any[];
   pinnedMessages: any[];
+  activeAuction: any;
+  auctionTime: number | null;
+  highestBid: number;
+  totalBids: number;
+  walletBalance: number;
   handlers: any;
+  inlineAuctionCardRefs: React.MutableRefObject<Record<string, HTMLDivElement | null>>;
   onClose: () => void;
 }) => {
   const [newMessage, setNewMessage] = useState("");
@@ -1444,10 +1468,13 @@ const ChatPanel = ({
                                         </>
                                     )}
                                     {item.type === 'offer' && (
-                                        <>
-                                            <p className="font-bold text-primary">{item.title}</p>
-                                            <p>{item.description}</p>
-                                        </>
+                                        <div className="flex items-start gap-3">
+                                            <div className="flex-shrink-0 mt-1">{item.icon}</div>
+                                            <div>
+                                                <h5 className="font-semibold">{item.title}</h5>
+                                                <p className="text-sm text-muted-foreground">{item.description}</p>
+                                            </div>
+                                        </div>
                                     )}
                                     {item.type === 'product' && (
                                         <div className="flex items-center gap-2">
@@ -1498,7 +1525,7 @@ const ChatPanel = ({
                   if (msg.type === 'system') {
                       return <div key={msg.id} className="text-xs text-center text-[#9AA1A6] italic py-1">{msg.text}</div>
                   }
-                   if (msg.type === 'product_promo') {
+                  if (msg.type === 'product_promo') {
                     return <ProductPromoCard key={msg.id} msg={msg} handlers={handlers} />
                   }
                   if (msg.type === 'post_share') {
@@ -1571,3 +1598,4 @@ const ChatPanel = ({
     </div>
   );
 };
+
