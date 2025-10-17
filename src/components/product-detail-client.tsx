@@ -403,14 +403,14 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                             <CardTitle>Image Gallery</CardTitle>
                         </CardHeader>
                         <CardContent className="p-4">
-                            <div className="aspect-[2/1] w-full relative bg-muted rounded-lg overflow-hidden mb-4">
+                            <div className="aspect-[4/3] w-full relative bg-muted rounded-lg overflow-hidden mb-4">
                                 {selectedImage && (
                                     <Image
                                         src={selectedImage}
                                         alt={product.name}
                                         fill
                                         sizes="(max-width: 768px) 100vw, 50vw"
-                                        className="object-contain"
+                                        className="object-cover"
                                     />
                                 )}
                             </div>
