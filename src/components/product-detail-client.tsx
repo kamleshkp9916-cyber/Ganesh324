@@ -89,7 +89,6 @@ const liveSellers = [
     { id: 'gamerguild-uid', name: 'GamerGuild', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Gaming', viewers: 4200, buyers: 102, rating: 4.9, reviews: 80, hint: 'esports competition', productId: 'prod_10', hasAuction: true },
 ];
 
-
 export function ProductDetailClient({ productId }: { productId: string }) {
     const router = useRouter();
     const { user } = useAuth();
@@ -346,8 +345,9 @@ export function ProductDetailClient({ productId }: { productId: string }) {
 
     if (!product) {
         return (
-             <div className="flex flex-col h-screen items-center justify-center">
+             <div className="flex flex-col h-screen items-center justify-center text-center p-4">
                 <p className="text-2xl font-semibold mb-4">Product Not Found</p>
+                <p className="text-muted-foreground mb-6">The product you are looking for does not exist or has been removed.</p>
                 <Button onClick={() => router.back()}>Go Back</Button>
             </div>
         );
@@ -378,8 +378,9 @@ export function ProductDetailClient({ productId }: { productId: string }) {
 
             <main className="container mx-auto py-6">
                 <div className="grid md:grid-cols-2 gap-8 lg:gap-12">
-                     {/* Empty div as a placeholder for the removed image gallery */}
-                    <div></div>
+                     <div>
+                        {/* This space is intentionally left blank as requested */}
+                    </div>
 
                     {/* Product Details */}
                     <div className="flex flex-col gap-4">
