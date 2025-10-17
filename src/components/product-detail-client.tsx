@@ -338,7 +338,12 @@ export function ProductDetailClient({ productId }: { productId: string }) {
     if (!product) {
         return (
              <div className="flex flex-col h-screen items-center justify-center text-center p-4">
-                <LoadingSpinner />
+                 <div className="w-full max-w-sm mx-auto">
+                    <div className="aspect-square w-full bg-muted rounded-lg" />
+                 </div>
+                <h2 className="text-2xl font-semibold mt-4">Product not found</h2>
+                <p className="text-muted-foreground">This product may have been removed or is unavailable.</p>
+                <Button onClick={() => router.back()} className="mt-4">Go Back</Button>
             </div>
         );
     }
@@ -367,85 +372,82 @@ export function ProductDetailClient({ productId }: { productId: string }) {
             </header>
 
             <main className="container mx-auto py-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12">
-                    {/* Product Details */}
-                    <div className="flex flex-col gap-4">
-                        <div>
-                             <p className="text-sm font-medium text-primary mb-1">{product.brand}</p>
-                            <h1 className="text-3xl lg:text-4xl font-extrabold tracking-tight">{product.name}</h1>
+                <div className="flex flex-col gap-4">
+                    <div>
+                        <p className="text-sm font-medium text-primary mb-1">{product.brand}</p>
+                        <h1 className="text-3xl lg:text-4xl font-extrabold tracking-tight">{product.name}</h1>
+                        <div className="flex items-center gap-2 mt-2">
+                            <Badge variant="secondary">{product.key}</Badge>
+                        </div>
+                        {reviews.length > 0 && (
                             <div className="flex items-center gap-2 mt-2">
-                                <Badge variant="secondary">{product.key}</Badge>
-                            </div>
-                            {reviews.length > 0 && (
-                                <div className="flex items-center gap-2 mt-2">
-                                    <div className="flex items-center gap-1">
-                                        {[...Array(5)].map((_, i) => (
-                                            <Star key={i} className={cn("h-5 w-5", Number(averageRating) > i ? "text-yellow-400 fill-yellow-400" : "text-muted-foreground")} />
-                                        ))}
-                                    </div>
-                                    <span className="text-muted-foreground text-sm">({averageRating} based on {reviews.length} reviews)</span>
+                                <div className="flex items-center gap-1">
+                                    {[...Array(5)].map((_, i) => (
+                                        <Star key={i} className={cn("h-5 w-5", Number(averageRating) > i ? "text-yellow-400 fill-yellow-400" : "text-muted-foreground")} />
+                                    ))}
                                 </div>
-                            )}
-                        </div>
-
-                        <div>
-                            <p className="text-3xl font-bold text-foreground">{product.price}</p>
-                            <p className="text-sm text-muted-foreground">(inclusive of all taxes)</p>
-                        </div>
-                        
-                        {product.offer?.title && (
-                            <Card className="bg-primary/10 border-primary/20">
-                                <CardHeader>
-                                    <CardTitle className="text-lg flex items-center gap-2">
-                                        <Ticket className="h-5 w-5 text-primary" />
-                                        {product.offer.title}
-                                    </CardTitle>
-                                    <CardDescription>{product.offer.description}</CardDescription>
-                                </CardHeader>
-                            </Card>
+                                <span className="text-muted-foreground text-sm">({averageRating} based on {reviews.length} reviews)</span>
+                            </div>
                         )}
-                        
-                        <p className="text-muted-foreground">{product.description}</p>
-                        
-                        <div className="flex flex-col gap-2">
-                             {inCart ? (
-                                <Button asChild size="lg" className="w-full">
-                                    <Link href="/cart">
-                                        <ShoppingCart className="mr-2 h-5 w-5" />
-                                        Go to Cart
-                                    </Link>
-                                </Button>
-                            ) : (
-                                <Button size="lg" className="w-full" onClick={handleAddToCart}>
-                                    <ShoppingCart className="mr-2 h-5 w-5" />
-                                    Add to Cart
-                                </Button>
-                            )}
-                            <Button size="lg" className="w-full" variant="secondary" onClick={handleBuyNow}>
-                                Buy Now
-                            </Button>
-                        </div>
-                        
-                        <div className="grid grid-cols-3 gap-2 text-center text-xs text-muted-foreground pt-4">
-                            <Link href="/help" className="flex flex-col items-center gap-1 hover:text-primary">
-                                <RotateCcw className="h-6 w-6" />
-                                <span>7-Day Return Policy</span>
-                            </Link>
-                            <Link href="/help" className="flex flex-col items-center gap-1 hover:text-primary">
-                                <Banknote className="h-6 w-6" />
-                                <span>Pay on Delivery</span>
-                            </Link>
-                            <Link href="/help" className="flex flex-col items-center gap-1 hover:text-primary">
-                                <ShieldCheck className="h-6 w-6" />
-                                <span>100% Genuine</span>
-                            </Link>
-                        </div>
-
                     </div>
+
+                    <div>
+                        <p className="text-3xl font-bold text-foreground">{product.price}</p>
+                        <p className="text-sm text-muted-foreground">(inclusive of all taxes)</p>
+                    </div>
+                    
+                    {product.offer?.title && (
+                        <Card className="bg-primary/10 border-primary/20">
+                            <CardHeader>
+                                <CardTitle className="text-lg flex items-center gap-2">
+                                    <Ticket className="h-5 w-5 text-primary" />
+                                    {product.offer.title}
+                                </CardTitle>
+                                <CardDescription>{product.offer.description}</CardDescription>
+                            </CardHeader>
+                        </Card>
+                    )}
+                    
+                    <p className="text-muted-foreground">{product.description}</p>
+                    
+                    <div className="flex flex-col gap-2">
+                            {inCart ? (
+                            <Button asChild size="lg" className="w-full">
+                                <Link href="/cart">
+                                    <ShoppingCart className="mr-2 h-5 w-5" />
+                                    Go to Cart
+                                </Link>
+                            </Button>
+                        ) : (
+                            <Button size="lg" className="w-full" onClick={handleAddToCart}>
+                                <ShoppingCart className="mr-2 h-5 w-5" />
+                                Add to Cart
+                            </Button>
+                        )}
+                        <Button size="lg" className="w-full" variant="secondary" onClick={handleBuyNow}>
+                            Buy Now
+                        </Button>
+                    </div>
+                    
+                    <div className="grid grid-cols-3 gap-2 text-center text-xs text-muted-foreground pt-4">
+                        <Link href="/help" className="flex flex-col items-center gap-1 hover:text-primary">
+                            <RotateCcw className="h-6 w-6" />
+                            <span>7-Day Return Policy</span>
+                        </Link>
+                        <Link href="/help" className="flex flex-col items-center gap-1 hover:text-primary">
+                            <Banknote className="h-6 w-6" />
+                            <span>Pay on Delivery</span>
+                        </Link>
+                        <Link href="/help" className="flex flex-col items-center gap-1 hover:text-primary">
+                            <ShieldCheck className="h-6 w-6" />
+                            <span>100% Genuine</span>
+                        </Link>
+                    </div>
+
                 </div>
 
                 <div className="mt-8 space-y-6">
-                     <div className="py-4 border-y">
+                        <div className="py-4 border-y">
                         <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <h3 className="font-semibold mb-2">Delivery</h3>
@@ -464,13 +466,13 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                 {isDeliverable === true ? (
                                     <p className="text-sm text-green-600 mt-2">Yay! Delivery is available to this pincode.</p>
                                 ) : isDeliverable === false ? (
-                                     <p className="text-sm text-destructive mt-2">Sorry, delivery is not available to this pincode.</p>
+                                        <p className="text-sm text-destructive mt-2">Sorry, delivery is not available to this pincode.</p>
                                 ) : (
-                                     <p className="text-xs text-muted-foreground mt-2">Check if we can deliver to your location.</p>
+                                        <p className="text-xs text-muted-foreground mt-2">Check if we can deliver to your location.</p>
                                 )}
                             </div>
                             <div className="text-sm">
-                                 <div className="flex items-center gap-3">
+                                    <div className="flex items-center gap-3">
                                     <Truck className="h-5 w-5 text-muted-foreground flex-shrink-0" />
                                     <div>
                                         <p className="font-semibold">Get it by {estimatedDeliveryDate}</p>
@@ -489,7 +491,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                             </Button>
                         </CollapsibleTrigger>
                         <CollapsibleContent>
-                             <Card className="mt-2">
+                                <Card className="mt-2">
                                 <CardHeader>
                                     <CardTitle className="text-lg">Available Offers</CardTitle>
                                 </CardHeader>
@@ -508,14 +510,14 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                         </CollapsibleContent>
                     </Collapsible>
 
-                     <div className="py-4 border-t">
+                        <div className="py-4 border-t">
                         <CardHeader className="p-0">
                             <CardTitle className="text-lg">Product Details</CardTitle>
                         </CardHeader>
                         <CardContent className="p-0 pt-4">
                             <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
                                 {productSpecificDetails.map(detail => (
-                                     <React.Fragment key={detail.label}>
+                                        <React.Fragment key={detail.label}>
                                         <dt className="text-muted-foreground">{detail.label}</dt>
                                         <dd className="font-medium">{detail.value}</dd>
                                     </React.Fragment>
@@ -523,14 +525,14 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                             </dl>
                         </CardContent>
                     </div>
-                     <div className="py-4 border-t">
+                        <div className="py-4 border-t">
                         <CardHeader className="p-0">
                             <CardTitle className="text-lg flex items-center gap-2">
                                 <Sparkles className="h-5 w-5 text-primary"/> Product Highlights
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="p-0 pt-4 grid md:grid-cols-2 gap-4">
-                             {productHighlights.length > 0 && (
+                                {productHighlights.length > 0 && (
                                 <ul className="list-disc list-inside text-muted-foreground space-y-2 text-sm my-auto">
                                     {productHighlights.map((highlight: string, index: number) => (
                                         <li key={index}>{highlight}</li>
@@ -538,16 +540,16 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                 </ul>
                             )}
                             {product.images.length > 1 && (
-                                 <div className="aspect-square bg-muted rounded-lg overflow-hidden cursor-pointer group">
-                                     <Image src={product.images[1]} alt={`${product.name} highlight`} fill sizes="100vw" className="object-cover w-full h-full group-hover:scale-105 transition-transform" />
-                                 </div>
+                                    <div className="aspect-square bg-muted rounded-lg overflow-hidden cursor-pointer group">
+                                        <Image src={product.images[1]} alt={`${product.name} highlight`} fill sizes="100vw" className="object-cover w-full h-full group-hover:scale-105 transition-transform" />
+                                    </div>
                             )}
                         </CardContent>
                     </div>
                 </div>
 
                 {/* Seller Info Section */}
-                 <div className="mt-8 py-4 border-t">
+                    <div className="mt-8 py-4 border-t">
                     <Card>
                         <CardHeader>
                             <div className="flex justify-between items-center">
@@ -570,7 +572,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                         </CardHeader>
                         <CardContent>
                             <h5 className="font-semibold text-sm mb-2">More from this seller</h5>
-                             <div className="relative">
+                                <div className="relative">
                                 <ScrollArea>
                                     <div className="flex gap-4 pb-4">
                                         {sellerProducts.map(p => (
@@ -640,7 +642,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                                             <p>{qna.question}</p>
                                                         </div>
                                                         <div className="flex items-start gap-2 mt-2 pl-6">
-                                                             <Avatar className="w-5 h-5 mt-1">
+                                                                <Avatar className="w-5 h-5 mt-1">
                                                                 <AvatarFallback className="text-xs">S</AvatarFallback>
                                                             </Avatar>
                                                             {qna.answer ? (
@@ -668,9 +670,9 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                     </div>
                 </div>
 
-                 {/* Reviews Section */}
+                {/* Reviews Section */}
                 <div className="mt-8 py-4 border-t">
-                     <div className="mb-4 flex items-center justify-between">
+                        <div className="mb-4 flex items-center justify-between">
                         <CardTitle>Ratings & Reviews</CardTitle>
                         <Button variant="outline" onClick={openReviewDialog}>Write a Review</Button>
                     </div>
@@ -678,7 +680,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                         <div className="flex flex-col items-center justify-center gap-2 p-6 bg-muted rounded-lg">
                             <h2 className="text-5xl font-bold">{averageRating}</h2>
                             <div className="flex items-center gap-1">
-                                 {[...Array(5)].map((_, i) => (
+                                    {[...Array(5)].map((_, i) => (
                                     <Star key={i} className={cn("h-6 w-6", Number(averageRating) > i ? "text-yellow-400 fill-yellow-400" : "text-muted-foreground")} />
                                 ))}
                             </div>
@@ -696,8 +698,8 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                             <h5 className="font-semibold">{review.author}</h5>
                                             <p className="text-xs text-muted-foreground">{formatDistanceToNow(new Date(review.date), { addSuffix: true })}</p>
                                         </div>
-                                         <div className="flex items-center gap-1 mt-1">
-                                             {[...Array(5)].map((_, i) => (
+                                            <div className="flex items-center gap-1 mt-1">
+                                                {[...Array(5)].map((_, i) => (
                                                 <Star key={i} className={cn("w-4 h-4", i < review.rating ? 'text-yellow-400 fill-yellow-400' : 'text-muted-foreground')} />
                                             ))}
                                         </div>
@@ -710,7 +712,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                                 <ThumbsUp className="w-4 h-4" />
                                                 Helpful (12)
                                             </button>
-                                             <button className="flex items-center gap-1.5 text-xs hover:text-destructive">
+                                                <button className="flex items-center gap-1.5 text-xs hover:text-destructive">
                                                 <ThumbsDown className="w-4 h-4" />
                                                 Report
                                             </button>
@@ -862,3 +864,5 @@ export function ProductDetailClient({ productId }: { productId: string }) {
         </div>
     );
 }
+
+    
