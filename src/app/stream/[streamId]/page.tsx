@@ -612,11 +612,21 @@ export default function StreamPage() {
         return productDetails[seller.productId as keyof typeof productDetails] || null;
     }, [seller]);
     
-    const [chatMessages, setChatMessages] = useState(() =>
-        mockChatMessages.map(msg =>
-            msg.isSeller ? { ...msg, user: seller?.name || 'Seller' } : msg
-        )
-    );
+    const [chatMessages, setChatMessages] = useState<any[]>([]);
+
+    useEffect(() => {
+        if (seller) {
+            const filteredMessages = mockChatMessages.map(msg =>
+                msg.isSeller ? { ...msg, user: seller.name } : msg
+            ).filter(msg => {
+                if (msg.type === 'post_share' || msg.isSeller) {
+                    return msg.sellerName === seller.name || msg.user === seller.name;
+                }
+                return true;
+            });
+            setChatMessages(filteredMessages);
+        }
+    }, [seller]);
 
     const relatedStreams = useMemo(() => {
         if (!seller) return [];
@@ -728,7 +738,7 @@ export default function StreamPage() {
             }
         }
 
-        const intervalSeconds = 300; 
+        const intervalSeconds = liveStreamData.promotionInterval || 300; 
 
          const interval = setInterval(() => {
             const productsWithStock = Object.values(productDetails).filter(p => 
@@ -1294,7 +1304,6 @@ MobileLayout.displayName = "MobileLayout";
 const ChatMessage = ({ msg, handlers, seller }: { msg: any, handlers: any, seller: any }) => {
     const { user } = useAuth();
     const isMyMessage = msg.userId === user?.uid;
-    const isSellerMessage = msg.isSeller;
     
     const handleReply = () => handlers.onReply(msg);
     const handleTogglePin = () => handlers.onTogglePin(msg.id);
@@ -1302,7 +1311,7 @@ const ChatMessage = ({ msg, handlers, seller }: { msg: any, handlers: any, selle
     const handleDelete = () => handlers.onDeleteMessage(msg.id);
 
     return (
-        <div className="flex items-start gap-2.5 w-full group animate-message-in text-sm py-1">
+        <div className="flex items-start gap-2.5 w-full group py-1.5 animate-message-in">
              <Avatar className="h-7 w-7 mt-0.5">
                 <AvatarImage src={msg.avatar} />
                 <AvatarFallback className="bg-gradient-to-br from-red-500 to-yellow-500 text-white font-bold text-[10px]">
@@ -1310,16 +1319,14 @@ const ChatMessage = ({ msg, handlers, seller }: { msg: any, handlers: any, selle
                 </AvatarFallback>
             </Avatar>
             <div className="flex-grow">
-                 <div className="text-sm leading-tight text-[#E6ECEF]">
-                    <div className="flex items-center gap-1.5 flex-wrap">
-                        <span className={cn("font-semibold text-xs", isSellerMessage && "text-yellow-400")}>
-                            {msg.user}:
-                        </span>
-                        {isSellerMessage && <Badge variant="outline" className="mr-1.5 border-yellow-400/50 text-yellow-400 h-4 text-[10px] px-1.5">Seller</Badge>}
-                    </div>
-                    <div className="text-sm whitespace-pre-wrap break-words leading-snug">
-                         {renderWithHashtagsAndLinks(msg.text)}
-                    </div>
+                <div className="flex items-center gap-1.5 flex-wrap">
+                    <span className={cn("font-semibold text-xs", msg.isSeller && "text-yellow-400")}>
+                        {msg.user}:
+                    </span>
+                    {msg.isSeller && <Badge variant="outline" className="mr-1.5 border-yellow-400/50 text-yellow-400 h-4 text-[10px] px-1.5">Seller</Badge>}
+                </div>
+                 <div className="text-sm whitespace-pre-wrap break-words leading-snug text-[#E6ECEF]">
+                    {renderWithHashtagsAndLinks(msg.text)}
                  </div>
             </div>
             <DropdownMenu>
@@ -1348,25 +1355,13 @@ const ChatPanel = ({
   seller,
   chatMessages,
   pinnedMessages,
-  activeAuction,
-  auctionTime,
-  highestBid,
-  totalBids,
-  walletBalance,
   handlers,
-  inlineAuctionCardRefs,
   onClose,
 }: {
   seller: any;
   chatMessages: any[];
   pinnedMessages: any[];
-  activeAuction: any;
-  auctionTime: number | null;
-  highestBid: number;
-  totalBids: number;
-  walletBalance: number;
   handlers: any;
-  inlineAuctionCardRefs: React.MutableRefObject<Record<string, HTMLDivElement | null>>;
   onClose: () => void;
 }) => {
   const [newMessage, setNewMessage] = useState("");
@@ -1493,16 +1488,14 @@ const ChatPanel = ({
                   if (msg.type === 'system') {
                       return <div key={msg.id} className="text-xs text-center text-[#9AA1A6] italic py-1">{msg.text}</div>
                   }
-                  if (msg.type === 'product_promo') {
-                    if (msg.product.seller !== seller.name) return null; // FIX: Only show promos for the current seller
+                   if (msg.type === 'product_promo') {
                     return <ProductPromoCard key={msg.id} msg={msg} handlers={handlers} />
                   }
                   if (msg.type === 'post_share') {
-                    if (msg.sellerName !== seller.name) return null; // FIX: Only show posts for the current seller
                     return <PostShareCard key={msg.id} msg={msg} handlers={handlers} />
                   }
                   if (!msg.user) return null;
-
+                  
                   return (
                      <ChatMessage key={msg.id} msg={msg} handlers={{...handlers, onReply: handleReply}} seller={seller} />
                   )
