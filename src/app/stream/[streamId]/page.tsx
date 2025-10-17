@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import {
@@ -184,7 +185,6 @@ const mockChatMessages: any[] = [
     { id: 24, user: 'Sophia', text: 'Great stream! Thanks!', avatar: 'https://placehold.co/40x40.png?text=S', userId: 'user15' },
     { id: 31, isSeller: true, user: 'FashionFinds', text: 'You are welcome, @Ganesh! Glad I could help.' },
     { id: 32, type: 'system', text: 'Michael joined the stream.' },
-    { id: 33, type: 'post_share', sellerName: 'FashionFinds', text: 'Behind the scenes of our new collection!', product: productDetails['prod_5'] },
 ];
 
 const reportReasons = [
@@ -572,7 +572,7 @@ const RelatedContent = ({ relatedStreams }: { relatedStreams: any[] }) => {
         </div>
          <div className={cn("grid gap-4", isMobile ? "grid-cols-1" : "grid-cols-2")}>
             {relatedStreams.slice(0,4).map((s: any) => (
-                <Link href={`/stream/${s.id}`} key={s.id} className="group flex sm:block gap-3">
+                 <Link href={`/stream/${s.id}`} key={s.id} className="group flex sm:block gap-3">
                     <div className="relative rounded-lg overflow-hidden aspect-[16/9] bg-muted w-32 sm:w-full flex-shrink-0">
                         <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
                         <div className="absolute top-2 right-2 z-10"><Badge variant="secondary" className="bg-black/50 text-white"><Users className="w-3 h-3 mr-1.5" />{s.viewers.toLocaleString()}</Badge></div>
@@ -629,7 +629,7 @@ export default function StreamPage() {
           const mockPost = {
               id: 33, // This should be unique
               type: 'post_share',
-              sellerName: seller.name, // Correctly use the current seller's name
+              sellerName: seller.name,
               text: 'Behind the scenes of our new collection!',
               product: productDetails['prod_5']
           };
@@ -637,17 +637,12 @@ export default function StreamPage() {
           const initialMessages = mockChatMessages.map(msg => {
               let finalMsg = { ...msg };
               if (finalMsg.isSeller) {
-                  finalMsg.user = seller.name; // Dynamically assign seller name
-              }
-              // Make sure to filter out any hardcoded post shares from other sellers
-              if (finalMsg.type === 'post_share') {
-                  return null; 
+                  finalMsg.user = seller.name;
               }
               return finalMsg;
-          }).filter(Boolean);
+          });
   
-          // Add the correctly context-aware mock post
-          setChatMessages([...initialMessages, mockPost] as any[]);
+          setChatMessages([...initialMessages, mockPost]);
       }
   }, [seller]);
 
@@ -1404,14 +1399,26 @@ const ChatPanel = ({
   seller,
   chatMessages,
   pinnedMessages,
+  activeAuction,
+  auctionTime,
+  highestBid,
+  totalBids,
+  walletBalance,
   handlers,
+  inlineAuctionCardRefs,
   onClose,
 }: {
   seller: any;
   chatMessages: any[];
   pinnedMessages: any[];
-  onClose: () => void;
+  activeAuction: any;
+  auctionTime: number | null;
+  highestBid: number;
+  totalBids: number;
+  walletBalance: number;
   handlers: any;
+  inlineAuctionCardRefs: React.MutableRefObject<Record<string, HTMLDivElement | null>>;
+  onClose: () => void;
 }) => {
   const [newMessage, setNewMessage] = useState("");
   const [replyingTo, setReplyingTo] = useState<{ name: string; id: string } | null>(null);
@@ -1419,7 +1426,6 @@ const ChatPanel = ({
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const walletBalance = 42580.22; // Mock balance
   
   const handleAutoScroll = useCallback((behavior: 'smooth' | 'auto' = 'smooth') => {
     messagesEndRef.current?.scrollIntoView({ behavior });
@@ -1522,7 +1528,7 @@ const ChatPanel = ({
 
   return (
     <div className='h-full flex flex-col bg-[#0b0b0c]'>
-      <header className="p-3 flex items-center justify-between z-10 flex-shrink-0 h-16 border-b border-[rgba(255,255,255,0.04)] sticky top-0 bg-[#0f1113]/80 backdrop-blur-sm">
+      <header className="p-3 flex items-center justify-between z-10 flex-shrink-0 h-16 sticky top-0">
         <h3 className="font-bold text-lg text-white">Live Chat</h3>
         <div className="flex items-center gap-1">
           <Popover>
