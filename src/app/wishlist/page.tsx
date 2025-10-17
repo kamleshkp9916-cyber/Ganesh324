@@ -3,15 +3,17 @@
 
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Heart, ShoppingCart, Star } from 'lucide-react';
+import { ArrowLeft, Heart, ShoppingCart, Star, Video } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth.tsx';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { Card } from '@/components/ui/card';
 import Image from 'next/image';
 import { useToast } from '@/hooks/use-toast';
 import { getWishlist, removeFromWishlist, Product } from '@/lib/product-history';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
+import { productDetails } from '@/lib/product-data';
+import { Badge } from '@/components/ui/badge';
 
 function EmptyWishlist() {
     const router = useRouter();
@@ -88,39 +90,57 @@ export default function WishlistPage() {
                 <EmptyWishlist />
             ) : (
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                    {wishlistItems.map((product) => (
-                         <Link href={`/product/${product.key}`} key={product.id} className="group block">
-                            <Card className="w-full overflow-hidden h-full flex flex-col">
-                                <div className="relative aspect-square bg-muted">
-                                    <Image 
-                                        src={product.imageUrl}
-                                        alt={product.name}
-                                        fill
-                                        sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
-                                        className="object-cover"
-                                        data-ai-hint={product.hint}
-                                    />
-                                    <Button
-                                        size="icon"
-                                        variant="destructive"
-                                        className="absolute top-2 right-2 h-8 w-8 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10"
-                                        onClick={(e) => handleRemoveFromWishlist(e, product.id)}
-                                    >
-                                        <Heart className="h-4 w-4 fill-current" />
-                                    </Button>
-                                </div>
-                                <div className="p-3 flex-grow flex flex-col">
-                                    <h4 className="font-semibold truncate text-sm flex-grow">{product.name}</h4>
-                                    <p className="font-bold text-foreground mt-1">{product.price}</p>
-                                    <div className="flex items-center gap-1 text-xs text-amber-400 mt-1">
-                                        <Star className="w-4 h-4 fill-current" />
-                                        <span>{averageRating}</span>
-                                        <span className="text-muted-foreground">({mockReviews.length})</span>
+                    {wishlistItems.map((product) => {
+                        const details = productDetails[product.key as keyof typeof productDetails];
+                        const stock = details?.stock || 0;
+                        const isFromStream = details?.isFromStream || false; // Assuming you add this to product-data
+                        return (
+                             <Link href={`/product/${product.key}`} key={product.id} className="group block">
+                                <Card className="w-full overflow-hidden h-full flex flex-col">
+                                    <div className="relative aspect-square bg-muted">
+                                        <Image 
+                                            src={product.imageUrl}
+                                            alt={product.name}
+                                            fill
+                                            sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
+                                            className="object-cover"
+                                            data-ai-hint={product.hint}
+                                        />
+                                        <Button
+                                            size="icon"
+                                            variant="destructive"
+                                            className="absolute top-2 right-2 h-8 w-8 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                                            onClick={(e) => handleRemoveFromWishlist(e, product.id)}
+                                        >
+                                            <Heart className="h-4 w-4 fill-current" />
+                                        </Button>
+                                        {isFromStream && stock > 0 && (
+                                            <Badge className="absolute top-2 left-2 z-10" variant="purple">
+                                                <Video className="h-3 w-3 mr-1"/> From Stream
+                                            </Badge>
+                                        )}
+                                        {stock === 0 && (
+                                            <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                                                <Badge variant="destructive" className="text-sm">Out of Stock</Badge>
+                                            </div>
+                                        )}
                                     </div>
-                                </div>
-                            </Card>
-                        </Link>
-                    ))}
+                                    <div className="p-3 flex-grow flex flex-col">
+                                        <h4 className="font-semibold truncate text-sm flex-grow">{product.name}</h4>
+                                        <p className="font-bold text-foreground mt-1">{product.price}</p>
+                                        <div className="flex items-center gap-1 text-xs text-amber-400 mt-1">
+                                            <Star className="w-4 h-4 fill-current" />
+                                            <span>{averageRating}</span>
+                                            <span className="text-muted-foreground">({mockReviews.length} reviews)</span>
+                                        </div>
+                                         {stock > 0 && stock < 20 && (
+                                            <p className="text-xs text-destructive font-semibold mt-1">Only {stock} left!</p>
+                                        )}
+                                    </div>
+                                </Card>
+                            </Link>
+                        )
+                    })}
                 </div>
             )}
         </div>
@@ -128,3 +148,4 @@ export default function WishlistPage() {
     </div>
   );
 }
+
