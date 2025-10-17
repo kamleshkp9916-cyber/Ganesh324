@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import {
@@ -568,12 +567,13 @@ const RelatedContent = ({ relatedStreams }: { relatedStreams: any[] }) => {
             <Link href="/live-selling">More</Link>
         </Button>
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-4 gap-2 sm:gap-4">
-            {relatedStreams.map((s: any) => (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {relatedStreams.slice(0,4).map((s: any) => (
                 <Link href={`/stream/${s.id}`} key={s.id} className="group">
                     <div className="relative rounded-lg overflow-hidden aspect-[16/9] bg-muted">
                         <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
                         <div className="absolute top-2 right-2 z-10"><Badge variant="secondary" className="bg-background/60 backdrop-blur-sm"><Users className="w-3 h-3 mr-1.5" />{s.viewers.toLocaleString()}</Badge></div>
+                         <Image src={s.thumbnailUrl} alt={`Live stream from ${s.name}`} fill sizes="50vw" className="object-cover transition-transform group-hover:scale-105" />
                     </div>
                     <div className="flex items-start gap-2 mt-2">
                         <Avatar className="w-7 h-7">
@@ -629,7 +629,7 @@ export default function StreamPage() {
                 if (finalMsg.isSeller) {
                     finalMsg.user = seller.name;
                 }
-                if (finalMsg.type === 'post_share') {
+                if (finalMsg.type === 'post_share' && msg.product) {
                     finalMsg.sellerName = seller.name;
                 }
                 return finalMsg;
@@ -1598,4 +1598,3 @@ const ChatPanel = ({
     </div>
   );
 };
-
