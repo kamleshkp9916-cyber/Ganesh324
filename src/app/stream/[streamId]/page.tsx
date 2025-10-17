@@ -561,7 +561,6 @@ const RelatedContent = ({ relatedStreams }: { relatedStreams: any[] }) => {
     if (!relatedStreams || relatedStreams.length === 0) {
         return null;
     }
-    const isMobile = useIsMobile();
     
     return (
      <div className="mt-8">
@@ -571,16 +570,16 @@ const RelatedContent = ({ relatedStreams }: { relatedStreams: any[] }) => {
             <Link href="/live-selling">More</Link>
         </Button>
         </div>
-         <div className={cn("grid gap-3", isMobile ? "grid-cols-1" : "grid-cols-2")}>
+         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4">
             {relatedStreams.slice(0,4).map((s: any) => (
-                 <Link href={`/stream/${s.id}`} key={s.id} className="group flex sm:block gap-3">
-                    <div className="relative rounded-lg overflow-hidden aspect-video bg-muted w-32 sm:w-full flex-shrink-0">
+                 <Link href={`/stream/${s.id}`} key={s.id} className="group flex flex-col">
+                    <div className="relative rounded-lg overflow-hidden aspect-video bg-muted w-full flex-shrink-0">
                         <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
                         <div className="absolute top-2 right-2 z-10"><Badge variant="secondary" className="bg-black/50 text-white"><Users className="w-3 h-3 mr-1.5" />{s.viewers.toLocaleString()}</Badge></div>
-                         <Image src={s.thumbnailUrl} alt={`Live stream from ${s.name}`} fill sizes="50vw" className="object-cover transition-transform group-hover:scale-105" />
+                         <Image src={s.thumbnailUrl} alt={`Live stream from ${s.name}`} fill sizes="(max-width: 640px) 100vw, 50vw" className="object-cover transition-transform group-hover:scale-105" />
                     </div>
-                    <div className="flex items-start gap-2 mt-0 sm:mt-2">
-                        <Avatar className="w-7 h-7 hidden sm:flex">
+                    <div className="flex items-start gap-2 mt-2">
+                        <Avatar className="w-7 h-7">
                             <AvatarImage src={s.avatarUrl} alt={s.name} />
                             <AvatarFallback>{s.name.charAt(0)}</AvatarFallback>
                         </Avatar>
@@ -637,19 +636,19 @@ export default function StreamPage() {
             };
     
              const initialMessages = mockChatMessages.map(msg => {
-                let finalMsg = { ...msg };
-                if (finalMsg.isSeller) {
-                    finalMsg.user = seller.name;
-                } else if (msg.type === 'post_share' && msg.sellerName === 'FashionFinds' && seller.name !== 'FashionFinds') {
-                    // This logic ensures the shared post is attributed to the correct seller for the stream.
-                    finalMsg.sellerName = seller.name;
+                if (msg.isSeller) {
+                    return { ...msg, user: seller.name };
                 }
-                return finalMsg;
+                return msg;
             });
-            const existingPostShare = initialMessages.find(m => m.type === 'post_share');
-            if (existingPostShare) {
-                existingPostShare.sellerName = seller.name;
+
+             const existingPostShareIndex = initialMessages.findIndex(m => m.type === 'post_share');
+
+            if (existingPostShareIndex !== -1) {
+                // Update existing shared post
+                initialMessages[existingPostShareIndex] = { ...initialMessages[existingPostShareIndex], sellerName: seller.name };
             } else {
+                 // Add a new one if it doesn't exist
                  initialMessages.push({ ...mockPost, sellerName: seller.name });
             }
             
@@ -703,7 +702,7 @@ export default function StreamPage() {
     const [playbackRate, setPlaybackRate] = useState(1);
     const [skipInterval, setSkipInterval] = useState(10);
     const [isFullscreen, setIsFullscreen] = useState(false);
-    const [isLive, setIsLive] = useState(true);
+    const [isLive, setIsLive] = useState(isMobile ? true : false);
     const mainScrollRef = useRef<HTMLDivElement>(null);
     const [hydrated, setHydrated] = useState(false);
     const [showGoToTop, setShowGoToTop] = useState(false);
@@ -894,7 +893,7 @@ export default function StreamPage() {
                 video.removeEventListener("pause", onPause);
             };
         }
-    }, [isMuted, isMinimized, streamId, isLive]);
+    }, [isMuted, isMinimized, streamId, isLive, isMobile]);
     
     const handleToggleFullscreen = () => {
         const elem = playerRef.current;
@@ -1210,7 +1209,7 @@ return (
             </div>
         </main>
 
-        <aside className="relative h-full w-[384px] flex-shrink-0 flex flex-col bg-card overflow-hidden border-l">
+        <aside className="relative h-full w-[384px] flex-shrink-0 flex flex-col overflow-hidden border-l">
             <ChatPanel
                 seller={props.seller}
                 chatMessages={chatMessages}
@@ -1702,3 +1701,5 @@ const ChatPanel = ({
     </div>
   );
 };
+
+    
