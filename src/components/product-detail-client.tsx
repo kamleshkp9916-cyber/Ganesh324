@@ -397,8 +397,8 @@ export function ProductDetailClient({ productId }: { productId: string }) {
             </header>
 
             <main className="container mx-auto py-6">
-                <div className="max-w-4xl mx-auto space-y-8">
-                     <Card>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <Card>
                         <CardContent className="p-4">
                             <div className="aspect-[2/1] w-full relative bg-muted rounded-lg overflow-hidden mb-4">
                                 {selectedImage && (
@@ -436,7 +436,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                             </ScrollArea>
                         </CardContent>
                     </Card>
-                    <div className="flex flex-col gap-4 p-4">
+                    <div className="flex flex-col gap-4">
                         <div className="flex justify-between items-start">
                             <div>
                                 <p className="text-sm font-medium text-primary mb-1">{product.brand}</p>
@@ -586,7 +586,8 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                             </Link>
                         </div>
                     </div>
-                    
+                </div>
+                <div className="space-y-8 mt-8">
                     <Separator />
                     
                      <Card>
@@ -724,12 +725,30 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                     </Card>
 
                     <Separator />
+                    <div className="mt-8">
+                        <h2 className="text-2xl font-bold mb-4">Similar Products</h2>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                            {similarProducts.map((p) => (
+                                <Link href={`/product/${p.key}`} key={p.id} className="group block">
+                                    <Card className="w-full overflow-hidden h-full flex flex-col">
+                                        <div className="relative aspect-square bg-muted">
+                                            <Image src={p.images[0]} alt={p.name} fill sizes="(max-width: 640px) 50vw, 20vw" className="object-cover transition-transform group-hover:scale-105" data-ai-hint={p.hint} />
+                                        </div>
+                                        <div className="p-3">
+                                            <h4 className="font-semibold truncate text-sm">{p.name}</h4>
+                                            <p className="font-bold">{p.price}</p>
+                                        </div>
+                                    </Card>
+                                </Link>
+                            ))}
+                        </div>
+                    </div>
                      <div className="mt-8">
                         <h2 className="text-2xl font-bold mb-4">Related Product Streams</h2>
                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                             {relatedStreams.slice(0, 3).map((stream: any) => (
                                  <Link href={`/stream/${stream.id}`} key={stream.id} className="group block">
-                                    <div className="relative rounded-lg overflow-hidden aspect-[16/9] bg-muted">
+                                    <div className="relative rounded-lg overflow-hidden aspect-video bg-muted">
                                         <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
                                         <div className="absolute top-2 right-2 z-10">
                                             <Badge variant="secondary" className="bg-background/60 backdrop-blur-sm gap-1.5">
