@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import {
@@ -638,7 +637,7 @@ export default function StreamPage() {
         title: "Live Shopping Event",
         description: "Join us for exclusive deals and a first look at our new collection! #fashion #live Check this out: https://google.com",
         status: "live",
-        startedAt: new Date(Date.now() - 5 * 60 * 1000), // 5 minutes ago
+        startedAt: new Date(Date.now() - 5 * 60 * 1000),
         viewerCount: seller?.viewers || 0,
         streamUrl: "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"
     };
@@ -1594,3 +1593,5 @@ const ChatPanel = ({
     </div>
   );
 };
+
+    
