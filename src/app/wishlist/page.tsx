@@ -14,6 +14,7 @@ import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { productDetails } from '@/lib/product-data';
 import { Badge } from '@/components/ui/badge';
+import { getUserReviews, Review } from '@/lib/review-data';
 
 function EmptyWishlist() {
     const router = useRouter();
@@ -27,19 +28,13 @@ function EmptyWishlist() {
     );
 }
 
-const mockReviews = [
-    { id: 1, author: 'Alex Smith', avatar: 'https://placehold.co/40x40.png', rating: 5, date: '2 weeks ago', text: 'Absolutely love this camera! It takes stunning photos with a really cool vintage vibe. It was packaged securely and arrived on time. Highly recommend this seller!' },
-    { id: 2, author: 'Jane Doe', avatar: 'https://placehold.co/40x40.png', rating: 4, date: '1 month ago', text: 'Great product, works as described. The seller was very helpful in the live stream answering all my questions. Only reason for 4 stars is that the shipping took a day longer than expected.' },
-    { id: 3, author: 'Chris Wilson', avatar: 'https://placehold.co/40x40.png', rating: 5, date: '3 months ago', text: "Fantastic find! I've been looking for a camera like this for ages. The condition is excellent. The entire process from watching the stream to delivery was seamless." },
-];
-const averageRating = (mockReviews.reduce((acc, review) => acc + review.rating, 0) / mockReviews.length).toFixed(1);
-
 export default function WishlistPage() {
   const router = useRouter();
   const { user, loading } = useAuth();
   const { toast } = useToast();
   const [wishlistItems, setWishlistItems] = useState<Product[]>([]);
   const [isMounted, setIsMounted] = useState(false);
+  const [reviews, setReviews] = useState<Record<string, Review[]>>({});
 
   useEffect(() => {
     setIsMounted(true);
@@ -48,7 +43,13 @@ export default function WishlistPage() {
   useEffect(() => {
     if (isMounted && !loading) {
       if (user) {
-        setWishlistItems(getWishlist());
+        const items = getWishlist();
+        setWishlistItems(items);
+        const allReviews: Record<string, Review[]> = {};
+        items.forEach(item => {
+            allReviews[item.key] = getUserReviews(user.uid).filter(r => r.productId === item.key);
+        });
+        setReviews(allReviews);
       } else {
         router.replace('/');
       }
@@ -93,7 +94,12 @@ export default function WishlistPage() {
                     {wishlistItems.map((product) => {
                         const details = productDetails[product.key as keyof typeof productDetails];
                         const stock = details?.stock || 0;
-                        const isFromStream = details?.isFromStream || false; // Assuming you add this to product-data
+                        const isFromStream = details?.isFromStream || false;
+                        const productReviews = reviews[product.key] || [];
+                        const averageRating = productReviews.length > 0
+                            ? (productReviews.reduce((acc, review) => acc + review.rating, 0) / productReviews.length).toFixed(1)
+                            : 'N/A';
+
                         return (
                              <Link href={`/product/${product.key}`} key={product.id} className="group block">
                                 <Card className="w-full overflow-hidden h-full flex flex-col">
@@ -131,7 +137,7 @@ export default function WishlistPage() {
                                         <div className="flex items-center gap-1 text-xs text-amber-400 mt-1">
                                             <Star className="w-4 h-4 fill-current" />
                                             <span>{averageRating}</span>
-                                            <span className="text-muted-foreground">({mockReviews.length} reviews)</span>
+                                            <span className="text-muted-foreground">({productReviews.length} reviews)</span>
                                         </div>
                                          {stock > 0 && stock < 20 && (
                                             <p className="text-xs text-destructive font-semibold mt-1">Only {stock} left!</p>
@@ -148,4 +154,3 @@ export default function WishlistPage() {
     </div>
   );
 }
-

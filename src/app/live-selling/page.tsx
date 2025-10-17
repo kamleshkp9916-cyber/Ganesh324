@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from 'next/link';
@@ -909,6 +910,11 @@ export default function LiveSellingPage() {
                                             <div className="p-3 flex-grow flex flex-col">
                                                 <h4 className="font-semibold truncate text-sm flex-grow">{product.name}</h4>
                                                 <p className="font-bold text-foreground mt-1">{product.price}</p>
+                                                <div className="flex items-center gap-1 text-xs text-amber-400 mt-1">
+                                                    <Star className="w-4 h-4 fill-current" />
+                                                    <span>4.8</span>
+                                                    <span className="text-muted-foreground">(1.2k)</span>
+                                                </div>
                                             </div>
                                         </Card>
                                     </Link>
