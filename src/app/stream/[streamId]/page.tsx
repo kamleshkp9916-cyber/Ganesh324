@@ -640,11 +640,20 @@ export default function StreamPage() {
                 let finalMsg = { ...msg };
                 if (finalMsg.isSeller) {
                     finalMsg.user = seller.name;
+                } else if (msg.type === 'post_share' && msg.sellerName === 'FashionFinds' && seller.name !== 'FashionFinds') {
+                    // This logic ensures the shared post is attributed to the correct seller for the stream.
+                    finalMsg.sellerName = seller.name;
                 }
                 return finalMsg;
-            }).filter(msg => msg.type !== 'post_share');
-
-             setChatMessages([...initialMessages, mockPost]);
+            });
+            const existingPostShare = initialMessages.find(m => m.type === 'post_share');
+            if (existingPostShare) {
+                existingPostShare.sellerName = seller.name;
+            } else {
+                 initialMessages.push({ ...mockPost, sellerName: seller.name });
+            }
+            
+            setChatMessages(initialMessages);
         }
     }, [seller]);
 
@@ -1221,7 +1230,7 @@ const MobileLayout = React.memo(({ handlers, chatMessages, walletBalance, setIsS
     const { isMuted, setIsMuted, handleGoLive, isLive, formatTime, currentTime, duration, handleShare, handleToggleFullscreen, progressContainerRef, handleProgressClick, isPaused, handlePlayPause, handleSeek, handleMinimize, activeQuality, setActiveQuality } = props;
     return (
         <div className="flex flex-col h-dvh overflow-hidden relative">
-            <header className="p-3 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-sm z-30 border-b h-16 shrink-0 w-full">
+            <header className="p-3 flex items-center justify-between sticky top-0 bg-transparent z-30 h-16 shrink-0 w-full">
                 <div className="flex items-center gap-2">
                     <Button variant="ghost" size="icon" onClick={() => props.router.back()}>
                         <ArrowLeft className="h-6 w-6" />
@@ -1528,7 +1537,7 @@ const ChatPanel = ({
   }
 
   return (
-    <div className='h-full flex flex-col bg-[#0b0b0c]'>
+    <div className='h-full flex flex-col bg-black'>
       <header className="p-3 flex items-center justify-between z-10 flex-shrink-0 h-16">
         <h3 className="font-bold text-lg text-white">Live Chat</h3>
         <div className="flex items-center gap-1">
