@@ -122,14 +122,25 @@ export function ProductDetailClient({ productId }: { productId: string }) {
             if(details.images.length > 0) {
                 setSelectedImage(details.images[0]);
             }
-             if (details.availableSizes) {
-                setSelectedSize(details.availableSizes.split(',')[0].trim());
+             if (availableSizes.length > 0) {
+                setSelectedSize(availableSizes[0]);
             }
-            if (details.availableColors) {
-                setSelectedColor(details.availableColors.split(',')[0].trim());
+            if (availableColors.length > 0) {
+                setSelectedColor(availableColors[0]);
             }
         }
-    }, [productId]);
+    }, [productId, availableSizes, availableColors]);
+
+    const variantStock = useMemo(() => {
+        if (!product || !product.variants || product.variants.length === 0) {
+            return product?.stock;
+        }
+        const variant = product.variants.find((v: any) => 
+            (!v.size || v.size === selectedSize) && 
+            (!v.color || v.color === selectedColor)
+        );
+        return variant ? variant.stock : 0;
+    }, [product, selectedSize, selectedColor]);
 
 
     const averageRating = useMemo(() => {
@@ -471,8 +482,20 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                             </div>
                         </div>
                         <div>
-                            <div className="flex items-center gap-4">
+                             <div className="flex items-center gap-4 flex-wrap">
                                 <p className="text-3xl font-bold text-foreground">{product.price}</p>
+                                <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                                    <div className="flex items-center gap-1">
+                                        <Package className="w-4 h-4" />
+                                        <span>{variantStock ?? product.stock} in stock</span>
+                                    </div>
+                                    <div className="flex items-center gap-1">
+                                        <Users className="w-4 h-4" />
+                                        <span>{product.sold} sold</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-2 mt-1">
                                 {reviews.length > 0 && (
                                     <div className="flex items-center gap-2">
                                         <div className="flex items-center gap-1 text-amber-400">
@@ -483,7 +506,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                     </div>
                                 )}
                             </div>
-                            <p className="text-sm text-muted-foreground">(inclusive of all taxes)</p>
+                            <p className="text-sm text-muted-foreground mt-1">(inclusive of all taxes)</p>
                         </div>
                          {availableColors.length > 0 && (
                             <div className="space-y-2">
@@ -551,7 +574,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                             </Button>
                         </div>
                         <Card>
-                             <CardContent className="p-4 space-y-3">
+                             <CardContent className="p-4">
                                 {user ? (
                                     userData?.addresses && userData.addresses.length > 0 ? (
                                         <div className="text-sm">
