@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
@@ -107,6 +108,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
     const [editingReview, setEditingReview] = useState<Review | undefined>(undefined);
     const [taggedPosts, setTaggedPosts] = useState<any[]>([]);
     const [recentlyViewedItems, setRecentlyViewedItems] = useState<Product[]>([]);
+    const [sellerProducts, setSellerProducts] = useState<any[]>([]);
 
     const averageRating = useMemo(() => {
         if (reviews.length === 0) return '0.0';
@@ -172,6 +174,17 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                 console.error("Error fetching tagged posts:", error);
             }
         };
+        
+        const fetchSellerProducts = () => {
+            if(product && productToSellerMapping[product.key]) {
+                const sellerName = productToSellerMapping[product.key].name;
+                const productsKey = `sellerProducts_${sellerName}`;
+                const storedProducts = localStorage.getItem(productsKey);
+                if (storedProducts) {
+                    setSellerProducts(JSON.parse(storedProducts));
+                }
+            }
+        };
 
         if (product) {
             setSelectedImage(product.images[0]);
@@ -192,6 +205,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
             setRecentlyViewedItems(getRecentlyViewed().filter(p => p.id !== product.id)); // Exclude current product
             fetchReviews();
             fetchTaggedPosts();
+            fetchSellerProducts();
         }
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [product]);
@@ -366,8 +380,8 @@ export function ProductDetailClient({ productId }: { productId: string }) {
             <main className="container mx-auto py-6">
                 <div className="grid md:grid-cols-2 gap-8 lg:gap-12">
                      {/* Product Image Gallery */}
-                    <div className="space-y-4">
-                        <div className="relative aspect-square w-full bg-muted rounded-lg overflow-hidden">
+                    <div className="space-y-4 md:sticky md:top-24 self-start">
+                         <div className="relative aspect-square bg-muted rounded-lg overflow-hidden">
                              {selectedImage && (
                                 <Image
                                     src={selectedImage}
@@ -742,7 +756,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                             <h2 className="text-5xl font-bold">{averageRating}</h2>
                             <div className="flex items-center gap-1">
                                  {[...Array(5)].map((_, i) => (
-                                    <Star key={i} className={cn("h-6 w-6", Number(averageRating) > i ? 'text-yellow-400 fill-yellow-400' : 'text-muted-foreground')} />
+                                    <Star key={i} className={cn("h-6 w-6", Number(averageRating) > i ? "text-yellow-400 fill-yellow-400" : "text-muted-foreground")} />
                                 ))}
                             </div>
                             <p className="text-sm text-muted-foreground">Based on {reviews.length} reviews</p>
