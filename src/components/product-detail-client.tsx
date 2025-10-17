@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
@@ -500,7 +499,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                         >
                                             <Image
                                                 src={img}
-                                                alt={`Thumbnail ${'${index + 1}'}`}
+                                                alt={`Thumbnail ${index + 1}`}
                                                 width={64}
                                                 height={64}
                                                 className="object-cover w-full h-full"
@@ -727,7 +726,9 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                      <Card>
                         <CardHeader className="flex items-center justify-between flex-row">
                             <CardTitle>Highlights</CardTitle>
-                             <Button variant="link">View Details</Button>
+                             <Button asChild variant="link">
+                                <Link href={`/product/${productId}/details`}>View Details</Link>
+                            </Button>
                         </CardHeader>
                         <CardContent className="overflow-hidden">
                             <div className="grid md:grid-cols-2 gap-6 items-center">
