@@ -383,8 +383,11 @@ export function ProductDetailClient({ productId }: { productId: string }) {
             <main className="container mx-auto py-6">
                 <div className="max-w-4xl mx-auto space-y-8">
                      <Card>
+                        <CardHeader>
+                            <CardTitle>Image Gallery</CardTitle>
+                        </CardHeader>
                         <CardContent className="p-4">
-                            <div className="aspect-[4/3] w-full relative bg-muted rounded-lg overflow-hidden mb-4">
+                            <div className="aspect-video w-full relative bg-muted rounded-lg overflow-hidden mb-4">
                                 {selectedImage && (
                                     <Image
                                         src={selectedImage}
@@ -499,31 +502,37 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                     </div>
                     
                     <Separator />
-
-                    {productHighlights.length > 0 && (
-                        <Card className="overflow-hidden">
-                            <div className="grid md:grid-cols-2">
-                                <div className="relative aspect-square md:aspect-auto bg-muted">
+                    
+                     <Card>
+                        <CardHeader>
+                            <CardTitle>Highlights</CardTitle>
+                        </CardHeader>
+                        <CardContent className="overflow-hidden">
+                            <div className="grid md:grid-cols-2 gap-6 items-center">
+                                <div className="relative aspect-square md:aspect-[4/3] bg-muted rounded-lg overflow-hidden">
                                     <Image
                                         src={product.images[1] || product.images[0]}
                                         alt={`${product.name} highlight`}
                                         fill
+                                        sizes="(max-width: 768px) 100vw, 50vw"
                                         className="object-cover"
                                         data-ai-hint={`${product.hint} detail`}
                                     />
                                 </div>
-                                <div className="p-6">
-                                    <h3 className="font-bold text-lg mb-4">Highlights</h3>
-                                    <ul className="list-disc list-inside space-y-2 text-sm">
+                                <div className="p-2">
+                                    <ul className="space-y-3 text-sm">
                                         {productHighlights.map((highlight: string, index: number) => (
-                                            <li key={index} className="text-muted-foreground">{highlight}</li>
+                                            <li key={index} className="flex items-start gap-3">
+                                                <CheckCircle className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
+                                                <span className="text-muted-foreground">{highlight}</span>
+                                            </li>
                                         ))}
                                     </ul>
                                 </div>
                             </div>
-                        </Card>
-                    )}
-                    
+                        </CardContent>
+                    </Card>
+
                     <Separator />
                     
                     <Card>
@@ -629,8 +638,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                     </Card>
 
                     <Separator />
-                    
-                    <div className="mt-8">
+                     <div className="mt-8">
                         <h2 className="text-2xl font-bold mb-4">Similar Products</h2>
                          <ScrollArea className="w-full whitespace-nowrap">
                             <div className="flex gap-4 pb-4">
@@ -658,6 +666,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                             {relatedStreams.slice(0, 3).map((stream: any) => (
                                  <Link href={`/stream/${stream.id}`} key={stream.id} className="group">
                                     <div className="relative rounded-lg overflow-hidden aspect-[16/9] bg-muted">
+                                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
                                         <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
                                         <div className="absolute top-2 right-2 z-10">
                                             <Badge variant="secondary" className="bg-background/60 backdrop-blur-sm gap-1.5">
@@ -665,16 +674,24 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                                 {stream.viewers}
                                             </Badge>
                                         </div>
-                                    </div>
-                                    <div className="flex items-start gap-2 mt-2">
-                                        <Avatar className="w-7 h-7">
-                                            <AvatarImage src={stream.avatarUrl} />
-                                            <AvatarFallback>{stream.name.charAt(0)}</AvatarFallback>
-                                        </Avatar>
-                                        <div className="flex-1">
-                                            <p className="font-semibold text-xs group-hover:underline truncate">{stream.name}</p>
-                                            <p className="text-xs text-muted-foreground">{stream.category}</p>
-                                            <p className="text-xs text-primary font-semibold mt-0.5">#{stream.category.toLowerCase()}</p>
+                                        <Image
+                                            src={stream.thumbnailUrl}
+                                            alt={`Live stream from ${stream.name}`}
+                                            fill
+                                            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                                            className="object-cover w-full h-full group-hover:scale-105 transition-transform"
+                                        />
+                                        <div className="absolute bottom-2 left-2 z-10 text-white">
+                                            <div className="flex items-start gap-2 mt-2">
+                                                <Avatar className="w-7 h-7 border-2 border-background">
+                                                    <AvatarImage src={stream.avatarUrl} />
+                                                    <AvatarFallback>{stream.name.charAt(0)}</AvatarFallback>
+                                                </Avatar>
+                                                <div className="flex-1">
+                                                    <p className="font-semibold text-xs truncate">{stream.name}</p>
+                                                    <p className="text-xs opacity-80">{stream.category}</p>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </Link>
@@ -707,6 +724,15 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                     )}
                 </div>
             </main>
+             <Dialog open={isReviewDialogOpen} onOpenChange={setIsReviewDialogOpen}>
+                 <ReviewDialog 
+                    order={{ products: [product] } as Order} 
+                    user={user}
+                    reviewToEdit={editingReview}
+                    onReviewSubmit={handleReviewSubmit}
+                    closeDialog={() => setIsReviewDialogOpen(false)}
+                />
+            </Dialog>
         </div>
     );
 }
