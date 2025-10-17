@@ -382,7 +382,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                 ))}
                                 </div>
                                 <div className="relative aspect-square flex-1 bg-muted rounded-lg overflow-hidden">
-                                    {selectedImage && <Image src={selectedImage} alt={product.name} fill sizes="(max-width: 768px) 100vw, 50vw" className="object-contain w-full h-full" data-ai-hint={product.hint} />}
+                                    {selectedImage && <Image src={selectedImage} alt={product.name} fill sizes="(max-width: 768px) 100vw, 50vw" className="object-contain" data-ai-hint={product.hint} />}
                                     <div className="absolute top-3 right-3 z-10 flex flex-col gap-2">
                                         <Button
                                             size="icon"
@@ -929,5 +929,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
     
 
 
+
+    
 
     
