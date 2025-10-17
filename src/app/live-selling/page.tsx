@@ -913,7 +913,11 @@ export default function LiveSellingPage() {
                                                 <div className="flex items-center gap-1 text-xs text-amber-400 mt-1">
                                                     <Star className="w-4 h-4 fill-current" />
                                                     <span>4.8</span>
-                                                    <span className="text-muted-foreground">(1.2k)</span>
+                                                    <span className="text-muted-foreground">({product.reviews || '1.2k'})</span>
+                                                </div>
+                                                <div className="flex items-center gap-4 text-xs text-muted-foreground mt-1">
+                                                    <div className="flex items-center gap-1"><Package className="w-3 h-3" /> {product.stock} left</div>
+                                                    <div className="flex items-center gap-1"><Users className="w-3 h-3" /> {product.sold} sold</div>
                                                 </div>
                                             </div>
                                         </Card>
@@ -1049,3 +1053,5 @@ export default function LiveSellingPage() {
     </>
   );
 }
+
+    

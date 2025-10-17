@@ -3,7 +3,7 @@
 
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Heart, ShoppingCart, Star, Video } from 'lucide-react';
+import { ArrowLeft, Heart, ShoppingCart, Star, Video, Package, Users } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth.tsx';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { Card } from '@/components/ui/card';
@@ -94,6 +94,7 @@ export default function WishlistPage() {
                     {wishlistItems.map((product) => {
                         const details = productDetails[product.key as keyof typeof productDetails];
                         const stock = details?.stock || 0;
+                        const sold = details?.sold || 0;
                         const isFromStream = details?.isFromStream || false;
                         const productReviews = reviews[product.key] || [];
                         const averageRating = productReviews.length > 0
@@ -139,9 +140,10 @@ export default function WishlistPage() {
                                             <span>{averageRating}</span>
                                             <span className="text-muted-foreground">({productReviews.length} reviews)</span>
                                         </div>
-                                         {stock > 0 && stock < 20 && (
-                                            <p className="text-xs text-destructive font-semibold mt-1">Only {stock} left!</p>
-                                        )}
+                                         <div className="flex items-center gap-4 text-xs text-muted-foreground mt-1">
+                                            <div className="flex items-center gap-1"><Package className="w-3 h-3" /> {stock} left</div>
+                                            <div className="flex items-center gap-1"><Users className="w-3 h-3" /> {sold} sold</div>
+                                        </div>
                                     </div>
                                 </Card>
                             </Link>
@@ -154,3 +156,5 @@ export default function WishlistPage() {
     </div>
   );
 }
+
+    
