@@ -367,21 +367,30 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                     <div className="md:sticky md:top-24 self-start">
                         <div className="flex flex-col-reverse md:flex-row gap-4">
                             <div className="flex flex-row md:flex-col gap-2 overflow-x-auto md:overflow-y-auto pb-2 md:pb-0 md:pr-2 no-scrollbar md:max-h-[500px]">
-                            {product.images.map((img: string, index: number) => (
-                                <div 
+                                {product.images.map((img: string, index: number) => (
+                                    <div
                                         key={index}
                                         className={cn(
                                             "w-16 h-16 flex-shrink-0 rounded-lg overflow-hidden cursor-pointer border-2",
                                             selectedImage === img ? "border-primary" : "border-transparent"
                                         )}
                                         onClick={() => setSelectedImage(img)}
-                                >
-                                    <Image src={img} alt={`${product.name} thumbnail ${index + 1}`} width={100} height={100} className="object-cover w-full h-full" />
-                                </div>
-                            ))}
+                                    >
+                                        <Image src={img} alt={`${product.name} thumbnail ${index + 1}`} width={100} height={100} className="object-cover w-full h-full" />
+                                    </div>
+                                ))}
                             </div>
                             <div className="relative aspect-square w-full bg-muted rounded-lg overflow-hidden">
-                                {selectedImage && <Image src={selectedImage} alt={product.name} fill sizes="(max-width: 768px) 100vw, 50vw" className="object-contain" data-ai-hint={product.hint} />}
+                                {selectedImage && (
+                                    <Image
+                                        src={selectedImage}
+                                        alt={product.name}
+                                        fill
+                                        sizes="(max-width: 768px) 100vw, 50vw"
+                                        className="object-contain"
+                                        data-ai-hint={product.hint}
+                                    />
+                                )}
                                 <div className="absolute top-3 right-3 z-10 flex flex-col gap-2">
                                     <Button
                                         size="icon"
