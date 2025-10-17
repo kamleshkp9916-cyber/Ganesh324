@@ -80,11 +80,6 @@ const mockPastStreams = [
     { id: 4, title: 'Morning Skincare Routine', date: '1 month ago', views: '500k', thumbnailUrl: 'https://placehold.co/400x225.png?text=Past+Stream+4' },
 ];
 
-const mockPosts = [
-    { id: 1, content: 'Just unboxed this amazing vintage camera! The quality is incredible. Going live to show it off soon! #vintage #camera #filmisnotdead', likes: 15, replies: 3, timestamp: '2h ago', mediaUrl: 'https://placehold.co/600x400.png', mediaType: 'image', avatarUrl: 'https://placehold.co/40x40.png', sellerName: 'FashionFinds' },
-    { id: 2, content: 'Excited to announce our new fall collection is dropping next week. Here’s a sneak peek of one of our favorite pieces. What do you all think?', likes: 42, replies: 12, timestamp: '1d ago', mediaUrl: null, mediaType: null, avatarUrl: 'https://placehold.co/40x40.png', sellerName: 'FashionFinds' },
-];
-
 function ProductSkeletonGrid() {
     return (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -712,77 +707,55 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                           )}
                       </TabsContent>
 
-                        <TabsContent value="posts" className="mt-4 space-y-4">
-                           {(!isLoadingContent && userPosts.length === 0) ? (
+                      <TabsContent value="posts" className="mt-4 space-y-4">
+                           {isLoadingContent ? (
+                             <Card><CardContent className="p-4 space-y-4"><Skeleton className="h-24 w-full" /><Skeleton className="h-24 w-full" /></CardContent></Card>
+                           ) : userPosts.length > 0 ? (
+                                userPosts.map(post => (
+                                   <Card key={post.id} className="overflow-hidden">
+                                       <div className="p-4">
+                                           <div className="flex items-center gap-3 mb-3">
+                                               <Avatar className="h-10 w-10">
+                                                   <AvatarImage src={post.avatarUrl} alt={post.sellerName} />
+                                                   <AvatarFallback>{post.sellerName.charAt(0)}</AvatarFallback>
+                                               </Avatar>
+                                               <div className="flex-grow">
+                                                   <p className="font-semibold">{post.sellerName}</p>
+                                                   <p className="text-xs text-muted-foreground">{post.timestamp}</p>
+                                               </div>
+                                           </div>
+                                       </div>
+                                       <div className="px-4 pb-4">
+                                           <p className="text-sm mb-2">{post.content}</p>
+                                            {post.mediaUrl &&
+                                               <div className="w-full max-w-sm bg-muted rounded-lg overflow-hidden">
+                                                   {post.mediaType === 'video' ? (
+                                                       <video src={post.mediaUrl} controls className="w-full h-auto object-cover" />
+                                                   ) : (
+                                                       <Image src={post.mediaUrl} alt="Feed item" width={400} height={300} className="w-full h-auto object-cover" />
+                                                   )}
+                                               </div>
+                                           }
+                                       </div>
+                                       <div className="px-4 pb-3 flex justify-between items-center text-sm text-muted-foreground">
+                                           <div className="flex items-center gap-4">
+                                               <button className="flex items-center gap-1.5 hover:text-primary">
+                                                   <Heart className="w-4 h-4" />
+                                                   <span>{post.likes}</span>
+                                               </button>
+                                               <button className="flex items-center gap-1.5 hover:text-primary">
+                                                   <MessageSquare className="w-4 h-4" />
+                                                   <span>{post.replies}</span>
+                                               </button>
+                                           </div>
+                                           {post.location && <span className="text-xs">{post.location}</span>}
+                                       </div>
+                                   </Card>
+                               ))
+                            ) : (
                                 <Card className="text-center py-12 text-muted-foreground flex flex-col items-center gap-4">
                                      <h3 className="text-xl font-semibold">No Posts Yet</h3>
                                      <p>This seller hasn't posted anything yet.</p>
-                                </Card>
-                            ) : (
-                                <>
-                                    {isOwnProfile && ( 
-                                       <div className="mb-6 sticky top-20 z-40">
-                                             <CreatePostForm onPost={async () => {}} onFinishEditing={() => {}} isSubmitting={false}/>
-                                       </div>
-                                   )}
-                                    {userPosts.map(post => (
-                                       <Card key={post.id} className="overflow-hidden">
-                                           <div className="p-4">
-                                               <div className="flex items-center gap-3 mb-3">
-                                                   <Avatar className="h-10 w-10">
-                                                       <AvatarImage src={post.avatarUrl} alt={post.sellerName} />
-                                                       <AvatarFallback>{post.sellerName.charAt(0)}</AvatarFallback>
-                                                   </Avatar>
-                                                   <div className="flex-grow">
-                                                       <p className="font-semibold">{post.sellerName}</p>
-                                                       <p className="text-xs text-muted-foreground">{post.timestamp}</p>
-                                                   </div>
-                                               </div>
-                                           </div>
-                                           <div className="px-4 pb-4">
-                                               <p className="text-sm mb-2">{post.content}</p>
-                                                {post.mediaUrl &&
-                                                   <div className="w-full max-w-sm bg-muted rounded-lg overflow-hidden">
-                                                       {post.mediaType === 'video' ? (
-                                                           <video src={post.mediaUrl} controls className="w-full h-auto object-cover" />
-                                                       ) : (
-                                                           <Image src={post.mediaUrl} alt="Feed item" width={400} height={300} className="w-full h-auto object-cover" />
-                                                       )}
-                                                   </div>
-                                               }
-                                           </div>
-                                           <div className="px-4 pb-3 flex justify-between items-center text-sm text-muted-foreground">
-                                               <div className="flex items-center gap-4">
-                                                   <button className="flex items-center gap-1.5 hover:text-primary">
-                                                       <Heart className="w-4 h-4" />
-                                                       <span>{post.likes}</span>
-                                                   </button>
-                                                   <button className="flex items-center gap-1.5 hover:text-primary">
-                                                       <MessageSquare className="w-4 h-4" />
-                                                       <span>{post.replies}</span>
-                                                   </button>
-                                               </div>
-                                               {post.location && <span className="text-xs">{post.location}</span>}
-                                           </div>
-                                       </Card>
-                                   ))}
-                                </>
-                            )}
-                            {userPosts.length === 0 && (
-                                <Card>
-                                    <CardContent className="p-4">
-                                        <div className="flex items-center gap-3 mb-3">
-                                            <Avatar className="h-10 w-10">
-                                                <AvatarImage src={profileData.photoURL || undefined} />
-                                                <AvatarFallback>{displayName.charAt(0)}</AvatarFallback>
-                                            </Avatar>
-                                            <div>
-                                                <p className="font-semibold">{displayName}</p>
-                                                <p className="text-xs text-muted-foreground">Just now</p>
-                                            </div>
-                                        </div>
-                                        <p className="text-sm mb-2">This is an example of what a post will look like. Sellers can share updates, images, and videos here!</p>
-                                    </CardContent>
                                 </Card>
                             )}
                       </TabsContent>
