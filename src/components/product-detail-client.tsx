@@ -112,6 +112,26 @@ export function ProductDetailClient({ productId }: { productId: string }) {
     const [selectedSize, setSelectedSize] = useState<string | null>(null);
     const [selectedColor, setSelectedColor] = useState<string | null>(null);
 
+    const availableSizes = useMemo(() => product?.availableSizes ? product.availableSizes.split(',').map((s: string) => s.trim()) : [], [product]);
+    const availableColors = useMemo(() => product?.availableColors ? product.availableColors.split(',').map((s: string) => s.trim()) : [], [product]);
+
+    useEffect(() => {
+        const details = productDetails[productId as keyof typeof productDetails] || null;
+        setProduct(details);
+        if(details) {
+            if(details.images.length > 0) {
+                setSelectedImage(details.images[0]);
+            }
+            if (details.availableSizes) {
+                setSelectedSize(details.availableSizes.split(',')[0].trim());
+            }
+            if (details.availableColors) {
+                setSelectedColor(details.availableColors.split(',')[0].trim());
+            }
+        }
+    }, [productId]);
+
+
     const averageRating = useMemo(() => {
         if (reviews.length === 0) return '0.0';
         const total = reviews.reduce((acc, review) => acc + review.rating, 0);
@@ -156,14 +176,6 @@ export function ProductDetailClient({ productId }: { productId: string }) {
         }
     };
     
-    useEffect(() => {
-        const details = productDetails[productId as keyof typeof productDetails] || null;
-        setProduct(details);
-        if(details && details.images.length > 0) {
-            setSelectedImage(details.images[0]);
-        }
-    }, [productId]);
-
     useEffect(() => {
         const fetchTaggedPosts = async () => {
             if (!product) return;
@@ -373,8 +385,6 @@ export function ProductDetailClient({ productId }: { productId: string }) {
 
     const productHighlights = product.highlights ? product.highlights.split('\n').filter((h:string) => h.trim() !== '') : [];
 
-    const availableSizes = product.availableSizes ? product.availableSizes.split(',').map((s: string) => s.trim()) : [];
-    const availableColors = product.availableColors ? product.availableColors.split(',').map((s: string) => s.trim()) : [];
 
     return (
         <div className="min-h-screen bg-background">
@@ -388,7 +398,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
 
             <main className="container mx-auto py-6">
                 <div className="max-w-4xl mx-auto space-y-8">
-                    <Card>
+                     <Card>
                         <CardHeader>
                             <CardTitle>Image Gallery</CardTitle>
                         </CardHeader>
@@ -636,11 +646,11 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                          <CardFooter>
                             <Dialog open={isQnaDialogOpen} onOpenChange={setIsQnaDialogOpen}>
                                 <DialogTrigger asChild>
-                                    <Button variant="outline" className="w-full">View All & Ask a Question</Button>
+                                    <Button variant="outline" className="w-full">View All &amp; Ask a Question</Button>
                                 </DialogTrigger>
                                 <DialogContent className="max-w-2xl">
                                     <DialogHeader>
-                                        <DialogTitle>Questions & Answers</DialogTitle>
+                                        <DialogTitle>Questions &amp; Answers</DialogTitle>
                                         <DialogDescription>
                                             Find answers to your questions or ask a new one.
                                         </DialogDescription>
@@ -679,30 +689,8 @@ export function ProductDetailClient({ productId }: { productId: string }) {
 
                     <Separator />
                      <div className="mt-8">
-                        <h2 className="text-2xl font-bold mb-4">Similar Products</h2>
-                         <ScrollArea className="w-full whitespace-nowrap">
-                            <div className="flex gap-4 pb-4">
-                                {similarProducts.map((item) => (
-                                <Link href={`/product/${item.key}`} key={item.id} className="w-36 flex-shrink-0">
-                                    <Card className="overflow-hidden group h-full">
-                                    <div className="aspect-square bg-muted relative">
-                                        <Image src={item.images[0]} alt={item.name} fill sizes="144px" className="object-cover" />
-                                    </div>
-                                    <div className="p-2">
-                                        <p className="text-xs font-semibold truncate group-hover:underline">{item.name}</p>
-                                        <p className="text-sm font-bold">{item.price}</p>
-                                    </div>
-                                    </Card>
-                                </Link>
-                                ))}
-                            </div>
-                            <ScrollBar orientation="horizontal" />
-                        </ScrollArea>
-                    </div>
-                    
-                     <div className="mt-8">
                         <h2 className="text-2xl font-bold mb-4">Related Product Streams</h2>
-                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                             {relatedStreams.slice(0, 3).map((stream: any) => (
                                 <Link href={`/stream/${stream.id}`} key={stream.id} className="group block">
                                     <div className="relative rounded-lg overflow-hidden aspect-[16/9] bg-muted">
