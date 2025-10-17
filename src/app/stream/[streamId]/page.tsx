@@ -601,7 +601,6 @@ export default function StreamPage() {
     const [pinnedMessages, setPinnedMessages] = useState<any[]>([]);
     const [isFollowingState, setIsFollowingState] = useState(false);
     
-    const [chatMessages, setChatMessages] = useState(mockChatMessages);
     const [cartCount, setCartCount] = useState(0);
     
     const isMobile = useIsMobile();
@@ -612,7 +611,12 @@ export default function StreamPage() {
         if (!seller) return null;
         return productDetails[seller.productId as keyof typeof productDetails] || null;
     }, [seller]);
-
+    
+    const [chatMessages, setChatMessages] = useState(() =>
+        mockChatMessages.map(msg =>
+            msg.isSeller ? { ...msg, user: seller?.name || 'Seller' } : msg
+        )
+    );
 
     const relatedStreams = useMemo(() => {
         if (!seller) return [];
@@ -724,7 +728,7 @@ export default function StreamPage() {
             }
         }
 
-        const intervalSeconds = liveStreamData.promotionInterval || 300; // Default to 5 minutes
+        const intervalSeconds = 300; 
 
          const interval = setInterval(() => {
             const productsWithStock = Object.values(productDetails).filter(p => 
@@ -1489,17 +1493,16 @@ const ChatPanel = ({
                   if (msg.type === 'system') {
                       return <div key={msg.id} className="text-xs text-center text-[#9AA1A6] italic py-1">{msg.text}</div>
                   }
-                   if (msg.type === 'product_promo') {
-                      return <ProductPromoCard key={msg.id} msg={msg} handlers={handlers} />
+                  if (msg.type === 'product_promo') {
+                    if (msg.product.seller !== seller.name) return null; // FIX: Only show promos for the current seller
+                    return <ProductPromoCard key={msg.id} msg={msg} handlers={handlers} />
                   }
-                   if (msg.type === 'post_share') {
-                      return <PostShareCard key={msg.id} msg={msg} handlers={handlers} />
+                  if (msg.type === 'post_share') {
+                    if (msg.sellerName !== seller.name) return null; // FIX: Only show posts for the current seller
+                    return <PostShareCard key={msg.id} msg={msg} handlers={handlers} />
                   }
                   if (!msg.user) return null;
 
-                  const isMyMessage = msg.userId === seller?.uid;
-                  const isSellerMessage = msg.userId === seller?.uid;
-                  
                   return (
                      <ChatMessage key={msg.id} msg={msg} handlers={{...handlers, onReply: handleReply}} seller={seller} />
                   )
