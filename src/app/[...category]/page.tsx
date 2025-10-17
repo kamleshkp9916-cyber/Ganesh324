@@ -3,7 +3,7 @@
 
 import { useRouter, useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, ShoppingCart, Star, Search, ChevronDown } from 'lucide-react';
+import { ArrowLeft, ShoppingCart, Star, Search, ChevronDown, Users, Package } from 'lucide-react';
 import { productDetails } from '@/lib/product-data';
 import Link from 'next/link';
 import { Card } from '@/components/ui/card';
@@ -145,9 +145,10 @@ export default function CategoryPage() {
                                                 <span>4.8</span>
                                                 <span className="text-muted-foreground">(1.2k reviews)</span>
                                             </div>
-                                             {product.stock > 0 && product.stock < 10 && (
-                                                <p className="text-xs text-destructive font-semibold mt-1">Only {product.stock} left!</p>
-                                            )}
+                                             <div className="flex items-center gap-4 text-xs text-muted-foreground mt-1">
+                                                <div className="flex items-center gap-1"><Package className="w-3 h-3" /> {product.stock} left</div>
+                                                <div className="flex items-center gap-1"><Users className="w-3 h-3" /> {product.sold} sold</div>
+                                            </div>
                                         </div>
                                     </Card>
                                 </Link>
@@ -164,3 +165,5 @@ export default function CategoryPage() {
         </div>
     );
 }
+
+    
