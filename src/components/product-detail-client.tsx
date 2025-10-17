@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
@@ -156,6 +155,17 @@ export function ProductDetailClient({ productId }: { productId: string }) {
     }, [productId]);
 
     useEffect(() => {
+        const fetchSellerProducts = () => {
+            if(product && productToSellerMapping[product.key]) {
+                const sellerName = productToSellerMapping[product.key].name;
+                const productsKey = `sellerProducts_${sellerName}`;
+                const storedProducts = localStorage.getItem(productsKey);
+                 if (storedProducts) {
+                    setSellerProducts(JSON.parse(storedProducts));
+                }
+            }
+        };
+
         const fetchTaggedPosts = async () => {
             if (!product) return;
             try {
@@ -172,17 +182,6 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                 setTaggedPosts(postsData);
             } catch (error) {
                 console.error("Error fetching tagged posts:", error);
-            }
-        };
-        
-        const fetchSellerProducts = () => {
-            if(product && productToSellerMapping[product.key]) {
-                const sellerName = productToSellerMapping[product.key].name;
-                const productsKey = `sellerProducts_${sellerName}`;
-                const storedProducts = localStorage.getItem(productsKey);
-                if (storedProducts) {
-                    setSellerProducts(JSON.parse(storedProducts));
-                }
             }
         };
 
@@ -379,71 +378,8 @@ export function ProductDetailClient({ productId }: { productId: string }) {
 
             <main className="container mx-auto py-6">
                 <div className="grid md:grid-cols-2 gap-8 lg:gap-12">
-                     {/* Product Image Gallery */}
-                    <div className="space-y-4 md:sticky md:top-24 self-start">
-                         <div className="relative aspect-square bg-muted rounded-lg overflow-hidden">
-                             {selectedImage && (
-                                <Image
-                                    src={selectedImage}
-                                    alt={product.name}
-                                    fill
-                                    sizes="(max-width: 768px) 100vw, 50vw"
-                                    className="object-contain"
-                                    data-ai-hint={product.hint}
-                                />
-                            )}
-                            <div className="absolute top-3 right-3 z-10 flex flex-col gap-2">
-                                <Button
-                                    size="icon"
-                                    variant="secondary"
-                                    className={cn("h-10 w-10 rounded-full", wishlisted && "bg-destructive text-destructive-foreground hover:bg-destructive/90")}
-                                    onClick={handleWishlistToggle}
-                                >
-                                    <Heart className={cn("h-5 w-5", wishlisted && "fill-current")} />
-                                </Button>
-                                <Button
-                                    size="icon"
-                                    variant="secondary"
-                                    className="h-10 w-10 rounded-full"
-                                    onClick={handleShare}
-                                >
-                                    <Share2 className="h-5 w-5" />
-                                </Button>
-                                <AlertDialog>
-                                    <AlertDialogTrigger asChild>
-                                        <Button
-                                            size="icon"
-                                            variant="secondary"
-                                            className="h-10 w-10 rounded-full"
-                                        >
-                                            <Flag className="h-5 w-5" />
-                                        </Button>
-                                    </AlertDialogTrigger>
-                                    <AlertDialogContent>
-                                        <AlertDialogHeader>
-                                            <AlertDialogTitle>Report this product?</AlertDialogTitle>
-                                            <AlertDialogDescription>
-                                                If this product violates our community guidelines or seems suspicious, please report it. Our team will review it shortly.
-                                            </AlertDialogDescription>
-                                        </AlertDialogHeader>
-                                        <AlertDialogFooter>
-                                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                            <AlertDialogAction onClick={handleReportProduct}>Report Product</AlertDialogAction>
-                                        </AlertDialogFooter>
-                                    </AlertDialogContent>
-                                </AlertDialog>
-                            </div>
-                        </div>
-                        <div className="relative aspect-video w-full bg-muted rounded-lg overflow-hidden">
-                           <video
-                              src="https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"
-                              className="w-full h-full object-cover"
-                              controls
-                              poster={product.images[1] || product.images[0]}
-                           />
-                        </div>
-                    </div>
-
+                     {/* Empty div as a placeholder for the removed image gallery */}
+                    <div></div>
 
                     {/* Product Details */}
                     <div className="flex flex-col gap-4">
@@ -654,11 +590,11 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                             <Link href={`/product/${p.key}`} key={p.id} className="w-32 flex-shrink-0">
                                                 <Card className="overflow-hidden group">
                                                     <div className="aspect-square bg-muted relative">
-                                                        <Image src={p.images[0]} alt={p.name} fill sizes="128px" className="object-cover group-hover:scale-105 transition-transform" data-ai-hint={p.hint} />
+                                                        <Image src={p.images[0]?.preview || "https://placehold.co/200x200.png"} alt={p.name} fill sizes="128px" className="object-cover group-hover:scale-105 transition-transform" data-ai-hint={p.hint} />
                                                     </div>
                                                     <div className="p-3">
                                                         <h4 className="font-semibold text-xs truncate">{p.name}</h4>
-                                                        <p className="text-foreground text-sm font-bold">{p.price}</p>
+                                                        <p className="text-foreground text-sm font-bold">₹{p.price.toLocaleString()}</p>
                                                     </div>
                                                 </Card>
                                             </Link>
