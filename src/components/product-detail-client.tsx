@@ -398,47 +398,63 @@ export function ProductDetailClient({ productId }: { productId: string }) {
 
             <main className="container mx-auto py-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Image Gallery</CardTitle>
-                        </CardHeader>
-                        <CardContent className="p-4">
-                            <div className="aspect-[4/3] w-full relative bg-muted rounded-lg overflow-hidden mb-4">
+                    <Dialog>
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Image Gallery</CardTitle>
+                            </CardHeader>
+                            <CardContent className="p-4">
+                                <DialogTrigger asChild>
+                                    <div className="aspect-square w-full relative bg-muted rounded-lg overflow-hidden mb-4 cursor-pointer">
+                                        {selectedImage && (
+                                            <Image
+                                                src={selectedImage}
+                                                alt={product.name}
+                                                fill
+                                                sizes="(max-width: 768px) 100vw, 50vw"
+                                                className="object-cover"
+                                            />
+                                        )}
+                                    </div>
+                                </DialogTrigger>
+                                <ScrollArea>
+                                    <div className="flex gap-2 pb-2">
+                                        {product.images.map((img: string, index: number) => (
+                                            <button
+                                                key={index}
+                                                onClick={() => setSelectedImage(img)}
+                                                className={cn(
+                                                    "w-16 h-16 rounded-md overflow-hidden border-2 flex-shrink-0",
+                                                    selectedImage === img ? 'border-primary' : 'border-transparent'
+                                                )}
+                                            >
+                                                <Image
+                                                    src={img}
+                                                    alt={`Thumbnail ${'${index + 1}'}`}
+                                                    width={64}
+                                                    height={64}
+                                                    className="object-cover w-full h-full"
+                                                />
+                                            </button>
+                                        ))}
+                                    </div>
+                                    <ScrollBar orientation="horizontal" />
+                                </ScrollArea>
+                            </CardContent>
+                        </Card>
+                        <DialogContent className="max-w-3xl max-h-[90vh]">
+                            <div className="relative aspect-square w-full">
                                 {selectedImage && (
                                     <Image
                                         src={selectedImage}
                                         alt={product.name}
                                         fill
-                                        sizes="(max-width: 768px) 100vw, 50vw"
-                                        className="object-cover"
+                                        className="object-contain"
                                     />
                                 )}
                             </div>
-                             <ScrollArea>
-                                <div className="flex gap-2 pb-2">
-                                    {product.images.map((img: string, index: number) => (
-                                        <button
-                                            key={index}
-                                            onClick={() => setSelectedImage(img)}
-                                            className={cn(
-                                                "w-16 h-16 rounded-md overflow-hidden border-2 flex-shrink-0",
-                                                selectedImage === img ? 'border-primary' : 'border-transparent'
-                                            )}
-                                        >
-                                            <Image
-                                                src={img}
-                                                alt={`Thumbnail ${'${index + 1}'}`}
-                                                width={64}
-                                                height={64}
-                                                className="object-cover w-full h-full"
-                                            />
-                                        </button>
-                                    ))}
-                                </div>
-                                <ScrollBar orientation="horizontal" />
-                            </ScrollArea>
-                        </CardContent>
-                    </Card>
+                        </DialogContent>
+                    </Dialog>
                     <div className="flex flex-col gap-4">
                         <div className="flex justify-between items-start">
                             <div>
