@@ -435,7 +435,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                         <CardContent className="p-4">
                              <Dialog>
                                 <DialogTrigger asChild>
-                                    <div className="aspect-[5/4] w-full relative bg-muted rounded-lg overflow-hidden mb-4 cursor-pointer">
+                                    <div className="aspect-square w-full relative bg-muted rounded-lg overflow-hidden mb-4 cursor-pointer">
                                         {selectedImage && (
                                             <Image
                                                 src={selectedImage}
@@ -506,18 +506,6 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                         <div>
                              <div className="flex items-center gap-4 flex-wrap">
                                 <p className="text-3xl font-bold text-foreground">{product.price}</p>
-                                <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                                    <div className="flex items-center gap-1">
-                                        <Package className="w-4 h-4" />
-                                        <span>{variantStock ?? product.stock} in stock</span>
-                                    </div>
-                                    <div className="flex items-center gap-1">
-                                        <Users className="w-4 h-4" />
-                                        <span>{product.sold} sold</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="flex items-center gap-2 mt-1">
                                 {reviews.length > 0 && (
                                     <div className="flex items-center gap-2">
                                         <div className="flex items-center gap-1 text-amber-400">
@@ -527,6 +515,16 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                         <span className="text-muted-foreground text-sm">({reviews.length} reviews)</span>
                                     </div>
                                 )}
+                            </div>
+                             <div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
+                                <div className="flex items-center gap-1">
+                                    <Package className="w-4 h-4" />
+                                    <span>{variantStock ?? product.stock} in stock</span>
+                                </div>
+                                <div className="flex items-center gap-1">
+                                    <Users className="w-4 h-4" />
+                                    <span>{product.sold} sold</span>
+                                </div>
                             </div>
                             <p className="text-sm text-muted-foreground mt-1">(inclusive of all taxes)</p>
                         </div>
@@ -596,7 +594,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                             </Button>
                         </div>
                         <Card>
-                             <CardHeader className="flex flex-row items-center justify-between pb-2">
+                             <CardHeader className="flex flex-row items-center justify-between p-4">
                                 <div>
                                     <CardTitle className="text-base">Delivery Information</CardTitle>
                                 </div>
@@ -621,7 +619,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                     </Dialog>
                                 )}
                             </CardHeader>
-                            <CardContent className="p-4">
+                            <CardContent className="px-4 pb-4">
                                 {user ? (
                                     userData?.addresses && userData.addresses.length > 0 ? (
                                         <div className="text-sm">
