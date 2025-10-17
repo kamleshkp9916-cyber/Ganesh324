@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
@@ -366,7 +367,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                     {/* Product Image Gallery */}
                     <div className="md:sticky md:top-24 self-start">
                         <div className="max-w-lg mx-auto">
-                            <div className="flex flex-col-reverse md:flex-row gap-4">
+                           <div className="flex flex-col-reverse md:flex-row gap-4">
                                 <div className="flex flex-row md:flex-col gap-2 overflow-x-auto md:overflow-y-auto pb-2 md:pb-0 md:pr-2 no-scrollbar md:max-h-[500px]">
                                 {product.images.map((img: string, index: number) => (
                                     <div 
@@ -381,48 +382,50 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                     </div>
                                 ))}
                                 </div>
-                                <div className="relative aspect-square w-full bg-muted rounded-lg overflow-hidden">
-                                    {selectedImage && <Image src={selectedImage} alt={product.name} fill sizes="(max-width: 768px) 100vw, 50vw" className="object-contain" data-ai-hint={product.hint} />}
-                                    <div className="absolute top-3 right-3 z-10 flex flex-col gap-2">
-                                        <Button
-                                            size="icon"
-                                            variant="secondary"
-                                            className={cn("h-10 w-10 rounded-full", wishlisted && "bg-destructive text-destructive-foreground hover:bg-destructive/90")}
-                                            onClick={handleWishlistToggle}
-                                        >
-                                            <Heart className={cn("h-5 w-5", wishlisted && "fill-current")} />
-                                        </Button>
-                                        <Button
-                                            size="icon"
-                                            variant="secondary"
-                                            className="h-10 w-10 rounded-full"
-                                            onClick={handleShare}
-                                        >
-                                            <Share2 className="h-5 w-5" />
-                                        </Button>
-                                        <AlertDialog>
-                                            <AlertDialogTrigger asChild>
-                                                <Button
-                                                    size="icon"
-                                                    variant="secondary"
-                                                    className="h-10 w-10 rounded-full"
-                                                >
-                                                    <Flag className="h-5 w-5" />
-                                                </Button>
-                                            </AlertDialogTrigger>
-                                            <AlertDialogContent>
-                                                <AlertDialogHeader>
-                                                    <AlertDialogTitle>Report this product?</AlertDialogTitle>
-                                                    <AlertDialogDescription>
-                                                        If this product violates our community guidelines or seems suspicious, please report it. Our team will review it shortly.
-                                                    </AlertDialogDescription>
-                                                </AlertDialogHeader>
-                                                <AlertDialogFooter>
-                                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                                    <AlertDialogAction onClick={handleReportProduct}>Report Product</AlertDialogAction>
-                                                </AlertDialogFooter>
-                                            </AlertDialogContent>
-                                        </AlertDialog>
+                                <div className="w-full">
+                                    <div className="relative aspect-square w-full bg-muted rounded-lg overflow-hidden">
+                                        {selectedImage && <Image src={selectedImage} alt={product.name} fill sizes="(max-width: 768px) 100vw, 50vw" className="object-contain" data-ai-hint={product.hint} />}
+                                        <div className="absolute top-3 right-3 z-10 flex flex-col gap-2">
+                                            <Button
+                                                size="icon"
+                                                variant="secondary"
+                                                className={cn("h-10 w-10 rounded-full", wishlisted && "bg-destructive text-destructive-foreground hover:bg-destructive/90")}
+                                                onClick={handleWishlistToggle}
+                                            >
+                                                <Heart className={cn("h-5 w-5", wishlisted && "fill-current")} />
+                                            </Button>
+                                            <Button
+                                                size="icon"
+                                                variant="secondary"
+                                                className="h-10 w-10 rounded-full"
+                                                onClick={handleShare}
+                                            >
+                                                <Share2 className="h-5 w-5" />
+                                            </Button>
+                                            <AlertDialog>
+                                                <AlertDialogTrigger asChild>
+                                                    <Button
+                                                        size="icon"
+                                                        variant="secondary"
+                                                        className="h-10 w-10 rounded-full"
+                                                    >
+                                                        <Flag className="h-5 w-5" />
+                                                    </Button>
+                                                </AlertDialogTrigger>
+                                                <AlertDialogContent>
+                                                    <AlertDialogHeader>
+                                                        <AlertDialogTitle>Report this product?</AlertDialogTitle>
+                                                        <AlertDialogDescription>
+                                                            If this product violates our community guidelines or seems suspicious, please report it. Our team will review it shortly.
+                                                        </AlertDialogDescription>
+                                                    </AlertDialogHeader>
+                                                    <AlertDialogFooter>
+                                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                        <AlertDialogAction onClick={handleReportProduct}>Report Product</AlertDialogAction>
+                                                    </AlertDialogFooter>
+                                                </AlertDialogContent>
+                                            </AlertDialog>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
