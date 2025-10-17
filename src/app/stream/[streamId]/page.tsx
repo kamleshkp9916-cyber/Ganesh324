@@ -572,14 +572,14 @@ const RelatedContent = ({ relatedStreams }: { relatedStreams: any[] }) => {
         </div>
          <div className={cn("grid gap-4", isMobile ? "grid-cols-1" : "grid-cols-2")}>
             {relatedStreams.slice(0,4).map((s: any) => (
-                <Link href={`/stream/${s.id}`} key={s.id} className="group">
-                    <div className="relative rounded-lg overflow-hidden aspect-[16/9] bg-muted">
+                <Link href={`/stream/${s.id}`} key={s.id} className="group flex sm:block gap-3">
+                    <div className="relative rounded-lg overflow-hidden aspect-[16/9] bg-muted w-32 sm:w-full flex-shrink-0">
                         <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
-                        <div className="absolute top-2 right-2 z-10"><Badge variant="secondary" className="bg-background/60 backdrop-blur-sm"><Users className="w-3 h-3 mr-1.5" />{s.viewers.toLocaleString()}</Badge></div>
+                        <div className="absolute top-2 right-2 z-10"><Badge variant="secondary" className="bg-black/50 text-white"><Users className="w-3 h-3 mr-1.5" />{s.viewers.toLocaleString()}</Badge></div>
                          <Image src={s.thumbnailUrl} alt={`Live stream from ${s.name}`} fill sizes="50vw" className="object-cover transition-transform group-hover:scale-105" />
                     </div>
-                    <div className="flex items-start gap-2 mt-2">
-                        <Avatar className="w-7 h-7">
+                    <div className="flex items-start gap-2 mt-0 sm:mt-2">
+                        <Avatar className="w-7 h-7 hidden sm:flex">
                             <AvatarImage src={s.avatarUrl} alt={s.name} />
                             <AvatarFallback>{s.name.charAt(0)}</AvatarFallback>
                         </Avatar>
@@ -625,23 +625,31 @@ export default function StreamPage() {
     const [chatMessages, setChatMessages] = useState<any[]>([]);
 
     useEffect(() => {
-        if (seller) {
-            const initialMessages = mockChatMessages.map(msg => {
-                let finalMsg = { ...msg };
-                if (finalMsg.isSeller) {
-                    finalMsg.user = seller.name;
-                }
-                if (finalMsg.type === 'post_share' && msg.sellerName === seller.name) {
-                    return finalMsg;
-                } else if (finalMsg.type === 'post_share') {
-                    return null;
-                }
-                return finalMsg;
-            }).filter(Boolean);
-    
-            setChatMessages(initialMessages as any[]);
-        }
-    }, [seller]);
+      if (seller) {
+          const mockPost = {
+              id: 33, // This should be unique
+              type: 'post_share',
+              sellerName: seller.name, // Correctly use the current seller's name
+              text: 'Behind the scenes of our new collection!',
+              product: productDetails['prod_5']
+          };
+  
+          const initialMessages = mockChatMessages.map(msg => {
+              let finalMsg = { ...msg };
+              if (finalMsg.isSeller) {
+                  finalMsg.user = seller.name; // Dynamically assign seller name
+              }
+              // Make sure to filter out any hardcoded post shares from other sellers
+              if (finalMsg.type === 'post_share') {
+                  return null; 
+              }
+              return finalMsg;
+          }).filter(Boolean);
+  
+          // Add the correctly context-aware mock post
+          setChatMessages([...initialMessages, mockPost] as any[]);
+      }
+  }, [seller]);
 
     const relatedStreams = useMemo(() => {
         if (!seller) return [];
@@ -744,7 +752,7 @@ export default function StreamPage() {
     
     useEffect(() => {
         if (seller) {
-             let promotionInterval = 300000;
+            let promotionInterval = 300000;
     
             if (typeof window !== 'undefined') {
                 try {
@@ -1352,8 +1360,8 @@ const ChatMessage = ({ msg, handlers, seller }: { msg: any, handlers: any, selle
     const handleDelete = () => handlers.onDeleteMessage(msg.id);
 
     return (
-        <div className="flex items-start gap-2.5 w-full group py-1 animate-message-in">
-             <Avatar className="h-7 w-7 mt-0.5">
+        <div className="flex items-start gap-2 w-full group py-0.5 animate-message-in">
+             <Avatar className="h-6 w-6 mt-0.5">
                 <AvatarImage src={msg.avatar} />
                 <AvatarFallback className="bg-gradient-to-br from-red-500 to-yellow-500 text-white font-bold text-[10px]">
                      {msg.user ? msg.user.charAt(0) : 'S'}
@@ -1402,14 +1410,8 @@ const ChatPanel = ({
   seller: any;
   chatMessages: any[];
   pinnedMessages: any[];
-  activeAuction: any;
-  auctionTime: number | null;
-  highestBid: number;
-  totalBids: number;
-  walletBalance: number;
-  handlers: any;
-  inlineAuctionCardRefs: React.MutableRefObject<Record<string, HTMLDivElement | null>>;
   onClose: () => void;
+  handlers: any;
 }) => {
   const [newMessage, setNewMessage] = useState("");
   const [replyingTo, setReplyingTo] = useState<{ name: string; id: string } | null>(null);
