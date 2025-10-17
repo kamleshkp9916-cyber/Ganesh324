@@ -2,7 +2,7 @@
 "use client";
 
 import React from 'react';
-import { useAuth } from '@/hooks/use-auth.tsx';
+import { useAuth } from '@/lib/providers';
 import { useRouter } from 'next/navigation';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Edit, Mail, Phone, MapPin, Camera, Truck, Star, ThumbsUp, ShoppingBag, Eye, Award, History, Search, Plus, Trash2, Heart, MessageSquare, StarIcon, UserPlus, Users, PackageSearch, Loader2, UserCheck, Instagram, Twitter, Youtube, Video, Facebook, Twitch, Play } from 'lucide-react';
@@ -228,11 +228,7 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
             ...doc.data(),
             timestamp: doc.data().timestamp ? formatDistanceToNow(new Date((doc.data().timestamp as Timestamp).seconds * 1000), { addSuffix: true }) : 'just now'
         }));
-        if(postsData.length === 0) {
-            setUserPosts(mockPosts.map(p => ({...p, sellerName: displayName, avatarUrl: profileData.photoURL || p.avatarUrl})));
-        } else {
-            setUserPosts(postsData);
-        }
+        setUserPosts(postsData);
     });
     
     setTimeout(() => {
@@ -717,58 +713,78 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                       </TabsContent>
 
                         <TabsContent value="posts" className="mt-4 space-y-4">
-                           {(userPosts.length > 0) ? (
-                               <>
-                                   {isOwnProfile && ( 
-                                      <div className="mb-6 sticky top-20 z-40">
-                                            <CreatePostForm onPost={async () => {}} onFinishEditing={() => {}} isSubmitting={false}/>
-                                      </div>
-                                  )}
-                                   {userPosts.map(post => (
-                                      <Card key={post.id} className="overflow-hidden">
-                                          <div className="p-4">
-                                              <div className="flex items-center gap-3 mb-3">
-                                                  <Avatar className="h-10 w-10">
-                                                      <AvatarImage src={post.avatarUrl} alt={post.sellerName} />
-                                                      <AvatarFallback>{post.sellerName.charAt(0)}</AvatarFallback>
-                                                  </Avatar>
-                                                  <div className="flex-grow">
-                                                      <p className="font-semibold">{post.sellerName}</p>
-                                                      <p className="text-xs text-muted-foreground">{post.timestamp}</p>
-                                                  </div>
-                                              </div>
-                                          </div>
-                                          <div className="px-4 pb-4">
-                                              <p className="text-sm mb-2">{post.content}</p>
-                                               {post.mediaUrl &&
-                                                  <div className="w-full max-w-sm bg-muted rounded-lg overflow-hidden">
-                                                      {post.mediaType === 'video' ? (
-                                                          <video src={post.mediaUrl} controls className="w-full h-auto object-cover" />
-                                                      ) : (
-                                                          <Image src={post.mediaUrl} alt="Feed item" width={400} height={300} className="w-full h-auto object-cover" />
-                                                      )}
-                                                  </div>
-                                              }
-                                          </div>
-                                          <div className="px-4 pb-3 flex justify-between items-center text-sm text-muted-foreground">
-                                              <div className="flex items-center gap-4">
-                                                  <button className="flex items-center gap-1.5 hover:text-primary">
-                                                      <Heart className="w-4 h-4" />
-                                                      <span>{post.likes}</span>
-                                                  </button>
-                                                  <button className="flex items-center gap-1.5 hover:text-primary">
-                                                      <MessageSquare className="w-4 h-4" />
-                                                      <span>{post.replies}</span>
-                                                  </button>
-                                              </div>
-                                              {post.location && <span className="text-xs">{post.location}</span>}
-                                          </div>
-                                      </Card>
-                                  ))}
-                               </>
-                           ) : (
-                               <p className="text-muted-foreground text-center py-8">No posts yet.</p>
-                           )}
+                           {(!isLoadingContent && userPosts.length === 0) ? (
+                                <Card className="text-center py-12 text-muted-foreground flex flex-col items-center gap-4">
+                                    <h3 className="text-xl font-semibold">No Posts Yet</h3>
+                                    <p>This seller hasn't posted anything yet.</p>
+                                </Card>
+                            ) : (
+                                <>
+                                    {isOwnProfile && ( 
+                                       <div className="mb-6 sticky top-20 z-40">
+                                             <CreatePostForm onPost={async () => {}} onFinishEditing={() => {}} isSubmitting={false}/>
+                                       </div>
+                                   )}
+                                    {userPosts.map(post => (
+                                       <Card key={post.id} className="overflow-hidden">
+                                           <div className="p-4">
+                                               <div className="flex items-center gap-3 mb-3">
+                                                   <Avatar className="h-10 w-10">
+                                                       <AvatarImage src={post.avatarUrl} alt={post.sellerName} />
+                                                       <AvatarFallback>{post.sellerName.charAt(0)}</AvatarFallback>
+                                                   </Avatar>
+                                                   <div className="flex-grow">
+                                                       <p className="font-semibold">{post.sellerName}</p>
+                                                       <p className="text-xs text-muted-foreground">{post.timestamp}</p>
+                                                   </div>
+                                               </div>
+                                           </div>
+                                           <div className="px-4 pb-4">
+                                               <p className="text-sm mb-2">{post.content}</p>
+                                                {post.mediaUrl &&
+                                                   <div className="w-full max-w-sm bg-muted rounded-lg overflow-hidden">
+                                                       {post.mediaType === 'video' ? (
+                                                           <video src={post.mediaUrl} controls className="w-full h-auto object-cover" />
+                                                       ) : (
+                                                           <Image src={post.mediaUrl} alt="Feed item" width={400} height={300} className="w-full h-auto object-cover" />
+                                                       )}
+                                                   </div>
+                                               }
+                                           </div>
+                                           <div className="px-4 pb-3 flex justify-between items-center text-sm text-muted-foreground">
+                                               <div className="flex items-center gap-4">
+                                                   <button className="flex items-center gap-1.5 hover:text-primary">
+                                                       <Heart className="w-4 h-4" />
+                                                       <span>{post.likes}</span>
+                                                   </button>
+                                                   <button className="flex items-center gap-1.5 hover:text-primary">
+                                                       <MessageSquare className="w-4 h-4" />
+                                                       <span>{post.replies}</span>
+                                                   </button>
+                                               </div>
+                                               {post.location && <span className="text-xs">{post.location}</span>}
+                                           </div>
+                                       </Card>
+                                   ))}
+                                </>
+                            )}
+                            {userPosts.length === 0 && (
+                                <Card>
+                                    <CardContent className="p-4">
+                                        <div className="flex items-center gap-3 mb-3">
+                                            <Avatar className="h-10 w-10">
+                                                <AvatarImage src={profileData.photoURL || undefined} />
+                                                <AvatarFallback>{displayName.charAt(0)}</AvatarFallback>
+                                            </Avatar>
+                                            <div>
+                                                <p className="font-semibold">{displayName}</p>
+                                                <p className="text-xs text-muted-foreground">Just now</p>
+                                            </div>
+                                        </div>
+                                        <p className="text-sm mb-2">This is an example of what a post will look like. Sellers can share updates, images, and videos here!</p>
+                                    </CardContent>
+                                </Card>
+                            )}
                       </TabsContent>
 
                       <TabsContent value="recent" className="mt-4">
@@ -893,3 +909,5 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
     </>
   );
 }
+
+    
