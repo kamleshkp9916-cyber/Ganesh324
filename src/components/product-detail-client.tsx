@@ -526,10 +526,10 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                 <Button variant="ghost" size="icon" onClick={handleWishlistToggle}>
                                     <Heart className={cn("h-6 w-6", wishlisted ? "fill-red-500 text-red-500" : "text-muted-foreground")} />
                                 </Button>
-                                    <Button variant="ghost" size="icon" onClick={handleShare}>
+                                <Button variant="ghost" size="icon" onClick={handleShare}>
                                     <Share2 className="h-6 w-6" />
                                 </Button>
-                                 <Button variant="ghost" size="icon" onClick={handleReportProduct}>
+                                <Button variant="ghost" size="icon" onClick={handleReportProduct}>
                                     <Flag className="h-6 w-6" />
                                 </Button>
                             </div>
@@ -594,12 +594,21 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                         )}
                        
                         <div className="flex flex-col gap-2">
-                             {variantStock !== undefined && variantStock > 0 ? (
+                            {variantStock !== undefined && variantStock > 0 ? (
                                 <>
-                                    <Button size="lg" className="w-full" variant="outline" onClick={handleAddToCart} disabled={inCart}>
-                                        <ShoppingCart className="mr-2 h-5 w-5" />
-                                        {inCart ? "Added to Cart" : "Add to Cart"}
-                                    </Button>
+                                    {inCart ? (
+                                        <Button size="lg" className="w-full" variant="outline" asChild>
+                                            <Link href="/cart">
+                                                <ShoppingCart className="mr-2 h-5 w-5" />
+                                                Go to Cart
+                                            </Link>
+                                        </Button>
+                                    ) : (
+                                        <Button size="lg" className="w-full" variant="outline" onClick={handleAddToCart}>
+                                            <ShoppingCart className="mr-2 h-5 w-5" />
+                                            Add to Cart
+                                        </Button>
+                                    )}
                                     <Button size="lg" className="w-full" onClick={handleBuyNow}>
                                         Buy Now
                                     </Button>
@@ -874,7 +883,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
                             {similarProducts.map((p) => (
                                 <Link href={`/product/${p.key}`} key={p.id} className="group block">
-                                    <Card className="w-full overflow-hidden h-full flex flex-col">
+                                    <Card className="w-full group overflow-hidden h-full flex flex-col">
                                         <div className="relative aspect-square bg-muted">
                                             <Image src={p.images[0]} alt={p.name} fill sizes="(max-width: 640px) 50vw, 20vw" className="object-cover transition-transform group-hover:scale-105" data-ai-hint={p.hint} />
                                         </div>
