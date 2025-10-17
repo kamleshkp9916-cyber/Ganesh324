@@ -452,49 +452,106 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                     </Link>
                                 </div>
                             </div>
-
-                            {/* Details and highlights sections... */}
-                            <div className="mt-8 space-y-6">
-                                {/* Delivery Section */}
-                                <div className="py-4 border-t">
-                                     <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <div>
-                                            <h3 className="font-semibold mb-2">Delivery</h3>
-                                            <div className="flex items-center gap-2 mt-2">
-                                                <Input
-                                                    placeholder="Enter Pincode"
-                                                    maxLength={6}
-                                                    className="max-w-[150px]"
-                                                    value={pincode}
-                                                    onChange={(e) => setPincode(e.target.value.replace(/\\D/g, ''))}
-                                                />
-                                                <Button variant="link" className="p-0 h-auto" onClick={handlePincodeCheck} disabled={checkingPincode}>
-                                                    {checkingPincode ? <LoadingSpinner className="h-4 w-4" /> : "Check"}
-                                                </Button>
-                                            </div>
-                                            {isDeliverable === true ? (
-                                                <p className="text-sm text-green-600 mt-2">Yay! Delivery is available to this pincode.</p>
-                                            ) : isDeliverable === false ? (
-                                                    <p className="text-sm text-destructive mt-2">Sorry, delivery is not available to this pincode.</p>
-                                            ) : (
-                                                    <p className="text-xs text-muted-foreground mt-2">Check if we can deliver to your location.</p>
-                                            )}
-                                        </div>
-                                        <div className="text-sm">
-                                                <div className="flex items-center gap-3">
-                                                <Truck className="h-5 w-5 text-muted-foreground flex-shrink-0" />
-                                                <div>
-                                                    <p className="font-semibold">Get it by {estimatedDeliveryDate}</p>
-                                                    <p className="text-xs text-muted-foreground">Standard Delivery</p>
-                                                </div>
-                                            </div>
-                                        </div>
+                            
+                            <div className="space-y-8">
+                                <Separator />
+                                {/* Highlights Section */}
+                                {productHighlights.length > 0 && (
+                                    <div>
+                                        <h3 className="font-semibold mb-2">Highlights</h3>
+                                        <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground">
+                                            {productHighlights.map((highlight: string, index: number) => (
+                                                <li key={index}>{highlight}</li>
+                                            ))}
+                                        </ul>
                                     </div>
+                                )}
+                                 <Separator />
+                                {/* Reviews Section */}
+                                <div>
+                                    <div className="flex justify-between items-center mb-4">
+                                        <h3 className="text-xl font-bold">Ratings & Reviews</h3>
+                                        <Button variant="outline" onClick={openReviewDialog}>Write a Review</Button>
+                                    </div>
+                                    <div className="space-y-4">
+                                        {reviews.length > 0 ? (
+                                            reviews.slice(0, 3).map((review) => (
+                                                <Card key={review.id} className="bg-muted/50">
+                                                    <CardContent className="p-4">
+                                                        <div className="flex gap-4">
+                                                            <Avatar>
+                                                                <AvatarImage src={review.avatar} alt={review.author} />
+                                                                <AvatarFallback>{review.author.charAt(0)}</AvatarFallback>
+                                                            </Avatar>
+                                                            <div className="flex-grow">
+                                                                <div className="flex items-center justify-between">
+                                                                    <h5 className="font-semibold">{review.author}</h5>
+                                                                    <p className="text-xs text-muted-foreground">{formatDistanceToNow(new Date(review.date), { addSuffix: true })}</p>
+                                                                </div>
+                                                                <div className="flex items-center gap-1 mt-1">
+                                                                    {[...Array(5)].map((_, i) => (
+                                                                        <Star key={i} className={cn("h-4 w-4", i < review.rating ? 'text-yellow-400 fill-yellow-400' : 'text-muted-foreground')} />
+                                                                    ))}
+                                                                </div>
+                                                                <p className="text-sm text-muted-foreground mt-2">{review.text}</p>
+                                                            </div>
+                                                        </div>
+                                                    </CardContent>
+                                                </Card>
+                                            ))
+                                        ) : (
+                                            <p className="text-sm text-muted-foreground text-center py-4">No reviews yet. Be the first to write one!</p>
+                                        )}
+                                        {reviews.length > 3 && <Button variant="link" className="w-full">View All {reviews.length} Reviews</Button>}
+                                    </div>
+                                </div>
+                                <Separator />
+                                {/* Q&A Section */}
+                                <div>
+                                    <h3 className="text-xl font-bold mb-4">Questions & Answers</h3>
+                                    <div className="space-y-4">
+                                        {mockQandA.slice(0,3).map(qa => (
+                                            <div key={qa.id}>
+                                                <p className="font-semibold text-sm">Q: {qa.question}</p>
+                                                {qa.answer ? (
+                                                    <p className="text-sm text-muted-foreground mt-1">A: {qa.answer}</p>
+                                                ) : (
+                                                    <p className="text-sm text-muted-foreground mt-1 italic">No answer yet.</p>
+                                                )}
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <Button variant="link" className="w-full mt-2">View All Q&A</Button>
                                 </div>
                             </div>
                         </div>
                     </CardContent>
                 </Card>
+
+                 {/* Recently Viewed Section */}
+                {recentlyViewedItems.length > 0 && (
+                    <div className="mt-8">
+                        <h2 className="text-2xl font-bold mb-4">Recently Viewed</h2>
+                        <ScrollArea className="w-full whitespace-nowrap">
+                            <div className="flex gap-4 pb-4">
+                                {recentlyViewedItems.map((item) => (
+                                <Link href={`/product/${item.key}`} key={item.id} className="w-36 flex-shrink-0">
+                                    <Card className="overflow-hidden group h-full">
+                                    <div className="aspect-square bg-muted relative">
+                                        <Image src={item.imageUrl} alt={item.name} fill sizes="144px" className="object-cover" />
+                                    </div>
+                                    <div className="p-2">
+                                        <p className="text-xs font-semibold truncate group-hover:underline">{item.name}</p>
+                                        <p className="text-sm font-bold">{item.price}</p>
+                                    </div>
+                                    </Card>
+                                </Link>
+                                ))}
+                            </div>
+                            <ScrollBar orientation="horizontal" />
+                        </ScrollArea>
+                    </div>
+                )}
             </main>
         </div>
     );
