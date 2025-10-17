@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
@@ -490,9 +491,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                             <div>
                                 <p className="text-sm font-medium text-primary mb-1">{product.brand}</p>
                                 <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">{product.name}</h1>
-                                <div className="flex items-center gap-2 mt-2">
-                                    <Badge variant="secondary">{product.key}</Badge>
-                                </div>
+                                <p className="text-muted-foreground mt-2">{product.description}</p>
                             </div>
                             <div className="flex items-center">
                                 <Button variant="ghost" size="icon" onClick={handleWishlistToggle}>
@@ -503,7 +502,6 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                 </Button>
                             </div>
                         </div>
-                         <p className="text-muted-foreground">{product.description}</p>
                         <div>
                              <div className="flex items-center gap-4 flex-wrap">
                                 <p className="text-3xl font-bold text-foreground">{product.price}</p>
@@ -514,15 +512,15 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                         </div>
                                         <span className="text-muted-foreground text-sm">({reviews.length} reviews)</span>
                                 </div>
-                            </div>
-                             <div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
-                                <div className="flex items-center gap-1">
-                                    <Package className="w-4 h-4" />
-                                    <span>{variantStock ?? product.stock} in stock</span>
-                                </div>
-                                <div className="flex items-center gap-1">
-                                    <Users className="w-4 h-4" />
-                                    <span>{product.sold} sold</span>
+                                <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                                    <div className="flex items-center gap-1">
+                                        <Package className="w-4 h-4" />
+                                        <span>{variantStock ?? product.stock} in stock</span>
+                                    </div>
+                                    <div className="flex items-center gap-1">
+                                        <Users className="w-4 h-4" />
+                                        <span>{product.sold} sold</span>
+                                    </div>
                                 </div>
                             </div>
                             <p className="text-sm text-muted-foreground mt-1">(inclusive of all taxes)</p>
@@ -561,17 +559,6 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                     ))}
                                 </div>
                             </div>
-                        )}
-                        {product.offer?.title && (
-                            <Card className="bg-primary/10 border-primary/20">
-                                <CardHeader>
-                                    <CardTitle className="text-lg flex items-center gap-2">
-                                        <Ticket className="h-5 w-5 text-primary" />
-                                        {product.offer.title}
-                                    </CardTitle>
-                                    <CardDescription>{product.offer.description}</CardDescription>
-                                </CardHeader>
-                            </Card>
                         )}
                        
                         <div className="flex flex-col gap-2">
@@ -684,7 +671,32 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                 </div>
                 <div className="md:col-span-2 space-y-8 mt-8">
                     <Separator />
-                    
+                    <Card>
+                        <CardHeader>
+                           <CardTitle>Available Offers</CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-3">
+                           {mockAdminOffers.map((offer, index) => (
+                               <div key={index} className="flex items-start gap-3 text-sm">
+                                   <div className="flex-shrink-0 mt-1">{offer.icon}</div>
+                                   <div>
+                                       <h5 className="font-semibold">{offer.title}</h5>
+                                       <p className="text-muted-foreground">{offer.description}</p>
+                                   </div>
+                               </div>
+                           ))}
+                           {product.offer?.title && (
+                                <div className="flex items-start gap-3 text-sm">
+                                    <div className="flex-shrink-0 mt-1"><Ticket className="h-5 w-5 text-primary" /></div>
+                                    <div>
+                                        <h5 className="font-semibold">{product.offer.title}</h5>
+                                        <p className="text-muted-foreground">{product.offer.description}</p>
+                                    </div>
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
+                    <Separator />
                      <Card>
                         <CardHeader>
                             <CardTitle>Highlights</CardTitle>
@@ -855,7 +867,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                     <div className="relative rounded-lg overflow-hidden aspect-[16/9] bg-muted">
                                         <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
                                         <div className="absolute top-2 right-2 z-10">
-                                            <Badge variant="secondary" className="bg-background/60 backdrop-blur-sm gap-1.5">
+                                            <Badge variant="secondary" className="bg-black/50 text-white gap-1.5">
                                                 <Users className="h-3 w-3"/>
                                                 {stream.viewers}
                                             </Badge>
