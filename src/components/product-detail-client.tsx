@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { ArrowLeft, Star, ThumbsUp, ThumbsDown, MessageSquare, ShoppingCart, ShieldCheck, Heart, Share2, Truck, Tag, Banknote, Ticket, ChevronDown, RotateCcw, Sparkles, CheckCircle, Users, HelpCircle, Send, Image as ImageIcon, Edit, Trash2, Flag, Play, Loader2, Package, Plus } from 'lucide-react';
+import { ArrowLeft, Star, ThumbsUp, ThumbsDown, MessageSquare, ShoppingCart, ShieldCheck, Heart, Share2, Truck, Tag, Banknote, Ticket, ChevronDown, RotateCcw, Sparkles, CheckCircle, Users, HelpCircle, Send, Image as ImageIcon, Edit, Trash2, Flag, Play, Loader2, Package, Plus, X } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import Image from 'next/image';
@@ -503,6 +503,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                 </Button>
                             </div>
                         </div>
+                         <p className="text-muted-foreground">{product.description}</p>
                         <div>
                              <div className="flex items-center gap-4 flex-wrap">
                                 <p className="text-3xl font-bold text-foreground">{product.price}</p>
@@ -572,7 +573,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                 </CardHeader>
                             </Card>
                         )}
-                        <p className="text-muted-foreground">{product.description}</p>
+                       
                         <div className="flex flex-col gap-2">
                             {inCart ? (
                                 <Button asChild size="lg" className="w-full">
