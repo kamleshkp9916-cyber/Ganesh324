@@ -521,7 +521,6 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                         {product.key && <Badge variant="outline">{product.key}</Badge>}
                                         {product.isFromStream && <Badge variant="purple"><Video className="mr-1 h-3 w-3" /> From Stream</Badge>}
                                     </div>
-                                    <p className="text-muted-foreground mt-2">{product.description}</p>
                                 </div>
                                 <div className="flex items-center">
                                     <Button variant="ghost" size="icon" onClick={handleWishlistToggle}>
@@ -535,6 +534,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                     </Button>
                                 </div>
                             </div>
+                            <p className="text-muted-foreground mt-2">{product.description}</p>
                             <div>
                                 <div className="flex items-center gap-4 flex-wrap">
                                     <p className="text-3xl font-bold text-foreground">{currentPrice}</p>
@@ -601,16 +601,16 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                             <Button size="lg" className="w-full" asChild>
                                                 <Link href="/cart">
                                                     <ShoppingCart className="mr-2 h-5 w-5" />
-                                                    One Step to Buy
+                                                    Proceed Further
                                                 </Link>
                                             </Button>
                                         ) : (
-                                            <Button size="lg" className="w-full" variant="outline" onClick={handleAddToCart}>
+                                            <Button size="lg" className="w-full" onClick={handleAddToCart}>
                                                 <ShoppingCart className="mr-2 h-5 w-5" />
                                                 Add to Cart
                                             </Button>
                                         )}
-                                        <Button size="lg" className="w-full" onClick={handleBuyNow}>
+                                        <Button size="lg" className="w-full" variant="outline" onClick={handleBuyNow}>
                                             Buy Now
                                         </Button>
                                     </>
@@ -621,30 +621,10 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                 )}
                             </div>
                             <Card>
-                                <CardHeader className="flex flex-row items-center justify-between p-3">
+                                <CardHeader className="p-3 pb-0">
                                     <CardTitle className="text-base">Delivery Information</CardTitle>
-                                    {user && (
-                                        <Dialog open={isAddressDialogOpen} onOpenChange={setIsAddressDialogOpen}>
-                                            <DialogTrigger asChild>
-                                                <Button variant="outline" size="sm">
-                                                    <Edit className="mr-2 h-3 w-3" />
-                                                    Change
-                                                </Button>
-                                            </DialogTrigger>
-                                            <DialogContent>
-                                                <DialogHeader>
-                                                    <DialogTitle>Change Delivery Address</DialogTitle>
-                                                </DialogHeader>
-                                                <EditAddressForm 
-                                                    onSave={handleAddressSave} 
-                                                    onCancel={() => setIsAddressDialogOpen(false)}
-                                                    onAddressesUpdate={handleAddressesUpdate}
-                                                />
-                                            </DialogContent>
-                                        </Dialog>
-                                    )}
                                 </CardHeader>
-                                <CardContent className="p-3 pt-0">
+                                <CardContent className="p-3">
                                     {user ? (
                                         userData?.addresses && userData.addresses.length > 0 ? (
                                             <div className="text-sm">
