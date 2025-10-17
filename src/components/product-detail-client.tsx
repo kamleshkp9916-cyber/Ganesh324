@@ -108,6 +108,8 @@ export function ProductDetailClient({ productId }: { productId: string }) {
     const [sellerProducts, setSellerProducts] = useState<any[]>([]);
     const [isQnaDialogOpen, setIsQnaDialogOpen] = useState(false);
     const [selectedImage, setSelectedImage] = useState<string | null>(null);
+    const [selectedSize, setSelectedSize] = useState<string | null>(null);
+    const [selectedColor, setSelectedColor] = useState<string | null>(null);
 
     const averageRating = useMemo(() => {
         if (reviews.length === 0) return '0.0';
@@ -370,6 +372,9 @@ export function ProductDetailClient({ productId }: { productId: string }) {
 
     const productHighlights = product.highlights ? product.highlights.split('\\n').filter(h => h.trim() !== '') : [];
 
+    const availableSizes = product.availableSizes ? product.availableSizes.split(',').map((s: string) => s.trim()) : [];
+    const availableColors = product.availableColors ? product.availableColors.split(',').map((s: string) => s.trim()) : [];
+
     return (
         <div className="min-h-screen bg-background">
             <header className="p-4 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-sm z-30 border-b">
@@ -383,9 +388,6 @@ export function ProductDetailClient({ productId }: { productId: string }) {
             <main className="container mx-auto py-6">
                 <div className="max-w-4xl mx-auto space-y-8">
                      <Card>
-                        <CardHeader>
-                            <CardTitle>Image Gallery</CardTitle>
-                        </CardHeader>
                         <CardContent className="p-4">
                             <div className="aspect-[2/1] w-full relative bg-muted rounded-lg overflow-hidden mb-4">
                                 {selectedImage && (
@@ -423,8 +425,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                             </ScrollArea>
                         </CardContent>
                     </Card>
-
-                    <div className="flex flex-col gap-4">
+                    <div className="flex flex-col gap-4 p-4">
                         <div className="flex justify-between items-start">
                             <div>
                                 <p className="text-sm font-medium text-primary mb-1">{product.brand}</p>
@@ -455,6 +456,41 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                             <p className="text-3xl font-bold text-foreground">{product.price}</p>
                             <p className="text-sm text-muted-foreground">(inclusive of all taxes)</p>
                         </div>
+                         {availableColors.length > 0 && (
+                            <div className="space-y-2">
+                                <Label className="font-semibold">Color: <span className="font-normal">{selectedColor}</span></Label>
+                                <div className="flex flex-wrap gap-2">
+                                    {availableColors.map((color: string) => (
+                                        <Button
+                                            key={color}
+                                            variant={selectedColor === color ? 'default' : 'outline'}
+                                            size="sm"
+                                            onClick={() => setSelectedColor(color)}
+                                        >
+                                            {color}
+                                        </Button>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                        {availableSizes.length > 0 && (
+                            <div className="space-y-2">
+                                <Label className="font-semibold">Size: <span className="font-normal">{selectedSize}</span></Label>
+                                <div className="flex flex-wrap gap-2">
+                                    {availableSizes.map((size: string) => (
+                                        <Button
+                                            key={size}
+                                            variant={selectedSize === size ? 'default' : 'outline'}
+                                            size="sm"
+                                            onClick={() => setSelectedSize(size)}
+                                            className="w-12"
+                                        >
+                                            {size}
+                                        </Button>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
                         {product.offer?.title && (
                             <Card className="bg-primary/10 border-primary/20">
                                 <CardHeader>
@@ -665,7 +701,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                         <h2 className="text-2xl font-bold mb-4">Related Product Streams</h2>
                          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                             {relatedStreams.slice(0, 3).map((stream: any) => (
-                                 <Link href={`/stream/${stream.id}`} key={stream.id} className="group">
+                                <Link href={`/stream/${stream.id}`} key={stream.id} className="group block">
                                     <div className="relative rounded-lg overflow-hidden aspect-[16/9] bg-muted">
                                         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
                                         <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
@@ -689,7 +725,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                                     <AvatarFallback>{stream.name.charAt(0)}</AvatarFallback>
                                                 </Avatar>
                                                 <div className="flex-1">
-                                                    <p className="font-semibold text-xs truncate">{stream.name}</p>
+                                                    <p className="font-semibold text-xs group-hover:underline truncate">{stream.name}</p>
                                                     <p className="text-xs opacity-80">{stream.category}</p>
                                                 </div>
                                             </div>
@@ -727,7 +763,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
             </main>
              <Dialog open={isReviewDialogOpen} onOpenChange={setIsReviewDialogOpen}>
                  <ReviewDialog 
-                    order={{ products: [product] } as Order} 
+                    order={{ products: [product] } as any} 
                     user={user}
                     reviewToEdit={editingReview}
                     onReviewSubmit={handleReviewSubmit}
@@ -737,5 +773,3 @@ export function ProductDetailClient({ productId }: { productId: string }) {
         </div>
     );
 }
-
-    
