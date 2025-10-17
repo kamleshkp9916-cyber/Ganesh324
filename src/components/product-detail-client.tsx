@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { ArrowLeft, Star, ThumbsUp, ThumbsDown, MessageSquare, ShoppingCart, ShieldCheck, Heart, Share2, Truck, Tag, Banknote, Ticket, ChevronDown, RotateCcw, Sparkles, CheckCircle, Users, HelpCircle, Send, Image as ImageIcon, Edit, Trash2, Flag } from 'lucide-react';
+import { ArrowLeft, Star, ThumbsUp, ThumbsDown, MessageSquare, ShoppingCart, ShieldCheck, Heart, Share2, Truck, Tag, Banknote, Ticket, ChevronDown, RotateCcw, Sparkles, CheckCircle, Users, HelpCircle, Send, Image as ImageIcon, Edit, Trash2, Flag, Play } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import Image from 'next/image';
@@ -106,6 +106,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
     const [taggedPosts, setTaggedPosts] = useState<any[]>([]);
     const [recentlyViewedItems, setRecentlyViewedItems] = useState<Product[]>([]);
     const [sellerProducts, setSellerProducts] = useState<any[]>([]);
+    const [isQnaDialogOpen, setIsQnaDialogOpen] = useState(false);
 
     const averageRating = useMemo(() => {
         if (reviews.length === 0) return '0.0';
@@ -121,10 +122,8 @@ export function ProductDetailClient({ productId }: { productId: string }) {
          if (streams.length > 50) {
             return streams.slice(0, 51);
         }
-        // Fallback to show some streams if none match the category, excluding the current one
         const fallbackStreams = liveSellers.filter(s => s.productId !== product.key);
         
-        // Add from fallback until we have 6 total, avoiding duplicates
         let i = 0;
         while(streams.length < 6 && i < fallbackStreams.length) {
             if (!streams.some(s => s.id === fallbackStreams[i].id)) {
@@ -134,6 +133,12 @@ export function ProductDetailClient({ productId }: { productId: string }) {
         }
         return streams.slice(0,51);
     }, [product]);
+    
+    const similarProducts = useMemo(() => {
+        if (!product) return [];
+        return Object.values(productDetails).filter(p => p.category === product.category && p.key !== product.key).slice(0, 5);
+    }, [product]);
+
 
     const estimatedDeliveryDate = useMemo(() => {
         const today = new Date();
@@ -158,7 +163,6 @@ export function ProductDetailClient({ productId }: { productId: string }) {
             try {
                 const db = getFirestoreDb();
                 const postsRef = collection(db, "posts");
-                // The query requires an index. Since we can't create one, we'll remove the ordering.
                 const q = query(postsRef, where("taggedProducts.key", "==", product.key));
                 const querySnapshot = await getDocs(q);
                 const postsData = querySnapshot.docs.map(doc => ({
@@ -193,7 +197,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
             addRecentlyViewed(productForHistory);
             setWishlisted(isWishlisted(product.id));
             setInCart(isProductInCart(product.id));
-            setRecentlyViewedItems(getRecentlyViewed().filter(p => p.id !== product.id)); // Exclude current product
+            setRecentlyViewedItems(getRecentlyViewed().filter(p => p.id !== product.id)); 
             fetchReviews();
             fetchTaggedPosts();
         }
@@ -285,6 +289,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                 description: "Your question has been sent to the seller. You will be notified when they answer.",
             });
             setNewQuestion("");
+            setIsQnaDialogOpen(false);
         }
     };
 
@@ -306,7 +311,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                 description: "Thank you for your feedback. It is now visible on the product page.",
             });
         }
-        fetchReviews(); // Re-fetch to show updated list
+        fetchReviews();
     };
 
     const handleEditReview = (review: Review) => {
@@ -372,8 +377,8 @@ export function ProductDetailClient({ productId }: { productId: string }) {
             </header>
 
             <main className="container mx-auto py-6">
-                <div className="flex flex-col gap-8">
-                    <div className="flex flex-col gap-4">
+                <div className="max-w-4xl mx-auto space-y-8">
+                     <div className="flex flex-col gap-4">
                         <div className="flex justify-between items-start">
                             <div>
                                 <p className="text-sm font-medium text-primary mb-1">{product.brand}</p>
@@ -450,86 +455,145 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                         </div>
                     </div>
                     
-                    <div className="space-y-8">
-                        <Separator />
-                        {productHighlights.length > 0 && (
-                            <div>
-                                <h3 className="font-semibold mb-2">Highlights</h3>
-                                <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground">
-                                    {productHighlights.map((highlight: string, index: number) => (
-                                        <li key={index}>{highlight}</li>
-                                    ))}
-                                </ul>
-                            </div>
-                        )}
-                         <Separator />
+                    <Separator />
+
+                    {productHighlights.length > 0 && (
                         <div>
-                            <div className="flex justify-between items-center mb-4">
-                                <h3 className="text-xl font-bold">Ratings & Reviews</h3>
-                                <Button variant="outline" onClick={openReviewDialog}>Write a Review</Button>
-                            </div>
-                            <div className="space-y-4">
-                                {reviews.length > 0 ? (
-                                    reviews.slice(0, 3).map((review) => (
-                                        <Card key={review.id} className="bg-muted/50">
-                                            <CardContent className="p-4">
-                                                <div className="flex gap-4">
-                                                    <Avatar>
-                                                        <AvatarImage src={review.avatar} alt={review.author} />
-                                                        <AvatarFallback>{review.author.charAt(0)}</AvatarFallback>
-                                                    </Avatar>
-                                                    <div className="flex-grow">
-                                                        <div className="flex items-center justify-between">
-                                                            <h5 className="font-semibold">{review.author}</h5>
-                                                            <p className="text-xs text-muted-foreground">{formatDistanceToNow(new Date(review.date), { addSuffix: true })}</p>
-                                                        </div>
-                                                        <div className="flex items-center gap-1 mt-1">
-                                                            {[...Array(5)].map((_, i) => (
-                                                                <Star key={i} className={cn("h-4 w-4", i < review.rating ? 'text-yellow-400 fill-yellow-400' : 'text-muted-foreground')} />
-                                                            ))}
-                                                        </div>
-                                                        <p className="text-sm text-muted-foreground mt-2">{review.text}</p>
-                                                    </div>
-                                                </div>
-                                            </CardContent>
-                                        </Card>
-                                    ))
-                                ) : (
-                                    <p className="text-sm text-muted-foreground text-center py-4">No reviews yet. Be the first to write one!</p>
-                                )}
-                                {reviews.length > 3 && <Button variant="link" className="w-full">View All {reviews.length} Reviews</Button>}
-                            </div>
-                        </div>
-                        <Separator />
-                        <div>
-                            <h3 className="text-xl font-bold mb-4">Questions & Answers</h3>
-                            <div className="space-y-4">
-                                {mockQandA.slice(0,3).map(qa => (
-                                    <div key={qa.id}>
-                                        <p className="font-semibold text-sm">Q: {qa.question}</p>
-                                        {qa.answer ? (
-                                            <p className="text-sm text-muted-foreground mt-1">A: {qa.answer}</p>
-                                        ) : (
-                                            <p className="text-sm text-muted-foreground mt-1 italic">No answer yet.</p>
-                                        )}
+                            <Card className="overflow-hidden">
+                                <div className="grid md:grid-cols-2">
+                                    <div className="relative aspect-square md:aspect-auto bg-muted">
+                                        <Image
+                                            src={product.images[1] || product.images[0]}
+                                            alt={`${product.name} highlight`}
+                                            fill
+                                            className="object-cover"
+                                            data-ai-hint={`${product.hint} detail`}
+                                        />
                                     </div>
-                                ))}
-                            </div>
-                            <Button variant="link" className="w-full mt-2">View All Q&A</Button>
+                                    <div className="p-6">
+                                        <h3 className="font-bold text-lg mb-4">Highlights</h3>
+                                        <ul className="list-disc list-inside space-y-2 text-sm">
+                                            {productHighlights.map((highlight: string, index: number) => (
+                                                <li key={index} className="text-muted-foreground">{highlight}</li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                </div>
+                            </Card>
+                        </div>
+                    )}
+                    
+                    <Separator />
+                    
+                    <div>
+                        <div className="flex justify-between items-center mb-4">
+                            <h3 className="text-xl font-bold">Ratings &amp; Reviews</h3>
+                            <Button variant="outline" onClick={openReviewDialog}>Write a Review</Button>
+                        </div>
+                        <div className="space-y-4">
+                            {reviews.length > 0 ? (
+                                reviews.slice(0, 3).map((review) => (
+                                    <Card key={review.id} className="bg-muted/50">
+                                        <CardContent className="p-4">
+                                            <div className="flex gap-4">
+                                                <Avatar>
+                                                    <AvatarImage src={review.avatar} alt={review.author} />
+                                                    <AvatarFallback>{review.author.charAt(0)}</AvatarFallback>
+                                                </Avatar>
+                                                <div className="flex-grow">
+                                                    <div className="flex items-center justify-between">
+                                                        <h5 className="font-semibold">{review.author}</h5>
+                                                        <p className="text-xs text-muted-foreground">{formatDistanceToNow(new Date(review.date), { addSuffix: true })}</p>
+                                                    </div>
+                                                    <div className="flex items-center gap-1 mt-1">
+                                                        {[...Array(5)].map((_, i) => (
+                                                            <Star key={i} className={cn("h-4 w-4", i < review.rating ? 'text-yellow-400 fill-yellow-400' : 'text-muted-foreground')} />
+                                                        ))}
+                                                    </div>
+                                                    <p className="text-sm text-muted-foreground mt-2">{review.text}</p>
+                                                </div>
+                                            </div>
+                                        </CardContent>
+                                    </Card>
+                                ))
+                            ) : (
+                                <p className="text-sm text-muted-foreground text-center py-4">No reviews yet. Be the first to write one!</p>
+                            )}
+                            {reviews.length > 3 && <Button variant="link" className="w-full">View All {reviews.length} Reviews</Button>}
                         </div>
                     </div>
-                </div>
+                    
+                    <Separator />
+                    
+                    <div>
+                        <div className="flex justify-between items-center mb-4">
+                            <h3 className="text-xl font-bold">Questions &amp; Answers</h3>
+                            <Dialog open={isQnaDialogOpen} onOpenChange={setIsQnaDialogOpen}>
+                                <DialogTrigger asChild>
+                                    <Button variant="outline">View All Q&amp;A</Button>
+                                </DialogTrigger>
+                                <DialogContent className="max-w-2xl">
+                                    <DialogHeader>
+                                        <DialogTitle>Questions &amp; Answers</DialogTitle>
+                                        <DialogDescription>
+                                            Find answers to your questions or ask a new one.
+                                        </DialogDescription>
+                                    </DialogHeader>
+                                    <ScrollArea className="h-96 pr-6 -mr-6">
+                                        <div className="space-y-6">
+                                            {mockQandA.map(qa => (
+                                                <div key={qa.id}>
+                                                    <p className="font-semibold text-sm">Q: {qa.question}</p>
+                                                    {qa.answer ? (
+                                                        <p className="text-sm text-muted-foreground mt-1">A: {qa.answer}</p>
+                                                    ) : (
+                                                        <p className="text-sm text-muted-foreground mt-1 italic">No answer yet.</p>
+                                                    )}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </ScrollArea>
+                                    <div className="mt-4 pt-4 border-t">
+                                        <h4 className="font-semibold mb-2">Ask a New Question</h4>
+                                        <div className="flex items-center gap-2">
+                                            <Input
+                                                value={newQuestion}
+                                                onChange={(e) => setNewQuestion(e.target.value)}
+                                                placeholder="Type your question here..."
+                                            />
+                                            <Button onClick={handleAskQuestion} disabled={!newQuestion.trim()}>
+                                                <Send className="w-4 h-4" />
+                                            </Button>
+                                        </div>
+                                    </div>
+                                </DialogContent>
+                            </Dialog>
+                        </div>
+                        <div className="space-y-4">
+                            {mockQandA.slice(0,3).map(qa => (
+                                <div key={qa.id}>
+                                    <p className="font-semibold text-sm">Q: {qa.question}</p>
+                                    {qa.answer ? (
+                                        <p className="text-sm text-muted-foreground mt-1">A: {qa.answer}</p>
+                                    ) : (
+                                        <p className="text-sm text-muted-foreground mt-1 italic">No answer yet.</p>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    </div>
 
-                {recentlyViewedItems.length > 0 && (
+                    <Separator />
+                    
                     <div className="mt-8">
-                        <h2 className="text-2xl font-bold mb-4">Recently Viewed</h2>
-                        <ScrollArea className="w-full whitespace-nowrap">
+                        <h2 className="text-2xl font-bold mb-4">Similar Products</h2>
+                         <ScrollArea className="w-full whitespace-nowrap">
                             <div className="flex gap-4 pb-4">
-                                {recentlyViewedItems.map((item) => (
+                                {similarProducts.map((item) => (
                                 <Link href={`/product/${item.key}`} key={item.id} className="w-36 flex-shrink-0">
                                     <Card className="overflow-hidden group h-full">
                                     <div className="aspect-square bg-muted relative">
-                                        <Image src={item.imageUrl} alt={item.name} fill sizes="144px" className="object-cover" />
+                                        <Image src={item.images[0]} alt={item.name} fill sizes="144px" className="object-cover" />
                                     </div>
                                     <div className="p-2">
                                         <p className="text-xs font-semibold truncate group-hover:underline">{item.name}</p>
@@ -542,7 +606,52 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                             <ScrollBar orientation="horizontal" />
                         </ScrollArea>
                     </div>
-                )}
+                    
+                    <div className="mt-8">
+                        <h2 className="text-2xl font-bold mb-4">Related Product Streams</h2>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                            {relatedStreams.slice(0, 3).map((stream) => (
+                                <Link href={`/stream/${stream.id}`} key={stream.id} className="group">
+                                    <Card className="overflow-hidden">
+                                        <div className="relative aspect-video bg-muted">
+                                            <Image src={stream.thumbnailUrl} alt={stream.name} layout="fill" className="object-cover group-hover:scale-105 transition-transform" />
+                                            <div className="absolute inset-0 bg-black/20" />
+                                            <Badge variant="destructive" className="absolute top-2 left-2">LIVE</Badge>
+                                        </div>
+                                        <div className="p-3">
+                                            <p className="font-semibold truncate">{stream.name}</p>
+                                            <p className="text-xs text-muted-foreground">{stream.category}</p>
+                                        </div>
+                                    </Card>
+                                </Link>
+                            ))}
+                        </div>
+                    </div>
+                    
+                    {recentlyViewedItems.length > 0 && (
+                        <div className="mt-8">
+                            <h2 className="text-2xl font-bold mb-4">Recently Viewed</h2>
+                            <ScrollArea className="w-full whitespace-nowrap">
+                                <div className="flex gap-4 pb-4">
+                                    {recentlyViewedItems.map((item) => (
+                                    <Link href={`/product/${item.key}`} key={item.id} className="w-36 flex-shrink-0">
+                                        <Card className="overflow-hidden group h-full">
+                                        <div className="aspect-square bg-muted relative">
+                                            <Image src={item.imageUrl} alt={item.name} fill sizes="144px" className="object-cover" />
+                                        </div>
+                                        <div className="p-2">
+                                            <p className="text-xs font-semibold truncate group-hover:underline">{item.name}</p>
+                                            <p className="text-sm font-bold">{item.price}</p>
+                                        </div>
+                                        </Card>
+                                    </Link>
+                                    ))}
+                                </div>
+                                <ScrollBar orientation="horizontal" />
+                            </ScrollArea>
+                        </div>
+                    )}
+                </div>
             </main>
         </div>
     );
