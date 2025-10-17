@@ -506,15 +506,13 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                         <div>
                              <div className="flex items-center gap-4 flex-wrap">
                                 <p className="text-3xl font-bold text-foreground">{product.price}</p>
-                                {reviews.length > 0 && (
-                                    <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-2">
                                         <div className="flex items-center gap-1 text-amber-400">
                                             <Star className="h-5 w-5 fill-current" />
                                             <span className="font-bold text-lg text-foreground">{averageRating}</span>
                                         </div>
                                         <span className="text-muted-foreground text-sm">({reviews.length} reviews)</span>
-                                    </div>
-                                )}
+                                </div>
                             </div>
                              <div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
                                 <div className="flex items-center gap-1">
@@ -593,8 +591,8 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                 Buy Now
                             </Button>
                         </div>
-                        <Card>
-                             <CardHeader className="flex flex-row items-center justify-between p-4">
+                         <Card>
+                             <CardHeader className="flex flex-row items-center justify-between py-3 px-4">
                                 <div>
                                     <CardTitle className="text-base">Delivery Information</CardTitle>
                                 </div>
@@ -833,7 +831,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                         <div className="p-3">
                                             <h4 className="font-semibold truncate text-sm">{p.name}</h4>
                                             <p className="font-bold">{p.price}</p>
-                                            <div className="flex items-center gap-1 text-xs text-amber-400 mt-1">
+                                             <div className="flex items-center gap-1 text-xs text-amber-400 mt-1">
                                                 <Star className="w-4 h-4 fill-current" />
                                                 <span>4.8</span>
                                                 <span className="text-muted-foreground">({(p as any).reviews || '1.2k'})</span>
@@ -903,10 +901,11 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                              <div className="flex items-center gap-1 text-xs text-amber-400 mt-1">
                                                 <Star className="w-3 h-3 fill-current" />
                                                 <span>4.8</span>
+                                                <span className="text-muted-foreground">({(product as any).reviews || '1.2k'})</span>
                                             </div>
                                             <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
-                                                <div className="flex items-center gap-1"><Package className="w-2.5 h-2.5" /> 15 left</div>
-                                                <div className="flex items-center gap-1"><Users className="w-2.5 h-2.5" /> 125 sold</div>
+                                                <div className="flex items-center gap-1"><Package className="w-2.5 h-2.5" /> {(product as any).stock} left</div>
+                                                <div className="flex items-center gap-1"><Users className="w-2.5 h-2.5" /> {(product as any).sold} sold</div>
                                             </div>
                                         </div>
                                         </Card>
