@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
@@ -22,7 +23,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { ScrollArea, ScrollBar } from './ui/scroll-area';
 import { Textarea } from './ui/textarea';
 import { productDetails } from '@/lib/product-data';
-import { getReviews, Review, updateReview, deleteReview } from '@/lib/review-data';
+import { getReviews, Review, updateReview, deleteReview, addReview } from '@/lib/review-data';
 import { useAuth } from '@/hooks/use-auth.tsx';
 import { ReviewDialog } from './delivery-info-client';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from './ui/alert-dialog';
@@ -397,10 +398,10 @@ export function ProductDetailClient({ productId }: { productId: string }) {
             </header>
 
             <main className="container mx-auto py-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <Dialog>
-                        <Card>
-                            <CardContent className="p-4">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+                    <Card>
+                        <CardContent className="p-4">
+                            <Dialog>
                                 <DialogTrigger asChild>
                                     <div className="aspect-[5/4] w-full relative bg-muted rounded-lg overflow-hidden mb-4 cursor-pointer">
                                         {selectedImage && (
@@ -414,44 +415,44 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                         )}
                                     </div>
                                 </DialogTrigger>
-                                <ScrollArea>
-                                    <div className="flex gap-2 pb-2">
-                                        {product.images.map((img: string, index: number) => (
-                                            <button
-                                                key={index}
-                                                onClick={() => setSelectedImage(img)}
-                                                className={cn(
-                                                    "w-16 h-16 rounded-md overflow-hidden border-2 flex-shrink-0",
-                                                    selectedImage === img ? 'border-primary' : 'border-transparent'
-                                                )}
-                                            >
-                                                <Image
-                                                    src={img}
-                                                    alt={`Thumbnail ${'${index + 1}'}`}
-                                                    width={64}
-                                                    height={64}
-                                                    className="object-cover w-full h-full"
-                                                />
-                                            </button>
-                                        ))}
+                                <DialogContent className="max-w-3xl max-h-[90vh]">
+                                    <div className="relative aspect-square w-full">
+                                        {selectedImage && (
+                                            <Image
+                                                src={selectedImage}
+                                                alt={product.name}
+                                                fill
+                                                className="object-contain"
+                                            />
+                                        )}
                                     </div>
-                                    <ScrollBar orientation="horizontal" />
-                                </ScrollArea>
-                            </CardContent>
-                        </Card>
-                        <DialogContent className="max-w-3xl max-h-[90vh]">
-                            <div className="relative aspect-square w-full">
-                                {selectedImage && (
-                                    <Image
-                                        src={selectedImage}
-                                        alt={product.name}
-                                        fill
-                                        className="object-contain"
-                                    />
-                                )}
-                            </div>
-                        </DialogContent>
-                    </Dialog>
+                                </DialogContent>
+                            </Dialog>
+                            <ScrollArea>
+                                <div className="flex gap-2 pb-2">
+                                    {product.images.map((img: string, index: number) => (
+                                        <button
+                                            key={index}
+                                            onClick={() => setSelectedImage(img)}
+                                            className={cn(
+                                                "w-16 h-16 rounded-md overflow-hidden border-2 flex-shrink-0",
+                                                selectedImage === img ? 'border-primary' : 'border-transparent'
+                                            )}
+                                        >
+                                            <Image
+                                                src={img}
+                                                alt={`Thumbnail ${'${index + 1}'}`}
+                                                width={64}
+                                                height={64}
+                                                className="object-cover w-full h-full"
+                                            />
+                                        </button>
+                                    ))}
+                                </div>
+                                <ScrollBar orientation="horizontal" />
+                            </ScrollArea>
+                        </CardContent>
+                    </Card>
                     <div className="flex flex-col gap-4">
                         <div className="flex justify-between items-start">
                             <div>
@@ -615,7 +616,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                         </div>
                     </div>
                 </div>
-                <div className="space-y-8 mt-8">
+                <div className="md:col-span-2 space-y-8 mt-8">
                     <Separator />
                     
                      <Card>
