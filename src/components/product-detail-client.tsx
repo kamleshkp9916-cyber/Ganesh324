@@ -339,7 +339,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
         return (
              <div className="flex flex-col h-screen items-center justify-center text-center p-4">
                  <div className="w-full max-w-sm mx-auto">
-                    <div className="aspect-square w-full bg-muted rounded-lg" />
+                    
                  </div>
                 <h2 className="text-2xl font-semibold mt-4">Product not found</h2>
                 <p className="text-muted-foreground">This product may have been removed or is unavailable.</p>
@@ -372,497 +372,130 @@ export function ProductDetailClient({ productId }: { productId: string }) {
             </header>
 
             <main className="container mx-auto py-6">
-                <div className="flex flex-col gap-4">
-                    <div>
-                        <p className="text-sm font-medium text-primary mb-1">{product.brand}</p>
-                        <h1 className="text-3xl lg:text-4xl font-extrabold tracking-tight">{product.name}</h1>
-                        <div className="flex items-center gap-2 mt-2">
-                            <Badge variant="secondary">{product.key}</Badge>
-                        </div>
-                        {reviews.length > 0 && (
-                            <div className="flex items-center gap-2 mt-2">
-                                <div className="flex items-center gap-1">
-                                    {[...Array(5)].map((_, i) => (
-                                        <Star key={i} className={cn("h-5 w-5", Number(averageRating) > i ? "text-yellow-400 fill-yellow-400" : "text-muted-foreground")} />
-                                    ))}
-                                </div>
-                                <span className="text-muted-foreground text-sm">({averageRating} based on {reviews.length} reviews)</span>
-                            </div>
-                        )}
-                    </div>
-
-                    <div>
-                        <p className="text-3xl font-bold text-foreground">{product.price}</p>
-                        <p className="text-sm text-muted-foreground">(inclusive of all taxes)</p>
-                    </div>
-                    
-                    {product.offer?.title && (
-                        <Card className="bg-primary/10 border-primary/20">
-                            <CardHeader>
-                                <CardTitle className="text-lg flex items-center gap-2">
-                                    <Ticket className="h-5 w-5 text-primary" />
-                                    {product.offer.title}
-                                </CardTitle>
-                                <CardDescription>{product.offer.description}</CardDescription>
-                            </CardHeader>
-                        </Card>
-                    )}
-                    
-                    <p className="text-muted-foreground">{product.description}</p>
-                    
-                    <div className="flex flex-col gap-2">
-                            {inCart ? (
-                            <Button asChild size="lg" className="w-full">
-                                <Link href="/cart">
-                                    <ShoppingCart className="mr-2 h-5 w-5" />
-                                    Go to Cart
-                                </Link>
-                            </Button>
-                        ) : (
-                            <Button size="lg" className="w-full" onClick={handleAddToCart}>
-                                <ShoppingCart className="mr-2 h-5 w-5" />
-                                Add to Cart
-                            </Button>
-                        )}
-                        <Button size="lg" className="w-full" variant="secondary" onClick={handleBuyNow}>
-                            Buy Now
-                        </Button>
-                    </div>
-                    
-                    <div className="grid grid-cols-3 gap-2 text-center text-xs text-muted-foreground pt-4">
-                        <Link href="/help" className="flex flex-col items-center gap-1 hover:text-primary">
-                            <RotateCcw className="h-6 w-6" />
-                            <span>7-Day Return Policy</span>
-                        </Link>
-                        <Link href="/help" className="flex flex-col items-center gap-1 hover:text-primary">
-                            <Banknote className="h-6 w-6" />
-                            <span>Pay on Delivery</span>
-                        </Link>
-                        <Link href="/help" className="flex flex-col items-center gap-1 hover:text-primary">
-                            <ShieldCheck className="h-6 w-6" />
-                            <span>100% Genuine</span>
-                        </Link>
-                    </div>
-
-                </div>
-
-                <div className="mt-8 space-y-6">
-                        <div className="py-4 border-y">
-                        <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <h3 className="font-semibold mb-2">Delivery</h3>
-                                <div className="flex items-center gap-2 mt-2">
-                                    <Input
-                                        placeholder="Enter Pincode"
-                                        maxLength={6}
-                                        className="max-w-[150px]"
-                                        value={pincode}
-                                        onChange={(e) => setPincode(e.target.value.replace(/\\D/g, ''))}
-                                    />
-                                    <Button variant="link" className="p-0 h-auto" onClick={handlePincodeCheck} disabled={checkingPincode}>
-                                        {checkingPincode ? <LoadingSpinner className="h-4 w-4" /> : "Check"}
-                                    </Button>
-                                </div>
-                                {isDeliverable === true ? (
-                                    <p className="text-sm text-green-600 mt-2">Yay! Delivery is available to this pincode.</p>
-                                ) : isDeliverable === false ? (
-                                        <p className="text-sm text-destructive mt-2">Sorry, delivery is not available to this pincode.</p>
-                                ) : (
-                                        <p className="text-xs text-muted-foreground mt-2">Check if we can deliver to your location.</p>
-                                )}
-                            </div>
-                            <div className="text-sm">
-                                    <div className="flex items-center gap-3">
-                                    <Truck className="h-5 w-5 text-muted-foreground flex-shrink-0" />
+                <Card>
+                    <CardContent className="p-4 md:p-6">
+                         <div className="flex flex-col gap-8">
+                            {/* Main Product Info Section */}
+                            <div className="flex flex-col gap-4">
+                                <div className="flex justify-between items-start">
                                     <div>
-                                        <p className="font-semibold">Get it by {estimatedDeliveryDate}</p>
-                                        <p className="text-xs text-muted-foreground">Standard Delivery</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <Collapsible>
-                        <CollapsibleTrigger asChild>
-                            <Button variant="outline" className="w-full justify-between">
-                                View Available Offers
-                                <ChevronDown className="h-4 w-4" />
-                            </Button>
-                        </CollapsibleTrigger>
-                        <CollapsibleContent>
-                                <Card className="mt-2">
-                                <CardHeader>
-                                    <CardTitle className="text-lg">Available Offers</CardTitle>
-                                </CardHeader>
-                                <CardContent className="space-y-4">
-                                    {mockAdminOffers.map((offer, index) => (
-                                        <div key={index} className="flex items-start gap-3">
-                                            <div className="flex-shrink-0 mt-1">{offer.icon}</div>
-                                            <div>
-                                                <h5 className="font-semibold">{offer.title}</h5>
-                                                <p className="text-sm text-muted-foreground">{offer.description}</p>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </CardContent>
-                            </Card>
-                        </CollapsibleContent>
-                    </Collapsible>
-
-                        <div className="py-4 border-t">
-                        <CardHeader className="p-0">
-                            <CardTitle className="text-lg">Product Details</CardTitle>
-                        </CardHeader>
-                        <CardContent className="p-0 pt-4">
-                            <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
-                                {productSpecificDetails.map(detail => (
-                                        <React.Fragment key={detail.label}>
-                                        <dt className="text-muted-foreground">{detail.label}</dt>
-                                        <dd className="font-medium">{detail.value}</dd>
-                                    </React.Fragment>
-                                ))}
-                            </dl>
-                        </CardContent>
-                    </div>
-                        <div className="py-4 border-t">
-                        <CardHeader className="p-0">
-                            <CardTitle className="text-lg flex items-center gap-2">
-                                <Sparkles className="h-5 w-5 text-primary"/> Product Highlights
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent className="p-0 pt-4 grid md:grid-cols-2 gap-4">
-                                {productHighlights.length > 0 && (
-                                <ul className="list-disc list-inside text-muted-foreground space-y-2 text-sm my-auto">
-                                    {productHighlights.map((highlight: string, index: number) => (
-                                        <li key={index}>{highlight}</li>
-                                    ))}
-                                </ul>
-                            )}
-                            {product.images.length > 1 && (
-                                    <div className="aspect-square bg-muted rounded-lg overflow-hidden cursor-pointer group">
-                                        <Image src={product.images[1]} alt={`${product.name} highlight`} fill sizes="100vw" className="object-cover w-full h-full group-hover:scale-105 transition-transform" />
-                                    </div>
-                            )}
-                        </CardContent>
-                    </div>
-                </div>
-
-                {/* Seller Info Section */}
-                    <div className="mt-8 py-4 border-t">
-                    <Card>
-                        <CardHeader>
-                            <div className="flex justify-between items-center">
-                                <Link href={`/seller/profile?userId=${seller.uid}`} className="flex items-center gap-3 group">
-                                    <Avatar>
-                                        <AvatarImage src={seller.avatarUrl} alt={seller.name} />
-                                        <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
-                                    </Avatar>
-                                    <div>
-                                        <p className="text-xs text-muted-foreground">Sold by</p>
-                                        <h4 className="font-semibold group-hover:underline">{seller.name}</h4>
-                                    </div>
-                                </Link>
-                                <Button asChild variant="outline">
-                                    <Link href={`/seller/profile?userId=${seller.uid}`}>
-                                        View Profile
-                                    </Link>
-                                </Button>
-                            </div>
-                        </CardHeader>
-                        <CardContent>
-                            <h5 className="font-semibold text-sm mb-2">More from this seller</h5>
-                                <div className="relative">
-                                <ScrollArea>
-                                    <div className="flex gap-4 pb-4">
-                                        {sellerProducts.map(p => (
-                                            <Link href={`/product/${p.key}`} key={p.id} className="w-32 flex-shrink-0">
-                                                <Card className="overflow-hidden group">
-                                                    <div className="aspect-square bg-muted relative">
-                                                        <Image src={p.images[0]?.preview || "https://placehold.co/200x200.png"} alt={p.name} fill sizes="128px" className="object-cover group-hover:scale-105 transition-transform" data-ai-hint={p.hint} />
+                                        <p className="text-sm font-medium text-primary mb-1">{product.brand}</p>
+                                        <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">{product.name}</h1>
+                                        <div className="flex items-center gap-2 mt-2">
+                                            <Badge variant="secondary">{product.key}</Badge>
+                                             {reviews.length > 0 && (
+                                                <div className="flex items-center gap-2">
+                                                    <div className="flex items-center gap-1">
+                                                        <Star className="h-4 w-4 text-yellow-400 fill-yellow-400" />
+                                                        <span className="font-semibold text-sm">{averageRating}</span>
                                                     </div>
-                                                    <div className="p-3">
-                                                        <h4 className="font-semibold text-xs truncate">{p.name}</h4>
-                                                        <p className="text-foreground text-sm font-bold">₹{p.price.toLocaleString()}</p>
-                                                    </div>
-                                                </Card>
-                                            </Link>
-                                        ))}
-                                    </div>
-                                    <ScrollBar orientation="horizontal" />
-                                </ScrollArea>
-                            </div>
-                        </CardContent>
-                    </Card>
-                </div>
-
-
-                {/* Q&A Section */}
-                <div className="mt-8 py-4 border-t">
-                    <CardHeader className="p-0 mb-4">
-                        <CardTitle>Questions & Answers</CardTitle>
-                    </CardHeader>
-                    <div className="space-y-6">
-                        {mockQandA.slice(0, 4).map(qna => (
-                            <div key={qna.id} className="text-sm">
-                                <div className="flex items-center gap-2 font-semibold">
-                                    <HelpCircle className="w-4 h-4 text-primary" />
-                                    <p>{qna.question}</p>
-                                </div>
-                                <div className="flex items-start gap-2 mt-2 pl-6">
-                                    <Avatar className="w-5 h-5 mt-1">
-                                        <AvatarFallback className="text-xs">S</AvatarFallback>
-                                    </Avatar>
-                                    {qna.answer ? (
-                                        <p className="text-muted-foreground">{qna.answer}</p>
-                                    ) : (
-                                        <p className="text-muted-foreground italic">The seller has not answered this question yet.</p>
-                                    )}
-                                </div>
-                            </div>
-                        ))}
-
-                        <div className="flex justify-between items-center mt-6">
-                            <Dialog>
-                                <DialogTrigger asChild>
-                                    <Button variant="link">View all questions</Button>
-                                </DialogTrigger>
-                                <DialogContent className="max-w-2xl h-[80vh] flex flex-col">
-                                    <DialogHeader>
-                                        <DialogTitle>All Questions & Answers</DialogTitle>
-                                        <DialogDescription>Find answers to your questions or ask a new one.</DialogDescription>
-                                    </DialogHeader>
-                                    <div className="flex-grow overflow-hidden">
-                                        <ScrollArea className="h-full pr-6">
-                                            <div className="space-y-6">
-                                                {mockQandA.map(qna => (
-                                                    <div key={qna.id} className="text-sm">
-                                                        <div className="flex items-center gap-2 font-semibold">
-                                                            <HelpCircle className="w-4 h-4 text-primary" />
-                                                            <p>{qna.question}</p>
-                                                        </div>
-                                                        <div className="flex items-start gap-2 mt-2 pl-6">
-                                                                <Avatar className="w-5 h-5 mt-1">
-                                                                <AvatarFallback className="text-xs">S</AvatarFallback>
-                                                            </Avatar>
-                                                            {qna.answer ? (
-                                                                <p className="text-muted-foreground">{qna.answer}</p>
-                                                            ) : (
-                                                                <p className="text-muted-foreground italic">Not answered yet.</p>
-                                                            )}
-                                                        </div>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </ScrollArea>
-                                    </div>
-                                    <div className="mt-auto pt-4 border-t">
-                                        <h4 className="font-semibold mb-2">Ask a Question</h4>
-                                        <div className="flex gap-2">
-                                            <Textarea placeholder="Type your question here..." value={newQuestion} onChange={(e) => setNewQuestion(e.target.value)} />
-                                            <Button onClick={handleAskQuestion}>Ask</Button>
-                                        </div>
-                                    </div>
-                                </DialogContent>
-                            </Dialog>
-                            
-                        </div>
-                    </div>
-                </div>
-
-                {/* Reviews Section */}
-                <div className="mt-8 py-4 border-t">
-                        <div className="mb-4 flex items-center justify-between">
-                        <CardTitle>Ratings & Reviews</CardTitle>
-                        <Button variant="outline" onClick={openReviewDialog}>Write a Review</Button>
-                    </div>
-                    <div className="grid md:grid-cols-3 gap-8">
-                        <div className="flex flex-col items-center justify-center gap-2 p-6 bg-muted rounded-lg">
-                            <h2 className="text-5xl font-bold">{averageRating}</h2>
-                            <div className="flex items-center gap-1">
-                                    {[...Array(5)].map((_, i) => (
-                                    <Star key={i} className={cn("h-6 w-6", Number(averageRating) > i ? "text-yellow-400 fill-yellow-400" : "text-muted-foreground")} />
-                                ))}
-                            </div>
-                            <p className="text-sm text-muted-foreground">Based on {reviews.length} reviews</p>
-                        </div>
-                        <div className="md:col-span-2 space-y-6">
-                           {reviews.map(review => (
-                                <div key={review.id} className="flex gap-4">
-                                    <Avatar>
-                                        <AvatarImage src={review.avatar} alt={review.author} />
-                                        <AvatarFallback>{review.author.charAt(0)}</AvatarFallback>
-                                    </Avatar>
-                                    <div className="flex-grow">
-                                        <div className="flex items-center justify-between">
-                                            <h5 className="font-semibold">{review.author}</h5>
-                                            <p className="text-xs text-muted-foreground">{formatDistanceToNow(new Date(review.date), { addSuffix: true })}</p>
-                                        </div>
-                                            <div className="flex items-center gap-1 mt-1">
-                                                {[...Array(5)].map((_, i) => (
-                                                <Star key={i} className={cn("w-4 h-4", i < review.rating ? 'text-yellow-400 fill-yellow-400' : 'text-muted-foreground')} />
-                                            ))}
-                                        </div>
-                                        <p className="text-sm text-muted-foreground mt-2">{review.text}</p>
-                                        {review.imageUrl && (
-                                            <Image src={review.imageUrl} alt="Review image" width={80} height={80} className="mt-2 rounded-md object-cover" />
-                                        )}
-                                        <div className="flex items-center gap-4 mt-3 text-muted-foreground">
-                                            <button className="flex items-center gap-1.5 text-xs hover:text-primary">
-                                                <ThumbsUp className="w-4 h-4" />
-                                                Helpful (12)
-                                            </button>
-                                                <button className="flex items-center gap-1.5 text-xs hover:text-destructive">
-                                                <ThumbsDown className="w-4 h-4" />
-                                                Report
-                                            </button>
-                                            {user && user.uid === review.userId && (
-                                                <div className="ml-auto flex items-center gap-2">
-                                                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleEditReview(review)}>
-                                                        <Edit className="w-4 h-4" />
-                                                    </Button>
-                                                    <AlertDialog>
-                                                        <AlertDialogTrigger asChild>
-                                                            <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive">
-                                                                <Trash2 className="w-4 h-4" />
-                                                            </Button>
-                                                        </AlertDialogTrigger>
-                                                        <AlertDialogContent>
-                                                            <AlertDialogHeader>
-                                                                <AlertDialogTitle>Delete Review?</AlertDialogTitle>
-                                                                <AlertDialogDescription>
-                                                                    Are you sure you want to delete this review? This action cannot be undone.
-                                                                </AlertDialogDescription>
-                                                            </AlertDialogHeader>
-                                                            <AlertDialogFooter>
-                                                                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                                                <AlertDialogAction onClick={() => handleDeleteReview(review.id)}>Delete</AlertDialogAction>
-                                                            </AlertDialogFooter>
-                                                        </AlertDialogContent>
-                                                    </AlertDialog>
+                                                    <span className="text-muted-foreground text-sm">({reviews.length} reviews)</span>
                                                 </div>
                                             )}
                                         </div>
                                     </div>
-                                </div>
-                           ))}
-                           {reviews.length === 0 && <p className="text-center text-muted-foreground py-8">No reviews yet. Be the first to write one!</p>}
-                        </div>
-                    </div>
-                </div>
-
-                {/* Related Streams Section */}
-                {relatedStreams.length > 0 && (
-                    <div className="mt-8 py-4 border-t">
-                        <div className="mb-4 flex items-center justify-between">
-                            <h3 className="text-xl font-bold">Related Live Streams</h3>
-                            <Button asChild variant="link">
-                                <Link href="/live-selling">
-                                    More
-                                </Link>
-                            </Button>
-                        </div>
-                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 sm:gap-4">
-                            {relatedStreams.map((stream) => (
-                                <div key={stream.id} className="group relative rounded-lg overflow-hidden shadow-lg">
-                                    <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
-                                    <div className="absolute top-2 right-2 z-10"><Badge variant="secondary" className="bg-background/60 backdrop-blur-sm"><Users className="w-3 h-3 mr-1.5" />{stream.viewers}</Badge></div>
-                                    <Link href={`/stream/${stream.id}`} className="cursor-pointer">
-                                        <Image
-                                            src={stream.thumbnailUrl}
-                                            alt={`Live stream from ${stream.name}`}
-                                            fill
-                                            sizes="50vw"
-                                            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                                            data-ai-hint={stream.hint}
-                                        />
-                                    </Link>
-                                    <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/80 to-transparent">
-                                        <div className="flex items-start gap-2">
-                                            <Link href={`/seller/profile?userId=${stream.id}`} onClick={(e) => e.stopPropagation()} className="relative z-20">
-                                                <Avatar className="h-8 w-8 border-2 border-primary"><AvatarImage src={stream.avatarUrl} alt={stream.name} /><AvatarFallback>{stream.name.charAt(0)}</AvatarFallback></Avatar>
-                                            </Link>
-                                            <div className="flex-1">
-                                                <Link href={`/seller/profile?userId=${stream.id}`} onClick={(e) => e.stopPropagation()} className="relative z-20 hover:underline"><h3 className="font-semibold text-sm text-primary-foreground truncate">{stream.name}</h3></Link>
-                                            </div>
-                                        </div>
+                                    <div className="flex items-center">
+                                        <Button variant="ghost" size="icon" onClick={handleWishlistToggle}>
+                                            <Heart className={cn("h-6 w-6", wishlisted ? "fill-red-500 text-red-500" : "text-muted-foreground")} />
+                                        </Button>
+                                         <Button variant="ghost" size="icon" onClick={handleShare}>
+                                            <Share2 className="h-6 w-6" />
+                                        </Button>
                                     </div>
                                 </div>
-                            ))}
-                        </div>
-                    </div>
-                )}
-                
-                {/* Recently Viewed Section */}
-                {recentlyViewedItems.length > 0 && (
-                    <div className="mt-8 py-4 border-t">
-                        <CardHeader className="p-0 mb-4">
-                            <CardTitle>Recently Viewed</CardTitle>
-                        </CardHeader>
-                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 sm:gap-4">
-                            {recentlyViewedItems.map(p => (
-                                <Link href={`/product/${p.key}`} key={p.id}>
-                                    <Card className="overflow-hidden group">
-                                        <div className="aspect-square bg-muted relative">
-                                            <Image src={p.imageUrl} alt={p.name} fill sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 16vw" className="object-cover group-hover:scale-105 transition-transform" data-ai-hint={p.hint} />
-                                        </div>
-                                        <div className="p-2 sm:p-3">
-                                            <h4 className="font-semibold text-xs sm:text-sm truncate">{p.name}</h4>
-                                            <p className="text-foreground font-bold text-sm sm:text-base">{p.price}</p>
-                                        </div>
+                                <div>
+                                    <p className="text-3xl font-bold text-foreground">{product.price}</p>
+                                    <p className="text-sm text-muted-foreground">(inclusive of all taxes)</p>
+                                </div>
+                                {product.offer?.title && (
+                                    <Card className="bg-primary/10 border-primary/20">
+                                        <CardHeader>
+                                            <CardTitle className="text-lg flex items-center gap-2">
+                                                <Ticket className="h-5 w-5 text-primary" />
+                                                {product.offer.title}
+                                            </CardTitle>
+                                            <CardDescription>{product.offer.description}</CardDescription>
+                                        </CardHeader>
                                     </Card>
-                                </Link>
-                            ))}
-                        </div>
-                    </div>
-                )}
+                                )}
+                                <p className="text-muted-foreground">{product.description}</p>
+                                <div className="flex flex-col gap-2">
+                                    {inCart ? (
+                                        <Button asChild size="lg" className="w-full">
+                                            <Link href="/cart">
+                                                <ShoppingCart className="mr-2 h-5 w-5" />
+                                                Go to Cart
+                                            </Link>
+                                        </Button>
+                                    ) : (
+                                        <Button size="lg" className="w-full" onClick={handleAddToCart}>
+                                            <ShoppingCart className="mr-2 h-5 w-5" />
+                                            Add to Cart
+                                        </Button>
+                                    )}
+                                    <Button size="lg" className="w-full" variant="secondary" onClick={handleBuyNow}>
+                                        Buy Now
+                                    </Button>
+                                </div>
+                                <div className="grid grid-cols-3 gap-2 text-center text-xs text-muted-foreground pt-4">
+                                    <Link href="/help" className="flex flex-col items-center gap-1 hover:text-primary">
+                                        <RotateCcw className="h-6 w-6" />
+                                        <span>7-Day Return Policy</span>
+                                    </Link>
+                                    <Link href="/help" className="flex flex-col items-center gap-1 hover:text-primary">
+                                        <Banknote className="h-6 w-6" />
+                                        <span>Pay on Delivery</span>
+                                    </Link>
+                                    <Link href="/help" className="flex flex-col items-center gap-1 hover:text-primary">
+                                        <ShieldCheck className="h-6 w-6" />
+                                        <span>100% Genuine</span>
+                                    </Link>
+                                </div>
+                            </div>
 
-
-                {/* Tagged Posts Section */}
-                {taggedPosts.length > 0 && (
-                    <div className="mt-8 py-4 border-t">
-                        <CardHeader className="p-0 mb-4">
-                            <CardTitle>Related Posts</CardTitle>
-                        </CardHeader>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                            {taggedPosts.map(post => (
-                                <Card key={post.id} className="overflow-hidden">
-                                    <div className="p-4">
-                                        <div className="flex items-center gap-3 mb-3">
-                                            <Avatar className="h-10 w-10">
-                                                <AvatarImage src={post.avatarUrl} alt={post.sellerName} />
-                                                <AvatarFallback>{post.sellerName.charAt(0)}</AvatarFallback>
-                                            </Avatar>
-                                            <div>
-                                                <p className="font-semibold">{post.sellerName}</p>
-                                                <p className="text-xs text-muted-foreground">{post.timestamp}</p>
+                            {/* Details and highlights sections... */}
+                            <div className="mt-8 space-y-6">
+                                {/* Delivery Section */}
+                                <div className="py-4 border-t">
+                                     <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div>
+                                            <h3 className="font-semibold mb-2">Delivery</h3>
+                                            <div className="flex items-center gap-2 mt-2">
+                                                <Input
+                                                    placeholder="Enter Pincode"
+                                                    maxLength={6}
+                                                    className="max-w-[150px]"
+                                                    value={pincode}
+                                                    onChange={(e) => setPincode(e.target.value.replace(/\\D/g, ''))}
+                                                />
+                                                <Button variant="link" className="p-0 h-auto" onClick={handlePincodeCheck} disabled={checkingPincode}>
+                                                    {checkingPincode ? <LoadingSpinner className="h-4 w-4" /> : "Check"}
+                                                </Button>
+                                            </div>
+                                            {isDeliverable === true ? (
+                                                <p className="text-sm text-green-600 mt-2">Yay! Delivery is available to this pincode.</p>
+                                            ) : isDeliverable === false ? (
+                                                    <p className="text-sm text-destructive mt-2">Sorry, delivery is not available to this pincode.</p>
+                                            ) : (
+                                                    <p className="text-xs text-muted-foreground mt-2">Check if we can deliver to your location.</p>
+                                            )}
+                                        </div>
+                                        <div className="text-sm">
+                                                <div className="flex items-center gap-3">
+                                                <Truck className="h-5 w-5 text-muted-foreground flex-shrink-0" />
+                                                <div>
+                                                    <p className="font-semibold">Get it by {estimatedDeliveryDate}</p>
+                                                    <p className="text-xs text-muted-foreground">Standard Delivery</p>
+                                                </div>
                                             </div>
                                         </div>
-                                        <p className="text-sm line-clamp-3">{post.content}</p>
                                     </div>
-                                    {post.mediaUrl && (
-                                        <div className="w-full aspect-video bg-muted relative">
-                                            <Image src={post.mediaUrl} alt="Post media" fill sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw" className="object-cover" />
-                                        </div>
-                                    )}
-                                </Card>
-                            ))}
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                )}
+                    </CardContent>
+                </Card>
             </main>
-            
-            <Dialog open={isReviewDialogOpen} onOpenChange={setIsReviewDialogOpen}>
-                 <ReviewDialog
-                    reviewToEdit={editingReview}
-                    onReviewSubmit={handleReviewSubmit}
-                    closeDialog={() => setIsReviewDialogOpen(false)}
-                    user={user}
-                    order={{products: [product]}}
-                 />
-            </Dialog>
         </div>
     );
 }
-
-    
