@@ -93,7 +93,6 @@ export function ProductDetailClient({ productId }: { productId: string }) {
     const router = useRouter();
     const { user } = useAuth();
     const [product, setProduct] = useState<any>(null);
-    const [selectedImage, setSelectedImage] = useState<string | null>(null);
     const { toast } = useToast();
     const [wishlisted, setWishlisted] = useState(false);
     const [inCart, setInCart] = useState(false);
@@ -172,9 +171,14 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                 console.error("Error fetching tagged posts:", error);
             }
         };
+        
+        const productsKey = `sellerProducts_${productToSellerMapping[productId]?.name}`;
+        const storedProducts = localStorage.getItem(productsKey);
+        if (storedProducts) {
+            setSellerProducts(JSON.parse(storedProducts));
+        }
 
         if (product) {
-            setSelectedImage(product.images[0]);
             document.title = product.name;
             const productForHistory: Product = {
                 id: product.id,
@@ -194,7 +198,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
             fetchTaggedPosts();
         }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [product]);
+    }, [product, productId]);
 
 
     const handlePincodeCheck = () => {
@@ -363,9 +367,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
             </header>
 
             <main className="container mx-auto py-6">
-                <div className="grid md:grid-cols-2 gap-8 lg:gap-12">
-                    <div />
-
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12">
                     {/* Product Details */}
                     <div className="flex flex-col gap-4">
                         <div>
