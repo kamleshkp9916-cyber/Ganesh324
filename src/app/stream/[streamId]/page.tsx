@@ -459,8 +459,9 @@ const ProductPromoCard = ({ msg, handlers }: { msg: any, handlers: any }) => {
     );
 };
 
-const PostShareCard = ({ msg, handlers }: { msg: any; handlers: any }) => {
+const PostShareCard = ({ msg, handlers }: { msg: any, handlers: any }) => {
     const { product, sellerName, text } = msg;
+
     return (
         <div className="p-1.5">
             <Card className="overflow-hidden bg-card/80 border-primary/20 p-3 animate-in fade-in-0 slide-in-from-bottom-2">
@@ -488,6 +489,7 @@ const PostShareCard = ({ msg, handlers }: { msg: any; handlers: any }) => {
         </div>
     );
 };
+
 
 const renderWithHashtagsAndLinks = (text: string) => {
     if (!text) return null;
@@ -722,7 +724,7 @@ export default function StreamPage() {
             }
         }
 
-        const intervalSeconds = liveStreamData.promotionInterval || 20;
+        const intervalSeconds = liveStreamData.promotionInterval || 300; // Default to 5 minutes
 
          const interval = setInterval(() => {
             const productsWithStock = Object.values(productDetails).filter(p => 
@@ -1296,7 +1298,7 @@ const ChatMessage = ({ msg, handlers, seller }: { msg: any, handlers: any, selle
     const handleDelete = () => handlers.onDeleteMessage(msg.id);
 
     return (
-        <div className="flex items-start gap-2.5 w-full group animate-message-in text-sm">
+        <div className="flex items-start gap-2.5 w-full group animate-message-in text-sm py-1">
              <Avatar className="h-7 w-7 mt-0.5">
                 <AvatarImage src={msg.avatar} />
                 <AvatarFallback className="bg-gradient-to-br from-red-500 to-yellow-500 text-white font-bold text-[10px]">
@@ -1482,7 +1484,7 @@ const ChatPanel = ({
         </div>
       </header>
       <ScrollArea className="flex-grow" ref={chatContainerRef} onScroll={handleManualScroll}>
-          <div className="p-3 space-y-2.5">
+          <div className="p-3 space-y-0.5">
              {chatMessages.map((msg) => {
                   if (msg.type === 'system') {
                       return <div key={msg.id} className="text-xs text-center text-[#9AA1A6] italic py-1">{msg.text}</div>
@@ -1495,6 +1497,9 @@ const ChatPanel = ({
                   }
                   if (!msg.user) return null;
 
+                  const isMyMessage = msg.userId === seller?.uid;
+                  const isSellerMessage = msg.userId === seller?.uid;
+                  
                   return (
                      <ChatMessage key={msg.id} msg={msg} handlers={{...handlers, onReply: handleReply}} seller={seller} />
                   )
