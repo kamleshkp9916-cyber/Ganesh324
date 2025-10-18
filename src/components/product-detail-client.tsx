@@ -101,7 +101,10 @@ const liveSellers = [
 export function ProductDetailClient({ productId }: { productId: string }) {
     const router = useRouter();
     const { user, userData } = useAuth();
-    const [product, setProduct] = useState<any>(null);
+    
+    // Derive product directly from props instead of using state to avoid stale data on navigation
+    const product = useMemo(() => productDetails[productId as keyof typeof productDetails] || null, [productId]);
+    
     const { toast } = useToast();
     const [wishlisted, setWishlisted] = useState(false);
     const [inCart, setInCart] = useState(false);
@@ -133,24 +136,22 @@ export function ProductDetailClient({ productId }: { productId: string }) {
     const [isLoadingSimilar, setIsLoadingSimilar] = useState(false);
 
     useEffect(() => {
-        const details = productDetails[productId as keyof typeof productDetails] || null;
-        setProduct(details);
-        if(details) {
-            setCurrentPrice(details.price);
-            setCurrentHighlights(details.highlights ? details.highlights.split('\\\\n').filter((h:string) => h.trim() !== '') : []);
-            const mediaItems = [...(details.media || []), ...details.images.map((url: string) => ({type: 'image', url: url}))];
+        if(product) {
+            setCurrentPrice(product.price);
+            setCurrentHighlights(product.highlights ? product.highlights.split('\\\\n').filter((h:string) => h.trim() !== '') : []);
+            const mediaItems = [...(product.media || []), ...product.images.map((url: string) => ({type: 'image', url: url}))];
             const uniqueMedia = Array.from(new Map(mediaItems.map(item => [item.url, item])).values());
             if(uniqueMedia.length > 0) {
                 setSelectedMedia(uniqueMedia[0]);
             }
-            if (details.availableSizes?.split(',').map((s:string) => s.trim()).length > 0) {
-                setSelectedSize(details.availableSizes.split(',').map((s:string) => s.trim())[0]);
+            if (product.availableSizes?.split(',').map((s:string) => s.trim()).length > 0) {
+                setSelectedSize(product.availableSizes.split(',').map((s:string) => s.trim())[0]);
             }
-            if (details.availableColors?.split(',').map((s:string) => s.trim()).length > 0) {
-                setSelectedColor(details.availableColors.split(',').map((s:string) => s.trim())[0]);
+            if (product.availableColors?.split(',').map((s:string) => s.trim()).length > 0) {
+                setSelectedColor(product.availableColors.split(',').map((s:string) => s.trim())[0]);
             }
         }
-    }, [productId]);
+    }, [product]);
 
     const availableSizes = useMemo(() => product?.availableSizes ? product.availableSizes.split(',').map((s: string) => s.trim()) : [], [product]);
     const availableColors = useMemo(() => product?.availableColors ? product.availableColors.split(',').map((s: string) => s.trim()) : [], [product]);
@@ -243,11 +244,11 @@ export function ProductDetailClient({ productId }: { productId: string }) {
         return format(deliveryDate, 'E, MMM dd');
     }, []);
 
-    const fetchReviews = () => {
+    const fetchReviews = useCallback(() => {
         if (product) {
             setReviews(getReviews(product.key));
         }
-    };
+    }, [product]);
     
     useEffect(() => {
         const fetchTaggedPosts = async () => {
@@ -289,12 +290,11 @@ export function ProductDetailClient({ productId }: { productId: string }) {
             addRecentlyViewed(productForHistory);
             setWishlisted(isWishlisted(product.id));
             setInCart(isProductInCart(product.id));
-            setRecentlyViewedItems(getRecentlyViewed().filter(p => p.id !== product.id)); 
+            setRecentlyViewedItems(getRecentlyViewed().filter(p => p.key !== product.key)); 
             fetchReviews();
             fetchTaggedPosts();
         }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [product, productId]);
+    }, [product, productId, fetchReviews]);
 
 
     const handlePincodeCheck = () => {
@@ -465,7 +465,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
     };
 
     const renderDescriptionWithHashtags = (text: string) => {
-        const parts = text.split(/(#\\w+)/g);
+        const parts = text.split(/(#\w+)/g);
         return parts.map((part, index) => {
             if (part.startsWith('#')) {
                 return (
@@ -596,16 +596,16 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                                                 <div className="scan-animation"></div>
                                                             </div>
                                                         )}
-                                                         <div className="absolute top-2 right-2 z-20 flex flex-col gap-2 items-end">
-                                                            <Button variant="ghost" size="icon" className="h-9 w-9 bg-background/60 backdrop-blur-sm lg:hidden" onClick={handleWishlistToggle}>
+                                                        <div className="absolute top-2 right-2 z-20 flex flex-col gap-2 items-end">
+                                                            <Button variant="ghost" size="icon" className="h-9 w-9 bg-background/60 backdrop-blur-sm lg:hidden" onClick={(e) => { e.stopPropagation(); handleWishlistToggle(); }}>
                                                                 <Heart className={cn("h-5 w-5", wishlisted ? "fill-red-500 text-red-500" : "text-muted-foreground")} />
                                                             </Button>
-                                                            <Button variant="ghost" size="icon" className="h-9 w-9 bg-background/60 backdrop-blur-sm lg:hidden" onClick={handleShare}>
+                                                            <Button variant="ghost" size="icon" className="h-9 w-9 bg-background/60 backdrop-blur-sm lg:hidden" onClick={(e) => { e.stopPropagation(); handleShare(); }}>
                                                                 <Share2 className="h-5 w-5" />
                                                             </Button>
                                                             <AlertDialog>
                                                                 <AlertDialogTrigger asChild>
-                                                                    <Button variant="ghost" size="icon" className="h-9 w-9 bg-background/60 backdrop-blur-sm lg:hidden">
+                                                                    <Button variant="ghost" size="icon" className="h-9 w-9 bg-background/60 backdrop-blur-sm lg:hidden" onClick={(e) => e.stopPropagation()}>
                                                                         <Flag className="h-5 w-5" />
                                                                     </Button>
                                                                 </AlertDialogTrigger>
@@ -626,37 +626,38 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                                     </div>
                                                 </DialogTrigger>
                                                 
-                                                <div className="overflow-x-auto pb-2">
-                                                    <div className="flex gap-2">
-                                                        {mediaItems.map((item: any, index: number) => (
-                                                            <button
-                                                                key={index}
-                                                                onClick={() => setSelectedMedia(item)}
-                                                                className={cn(
-                                                                    "w-16 h-16 rounded-md overflow-hidden border-2 flex-shrink-0 relative",
-                                                                    selectedMedia?.url === (item.preview || item.url) ? 'border-primary' : 'border-transparent'
-                                                                )}
-                                                            >
-                                                                {item.type === 'image' ? (
-                                                                    <Image
-                                                                        src={item.preview || item.url}
-                                                                        alt={`Thumbnail ${''}${index + 1}`}
-                                                                        width={64}
-                                                                        height={64}
-                                                                        className="object-cover w-full h-full"
-                                                                    />
-                                                                ) : (
-                                                                    <>
-                                                                        <video src={item.preview || item.url} className="object-cover w-full h-full" />
-                                                                        <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
-                                                                            <Play className="h-6 w-6 text-white" />
-                                                                        </div>
-                                                                    </>
-                                                                )}
-                                                            </button>
-                                                        ))}
-                                                    </div>
-                                                </div>
+                                                <ScrollArea>
+                                                  <div className="flex gap-2 pb-2">
+                                                      {mediaItems.map((item: any, index: number) => (
+                                                          <button
+                                                              key={index}
+                                                              onClick={() => setSelectedMedia(item)}
+                                                              className={cn(
+                                                                  "w-16 h-16 rounded-md overflow-hidden border-2 flex-shrink-0 relative",
+                                                                  selectedMedia?.url === (item.preview || item.url) ? 'border-primary' : 'border-transparent'
+                                                              )}
+                                                          >
+                                                              {item.type === 'image' ? (
+                                                                  <Image
+                                                                      src={item.preview || item.url}
+                                                                      alt={`Thumbnail ${''}${index + 1}`}
+                                                                      width={64}
+                                                                      height={64}
+                                                                      className="object-cover w-full h-full"
+                                                                  />
+                                                              ) : (
+                                                                  <>
+                                                                      <video src={item.preview || item.url} className="object-cover w-full h-full" />
+                                                                      <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
+                                                                          <Play className="h-6 w-6 text-white" />
+                                                                      </div>
+                                                                  </>
+                                                              )}
+                                                          </button>
+                                                      ))}
+                                                  </div>
+                                                  <ScrollBar orientation="horizontal" />
+                                                </ScrollArea>
                                             </CardContent>
                                         </Card>
                                         <DialogContent className="max-w-3xl max-h-[90vh]">
@@ -677,51 +678,49 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                         relatedStreams={relatedStreams}
                                         isLoading={isLoadingSimilar}
                                     />}
-                                     <Button size="lg" className="w-full rounded-full bg-black/50 text-white backdrop-blur-sm flex items-center gap-1.5 mt-4" onClick={handleSimilarClick} disabled={isScanning}>
+                                    <Button size="lg" className="w-full rounded-full bg-black/50 text-white backdrop-blur-sm flex items-center gap-1.5 mt-4" onClick={handleSimilarClick} disabled={isScanning}>
                                         {isScanning ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
                                         <span>Find Similar Products</span>
                                     </Button>
                                 </div>
                                 
                                 <div className="flex flex-col gap-4">
-                                     <div>
-                                        <div className="flex items-center justify-between gap-4 mb-2">
-                                             <div className="text-sm font-mono text-muted-foreground">
-                                                {product.key}
-                                            </div>
-                                            <div className="hidden lg:flex items-center ml-auto">
-                                                <Button variant="ghost" size="icon" onClick={handleWishlistToggle}>
-                                                    <Heart className={cn("h-6 w-6", wishlisted ? "fill-red-500 text-red-500" : "text-muted-foreground")} />
-                                                </Button>
-                                                <Button variant="ghost" size="icon" onClick={handleShare}>
-                                                    <Share2 className="h-6 w-6" />
-                                                </Button>
-                                                <AlertDialog>
-                                                    <AlertDialogTrigger asChild>
-                                                        <Button variant="ghost" size="icon">
-                                                            <Flag className="h-6 w-6" />
-                                                        </Button>
-                                                    </AlertDialogTrigger>
-                                                    <AlertDialogContent>
-                                                        <AlertDialogHeader>
-                                                            <AlertDialogTitle>Report Product?</AlertDialogTitle>
-                                                            <AlertDialogDescription>
-                                                                If this product violates our community guidelines, please report it. Our team will review it shortly.
-                                                            </AlertDialogDescription>
-                                                        </AlertDialogHeader>
-                                                        <AlertDialogFooter>
-                                                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                                            <AlertDialogAction onClick={handleReportProduct}>Confirm Report</AlertDialogAction>
-                                                        </AlertDialogFooter>
-                                                    </AlertDialogContent>
-                                                </AlertDialog>
-                                            </div>
+                                     <div className="flex items-center justify-between gap-4">
+                                        <div className="text-sm font-mono text-muted-foreground">
+                                            {product.key}
                                         </div>
-                                         <div className="space-y-1">
-                                            {product.brand && <p className="text-sm font-medium text-primary">{product.brand}</p>}
-                                            <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">{product.name}</h1>
+                                        <div className="hidden lg:flex items-center ml-auto">
+                                            <Button variant="ghost" size="icon" onClick={handleWishlistToggle}>
+                                                <Heart className={cn("h-6 w-6", wishlisted ? "fill-red-500 text-red-500" : "text-muted-foreground")} />
+                                            </Button>
+                                            <Button variant="ghost" size="icon" onClick={handleShare}>
+                                                <Share2 className="h-6 w-6" />
+                                            </Button>
+                                            <AlertDialog>
+                                                <AlertDialogTrigger asChild>
+                                                    <Button variant="ghost" size="icon">
+                                                        <Flag className="h-6 w-6" />
+                                                    </Button>
+                                                </AlertDialogTrigger>
+                                                <AlertDialogContent>
+                                                    <AlertDialogHeader>
+                                                        <AlertDialogTitle>Report Product?</AlertDialogTitle>
+                                                        <AlertDialogDescription>
+                                                            If this product violates our community guidelines, please report it. Our team will review it shortly.
+                                                        </AlertDialogDescription>
+                                                    </AlertDialogHeader>
+                                                    <AlertDialogFooter>
+                                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                        <AlertDialogAction onClick={handleReportProduct}>Confirm Report</AlertDialogAction>
+                                                    </AlertDialogFooter>
+                                                </AlertDialogContent>
+                                            </AlertDialog>
                                         </div>
-                                        <p className="text-muted-foreground mt-2">{renderDescriptionWithHashtags(product.description)}</p>
+                                    </div>
+                                    <div className='space-y-2'>
+                                        {product.brand && <p className="text-sm font-medium text-primary">{product.brand}</p>}
+                                        <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">{product.name}</h1>
+                                         <p className="text-muted-foreground">{renderDescriptionWithHashtags(product.description)}</p>
                                     </div>
                                     <div>
                                         <div className="flex items-center gap-4 flex-wrap">
@@ -884,7 +883,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                                 <ChevronDown className="h-5 w-5 text-muted-foreground" />
                                             </Button>
                                         </SheetTrigger>
-                                        <SheetContent side="bottom" className="h-auto max-h-[80vh]">
+                                        <SheetContent side="bottom" className="h-auto max-h-[80vh] rounded-t-lg">
                                             <SheetHeader className="text-left p-4">
                                                 <SheetTitle>All Available Offers</SheetTitle>
                                             </SheetHeader>
@@ -1087,8 +1086,8 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                 {recentlyViewedItems.length > 0 && (
                                     <div className="mt-8">
                                         <h2 className="text-2xl font-bold mb-4">Recently Viewed</h2>
-                                        <div className="overflow-x-auto pb-4">
-                                            <div className="flex gap-4">
+                                        <ScrollArea>
+                                            <div className="flex gap-4 pb-4">
                                                 {recentlyViewedItems.map((item) => (
                                                 <Link href={`/product/${item.key}`} key={item.key} className="w-40 flex-shrink-0">
                                                     <Card className="overflow-hidden group h-full">
@@ -1112,7 +1111,8 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                                 </Link>
                                                 ))}
                                             </div>
-                                        </div>
+                                            <ScrollBar orientation="horizontal" />
+                                        </ScrollArea>
                                     </div>
                                 )}
                             </div>
@@ -1132,5 +1132,3 @@ export function ProductDetailClient({ productId }: { productId: string }) {
         </>
     );
 }
-
-    
