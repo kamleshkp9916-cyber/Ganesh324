@@ -551,6 +551,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
 
     const seller = productToSellerMapping[product.key];
     const allOffers = [...mockAdminOffers, (product as any).offer].filter(Boolean);
+    const sellerLiveStream = liveSellers.find(s => s.id === seller.uid);
 
     return (
         <>
@@ -590,7 +591,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                 <div>
                                     <Dialog>
                                         <Card>
-                                            <CardContent className="p-4">
+                                            <CardContent className="p-0">
                                                 <DialogTrigger asChild>
                                                     <div className="aspect-square w-full bg-muted rounded-lg overflow-hidden mb-4 cursor-pointer group relative">
                                                         {selectedMedia?.type === 'image' && selectedMedia.url && (
@@ -619,7 +620,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                                 </DialogTrigger>
                                                 
                                                 <ScrollArea>
-                                                  <div className="flex gap-2 pb-2">
+                                                  <div className="flex gap-2 pb-2 px-4">
                                                       {mediaItems.map((item: any, index: number) => (
                                                           <button
                                                               key={index}
@@ -674,6 +675,17 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                         {isScanning ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
                                         <span>Find Similar Products</span>
                                     </Button>
+                                    {sellerLiveStream && (
+                                        <div className="mt-2 text-center">
+                                            <Button asChild variant="secondary" className="w-full">
+                                                <Link href={`/stream/${sellerLiveStream.id}`}>
+                                                    <Video className="mr-2 h-4 w-4 text-primary" />
+                                                    View {sellerLiveStream ? 'Live' : 'Recorded'} Stream
+                                                </Link>
+                                            </Button>
+                                            <p className="text-xs text-muted-foreground mt-1">You can see the visual product on the stream of this product</p>
+                                        </div>
+                                    )}
                                 </div>
                                 
                                 <div className="flex flex-col gap-4">
