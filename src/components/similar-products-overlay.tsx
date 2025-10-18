@@ -40,7 +40,7 @@ export function SimilarProductsOverlay({
         onClick={(e) => e.stopPropagation()}
     >
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-2">
-        <div className="flex justify-between items-center mb-0">
+        <div className="flex justify-between items-center mb-2">
             <h2 className="text-xl font-bold">You Might Also Like</h2>
             <Button variant="ghost" size="icon" onClick={onClose}>
                 <X className="h-5 w-5" />
@@ -61,7 +61,7 @@ export function SimilarProductsOverlay({
             <Carousel opts={{ align: "start", loop: false }} className="w-full">
               <CarouselContent className="-ml-2">
                 {similarProducts.map((p) => (
-                  <CarouselItem key={p.id} className="basis-1/2 sm:basis-1/3 md:basis-1/4 lg:basis-1/4 xl:basis-1/5 pl-2">
+                  <CarouselItem key={p.id} className="basis-1/3 sm:basis-1/4 md:basis-1/5 lg:basis-1/6 xl:basis-1/8 pl-2">
                     <Link href={`/product/${p.key}`} className="group block">
                       <Card className="w-full group overflow-hidden h-full flex flex-col">
                         <div className="relative aspect-square bg-muted">
