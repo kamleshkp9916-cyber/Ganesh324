@@ -835,32 +835,38 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                         )}
                                     </div>
                                      <div className="mt-4 space-y-4">
-                                         <div className="flex items-start gap-3">
-                                            <Truck className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                                            <div>
-                                                <h4 className="font-semibold">Delivery Information</h4>
-                                                {user && userData?.addresses && userData.addresses.length > 0 ? (
-                                                     <div className="text-sm mt-1">
+                                         {user && userData?.addresses && userData.addresses.length > 0 ? (
+                                            <div className="flex items-start gap-3">
+                                                <Truck className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                                                <div>
+                                                    <h4 className="font-semibold">Delivery Information</h4>
+                                                    <div className="text-sm mt-1">
                                                         <p>Deliver to <span className="font-semibold">{userData.addresses[0].name}</span></p>
                                                         <p className="text-muted-foreground">{userData.addresses[0].village}, {userData.addresses[0].city}, {userData.addresses[0].state} - {userData.addresses[0].pincode}</p>
                                                         <p className="text-muted-foreground font-semibold mt-1">Delivery by {estimatedDeliveryDate}</p>
-                                                         <Button variant="link" className="p-0 h-auto text-xs" onClick={() => setIsAddressDialogOpen(true)}>Change Address</Button>
+                                                        <Button variant="link" className="p-0 h-auto text-xs" onClick={() => handleAuthAction(() => setIsAddressDialogOpen(true))}>Change Address</Button>
                                                     </div>
-                                                ) : (
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <div className="flex items-start gap-3">
+                                                <Truck className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                                                <div>
+                                                    <h4 className="font-semibold">Delivery Information</h4>
                                                     <div className="flex items-center gap-2 mt-1">
                                                         <Input value={pincode} onChange={(e) => setPincode(e.target.value)} placeholder="Enter Pincode" className="max-w-xs h-9" />
                                                         <Button variant="outline" size="sm" onClick={handlePincodeCheck} disabled={checkingPincode}>
                                                             {checkingPincode ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null} Check
                                                         </Button>
                                                     </div>
-                                                )}
-                                                 {isDeliverable !== null && (
-                                                    <p className={cn("text-xs mt-1", isDeliverable ? "text-green-600" : "text-destructive")}>
-                                                        {isDeliverable ? `Delivery available to ${pincode} by ${estimatedDeliveryDate}` : `Delivery not available to ${pincode}`}
-                                                    </p>
-                                                )}
+                                                    {isDeliverable !== null && (
+                                                        <p className={cn("text-xs mt-1", isDeliverable ? "text-green-600" : "text-destructive")}>
+                                                            {isDeliverable ? `Delivery available to ${pincode} by ${estimatedDeliveryDate}` : `Delivery not available to ${pincode}`}
+                                                        </p>
+                                                    )}
+                                                </div>
                                             </div>
-                                        </div>
+                                        )}
                                         <Separator />
                                          <div className="space-y-4">
                                             <div className="flex items-start gap-3">
@@ -921,7 +927,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                     </CardContent>
                                 </Card>
                                 <Separator />
-                                 <Card>
+                                <Card>
                                     <CardHeader>
                                         <CardTitle>Sold By</CardTitle>
                                     </CardHeader>
@@ -1051,33 +1057,36 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                 <Separator />
                                  <div className="mt-8">
                                     <h2 className="text-2xl font-bold mb-4">Related Product Streams</h2>
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                                         {relatedStreams.map((stream: any) => (
-                                            <Link href={`/stream/${stream.id}`} key={stream.id} className="group block">
-                                                <Card className="overflow-hidden bg-card/10">
-                                                    <div className="relative aspect-video bg-muted">
-                                                        <Image src={stream.thumbnailUrl} alt={stream.title || stream.name} fill sizes="33vw" className="object-cover group-hover:scale-105 transition-transform"/>
-                                                        <div className="absolute inset-0 bg-black/30 flex flex-col justify-between p-2">
-                                                            <div className="flex justify-between">
-                                                                <Badge variant="destructive">LIVE</Badge>
-                                                                <Badge variant="secondary" className="bg-black/50 text-white"><Users className="w-3 h-3 mr-1"/>{stream.viewers}</Badge>
-                                                            </div>
-                                                        </div>
+                                             <Link href={`/stream/${stream.id}`} key={stream.id} className="group block">
+                                                <div className="relative aspect-video bg-muted rounded-lg overflow-hidden">
+                                                    <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
+                                                    <div className="absolute top-2 right-2 z-10">
+                                                        <Badge variant="secondary" className="bg-black/50 text-white gap-1.5">
+                                                            <Users className="h-3 w-3"/>
+                                                            {stream.viewers}
+                                                        </Badge>
                                                     </div>
-                                                    <CardContent className="p-3">
-                                                        <div className="flex items-start gap-3">
-                                                            <Avatar className="h-9 w-9 border">
-                                                                <AvatarImage src={stream.avatarUrl}/>
-                                                                <AvatarFallback>{stream.name.charAt(0)}</AvatarFallback>
-                                                            </Avatar>
-                                                            <div>
-                                                                <p className="font-semibold text-sm leading-tight group-hover:underline">{stream.title || stream.name}</p>
-                                                                <p className="text-xs text-muted-foreground">{stream.name}</p>
-                                                                <p className="text-xs text-primary font-semibold mt-0.5">#{stream.category.toLowerCase().replace(/\s+/g, '')}</p>
-                                                            </div>
-                                                        </div>
-                                                    </CardContent>
-                                                </Card>
+                                                     <Image
+                                                        src={stream.thumbnailUrl}
+                                                        alt={`Live stream from ${stream.name}`}
+                                                        fill
+                                                        sizes="33vw"
+                                                        className="object-cover w-full h-full group-hover:scale-105 transition-transform"
+                                                    />
+                                                </div>
+                                                <div className="flex items-start gap-2 mt-2">
+                                                    <Avatar className="w-8 h-8">
+                                                        <AvatarImage src={stream.avatarUrl} />
+                                                        <AvatarFallback>{stream.name.charAt(0)}</AvatarFallback>
+                                                    </Avatar>
+                                                    <div className="flex-1 overflow-hidden">
+                                                        <p className="font-semibold text-sm leading-tight group-hover:underline truncate">{stream.title || stream.name}</p>
+                                                        <p className="text-xs text-muted-foreground">{stream.name}</p>
+                                                         <p className="text-xs text-primary font-semibold mt-0.5">#{stream.category.toLowerCase().replace(/\s+/g, '')}</p>
+                                                    </div>
+                                                </div>
                                             </Link>
                                         ))}
                                     </div>

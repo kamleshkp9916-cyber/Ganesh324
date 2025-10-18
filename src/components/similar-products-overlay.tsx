@@ -121,31 +121,20 @@ export function SimilarProductsOverlay({
               <CarouselContent className="-ml-2">
                 {relatedStreams.map((s) => (
                   <CarouselItem key={s.id} className="basis-3/4 sm:basis-1/2 md:basis-1/2 lg:basis-1/3 xl:basis-1/4 pl-2">
-                     <Link href={`/stream/${s.id}`} className="group block">
-                        <div className="relative rounded-lg overflow-hidden aspect-video bg-muted">
+                     <Link href={`/stream/${s.id}`} key={s.id} className="group block">
+                        <div className="relative rounded-lg overflow-hidden aspect-video bg-muted w-full flex-shrink-0">
                             <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
-                            <div className="absolute top-2 right-2 z-10">
-                                <Badge variant="secondary" className="bg-black/50 text-white gap-1.5">
-                                    <Users className="h-3 w-3"/>
-                                    {s.viewers}
-                                </Badge>
-                            </div>
-                             <Image
-                                src={s.thumbnailUrl}
-                                alt={`Live stream from ${s.name}`}
-                                fill
-                                sizes="33vw"
-                                className="object-cover w-full h-full group-hover:scale-105 transition-transform"
-                            />
+                            <div className="absolute top-2 right-2 z-10"><Badge variant="secondary" className="bg-black/50 text-white"><Users className="w-3 h-3 mr-1"/>{s.viewers.toLocaleString()}</Badge></div>
+                             <Image src={s.thumbnailUrl} alt={`Live stream from ${s.name}`} fill sizes="33vw" className="object-cover transition-transform group-hover:scale-105" />
                         </div>
                         <div className="flex items-start gap-2 mt-2">
-                            <Avatar className="w-8 h-8 border-2 border-background">
-                                <AvatarImage src={s.avatarUrl} />
+                            <Avatar className="w-8 h-8">
+                                <AvatarImage src={s.avatarUrl} alt={s.name} />
                                 <AvatarFallback>{s.name.charAt(0)}</AvatarFallback>
                             </Avatar>
                             <div className="flex-1 overflow-hidden">
-                                <p className="font-semibold text-xs group-hover:underline truncate">{s.title || s.name}</p>
-                                <p className="text-xs text-muted-foreground">{s.category}</p>
+                                <p className="font-semibold text-sm leading-tight group-hover:underline truncate">{s.title || s.name}</p>
+                                <p className="text-xs text-muted-foreground">{s.name}</p>
                                 <p className="text-xs text-primary font-semibold mt-0.5">#{s.category.toLowerCase().replace(/\s+/g, '')}</p>
                             </div>
                         </div>
