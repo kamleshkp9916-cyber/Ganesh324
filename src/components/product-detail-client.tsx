@@ -548,11 +548,19 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                                             className="object-contain group-hover:scale-105 transition-transform"
                                                         />
                                                     )}
-                                                    <div className="absolute bottom-2 right-2">
-                                                        <Button size="sm" className="rounded-full bg-black/50 text-white backdrop-blur-sm flex items-center gap-1.5 h-8" onClick={(e) => { e.stopPropagation(); setShowSimilarOverlay(true); }}>
-                                                            <Sparkles className="h-4 w-4" />
-                                                            <span className="text-xs">Similar Product</span>
-                                                        </Button>
+                                                     <div className="absolute bottom-2 right-2">
+                                                        <div className="relative">
+                                                            <Button size="sm" className="rounded-full bg-black/50 text-white backdrop-blur-sm flex items-center gap-1.5 h-8" onClick={(e) => { e.stopPropagation(); setShowSimilarOverlay(prev => !prev); }}>
+                                                                <Sparkles className="h-4 w-4" />
+                                                                <span className="text-xs">Similar Product</span>
+                                                            </Button>
+                                                             <SimilarProductsOverlay
+                                                                isOpen={showSimilarOverlay}
+                                                                onClose={() => setShowSimilarOverlay(false)}
+                                                                similarProducts={similarProducts}
+                                                                relatedStreams={relatedStreams}
+                                                            />
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </DialogTrigger>
@@ -1053,12 +1061,6 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                         </div>
                     )}
                 </main>
-                <SimilarProductsOverlay
-                    isOpen={showSimilarOverlay}
-                    onClose={() => setShowSimilarOverlay(false)}
-                    similarProducts={similarProducts}
-                    relatedStreams={relatedStreams}
-                />
                 <Dialog open={isReviewDialogOpen} onOpenChange={setIsReviewDialogOpen}>
                     <ReviewDialog 
                         order={{ products: [product] } as any} 

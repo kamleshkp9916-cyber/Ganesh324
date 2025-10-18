@@ -35,7 +35,10 @@ export function SimilarProductsOverlay({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-40 bg-background/80 backdrop-blur-lg border-t animate-in fade-in-0 zoom-in-95 duration-300">
+    <div 
+        className="absolute bottom-12 right-0 z-40 bg-background/80 backdrop-blur-lg border rounded-lg shadow-xl w-full max-w-2xl animate-in fade-in-0 zoom-in-95 duration-300"
+        onClick={(e) => e.stopPropagation()}
+    >
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4">
         <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-bold">You Might Also Like</h2>
@@ -58,7 +61,7 @@ export function SimilarProductsOverlay({
             <Carousel opts={{ align: "start", loop: false }} className="w-full">
               <CarouselContent className="-ml-2">
                 {similarProducts.map((p) => (
-                  <CarouselItem key={p.id} className="basis-1/2 sm:basis-1/3 md:basis-1/4 lg:basis-1/5 xl:basis-1/6 pl-2">
+                  <CarouselItem key={p.id} className="basis-1/2 sm:basis-1/3 md:basis-1/4 lg:basis-1/4 xl:basis-1/5 pl-2">
                     <Link href={`/product/${p.key}`} className="group block">
                       <Card className="w-full group overflow-hidden h-full flex flex-col">
                         <div className="relative aspect-square bg-muted">
@@ -92,7 +95,7 @@ export function SimilarProductsOverlay({
             <Carousel opts={{ align: "start", loop: false }} className="w-full">
               <CarouselContent className="-ml-2">
                 {relatedStreams.map((s) => (
-                  <CarouselItem key={s.id} className="basis-3/4 sm:basis-1/2 md:basis-1/3 lg:basis-1/4 xl:basis-1/5 pl-2">
+                  <CarouselItem key={s.id} className="basis-3/4 sm:basis-1/2 md:basis-1/2 lg:basis-1/3 xl:basis-1/4 pl-2">
                      <Link href={`/stream/${s.id}`} className="group block">
                         <div className="relative rounded-lg overflow-hidden aspect-video bg-muted">
                             <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
