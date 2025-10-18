@@ -53,7 +53,7 @@ export default function ProductSearch({ onSearchComplete }: ProductSearchProps) 
       setSuggestions([]);
       setLoading(false);
       setPopoverOpen(false);
-      onSearchComplete([], '');
+      if (fullSearch) onSearchComplete([], '');
       return;
     }
     setLoading(true);
@@ -91,7 +91,9 @@ export default function ProductSearch({ onSearchComplete }: ProductSearchProps) 
     } else {
         setSuggestions([]);
         setPopoverOpen(false);
-        onSearchComplete([], '');
+        if (onSearchComplete) {
+            onSearchComplete([], '');
+        }
     }
   }, [debouncedQuery, runSearch, onSearchComplete]);
 
@@ -105,7 +107,9 @@ export default function ProductSearch({ onSearchComplete }: ProductSearchProps) 
     setQ(newQuery);
     if (!newQuery.trim()) {
       setPopoverOpen(false);
-      onSearchComplete([], '');
+      if (onSearchComplete) {
+          onSearchComplete([], '');
+      }
     }
   }
 
@@ -135,11 +139,6 @@ export default function ProductSearch({ onSearchComplete }: ProductSearchProps) 
                       key={suggestion.id} 
                       href={`/product/${suggestion.key}`} 
                       className="block p-2 hover:bg-accent cursor-pointer text-sm"
-                      onClick={() => {
-                          setQ('');
-                          setSuggestions([]);
-                          setPopoverOpen(false);
-                      }}
                   >
                       {suggestion.name}
                   </Link>

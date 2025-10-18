@@ -584,8 +584,9 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                             </Link>
                         </Button>
                          <FeedbackDialog>
-                           <Button variant="ghost" size="icon">
-                              <MessageSquare className="h-5 w-5" />
+                           <Button variant="ghost">
+                              <MessageSquare className="h-5 w-5 md:mr-2" />
+                              <span className="hidden md:inline">Feedback</span>
                           </Button>
                         </FeedbackDialog>
                     </div>
@@ -815,105 +816,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                             </Button>
                                         )}
                                     </div>
-                                    <Card>
-                                        <CardHeader className="flex flex-row items-center justify-between p-3 pb-0">
-                                            <CardTitle className="text-base">Delivery Information</CardTitle>
-                                             {user && (
-                                                <Dialog open={isAddressDialogOpen} onOpenChange={setIsAddressDialogOpen}>
-                                                    <DialogTrigger asChild>
-                                                        <Button variant="link" size="sm" className="p-0 h-auto">Change</Button>
-                                                    </DialogTrigger>
-                                                    <DialogContent>
-                                                        <DialogHeader>
-                                                            <DialogTitle>Change Delivery Address</DialogTitle>
-                                                        </DialogHeader>
-                                                        <EditAddressForm 
-                                                            onSave={handleAddressSave} 
-                                                            onCancel={() => setIsAddressDialogOpen(false)}
-                                                            onAddressesUpdate={handleAddressesUpdate}
-                                                        />
-                                                    </DialogContent>
-                                                </Dialog>
-                                            )}
-                                        </CardHeader>
-                                        <CardContent className="p-3">
-                                            {user ? (
-                                                userData?.addresses && userData.addresses.length > 0 ? (
-                                                    <div className="text-sm">
-                                                        <div className="flex items-center gap-2">
-                                                            <Truck className="h-5 w-5 text-muted-foreground"/>
-                                                            <span>Deliver to <b>{userData.addresses[0].name}</b> - {userData.addresses[0].pincode}</span>
-                                                        </div>
-                                                        <p className="pl-7 text-muted-foreground">{userData.addresses[0].village}, {userData.addresses[0].city}</p>
-                                                        <p className="pl-7 text-green-600 font-semibold mt-1">Delivery by {estimatedDeliveryDate}</p>
-                                                    </div>
-                                                ) : (
-                                                    <div className="text-sm text-center text-muted-foreground">
-                                                        <p>You have no saved addresses.</p>
-                                                        <Button asChild variant="link" className="p-0 h-auto">
-                                                            <Link href="/setting">Add an address</Link>
-                                                        </Button>
-                                                        <p>to see delivery information.</p>
-                                                    </div>
-                                                )
-                                            ) : (
-                                                <div className="space-y-2">
-                                                    <Label htmlFor="pincode">Check Delivery</Label>
-                                                    <div className="flex items-center gap-2">
-                                                        <Input
-                                                            id="pincode"
-                                                            placeholder="Enter Pincode"
-                                                            value={pincode}
-                                                            onChange={(e) => {
-                                                                setPincode(e.target.value.replace(/\D/g, '').slice(0, 6));
-                                                                setIsDeliverable(null);
-                                                            }}
-                                                        />
-                                                        <Button onClick={handlePincodeCheck} disabled={pincode.length !== 6 || checkingPincode}>
-                                                            {checkingPincode ? <Loader2 className="h-4 w-4 animate-spin"/> : "Check"}
-                                                        </Button>
-                                                    </div>
-                                                    {isDeliverable !== null && (
-                                                        isDeliverable ? (
-                                                            <p className="text-sm text-green-600">✓ Delivery available to this pincode. Estimated by {estimatedDeliveryDate}.</p>
-                                                        ) : (
-                                                            <p className="text-sm text-destructive">✗ Sorry, delivery is not available to this pincode.</p>
-                                                        )
-                                                    )}
-                                                </div>
-                                            )}
-                                        </CardContent>
-                                    </Card>
-                                     <Sheet>
-                                        <SheetTrigger asChild>
-                                            <Button variant="ghost" className="w-full justify-between p-3 h-auto">
-                                                <div className="flex items-center gap-2">
-                                                    <Tag className="w-5 h-5 text-primary" />
-                                                    <span className="font-semibold">Available Offers</span>
-                                                </div>
-                                                <ChevronDown className="h-5 w-5 text-muted-foreground" />
-                                            </Button>
-                                        </SheetTrigger>
-                                        <SheetContent side="bottom" className="h-auto max-h-[80vh] rounded-t-lg">
-                                            <SheetHeader className="text-left p-4">
-                                                <SheetTitle>All Available Offers</SheetTitle>
-                                            </SheetHeader>
-                                            <ScrollArea className="h-full">
-                                                <div className="p-4 pt-0 space-y-4">
-                                                    {allOffers.map((offer, index) => (
-                                                        <div key={index} className="flex items-start gap-3">
-                                                            {offer.icon || <Tag className="h-5 w-5 text-primary mt-1 flex-shrink-0" />}
-                                                            <div>
-                                                                <h4 className="font-bold">{offer.title}</h4>
-                                                                <p className="text-sm text-muted-foreground">{offer.description}</p>
-                                                            </div>
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            </ScrollArea>
-                                        </SheetContent>
-                                    </Sheet>
-                                    <div className="pt-4 border-t">
+                                     <div className="pt-4 border-t">
                                         <div className="space-y-4 text-sm">
                                             <div className="flex items-start gap-3">
                                                 <RotateCcw className="h-5 w-5 text-primary mt-0.5" />
