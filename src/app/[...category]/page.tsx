@@ -19,11 +19,15 @@ import {
 import React, { useState, useMemo } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { differenceInDays } from 'date-fns';
+import { useDebounce } from '@/hooks/use-debounce';
+import { normalize } from '@/lib/generateKeywords';
 
 export default function CategoryPage() {
     const router = useRouter();
     const params = useParams();
     const [sortOption, setSortOption] = useState("relevance");
+    const [searchQuery, setSearchQuery] = useState('');
+    const debouncedSearchQuery = useDebounce(searchQuery, 350);
     
     let { category: categoryPath } = params;
 
@@ -46,7 +50,7 @@ export default function CategoryPage() {
         
     const allProducts = Object.values(productDetails); 
 
-    const filteredProducts = useMemo(() => {
+    const categoryProducts = useMemo(() => {
         return allProducts.filter(product => {
             const productCategorySlug = product.category.toLowerCase().replace(/\s+/g, '-');
             const productSubCategorySlug = product.subcategory?.toLowerCase().replace(/\s+/g, '-').replace(/&/g, '%26');
@@ -60,8 +64,21 @@ export default function CategoryPage() {
         });
     }, [allProducts, categorySlug, subCategorySlug]);
 
+    const searchedProducts = useMemo(() => {
+        if (!debouncedSearchQuery) {
+            return categoryProducts;
+        }
+        const lowercasedQuery = normalize(debouncedSearchQuery);
+        return categoryProducts.filter(product => {
+            const searchableText = `${normalize(product.name)} ${normalize(product.brand)} ${product.keywords?.join(' ')}`;
+            return searchableText.includes(lowercasedQuery);
+        });
+
+    }, [debouncedSearchQuery, categoryProducts]);
+
+
     const sortedProducts = useMemo(() => {
-        let sorted = [...filteredProducts];
+        let sorted = [...searchedProducts];
 
         if (sortOption === 'price-asc') {
             sorted.sort((a, b) => parseFloat(a.price.replace(/[^0-9.-]+/g,"")) - parseFloat(b.price.replace(/[^0-9.-]+/g,"")));
@@ -71,7 +88,7 @@ export default function CategoryPage() {
 
         return sorted;
 
-    }, [filteredProducts, sortOption]);
+    }, [searchedProducts, sortOption]);
     
 
     return (
@@ -95,6 +112,8 @@ export default function CategoryPage() {
                         <Input 
                             placeholder="Search in this category..."
                             className="rounded-full pl-10"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
                         />
                     </div>
                      <div className="flex items-center gap-2 w-full sm:w-auto">
@@ -157,8 +176,8 @@ export default function CategoryPage() {
                     </div>
                 ) : (
                     <div className="text-center py-20 text-muted-foreground">
-                        <h2 className="text-2xl font-bold">No Products Found</h2>
-                        <p>There are no products in this category yet.</p>
+                        <h2 className="text-2xl font-bold">{searchQuery ? `No results for "${searchQuery}"` : "No Products Found"}</h2>
+                        <p>{searchQuery ? "Try searching for something else." : "There are no products in this category yet."}</p>
                     </div>
                 )}
             </main>
