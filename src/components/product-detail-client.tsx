@@ -127,6 +127,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
     const [searchSuggestions, setSearchSuggestions] = useState<any[]>([]);
     const [showSearchResults, setShowSearchResults] = useState(false);
     const [searchResults, setSearchResults] = useState<any[]>([]);
+    const [isSuggestionsPopoverOpen, setIsSuggestionsPopoverOpen] = useState(false);
     
     useEffect(() => {
         const details = productDetails[productId as keyof typeof productDetails] || null;
@@ -205,8 +206,10 @@ export function ProductDetailClient({ productId }: { productId: string }) {
             const allProducts = Object.values(productDetails);
             const filtered = allProducts.filter(p => p.name.toLowerCase().includes(debouncedSearchQuery.toLowerCase()));
             setSearchSuggestions(filtered.slice(0, 5));
+            setIsSuggestionsPopoverOpen(true);
         } else {
             setSearchSuggestions([]);
+            setIsSuggestionsPopoverOpen(false);
         }
     }, [debouncedSearchQuery]);
 
@@ -216,7 +219,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
         const results = allProducts.filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase()));
         setSearchResults(results);
         setShowSearchResults(true);
-        setSearchSuggestions([]);
+        setIsSuggestionsPopoverOpen(false);
     };
 
     const averageRating = useMemo(() => {
@@ -487,7 +490,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                     <Button variant="ghost" size="icon" onClick={() => router.back()}>
                         <ArrowLeft className="h-6 w-6" />
                     </Button>
-                    <Popover open={searchSuggestions.length > 0 && searchQuery.length > 0}>
+                    <Popover open={isSuggestionsPopoverOpen} onOpenChange={setIsSuggestionsPopoverOpen}>
                         <PopoverAnchor asChild>
                             <form className="relative flex-grow max-w-md mx-4" onSubmit={handleSearchSubmit}>
                                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -495,7 +498,8 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                     placeholder={`Search...`}
                                     className="pl-9 rounded-full"
                                     value={searchQuery}
-                                    onChange={(e) => {setSearchQuery(e.target.value); setShowSearchResults(false);}}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    onFocus={() => { if(searchSuggestions.length > 0) setIsSuggestionsPopoverOpen(true)}}
                                 />
                             </form>
                         </PopoverAnchor>
@@ -506,7 +510,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                     className="p-2 hover:bg-accent cursor-pointer text-sm"
                                     onClick={() => {
                                         setSearchQuery(suggestion.name);
-                                        setSearchSuggestions([]);
+                                        setIsSuggestionsPopoverOpen(false);
                                     }}
                                 >
                                     {suggestion.name}
@@ -708,7 +712,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                     {(variantStock !== undefined && variantStock > 0) ? (
                                         <>
                                             {inCart ? (
-                                                 <Button size="lg" className="w-full" asChild variant="outline">
+                                                 <Button size="lg" className="w-full" asChild>
                                                     <Link href="/cart">
                                                         Proceed Further
                                                     </Link>
@@ -719,7 +723,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                                     Add to Cart
                                                 </Button>
                                             )}
-                                            <Button size="lg" className="w-full" onClick={handleBuyNow}>
+                                            <Button size="lg" className="w-full" onClick={handleBuyNow} variant="default">
                                                 Buy Now
                                             </Button>
                                         </>
@@ -863,7 +867,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                             
                             <Card>
                                  <CardHeader className="flex items-center justify-between">
-                                    <CardTitle>Ratings &amp; Reviews</CardTitle>
+                                    <CardTitle>Ratings & Reviews</CardTitle>
                                     <span className="text-sm font-medium text-muted-foreground">{reviews.length} Reviews</span>
                                 </CardHeader>
                                 <CardContent className="space-y-4">
@@ -906,8 +910,8 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                             
                             <Card>
                                 <CardHeader className="flex items-center justify-between">
-                                    <CardTitle>Questions &amp; Answers</CardTitle>
-                                    <span className="text-sm font-medium text-muted-foreground">{mockQandA.length} Q&amp;As</span>
+                                    <CardTitle>Questions & Answers</CardTitle>
+                                    <span className="text-sm font-medium text-muted-foreground">{mockQandA.length} Q&As</span>
                                 </CardHeader>
                                 <CardContent className="space-y-4">
                                     {mockQandA.slice(0,3).map(qa => (
@@ -924,11 +928,11 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                 <CardFooter>
                                     <Dialog open={isQnaDialogOpen} onOpenChange={setIsQnaDialogOpen}>
                                         <DialogTrigger asChild>
-                                            <Button variant="outline" className="w-full">View All &amp; Ask a Question</Button>
+                                            <Button variant="outline" className="w-full">View All & Ask a Question</Button>
                                         </DialogTrigger>
                                         <DialogContent className="max-w-2xl">
                                             <DialogHeader>
-                                                <DialogTitle>Questions &amp; Answers</DialogTitle>
+                                                <DialogTitle>Questions & Answers</DialogTitle>
                                                 <DialogDescription>
                                                     Find answers to your questions or ask a new one.
                                                 </DialogDescription>
@@ -981,7 +985,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                                     <div className="flex items-center gap-1 text-xs text-amber-400 mt-1">
                                                         <Star className="w-4 h-4 fill-current" />
                                                         <span>4.8</span>
-                                                        <span className="text-muted-foreground">({(p as any).reviews || '1.2k'})</span>
+                                                        <span className="text-muted-foreground">({(product as any).reviews || '1.2k'})</span>
                                                     </div>
                                                     <div className="flex items-center gap-4 text-xs text-muted-foreground mt-1">
                                                         <div className="flex items-center gap-1"><Package className="w-3 h-3" /> {p.stock} left</div>
