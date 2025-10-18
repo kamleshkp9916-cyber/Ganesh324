@@ -100,7 +100,7 @@ export default function ListedProductsPage() {
       {searchResults.length > 0 ? (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
           {searchResults.map((p) => (
-            <Link href={`/product/${p.key || p.id}`} key={p.id} className="group block">
+            <Link href={`/product/${p.key}`} key={p.id} className="group block">
               <Card className="w-full group overflow-hidden">
                 <div className="aspect-square bg-muted rounded-t-lg overflow-hidden relative">
                   <Image

@@ -129,7 +129,7 @@ export default function CategoryPage() {
                         {sortedProducts.map((product: any) => {
                             const isNew = product.createdAt && differenceInDays(new Date(), new Date(product.createdAt)) <= 7;
                             return (
-                                <Link href={`/product/${product.key}`} key={product.id} className="group block">
+                                <Link href={`/product/${product.key}`} key={product.key} className="group block">
                                     <Card className="w-full overflow-hidden h-full flex flex-col">
                                         <div className="relative aspect-square bg-muted">
                                             {isNew && (

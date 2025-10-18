@@ -102,7 +102,7 @@ export default function WishlistPage() {
                             : 'N/A';
 
                         return (
-                             <Link href={`/product/${product.key}`} key={product.id} className="group block">
+                             <Link href={`/product/${product.key}`} key={product.key} className="group block">
                                 <Card className="w-full overflow-hidden h-full flex flex-col">
                                     <div className="relative aspect-square bg-muted">
                                         <Image 
@@ -156,5 +156,3 @@ export default function WishlistPage() {
     </div>
   );
 }
-
-    
