@@ -15,13 +15,14 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useAuth } from '@/hooks/use-auth';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { formatDistanceToNow } from 'date-fns';
 
 const mockQandA = [
-    { id: 1, question: "Does this camera come with a roll of film?", questioner: "Alice", answer: "Yes, it comes with one 24-exposure roll of color film to get you started!", answerer: "GadgetGuru" },
-    { id: 2, question: "Is the battery for the light meter included?", questioner: "Bob", answer: "It is! We include a fresh battery so you can start shooting right away.", answerer: "GadgetGuru" },
-    { id: 3, question: "What is the warranty on this?", questioner: "Charlie", answer: "We offer a 6-month warranty on all our refurbished vintage cameras.", answerer: "GadgetGuru" },
-    { id: 4, question: "Can you ship this to the UK?", questioner: "Diana", answer: null, answerer: null },
-    { id: 5, question: "Is the camera strap original?", questioner: "Eve", answer: "This one comes with a new, high-quality leather strap, not the original.", answerer: "GadgetGuru" },
+    { id: 1, question: "Does this camera come with a roll of film?", questioner: "Alice", answer: "Yes, it comes with one 24-exposure roll of color film to get you started!", answerer: "GadgetGuru", timestamp: new Date(Date.now() - 2 * 60 * 1000) },
+    { id: 2, question: "Is the battery for the light meter included?", questioner: "Bob", answer: "It is! We include a fresh battery so you can start shooting right away.", answerer: "GadgetGuru", timestamp: new Date(Date.now() - 5 * 60 * 1000) },
+    { id: 3, question: "What is the warranty on this?", questioner: "Charlie", answer: "We offer a 6-month warranty on all our refurbished vintage cameras.", answerer: "GadgetGuru", timestamp: new Date(Date.now() - 10 * 60 * 1000) },
+    { id: 4, question: "Can you ship this to the UK?", questioner: "Diana", answer: null, answerer: null, timestamp: new Date(Date.now() - 30 * 60 * 1000) },
+    { id: 5, question: "Is the camera strap original?", questioner: "Eve", answer: "This one comes with a new, high-quality leather strap, not the original.", answerer: "GadgetGuru", timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000) },
 ];
 
 export default function ProductQnaPage() {
@@ -102,7 +103,10 @@ export default function ProductQnaPage() {
                                                     <AvatarFallback>{qa.questioner.charAt(0)}</AvatarFallback>
                                                 </Avatar>
                                                 <div>
-                                                    <p className="font-semibold text-sm">{qa.questioner}</p>
+                                                    <div className="flex items-center gap-2">
+                                                        <p className="font-semibold text-sm">{qa.questioner}</p>
+                                                        <p className="text-xs text-muted-foreground">{formatDistanceToNow(qa.timestamp, { addSuffix: true })}</p>
+                                                    </div>
                                                     <p className="text-sm">{qa.question}</p>
                                                 </div>
                                             </div>
@@ -113,7 +117,10 @@ export default function ProductQnaPage() {
                                                         <AvatarFallback>{qa.answerer.charAt(0)}</AvatarFallback>
                                                     </Avatar>
                                                     <div>
-                                                        <p className="font-semibold text-sm text-primary">{qa.answerer}</p>
+                                                         <div className="flex items-center gap-2">
+                                                            <p className="font-semibold text-sm text-primary">{qa.answerer}</p>
+                                                            <p className="text-xs text-muted-foreground">{formatDistanceToNow(new Date(qa.timestamp.getTime() + 60000), { addSuffix: true })}</p>
+                                                        </div>
                                                         <p className="text-sm text-muted-foreground">{qa.answer}</p>
                                                     </div>
                                                 </div>
