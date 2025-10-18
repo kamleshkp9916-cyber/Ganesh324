@@ -224,7 +224,6 @@ export function ProductDetailClient({ productId }: { productId: string }) {
     }, [user, product]);
     
     useEffect(() => {
-        // Clear search results when navigating to a new product
         setShowSearchResults(false);
         setSearchQuery('');
         setSearchResults([]);
@@ -469,6 +468,10 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                  toast({ variant: 'destructive', title: 'Already Reviewed', description: 'You have already submitted a review for this product.' });
                  return;
             }
+             if (!hasPurchased) {
+                toast({ variant: 'destructive', title: 'Purchase Required', description: 'You must purchase this item to leave a review.' });
+                return;
+            }
             setEditingReview(undefined);
             setIsReviewDialogOpen(true);
         });
@@ -493,6 +496,8 @@ export function ProductDetailClient({ productId }: { productId: string }) {
         setSearchQuery(query);
         if (results.length > 0 || query.length > 0) {
             setShowSearchResults(true);
+        } else {
+            setShowSearchResults(false);
         }
     }, []);
 
@@ -728,16 +733,14 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                         <span>Find Similar Products</span>
                                     </Button>
                                     {sellerLiveStream && (
-                                        <div className="mt-2 text-center">
+                                         <div className="mt-2 text-center">
                                             <Button asChild variant="secondary" className="w-full">
                                                 <Link href={`/stream/${sellerLiveStream.id}`}>
                                                     <Video className="mr-2 h-4 w-4 text-primary" />
-                                                    {sellerLiveStream.status === 'live' ? 'View Live Stream' : 'View Recorded Stream'}
+                                                    View Live Stream
                                                 </Link>
                                             </Button>
-                                            <p className="text-xs text-muted-foreground mt-1">
-                                                Get a better understanding of this product by seeing it in action.
-                                            </p>
+                                             <p className="text-xs text-muted-foreground mt-1">Get a better understanding of this product by seeing it in action.</p>
                                         </div>
                                     )}
                                 </div>
@@ -862,12 +865,13 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                             </Button>
                                         )}
                                     </div>
-                                     <div className="mt-4 space-y-4">
+                                    <Separator />
+                                     <div className="space-y-4">
                                         {user && userData?.addresses && userData.addresses.length > 0 ? (
                                             <div className="flex items-start gap-3">
                                                 <Truck className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
                                                 <div>
-                                                    <h4 className="font-semibold">Delivery Information</h4>
+                                                    <h4 className="font-semibold text-base">Delivery Information</h4>
                                                     <div className="text-sm mt-1">
                                                         <p>Deliver to <span className="font-semibold">{userData.addresses[0].name}</span></p>
                                                         <p className="text-muted-foreground">{userData.addresses[0].village}, {userData.addresses[0].city}, {userData.addresses[0].state} - {userData.addresses[0].pincode}</p>
@@ -880,7 +884,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                             <div className="flex items-start gap-3">
                                                 <Truck className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
                                                 <div>
-                                                    <h4 className="font-semibold">Delivery Information</h4>
+                                                     <h4 className="font-semibold text-base">Delivery Information</h4>
                                                     <div className="flex items-center gap-2 mt-1">
                                                         <Input value={pincode} onChange={(e) => setPincode(e.target.value)} placeholder="Enter Pincode" className="max-w-xs h-9" />
                                                         <Button variant="outline" size="sm" onClick={handlePincodeCheck} disabled={checkingPincode}>
@@ -895,28 +899,25 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                                 </div>
                                             </div>
                                         )}
-                                        <Separator />
-                                         <div className="space-y-4">
-                                            <div className="flex items-start gap-3">
-                                                <RotateCcw className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                                                <div>
-                                                    <h4 className="font-semibold">7-Day Return Policy</h4>
-                                                    <p className="text-xs text-muted-foreground">Return this item within 7 days of delivery for a full refund.</p>
-                                                </div>
+                                        <div className="flex items-start gap-3">
+                                            <RotateCcw className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                                            <div>
+                                                <h4 className="font-semibold text-base">7-Day Return Policy</h4>
+                                                <p className="text-xs text-muted-foreground">Return this item within 7 days of delivery for a full refund.</p>
                                             </div>
-                                            <div className="flex items-start gap-3">
+                                        </div>
+                                         <div className="flex items-start gap-3">
                                                 <Banknote className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
                                                 <div>
-                                                    <h4 className="font-semibold">Pay on Delivery</h4>
+                                                    <h4 className="font-semibold text-base">Pay on Delivery</h4>
                                                     <p className="text-xs text-muted-foreground">Pay with cash at your doorstep. Available on eligible orders.</p>
                                                 </div>
                                             </div>
-                                            <div className="flex items-start gap-3">
-                                                <ShieldCheck className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                                                <div>
-                                                    <h4 className="font-semibold">100% Genuine</h4>
-                                                    <p className="text-xs text-muted-foreground">All products are sourced directly from brands and verified sellers.</p>
-                                                </div>
+                                        <div className="flex items-start gap-3">
+                                            <ShieldCheck className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                                            <div>
+                                                <h4 className="font-semibold text-base">100% Genuine</h4>
+                                                <p className="text-xs text-muted-foreground">All products are sourced directly from brands and verified sellers.</p>
                                             </div>
                                         </div>
                                     </div>
@@ -954,7 +955,6 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                         </div>
                                     </CardContent>
                                 </Card>
-                                <Separator />
                                 <div className="p-4 border rounded-lg bg-card">
                                   <div className="flex items-center justify-between">
                                       <h3 className="text-lg font-semibold">Sold By</h3>
@@ -978,7 +978,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                               </div>
                                 <Separator />
                                 <Card>
-                                    <CardHeader className="flex items-center justify-between">
+                                    <CardHeader className="flex flex-row items-center justify-between">
                                         <CardTitle>Ratings & Reviews</CardTitle>
                                         <span className="text-sm font-medium text-muted-foreground">{reviews.length} Reviews</span>
                                     </CardHeader>
@@ -1020,7 +1020,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                 <Separator/>
                                 
                                 <Card>
-                                    <CardHeader className="flex items-center justify-between">
+                                    <CardHeader className="flex flex-row items-center justify-between">
                                         <CardTitle>Questions & Answers</CardTitle>
                                         <span className="text-sm font-medium text-muted-foreground">{mockQandA.length} Q&As</span>
                                     </CardHeader>
@@ -1037,46 +1037,9 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                         ))}
                                     </CardContent>
                                     <CardFooter>
-                                        <Dialog open={isQnaDialogOpen} onOpenChange={setIsQnaDialogOpen}>
-                                            <DialogTrigger asChild>
-                                                <Button variant="outline" className="w-full">View All & Ask a Question</Button>
-                                            </DialogTrigger>
-                                            <DialogContent className="max-w-2xl">
-                                                <DialogHeader>
-                                                    <DialogTitle>Questions & Answers</DialogTitle>
-                                                    <DialogDescription>
-                                                        Find answers to your questions or ask a new one.
-                                                    </DialogDescription>
-                                                </DialogHeader>
-                                                <ScrollArea className="h-96 pr-6 -mr-6">
-                                                    <div className="space-y-6">
-                                                        {mockQandA.map(qa => (
-                                                            <div key={qa.id}>
-                                                                <p className="font-semibold text-sm">Q: {qa.question}</p>
-                                                                {qa.answer ? (
-                                                                    <p className="text-sm text-muted-foreground mt-1">A: {qa.answer}</p>
-                                                                ) : (
-                                                                    <p className="text-sm text-muted-foreground mt-1 italic">No answer yet.</p>
-                                                                )}
-                                                            </div>
-                                                        ))}
-                                                    </div>
-                                                </ScrollArea>
-                                                <div className="mt-4 pt-4 border-t">
-                                                    <h4 className="font-semibold mb-2">Ask a New Question</h4>
-                                                    <div className="flex items-center gap-2">
-                                                        <Input
-                                                            value={newQuestion}
-                                                            onChange={(e) => setNewQuestion(e.target.value)}
-                                                            placeholder="Type your question here..."
-                                                        />
-                                                        <Button onClick={handleAskQuestion} disabled={!newQuestion.trim()}>
-                                                            <Send className="w-4 h-4" />
-                                                        </Button>
-                                                    </div>
-                                                </div>
-                                            </DialogContent>
-                                        </Dialog>
+                                        <Button asChild variant="outline" className="w-full">
+                                            <Link href={`/product/${productId}/qna`}>View All & Ask a Question</Link>
+                                        </Button>
                                     </CardFooter>
                                 </Card>
 
@@ -1085,7 +1048,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                     <h2 className="text-2xl font-bold mb-4">Related Product Streams</h2>
                                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                                         {relatedStreams.map((stream: any) => (
-                                             <Link href={`/stream/${stream.id}`} key={stream.id} className="group block">
+                                            <Link href={`/stream/${stream.id}`} key={stream.id} className="group block">
                                                 <div className="relative aspect-video bg-muted rounded-lg overflow-hidden">
                                                     <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
                                                     <div className="absolute top-2 right-2 z-10">
