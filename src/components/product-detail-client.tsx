@@ -556,8 +556,8 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                         <div className="relative">
                                             <Dialog>
                                                 <DialogTrigger asChild>
-                                                     <div className="aspect-square w-full relative bg-muted rounded-lg overflow-hidden mb-4 cursor-pointer group">
-                                                         {selectedImage && (
+                                                    <div className="aspect-square w-full relative bg-muted rounded-lg overflow-hidden mb-4 cursor-pointer group">
+                                                        {selectedImage && (
                                                             <Image
                                                                 src={selectedImage}
                                                                 alt={product.name}
@@ -566,11 +566,11 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                                                 className="object-contain group-hover:scale-105 transition-transform"
                                                             />
                                                         )}
-                                                         {isScanning && (
+                                                        {isScanning && (
                                                             <div className="absolute inset-0 bg-black/30 overflow-hidden">
-                                                                <div className="shimmer-scan"></div>
+                                                                <div className="scan-animation"></div>
                                                             </div>
-                                                         )}
+                                                        )}
                                                     </div>
                                                 </DialogTrigger>
                                                 <DialogContent className="max-w-3xl max-h-[90vh]">
@@ -586,6 +586,35 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                                     </div>
                                                 </DialogContent>
                                             </Dialog>
+                                            
+                                            <div className="absolute top-2 right-2 z-20 flex flex-col gap-2 items-end lg:hidden">
+                                                <Button variant="ghost" size="icon" className="h-9 w-9 bg-background/60 backdrop-blur-sm" onClick={handleWishlistToggle}>
+                                                    <Heart className={cn("h-5 w-5", wishlisted ? "fill-red-500 text-red-500" : "text-muted-foreground")} />
+                                                </Button>
+                                                <Button variant="ghost" size="icon" className="h-9 w-9 bg-background/60 backdrop-blur-sm" onClick={handleShare}>
+                                                    <Share2 className="h-5 w-5" />
+                                                </Button>
+                                                <AlertDialog>
+                                                    <AlertDialogTrigger asChild>
+                                                        <Button variant="ghost" size="icon" className="h-9 w-9 bg-background/60 backdrop-blur-sm">
+                                                            <Flag className="h-5 w-5" />
+                                                        </Button>
+                                                    </AlertDialogTrigger>
+                                                    <AlertDialogContent>
+                                                        <AlertDialogHeader>
+                                                            <AlertDialogTitle>Report Product?</AlertDialogTitle>
+                                                            <AlertDialogDescription>
+                                                                If this product violates our community guidelines, please report it. Our team will review it shortly.
+                                                            </AlertDialogDescription>
+                                                        </AlertDialogHeader>
+                                                        <AlertDialogFooter>
+                                                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                            <AlertDialogAction onClick={handleReportProduct}>Confirm Report</AlertDialogAction>
+                                                        </AlertDialogFooter>
+                                                    </AlertDialogContent>
+                                                </AlertDialog>
+                                            </div>
+
                                             <div className="absolute bottom-2 right-2 z-20">
                                                  <div className="relative">
                                                       <Button size="sm" className="rounded-full bg-black/50 text-white backdrop-blur-sm flex items-center gap-1.5 h-8" onClick={handleSimilarClick} disabled={isScanning}>
@@ -632,13 +661,9 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                         <div className="flex justify-between items-start gap-4">
                                             <div className="flex-1">
                                                 {product.brand && <p className="text-sm font-medium text-primary mb-1">{product.brand}</p>}
-                                                <div className="flex items-center gap-2 flex-wrap mb-2">
-                                                    <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">{product.name}</h1>
-                                                    {product.key && <Badge variant="outline">{product.key}</Badge>}
-                                                    {product.isFromStream && <Badge variant="purple"><Video className="mr-1 h-3 w-3" /> From Stream</Badge>}
-                                                </div>
+                                                <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">{product.name}</h1>
                                             </div>
-                                            <div className="flex items-center ml-2">
+                                            <div className="hidden lg:flex items-center ml-2">
                                                 <Button variant="ghost" size="icon" onClick={handleWishlistToggle}>
                                                     <Heart className={cn("h-6 w-6", wishlisted ? "fill-red-500 text-red-500" : "text-muted-foreground")} />
                                                 </Button>
@@ -666,7 +691,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                                 </AlertDialog>
                                             </div>
                                         </div>
-                                        <p className="text-muted-foreground">{product.description}</p>
+                                         <p className="text-muted-foreground mt-2">{product.description}</p>
                                     </div>
                                     <div>
                                         <div className="flex items-center gap-4 flex-wrap">
@@ -821,7 +846,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                             <div className="md:col-span-2 space-y-8 mt-8">
                                 
                                 <Card>
-                                    <CardHeader className="flex flex-row items-center justify-between pb-2 mb-2">
+                                    <CardHeader className="flex flex-row items-center justify-between pb-0 mb-0">
                                         <CardTitle className="text-base">Available Offers</CardTitle>
                                         {allOffers.length > 1 && (
                                             <Sheet>
@@ -849,7 +874,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                             </Sheet>
                                         )}
                                     </CardHeader>
-                                    <CardContent className="pb-2 space-y-3">
+                                    <CardContent className="space-y-3">
                                         {allOffers.slice(0,1).map((offer, index) => (
                                             <div key={index} className="flex items-start gap-3 text-sm">
                                                 <div className="flex-shrink-0 mt-1">{offer.icon}</div>
