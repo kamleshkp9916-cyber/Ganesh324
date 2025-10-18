@@ -32,7 +32,12 @@ export function generateKeywords(product: ProductForKeywords) {
   const tokens: string[] = [];
   const title = normalize(product.name || '');
 
-  // Add full words
+  // Add the full title as a single token for exact matches
+  if (title) {
+    tokens.push(title);
+  }
+
+  // Add full words from the title
   title.split(' ').forEach(t => {
     if (t.length > 1) tokens.push(t);
   });
