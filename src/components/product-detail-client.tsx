@@ -860,38 +860,36 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                 </Card>
                                 <Separator />
 
-                                <Card>
-                                    <CardHeader className="flex items-center justify-between flex-row">
-                                        <CardTitle>Highlights</CardTitle>
+                                <div className="space-y-4">
+                                    <div className="flex items-center justify-between">
+                                        <h3 className="text-xl font-bold">Highlights</h3>
                                         <Button asChild variant="link">
                                             <Link href={`/product/${productId}/details`}>View Details</Link>
                                         </Button>
-                                    </CardHeader>
-                                    <CardContent className="overflow-hidden">
-                                        <div className="grid md:grid-cols-2 gap-6 items-center">
-                                            <div className="relative aspect-square md:aspect-[4/3] bg-muted rounded-lg overflow-hidden">
-                                                <Image
-                                                    src={product.images[1] || product.images[0]}
-                                                    alt={`${product.name} highlight`}
-                                                    fill
-                                                    sizes="(max-width: 768px) 100vw, 50vw"
-                                                    className="object-cover"
-                                                    data-ai-hint={`${product.hint} detail`}
-                                                />
-                                            </div>
-                                            <div className="p-2">
-                                                <ul className="space-y-3 text-sm">
-                                                    {currentHighlights.map((highlight: string, index: number) => (
-                                                        <li key={index} className="flex items-start gap-3">
-                                                            <CheckCircle className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
-                                                            <span className="text-muted-foreground">{highlight}</span>
-                                                        </li>
-                                                    ))}
-                                                </ul>
-                                            </div>
+                                    </div>
+                                    <div className="grid md:grid-cols-2 gap-6 items-center">
+                                        <div className="relative aspect-square md:aspect-[4/3] bg-muted rounded-lg overflow-hidden">
+                                            <Image
+                                                src={product.images[1] || product.images[0]}
+                                                alt={`${product.name} highlight`}
+                                                fill
+                                                sizes="(max-width: 768px) 100vw, 50vw"
+                                                className="object-cover"
+                                                data-ai-hint={`${product.hint} detail`}
+                                            />
                                         </div>
-                                    </CardContent>
-                                </Card>
+                                        <div className="p-2">
+                                            <ul className="space-y-3 text-sm">
+                                                {currentHighlights.map((highlight: string, index: number) => (
+                                                    <li key={index} className="flex items-start gap-3">
+                                                        <CheckCircle className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
+                                                        <span className="text-muted-foreground">{highlight}</span>
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
 
                                 <Separator />
                                 
