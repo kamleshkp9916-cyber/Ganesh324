@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import {
@@ -229,7 +228,7 @@ const productToSellerMapping: { [key: string]: { name: string; avatarUrl: string
     'prod_27': { name: 'AudioBlast', avatarUrl: 'https://placehold.co/80x80.png', uid: 'audioblast-uid' },
     'prod_28': { name: 'LittleSprout', avatarUrl: 'https://placehold.co/80x80.png', uid: 'littlesprout-uid' },
     'prod_29': { name: 'StretchyPants', avatarUrl: 'https://placehold.co/80x80.png', uid: 'stretchypants-uid' },
-};
+];
 
 
 const ReportDialog = ({ onSubmit }: { onSubmit: (reason: string, details: string) => void }) => {
@@ -667,7 +666,6 @@ export default function StreamPage() {
         // Fallback to show some streams if none match the category, excluding the current one
         const fallbackStreams = liveSellers.filter(s => s.id !== streamId);
         
-        // Add from fallback until we have 6 total, avoiding duplicates
         let i = 0;
         while(streams.length < 6 && i < fallbackStreams.length) {
             if (!streams.some(s => s.id === fallbackStreams[i].id)) {
@@ -1328,7 +1326,7 @@ const MobileLayout = React.memo(({ handlers, chatMessages, walletBalance, setIsS
                     </ScrollArea>
                 ) : (
                     <div className="h-full flex flex-col bg-background">
-                        <ChatPanel {...{...props, handlers, chatMessages, walletBalance}} onSuperChatClick={() => setIsSuperChatOpen(true)} onClose={() => props.setMobileView('stream')} />
+                        <ChatPanel {...{...props, handlers, chatMessages}} onClose={() => props.setMobileView('stream')} />
                     </div>
                 )}
             </div>
@@ -1485,9 +1483,14 @@ const ChatPanel = ({
   seller: any;
   chatMessages: any[];
   pinnedMessages: any[];
-  handlers: any;
-  onClose: () => void;
+  activeAuction: any;
+  auctionTime: number | null;
+  highestBid: number;
+  totalBids: number;
   walletBalance: number;
+  handlers: any;
+  inlineAuctionCardRefs: React.MutableRefObject<Record<string, HTMLDivElement | null>>;
+  onClose: () => void;
   onSuperChatClick: () => void;
 }) => {
   const [newMessage, setNewMessage] = useState("");
@@ -1537,7 +1540,7 @@ const ChatPanel = ({
 
   return (
     <div className='h-full flex flex-col bg-black'>
-      <header className="p-3 flex items-center justify-between z-10 flex-shrink-0 h-16">
+      <header className="p-3 flex items-center justify-between z-10 flex-shrink-0 h-16 border-b border-[rgba(255,255,255,0.04)] sticky top-0 bg-[#0f1113]/80 backdrop-blur-sm">
         <h3 className="font-bold text-lg text-white">Live Chat</h3>
         <div className="flex items-center gap-1">
           <Popover>
@@ -1701,5 +1704,3 @@ const ChatPanel = ({
     </div>
   );
 };
-
-    
