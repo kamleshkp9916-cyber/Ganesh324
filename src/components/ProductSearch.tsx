@@ -1,3 +1,4 @@
+
 "use client"
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
@@ -13,6 +14,7 @@ import { productDetails } from '@/lib/product-data';
 
 interface Product {
     id: string;
+    key: string;
     name: string;
     keywords: string[];
     [key: string]: any;
@@ -131,7 +133,7 @@ export default function ProductSearch({ onSearchComplete }: ProductSearchProps) 
               {suggestions.map(suggestion => (
                   <Link 
                       key={suggestion.id} 
-                      href={`/product/${suggestion.key || suggestion.id}`} 
+                      href={`/product/${suggestion.key}`} 
                       className="block p-2 hover:bg-accent cursor-pointer text-sm"
                       onClick={() => {
                           setQ('');
@@ -148,4 +150,3 @@ export default function ProductSearch({ onSearchComplete }: ProductSearchProps) 
     </div>
   );
 }
-    
