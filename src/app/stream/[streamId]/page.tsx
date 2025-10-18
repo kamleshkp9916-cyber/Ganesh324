@@ -228,7 +228,11 @@ const productToSellerMapping: { [key: string]: { name: string; avatarUrl: string
     'prod_27': { name: 'AudioBlast', avatarUrl: 'https://placehold.co/80x80.png', uid: 'audioblast-uid' },
     'prod_28': { name: 'LittleSprout', avatarUrl: 'https://placehold.co/80x80.png', uid: 'littlesprout-uid' },
     'prod_29': { name: 'StretchyPants', avatarUrl: 'https://placehold.co/80x80.png', uid: 'stretchypants-uid' },
-];
+    'prod_30': { name: 'Everyday', avatarUrl: 'https://placehold.co/80x80.png', uid: 'everyday-uid' },
+    'prod_31': { name: 'SunChaser', avatarUrl: 'https://placehold.co/80x80.png', uid: 'sunchaser-uid' },
+    'prod_32': { name: 'Elegance', avatarUrl: 'https://placehold.co/80x80.png', uid: 'elegance-uid' },
+    'prod_33': { name: 'SleekFit', avatarUrl: 'https://placehold.co/80x80.png', uid: 'sleekfit-uid' }
+};
 
 
 const ReportDialog = ({ onSubmit }: { onSubmit: (reason: string, details: string) => void }) => {
@@ -1475,10 +1479,14 @@ const ChatPanel = ({
   seller,
   chatMessages,
   pinnedMessages,
-  handlers,
-  onClose,
+  activeAuction,
+  auctionTime,
+  highestBid,
+  totalBids,
   walletBalance,
-  onSuperChatClick,
+  handlers,
+  inlineAuctionCardRefs,
+  onClose,
 }: {
   seller: any;
   chatMessages: any[];
@@ -1491,7 +1499,6 @@ const ChatPanel = ({
   handlers: any;
   inlineAuctionCardRefs: React.MutableRefObject<Record<string, HTMLDivElement | null>>;
   onClose: () => void;
-  onSuperChatClick: () => void;
 }) => {
   const [newMessage, setNewMessage] = useState("");
   const [replyingTo, setReplyingTo] = useState<{ name: string; id: string } | null>(null);
@@ -1693,7 +1700,7 @@ const ChatPanel = ({
                      </PopoverContent>
                 </Popover>
              </div>
-             <Button type="button" variant="ghost" size="icon" className="rounded-full flex-shrink-0 h-11 w-11 text-muted-foreground hover:text-white" onClick={onSuperChatClick}>
+             <Button type="button" variant="ghost" size="icon" className="rounded-full flex-shrink-0 h-11 w-11 text-muted-foreground hover:text-white" onClick={handlers.onSuperChatClick}>
                  <DollarSign className="h-5 w-5"/>
              </Button>
              <Button type="submit" size="icon" disabled={!newMessage.trim()} className="rounded-full flex-shrink-0 h-11 w-11 bg-[#E43F3F] hover:bg-[#E43F3F]/90 active:scale-105 transition-transform">
