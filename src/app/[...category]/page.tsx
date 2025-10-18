@@ -3,7 +3,7 @@
 
 import { useRouter, useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, ShoppingCart, Star, Search, ChevronDown, Users, Package } from 'lucide-react';
+import { ArrowLeft, ShoppingCart, Star, Search, ChevronDown, Users, Package, Sparkles } from 'lucide-react';
 import { productDetails } from '@/lib/product-data';
 import Link from 'next/link';
 import { Card } from '@/components/ui/card';
@@ -20,14 +20,16 @@ import React, { useState, useMemo } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { differenceInDays } from 'date-fns';
 import { useDebounce } from '@/hooks/use-debounce';
-import { normalize } from '@/lib/generateKeywords';
+import { normalize, generateKeywords } from '@/lib/generateKeywords';
+import ProductSearch from '@/components/ProductSearch';
 
 export default function CategoryPage() {
     const router = useRouter();
     const params = useParams();
     const [sortOption, setSortOption] = useState("relevance");
+    const [searchResults, setSearchResults] = useState<any[]>([]);
+    const [showSearchResults, setShowSearchResults] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
-    const debouncedSearchQuery = useDebounce(searchQuery, 350);
     
     let { category: categoryPath } = params;
 
@@ -48,7 +50,7 @@ export default function CategoryPage() {
         .map(word => word.charAt(0).toUpperCase() + word.slice(1))
         .join(' ');
         
-    const allProducts = Object.values(productDetails); 
+    const allProducts = Object.values(productDetails).map(p => ({...p, keywords: generateKeywords(p)}));
 
     const categoryProducts = useMemo(() => {
         return allProducts.filter(product => {
@@ -64,21 +66,8 @@ export default function CategoryPage() {
         });
     }, [allProducts, categorySlug, subCategorySlug]);
 
-    const searchedProducts = useMemo(() => {
-        if (!debouncedSearchQuery) {
-            return categoryProducts;
-        }
-        const lowercasedQuery = normalize(debouncedSearchQuery);
-        return categoryProducts.filter(product => {
-            const searchableText = `${normalize(product.name)} ${normalize(product.brand)} ${product.keywords?.join(' ')}`;
-            return searchableText.includes(lowercasedQuery);
-        });
-
-    }, [debouncedSearchQuery, categoryProducts]);
-
-
     const sortedProducts = useMemo(() => {
-        let sorted = [...searchedProducts];
+        let sorted = showSearchResults ? searchResults : [...categoryProducts];
 
         if (sortOption === 'price-asc') {
             sorted.sort((a, b) => parseFloat(a.price.replace(/[^0-9.-]+/g,"")) - parseFloat(b.price.replace(/[^0-9.-]+/g,"")));
@@ -88,13 +77,26 @@ export default function CategoryPage() {
 
         return sorted;
 
-    }, [searchedProducts, sortOption]);
+    }, [categoryProducts, searchResults, showSearchResults, sortOption]);
     
+    const onSearchComplete = (results: any[], query: string) => {
+        setSearchResults(results);
+        setSearchQuery(query);
+        setShowSearchResults(true);
+    };
 
     return (
         <div className="min-h-screen bg-background text-foreground flex flex-col">
             <header className="p-4 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-sm z-30 border-b">
-                <Button variant="ghost" size="icon" onClick={() => router.back()}>
+                <Button variant="ghost" size="icon" onClick={() => {
+                    if (showSearchResults) {
+                        setShowSearchResults(false);
+                        setSearchQuery('');
+                        setSearchResults([]);
+                    } else {
+                        router.back()
+                    }
+                }}>
                     <ArrowLeft className="h-6 w-6" />
                 </Button>
                 <h1 className="text-xl font-bold truncate">{pageTitle}</h1>
@@ -108,13 +110,7 @@ export default function CategoryPage() {
             <main className="container mx-auto py-6">
                  <div className="p-4 border-b flex flex-col sm:flex-row items-center gap-4 sticky top-[65px] bg-background/80 backdrop-blur-sm z-20 -mx-4 sm:mx-0">
                     <div className="relative flex-1 w-full">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                        <Input 
-                            placeholder="Search in this category..."
-                            className="rounded-full pl-10"
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                        />
+                        <ProductSearch onSearchComplete={onSearchComplete} initialProducts={categoryProducts} />
                     </div>
                      <div className="flex items-center gap-2 w-full sm:w-auto">
                         <DropdownMenu>
@@ -155,6 +151,11 @@ export default function CategoryPage() {
                                                 className="object-cover transition-transform group-hover:scale-105"
                                                 data-ai-hint={product.hint}
                                             />
+                                            <div className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <Button size="icon" className="h-8 w-8 rounded-full bg-black/50 text-white backdrop-blur-sm">
+                                                    <Sparkles className="h-4 w-4" />
+                                                </Button>
+                                            </div>
                                         </div>
                                         <div className="p-3 flex-grow flex flex-col">
                                             <h4 className="font-semibold truncate text-sm flex-grow">{product.name}</h4>
@@ -184,7 +185,3 @@ export default function CategoryPage() {
         </div>
     );
 }
-
-    
-
-    
