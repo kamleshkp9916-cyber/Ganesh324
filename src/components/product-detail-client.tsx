@@ -537,16 +537,22 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                     <CardContent className="p-4">
                                         <Dialog>
                                             <DialogTrigger asChild>
-                                                <div className="aspect-square w-full relative bg-muted rounded-lg overflow-hidden mb-4 cursor-pointer">
+                                                <div className="aspect-square w-full relative bg-muted rounded-lg overflow-hidden mb-4 cursor-pointer group">
                                                     {selectedImage && (
                                                         <Image
                                                             src={selectedImage}
                                                             alt={product.name}
                                                             fill
                                                             sizes="(max-width: 768px) 100vw, 50vw"
-                                                            className="object-contain"
+                                                            className="object-contain group-hover:scale-105 transition-transform"
                                                         />
                                                     )}
+                                                     <div className="absolute bottom-2 right-2">
+                                                        <Button size="sm" className="rounded-full bg-black/50 text-white backdrop-blur-sm flex items-center gap-1.5 h-8">
+                                                            <Sparkles className="h-4 w-4" />
+                                                            <span className="text-xs">Similar Product</span>
+                                                        </Button>
+                                                    </div>
                                                 </div>
                                             </DialogTrigger>
                                             <DialogContent className="max-w-3xl max-h-[90vh]">
