@@ -121,7 +121,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
     
     // Search State
     const [searchResults, setSearchResults] = useState<any[]>([]);
-    const [isSearching, setIsSearching] = useState(false);
+    const [showSearchResults, setShowSearchResults] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
 
     useEffect(() => {
@@ -681,14 +681,12 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                         </div>
                                     )}
                                 
-                                        <div className="flex flex-col gap-2">
+                                    <div className="flex flex-col gap-2">
                                         {(variantStock !== undefined && variantStock > 0) ? (
-                                            <>
+                                             <div className="flex flex-col sm:flex-row gap-2">
                                                 {inCart ? (
-                                                     <Button size="lg" className="w-full" variant="outline" asChild>
-                                                        <Link href="/cart">
-                                                            Proceed Further
-                                                        </Link>
+                                                    <Button size="lg" className="w-full" asChild>
+                                                        <Link href="/cart">Proceed Further</Link>
                                                     </Button>
                                                 ) : (
                                                     <Button size="lg" className="w-full" variant="outline" onClick={handleAddToCart}>
@@ -696,10 +694,10 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                                         Add to Cart
                                                     </Button>
                                                 )}
-                                                 <Button size="lg" className="w-full" onClick={handleBuyNow}>
+                                                <Button size="lg" className="w-full" onClick={handleBuyNow}>
                                                     Buy Now
                                                 </Button>
-                                            </>
+                                            </div>
                                         ) : (
                                             <Button size="lg" className="w-full" disabled>
                                                 Out of Stock
@@ -1044,7 +1042,6 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                         </div>
                     )}
                 </main>
-                )}
                 <Dialog open={isReviewDialogOpen} onOpenChange={setIsReviewDialogOpen}>
                     <ReviewDialog 
                         order={{ products: [product] } as any} 

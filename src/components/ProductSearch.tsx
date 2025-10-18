@@ -30,18 +30,20 @@ export default function ProductSearch({ onSearchComplete }: ProductSearchProps) 
   const [suggestions, setSuggestions] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);
   const [popoverOpen, setPopoverOpen] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const tokenize = (text: string): string[] => {
     if (!text || !text.trim()) return [];
     const normalizedText = normalize(text);
     const parts = normalizedText.split(/\s+/).filter(Boolean);
-    return unique(parts.concat([normalizedText])).slice(0, 10);
+    return unique(parts).slice(0, 10);
   };
   
   const runSearch = useCallback(async (queryText: string, fullSearch = false) => {
     if (!queryText || !queryText.trim()) {
       setSuggestions([]);
       setLoading(false);
+      setPopoverOpen(false);
       return;
     }
     setLoading(true);
@@ -49,7 +51,16 @@ export default function ProductSearch({ onSearchComplete }: ProductSearchProps) 
 
     try {
       const productsRef = collection(db, 'products');
-      const qRef = query(productsRef, where('keywords', 'array-contains-any', tokens.slice(0, 10)), limit(50));
+      // For a "search-as-you-type" suggestion list, you might only query the last token.
+      // For a full search, you use all tokens.
+      const queryTokens = fullSearch ? tokens : [tokens[tokens.length - 1]].filter(Boolean);
+      if(queryTokens.length === 0) {
+          setLoading(false);
+          setPopoverOpen(false);
+          return;
+      }
+
+      const qRef = query(productsRef, where('keywords', 'array-contains-any', queryTokens), limit(50));
       const snap = await getDocs(qRef);
       const docs = snap.docs.map(d => ({ id: d.id, ...d.data() } as Product));
 
@@ -65,6 +76,7 @@ export default function ProductSearch({ onSearchComplete }: ProductSearchProps) 
         onSearchComplete(sorted, queryText);
         setSuggestions([]);
         setPopoverOpen(false);
+        inputRef.current?.blur();
       } else {
         setSuggestions(sorted.slice(0, 6));
         setPopoverOpen(sorted.length > 0);
@@ -90,6 +102,15 @@ export default function ProductSearch({ onSearchComplete }: ProductSearchProps) 
       e.preventDefault();
       runSearch(q, true);
   };
+  
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newQuery = e.target.value;
+    setQ(newQuery);
+    if (!newQuery.trim()) {
+      setPopoverOpen(false);
+    }
+  }
+
 
   return (
     <div className="relative w-full">
@@ -98,9 +119,10 @@ export default function ProductSearch({ onSearchComplete }: ProductSearchProps) 
           <form className="relative w-full" onSubmit={handleSearchSubmit}>
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
             <Input
+              ref={inputRef}
               type="search"
               value={q}
-              onChange={(e) => setQ(e.target.value)}
+              onChange={handleInputChange}
               placeholder="Search products, sizes or colors..."
               aria-label="Search products"
               className="w-full pl-10 pr-10 rounded-full"
@@ -108,22 +130,24 @@ export default function ProductSearch({ onSearchComplete }: ProductSearchProps) 
             {loading && <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 animate-spin text-muted-foreground" />}
           </form>
         </PopoverAnchor>
-        <PopoverContent className="w-[--radix-popover-trigger-width] p-0" onOpenAutoFocus={(e) => e.preventDefault()}>
-            {suggestions.map(suggestion => (
-                <Link 
-                    key={suggestion.id} 
-                    href={`/product/${suggestion.key || suggestion.id}`} 
-                    className="block p-2 hover:bg-accent cursor-pointer text-sm"
-                    onClick={() => {
-                        setQ('');
-                        setSuggestions([]);
-                        setPopoverOpen(false);
-                    }}
-                >
-                    {suggestion.name}
-                </Link>
-            ))}
-        </PopoverContent>
+        {suggestions.length > 0 && (
+          <PopoverContent className="w-[--radix-popover-trigger-width] p-0" onOpenAutoFocus={(e) => e.preventDefault()}>
+              {suggestions.map(suggestion => (
+                  <Link 
+                      key={suggestion.id} 
+                      href={`/product/${suggestion.key || suggestion.id}`} 
+                      className="block p-2 hover:bg-accent cursor-pointer text-sm"
+                      onClick={() => {
+                          setQ('');
+                          setSuggestions([]);
+                          setPopoverOpen(false);
+                      }}
+                  >
+                      {suggestion.name}
+                  </Link>
+              ))}
+          </PopoverContent>
+        )}
       </Popover>
     </div>
   );
