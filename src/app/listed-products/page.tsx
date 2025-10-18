@@ -19,7 +19,7 @@ import { Menu, ShoppingBag, User, X, ChevronRight, ArrowLeft, Search, List } fro
 import { Logo } from "@/components/logo";
 import { useLocalStorage } from "@/hooks/use-local-storage";
 import { HUB_BANNER_KEY, HubBanner, HUB_FEATURED_PRODUCTS_KEY, FeaturedProduct } from '@/app/admin/settings/page';
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import Image from 'next/image';
 import { Skeleton } from "@/components/ui/skeleton";
@@ -86,11 +86,11 @@ export default function ListedProductsPage() {
     return basePath;
   }
   
-  const onSearchComplete = (results: any[], query: string) => {
+  const onSearchComplete = useCallback((results: any[], query: string) => {
     setSearchResults(results);
     setSearchQuery(query);
     setShowSearchResults(true);
-  };
+  }, []);
   
   const renderSearchResults = () => (
     <div className="container mx-auto py-6">
