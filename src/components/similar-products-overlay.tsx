@@ -39,8 +39,8 @@ export function SimilarProductsOverlay({
         className="fixed bottom-0 left-0 right-0 z-40 bg-background/80 backdrop-blur-lg border-t rounded-t-lg shadow-2xl animate-in fade-in-0 slide-in-from-bottom-5 duration-300"
         onClick={(e) => e.stopPropagation()}
     >
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4">
-        <div className="flex justify-between items-center mb-4">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-2">
+        <div className="flex justify-between items-center mb-2">
             <h2 className="text-xl font-bold">You Might Also Like</h2>
             <Button variant="ghost" size="icon" onClick={onClose}>
                 <X className="h-5 w-5" />
@@ -57,7 +57,7 @@ export function SimilarProductsOverlay({
                 Streams ({relatedStreams.length})
             </TabsTrigger>
           </TabsList>
-          <TabsContent value="products" className="mt-4">
+          <TabsContent value="products" className="mt-2">
             <Carousel opts={{ align: "start", loop: false }} className="w-full">
               <CarouselContent className="-ml-2">
                 {similarProducts.map((p) => (
@@ -91,7 +91,7 @@ export function SimilarProductsOverlay({
               <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2 hidden md:flex" />
             </Carousel>
           </TabsContent>
-          <TabsContent value="streams" className="mt-4">
+          <TabsContent value="streams" className="mt-2">
             <Carousel opts={{ align: "start", loop: false }} className="w-full">
               <CarouselContent className="-ml-2">
                 {relatedStreams.map((s) => (
