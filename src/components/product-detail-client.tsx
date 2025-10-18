@@ -682,7 +682,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                                     View {sellerLiveStream ? 'Live' : 'Recorded'} Stream
                                                 </Link>
                                             </Button>
-                                            <p className="text-xs text-muted-foreground mt-1">You can see the visual product on the stream of this product</p>
+                                            <p className="text-xs text-muted-foreground mt-1">See this product in action! Watch the stream for a live demonstration.</p>
                                         </div>
                                     )}
                                 </div>
