@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
@@ -443,11 +443,11 @@ export function ProductDetailClient({ productId }: { productId: string }) {
         }
       }
       
-    const onSearchComplete = (results: any[], query: string) => {
+    const onSearchComplete = useCallback((results: any[], query: string) => {
         setSearchResults(results);
         setSearchQuery(query);
-        setShowSearchResults(true);
-    };
+        setShowSearchResults(results.length > 0 || query.length > 0);
+    }, []);
 
     const renderSearchResults = () => (
         <div className="container mx-auto py-6">
