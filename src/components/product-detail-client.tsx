@@ -628,45 +628,46 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                     isLoading={isLoadingSimilar}
                                 />}
                                 <div className="flex flex-col gap-4">
-                                    <div className="flex justify-between items-start">
-                                        <div className="flex-1">
-                                            {product.brand && <p className="text-sm font-medium text-primary mb-1">{product.brand}</p>}
-                                            <div className="flex items-center gap-2 flex-wrap mb-2">
-                                                <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">{product.name}</h1>
-                                                {product.key && <Badge variant="outline">{product.key}</Badge>}
-                                                {product.isFromStream && <Badge variant="purple"><Video className="mr-1 h-3 w-3" /> From Stream</Badge>}
+                                     <div>
+                                        <div className="flex justify-between items-start gap-4">
+                                            <div className="flex-1">
+                                                {product.brand && <p className="text-sm font-medium text-primary mb-1">{product.brand}</p>}
+                                                <div className="flex items-center gap-2 flex-wrap mb-2">
+                                                    <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">{product.name}</h1>
+                                                    {product.key && <Badge variant="outline">{product.key}</Badge>}
+                                                    {product.isFromStream && <Badge variant="purple"><Video className="mr-1 h-3 w-3" /> From Stream</Badge>}
+                                                </div>
                                             </div>
-                                            <p className="text-muted-foreground">{product.description}</p>
+                                            <div className="flex items-center ml-2">
+                                                <Button variant="ghost" size="icon" onClick={handleWishlistToggle}>
+                                                    <Heart className={cn("h-6 w-6", wishlisted ? "fill-red-500 text-red-500" : "text-muted-foreground")} />
+                                                </Button>
+                                                <Button variant="ghost" size="icon" onClick={handleShare}>
+                                                    <Share2 className="h-6 w-6" />
+                                                </Button>
+                                                <AlertDialog>
+                                                    <AlertDialogTrigger asChild>
+                                                        <Button variant="ghost" size="icon">
+                                                            <Flag className="h-6 w-6" />
+                                                        </Button>
+                                                    </AlertDialogTrigger>
+                                                    <AlertDialogContent>
+                                                        <AlertDialogHeader>
+                                                            <AlertDialogTitle>Report Product?</AlertDialogTitle>
+                                                            <AlertDialogDescription>
+                                                                If this product violates our community guidelines, please report it. Our team will review it shortly.
+                                                            </AlertDialogDescription>
+                                                        </AlertDialogHeader>
+                                                        <AlertDialogFooter>
+                                                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                            <AlertDialogAction onClick={handleReportProduct}>Confirm Report</AlertDialogAction>
+                                                        </AlertDialogFooter>
+                                                    </AlertDialogContent>
+                                                </AlertDialog>
+                                            </div>
                                         </div>
-                                        <div className="flex items-center ml-2">
-                                            <Button variant="ghost" size="icon" onClick={handleWishlistToggle}>
-                                                <Heart className={cn("h-6 w-6", wishlisted ? "fill-red-500 text-red-500" : "text-muted-foreground")} />
-                                            </Button>
-                                            <Button variant="ghost" size="icon" onClick={handleShare}>
-                                                <Share2 className="h-6 w-6" />
-                                            </Button>
-                                            <AlertDialog>
-                                                <AlertDialogTrigger asChild>
-                                                    <Button variant="ghost" size="icon">
-                                                        <Flag className="h-6 w-6" />
-                                                    </Button>
-                                                </AlertDialogTrigger>
-                                                <AlertDialogContent>
-                                                    <AlertDialogHeader>
-                                                        <AlertDialogTitle>Report Product?</AlertDialogTitle>
-                                                        <AlertDialogDescription>
-                                                            If this product violates our community guidelines, please report it. Our team will review it shortly.
-                                                        </AlertDialogDescription>
-                                                    </AlertDialogHeader>
-                                                    <AlertDialogFooter>
-                                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                                        <AlertDialogAction onClick={handleReportProduct}>Confirm Report</AlertDialogAction>
-                                                    </AlertDialogFooter>
-                                                </AlertDialogContent>
-                                            </AlertDialog>
-                                        </div>
+                                        <p className="text-muted-foreground">{product.description}</p>
                                     </div>
-                                    
                                     <div>
                                         <div className="flex items-center gap-4 flex-wrap">
                                             {currentPrice && <p className="text-3xl font-bold text-foreground">{currentPrice}</p>}
@@ -820,7 +821,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                             <div className="md:col-span-2 space-y-8 mt-8">
                                 
                                 <Card>
-                                    <CardHeader className="flex flex-row items-center justify-between pb-2">
+                                    <CardHeader className="flex flex-row items-center justify-between pb-2 mb-2">
                                         <CardTitle className="text-base">Available Offers</CardTitle>
                                         {allOffers.length > 1 && (
                                             <Sheet>
