@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
@@ -598,7 +599,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                                                 alt={product.name}
                                                                 fill
                                                                 sizes="(max-width: 768px) 100vw, 50vw"
-                                                                className="object-contain group-hover:scale-105 transition-transform"
+                                                                className="object-contain"
                                                             />
                                                         )}
                                                         {selectedMedia?.type === 'video' && (
@@ -608,6 +609,11 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                                             <div className="absolute inset-0 bg-black/30 overflow-hidden">
                                                                 <div className="scan-animation"></div>
                                                             </div>
+                                                        )}
+                                                        {product.isFromStream && (
+                                                            <Badge variant="purple" className="absolute z-10 top-2 left-2">
+                                                                <Video className="h-3 w-3 mr-1"/> From Stream
+                                                            </Badge>
                                                         )}
                                                     </div>
                                                 </DialogTrigger>
