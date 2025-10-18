@@ -201,19 +201,38 @@ export function ProductDetailClient({ productId }: { productId: string }) {
 
     // Effect for handling search
     useEffect(() => {
-        if (debouncedSearchQuery) {
-            const allProducts = Object.values(productDetails);
-            const filtered = allProducts.filter(p => p.name.toLowerCase().includes(debouncedSearchQuery.toLowerCase()));
-            setSearchSuggestions(filtered.slice(0, 5));
-        } else {
-            setSearchSuggestions([]);
+        if (debouncedSearchQuery.trim() === '') {
+          setSearchSuggestions([]);
+          return;
         }
-    }, [debouncedSearchQuery]);
+    
+        const terms = debouncedSearchQuery.toLowerCase().split(/\s+/).filter(Boolean);
+        if (terms.length === 0) {
+          setSearchSuggestions([]);
+          return;
+        }
+    
+        const allProducts = Object.values(productDetails);
+        const filtered = allProducts.filter(p => 
+          terms.every(term => p.keywords.some(kw => kw.startsWith(term)))
+        );
+        setSearchSuggestions(filtered.slice(0, 5));
+      }, [debouncedSearchQuery]);
 
     const handleSearchSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+        const terms = searchQuery.toLowerCase().split(/\s+/).filter(Boolean);
+        if (terms.length === 0) {
+          setSearchResults([]);
+          setShowSearchResults(true);
+          setSearchSuggestions([]);
+          return;
+        }
+
         const allProducts = Object.values(productDetails);
-        const results = allProducts.filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase()));
+        const results = allProducts.filter(p => 
+            terms.every(term => p.keywords.some(kw => kw.startsWith(term)))
+        );
         setSearchResults(results);
         setShowSearchResults(true);
         setSearchSuggestions([]);
@@ -483,11 +502,11 @@ export function ProductDetailClient({ productId }: { productId: string }) {
     return (
         <>
             <div className="min-h-screen bg-background">
-                <header className="p-4 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-sm z-30 border-b">
+                 <header className="p-4 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-sm z-30 border-b">
                     <Button variant="ghost" size="icon" onClick={() => router.back()}>
                         <ArrowLeft className="h-6 w-6" />
                     </Button>
-                     <Popover open={searchSuggestions.length > 0} onOpenChange={(open) => {if(!open) setSearchSuggestions([])}}>
+                     <Popover open={searchSuggestions.length > 0 && searchQuery.length > 0} onOpenChange={(open) => {if(!open) setSearchSuggestions([])}}>
                         <PopoverAnchor asChild>
                             <form className="relative flex-grow max-w-md mx-4" onSubmit={handleSearchSubmit}>
                                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -496,10 +515,11 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                     className="pl-9 rounded-full"
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
+                                    onFocus={() => {if(searchQuery) setShowSearchResults(false)}}
                                 />
                             </form>
                         </PopoverAnchor>
-                        <PopoverContent className="w-[--radix-popover-trigger-width] p-0" onOpenAutoFocus={(e) => e.preventDefault()}>
+                         <PopoverContent className="w-[--radix-popover-trigger-width] p-0" onOpenAutoFocus={(e) => e.preventDefault()}>
                             {searchSuggestions.map(suggestion => (
                                 <div 
                                     key={suggestion.key} 
@@ -507,6 +527,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                     onClick={() => {
                                         setSearchQuery(suggestion.name);
                                         setSearchSuggestions([]);
+                                        handleSearchSubmit(new Event('submit') as any);
                                     }}
                                 >
                                     {suggestion.name}
@@ -708,18 +729,18 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                     {(variantStock !== undefined && variantStock > 0) ? (
                                         <>
                                             {inCart ? (
-                                                 <Button size="lg" className="w-full" asChild variant="outline">
+                                                <Button size="lg" className="w-full" asChild>
                                                     <Link href="/cart">
                                                         Proceed Further
                                                     </Link>
                                                 </Button>
                                             ) : (
-                                                <Button size="lg" variant="outline" className="w-full" onClick={handleAddToCart}>
+                                                 <Button size="lg" className="w-full" onClick={handleAddToCart}>
                                                     <ShoppingCart className="mr-2 h-5 w-5" />
                                                     Add to Cart
                                                 </Button>
                                             )}
-                                            <Button size="lg" className="w-full" onClick={handleBuyNow} variant="default">
+                                            <Button size="lg" className="w-full" onClick={handleBuyNow} variant="outline">
                                                 Buy Now
                                             </Button>
                                         </>
@@ -1079,3 +1100,5 @@ export function ProductDetailClient({ productId }: { productId: string }) {
         </>
     );
 }
+
+    

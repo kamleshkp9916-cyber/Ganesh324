@@ -1,5 +1,4 @@
 
-
 "use client"
 
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -64,6 +63,7 @@ const productFormSchema = z.object({
   origin: z.string().optional(),
   variants: z.array(variantSchema).optional(),
   highlights: z.string().optional(),
+  keywords: z.array(z.string()).optional(),
 })
 
 export type Product = z.infer<typeof productFormSchema>;
@@ -185,6 +185,35 @@ export function ProductForm({ onSave, productToEdit }: ProductFormProps) {
     form.reset(defaultValues);
   }, [productToEdit, form, defaultValues]);
 
+  function generateKeywords(values: Product): string[] {
+    const keywords = new Set<string>();
+  
+    const toAdd = [
+      values.name,
+      values.brand,
+      values.category,
+      values.subcategory,
+      values.color,
+    ];
+  
+    toAdd.forEach(field => {
+      if (field) {
+        field.toLowerCase().split(/\s+/).forEach(word => keywords.add(word.replace(/[^a-z0-9]/gi, '')));
+      }
+    });
+
+    values.variants?.forEach(variant => {
+        if(variant.color) variant.color.toLowerCase().split(/\s+/).forEach(word => keywords.add(word.replace(/[^a-z0-9]/gi, '')));
+        if(variant.size) variant.size.toLowerCase().split(/\s+/).forEach(word => keywords.add(word.replace(/[^a-z0-9]/gi, '')));
+    });
+
+    if (values.availableSizes) {
+      values.availableSizes.split(',').forEach((s: string) => keywords.add(s.trim().toLowerCase()));
+    }
+  
+    return Array.from(keywords).filter(Boolean);
+  }
+
   function onSubmit(values: z.infer<typeof productFormSchema>) {
     setIsSaving(true);
     
@@ -193,8 +222,11 @@ export function ProductForm({ onSave, productToEdit }: ProductFormProps) {
         values.stock = values.variants.reduce((acc, variant) => acc + (variant.stock || 0), 0);
     }
 
+    const keywords = generateKeywords(values as Product);
+    const finalValues = { ...values, keywords };
+
     setTimeout(() => {
-        onSave(values);
+        onSave(finalValues);
         setIsSaving(false);
     }, 1000);
   }
@@ -364,3 +396,5 @@ export function ProductForm({ onSave, productToEdit }: ProductFormProps) {
     </Form>
   )
 }
+
+    
