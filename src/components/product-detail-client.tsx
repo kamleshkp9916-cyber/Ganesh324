@@ -123,7 +123,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
 
     const [currentPrice, setCurrentPrice] = useState<string | null>(null);
     const [currentHighlights, setCurrentHighlights] = useState<string[]>([]);
-    const [selectedImage, setSelectedImage] = useState<string | null>(null);
+    const [selectedMedia, setSelectedMedia] = useState<{type: 'image' | 'video', url: string} | null>(null);
     
     const [searchResults, setSearchResults] = useState<any[]>([]);
     const [showSearchResults, setShowSearchResults] = useState(false);
@@ -139,7 +139,9 @@ export function ProductDetailClient({ productId }: { productId: string }) {
             setCurrentPrice(details.price);
             setCurrentHighlights(details.highlights ? details.highlights.split('\\\\n').filter((h:string) => h.trim() !== '') : []);
             if(details.images.length > 0) {
-                setSelectedImage(details.images[0]);
+                // For now, let's assume the first media is always an image for the initial state.
+                // In a real app, the `media` array would specify the type.
+                setSelectedMedia({ type: 'image', url: details.images[0] });
             }
             if (details.availableSizes?.split(',').map((s:string) => s.trim()).length > 0) {
                 setSelectedSize(details.availableSizes.split(',').map((s:string) => s.trim())[0]);
@@ -174,15 +176,15 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                 if (variant.price) setCurrentPrice(`₹${''}${variant.price.toFixed(2)}`);
                 else setCurrentPrice(product.price);
 
-                if (variant.image?.preview) setSelectedImage(variant.image.preview);
-                else setSelectedImage(product.images[0]);
+                if (variant.image?.preview) setSelectedMedia({ type: 'image', url: variant.image.preview });
+                else setSelectedMedia({ type: 'image', url: product.images[0] });
                 
                 if (variant.highlights) setCurrentHighlights(variant.highlights.split('\\\\n').filter((h: string) => h.trim() !== ''));
                 else setCurrentHighlights(product.highlights ? product.highlights.split('\\\\n').filter((h:string) => h.trim() !== '') : []);
 
             } else {
                  setCurrentPrice(product.price);
-                 setSelectedImage(product.images[0]);
+                 setSelectedMedia({ type: 'image', url: product.images[0] });
                  setCurrentHighlights(product.highlights ? product.highlights.split('\\\\n').filter((h:string) => h.trim() !== '') : []);
             }
         }
@@ -574,31 +576,32 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                             <Dialog>
                                                 <DialogTrigger asChild>
                                                     <div className="aspect-square w-full relative bg-muted rounded-lg overflow-hidden mb-4 cursor-pointer group">
-                                                        {selectedImage && (
+                                                        {selectedMedia?.type === 'image' && selectedMedia.url && (
                                                             <Image
-                                                                src={selectedImage}
+                                                                src={selectedMedia.url}
                                                                 alt={product.name}
                                                                 fill
                                                                 sizes="(max-width: 768px) 100vw, 50vw"
                                                                 className="object-contain group-hover:scale-105 transition-transform"
                                                             />
                                                         )}
+                                                        {selectedMedia?.type === 'video' && (
+                                                            <video src={selectedMedia.url} className="w-full h-full object-contain" controls autoPlay muted loop />
+                                                        )}
                                                         {isScanning && (
                                                             <div className="absolute inset-0 bg-black/30 overflow-hidden">
-                                                                <div className="shimmer-scan-animation"></div>
+                                                                <div className="shimmer-scan"></div>
                                                             </div>
                                                         )}
                                                     </div>
                                                 </DialogTrigger>
                                                 <DialogContent className="max-w-3xl max-h-[90vh]">
                                                     <div className="relative aspect-square w-full">
-                                                        {selectedImage && (
-                                                            <Image
-                                                                src={selectedImage}
-                                                                alt={product.name}
-                                                                fill
-                                                                className="object-contain"
-                                                            />
+                                                        {selectedMedia?.type === 'image' && selectedMedia.url && (
+                                                            <Image src={selectedMedia.url} alt={product.name} fill className="object-contain" />
+                                                        )}
+                                                         {selectedMedia?.type === 'video' && (
+                                                            <video src={selectedMedia.url} className="w-full h-full object-contain" controls autoPlay muted loop />
                                                         )}
                                                     </div>
                                                 </DialogContent>
@@ -643,22 +646,31 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                         </div>
                                         <ScrollArea>
                                             <div className="flex gap-2 pb-2">
-                                                {product.images.map((img: string, index: number) => (
+                                                {product.media?.map((item: any, index: number) => (
                                                     <button
                                                         key={index}
-                                                        onClick={() => setSelectedImage(img)}
+                                                        onClick={() => setSelectedMedia(item)}
                                                         className={cn(
-                                                            "w-16 h-16 rounded-md overflow-hidden border-2 flex-shrink-0",
-                                                            selectedImage === img ? 'border-primary' : 'border-transparent'
+                                                            "w-16 h-16 rounded-md overflow-hidden border-2 flex-shrink-0 relative",
+                                                            selectedMedia?.url === item.preview ? 'border-primary' : 'border-transparent'
                                                         )}
                                                     >
-                                                        <Image
-                                                            src={img}
-                                                            alt={`Thumbnail ${''}${index + 1}`}
-                                                            width={64}
-                                                            height={64}
-                                                            className="object-cover w-full h-full"
-                                                        />
+                                                        {item.type === 'image' ? (
+                                                            <Image
+                                                                src={item.preview}
+                                                                alt={`Thumbnail ${''}${index + 1}`}
+                                                                width={64}
+                                                                height={64}
+                                                                className="object-cover w-full h-full"
+                                                            />
+                                                        ) : (
+                                                            <>
+                                                                <video src={item.preview} className="object-cover w-full h-full" />
+                                                                <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
+                                                                    <Play className="h-6 w-6 text-white" />
+                                                                </div>
+                                                            </>
+                                                        )}
                                                     </button>
                                                 ))}
                                             </div>
@@ -666,17 +678,18 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                         </ScrollArea>
                                     </CardContent>
                                 </Card>
-                                {showSimilarOverlay && <SimilarProductsOverlay
+                                 {showSimilarOverlay && <SimilarProductsOverlay
                                     isOpen={showSimilarOverlay}
                                     onClose={() => setShowSimilarOverlay(false)}
                                     similarProducts={similarProducts}
                                     relatedStreams={relatedStreams}
                                     isLoading={isLoadingSimilar}
                                 />}
+                                
                                 <div className="flex flex-col gap-4">
-                                    <div>
-                                        <div className="flex justify-between items-start gap-4">
-                                            <div className="flex-1">
+                                     <div>
+                                        <div className="flex items-center justify-between gap-4">
+                                            <div>
                                                 {product.brand && <p className="text-sm font-medium text-primary mb-1">{product.brand}</p>}
                                                 <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">{product.name}</h1>
                                             </div>
@@ -708,7 +721,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                                 </AlertDialog>
                                             </div>
                                         </div>
-                                         <div className="text-muted-foreground mt-2">{renderDescriptionWithHashtags(product.description)}</div>
+                                         <p className="text-muted-foreground mt-2">{renderDescriptionWithHashtags(product.description)}</p>
                                     </div>
                                     <div>
                                         <div className="flex items-center gap-4 flex-wrap">
@@ -863,33 +876,8 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                             <div className="md:col-span-2 space-y-8 mt-8">
                                 
                                 <Card>
-                                    <CardHeader className="flex flex-row items-center justify-between pb-2">
+                                    <CardHeader className="flex flex-row items-center justify-between pb-4">
                                         <CardTitle className="text-base">Available Offers</CardTitle>
-                                        {allOffers.length > 1 && (
-                                            <Sheet>
-                                                <SheetTrigger asChild>
-                                                    <Button variant="link" className="p-0 h-auto">View All</Button>
-                                                </SheetTrigger>
-                                                <SheetContent side="bottom" className="h-auto max-h-[80vh]">
-                                                    <SheetHeader className="text-left p-4">
-                                                        <SheetTitle>All Available Offers</SheetTitle>
-                                                    </SheetHeader>
-                                                    <ScrollArea className="h-full">
-                                                        <div className="p-4 space-y-4">
-                                                        {allOffers.map((offer, index) => (
-                                                            <div key={index} className="flex items-start gap-3 text-sm p-3 rounded-lg border">
-                                                                <div className="flex-shrink-0 mt-1">{offer.icon}</div>
-                                                                <div>
-                                                                    <h5 className="font-semibold">{offer.title}</h5>
-                                                                    <p className="text-muted-foreground">{offer.description}</p>
-                                                                </div>
-                                                            </div>
-                                                        ))}
-                                                        </div>
-                                                    </ScrollArea>
-                                                </SheetContent>
-                                            </Sheet>
-                                        )}
                                     </CardHeader>
                                     <CardContent className="space-y-3">
                                         {allOffers.slice(0,1).map((offer, index) => (
@@ -902,11 +890,36 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                             </div>
                                         ))}
                                     </CardContent>
+                                    <CardFooter>
+                                         <Sheet>
+                                            <SheetTrigger asChild>
+                                                <Button variant="link" className="p-0 h-auto">View All Offers</Button>
+                                            </SheetTrigger>
+                                            <SheetContent side="bottom" className="h-auto max-h-[80vh]">
+                                                <SheetHeader className="text-left p-4">
+                                                    <SheetTitle>All Available Offers</SheetTitle>
+                                                </SheetHeader>
+                                                <ScrollArea className="h-full">
+                                                    <div className="p-4 space-y-4">
+                                                    {allOffers.map((offer, index) => (
+                                                        <div key={index} className="flex items-start gap-3 text-sm p-3 rounded-lg border">
+                                                            <div className="flex-shrink-0 mt-1">{offer.icon}</div>
+                                                            <div>
+                                                                <h5 className="font-semibold">{offer.title}</h5>
+                                                                <p className="text-muted-foreground">{offer.description}</p>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                    </div>
+                                                </ScrollArea>
+                                            </SheetContent>
+                                        </Sheet>
+                                    </CardFooter>
                                 </Card>
                                 <Separator />
 
                                 <div className="space-y-4">
-                                    <div className="flex items-center justify-between">
+                                     <div className="flex items-center justify-between">
                                         <h3 className="text-xl font-bold">Highlights</h3>
                                         <Button asChild variant="link">
                                             <Link href={`/product/${productId}/details`}>View Details</Link>

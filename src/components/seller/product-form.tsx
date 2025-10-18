@@ -25,7 +25,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { DialogFooter, DialogClose } from "../ui/dialog"
-import { Loader2, UploadCloud, X, PlusCircle, Image as ImageIcon } from "lucide-react"
+import { Loader2, UploadCloud, X, PlusCircle, Image as ImageIcon, Video } from "lucide-react"
 import Image from "next/image"
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -49,10 +49,11 @@ const productFormSchema = z.object({
   description: z.string().min(10, "Description must be at least 10 characters.").max(1000),
   price: z.coerce.number().positive("Price must be a positive number."),
   stock: z.coerce.number().int().min(0, "Stock cannot be negative."),
-  images: z.array(z.object({
+  media: z.array(z.object({
+      type: z.enum(['image', 'video']),
       file: z.any().optional(),
       preview: z.string()
-  })).min(1, "Please upload at least one image."),
+  })).min(1, "Please upload at least one image or video."),
   listingType: z.enum(['live-stream', 'general']).default('general'),
   status: z.enum(["draft", "active", "archived"]),
   category: z.string().min(1, "Category is required."),
@@ -128,7 +129,7 @@ export function ProductForm({ onSave, productToEdit }: ProductFormProps) {
       return {
         ...productToEdit,
         price: parseFloat(String(productToEdit.price).replace(/[^0-9.-]+/g, '')) || 0,
-        images: productToEdit.images?.map(img => ({...img, file: undefined })) || [],
+        media: productToEdit.media?.map(item => ({...item, file: undefined })) || [],
         variants: productToEdit.variants?.map(v => ({
             ...v,
             price: v.price ? parseFloat(String(v.price).replace(/[^0-9.-]+/g, '')) : undefined
@@ -140,7 +141,7 @@ export function ProductForm({ onSave, productToEdit }: ProductFormProps) {
       description: "",
       price: 0,
       stock: 0,
-      images: [],
+      media: [],
       listingType: "general",
       status: "draft",
       category: "",
@@ -162,7 +163,7 @@ export function ProductForm({ onSave, productToEdit }: ProductFormProps) {
 
   const { fields, append, remove } = useFieldArray({
     control: form.control,
-    name: "images"
+    name: "media"
   });
 
   const { fields: variantFields, append: appendVariant, remove: removeVariant } = useFieldArray({
@@ -203,14 +204,14 @@ export function ProductForm({ onSave, productToEdit }: ProductFormProps) {
     }, 1000);
   }
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleMediaChange = (e: React.ChangeEvent<HTMLInputElement>, type: 'image' | 'video') => {
     const files = e.target.files;
     if (files) {
         for (let i = 0; i < files.length; i++) {
             const file = files[i];
             const reader = new FileReader();
             reader.onload = (event) => {
-                append({ file: file, preview: event.target?.result as string });
+                append({ type, file: file, preview: event.target?.result as string });
             };
             reader.readAsDataURL(file);
         }
@@ -319,24 +320,34 @@ export function ProductForm({ onSave, productToEdit }: ProductFormProps) {
 
                 <Separator />
 
-               <FormField name="images" control={form.control} render={() => (
+               <FormField name="media" control={form.control} render={({ field }) => (
                     <FormItem>
-                        <FormLabel>Product Images</FormLabel>
+                        <FormLabel>Product Media</FormLabel>
                         <FormControl>
                             <div className="flex items-center gap-4 flex-wrap">
                                 {fields.map((field, index) => (
                                     <div key={field.id} className="relative w-24 h-24">
-                                        <Image src={field.preview} alt={`Preview ${index}`} width={96} height={96} className="object-cover rounded-md w-full h-full"/>
+                                        {field.type === 'image' ? (
+                                            <Image src={field.preview} alt={`Preview ${index}`} width={96} height={96} className="object-cover rounded-md w-full h-full"/>
+                                        ) : (
+                                            <video src={field.preview} className="object-cover rounded-md w-full h-full" />
+                                        )}
                                         <Button type="button" variant="destructive" size="icon" className="absolute -top-2 -right-2 h-6 w-6 rounded-full" onClick={() => remove(index)}><X className="h-4 w-4" /></Button>
                                     </div>
                                 ))}
-                                <label htmlFor="image-upload" className="w-24 h-24 rounded-lg border-2 border-dashed flex items-center justify-center bg-muted text-muted-foreground cursor-pointer hover:border-primary hover:text-primary">
-                                    <div className="text-center"><UploadCloud className="h-8 w-8 mx-auto" /><span className="text-xs">Add Images</span></div>
-                                    <Input id="image-upload" type="file" multiple className="hidden" accept="image/*" onChange={handleImageChange}/>
-                                </label>
+                                <div className="flex gap-2">
+                                    <label htmlFor="image-upload" className="w-24 h-24 rounded-lg border-2 border-dashed flex items-center justify-center bg-muted text-muted-foreground cursor-pointer hover:border-primary hover:text-primary">
+                                        <div className="text-center"><ImageIcon className="h-8 w-8 mx-auto" /><span className="text-xs">Add Images</span></div>
+                                        <Input id="image-upload" type="file" multiple className="hidden" accept="image/*" onChange={(e) => handleMediaChange(e, 'image')}/>
+                                    </label>
+                                    <label htmlFor="video-upload" className="w-24 h-24 rounded-lg border-2 border-dashed flex items-center justify-center bg-muted text-muted-foreground cursor-pointer hover:border-primary hover:text-primary">
+                                        <div className="text-center"><Video className="h-8 w-8 mx-auto" /><span className="text-xs">Add Video</span></div>
+                                        <Input id="video-upload" type="file" className="hidden" accept="video/*" onChange={(e) => handleMediaChange(e, 'video')}/>
+                                    </label>
+                                </div>
                             </div>
                         </FormControl>
-                         <FormDescription>The first image will be the main display image. Max 5MB per image.</FormDescription>
+                         <FormDescription>The first item will be the main display media. Max 5MB per file.</FormDescription>
                         <FormMessage />
                     </FormItem>
                 )}/>
