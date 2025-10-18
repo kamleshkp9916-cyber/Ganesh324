@@ -138,10 +138,10 @@ export function ProductDetailClient({ productId }: { productId: string }) {
         if(details) {
             setCurrentPrice(details.price);
             setCurrentHighlights(details.highlights ? details.highlights.split('\\\\n').filter((h:string) => h.trim() !== '') : []);
-            if(details.media && details.media.length > 0) {
-                setSelectedMedia(details.media[0]);
-            } else if (details.images.length > 0) {
-                setSelectedMedia({ type: 'image', url: details.images[0] });
+            const mediaItems = [...(details.media || []), ...details.images.map((url: string) => ({type: 'image', url: url}))];
+            const uniqueMedia = Array.from(new Map(mediaItems.map(item => [item.url, item])).values());
+            if(uniqueMedia.length > 0) {
+                setSelectedMedia(uniqueMedia[0]);
             }
             if (details.availableSizes?.split(',').map((s:string) => s.trim()).length > 0) {
                 setSelectedSize(details.availableSizes.split(',').map((s:string) => s.trim())[0]);
@@ -465,7 +465,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
     };
 
     const renderDescriptionWithHashtags = (text: string) => {
-        const parts = text.split(/(#\w+)/g);
+        const parts = text.split(/(#\\w+)/g);
         return parts.map((part, index) => {
             if (part.startsWith('#')) {
                 return (
@@ -528,6 +528,12 @@ export function ProductDetailClient({ productId }: { productId: string }) {
             </div>
         );
     }
+    
+    const mediaItems = useMemo(() => {
+        const allMedia = [...(product.media || []), ...product.images.map((url: string) => ({type: 'image', url: url}))];
+        return Array.from(new Map(allMedia.map((item: any) => [item.url, item])).values());
+    }, [product.media, product.images]);
+
 
     const seller = productToSellerMapping[product.key];
     const allOffers = [...mockAdminOffers, (product as any).offer].filter(Boolean);
@@ -587,7 +593,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                                         )}
                                                         {isScanning && (
                                                             <div className="absolute inset-0 bg-black/30 overflow-hidden">
-                                                                <div className="shimmer-scan-animation"></div>
+                                                                <div className="scan-animation"></div>
                                                             </div>
                                                         )}
                                                          <div className="absolute top-2 right-2 z-20 flex flex-col gap-2 items-end">
@@ -620,9 +626,9 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                                     </div>
                                                 </DialogTrigger>
                                                 
-                                                 <div className="w-full overflow-x-auto pb-2">
+                                                <div className="overflow-x-auto pb-2">
                                                     <div className="flex gap-2">
-                                                        {(product.media || product.images.map((url: string) => ({ type: 'image', url }))).map((item: any, index: number) => (
+                                                        {mediaItems.map((item: any, index: number) => (
                                                             <button
                                                                 key={index}
                                                                 onClick={() => setSelectedMedia(item)}
@@ -680,7 +686,9 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                 <div className="flex flex-col gap-4">
                                      <div>
                                         <div className="flex items-center justify-between gap-4 mb-2">
-                                            {product.brand && <p className="text-sm font-medium text-primary">{product.brand}</p>}
+                                             <div className="text-sm font-mono text-muted-foreground">
+                                                {product.key}
+                                            </div>
                                             <div className="hidden lg:flex items-center ml-auto">
                                                 <Button variant="ghost" size="icon" onClick={handleWishlistToggle}>
                                                     <Heart className={cn("h-6 w-6", wishlisted ? "fill-red-500 text-red-500" : "text-muted-foreground")} />
@@ -709,7 +717,10 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                                 </AlertDialog>
                                             </div>
                                         </div>
-                                         <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">{product.name}</h1>
+                                         <div className="space-y-1">
+                                            {product.brand && <p className="text-sm font-medium text-primary">{product.brand}</p>}
+                                            <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">{product.name}</h1>
+                                        </div>
                                         <p className="text-muted-foreground mt-2">{renderDescriptionWithHashtags(product.description)}</p>
                                     </div>
                                     <div>
@@ -863,6 +874,35 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                             )}
                                         </CardContent>
                                     </Card>
+                                     <Sheet>
+                                        <SheetTrigger asChild>
+                                            <Button variant="ghost" className="w-full justify-between p-3 h-auto">
+                                                <div className="flex items-center gap-2">
+                                                    <Tag className="w-5 h-5 text-primary" />
+                                                    <span className="font-semibold">Available Offers</span>
+                                                </div>
+                                                <ChevronDown className="h-5 w-5 text-muted-foreground" />
+                                            </Button>
+                                        </SheetTrigger>
+                                        <SheetContent side="bottom" className="h-auto max-h-[80vh]">
+                                            <SheetHeader className="text-left p-4">
+                                                <SheetTitle>All Available Offers</SheetTitle>
+                                            </SheetHeader>
+                                            <ScrollArea className="h-full">
+                                                <div className="p-4 pt-0 space-y-4">
+                                                    {allOffers.map((offer, index) => (
+                                                        <div key={index} className="flex items-start gap-3">
+                                                            {offer.icon || <Tag className="h-5 w-5 text-primary mt-1 flex-shrink-0" />}
+                                                            <div>
+                                                                <h4 className="font-bold">{offer.title}</h4>
+                                                                <p className="text-sm text-muted-foreground">{offer.description}</p>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </ScrollArea>
+                                        </SheetContent>
+                                    </Sheet>
                                     <div className="grid grid-cols-3 gap-2 text-center text-xs text-muted-foreground pt-4">
                                         <Link href="/help" className="flex flex-col items-center gap-1 hover:text-primary">
                                             <RotateCcw className="h-6 w-6" />
@@ -880,9 +920,14 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                 </div>
                             </div>
                             <div className="md:col-span-2 space-y-8 mt-8">
-                                <div className="space-y-4">
-                                    <h3 className="text-xl font-bold">Highlights</h3>
-                                    <div className="p-2">
+                                 <div>
+                                    <div className="flex items-center justify-between">
+                                        <h3 className="text-xl font-bold">Highlights</h3>
+                                        <Button asChild variant="link">
+                                            <Link href={`/product/${productId}/details`}>View Details</Link>
+                                        </Button>
+                                    </div>
+                                    <div className="p-2 mt-2">
                                         <ul className="space-y-3 text-sm">
                                             {currentHighlights.map((highlight: string, index: number) => (
                                                 <li key={index} className="flex items-start gap-3">
@@ -1042,7 +1087,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                 {recentlyViewedItems.length > 0 && (
                                     <div className="mt-8">
                                         <h2 className="text-2xl font-bold mb-4">Recently Viewed</h2>
-                                        <div className="w-full overflow-x-auto pb-4">
+                                        <div className="overflow-x-auto pb-4">
                                             <div className="flex gap-4">
                                                 {recentlyViewedItems.map((item) => (
                                                 <Link href={`/product/${item.key}`} key={item.key} className="w-40 flex-shrink-0">
@@ -1087,3 +1132,5 @@ export function ProductDetailClient({ productId }: { productId: string }) {
         </>
     );
 }
+
+    
