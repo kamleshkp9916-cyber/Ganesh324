@@ -128,6 +128,8 @@ export function ProductDetailClient({ productId }: { productId: string }) {
     const [showSearchResults, setShowSearchResults] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [showSimilarOverlay, setShowSimilarOverlay] = useState(false);
+    const [isScanning, setIsScanning] = useState(false);
+    const [isLoadingSimilar, setIsLoadingSimilar] = useState(false);
 
     useEffect(() => {
         const details = productDetails[productId as keyof typeof productDetails] || null;
@@ -450,6 +452,18 @@ export function ProductDetailClient({ productId }: { productId: string }) {
         setShowSearchResults(results.length > 0 || query.length > 0);
     }, []);
 
+    const handleSimilarClick = () => {
+        setIsScanning(true);
+        setIsLoadingSimilar(true);
+        setTimeout(() => {
+            setIsScanning(false);
+            setShowSimilarOverlay(true);
+            setTimeout(() => {
+                setIsLoadingSimilar(false);
+            }, 1000);
+        }, 1500);
+    };
+
     const renderSearchResults = () => (
         <div className="container mx-auto py-6">
             <h2 className="text-2xl font-bold mb-4">
@@ -536,7 +550,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
                                 <Card>
                                     <CardContent className="p-4">
-                                        <div className="relative">
+                                         <div className="relative">
                                             <Dialog>
                                                 <DialogTrigger asChild>
                                                     <div className="aspect-square w-full relative bg-muted rounded-lg overflow-hidden mb-4 cursor-pointer group">
@@ -549,12 +563,9 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                                                 className="object-contain group-hover:scale-105 transition-transform"
                                                             />
                                                         )}
-                                                        <div className="absolute bottom-2 right-2">
-                                                            <Button size="sm" className="rounded-full bg-black/50 text-white backdrop-blur-sm flex items-center gap-1.5 h-8" onClick={(e) => { e.stopPropagation(); setShowSimilarOverlay(prev => !prev); }}>
-                                                                <Sparkles className="h-4 w-4" />
-                                                                <span className="text-xs">Similar Product</span>
-                                                            </Button>
-                                                        </div>
+                                                         {isScanning && (
+                                                            <div className="absolute inset-0 bg-black/30 scan-animation overflow-hidden"></div>
+                                                         )}
                                                     </div>
                                                 </DialogTrigger>
                                                 <DialogContent className="max-w-3xl max-h-[90vh]">
@@ -570,14 +581,15 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                                     </div>
                                                 </DialogContent>
                                             </Dialog>
-                                            {showSimilarOverlay && (
-                                                <SimilarProductsOverlay
-                                                    isOpen={showSimilarOverlay}
-                                                    onClose={() => setShowSimilarOverlay(false)}
-                                                    similarProducts={similarProducts}
-                                                    relatedStreams={relatedStreams}
-                                                />
-                                            )}
+                                            <div className="absolute bottom-2 right-2 z-20">
+                                                <div className="relative">
+                                                     <Button size="sm" className="rounded-full bg-black/50 text-white backdrop-blur-sm flex items-center gap-1.5 h-8" onClick={handleSimilarClick} disabled={isScanning}>
+                                                         {isScanning ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+                                                         <span className="text-xs">Similar Product</span>
+                                                     </Button>
+                                                </div>
+                                            </div>
+                                            
                                         </div>
                                         <ScrollArea>
                                             <div className="flex gap-2 pb-2">
@@ -604,6 +616,13 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                         </ScrollArea>
                                     </CardContent>
                                 </Card>
+                                 <SimilarProductsOverlay
+                                    isOpen={showSimilarOverlay}
+                                    onClose={() => setShowSimilarOverlay(false)}
+                                    similarProducts={similarProducts}
+                                    relatedStreams={relatedStreams}
+                                    isLoading={isLoadingSimilar}
+                                />
                                 <div className="flex flex-col gap-4">
                                         <div className="flex justify-between items-start">
                                         <div>

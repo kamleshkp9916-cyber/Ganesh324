@@ -18,19 +18,32 @@ import Link from 'next/link';
 import { Badge } from './ui/badge';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
+import { Skeleton } from './ui/skeleton';
 
 interface SimilarProductsOverlayProps {
   isOpen: boolean;
   onClose: () => void;
   similarProducts: any[];
   relatedStreams: any[];
+  isLoading: boolean;
 }
+
+const ProductCardSkeleton = () => (
+    <Card className="w-full">
+        <Skeleton className="aspect-square w-full rounded-t-lg" />
+        <div className="p-2 space-y-2">
+            <Skeleton className="h-4 w-3/4" />
+            <Skeleton className="h-5 w-1/2" />
+        </div>
+    </Card>
+);
 
 export function SimilarProductsOverlay({
   isOpen,
   onClose,
   similarProducts,
   relatedStreams,
+  isLoading,
 }: SimilarProductsOverlayProps) {
   if (!isOpen) return null;
 
@@ -60,36 +73,44 @@ export function SimilarProductsOverlay({
           <TabsContent value="products" className="mt-0">
             <Carousel opts={{ align: "start", loop: false }} className="w-full">
               <CarouselContent className="-ml-2">
-                {similarProducts.map((p) => (
-                  <CarouselItem key={p.id} className="basis-1/2 sm:basis-1/3 md:basis-1/4 lg:basis-1/5 xl:basis-1/6 pl-2">
-                    <Link href={`/product/${p.key}`} className="group block">
-                      <Card className="w-full group overflow-hidden h-full flex flex-col">
-                        <div className="relative aspect-square bg-muted">
-                          <Image
-                            src={p.images[0]}
-                            alt={p.name}
-                            fill
-                            sizes="20vw"
-                            className="object-cover transition-transform group-hover:scale-105"
-                          />
-                        </div>
-                        <div className="p-2 flex-grow flex flex-col">
-                          <h4 className="font-semibold truncate text-xs flex-grow">{p.name}</h4>
-                          <p className="font-bold text-sm mt-1">{p.price}</p>
-                           <div className="flex items-center gap-1 text-xs text-amber-400 mt-1">
-                            <Star className="w-3 h-3 fill-current" />
-                            <span className="font-semibold text-foreground">4.8</span>
-                            <span className="text-muted-foreground">({p.reviews || '1.2k'})</span>
-                          </div>
-                          <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
-                              <div className="flex items-center gap-1"><Package className="w-3 h-3" /> {p.stock} left</div>
-                              <div className="flex items-center gap-1"><Users className="w-3 h-3" /> {p.sold} sold</div>
-                          </div>
-                        </div>
-                      </Card>
-                    </Link>
-                  </CarouselItem>
-                ))}
+                {isLoading ? (
+                    Array.from({ length: 5 }).map((_, index) => (
+                        <CarouselItem key={index} className="basis-1/2 sm:basis-1/3 md:basis-1/4 lg:basis-1/5 xl:basis-1/6 pl-2">
+                           <ProductCardSkeleton />
+                        </CarouselItem>
+                    ))
+                ) : (
+                    similarProducts.map((p) => (
+                    <CarouselItem key={p.id} className="basis-1/2 sm:basis-1/3 md:basis-1/4 lg:basis-1/5 xl:basis-1/6 pl-2">
+                        <Link href={`/product/${p.key}`} className="group block">
+                        <Card className="w-full group overflow-hidden h-full flex flex-col">
+                            <div className="relative aspect-square bg-muted">
+                            <Image
+                                src={p.images[0]}
+                                alt={p.name}
+                                fill
+                                sizes="20vw"
+                                className="object-cover transition-transform group-hover:scale-105"
+                            />
+                            </div>
+                            <div className="p-2 flex-grow flex flex-col">
+                            <h4 className="font-semibold truncate text-xs flex-grow">{p.name}</h4>
+                            <p className="font-bold text-sm mt-1">{p.price}</p>
+                            <div className="flex items-center gap-1 text-xs text-amber-400 mt-1">
+                                <Star className="w-3 h-3 fill-current" />
+                                <span className="font-semibold text-foreground">4.8</span>
+                                <span className="text-muted-foreground">({p.reviews || '1.2k'})</span>
+                            </div>
+                            <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
+                                <div className="flex items-center gap-1"><Package className="w-3 h-3" /> {p.stock} left</div>
+                                <div className="flex items-center gap-1"><Users className="w-3 h-3" /> {p.sold} sold</div>
+                            </div>
+                            </div>
+                        </Card>
+                        </Link>
+                    </CarouselItem>
+                    ))
+                )}
               </CarouselContent>
               <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2 hidden md:flex" />
               <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2 hidden md:flex" />
