@@ -585,7 +585,6 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                         </Button>
                          <FeedbackDialog>
                            <Button variant="ghost">
-                              <MessageSquare className="h-5 w-5 md:mr-2" />
                               <span className="hidden md:inline">Feedback</span>
                           </Button>
                         </FeedbackDialog>
@@ -691,7 +690,9 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                                     View {sellerLiveStream ? 'Live' : 'Recorded'} Stream
                                                 </Link>
                                             </Button>
-                                            <p className="text-xs text-muted-foreground mt-1">See this product in action! Watch the stream for a live demonstration.</p>
+                                            <p className="text-xs text-muted-foreground mt-1">
+                                                Want a better look? See this product live in action for an interactive demo!
+                                            </p>
                                         </div>
                                     )}
                                 </div>
@@ -844,40 +845,9 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                 </div>
                             </div>
                             <div className="md:col-span-2 space-y-8 mt-8">
-                                <Card>
-                                    <CardHeader>
-                                        <CardTitle>Sold By</CardTitle>
-                                    </CardHeader>
-                                    <CardContent>
-                                        <div className="flex items-center justify-between">
-                                            <div className="flex items-center gap-4">
-                                                <Avatar>
-                                                    <AvatarImage src={seller.avatarUrl} />
-                                                    <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
-                                                </Avatar>
-                                                <div>
-                                                    <Link href={`/seller/profile?userId=${seller.uid}`} className="font-semibold hover:underline">{seller.name}</Link>
-                                                    <div className="flex items-center gap-1 text-xs text-amber-400 mt-1">
-                                                        <Star className="w-4 h-4 fill-current" />
-                                                        <span>4.8</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <Button asChild variant="outline">
-                                                <Link href={`/seller/profile?userId=${seller.uid}`}>View Profile</Link>
-                                            </Button>
-                                        </div>
-                                    </CardContent>
-                                </Card>
-                                 <div>
-                                    <div className="flex items-center justify-between">
-                                        <h3 className="text-xl font-bold">Highlights</h3>
-                                        <Button asChild variant="link">
-                                            <Link href={`/product/${productId}/details`}>View Details</Link>
-                                        </Button>
-                                    </div>
+                                <div>
                                     <div className="p-2 mt-2 grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
-                                        <ul className="space-y-3 text-sm">
+                                         <ul className="space-y-3 text-sm">
                                             {currentHighlights.map((highlight: string, index: number) => (
                                                 <li key={index} className="flex items-start gap-3">
                                                     <CheckCircle className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
@@ -896,11 +866,9 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                         </div>
                                     </div>
                                 </div>
-
                                 <Separator />
-                                
                                 <Card>
-                                        <CardHeader className="flex items-center justify-between">
+                                    <CardHeader className="flex items-center justify-between">
                                         <CardTitle>Ratings & Reviews</CardTitle>
                                         <span className="text-sm font-medium text-muted-foreground">{reviews.length} Reviews</span>
                                     </CardHeader>
@@ -939,6 +907,30 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                         <Button variant="outline" onClick={openReviewDialog}>Write a Review</Button>
                                     </CardFooter>
                                 </Card>
+                                
+                                <Separator />
+                                
+                                <div>
+                                    <h3 className="text-lg font-semibold mb-2">Sold By</h3>
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-4">
+                                            <Avatar>
+                                                <AvatarImage src={seller.avatarUrl} />
+                                                <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
+                                            </Avatar>
+                                            <div>
+                                                <Link href={`/seller/profile?userId=${seller.uid}`} className="font-semibold hover:underline">{seller.name}</Link>
+                                                <div className="flex items-center gap-1 text-xs text-amber-400 mt-1">
+                                                    <Star className="w-4 h-4 fill-current" />
+                                                    <span>4.8</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <Button asChild variant="outline">
+                                            <Link href={`/seller/profile?userId=${seller.uid}`}>View Profile</Link>
+                                        </Button>
+                                    </div>
+                                </div>
                                 
                                 <Separator />
                                 
