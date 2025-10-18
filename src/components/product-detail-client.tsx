@@ -34,7 +34,7 @@ import { EditAddressForm } from './edit-address-form';
 import { updateUserData } from '@/lib/follow-data';
 import ProductSearch from '@/components/ProductSearch';
 import { SimilarProductsOverlay } from './similar-products-overlay';
-import { Sheet, SheetContent, SheetTrigger } from './ui/sheet';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from './ui/sheet';
 
 const mockQandA = [
     { id: 1, question: "Does this camera come with a roll of film?", questioner: "Alice", answer: "Yes, it comes with one 24-exposure roll of color film to get you started!", answerer: "GadgetGuru" },
@@ -838,7 +838,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                                     </SheetTrigger>
                                                     <SheetContent side="bottom" className="h-auto max-h-[80vh]">
                                                         <SheetHeader className="text-left p-4">
-                                                            <DialogTitle>All Available Offers</DialogTitle>
+                                                            <SheetTitle>All Available Offers</SheetTitle>
                                                         </SheetHeader>
                                                         <ScrollArea className="h-full">
                                                             <div className="p-4 space-y-4">
