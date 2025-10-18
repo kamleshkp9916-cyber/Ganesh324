@@ -15,7 +15,7 @@ import {
   DropdownMenuRadioItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { differenceInDays } from 'date-fns';
 import { useDebounce } from '@/hooks/use-debounce';
@@ -78,11 +78,11 @@ export default function CategoryPage() {
 
     }, [categoryProducts, searchResults, showSearchResults, sortOption]);
     
-    const onSearchComplete = (results: any[], query: string) => {
+    const onSearchComplete = useCallback((results: any[], query: string) => {
         setSearchResults(results);
         setSearchQuery(query);
         setShowSearchResults(results.length > 0 || query.length > 0);
-    };
+    }, []);
 
     return (
         <div className="min-h-screen bg-background text-foreground flex flex-col">
