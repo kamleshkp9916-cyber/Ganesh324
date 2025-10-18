@@ -224,9 +224,9 @@ export function ProductDetailClient({ productId }: { productId: string }) {
     }, [user, product]);
     
     useEffect(() => {
-        setShowSearchResults(false);
-        setSearchQuery('');
-        setSearchResults([]);
+      setShowSearchResults(false);
+      setSearchQuery('');
+      setSearchResults([]);
     }, [productId]);
 
     const availableSizes = useMemo(() => product?.availableSizes ? product.availableSizes.split(',').map((s: string) => s.trim()) : [], [product]);
@@ -492,13 +492,9 @@ export function ProductDetailClient({ productId }: { productId: string }) {
       }
       
     const onSearchComplete = useCallback((results: any[], query: string) => {
-        setSearchResults(results);
-        setSearchQuery(query);
-        if (results.length > 0 || query.length > 0) {
-            setShowSearchResults(true);
-        } else {
-            setShowSearchResults(false);
-        }
+      setSearchResults(results);
+      setSearchQuery(query);
+      setShowSearchResults(results.length > 0 || query.length > 0);
     }, []);
 
     const handleSimilarClick = () => {
@@ -740,7 +736,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                                     View Live Stream
                                                 </Link>
                                             </Button>
-                                             <p className="text-xs text-muted-foreground mt-1">Get a better understanding of this product by seeing it in action.</p>
+                                             <p className="text-xs text-muted-foreground mt-1">See this product in action and ask questions in real-time.</p>
                                         </div>
                                     )}
                                 </div>
@@ -955,27 +951,6 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                         </div>
                                     </CardContent>
                                 </Card>
-                                <div className="p-4 border rounded-lg bg-card">
-                                  <div className="flex items-center justify-between">
-                                      <h3 className="text-lg font-semibold">Sold By</h3>
-                                      <Button asChild variant="outline" size="sm">
-                                          <Link href={`/seller/profile?userId=${seller.uid}`}>View Profile</Link>
-                                      </Button>
-                                  </div>
-                                  <div className="flex items-center gap-4 mt-4">
-                                      <Avatar>
-                                          <AvatarImage src={seller.avatarUrl} />
-                                          <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
-                                      </Avatar>
-                                      <div>
-                                          <Link href={`/seller/profile?userId=${seller.uid}`} className="font-semibold hover:underline">{seller.name}</Link>
-                                          <div className="flex items-center gap-1 text-xs text-amber-400 mt-1">
-                                              <Star className="w-4 h-4 fill-current" />
-                                              <span>4.8</span>
-                                          </div>
-                                      </div>
-                                  </div>
-                              </div>
                                 <Separator />
                                 <Card>
                                     <CardHeader className="flex flex-row items-center justify-between">
@@ -1046,28 +1021,17 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                 <Separator />
                                  <div className="mt-8">
                                     <h2 className="text-2xl font-bold mb-4">Related Product Streams</h2>
-                                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                                         {relatedStreams.map((stream: any) => (
                                             <Link href={`/stream/${stream.id}`} key={stream.id} className="group block">
                                                 <div className="relative aspect-video bg-muted rounded-lg overflow-hidden">
                                                     <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
-                                                    <div className="absolute top-2 right-2 z-10">
-                                                        <Badge variant="secondary" className="bg-black/50 text-white gap-1.5">
-                                                            <Users className="h-3 w-3"/>
-                                                            {stream.viewers}
-                                                        </Badge>
-                                                    </div>
-                                                     <Image
-                                                        src={stream.thumbnailUrl}
-                                                        alt={`Live stream from ${stream.name}`}
-                                                        fill
-                                                        sizes="33vw"
-                                                        className="object-cover w-full h-full group-hover:scale-105 transition-transform"
-                                                    />
+                                                    <div className="absolute top-2 right-2 z-10"><Badge variant="secondary" className="bg-black/50 text-white"><Users className="w-3 h-3 mr-1"/>{stream.viewers.toLocaleString()}</Badge></div>
+                                                     <Image src={stream.thumbnailUrl} alt={`Live stream from ${stream.name}`} fill sizes="33vw" className="object-cover w-full h-full group-hover:scale-105 transition-transform" />
                                                 </div>
                                                 <div className="flex items-start gap-2 mt-2">
                                                     <Avatar className="w-8 h-8">
-                                                        <AvatarImage src={stream.avatarUrl} />
+                                                        <AvatarImage src={stream.avatarUrl} alt={stream.name} />
                                                         <AvatarFallback>{stream.name.charAt(0)}</AvatarFallback>
                                                     </Avatar>
                                                     <div className="flex-1 overflow-hidden">
@@ -1080,7 +1044,27 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                         ))}
                                     </div>
                                 </div>
-                                
+                                <div className="p-4 border rounded-lg mt-8">
+                                    <div className="flex items-center justify-between">
+                                        <h3 className="text-lg font-semibold">Sold By</h3>
+                                        <Button asChild variant="outline" size="sm">
+                                            <Link href={`/seller/profile?userId=${seller.uid}`}>View Profile</Link>
+                                        </Button>
+                                    </div>
+                                    <div className="flex items-center gap-4 mt-4">
+                                        <Avatar>
+                                            <AvatarImage src={seller.avatarUrl} />
+                                            <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
+                                        </Avatar>
+                                        <div>
+                                            <Link href={`/seller/profile?userId=${seller.uid}`} className="font-semibold hover:underline">{seller.name}</Link>
+                                            <div className="flex items-center gap-1 text-xs text-amber-400 mt-1">
+                                                <Star className="w-4 h-4 fill-current" />
+                                                <span>4.8</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                                 {recentlyViewedItems.length > 0 && (
                                     <div className="mt-8">
                                         <h2 className="text-2xl font-bold mb-4">Recently Viewed</h2>
