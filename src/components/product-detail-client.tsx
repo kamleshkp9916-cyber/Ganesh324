@@ -102,7 +102,6 @@ export function ProductDetailClient({ productId }: { productId: string }) {
     const router = useRouter();
     const { user, userData } = useAuth();
     
-    // Derive product directly from props instead of using state to avoid stale data on navigation
     const product = useMemo(() => productDetails[productId as keyof typeof productDetails] || null, [productId]);
     
     const { toast } = useToast();
@@ -634,12 +633,12 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                                               onClick={() => setSelectedMedia(item)}
                                                               className={cn(
                                                                   "w-16 h-16 rounded-md overflow-hidden border-2 flex-shrink-0 relative",
-                                                                  selectedMedia?.url === (item.preview || item.url) ? 'border-primary' : 'border-transparent'
+                                                                  selectedMedia?.url === item.url ? 'border-primary' : 'border-transparent'
                                                               )}
                                                           >
                                                               {item.type === 'image' ? (
                                                                   <Image
-                                                                      src={item.preview || item.url}
+                                                                      src={item.url}
                                                                       alt={`Thumbnail ${''}${index + 1}`}
                                                                       width={64}
                                                                       height={64}
@@ -647,7 +646,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                                                   />
                                                               ) : (
                                                                   <>
-                                                                      <video src={item.preview || item.url} className="object-cover w-full h-full" />
+                                                                      <video src={item.url} className="object-cover w-full h-full" />
                                                                       <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
                                                                           <Play className="h-6 w-6 text-white" />
                                                                       </div>
@@ -685,7 +684,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                 </div>
                                 
                                 <div className="flex flex-col gap-4">
-                                     <div className="flex items-center justify-between gap-4">
+                                     <div className="flex items-start justify-between gap-4">
                                         <div className="text-sm font-mono text-muted-foreground">
                                             {product.key}
                                         </div>
@@ -1132,3 +1131,5 @@ export function ProductDetailClient({ productId }: { productId: string }) {
         </>
     );
 }
+
+    
