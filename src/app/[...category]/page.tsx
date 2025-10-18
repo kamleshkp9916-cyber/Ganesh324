@@ -3,7 +3,7 @@
 
 import { useRouter, useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, ShoppingCart, Star, Search, ChevronDown, Users, Package, Sparkles } from 'lucide-react';
+import { ArrowLeft, ShoppingCart, Star, Search, ChevronDown, Users, Package, Sparkles, Video } from 'lucide-react';
 import { productDetails } from '@/lib/product-data';
 import Link from 'next/link';
 import { Card } from '@/components/ui/card';
@@ -22,6 +22,7 @@ import { differenceInDays } from 'date-fns';
 import { useDebounce } from '@/hooks/use-debounce';
 import { normalize, generateKeywords } from '@/lib/generateKeywords';
 import ProductSearch from '@/components/ProductSearch';
+import { cn } from '@/lib/utils';
 
 export default function CategoryPage() {
     const router = useRouter();
@@ -135,6 +136,11 @@ export default function CategoryPage() {
                                             {isNew && (
                                                 <Badge className="absolute top-2 left-2 z-10">NEW</Badge>
                                             )}
+                                            {product.isFromStream && (
+                                                <Badge variant="purple" className={cn("absolute z-10", isNew ? "top-10 left-2" : "top-2 left-2")}>
+                                                    <Video className="h-3 w-3 mr-1"/> From Stream
+                                                </Badge>
+                                            )}
                                             <Image
                                                 src={product.images[0]}
                                                 alt={product.name}
@@ -177,4 +183,5 @@ export default function CategoryPage() {
         </div>
     );
 }
+    
     
