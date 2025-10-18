@@ -16,6 +16,7 @@ import Link from 'next/link';
 import { useAuth } from '@/hooks/use-auth';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { formatDistanceToNow } from 'date-fns';
+import { Badge } from '@/components/ui/badge';
 
 const mockQandA = [
     { id: 1, question: "Does this camera come with a roll of film?", questioner: "Alice", answer: "Yes, it comes with one 24-exposure roll of color film to get you started!", answerer: "GadgetGuru", timestamp: new Date(Date.now() - 2 * 60 * 1000) },
@@ -126,7 +127,8 @@ export default function ProductQnaPage() {
                                                     </Avatar>
                                                     <div>
                                                          <div className="flex items-center gap-2">
-                                                            <p className="font-semibold text-sm text-primary">{qa.answerer}</p>
+                                                            <p className="font-semibold text-sm text-yellow-400">{qa.answerer}</p>
+                                                            <Badge variant="secondary">Seller</Badge>
                                                             <p className="text-xs text-muted-foreground">{formatDistanceToNow(new Date(qa.timestamp.getTime() + 60000), { addSuffix: true })}</p>
                                                         </div>
                                                         <p className="text-sm text-muted-foreground">{qa.answer}</p>
@@ -139,7 +141,7 @@ export default function ProductQnaPage() {
                                                         <AvatarFallback>S</AvatarFallback>
                                                     </Avatar>
                                                     <div>
-                                                        <p className="font-semibold text-sm text-primary">Seller</p>
+                                                        <p className="font-semibold text-sm text-yellow-400">Seller</p>
                                                         <p className="text-sm text-muted-foreground italic">Pending answer from seller...</p>
                                                     </div>
                                                 </div>
@@ -179,4 +181,3 @@ export default function ProductQnaPage() {
             </div>
         </div>
     );
-}
