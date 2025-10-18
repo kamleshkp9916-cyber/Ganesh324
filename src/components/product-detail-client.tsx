@@ -101,10 +101,8 @@ const liveSellers = [
 export function ProductDetailClient({ productId }: { productId: string }) {
     const router = useRouter();
     const { user, userData } = useAuth();
-    
-    // Directly derive product from props. This is the key fix.
     const product = productDetails[productId as keyof typeof productDetails] || null;
-    
+
     const { toast } = useToast();
     const [wishlisted, setWishlisted] = useState(false);
     const [inCart, setInCart] = useState(false);
@@ -596,33 +594,6 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                                                 <div className="scan-animation"></div>
                                                             </div>
                                                         )}
-                                                        <div className="absolute top-2 right-2 z-20 flex flex-col gap-2 items-end">
-                                                            <Button variant="ghost" size="icon" className="h-9 w-9 bg-background/60 backdrop-blur-sm lg:hidden" onClick={(e) => { e.stopPropagation(); handleWishlistToggle(); }}>
-                                                                <Heart className={cn("h-5 w-5", wishlisted ? "fill-red-500 text-red-500" : "text-muted-foreground")} />
-                                                            </Button>
-                                                            <Button variant="ghost" size="icon" className="h-9 w-9 bg-background/60 backdrop-blur-sm lg:hidden" onClick={(e) => { e.stopPropagation(); handleShare(); }}>
-                                                                <Share2 className="h-5 w-5" />
-                                                            </Button>
-                                                            <AlertDialog>
-                                                                <AlertDialogTrigger asChild>
-                                                                    <Button variant="ghost" size="icon" className="h-9 w-9 bg-background/60 backdrop-blur-sm lg:hidden" onClick={(e) => e.stopPropagation()}>
-                                                                        <Flag className="h-5 w-5" />
-                                                                    </Button>
-                                                                </AlertDialogTrigger>
-                                                                <AlertDialogContent>
-                                                                    <AlertDialogHeader>
-                                                                        <AlertDialogTitle>Report Product?</AlertDialogTitle>
-                                                                        <AlertDialogDescription>
-                                                                            If this product violates our community guidelines, please report it. Our team will review it shortly.
-                                                                        </AlertDialogDescription>
-                                                                    </AlertDialogHeader>
-                                                                    <AlertDialogFooter>
-                                                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                                                        <AlertDialogAction onClick={handleReportProduct}>Confirm Report</AlertDialogAction>
-                                                                    </AlertDialogFooter>
-                                                                </AlertDialogContent>
-                                                            </AlertDialog>
-                                                        </div>
                                                     </div>
                                                 </DialogTrigger>
                                                 
@@ -688,7 +659,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                         <div className="text-sm font-mono text-muted-foreground">
                                             {product.key}
                                         </div>
-                                        <div className="hidden lg:flex items-center ml-auto">
+                                        <div className="flex items-center ml-auto">
                                             <Button variant="ghost" size="icon" onClick={handleWishlistToggle}>
                                                 <Heart className={cn("h-6 w-6", wishlisted ? "fill-red-500 text-red-500" : "text-muted-foreground")} />
                                             </Button>
@@ -1130,3 +1101,5 @@ export function ProductDetailClient({ productId }: { productId: string }) {
         </>
     );
 }
+
+    
