@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
@@ -964,6 +963,32 @@ export function ProductDetailClient({ productId }: { productId: string }) {
 
                                 <Separator />
                                 
+                                <Card>
+                                    <CardHeader>
+                                        <CardTitle>Sold By</CardTitle>
+                                    </CardHeader>
+                                    <CardContent>
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-4">
+                                                <Avatar>
+                                                    <AvatarImage src={seller.avatarUrl} />
+                                                    <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
+                                                </Avatar>
+                                                <div>
+                                                    <Link href={`/seller/profile?userId=${seller.uid}`} className="font-semibold hover:underline">{seller.name}</Link>
+                                                    <div className="flex items-center gap-1 text-xs text-amber-400 mt-1">
+                                                        <Star className="w-4 h-4 fill-current" />
+                                                        <span>4.8</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <Button asChild variant="outline">
+                                                <Link href={`/seller/profile?userId=${seller.uid}`}>View Profile</Link>
+                                            </Button>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+
                                 <Card>
                                         <CardHeader className="flex items-center justify-between">
                                         <CardTitle>Ratings & Reviews</CardTitle>
