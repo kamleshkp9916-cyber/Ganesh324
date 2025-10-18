@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useRouter, useParams } from 'next/navigation';
@@ -151,7 +150,7 @@ export default function CategoryPage() {
                                                 className="object-cover transition-transform group-hover:scale-105"
                                                 data-ai-hint={product.hint}
                                             />
-                                            <div className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <div className="absolute bottom-2 right-2 transition-opacity">
                                                 <Button size="icon" className="h-8 w-8 rounded-full bg-black/50 text-white backdrop-blur-sm">
                                                     <Sparkles className="h-4 w-4" />
                                                 </Button>
