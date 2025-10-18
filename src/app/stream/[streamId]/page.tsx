@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import {
@@ -123,7 +124,7 @@ import { useInView } from "react-intersection-observer";
 import { useMiniPlayer } from "@/context/MiniPlayerContext";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { useIsMobile } from "@/hooks/use-is-mobile";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { format, formatDistanceToNow, isThisWeek, isThisYear, parseISO, parse } from 'date-fns';
 
@@ -231,7 +232,7 @@ const productToSellerMapping: { [key: string]: { name: string; avatarUrl: string
     'prod_30': { name: 'Everyday', avatarUrl: 'https://placehold.co/80x80.png', uid: 'everyday-uid' },
     'prod_31': { name: 'SunChaser', avatarUrl: 'https://placehold.co/80x80.png', uid: 'sunchaser-uid' },
     'prod_32': { name: 'Elegance', avatarUrl: 'https://placehold.co/80x80.png', uid: 'elegance-uid' },
-    'prod_33': { name: 'SleekFit', avatarUrl: 'https://placehold.co/80x80.png', uid: 'sleekfit-uid' }
+    'prod_33': { name: 'SleekFit', avatarUrl: 'https://placehold.co/80x80.png', uid: 'sleekfit-uid' },
 };
 
 
@@ -300,6 +301,11 @@ const ProductShelfContent = ({ sellerProducts, handleAddToCart, handleBuyNow, is
                                             sizes="50vw"
                                             className="object-cover transition-transform group-hover:scale-105"
                                         />
+                                        <div className="absolute bottom-2 right-2">
+                                            <Button size="icon" className="h-8 w-8 rounded-full bg-black/50 text-white backdrop-blur-sm">
+                                                <Sparkles className="h-4 w-4" />
+                                            </Button>
+                                        </div>
                                         {product.stock === 0 && (
                                             <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
                                                 <Badge variant="destructive">Out of Stock</Badge>
@@ -400,6 +406,11 @@ const ProductShelf = ({ sellerProducts, handleAddToCart, handleBuyNow, toast }: 
                                             sizes="50vw"
                                             className="object-cover transition-transform group-hover:scale-105"
                                         />
+                                        <div className="absolute bottom-2 right-2">
+                                            <Button size="icon" className="h-8 w-8 rounded-full bg-black/50 text-white backdrop-blur-sm">
+                                                <Sparkles className="h-4 w-4" />
+                                            </Button>
+                                        </div>
                                         {product.stock === 0 && (
                                             <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
                                                 <Badge variant="destructive">Out of Stock</Badge>
@@ -1444,7 +1455,7 @@ const ChatMessage = ({ msg, handlers, seller }: { msg: any, handlers: any, selle
             </Avatar>
             <div className="flex-grow">
                 <div className="flex items-center gap-1.5 flex-wrap">
-                    <span className={cn("font-semibold text-xs", msg.isSeller && "text-yellow-400")}>
+                    <span className={cn("font-semibold text-xs break-all", msg.isSeller && "text-yellow-400")}>
                         {msg.user}:
                     </span>
                     {msg.isSeller && <Badge variant="outline" className="mr-1.5 border-yellow-400/50 text-yellow-400 h-4 text-[10px] px-1.5">Seller</Badge>}
