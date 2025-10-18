@@ -434,14 +434,11 @@ export function ProductDetailClient({ productId }: { productId: string }) {
     
     const handleAddressSave = (address: any) => {
         toast({
-            title: "Address Selected!",
-            description: "Your delivery address has been set for this session."
+            title: "Address Updated",
+            description: "Your delivery address has been successfully updated.",
         });
-        if(user){
-            const newUserData = { ...userData, addresses: [address, ...userData?.addresses?.filter((a: any) => a.id !== address.id) || []] };
-        }
         setIsAddressDialogOpen(false);
-    }
+    };
     
      const handleAddressesUpdate = (newAddresses: any[]) => {
         if(user){
@@ -452,7 +449,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
     const onSearchComplete = useCallback((results: any[], query: string) => {
         setSearchResults(results);
         setSearchQuery(query);
-        setShowSearchResults(results.length > 0 || query.length > 0);
+        setShowSearchResults(true);
     }, []);
 
     const handleSimilarClick = () => {
@@ -590,48 +587,39 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                                         )}
                                                         {isScanning && (
                                                             <div className="absolute inset-0 bg-black/30 overflow-hidden">
-                                                                <div className="scan-animation"></div>
+                                                                <div className="shimmer-scan-animation"></div>
                                                             </div>
                                                         )}
+                                                         <div className="absolute top-2 right-2 z-20 flex flex-col gap-2 items-end">
+                                                            <Button variant="ghost" size="icon" className="h-9 w-9 bg-background/60 backdrop-blur-sm lg:hidden" onClick={handleWishlistToggle}>
+                                                                <Heart className={cn("h-5 w-5", wishlisted ? "fill-red-500 text-red-500" : "text-muted-foreground")} />
+                                                            </Button>
+                                                            <Button variant="ghost" size="icon" className="h-9 w-9 bg-background/60 backdrop-blur-sm lg:hidden" onClick={handleShare}>
+                                                                <Share2 className="h-5 w-5" />
+                                                            </Button>
+                                                            <AlertDialog>
+                                                                <AlertDialogTrigger asChild>
+                                                                    <Button variant="ghost" size="icon" className="h-9 w-9 bg-background/60 backdrop-blur-sm lg:hidden">
+                                                                        <Flag className="h-5 w-5" />
+                                                                    </Button>
+                                                                </AlertDialogTrigger>
+                                                                <AlertDialogContent>
+                                                                    <AlertDialogHeader>
+                                                                        <AlertDialogTitle>Report Product?</AlertDialogTitle>
+                                                                        <AlertDialogDescription>
+                                                                            If this product violates our community guidelines, please report it. Our team will review it shortly.
+                                                                        </AlertDialogDescription>
+                                                                    </AlertDialogHeader>
+                                                                    <AlertDialogFooter>
+                                                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                                        <AlertDialogAction onClick={handleReportProduct}>Confirm Report</AlertDialogAction>
+                                                                    </AlertDialogFooter>
+                                                                </AlertDialogContent>
+                                                            </AlertDialog>
+                                                        </div>
                                                     </div>
                                                 </DialogTrigger>
                                                 
-                                                <div className="absolute top-2 right-2 z-20 flex flex-col gap-2 items-end">
-                                                    <Button variant="ghost" size="icon" className="h-9 w-9 bg-background/60 backdrop-blur-sm lg:hidden" onClick={handleWishlistToggle}>
-                                                        <Heart className={cn("h-5 w-5", wishlisted ? "fill-red-500 text-red-500" : "text-muted-foreground")} />
-                                                    </Button>
-                                                    <Button variant="ghost" size="icon" className="h-9 w-9 bg-background/60 backdrop-blur-sm lg:hidden" onClick={handleShare}>
-                                                        <Share2 className="h-5 w-5" />
-                                                    </Button>
-                                                    <AlertDialog>
-                                                        <AlertDialogTrigger asChild>
-                                                            <Button variant="ghost" size="icon" className="h-9 w-9 bg-background/60 backdrop-blur-sm lg:hidden">
-                                                                <Flag className="h-5 w-5" />
-                                                            </Button>
-                                                        </AlertDialogTrigger>
-                                                        <AlertDialogContent>
-                                                            <AlertDialogHeader>
-                                                                <AlertDialogTitle>Report Product?</AlertDialogTitle>
-                                                                <AlertDialogDescription>
-                                                                    If this product violates our community guidelines, please report it. Our team will review it shortly.
-                                                                </AlertDialogDescription>
-                                                            </AlertDialogHeader>
-                                                            <AlertDialogFooter>
-                                                                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                                                <AlertDialogAction onClick={handleReportProduct}>Confirm Report</AlertDialogAction>
-                                                            </AlertDialogFooter>
-                                                        </AlertDialogContent>
-                                                    </AlertDialog>
-                                                </div>
-
-                                                <div className="absolute bottom-2 right-2 z-20">
-                                                     <div className="relative">
-                                                          <Button size="sm" className="rounded-full bg-black/50 text-white backdrop-blur-sm flex items-center gap-1.5 h-8" onClick={handleSimilarClick} disabled={isScanning}>
-                                                              {isScanning ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-                                                              <span className="text-xs">Similar Product</span>
-                                                          </Button>
-                                                     </div>
-                                                </div>
                                                 <ScrollArea>
                                                     <div className="flex gap-2 pb-2">
                                                         {product.media?.map((item: any, index: number) => (
@@ -640,12 +628,12 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                                                 onClick={() => setSelectedMedia(item)}
                                                                 className={cn(
                                                                     "w-16 h-16 rounded-md overflow-hidden border-2 flex-shrink-0 relative",
-                                                                    selectedMedia?.url === item.preview ? 'border-primary' : 'border-transparent'
+                                                                    selectedMedia?.url === (item.preview || item.url) ? 'border-primary' : 'border-transparent'
                                                                 )}
                                                             >
                                                                 {item.type === 'image' ? (
                                                                     <Image
-                                                                        src={item.preview}
+                                                                        src={item.preview || item.url}
                                                                         alt={`Thumbnail ${''}${index + 1}`}
                                                                         width={64}
                                                                         height={64}
@@ -653,7 +641,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                                                     />
                                                                 ) : (
                                                                     <>
-                                                                        <video src={item.preview} className="object-cover w-full h-full" />
+                                                                        <video src={item.preview || item.url} className="object-cover w-full h-full" />
                                                                         <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
                                                                             <Play className="h-6 w-6 text-white" />
                                                                         </div>
@@ -684,41 +672,47 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                         relatedStreams={relatedStreams}
                                         isLoading={isLoadingSimilar}
                                     />}
+                                     <div className="mt-4">
+                                         <Button size="lg" className="w-full rounded-full bg-black/50 text-white backdrop-blur-sm flex items-center gap-1.5" onClick={handleSimilarClick} disabled={isScanning}>
+                                            {isScanning ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+                                            <span>Find Similar Products</span>
+                                        </Button>
+                                     </div>
                                 </div>
                                 
                                 <div className="flex flex-col gap-4">
-                                    <div className="flex items-center justify-between gap-4">
-                                        <div>
-                                            {product.brand && <p className="text-sm font-medium text-primary mb-1">{product.brand}</p>}
-                                            <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">{product.name}</h1>
+                                    <div>
+                                         <div className="flex items-center justify-between gap-4 mb-2">
+                                            {product.brand && <p className="text-sm font-medium text-primary">{product.brand}</p>}
+                                             <div className="hidden lg:flex items-center ml-2">
+                                                <Button variant="ghost" size="icon" onClick={handleWishlistToggle}>
+                                                    <Heart className={cn("h-6 w-6", wishlisted ? "fill-red-500 text-red-500" : "text-muted-foreground")} />
+                                                </Button>
+                                                <Button variant="ghost" size="icon" onClick={handleShare}>
+                                                    <Share2 className="h-6 w-6" />
+                                                </Button>
+                                                <AlertDialog>
+                                                    <AlertDialogTrigger asChild>
+                                                        <Button variant="ghost" size="icon">
+                                                            <Flag className="h-6 w-6" />
+                                                        </Button>
+                                                    </AlertDialogTrigger>
+                                                    <AlertDialogContent>
+                                                        <AlertDialogHeader>
+                                                            <AlertDialogTitle>Report Product?</AlertDialogTitle>
+                                                            <AlertDialogDescription>
+                                                                If this product violates our community guidelines, please report it. Our team will review it shortly.
+                                                            </AlertDialogDescription>
+                                                        </AlertDialogHeader>
+                                                        <AlertDialogFooter>
+                                                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                            <AlertDialogAction onClick={handleReportProduct}>Confirm Report</AlertDialogAction>
+                                                        </AlertDialogFooter>
+                                                    </AlertDialogContent>
+                                                </AlertDialog>
+                                            </div>
                                         </div>
-                                        <div className="hidden lg:flex items-center ml-2">
-                                            <Button variant="ghost" size="icon" onClick={handleWishlistToggle}>
-                                                <Heart className={cn("h-6 w-6", wishlisted ? "fill-red-500 text-red-500" : "text-muted-foreground")} />
-                                            </Button>
-                                            <Button variant="ghost" size="icon" onClick={handleShare}>
-                                                <Share2 className="h-6 w-6" />
-                                            </Button>
-                                            <AlertDialog>
-                                                <AlertDialogTrigger asChild>
-                                                    <Button variant="ghost" size="icon">
-                                                        <Flag className="h-6 w-6" />
-                                                    </Button>
-                                                </AlertDialogTrigger>
-                                                <AlertDialogContent>
-                                                    <AlertDialogHeader>
-                                                        <AlertDialogTitle>Report Product?</AlertDialogTitle>
-                                                        <AlertDialogDescription>
-                                                            If this product violates our community guidelines, please report it. Our team will review it shortly.
-                                                        </AlertDialogDescription>
-                                                    </AlertDialogHeader>
-                                                    <AlertDialogFooter>
-                                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                                        <AlertDialogAction onClick={handleReportProduct}>Confirm Report</AlertDialogAction>
-                                                    </AlertDialogFooter>
-                                                </AlertDialogContent>
-                                            </AlertDialog>
-                                        </div>
+                                        <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">{product.name}</h1>
                                     </div>
                                     <p className="text-muted-foreground">{renderDescriptionWithHashtags(product.description)}</p>
                                     <div>
