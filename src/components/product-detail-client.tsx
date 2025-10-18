@@ -101,7 +101,6 @@ const liveSellers = [
 export function ProductDetailClient({ productId }: { productId: string }) {
     const router = useRouter();
     const { user, userData } = useAuth();
-    const product = useMemo(() => productDetails[productId as keyof typeof productDetails] || null, [productId]);
     
     const { toast } = useToast();
     const [wishlisted, setWishlisted] = useState(false);
@@ -132,6 +131,8 @@ export function ProductDetailClient({ productId }: { productId: string }) {
     const [showSimilarOverlay, setShowSimilarOverlay] = useState(false);
     const [isScanning, setIsScanning] = useState(false);
     const [isLoadingSimilar, setIsLoadingSimilar] = useState(false);
+    
+    const product = useMemo(() => productDetails[productId as keyof typeof productDetails] || null, [productId]);
     
     // This effect will run every time the productId changes.
     useEffect(() => {
@@ -180,7 +181,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
           const mediaItems = [...(currentProduct.media || []), ...currentProduct.images.map((url: string) => ({type: 'image', url: url}))];
           const uniqueMedia = Array.from(new Map(mediaItems.map(item => [item.url, item])).values());
           if(uniqueMedia.length > 0) {
-              setSelectedMedia(uniqueMedia[0]);
+              setSelectedMedia(uniqueMedia[0] as any);
           }
 
           // 7. Set default variants
@@ -590,7 +591,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                         <Card>
                                             <CardContent className="p-4">
                                                 <DialogTrigger asChild>
-                                                    <div className="aspect-square w-full relative bg-muted rounded-lg overflow-hidden mb-4 cursor-pointer group">
+                                                    <div className="aspect-square w-full bg-muted rounded-lg overflow-hidden mb-4 cursor-pointer group relative">
                                                         {selectedMedia?.type === 'image' && selectedMedia.url && (
                                                             <Image
                                                                 src={selectedMedia.url}
@@ -887,21 +888,29 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                             </ScrollArea>
                                         </SheetContent>
                                     </Sheet>
-                                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm pt-4 border-t">
-                                        <div className="flex flex-col items-center text-center gap-2">
-                                            <RotateCcw className="h-6 w-6 text-primary" />
-                                            <h4 className="font-semibold">7-Day Return Policy</h4>
-                                            <p className="text-xs text-muted-foreground">Return this item within 7 days of delivery for a full refund.</p>
-                                        </div>
-                                        <div className="flex flex-col items-center text-center gap-2">
-                                            <Banknote className="h-6 w-6 text-primary" />
-                                            <h4 className="font-semibold">Pay on Delivery</h4>
-                                            <p className="text-xs text-muted-foreground">Pay with cash at your doorstep. Available on eligible orders.</p>
-                                        </div>
-                                        <div className="flex flex-col items-center text-center gap-2">
-                                            <ShieldCheck className="h-6 w-6 text-primary" />
-                                            <h4 className="font-semibold">100% Genuine</h4>
-                                            <p className="text-xs text-muted-foreground">All products are sourced directly from brands and verified sellers.</p>
+                                    <div className="pt-4 border-t">
+                                        <div className="space-y-4 text-sm">
+                                            <div className="flex items-start gap-3">
+                                                <RotateCcw className="h-5 w-5 text-primary mt-0.5" />
+                                                <div>
+                                                    <h4 className="font-semibold">7-Day Return Policy</h4>
+                                                    <p className="text-xs text-muted-foreground">Return this item within 7 days of delivery for a full refund.</p>
+                                                </div>
+                                            </div>
+                                            <div className="flex items-start gap-3">
+                                                <Banknote className="h-5 w-5 text-primary mt-0.5" />
+                                                <div>
+                                                    <h4 className="font-semibold">Pay on Delivery</h4>
+                                                    <p className="text-xs text-muted-foreground">Pay with cash at your doorstep. Available on eligible orders.</p>
+                                                </div>
+                                            </div>
+                                            <div className="flex items-start gap-3">
+                                                <ShieldCheck className="h-5 w-5 text-primary mt-0.5" />
+                                                <div>
+                                                    <h4 className="font-semibold">100% Genuine</h4>
+                                                    <p className="text-xs text-muted-foreground">All products are sourced directly from brands and verified sellers.</p>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -923,7 +932,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                                 </li>
                                             ))}
                                         </ul>
-                                        <div className="relative aspect-square w-full max-w-xs mx-auto">
+                                         <div className="relative aspect-square w-full max-w-xs mx-auto">
                                             <Image 
                                                 src="https://picsum.photos/seed/product-highlights/400/400"
                                                 alt="Product highlights"
