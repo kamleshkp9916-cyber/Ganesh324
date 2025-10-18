@@ -20,10 +20,11 @@ interface Product {
 
 interface ProductSearchProps {
     onSearchComplete: (results: Product[], query: string) => void;
+    initialProducts?: Product[];
 }
 
 
-export default function ProductSearch({ onSearchComplete }: ProductSearchProps) {
+export default function ProductSearch({ onSearchComplete, initialProducts = [] }: ProductSearchProps) {
   const db = getFirestoreDb();
   const [q, setQ] = useState('');
   const debouncedQuery = useDebounce(q, 350);
@@ -44,31 +45,25 @@ export default function ProductSearch({ onSearchComplete }: ProductSearchProps) 
       setSuggestions([]);
       setLoading(false);
       setPopoverOpen(false);
+      // When the query is cleared, also clear the parent component's results.
+      if (fullSearch) {
+          onSearchComplete([], '');
+      }
       return;
     }
     setLoading(true);
     const tokens = tokenize(queryText);
 
     try {
-      const productsRef = collection(db, 'products');
-      // For a "search-as-you-type" suggestion list, you might only query the last token.
-      // For a full search, you use all tokens.
-      const queryTokens = fullSearch ? tokens : [tokens[tokens.length - 1]].filter(Boolean);
-      if(queryTokens.length === 0) {
-          setLoading(false);
-          setPopoverOpen(false);
-          return;
-      }
+      // For demo, we are filtering local mock data
+      const allProducts = initialProducts;
 
-      const qRef = query(productsRef, where('keywords', 'array-contains-any', queryTokens), limit(50));
-      const snap = await getDocs(qRef);
-      const docs = snap.docs.map(d => ({ id: d.id, ...d.data() } as Product));
-
-      const scored = docs.map(doc => {
+      // Score and sort products
+      const scored = allProducts.map(doc => {
         const k = (doc.keywords || []).map(x => String(x).toLowerCase());
         const score = tokens.reduce((s, t) => s + (k.includes(t) ? 1 : 0), 0);
         return { doc, score };
-      }).sort((a, b) => b.score - a.score);
+      }).filter(item => item.score > 0).sort((a, b) => b.score - a.score);
 
       const sorted = scored.map(x => x.doc);
 
@@ -87,7 +82,7 @@ export default function ProductSearch({ onSearchComplete }: ProductSearchProps) 
     } finally {
       setLoading(false);
     }
-  }, [db, onSearchComplete]);
+  }, [initialProducts, onSearchComplete]);
 
   useEffect(() => {
     if (debouncedQuery) {
@@ -95,6 +90,9 @@ export default function ProductSearch({ onSearchComplete }: ProductSearchProps) 
     } else {
         setSuggestions([]);
         setPopoverOpen(false);
+        // If the debounced query is empty, it means the user cleared the input.
+        // We trigger a full search with an empty query to clear the results in the parent.
+        runSearch('', true);
     }
   }, [debouncedQuery, runSearch]);
 
@@ -108,6 +106,7 @@ export default function ProductSearch({ onSearchComplete }: ProductSearchProps) 
     setQ(newQuery);
     if (!newQuery.trim()) {
       setPopoverOpen(false);
+      onSearchComplete([], ''); // Immediately clear results on empty input
     }
   }
 
