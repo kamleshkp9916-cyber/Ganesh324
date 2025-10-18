@@ -132,16 +132,15 @@ export function ProductDetailClient({ productId }: { productId: string }) {
     const [showSimilarOverlay, setShowSimilarOverlay] = useState(false);
     const [isScanning, setIsScanning] = useState(false);
     const [isLoadingSimilar, setIsLoadingSimilar] = useState(false);
+    const [isAuthDialogOpen, setIsAuthDialogOpen] = useState(false);
     
     const product = useMemo(() => productDetails[productId as keyof typeof productDetails] || null, [productId]);
     
-    // This effect will run every time the productId changes, thanks to the key prop in page.tsx
     useEffect(() => {
-        // Reset search state on every product change to prevent showing old results
         setShowSearchResults(false);
         setSearchResults([]);
         setSearchQuery('');
-        
+
         const currentProduct = productDetails[productId as keyof typeof productDetails] || null;
 
         if (currentProduct) {
@@ -307,47 +306,59 @@ export function ProductDetailClient({ productId }: { productId: string }) {
         }, 1000);
     };
 
-    const handleAddToCart = () => {
-        if (product) {
-            const productForCart: Product = {
-                id: product.id,
-                key: product.key,
-                name: product.name,
-                price: product.price,
-                imageUrl: product.images[0],
-                hint: product.hint,
-                brand: product.brand,
-                category: product.category,
-            };
-            addToCart({ ...productForCart, quantity: 1 });
-            setInCart(true);
-            toast({
-                title: "Added to Cart!",
-                description: `${product.name} has been added to your shopping cart.`,
-            });
+    const handleAuthAction = (callback: () => void) => {
+        if (!user) {
+            setIsAuthDialogOpen(true);
+        } else {
+            callback();
         }
+    };
+
+    const handleAddToCart = () => {
+        handleAuthAction(() => {
+            if (product) {
+                const productForCart: Product = {
+                    id: product.id,
+                    key: product.key,
+                    name: product.name,
+                    price: product.price,
+                    imageUrl: product.images[0],
+                    hint: product.hint,
+                    brand: product.brand,
+                    category: product.category,
+                };
+                addToCart({ ...productForCart, quantity: 1 });
+                setInCart(true);
+                toast({
+                    title: "Added to Cart!",
+                    description: `${product.name} has been added to your shopping cart.`,
+                });
+            }
+        });
     };
     
     const handleWishlistToggle = () => {
-        if (product) {
-            const productForWishlist: Product = {
-                id: product.id,
-                key: product.key,
-                name: product.name,
-                price: product.price,
-                imageUrl: product.images[0],
-                hint: product.hint,
-                brand: product.brand,
-                category: product.category,
-            };
-            addToWishlist(productForWishlist);
-            const newWishlistedState = isWishlisted(product.id);
-            setWishlisted(newWishlistedState);
-            toast({
-                title: newWishlistedState ? "Added to Wishlist" : "Removed from Wishlist",
-                description: `${product.name} has been ${newWishlistedState ? 'added to' : 'removed from'} your wishlist.`,
-            });
-        }
+        handleAuthAction(() => {
+            if (product) {
+                const productForWishlist: Product = {
+                    id: product.id,
+                    key: product.key,
+                    name: product.name,
+                    price: product.price,
+                    imageUrl: product.images[0],
+                    hint: product.hint,
+                    brand: product.brand,
+                    category: product.category,
+                };
+                addToWishlist(productForWishlist);
+                const newWishlistedState = isWishlisted(product.id);
+                setWishlisted(newWishlistedState);
+                toast({
+                    title: newWishlistedState ? "Added to Wishlist" : "Removed from Wishlist",
+                    description: `${product.name} has been ${newWishlistedState ? 'added to' : 'removed from'} your wishlist.`,
+                });
+            }
+        });
     };
     
     const handleShare = () => {
@@ -366,28 +377,30 @@ export function ProductDetailClient({ productId }: { productId: string }) {
     };
     
     const handleBuyNow = () => {
-        if (product) {
-            router.push(`/cart?buyNow=true&productId=${product.key}`);
-        }
+        handleAuthAction(() => {
+            if (product) {
+                router.push(`/cart?buyNow=true&productId=${product.key}`);
+            }
+        });
     };
     
     const handleAskQuestion = () => {
-        if (newQuestion.trim()) {
-            console.log("New question:", newQuestion);
-            toast({
-                title: "Question Submitted!",
-                description: "Your question has been sent to the seller. You will be notified when they answer.",
-            });
-            setNewQuestion("");
-            setIsQnaDialogOpen(false);
-        }
+        handleAuthAction(() => {
+            if (newQuestion.trim()) {
+                console.log("New question:", newQuestion);
+                toast({
+                    title: "Question Submitted!",
+                    description: "Your question has been sent to the seller. You will be notified when they answer.",
+                });
+                setNewQuestion("");
+                setIsQnaDialogOpen(false);
+            }
+        });
     };
 
     const handleReviewSubmit = (review: Review) => {
-        if (!product || !user) {
-            toast({ variant: 'destructive', title: "Error", description: "You must be logged in to submit a review." });
-            return;
-        }
+        if (!product || !user) return;
+
         if (editingReview) {
              updateReview(product.key, review);
              toast({
@@ -417,17 +430,15 @@ export function ProductDetailClient({ productId }: { productId: string }) {
     };
 
     const openReviewDialog = () => {
-        if (!user) {
-            toast({ variant: 'destructive', title: 'Login Required', description: 'You must be logged in to write a review.' });
-            return;
-        }
-        const userHasReviewed = reviews.some(r => r.userId === user.uid);
-        if(userHasReviewed) {
-             toast({ variant: 'destructive', title: 'Already Reviewed', description: 'You have already submitted a review for this product.' });
-             return;
-        }
-        setEditingReview(undefined);
-        setIsReviewDialogOpen(true);
+        handleAuthAction(() => {
+            const userHasReviewed = reviews.some(r => r.userId === user!.uid);
+            if(userHasReviewed) {
+                 toast({ variant: 'destructive', title: 'Already Reviewed', description: 'You have already submitted a review for this product.' });
+                 return;
+            }
+            setEditingReview(undefined);
+            setIsReviewDialogOpen(true);
+        });
     };
     
     const handleAddressSave = (address: any) => {
@@ -445,9 +456,11 @@ export function ProductDetailClient({ productId }: { productId: string }) {
       }
       
     const onSearchComplete = useCallback((results: any[], query: string) => {
-      setSearchResults(results);
-      setSearchQuery(query);
-      setShowSearchResults(results.length > 0 || query.length > 0);
+        setSearchResults(results);
+        setSearchQuery(query);
+        if (results.length > 0 || query.length > 0) {
+            setShowSearchResults(true);
+        }
     }, []);
 
     const handleSimilarClick = () => {
@@ -539,6 +552,21 @@ export function ProductDetailClient({ productId }: { productId: string }) {
 
     return (
         <>
+             <AlertDialog open={isAuthDialogOpen} onOpenChange={setIsAuthDialogOpen}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Authentication Required</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            You need to be logged in to perform this action. Please log in or create an account to continue.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={() => router.push(`/signup?redirect=${productId}`)}>Create Account</AlertDialogAction>
+                        <AlertDialogAction onClick={() => router.push(`/?redirect=${productId}`)}>Login</AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
             <div className="min-h-screen bg-background">
                 <header className="p-4 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-sm z-30 border-b">
                     <Button variant="ghost" size="icon" onClick={() => {
@@ -671,7 +699,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                             <Button asChild variant="secondary" className="w-full">
                                                 <Link href={`/stream/${sellerLiveStream.id}`}>
                                                     <Video className="mr-2 h-4 w-4 text-primary" />
-                                                    {sellerLiveStream ? 'Watch Live!' : 'View Recorded Stream'}
+                                                    Watch Live Demo!
                                                 </Link>
                                             </Button>
                                              <p className="text-xs text-muted-foreground mt-1">Want a better look? See this product live in action for an interactive demo!</p>
@@ -799,26 +827,34 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                             </Button>
                                         )}
                                     </div>
-                                     <Card className="mt-4">
+                                    <Card className="mt-4">
                                         <CardContent className="p-4 space-y-4">
                                             <div className="flex items-start gap-3">
                                                 <Truck className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
                                                 <div>
                                                     <h4 className="font-semibold">Delivery Information</h4>
-                                                    <div className="flex items-center gap-2 mt-1">
-                                                        <Input value={pincode} onChange={(e) => setPincode(e.target.value)} placeholder="Enter Pincode" className="max-w-xs h-9" />
-                                                        <Button variant="outline" size="sm" onClick={handlePincodeCheck} disabled={checkingPincode}>
-                                                            {checkingPincode && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} Check
-                                                        </Button>
-                                                    </div>
-                                                    {isDeliverable !== null && (
+                                                    {user && userData?.addresses && userData.addresses.length > 0 ? (
+                                                         <div className="text-sm mt-1">
+                                                            <p>Deliver to <span className="font-semibold">{userData.addresses[0].name} - {userData.addresses[0].pincode}</span></p>
+                                                            <p className="text-muted-foreground">Delivery by {estimatedDeliveryDate}</p>
+                                                             <Button variant="link" className="p-0 h-auto text-xs" onClick={() => setIsAddressDialogOpen(true)}>Change</Button>
+                                                        </div>
+                                                    ) : (
+                                                        <div className="flex items-center gap-2 mt-1">
+                                                            <Input value={pincode} onChange={(e) => setPincode(e.target.value)} placeholder="Enter Pincode" className="max-w-xs h-9" />
+                                                            <Button variant="outline" size="sm" onClick={handlePincodeCheck} disabled={checkingPincode}>
+                                                                {checkingPincode && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} Check
+                                                            </Button>
+                                                        </div>
+                                                    )}
+                                                     {isDeliverable !== null && !user && (
                                                         <p className={cn("text-xs mt-1", isDeliverable ? "text-green-600" : "text-destructive")}>
                                                             {isDeliverable ? `Delivery available to ${pincode} by ${estimatedDeliveryDate}` : `Delivery not available to ${pincode}`}
                                                         </p>
                                                     )}
                                                 </div>
                                             </div>
-                                            <Separator />
+                                             <Separator />
                                             <div className="flex flex-col space-y-4">
                                                 <div className="flex items-start gap-3">
                                                     <RotateCcw className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
@@ -1089,9 +1125,20 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                         closeDialog={() => setIsReviewDialogOpen(false)}
                     />
                 </Dialog>
+                <Dialog open={isAddressDialogOpen} onOpenChange={setIsAddressDialogOpen}>
+                    <DialogContent className="max-w-lg h-auto max-h-[85vh] flex flex-col">
+                        <DialogHeader>
+                            <DialogTitle>Change Delivery Address</DialogTitle>
+                            <DialogDescription>Select a saved address or add a new one.</DialogDescription>
+                        </DialogHeader>
+                        <EditAddressForm 
+                            onSave={handleAddressSave}
+                            onCancel={() => setIsAddressDialogOpen(false)}
+                            onAddressesUpdate={handleAddressesUpdate}
+                        />
+                    </DialogContent>
+                </Dialog>
             </div>
         </>
     );
 }
-
-    
