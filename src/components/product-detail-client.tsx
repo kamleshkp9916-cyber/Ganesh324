@@ -741,7 +741,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                     )}
                                 </div>
                                 
-                                <div className="flex flex-col gap-4">
+                                <div className="flex flex-col gap-2">
                                      <div className="flex items-start justify-between gap-4">
                                         <div className="text-sm font-mono text-muted-foreground mt-2">
                                             {product.key}
@@ -774,12 +774,12 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                             </AlertDialog>
                                         </div>
                                     </div>
-                                    <div className='space-y-2'>
+                                    <div className='space-y-1'>
                                         {product.brand && <p className="text-sm font-medium text-primary">{product.brand}</p>}
                                         <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">{product.name}</h1>
-                                        <p className="text-muted-foreground">{renderDescriptionWithHashtags(product.description)}</p>
+                                        <p className="text-muted-foreground text-sm">{renderDescriptionWithHashtags(product.description)}</p>
                                     </div>
-                                    <div className="pt-2">
+                                    <div>
                                         <div className="flex items-center gap-4 flex-wrap">
                                             {currentPrice && <p className="text-3xl font-bold text-foreground">{currentPrice}</p>}
                                             <div className="flex items-center gap-2">
@@ -838,7 +838,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                         </div>
                                     )}
                                 
-                                    <div className="flex flex-col gap-2">
+                                    <div className="flex flex-col gap-2 pt-2">
                                         {(variantStock !== undefined && variantStock > 0) ? (
                                             <div className="flex flex-col gap-2">
                                                 {inCart ? (
@@ -861,54 +861,54 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                             </Button>
                                         )}
                                     </div>
-                                    <Separator />
-                                    <div className="space-y-4">
-                                        <div className="flex items-start gap-3">
-                                            <Truck className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                                            <div>
-                                                {user && userData?.addresses && userData.addresses.length > 0 ? (
-                                                    <>
-                                                        <p className="font-semibold text-sm">Deliver to <span className="font-bold">{userData.addresses[0].name} - {userData.addresses[0].pincode}</span></p>
-                                                        <p className="text-xs text-muted-foreground">{userData.addresses[0].village}, {userData.addresses[0].city}</p>
-                                                        <p className="text-muted-foreground font-semibold mt-1">Delivery by {estimatedDeliveryDate}</p>
-                                                        <Button variant="link" className="p-0 h-auto text-xs" onClick={() => handleAuthAction(() => setIsAddressDialogOpen(true))}>Change Address</Button>
-                                                    </>
-                                                ) : (
-                                                    <>
-                                                        <h4 className="font-semibold text-base">Delivery Information</h4>
-                                                        <div className="flex items-center gap-2 mt-1">
-                                                            <Input value={pincode} onChange={(e) => setPincode(e.target.value)} placeholder="Enter Pincode" className="max-w-xs h-9" />
-                                                            <Button variant="outline" size="sm" onClick={handlePincodeCheck} disabled={checkingPincode}>
-                                                                {checkingPincode ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null} Check
-                                                            </Button>
+                                    <Separator className="my-4" />
+                                    <div className="space-y-4 text-sm">
+                                        <div className="space-y-2">
+                                            <h4 className="font-semibold text-base">Delivery Information</h4>
+                                            {user && userData?.addresses && userData.addresses.length > 0 ? (
+                                                <>
+                                                    <div className="flex items-start gap-3 text-sm">
+                                                        <Truck className="h-5 w-5 text-muted-foreground mt-0.5 flex-shrink-0" />
+                                                        <div>
+                                                            <p>Deliver to <span className="font-bold text-foreground">{userData.addresses[0].name} - {userData.addresses[0].pincode}</span></p>
+                                                            <p className="text-xs text-muted-foreground">{userData.addresses[0].village}, {userData.addresses[0].city}</p>
+                                                            <Button variant="link" className="p-0 h-auto text-xs" onClick={() => handleAuthAction(() => setIsAddressDialogOpen(true))}>Change Address</Button>
                                                         </div>
-                                                        {isDeliverable !== null && (
-                                                            <p className={cn("text-xs mt-1", isDeliverable ? "text-green-600" : "text-destructive")}>
-                                                                {isDeliverable ? `Delivery available to ${pincode} by ${estimatedDeliveryDate}` : `Delivery not available to ${pincode}`}
-                                                            </p>
-                                                        )}
-                                                    </>
-                                                )}
-                                            </div>
+                                                    </div>
+                                                     <p className="text-muted-foreground font-semibold !mt-2">Delivery by {estimatedDeliveryDate}</p>
+                                                </>
+                                            ) : (
+                                                <div className="flex items-center gap-2">
+                                                    <Input value={pincode} onChange={(e) => setPincode(e.target.value)} placeholder="Enter Pincode" className="max-w-xs h-9" />
+                                                    <Button variant="outline" size="sm" onClick={handlePincodeCheck} disabled={checkingPincode}>
+                                                        {checkingPincode ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null} Check
+                                                    </Button>
+                                                </div>
+                                            )}
+                                            {isDeliverable !== null && !user && (
+                                                <p className={cn("text-xs mt-1", isDeliverable ? "text-green-600" : "text-destructive")}>
+                                                    {isDeliverable ? `Delivery available to ${pincode} by ${estimatedDeliveryDate}` : `Delivery not available to ${pincode}`}
+                                                </p>
+                                            )}
                                         </div>
-                                        <div className="flex items-start gap-3">
-                                            <RotateCcw className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                                         <div className="flex items-start gap-3">
+                                            <RotateCcw className="h-5 w-5 text-muted-foreground mt-0.5 flex-shrink-0" />
                                             <div>
-                                                <h4 className="font-semibold text-base">7-Day Return Policy</h4>
+                                                <p className="font-semibold">7-Day Return Policy</p>
                                                 <p className="text-xs text-muted-foreground">Return this item within 7 days of delivery for a full refund.</p>
                                             </div>
                                         </div>
                                          <div className="flex items-start gap-3">
-                                                <Banknote className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                                                <Banknote className="h-5 w-5 text-muted-foreground mt-0.5 flex-shrink-0" />
                                                 <div>
-                                                    <h4 className="font-semibold text-base">Pay on Delivery</h4>
+                                                    <p className="font-semibold">Pay on Delivery</p>
                                                     <p className="text-xs text-muted-foreground">Pay with cash at your doorstep. Available on eligible orders.</p>
                                                 </div>
                                             </div>
                                         <div className="flex items-start gap-3">
-                                            <ShieldCheck className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                                            <ShieldCheck className="h-5 w-5 text-muted-foreground mt-0.5 flex-shrink-0" />
                                             <div>
-                                                <h4 className="font-semibold text-base">100% Genuine</h4>
+                                                <p className="font-semibold">100% Genuine</p>
                                                 <p className="text-xs text-muted-foreground">All products are sourced directly from brands and verified sellers.</p>
                                             </div>
                                         </div>
@@ -916,7 +916,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                 </div>
                             </div>
                             <div className="md:col-span-2 space-y-8 mt-8">
-                                <div>
+                                 <div>
                                     <h2 className="text-xl font-bold mb-2">Highlights</h2>
                                     <ul className="space-y-3 text-sm">
                                         {currentHighlights.map((highlight: string, index: number) => (
@@ -1004,8 +1004,8 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                     <h2 className="text-2xl font-bold mb-4">Related Product Streams</h2>
                                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                                         {relatedStreams.map((stream: any) => (
-                                            <Link href={`/stream/${stream.id}`} key={stream.id} className="group flex flex-col">
-                                                <div className="relative aspect-video bg-muted rounded-lg overflow-hidden">
+                                             <Link href={`/stream/${stream.id}`} key={stream.id} className="group flex flex-col">
+                                                <div className="relative rounded-lg overflow-hidden aspect-video bg-muted w-full flex-shrink-0">
                                                     <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
                                                     <div className="absolute top-2 right-2 z-10"><Badge variant="secondary" className="bg-black/50 text-white"><Users className="w-3 h-3 mr-1"/>{stream.viewers.toLocaleString()}</Badge></div>
                                                      <Image src={stream.thumbnailUrl} alt={`Live stream from ${stream.name}`} fill sizes="33vw" className="object-cover w-full h-full group-hover:scale-105 transition-transform" />
