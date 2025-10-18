@@ -12,7 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
-import { addRecentlyViewed, addToCart, addToWishlist, isWishlisted, Product, isProductInCart, getRecentlyViewed } from '@/lib/product-history';
+import { addRecentlyViewed, addToCart, addToWishlist, isWishlisted, Product, isProductInCart, getRecentlyViewed, getCart } from '@/lib/product-history';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
 import { format, addDays, parse, differenceInDays } from 'date-fns';
@@ -113,6 +113,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
     const [isQnaDialogOpen, setIsQnaDialogOpen] = useState(false);
     const [selectedSize, setSelectedSize] = useState<string | null>(null);
     const [selectedColor, setSelectedColor] = useState<string | null>(null);
+    const [cartCount, setCartCount] = useState(0);
 
     const [currentPrice, setCurrentPrice] = useState<string | null>(null);
     const [currentHighlights, setCurrentHighlights] = useState<string[]>([]);
@@ -173,6 +174,21 @@ export function ProductDetailClient({ productId }: { productId: string }) {
             }
         }
     }, [selectedSize, selectedColor, product]);
+
+     useEffect(() => {
+        const updateCartCount = () => {
+            if (typeof window !== 'undefined') {
+                const items = getCart();
+                const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
+                setCartCount(totalItems);
+            }
+        };
+
+        updateCartCount();
+
+        window.addEventListener('storage', updateCartCount);
+        return () => window.removeEventListener('storage', updateCartCount);
+    }, []);
 
 
     const averageRating = useMemo(() => {
@@ -435,15 +451,6 @@ export function ProductDetailClient({ productId }: { productId: string }) {
     }
 
     const seller = productToSellerMapping[product.key];
-    
-    const productSpecificDetails = [
-        { label: 'Brand', value: product.brand },
-        { label: 'Category', value: product.category },
-        { label: 'Model Number', value: (product as any).modelNumber },
-        { label: 'Color', value: (product as any).color },
-        { label: 'Size', value: (product as any).size },
-        { label: 'Country of Origin', value: (product as any).origin },
-    ].filter(detail => detail.value);
 
     return (
         <>
@@ -453,7 +460,17 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                         <ArrowLeft className="h-6 w-6" />
                     </Button>
                     <h1 className="text-xl font-bold truncate">{product.name}</h1>
-                    <div className="w-10"></div>
+                    <Button asChild variant="ghost" className="relative">
+                        <Link href="/cart">
+                            <ShoppingCart className="h-5 w-5" />
+                            <span className="sr-only">My Cart</span>
+                            {cartCount > 0 && (
+                                <Badge variant="destructive" className="absolute -top-1 -right-2 h-5 w-5 p-0 flex items-center justify-center text-xs">
+                                    {cartCount}
+                                </Badge>
+                            )}
+                        </Link>
+                    </Button>
                 </header>
 
                 <main className="container mx-auto py-6">
@@ -594,13 +611,12 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                 </div>
                             )}
                         
-                            <div className="flex flex-col gap-2">
+                             <div className="flex flex-col gap-2">
                                 {(variantStock !== undefined && variantStock > 0) ? (
                                     <>
                                         {inCart ? (
-                                             <Button size="lg" variant="outline" className="w-full" asChild>
+                                             <Button size="lg" className="w-full" asChild>
                                                 <Link href="/cart">
-                                                    <ShoppingCart className="mr-2 h-5 w-5" />
                                                     Proceed Further
                                                 </Link>
                                             </Button>
@@ -610,7 +626,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                                 Add to Cart
                                             </Button>
                                         )}
-                                        <Button size="lg" className="w-full" onClick={handleBuyNow}>
+                                        <Button size="lg" variant="default" className="w-full" onClick={handleBuyNow}>
                                             Buy Now
                                         </Button>
                                     </>
@@ -689,7 +705,8 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                         </div>
                     </div>
                     <div className="md:col-span-2 space-y-8 mt-8">
-                        <Card>
+                        
+                         <Card>
                             <CardHeader>
                             <CardTitle>Available Offers</CardTitle>
                             </CardHeader>
@@ -715,6 +732,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                             </CardContent>
                         </Card>
                         <Separator />
+
                         <Card>
                             <CardHeader className="flex items-center justify-between flex-row">
                                 <CardTitle>Highlights</CardTitle>
