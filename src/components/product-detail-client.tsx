@@ -137,10 +137,6 @@ export function ProductDetailClient({ productId }: { productId: string }) {
     const product = useMemo(() => productDetails[productId as keyof typeof productDetails] || null, [productId]);
     
     useEffect(() => {
-        setShowSearchResults(false);
-        setSearchResults([]);
-        setSearchQuery('');
-
         const currentProduct = productDetails[productId as keyof typeof productDetails] || null;
 
         if (currentProduct) {
@@ -196,6 +192,15 @@ export function ProductDetailClient({ productId }: { productId: string }) {
             fetchTaggedPosts();
         }
     }, [productId]); 
+    
+    useEffect(() => {
+        const handleSearchReset = () => {
+            setShowSearchResults(false);
+            setSearchQuery('');
+            setSearchResults([]);
+        };
+        handleSearchReset();
+    }, [productId]);
 
     const availableSizes = useMemo(() => product?.availableSizes ? product.availableSizes.split(',').map((s: string) => s.trim()) : [], [product]);
     const availableColors = useMemo(() => product?.availableColors ? product.availableColors.split(',').map((s: string) => s.trim()) : [], [product]);
@@ -699,10 +704,12 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                             <Button asChild variant="secondary" className="w-full">
                                                 <Link href={`/stream/${sellerLiveStream.id}`}>
                                                     <Video className="mr-2 h-4 w-4 text-primary" />
-                                                    Watch Live Demo!
+                                                    {sellerLiveStream.status === 'live' ? 'View Live Stream' : 'View Recorded Stream'}
                                                 </Link>
                                             </Button>
-                                             <p className="text-xs text-muted-foreground mt-1">Want a better look? See this product live in action for an interactive demo!</p>
+                                            <p className="text-xs text-muted-foreground mt-1">
+                                                Get a better understanding of this product by seeing it in action.
+                                            </p>
                                         </div>
                                     )}
                                 </div>
@@ -828,7 +835,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                         )}
                                     </div>
                                      <div className="mt-4 space-y-4">
-                                        <div className="flex items-start gap-3">
+                                         <div className="flex items-start gap-3">
                                             <Truck className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
                                             <div>
                                                 <h4 className="font-semibold">Delivery Information</h4>
@@ -843,11 +850,11 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                                     <div className="flex items-center gap-2 mt-1">
                                                         <Input value={pincode} onChange={(e) => setPincode(e.target.value)} placeholder="Enter Pincode" className="max-w-xs h-9" />
                                                         <Button variant="outline" size="sm" onClick={handlePincodeCheck} disabled={checkingPincode}>
-                                                            {checkingPincode && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} Check
+                                                            {checkingPincode ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null} Check
                                                         </Button>
                                                     </div>
                                                 )}
-                                                 {isDeliverable !== null && !user && (
+                                                 {isDeliverable !== null && (
                                                     <p className={cn("text-xs mt-1", isDeliverable ? "text-green-600" : "text-destructive")}>
                                                         {isDeliverable ? `Delivery available to ${pincode} by ${estimatedDeliveryDate}` : `Delivery not available to ${pincode}`}
                                                     </p>
@@ -914,7 +921,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                     </CardContent>
                                 </Card>
                                 <Separator />
-                                <Card>
+                                 <Card>
                                     <CardHeader>
                                         <CardTitle>Sold By</CardTitle>
                                     </CardHeader>
@@ -1042,39 +1049,35 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                 </Card>
 
                                 <Separator />
-                                <div className="mt-8">
+                                 <div className="mt-8">
                                     <h2 className="text-2xl font-bold mb-4">Related Product Streams</h2>
                                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                                         {relatedStreams.map((stream: any) => (
                                             <Link href={`/stream/${stream.id}`} key={stream.id} className="group block">
-                                                <div className="relative rounded-lg overflow-hidden aspect-video bg-muted">
-                                                    <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
-                                                    <div className="absolute top-2 right-2 z-10">
-                                                        <Badge variant="secondary" className="bg-black/50 text-white gap-1.5">
-                                                            <Users className="h-3 w-3"/>
-                                                            {stream.viewers}
-                                                        </Badge>
-                                                    </div>
-                                                     <Image
-                                                        src={stream.thumbnailUrl}
-                                                        alt={`Live stream from ${''}${stream.name}`}
-                                                        fill
-                                                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                                                        className="object-cover w-full h-full group-hover:scale-105 transition-transform"
-                                                    />
-                                                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex flex-col justify-end p-2">
-                                                        <div className="flex items-start gap-2 text-white">
-                                                            <Avatar className="w-8 h-8 border-2 border-background">
-                                                                <AvatarImage src={stream.avatarUrl} />
-                                                                <AvatarFallback>{stream.name.charAt(0)}</AvatarFallback>
-                                                            </Avatar>
-                                                            <div className="flex-1 overflow-hidden">
-                                                                <p className="font-semibold text-xs group-hover:underline truncate">{stream.title || stream.name}</p>
-                                                                <p className="text-xs opacity-80">{stream.category}</p>
+                                                <Card className="overflow-hidden bg-card/10">
+                                                    <div className="relative aspect-video bg-muted">
+                                                        <Image src={stream.thumbnailUrl} alt={stream.title || stream.name} fill sizes="33vw" className="object-cover group-hover:scale-105 transition-transform"/>
+                                                        <div className="absolute inset-0 bg-black/30 flex flex-col justify-between p-2">
+                                                            <div className="flex justify-between">
+                                                                <Badge variant="destructive">LIVE</Badge>
+                                                                <Badge variant="secondary" className="bg-black/50 text-white"><Users className="w-3 h-3 mr-1"/>{stream.viewers}</Badge>
                                                             </div>
                                                         </div>
                                                     </div>
-                                                </div>
+                                                    <CardContent className="p-3">
+                                                        <div className="flex items-start gap-3">
+                                                            <Avatar className="h-9 w-9 border">
+                                                                <AvatarImage src={stream.avatarUrl}/>
+                                                                <AvatarFallback>{stream.name.charAt(0)}</AvatarFallback>
+                                                            </Avatar>
+                                                            <div>
+                                                                <p className="font-semibold text-sm leading-tight group-hover:underline">{stream.title || stream.name}</p>
+                                                                <p className="text-xs text-muted-foreground">{stream.name}</p>
+                                                                <p className="text-xs text-primary font-semibold mt-0.5">#{stream.category.toLowerCase().replace(/\s+/g, '')}</p>
+                                                            </div>
+                                                        </div>
+                                                    </CardContent>
+                                                </Card>
                                             </Link>
                                         ))}
                                     </div>
@@ -1141,5 +1144,3 @@ export function ProductDetailClient({ productId }: { productId: string }) {
         </>
     );
 }
-
-    
