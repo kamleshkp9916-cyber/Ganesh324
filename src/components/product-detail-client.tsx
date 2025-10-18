@@ -77,6 +77,10 @@ const productToSellerMapping: { [key: string]: { name: string; avatarUrl: string
     'prod_27': { name: 'AudioBlast', avatarUrl: 'https://placehold.co/80x80.png', uid: 'audioblast-uid' },
     'prod_28': { name: 'LittleSprout', avatarUrl: 'https://placehold.co/80x80.png', uid: 'littlesprout-uid' },
     'prod_29': { name: 'StretchyPants', avatarUrl: 'https://placehold.co/80x80.png', uid: 'stretchypants-uid' },
+    'prod_30': { name: 'Everyday', avatarUrl: 'https://placehold.co/80x80.png', uid: 'everyday-uid' },
+    'prod_31': { name: 'SunChaser', avatarUrl: 'https://placehold.co/80x80.png', uid: 'sunchaser-uid' },
+    'prod_32': { name: 'Elegance', avatarUrl: 'https://placehold.co/80x80.png', uid: 'elegance-uid' },
+    'prod_33': { name: 'SleekFit', avatarUrl: 'https://placehold.co/80x80.png', uid: 'sleekfit-uid' }
 };
 
 const liveSellers = [
@@ -683,7 +687,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                 
                                     <div className="flex flex-col gap-2">
                                         {(variantStock !== undefined && variantStock > 0) ? (
-                                             <div className="flex flex-col sm:flex-row gap-2">
+                                            <div className="flex flex-col gap-2">
                                                 {inCart ? (
                                                     <Button size="lg" className="w-full" asChild>
                                                         <Link href="/cart">Proceed Further</Link>
