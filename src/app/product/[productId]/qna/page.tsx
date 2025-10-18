@@ -100,14 +100,12 @@ export default function ProductQnaPage() {
                                 </Card>
                             </Link>
 
-                            <Card>
-                                <CardHeader>
-                                    <CardTitle>All Questions</CardTitle>
-                                     <CardDescription>Find answers to what other customers are asking.</CardDescription>
-                                </CardHeader>
-                                <CardContent className="space-y-6">
+                            <div>
+                                <h2 className="text-2xl font-bold mb-2">All Questions</h2>
+                                <p className="text-muted-foreground mb-6">Find answers to what other customers are asking.</p>
+                                <div className="space-y-6">
                                     {qnaList.map(qa => (
-                                        <div key={qa.id}>
+                                        <div key={qa.id} className="border-b pb-6 last:border-b-0">
                                             <div className="flex items-start gap-3">
                                                 <Avatar className="h-8 w-8">
                                                     <AvatarFallback>{qa.questioner.charAt(0)}</AvatarFallback>
@@ -151,8 +149,8 @@ export default function ProductQnaPage() {
                                     {qnaList.length === 0 && (
                                         <p className="text-center text-muted-foreground py-8">No questions have been asked yet.</p>
                                     )}
-                                </CardContent>
-                            </Card>
+                                </div>
+                            </div>
                          </div>
                      </div>
                 </ScrollArea>
