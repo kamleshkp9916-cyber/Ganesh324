@@ -165,12 +165,12 @@ body {
     }
   }
 
-  @keyframes scan-line {
+  @keyframes shimmer-scan {
     0% {
-      top: 0;
+      transform: translateX(-100%) skewX(-15deg);
     }
     100% {
-      top: 100%;
+      transform: translateX(200%) skewX(-15deg);
     }
   }
 
@@ -179,10 +179,17 @@ body {
     position: absolute;
     top: 0;
     left: 0;
-    right: 0;
-    height: 3px;
-    background: linear-gradient(to right, transparent, hsl(var(--primary) / 0.8), transparent);
-    box-shadow: 0 0 10px 1px hsl(var(--primary) / 0.6);
-    animation: scan-line 1.5s ease-in-out forwards;
+    width: 50%;
+    height: 100%;
+    background: linear-gradient(
+      to right,
+      transparent 0%,
+      hsl(var(--primary) / 0.1) 50%,
+      transparent 100%
+    );
+    box-shadow: 0 0 30px 10px hsl(var(--primary) / 0.1);
+    animation: shimmer-scan 1.5s ease-in-out forwards;
   }
 }
+
+    
