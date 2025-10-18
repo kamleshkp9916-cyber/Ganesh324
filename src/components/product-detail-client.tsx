@@ -568,7 +568,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                                         )}
                                                          {isScanning && (
                                                             <div className="absolute inset-0 bg-black/30 overflow-hidden">
-                                                                <div className="scan-animation"></div>
+                                                                <div className="shimmer-scan"></div>
                                                             </div>
                                                          )}
                                                     </div>
@@ -628,17 +628,17 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                     isLoading={isLoadingSimilar}
                                 />}
                                 <div className="flex flex-col gap-4">
-                                        <div className="flex justify-between items-start">
-                                        <div>
+                                    <div className="flex justify-between items-start">
+                                        <div className="flex-1">
                                             {product.brand && <p className="text-sm font-medium text-primary mb-1">{product.brand}</p>}
-                                            <div className="flex items-center gap-2 flex-wrap">
+                                            <div className="flex items-center gap-2 flex-wrap mb-2">
                                                 <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">{product.name}</h1>
                                                 {product.key && <Badge variant="outline">{product.key}</Badge>}
                                                 {product.isFromStream && <Badge variant="purple"><Video className="mr-1 h-3 w-3" /> From Stream</Badge>}
                                             </div>
-                                            <p className="text-muted-foreground mt-2">{product.description}</p>
+                                            <p className="text-muted-foreground">{product.description}</p>
                                         </div>
-                                        <div className="flex items-center">
+                                        <div className="flex items-center ml-2">
                                             <Button variant="ghost" size="icon" onClick={handleWishlistToggle}>
                                                 <Heart className={cn("h-6 w-6", wishlisted ? "fill-red-500 text-red-500" : "text-muted-foreground")} />
                                             </Button>
@@ -666,6 +666,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                             </AlertDialog>
                                         </div>
                                     </div>
+                                    
                                     <div>
                                         <div className="flex items-center gap-4 flex-wrap">
                                             {currentPrice && <p className="text-3xl font-bold text-foreground">{currentPrice}</p>}
@@ -818,52 +819,50 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                             </div>
                             <div className="md:col-span-2 space-y-8 mt-8">
                                 
-                                    <Card>
-                                        <CardHeader className="flex flex-row items-center justify-between pb-2">
-                                            <CardTitle className="text-base">Available Offers</CardTitle>
-                                        </CardHeader>
-                                        <CardContent className="pb-2 space-y-3">
-                                            {allOffers.slice(0,1).map((offer, index) => (
-                                                <div key={index} className="flex items-start gap-3 text-sm">
-                                                    <div className="flex-shrink-0 mt-1">{offer.icon}</div>
-                                                    <div>
-                                                        <h5 className="font-semibold">{offer.title}</h5>
-                                                        <p className="text-muted-foreground">{offer.description}</p>
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </CardContent>
+                                <Card>
+                                    <CardHeader className="flex flex-row items-center justify-between pb-2">
+                                        <CardTitle className="text-base">Available Offers</CardTitle>
                                         {allOffers.length > 1 && (
-                                            <CardFooter className="pt-0">
-                                                <Sheet>
-                                                    <SheetTrigger asChild>
-                                                        <Button variant="link" className="p-0 h-auto">View All Offers</Button>
-                                                    </SheetTrigger>
-                                                    <SheetContent side="bottom" className="h-auto max-h-[80vh]">
-                                                        <SheetHeader className="text-left p-4">
-                                                            <SheetTitle>All Available Offers</SheetTitle>
-                                                        </SheetHeader>
-                                                        <ScrollArea className="h-full">
-                                                            <div className="p-4 space-y-4">
-                                                            {allOffers.map((offer, index) => (
-                                                                <div key={index} className="flex items-start gap-3 text-sm p-3 rounded-lg border">
-                                                                    <div className="flex-shrink-0 mt-1">{offer.icon}</div>
-                                                                    <div>
-                                                                        <h5 className="font-semibold">{offer.title}</h5>
-                                                                        <p className="text-muted-foreground">{offer.description}</p>
-                                                                    </div>
+                                            <Sheet>
+                                                <SheetTrigger asChild>
+                                                    <Button variant="link" className="p-0 h-auto">View All Offers</Button>
+                                                </SheetTrigger>
+                                                <SheetContent side="bottom" className="h-auto max-h-[80vh]">
+                                                    <SheetHeader className="text-left p-4">
+                                                        <SheetTitle>All Available Offers</SheetTitle>
+                                                    </SheetHeader>
+                                                    <ScrollArea className="h-full">
+                                                        <div className="p-4 space-y-4">
+                                                        {allOffers.map((offer, index) => (
+                                                            <div key={index} className="flex items-start gap-3 text-sm p-3 rounded-lg border">
+                                                                <div className="flex-shrink-0 mt-1">{offer.icon}</div>
+                                                                <div>
+                                                                    <h5 className="font-semibold">{offer.title}</h5>
+                                                                    <p className="text-muted-foreground">{offer.description}</p>
                                                                 </div>
-                                                            ))}
                                                             </div>
-                                                        </ScrollArea>
-                                                    </SheetContent>
-                                                </Sheet>
-                                            </CardFooter>
+                                                        ))}
+                                                        </div>
+                                                    </ScrollArea>
+                                                </SheetContent>
+                                            </Sheet>
                                         )}
+                                    </CardHeader>
+                                    <CardContent className="pb-2 space-y-3">
+                                        {allOffers.slice(0,1).map((offer, index) => (
+                                            <div key={index} className="flex items-start gap-3 text-sm">
+                                                <div className="flex-shrink-0 mt-1">{offer.icon}</div>
+                                                <div>
+                                                    <h5 className="font-semibold">{offer.title}</h5>
+                                                    <p className="text-muted-foreground">{offer.description}</p>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </CardContent>
                                 </Card>
                                 <Separator />
 
-                                <div className="space-y-4">
+                                 <div className="space-y-4">
                                     <div className="flex items-center justify-between">
                                         <h3 className="text-xl font-bold">Highlights</h3>
                                         <Button asChild variant="link">
