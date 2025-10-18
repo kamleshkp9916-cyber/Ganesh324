@@ -28,6 +28,9 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { categories } from "@/lib/categories";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { useDebounce } from "@/hooks/use-debounce";
+import { Popover, PopoverAnchor, PopoverContent } from "@/components/ui/popover";
+import { productDetails } from "@/lib/product-data";
 
 const allCategories = categories;
 
@@ -61,6 +64,12 @@ export default function ListedProductsPage() {
   const [storedHubBanner] = useLocalStorage<HubBanner>(HUB_BANNER_KEY, defaultHubBanner);
   const [storedFeaturedProducts] = useLocalStorage<FeaturedProduct[]>(HUB_FEATURED_PRODUCTS_KEY, defaultFeaturedProducts);
 
+  const [searchQuery, setSearchQuery] = useState('');
+  const debouncedSearchQuery = useDebounce(searchQuery, 300);
+  const [searchSuggestions, setSearchSuggestions] = useState<any[]>([]);
+  const [showSearchResults, setShowSearchResults] = useState(false);
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+
   useEffect(() => {
     setIsMounted(true);
   }, []);
@@ -71,6 +80,26 @@ export default function ListedProductsPage() {
         setFeaturedProducts(storedFeaturedProducts);
     }
   }, [isMounted, storedHubBanner, storedFeaturedProducts])
+
+   // Effect for handling search
+    useEffect(() => {
+        if (debouncedSearchQuery) {
+            const allProducts = Object.values(productDetails);
+            const filtered = allProducts.filter(p => p.name.toLowerCase().includes(debouncedSearchQuery.toLowerCase()));
+            setSearchSuggestions(filtered.slice(0, 5));
+        } else {
+            setSearchSuggestions([]);
+        }
+    }, [debouncedSearchQuery]);
+
+    const handleSearchSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        const allProducts = Object.values(productDetails);
+        const results = allProducts.filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase()));
+        setSearchResults(results);
+        setShowSearchResults(true);
+        setSearchSuggestions([]);
+    };
 
   const getCategoryPath = (categoryName: string, subcategoryName?: string) => {
     const basePath = `/${categoryName.toLowerCase().replace(/\s+/g, '-')}`;
@@ -95,13 +124,33 @@ export default function ListedProductsPage() {
                     </div>
 
                     <div className="hidden lg:flex flex-1 justify-center px-8">
-                         <div className="relative w-full max-w-lg">
-                            <Input 
-                                placeholder="Search products, brands, and more"
-                                className="rounded-full pr-10"
-                            />
-                            <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                        </div>
+                         <Popover open={searchSuggestions.length > 0 && searchQuery.length > 0}>
+                            <PopoverAnchor asChild>
+                                <form className="relative w-full max-w-lg" onSubmit={handleSearchSubmit}>
+                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                                    <Input 
+                                        placeholder="Search products, brands, and more"
+                                        className="rounded-full pr-10 pl-10"
+                                        value={searchQuery}
+                                        onChange={(e) => {setSearchQuery(e.target.value); setShowSearchResults(false);}}
+                                    />
+                                </form>
+                            </PopoverAnchor>
+                            <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                                {searchSuggestions.map(suggestion => (
+                                    <div 
+                                        key={suggestion.key} 
+                                        className="p-2 hover:bg-accent cursor-pointer text-sm"
+                                        onClick={() => {
+                                            setSearchQuery(suggestion.name);
+                                            setSearchSuggestions([]);
+                                        }}
+                                    >
+                                        {suggestion.name}
+                                    </div>
+                                ))}
+                            </PopoverContent>
+                        </Popover>
                     </div>
                     
                     <div className="flex items-center gap-2">
@@ -179,65 +228,91 @@ export default function ListedProductsPage() {
         </header>
 
       <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-10 flex-grow">
-          {isMounted && hubBanner ? (
-            <Card className="overflow-hidden border-none shadow-lg mb-10">
-              <CardContent className="p-0 relative">
-                <div className="aspect-[3/1] relative">
-                    <Image
-                      src={hubBanner.imageUrl}
-                      alt={hubBanner.title}
-                      fill
-                      sizes="100vw"
-                      className="object-cover"
-                      data-ai-hint="electronics sale gadgets"
-                    />
-                    <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center text-center p-4">
-                       <h2 className="text-4xl font-bold text-white shadow-lg">{hubBanner.title}</h2>
-                       <p className="text-lg text-white/90 mt-2 shadow-lg max-w-lg">{hubBanner.description}</p>
-                    </div>
-                </div>
-                 {featuredProducts && featuredProducts.length > 0 && (
-                   <div className="grid grid-cols-1 sm:grid-cols-3 bg-card-foreground/5">
-                    {featuredProducts.map((product, index) => (
-                      <Link href="#" key={index} className="group p-4 flex items-center gap-4 hover:bg-card-foreground/10 transition-colors">
-                        <div className="relative w-20 h-20 bg-muted rounded-md overflow-hidden flex-shrink-0">
-                           <Image src={product.imageUrl} alt={product.name} fill sizes="80px" className="object-cover group-hover:scale-105 transition-transform" data-ai-hint={product.name.toLowerCase()} />
-                        </div>
-                        <div>
-                          <p className="font-semibold text-sm group-hover:underline">{product.name}</p>
-                          <p className="text-xs text-muted-foreground">{product.model}</p>
-                        </div>
-                        <ChevronRight className="h-5 w-5 text-muted-foreground ml-auto group-hover:translate-x-1 transition-transform" />
-                      </Link>
+         {showSearchResults ? (
+             <div>
+                <Button variant="outline" onClick={() => setShowSearchResults(false)}>
+                    <ArrowLeft className="mr-2 h-4 w-4" /> Back
+                </Button>
+                <h2 className="text-2xl font-bold my-4">Search Results for "{searchQuery}"</h2>
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                    {searchResults.map(p => (
+                        <Link href={`/product/${p.key}`} key={p.id} className="group block">
+                            <Card className="w-full group overflow-hidden h-full flex flex-col">
+                                <div className="relative aspect-square bg-muted">
+                                    <Image src={p.images[0]} alt={p.name} fill sizes="(max-width: 640px) 50vw, 20vw" className="object-cover transition-transform group-hover:scale-105" data-ai-hint={p.hint} />
+                                </div>
+                                <div className="p-3">
+                                    <h4 className="font-semibold truncate text-sm">{p.name}</h4>
+                                    <p className="font-bold">{p.price}</p>
+                                </div>
+                            </Card>
+                        </Link>
                     ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          ) : (
-            <Skeleton className="w-full aspect-[3/1] mb-10" />
-          )}
-
-        <section className="mb-12">
-            <h2 className="text-3xl font-bold text-center mb-6">Shop by Category</h2>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 auto-rows-[minmax(0,_300px)]">
-                {collageCategories.map((cat, index) => (
-                    <Link key={index} href={getCategoryPath(cat.name)} className={cn("group relative rounded-lg overflow-hidden shadow-lg", cat.colSpan, cat.rowSpan)}>
-                        <Image
-                            src={cat.imageUrl}
-                            alt={cat.name}
-                            fill
-                            sizes="(max-width: 768px) 50vw, 25vw"
-                            className="object-cover w-full h-full transition-transform duration-300 ease-in-out group-hover:scale-105"
-                            data-ai-hint={cat.hint}
-                        />
-                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-                            <h3 className="text-2xl font-bold text-white text-center p-2">{cat.name}</h3>
-                        </div>
-                    </Link>
-                ))}
+                </div>
             </div>
-        </section>
+         ) : (
+             <>
+                {isMounted && hubBanner ? (
+                <Card className="overflow-hidden border-none shadow-lg mb-10">
+                <CardContent className="p-0 relative">
+                    <div className="aspect-[3/1] relative">
+                        <Image
+                        src={hubBanner.imageUrl}
+                        alt={hubBanner.title}
+                        fill
+                        sizes="100vw"
+                        className="object-cover"
+                        data-ai-hint="electronics sale gadgets"
+                        />
+                        <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center text-center p-4">
+                        <h2 className="text-4xl font-bold text-white shadow-lg">{hubBanner.title}</h2>
+                        <p className="text-lg text-white/90 mt-2 shadow-lg max-w-lg">{hubBanner.description}</p>
+                        </div>
+                    </div>
+                    {featuredProducts && featuredProducts.length > 0 && (
+                    <div className="grid grid-cols-1 sm:grid-cols-3 bg-card-foreground/5">
+                        {featuredProducts.map((product, index) => (
+                        <Link href="#" key={index} className="group p-4 flex items-center gap-4 hover:bg-card-foreground/10 transition-colors">
+                            <div className="relative w-20 h-20 bg-muted rounded-md overflow-hidden flex-shrink-0">
+                            <Image src={product.imageUrl} alt={product.name} fill sizes="80px" className="object-cover group-hover:scale-105 transition-transform" data-ai-hint={product.name.toLowerCase()} />
+                            </div>
+                            <div>
+                            <p className="font-semibold text-sm group-hover:underline">{product.name}</p>
+                            <p className="text-xs text-muted-foreground">{product.model}</p>
+                            </div>
+                            <ChevronRight className="h-5 w-5 text-muted-foreground ml-auto group-hover:translate-x-1 transition-transform" />
+                        </Link>
+                        ))}
+                    </div>
+                    )}
+                </CardContent>
+                </Card>
+            ) : (
+                <Skeleton className="w-full aspect-[3/1] mb-10" />
+            )}
+
+            <section className="mb-12">
+                <h2 className="text-3xl font-bold text-center mb-6">Shop by Category</h2>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 auto-rows-[minmax(0,_300px)]">
+                    {collageCategories.map((cat, index) => (
+                        <Link key={index} href={getCategoryPath(cat.name)} className={cn("group relative rounded-lg overflow-hidden shadow-lg", cat.colSpan, cat.rowSpan)}>
+                            <Image
+                                src={cat.imageUrl}
+                                alt={cat.name}
+                                fill
+                                sizes="(max-width: 768px) 50vw, 25vw"
+                                className="object-cover w-full h-full transition-transform duration-300 ease-in-out group-hover:scale-105"
+                                data-ai-hint={cat.hint}
+                            />
+                            <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                                <h3 className="text-2xl font-bold text-white text-center p-2">{cat.name}</h3>
+                            </div>
+                        </Link>
+                    ))}
+                </div>
+            </section>
+        </>
+         )}
       </main>
     </div>
   );
