@@ -133,6 +133,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
     const [isScanning, setIsScanning] = useState(false);
     const [isLoadingSimilar, setIsLoadingSimilar] = useState(false);
     const [isAuthDialogOpen, setIsAuthDialogOpen] = useState(false);
+    const [hasPurchased, setHasPurchased] = useState(false);
     
     const product = useMemo(() => productDetails[productId as keyof typeof productDetails] || null, [productId]);
     
@@ -192,14 +193,41 @@ export function ProductDetailClient({ productId }: { productId: string }) {
             fetchTaggedPosts();
         }
     }, [productId]); 
+
+    useEffect(() => {
+        if (!user || !product) {
+            setHasPurchased(false);
+            return;
+        }
+
+        const checkPurchase = async () => {
+            try {
+                const db = getFirestoreDb();
+                const ordersRef = collection(db, 'orders');
+                const q = query(ordersRef, where('userId', '==', user.uid));
+                const querySnapshot = await getDocs(q);
+                
+                const purchased = querySnapshot.docs.some(doc => {
+                    const order = doc.data();
+                    // Also check for delivered status
+                    const isDelivered = order.timeline.some((t: any) => t.status === 'Delivered' && t.completed);
+                    return isDelivered && order.products.some((p: any) => p.key === product.key);
+                });
+                
+                setHasPurchased(purchased);
+            } catch (error) {
+                console.error("Error checking purchase history:", error);
+            }
+        };
+
+        checkPurchase();
+    }, [user, product]);
     
     useEffect(() => {
-        const handleSearchReset = () => {
-            setShowSearchResults(false);
-            setSearchQuery('');
-            setSearchResults([]);
-        };
-        handleSearchReset();
+        // Clear search results when navigating to a new product
+        setShowSearchResults(false);
+        setSearchQuery('');
+        setSearchResults([]);
     }, [productId]);
 
     const availableSizes = useMemo(() => product?.availableSizes ? product.availableSizes.split(',').map((s: string) => s.trim()) : [], [product]);
@@ -835,7 +863,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                         )}
                                     </div>
                                      <div className="mt-4 space-y-4">
-                                         {user && userData?.addresses && userData.addresses.length > 0 ? (
+                                        {user && userData?.addresses && userData.addresses.length > 0 ? (
                                             <div className="flex items-start gap-3">
                                                 <Truck className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
                                                 <div>
@@ -927,29 +955,27 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                     </CardContent>
                                 </Card>
                                 <Separator />
-                                <Card>
-                                    <CardHeader>
-                                        <CardTitle>Sold By</CardTitle>
-                                    </CardHeader>
-                                     <CardContent className="flex items-center justify-between">
-                                        <div className="flex items-center gap-4">
-                                            <Avatar>
-                                                <AvatarImage src={seller.avatarUrl} />
-                                                <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
-                                            </Avatar>
-                                            <div>
-                                                <Link href={`/seller/profile?userId=${seller.uid}`} className="font-semibold hover:underline">{seller.name}</Link>
-                                                <div className="flex items-center gap-1 text-xs text-amber-400 mt-1">
-                                                    <Star className="w-4 h-4 fill-current" />
-                                                    <span>4.8</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <Button asChild variant="outline">
-                                            <Link href={`/seller/profile?userId=${seller.uid}`}>View Profile</Link>
-                                        </Button>
-                                    </CardContent>
-                                </Card>
+                                <div className="p-4 border rounded-lg bg-card">
+                                  <div className="flex items-center justify-between">
+                                      <h3 className="text-lg font-semibold">Sold By</h3>
+                                      <Button asChild variant="outline" size="sm">
+                                          <Link href={`/seller/profile?userId=${seller.uid}`}>View Profile</Link>
+                                      </Button>
+                                  </div>
+                                  <div className="flex items-center gap-4 mt-4">
+                                      <Avatar>
+                                          <AvatarImage src={seller.avatarUrl} />
+                                          <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
+                                      </Avatar>
+                                      <div>
+                                          <Link href={`/seller/profile?userId=${seller.uid}`} className="font-semibold hover:underline">{seller.name}</Link>
+                                          <div className="flex items-center gap-1 text-xs text-amber-400 mt-1">
+                                              <Star className="w-4 h-4 fill-current" />
+                                              <span>4.8</span>
+                                          </div>
+                                      </div>
+                                  </div>
+                              </div>
                                 <Separator />
                                 <Card>
                                     <CardHeader className="flex items-center justify-between">
@@ -988,7 +1014,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                     </CardContent>
                                     <CardFooter className="flex-col items-stretch gap-4">
                                         {reviews.length > 3 && <Button variant="link" className="w-full">View All {reviews.length} Reviews</Button>}
-                                        <Button variant="outline" onClick={openReviewDialog}>Write a Review</Button>
+                                        {hasPurchased && <Button variant="outline" onClick={openReviewDialog}>Write a Review</Button>}
                                     </CardFooter>
                                 </Card>
                                 <Separator/>
