@@ -864,36 +864,40 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                     <Separator />
                                      <div className="space-y-4">
                                         {user && userData?.addresses && userData.addresses.length > 0 ? (
-                                            <div className="flex items-start gap-3">
-                                                <Truck className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                                                <div>
-                                                    <h4 className="font-semibold text-base">Delivery Information</h4>
-                                                    <div className="text-sm mt-1">
-                                                        <p>Deliver to <span className="font-semibold">{userData.addresses[0].name}</span></p>
-                                                        <p className="text-muted-foreground">{userData.addresses[0].village}, {userData.addresses[0].city}, {userData.addresses[0].state} - {userData.addresses[0].pincode}</p>
-                                                        <p className="text-muted-foreground font-semibold mt-1">Delivery by {estimatedDeliveryDate}</p>
+                                            <div>
+                                                <h4 className="font-semibold text-base mb-2">Delivery Information</h4>
+                                                <div className="flex items-start gap-3">
+                                                    <Truck className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                                                    <div>
+                                                        <div className="text-sm">
+                                                            <p>Deliver to <span className="font-semibold">{userData.addresses[0].name}</span></p>
+                                                            <p className="text-muted-foreground">{userData.addresses[0].village}, {userData.addresses[0].city}, {userData.addresses[0].state} - {userData.addresses[0].pincode}</p>
+                                                            <p className="text-muted-foreground font-semibold mt-1">Delivery by {estimatedDeliveryDate}</p>
+                                                        </div>
                                                         <Button variant="link" className="p-0 h-auto text-xs" onClick={() => handleAuthAction(() => setIsAddressDialogOpen(true))}>Change Address</Button>
                                                     </div>
                                                 </div>
                                             </div>
                                         ) : (
-                                            <div className="flex items-start gap-3">
-                                                <Truck className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                                                <div>
-                                                     <h4 className="font-semibold text-base">Delivery Information</h4>
-                                                    <div className="flex items-center gap-2 mt-1">
-                                                        <Input value={pincode} onChange={(e) => setPincode(e.target.value)} placeholder="Enter Pincode" className="max-w-xs h-9" />
-                                                        <Button variant="outline" size="sm" onClick={handlePincodeCheck} disabled={checkingPincode}>
-                                                            {checkingPincode ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null} Check
-                                                        </Button>
+                                             <div>
+                                                <h4 className="font-semibold text-base mb-2">Delivery Information</h4>
+                                                <div className="flex items-start gap-3">
+                                                    <Truck className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                                                    <div>
+                                                        <div className="flex items-center gap-2">
+                                                            <Input value={pincode} onChange={(e) => setPincode(e.target.value)} placeholder="Enter Pincode" className="max-w-xs h-9" />
+                                                            <Button variant="outline" size="sm" onClick={handlePincodeCheck} disabled={checkingPincode}>
+                                                                {checkingPincode ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null} Check
+                                                            </Button>
+                                                        </div>
+                                                        {isDeliverable !== null && (
+                                                            <p className={cn("text-xs mt-1", isDeliverable ? "text-green-600" : "text-destructive")}>
+                                                                {isDeliverable ? `Delivery available to ${pincode} by ${estimatedDeliveryDate}` : `Delivery not available to ${pincode}`}
+                                                            </p>
+                                                        )}
                                                     </div>
-                                                    {isDeliverable !== null && (
-                                                        <p className={cn("text-xs mt-1", isDeliverable ? "text-green-600" : "text-destructive")}>
-                                                            {isDeliverable ? `Delivery available to ${pincode} by ${estimatedDeliveryDate}` : `Delivery not available to ${pincode}`}
-                                                        </p>
-                                                    )}
                                                 </div>
-                                            </div>
+                                             </div>
                                         )}
                                         <div className="flex items-start gap-3">
                                             <RotateCcw className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
@@ -920,37 +924,33 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                 </div>
                             </div>
                             <div className="md:col-span-2 space-y-8 mt-8">
-                                <Card>
-                                    <CardHeader>
-                                        <CardTitle>Highlights</CardTitle>
-                                    </CardHeader>
-                                    <CardContent>
-                                        <div className="p-2 mt-2 grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
-                                            <div className="relative aspect-square w-full max-w-xs mx-auto">
-                                                <Image 
-                                                    src="https://picsum.photos/seed/product-highlights/400/400"
-                                                    alt="Product highlights"
-                                                    fill
-                                                    className="object-cover rounded-lg"
-                                                    data-ai-hint="product feature"
-                                                />
-                                            </div>
-                                            <ul className="space-y-3 text-sm">
-                                                {currentHighlights.map((highlight: string, index: number) => (
-                                                    <li key={index} className="flex items-start gap-3">
-                                                        <CheckCircle className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
-                                                        <span className="text-muted-foreground">{highlight}</span>
-                                                    </li>
-                                                ))}
-                                            </ul>
+                                <div>
+                                    <h2 className="text-xl font-bold mb-2">Highlights</h2>
+                                    <div className="p-2 grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
+                                        <div className="relative aspect-square w-full max-w-xs mx-auto">
+                                            <Image 
+                                                src="https://picsum.photos/seed/product-highlights/400/400"
+                                                alt="Product highlights"
+                                                fill
+                                                className="object-cover rounded-lg"
+                                                data-ai-hint="product feature"
+                                            />
                                         </div>
-                                        <div className="mt-4 text-center">
-                                            <Button asChild variant="link">
-                                                <Link href={`/product/${productId}/details`}>View All Details</Link>
-                                            </Button>
-                                        </div>
-                                    </CardContent>
-                                </Card>
+                                        <ul className="space-y-3 text-sm">
+                                            {currentHighlights.map((highlight: string, index: number) => (
+                                                <li key={index} className="flex items-start gap-3">
+                                                    <CheckCircle className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
+                                                    <span className="text-muted-foreground">{highlight}</span>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                    <div className="mt-4 text-center">
+                                        <Button asChild variant="link">
+                                            <Link href={`/product/${productId}/details`}>View All Details</Link>
+                                        </Button>
+                                    </div>
+                                </div>
                                 <Separator />
                                 <Card>
                                     <CardHeader className="flex flex-row items-center justify-between">
@@ -989,7 +989,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                     </CardContent>
                                     <CardFooter className="flex-col items-stretch gap-4">
                                         {reviews.length > 3 && <Button variant="link" className="w-full">View All {reviews.length} Reviews</Button>}
-                                        {hasPurchased && <Button variant="outline" onClick={openReviewDialog}>Write a Review</Button>}
+                                        <Button variant="outline" onClick={openReviewDialog}>Write a Review</Button>
                                     </CardFooter>
                                 </Card>
                                 <Separator/>
