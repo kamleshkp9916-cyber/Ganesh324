@@ -101,8 +101,8 @@ const liveSellers = [
 export function ProductDetailClient({ productId }: { productId: string }) {
     const router = useRouter();
     const { user, userData } = useAuth();
-    const product = productDetails[productId as keyof typeof productDetails] || null;
-
+    const product = useMemo(() => productDetails[productId as keyof typeof productDetails] || null, [productId]);
+    
     const { toast } = useToast();
     const [wishlisted, setWishlisted] = useState(false);
     const [inCart, setInCart] = useState(false);
@@ -132,24 +132,85 @@ export function ProductDetailClient({ productId }: { productId: string }) {
     const [showSimilarOverlay, setShowSimilarOverlay] = useState(false);
     const [isScanning, setIsScanning] = useState(false);
     const [isLoadingSimilar, setIsLoadingSimilar] = useState(false);
-
+    
+    // This effect will run every time the productId changes.
     useEffect(() => {
-        if(product) {
-            setCurrentPrice(product.price);
-            setCurrentHighlights(product.highlights ? product.highlights.split('\\\\n').filter((h:string) => h.trim() !== '') : []);
-            const mediaItems = [...(product.media || []), ...product.images.map((url: string) => ({type: 'image', url: url}))];
-            const uniqueMedia = Array.from(new Map(mediaItems.map(item => [item.url, item])).values());
-            if(uniqueMedia.length > 0) {
-                setSelectedMedia(uniqueMedia[0]);
-            }
-            if (product.availableSizes?.split(',').map((s:string) => s.trim()).length > 0) {
-                setSelectedSize(product.availableSizes.split(',').map((s:string) => s.trim())[0]);
-            }
-            if (product.availableColors?.split(',').map((s:string) => s.trim()).length > 0) {
-                setSelectedColor(product.availableColors.split(',').map((s:string) => s.trim())[0]);
-            }
-        }
-    }, [product]);
+      // 1. Reset all relevant state
+      setWishlisted(false);
+      setInCart(false);
+      setPincode("");
+      setIsDeliverable(null);
+      setReviews([]);
+      setTaggedPosts([]);
+      setSellerProducts([]);
+      setSelectedSize(null);
+      setSelectedColor(null);
+      setSelectedMedia(null);
+      
+      const currentProduct = productDetails[productId as keyof typeof productDetails] || null;
+
+      if(currentProduct) {
+          // 2. Set the title
+          document.title = currentProduct.name;
+
+          // 3. Update recently viewed
+          const productForHistory: Product = {
+              id: currentProduct.id,
+              key: currentProduct.key,
+              name: currentProduct.name,
+              price: currentProduct.price,
+              imageUrl: currentProduct.images[0],
+              hint: currentProduct.hint,
+              brand: currentProduct.brand,
+              category: currentProduct.category,
+          };
+          addRecentlyViewed(productForHistory);
+          setRecentlyViewedItems(getRecentlyViewed().filter(p => p.key !== currentProduct.key)); 
+
+          // 4. Check wishlist and cart status
+          setWishlisted(isWishlisted(currentProduct.id));
+          setInCart(isProductInCart(currentProduct.id));
+          
+          // 5. Fetch reviews
+          setReviews(getReviews(currentProduct.key));
+
+          // 6. Set initial price, media, and highlights
+          setCurrentPrice(currentProduct.price);
+          setCurrentHighlights(currentProduct.highlights ? currentProduct.highlights.split('\\\\n').filter((h:string) => h.trim() !== '') : []);
+          const mediaItems = [...(currentProduct.media || []), ...currentProduct.images.map((url: string) => ({type: 'image', url: url}))];
+          const uniqueMedia = Array.from(new Map(mediaItems.map(item => [item.url, item])).values());
+          if(uniqueMedia.length > 0) {
+              setSelectedMedia(uniqueMedia[0]);
+          }
+
+          // 7. Set default variants
+          if (currentProduct.availableSizes?.split(',').map((s:string) => s.trim()).length > 0) {
+              setSelectedSize(currentProduct.availableSizes.split(',').map((s:string) => s.trim())[0]);
+          }
+          if (currentProduct.availableColors?.split(',').map((s:string) => s.trim()).length > 0) {
+              setSelectedColor(currentProduct.availableColors.split(',').map((s:string) => s.trim())[0]);
+          }
+
+          // 8. Fetch tagged posts (async)
+          const fetchTaggedPosts = async () => {
+              try {
+                  const db = getFirestoreDb();
+                  const postsRef = collection(db, "posts");
+                  const q = query(postsRef, where("taggedProducts.key", "==", currentProduct.key));
+                  const querySnapshot = await getDocs(q);
+                  const postsData = querySnapshot.docs.map(doc => ({
+                      id: doc.id,
+                      ...doc.data(),
+                      timestamp: doc.data().timestamp ? formatDistanceToNow(new Date((doc.data().timestamp as any).seconds * 1000), { addSuffix: true }) : 'just now'
+                  }));
+                  setTaggedPosts(postsData);
+              } catch (error) {
+                  console.error("Error fetching tagged posts:", error);
+              }
+          };
+          fetchTaggedPosts();
+      }
+    }, [productId]); // The key dependency that drives the reset
 
     const availableSizes = useMemo(() => product?.availableSizes ? product.availableSizes.split(',').map((s: string) => s.trim()) : [], [product]);
     const availableColors = useMemo(() => product?.availableColors ? product.availableColors.split(',').map((s: string) => s.trim()) : [], [product]);
@@ -247,53 +308,6 @@ export function ProductDetailClient({ productId }: { productId: string }) {
             setReviews(getReviews(product.key));
         }
     }, [product]);
-    
-    useEffect(() => {
-        const fetchTaggedPosts = async () => {
-            if (!product) return;
-            try {
-                const db = getFirestoreDb();
-                const postsRef = collection(db, "posts");
-                const q = query(postsRef, where("taggedProducts.key", "==", product.key));
-                const querySnapshot = await getDocs(q);
-                const postsData = querySnapshot.docs.map(doc => ({
-                    id: doc.id,
-                    ...doc.data(),
-                    timestamp: doc.data().timestamp ? formatDistanceToNow(new Date((doc.data().timestamp as any).seconds * 1000), { addSuffix: true }) : 'just now'
-                }));
-                setTaggedPosts(postsData);
-            } catch (error) {
-                console.error("Error fetching tagged posts:", error);
-            }
-        };
-        
-        const productsKey = `sellerProducts_${''}${productToSellerMapping[productId]?.name}`;
-        const storedProducts = localStorage.getItem(productsKey);
-        if (storedProducts) {
-            setSellerProducts(JSON.parse(storedProducts));
-        }
-
-        if (product) {
-            document.title = product.name;
-            const productForHistory: Product = {
-                id: product.id,
-                key: product.key,
-                name: product.name,
-                price: product.price,
-                imageUrl: product.images[0],
-                hint: product.hint,
-                brand: product.brand,
-                category: product.category,
-            };
-            addRecentlyViewed(productForHistory);
-            setWishlisted(isWishlisted(product.id));
-            setInCart(isProductInCart(product.id));
-            setRecentlyViewedItems(getRecentlyViewed().filter(p => p.key !== product.key)); 
-            fetchReviews();
-            fetchTaggedPosts();
-        }
-    }, [product, productId, fetchReviews]);
-
 
     const handlePincodeCheck = () => {
         if (pincode.length !== 6) {
@@ -597,7 +611,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                                     </div>
                                                 </DialogTrigger>
                                                 
-                                                <div className="overflow-x-auto no-scrollbar">
+                                                <ScrollArea>
                                                   <div className="flex gap-2 pb-2">
                                                       {mediaItems.map((item: any, index: number) => (
                                                           <button
@@ -627,7 +641,8 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                                           </button>
                                                       ))}
                                                   </div>
-                                                </div>
+                                                  <ScrollBar orientation="horizontal" />
+                                                </ScrollArea>
                                             </CardContent>
                                         </Card>
                                         <DialogContent className="max-w-3xl max-h-[90vh]">
@@ -1028,7 +1043,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                                             {stream.viewers}
                                                         </Badge>
                                                     </div>
-                                                    <Image
+                                                     <Image
                                                         src={stream.thumbnailUrl}
                                                         alt={`Live stream from ${''}${stream.name}`}
                                                         fill
