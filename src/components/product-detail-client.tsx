@@ -743,11 +743,11 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                 
                                 <div className="flex flex-col gap-4">
                                      <div className="flex items-start justify-between gap-4">
-                                        <div className="text-sm font-mono text-muted-foreground">
+                                        <div className="text-sm font-mono text-muted-foreground mt-2">
                                             {product.key}
                                         </div>
                                         <div className="flex items-center ml-auto">
-                                            <Button variant="ghost" size="icon" onClick={handleWishlistToggle}>
+                                            <Button variant="ghost" size="icon" onClick={() => handleAuthAction(handleWishlistToggle)}>
                                                 <Heart className={cn("h-6 w-6", wishlisted ? "fill-red-500 text-red-500" : "text-muted-foreground")} />
                                             </Button>
                                             <Button variant="ghost" size="icon" onClick={handleShare}>
@@ -777,7 +777,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                     <div className='space-y-2'>
                                         {product.brand && <p className="text-sm font-medium text-primary">{product.brand}</p>}
                                         <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">{product.name}</h1>
-                                         <p className="text-muted-foreground">{renderDescriptionWithHashtags(product.description)}</p>
+                                        <p className="text-muted-foreground">{renderDescriptionWithHashtags(product.description)}</p>
                                     </div>
                                     <div>
                                         <div className="flex items-center gap-4 flex-wrap">
@@ -864,38 +864,31 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                     <Separator />
                                      <div className="space-y-4">
                                         {user && userData?.addresses && userData.addresses.length > 0 ? (
-                                            <div>
-                                                <h4 className="font-semibold text-base mb-2">Delivery Information</h4>
-                                                <div className="flex items-start gap-3">
-                                                    <Truck className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                                                    <div>
-                                                        <div className="text-sm">
-                                                            <p>Deliver to <span className="font-semibold">{userData.addresses[0].name}</span></p>
-                                                            <p className="text-muted-foreground">{userData.addresses[0].village}, {userData.addresses[0].city}, {userData.addresses[0].state} - {userData.addresses[0].pincode}</p>
-                                                            <p className="text-muted-foreground font-semibold mt-1">Delivery by {estimatedDeliveryDate}</p>
-                                                        </div>
-                                                        <Button variant="link" className="p-0 h-auto text-xs" onClick={() => handleAuthAction(() => setIsAddressDialogOpen(true))}>Change Address</Button>
-                                                    </div>
+                                            <div className="flex items-start gap-3">
+                                                <Truck className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                                                <div>
+                                                    <p className="font-semibold text-sm">Deliver to <span className="font-bold">{userData.addresses[0].name} - {userData.addresses[0].pincode}</span></p>
+                                                    <p className="text-xs text-muted-foreground">{userData.addresses[0].village}, {userData.addresses[0].city}</p>
+                                                    <p className="text-muted-foreground font-semibold mt-1">Delivery by {estimatedDeliveryDate}</p>
+                                                    <Button variant="link" className="p-0 h-auto text-xs" onClick={() => handleAuthAction(() => setIsAddressDialogOpen(true))}>Change Address</Button>
                                                 </div>
                                             </div>
                                         ) : (
-                                             <div>
-                                                <h4 className="font-semibold text-base mb-2">Delivery Information</h4>
-                                                <div className="flex items-start gap-3">
-                                                    <Truck className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                                                    <div>
-                                                        <div className="flex items-center gap-2">
-                                                            <Input value={pincode} onChange={(e) => setPincode(e.target.value)} placeholder="Enter Pincode" className="max-w-xs h-9" />
-                                                            <Button variant="outline" size="sm" onClick={handlePincodeCheck} disabled={checkingPincode}>
-                                                                {checkingPincode ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null} Check
-                                                            </Button>
-                                                        </div>
-                                                        {isDeliverable !== null && (
-                                                            <p className={cn("text-xs mt-1", isDeliverable ? "text-green-600" : "text-destructive")}>
-                                                                {isDeliverable ? `Delivery available to ${pincode} by ${estimatedDeliveryDate}` : `Delivery not available to ${pincode}`}
-                                                            </p>
-                                                        )}
+                                             <div className="flex items-start gap-3">
+                                                <Truck className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                                                <div className="flex-grow">
+                                                    <h4 className="font-semibold text-base">Delivery Information</h4>
+                                                    <div className="flex items-center gap-2 mt-1">
+                                                        <Input value={pincode} onChange={(e) => setPincode(e.target.value)} placeholder="Enter Pincode" className="max-w-xs h-9" />
+                                                        <Button variant="outline" size="sm" onClick={handlePincodeCheck} disabled={checkingPincode}>
+                                                            {checkingPincode ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null} Check
+                                                        </Button>
                                                     </div>
+                                                    {isDeliverable !== null && (
+                                                        <p className={cn("text-xs mt-1", isDeliverable ? "text-green-600" : "text-destructive")}>
+                                                            {isDeliverable ? `Delivery available to ${pincode} by ${estimatedDeliveryDate}` : `Delivery not available to ${pincode}`}
+                                                        </p>
+                                                    )}
                                                 </div>
                                              </div>
                                         )}
@@ -926,7 +919,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                             <div className="md:col-span-2 space-y-8 mt-8">
                                 <div>
                                     <h2 className="text-xl font-bold mb-2">Highlights</h2>
-                                    <div className="p-2 grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
                                         <div className="relative aspect-square w-full max-w-xs mx-auto">
                                             <Image 
                                                 src="https://picsum.photos/seed/product-highlights/400/400"
@@ -1023,7 +1016,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                     <h2 className="text-2xl font-bold mb-4">Related Product Streams</h2>
                                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                                         {relatedStreams.map((stream: any) => (
-                                            <Link href={`/stream/${stream.id}`} key={stream.id} className="group block">
+                                             <Link href={`/stream/${stream.id}`} key={stream.id} className="group block">
                                                 <div className="relative aspect-video bg-muted rounded-lg overflow-hidden">
                                                     <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
                                                     <div className="absolute top-2 right-2 z-10"><Badge variant="secondary" className="bg-black/50 text-white"><Users className="w-3 h-3 mr-1"/>{stream.viewers.toLocaleString()}</Badge></div>
@@ -1044,27 +1037,31 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                         ))}
                                     </div>
                                 </div>
-                                <div className="p-4 border rounded-lg mt-8">
-                                    <div className="flex items-center justify-between">
-                                        <h3 className="text-lg font-semibold">Sold By</h3>
-                                        <Button asChild variant="outline" size="sm">
-                                            <Link href={`/seller/profile?userId=${seller.uid}`}>View Profile</Link>
-                                        </Button>
-                                    </div>
-                                    <div className="flex items-center gap-4 mt-4">
-                                        <Avatar>
-                                            <AvatarImage src={seller.avatarUrl} />
-                                            <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
-                                        </Avatar>
-                                        <div>
-                                            <Link href={`/seller/profile?userId=${seller.uid}`} className="font-semibold hover:underline">{seller.name}</Link>
-                                            <div className="flex items-center gap-1 text-xs text-amber-400 mt-1">
-                                                <Star className="w-4 h-4 fill-current" />
-                                                <span>4.8</span>
+                                <Card className="mt-8">
+                                    <CardHeader>
+                                        <div className="flex items-center justify-between">
+                                            <h3 className="text-lg font-semibold">Sold By</h3>
+                                            <Button asChild variant="outline" size="sm">
+                                                <Link href={`/seller/profile?userId=${seller.uid}`}>View Profile</Link>
+                                            </Button>
+                                        </div>
+                                    </CardHeader>
+                                    <CardContent>
+                                        <div className="flex items-center gap-4">
+                                            <Avatar>
+                                                <AvatarImage src={seller.avatarUrl} />
+                                                <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
+                                            </Avatar>
+                                            <div>
+                                                <Link href={`/seller/profile?userId=${seller.uid}`} className="font-semibold hover:underline">{seller.name}</Link>
+                                                <div className="flex items-center gap-1 text-xs text-amber-400 mt-1">
+                                                    <Star className="w-4 h-4 fill-current" />
+                                                    <span>4.8</span>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                </div>
+                                    </CardContent>
+                                </Card>
                                 {recentlyViewedItems.length > 0 && (
                                     <div className="mt-8">
                                         <h2 className="text-2xl font-bold mb-4">Recently Viewed</h2>
