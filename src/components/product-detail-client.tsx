@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
@@ -446,9 +445,9 @@ export function ProductDetailClient({ productId }: { productId: string }) {
       }
       
     const onSearchComplete = useCallback((results: any[], query: string) => {
-        setSearchResults(results);
-        setSearchQuery(query);
-        setShowSearchResults(true);
+      setSearchResults(results);
+      setSearchQuery(query);
+      setShowSearchResults(results.length > 0 || query.length > 0);
     }, []);
 
     const handleSimilarClick = () => {
@@ -582,8 +581,8 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
                                 <div>
                                     <Dialog>
-                                        <Card>
-                                            <CardContent className="p-4">
+                                        <Card className="bg-transparent border-none shadow-none">
+                                            <CardContent className="p-0">
                                                 <DialogTrigger asChild>
                                                     <div className="aspect-square w-full bg-muted rounded-lg overflow-hidden mb-4 cursor-pointer group relative">
                                                         {selectedMedia?.type === 'image' && selectedMedia.url && (
@@ -672,7 +671,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                             <Button asChild variant="secondary" className="w-full">
                                                 <Link href={`/stream/${sellerLiveStream.id}`}>
                                                     <Video className="mr-2 h-4 w-4 text-primary" />
-                                                    View {sellerLiveStream ? 'Live' : 'Recorded'} Stream
+                                                    {sellerLiveStream ? 'Watch Live!' : 'View Recorded Stream'}
                                                 </Link>
                                             </Button>
                                              <p className="text-xs text-muted-foreground mt-1">Want a better look? See this product live in action for an interactive demo!</p>
@@ -800,74 +799,109 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                             </Button>
                                         )}
                                     </div>
-                                    <div className="pt-4 space-y-4 text-sm">
-                                        <div className="flex items-start gap-3">
-                                            <Truck className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                                            <div>
-                                                <h4 className="font-semibold">Delivery Information</h4>
-                                                <div className="flex items-center gap-2 mt-1">
-                                                    <Input value={pincode} onChange={(e) => setPincode(e.target.value)} placeholder="Enter Pincode" className="max-w-xs h-9" />
-                                                    <Button variant="outline" size="sm" onClick={handlePincodeCheck} disabled={checkingPincode}>
-                                                        {checkingPincode && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} Check
-                                                    </Button>
+                                     <Card className="mt-4">
+                                        <CardContent className="p-4 space-y-4">
+                                            <div className="flex items-start gap-3">
+                                                <Truck className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                                                <div>
+                                                    <h4 className="font-semibold">Delivery Information</h4>
+                                                    <div className="flex items-center gap-2 mt-1">
+                                                        <Input value={pincode} onChange={(e) => setPincode(e.target.value)} placeholder="Enter Pincode" className="max-w-xs h-9" />
+                                                        <Button variant="outline" size="sm" onClick={handlePincodeCheck} disabled={checkingPincode}>
+                                                            {checkingPincode && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} Check
+                                                        </Button>
+                                                    </div>
+                                                    {isDeliverable !== null && (
+                                                        <p className={cn("text-xs mt-1", isDeliverable ? "text-green-600" : "text-destructive")}>
+                                                            {isDeliverable ? `Delivery available to ${pincode} by ${estimatedDeliveryDate}` : `Delivery not available to ${pincode}`}
+                                                        </p>
+                                                    )}
                                                 </div>
-                                                {isDeliverable !== null && (
-                                                    <p className={cn("text-xs mt-1", isDeliverable ? "text-green-600" : "text-destructive")}>
-                                                        {isDeliverable ? `Delivery available to ${pincode} by ${estimatedDeliveryDate}` : `Delivery not available to ${pincode}`}
-                                                    </p>
-                                                )}
                                             </div>
-                                        </div>
-                                        <div className="pt-4 border-t">
-                                          <div className="space-y-4 text-sm">
-                                              <div className="flex items-start gap-3">
-                                                  <RotateCcw className="h-5 w-5 text-primary mt-0.5" />
-                                                  <div>
-                                                      <h4 className="font-semibold">7-Day Return Policy</h4>
-                                                      <p className="text-xs text-muted-foreground">Return this item within 7 days of delivery for a full refund.</p>
-                                                  </div>
-                                              </div>
-                                              <div className="flex items-start gap-3">
-                                                  <Banknote className="h-5 w-5 text-primary mt-0.5" />
-                                                  <div>
-                                                      <h4 className="font-semibold">Pay on Delivery</h4>
-                                                      <p className="text-xs text-muted-foreground">Pay with cash at your doorstep. Available on eligible orders.</p>
-                                                  </div>
-                                              </div>
-                                              <div className="flex items-start gap-3">
-                                                  <ShieldCheck className="h-5 w-5 text-primary mt-0.5" />
-                                                  <div>
-                                                      <h4 className="font-semibold">100% Genuine</h4>
-                                                      <p className="text-xs text-muted-foreground">All products are sourced directly from brands and verified sellers.</p>
-                                                  </div>
-                                              </div>
-                                          </div>
-                                      </div>
-                                    </div>
+                                            <Separator />
+                                            <div className="flex flex-col space-y-4">
+                                                <div className="flex items-start gap-3">
+                                                    <RotateCcw className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                                                    <div>
+                                                        <h4 className="font-semibold">7-Day Return Policy</h4>
+                                                        <p className="text-xs text-muted-foreground">Return this item within 7 days of delivery for a full refund.</p>
+                                                    </div>
+                                                </div>
+                                                <div className="flex items-start gap-3">
+                                                    <Banknote className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                                                    <div>
+                                                        <h4 className="font-semibold">Pay on Delivery</h4>
+                                                        <p className="text-xs text-muted-foreground">Pay with cash at your doorstep. Available on eligible orders.</p>
+                                                    </div>
+                                                </div>
+                                                <div className="flex items-start gap-3">
+                                                    <ShieldCheck className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                                                    <div>
+                                                        <h4 className="font-semibold">100% Genuine</h4>
+                                                        <p className="text-xs text-muted-foreground">All products are sourced directly from brands and verified sellers.</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </CardContent>
+                                    </Card>
                                 </div>
                             </div>
                             <div className="md:col-span-2 space-y-8 mt-8">
-                                <div>
-                                    <div className="p-2 mt-2 grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
-                                        <div className="relative aspect-square w-full max-w-xs mx-auto">
-                                            <Image 
-                                                src="https://picsum.photos/seed/product-highlights/400/400"
-                                                alt="Product highlights"
-                                                fill
-                                                className="object-cover rounded-lg"
-                                                data-ai-hint="product feature"
-                                            />
+                                <Card>
+                                    <CardHeader>
+                                        <CardTitle>Highlights</CardTitle>
+                                    </CardHeader>
+                                    <CardContent>
+                                        <div className="p-2 mt-2 grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
+                                            <div className="relative aspect-square w-full max-w-xs mx-auto">
+                                                <Image 
+                                                    src="https://picsum.photos/seed/product-highlights/400/400"
+                                                    alt="Product highlights"
+                                                    fill
+                                                    className="object-cover rounded-lg"
+                                                    data-ai-hint="product feature"
+                                                />
+                                            </div>
+                                            <ul className="space-y-3 text-sm">
+                                                {currentHighlights.map((highlight: string, index: number) => (
+                                                    <li key={index} className="flex items-start gap-3">
+                                                        <CheckCircle className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
+                                                        <span className="text-muted-foreground">{highlight}</span>
+                                                    </li>
+                                                ))}
+                                            </ul>
                                         </div>
-                                         <ul className="space-y-3 text-sm">
-                                            {currentHighlights.map((highlight: string, index: number) => (
-                                                <li key={index} className="flex items-start gap-3">
-                                                    <CheckCircle className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
-                                                    <span className="text-muted-foreground">{highlight}</span>
-                                                </li>
-                                            ))}
-                                        </ul>
-                                    </div>
-                                </div>
+                                        <div className="mt-4 text-center">
+                                            <Button asChild variant="link">
+                                                <Link href={`/product/${productId}/details`}>View All Details</Link>
+                                            </Button>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                                <Separator />
+                                <Card>
+                                    <CardHeader>
+                                        <CardTitle>Sold By</CardTitle>
+                                    </CardHeader>
+                                     <CardContent className="flex items-center justify-between">
+                                        <div className="flex items-center gap-4">
+                                            <Avatar>
+                                                <AvatarImage src={seller.avatarUrl} />
+                                                <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
+                                            </Avatar>
+                                            <div>
+                                                <Link href={`/seller/profile?userId=${seller.uid}`} className="font-semibold hover:underline">{seller.name}</Link>
+                                                <div className="flex items-center gap-1 text-xs text-amber-400 mt-1">
+                                                    <Star className="w-4 h-4 fill-current" />
+                                                    <span>4.8</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <Button asChild variant="outline">
+                                            <Link href={`/seller/profile?userId=${seller.uid}`}>View Profile</Link>
+                                        </Button>
+                                    </CardContent>
+                                </Card>
                                 <Separator />
                                 <Card>
                                     <CardHeader className="flex items-center justify-between">
@@ -910,30 +944,6 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                     </CardFooter>
                                 </Card>
                                 <Separator/>
-                                <div className="space-y-4">
-                                    <CardHeader className="p-0">
-                                        <CardTitle>Sold By</CardTitle>
-                                    </CardHeader>
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex items-center gap-4">
-                                            <Avatar>
-                                                <AvatarImage src={seller.avatarUrl} />
-                                                <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
-                                            </Avatar>
-                                            <div>
-                                                <Link href={`/seller/profile?userId=${seller.uid}`} className="font-semibold hover:underline">{seller.name}</Link>
-                                                <div className="flex items-center gap-1 text-xs text-amber-400 mt-1">
-                                                    <Star className="w-4 h-4 fill-current" />
-                                                    <span>4.8</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <Button asChild variant="outline">
-                                            <Link href={`/seller/profile?userId=${seller.uid}`}>View Profile</Link>
-                                        </Button>
-                                    </div>
-                                </div>
-                                <Separator />
                                 
                                 <Card>
                                     <CardHeader className="flex items-center justify-between">
@@ -1083,3 +1093,5 @@ export function ProductDetailClient({ productId }: { productId: string }) {
         </>
     );
 }
+
+    
