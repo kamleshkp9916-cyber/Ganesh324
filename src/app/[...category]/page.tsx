@@ -81,21 +81,13 @@ export default function CategoryPage() {
     const onSearchComplete = (results: any[], query: string) => {
         setSearchResults(results);
         setSearchQuery(query);
-        setShowSearchResults(true);
+        setShowSearchResults(results.length > 0 || query.length > 0);
     };
 
     return (
         <div className="min-h-screen bg-background text-foreground flex flex-col">
             <header className="p-4 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-sm z-30 border-b">
-                <Button variant="ghost" size="icon" onClick={() => {
-                    if (showSearchResults) {
-                        setShowSearchResults(false);
-                        setSearchQuery('');
-                        setSearchResults([]);
-                    } else {
-                        router.back()
-                    }
-                }}>
+                <Button variant="ghost" size="icon" onClick={() => router.back()}>
                     <ArrowLeft className="h-6 w-6" />
                 </Button>
                 <h1 className="text-xl font-bold truncate">{pageTitle}</h1>
@@ -150,7 +142,7 @@ export default function CategoryPage() {
                                                 className="object-cover transition-transform group-hover:scale-105"
                                                 data-ai-hint={product.hint}
                                             />
-                                            <div className="absolute bottom-2 right-2 transition-opacity">
+                                            <div className="absolute bottom-2 right-2">
                                                 <Button size="icon" className="h-8 w-8 rounded-full bg-black/50 text-white backdrop-blur-sm">
                                                     <Sparkles className="h-4 w-4" />
                                                 </Button>
