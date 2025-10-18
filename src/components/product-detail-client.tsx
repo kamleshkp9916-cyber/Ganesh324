@@ -102,7 +102,8 @@ export function ProductDetailClient({ productId }: { productId: string }) {
     const router = useRouter();
     const { user, userData } = useAuth();
     
-    const product = useMemo(() => productDetails[productId as keyof typeof productDetails] || null, [productId]);
+    // Directly derive product from props. This is the key fix.
+    const product = productDetails[productId as keyof typeof productDetails] || null;
     
     const { toast } = useToast();
     const [wishlisted, setWishlisted] = useState(false);
@@ -625,7 +626,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                                     </div>
                                                 </DialogTrigger>
                                                 
-                                                <ScrollArea>
+                                                <div className="overflow-x-auto no-scrollbar">
                                                   <div className="flex gap-2 pb-2">
                                                       {mediaItems.map((item: any, index: number) => (
                                                           <button
@@ -655,8 +656,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                                           </button>
                                                       ))}
                                                   </div>
-                                                  <ScrollBar orientation="horizontal" />
-                                                </ScrollArea>
+                                                </div>
                                             </CardContent>
                                         </Card>
                                         <DialogContent className="max-w-3xl max-h-[90vh]">
@@ -1085,7 +1085,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                 {recentlyViewedItems.length > 0 && (
                                     <div className="mt-8">
                                         <h2 className="text-2xl font-bold mb-4">Recently Viewed</h2>
-                                        <ScrollArea>
+                                        <div className="overflow-x-auto no-scrollbar">
                                             <div className="flex gap-4 pb-4">
                                                 {recentlyViewedItems.map((item) => (
                                                 <Link href={`/product/${item.key}`} key={item.key} className="w-40 flex-shrink-0">
@@ -1110,8 +1110,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                                 </Link>
                                                 ))}
                                             </div>
-                                            <ScrollBar orientation="horizontal" />
-                                        </ScrollArea>
+                                        </div>
                                     </div>
                                 )}
                             </div>
@@ -1131,5 +1130,3 @@ export function ProductDetailClient({ productId }: { productId: string }) {
         </>
     );
 }
-
-    
