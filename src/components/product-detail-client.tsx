@@ -620,9 +620,9 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                                     </div>
                                                 </DialogTrigger>
                                                 
-                                                <ScrollArea>
-                                                    <div className="flex gap-2 pb-2">
-                                                        {product.media?.map((item: any, index: number) => (
+                                                 <div className="w-full overflow-x-auto pb-2">
+                                                    <div className="flex gap-2">
+                                                        {(product.media || product.images.map((url: string) => ({ type: 'image', url }))).map((item: any, index: number) => (
                                                             <button
                                                                 key={index}
                                                                 onClick={() => setSelectedMedia(item)}
@@ -650,8 +650,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                                             </button>
                                                         ))}
                                                     </div>
-                                                    <ScrollBar orientation="horizontal" />
-                                                </ScrollArea>
+                                                </div>
                                             </CardContent>
                                         </Card>
                                         <DialogContent className="max-w-3xl max-h-[90vh]">
@@ -672,19 +671,17 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                         relatedStreams={relatedStreams}
                                         isLoading={isLoadingSimilar}
                                     />}
-                                     <div className="mt-4">
-                                         <Button size="lg" className="w-full rounded-full bg-black/50 text-white backdrop-blur-sm flex items-center gap-1.5" onClick={handleSimilarClick} disabled={isScanning}>
-                                            {isScanning ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-                                            <span>Find Similar Products</span>
-                                        </Button>
-                                     </div>
+                                     <Button size="lg" className="w-full rounded-full bg-black/50 text-white backdrop-blur-sm flex items-center gap-1.5 mt-4" onClick={handleSimilarClick} disabled={isScanning}>
+                                        {isScanning ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+                                        <span>Find Similar Products</span>
+                                    </Button>
                                 </div>
                                 
                                 <div className="flex flex-col gap-4">
-                                    <div>
-                                         <div className="flex items-center justify-between gap-4 mb-2">
+                                     <div>
+                                        <div className="flex items-center justify-between gap-4 mb-2">
                                             {product.brand && <p className="text-sm font-medium text-primary">{product.brand}</p>}
-                                             <div className="hidden lg:flex items-center ml-2">
+                                            <div className="hidden lg:flex items-center ml-auto">
                                                 <Button variant="ghost" size="icon" onClick={handleWishlistToggle}>
                                                     <Heart className={cn("h-6 w-6", wishlisted ? "fill-red-500 text-red-500" : "text-muted-foreground")} />
                                                 </Button>
@@ -712,9 +709,9 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                                 </AlertDialog>
                                             </div>
                                         </div>
-                                        <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">{product.name}</h1>
+                                         <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">{product.name}</h1>
+                                        <p className="text-muted-foreground mt-2">{renderDescriptionWithHashtags(product.description)}</p>
                                     </div>
-                                    <p className="text-muted-foreground">{renderDescriptionWithHashtags(product.description)}</p>
                                     <div>
                                         <div className="flex items-center gap-4 flex-wrap">
                                             {currentPrice && <p className="text-3xl font-bold text-foreground">{currentPrice}</p>}
@@ -883,75 +880,17 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                 </div>
                             </div>
                             <div className="md:col-span-2 space-y-8 mt-8">
-                                <Card>
-                                     <CardHeader className="flex flex-row items-center justify-between pb-2">
-                                        <CardTitle className="text-base">Available Offers</CardTitle>
-                                    </CardHeader>
-                                    <CardContent className="space-y-3">
-                                        {allOffers.slice(0,1).map((offer, index) => (
-                                            <div key={index} className="flex items-start gap-3 text-sm">
-                                                <div className="flex-shrink-0 mt-1">{offer.icon}</div>
-                                                <div>
-                                                    <h5 className="font-semibold">{offer.title}</h5>
-                                                    <p className="text-muted-foreground">{offer.description}</p>
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </CardContent>
-                                     <CardFooter>
-                                         <Sheet>
-                                            <SheetTrigger asChild>
-                                                <Button variant="link" className="p-0 h-auto">View All Offers</Button>
-                                            </SheetTrigger>
-                                            <SheetContent side="bottom" className="h-auto max-h-[80vh]">
-                                                <SheetHeader className="text-left p-4">
-                                                    <SheetTitle>All Available Offers</SheetTitle>
-                                                </SheetHeader>
-                                                <ScrollArea className="h-full">
-                                                    <div className="p-4 space-y-4">
-                                                    {allOffers.map((offer, index) => (
-                                                        <div key={index} className="flex items-start gap-3 text-sm p-3 rounded-lg border">
-                                                            <div className="flex-shrink-0 mt-1">{offer.icon}</div>
-                                                            <div>
-                                                                <h5 className="font-semibold">{offer.title}</h5>
-                                                                <p className="text-muted-foreground">{offer.description}</p>
-                                                            </div>
-                                                        </div>
-                                                    ))}
-                                                    </div>
-                                                </ScrollArea>
-                                            </SheetContent>
-                                        </Sheet>
-                                    </CardFooter>
-                                </Card>
                                 <div className="space-y-4">
-                                    <div className="flex items-center justify-between">
-                                        <h3 className="text-xl font-bold">Highlights</h3>
-                                        <Button asChild variant="link">
-                                            <Link href={`/product/${productId}/details`}>View Details</Link>
-                                        </Button>
-                                    </div>
-                                    <div className="grid md:grid-cols-2 gap-6 items-center">
-                                        <div className="relative aspect-square md:aspect-[4/3] bg-muted rounded-lg overflow-hidden">
-                                            <Image
-                                                src={product.images[1] || product.images[0]}
-                                                alt={`${product.name} highlight`}
-                                                fill
-                                                sizes="(max-width: 768px) 100vw, 50vw"
-                                                className="object-cover"
-                                                data-ai-hint={`${product.hint} detail`}
-                                            />
-                                        </div>
-                                        <div className="p-2">
-                                            <ul className="space-y-3 text-sm">
-                                                {currentHighlights.map((highlight: string, index: number) => (
-                                                    <li key={index} className="flex items-start gap-3">
-                                                        <CheckCircle className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
-                                                        <span className="text-muted-foreground">{highlight}</span>
-                                                    </li>
-                                                ))}
-                                            </ul>
-                                        </div>
+                                    <h3 className="text-xl font-bold">Highlights</h3>
+                                    <div className="p-2">
+                                        <ul className="space-y-3 text-sm">
+                                            {currentHighlights.map((highlight: string, index: number) => (
+                                                <li key={index} className="flex items-start gap-3">
+                                                    <CheckCircle className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
+                                                    <span className="text-muted-foreground">{highlight}</span>
+                                                </li>
+                                            ))}
+                                        </ul>
                                     </div>
                                 </div>
 
@@ -1103,10 +1042,10 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                 {recentlyViewedItems.length > 0 && (
                                     <div className="mt-8">
                                         <h2 className="text-2xl font-bold mb-4">Recently Viewed</h2>
-                                        <div className="overflow-x-auto pb-4">
+                                        <div className="w-full overflow-x-auto pb-4">
                                             <div className="flex gap-4">
                                                 {recentlyViewedItems.map((item) => (
-                                                <Link href={`/product/${item.key}`} key={item.id} className="w-40 flex-shrink-0">
+                                                <Link href={`/product/${item.key}`} key={item.key} className="w-40 flex-shrink-0">
                                                     <Card className="overflow-hidden group h-full">
                                                     <div className="aspect-square bg-muted relative">
                                                         <Image src={item.imageUrl} alt={item.name} fill sizes="160px" className="object-cover" />
