@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
@@ -566,7 +567,9 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                                             />
                                                         )}
                                                          {isScanning && (
-                                                            <div className="absolute inset-0 bg-black/30 shimmer-scan overflow-hidden"></div>
+                                                            <div className="absolute inset-0 bg-black/30 overflow-hidden">
+                                                                <div className="scan-animation"></div>
+                                                            </div>
                                                          )}
                                                     </div>
                                                 </DialogTrigger>
@@ -999,33 +1002,6 @@ export function ProductDetailClient({ productId }: { productId: string }) {
 
                                 <Separator />
                                 <div className="mt-8">
-                                    <h2 className="text-2xl font-bold mb-4">Similar Products</h2>
-                                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                                        {similarProducts.map((p) => (
-                                            <Link href={`/product/${p.key}`} key={p.id} className="group block">
-                                                <Card className="w-full group overflow-hidden h-full flex flex-col">
-                                                    <div className="relative aspect-square bg-muted">
-                                                        <Image src={p.images[0]} alt={p.name} fill sizes="(max-width: 640px) 50vw, 20vw" className="object-cover transition-transform group-hover:scale-105" data-ai-hint={p.hint} />
-                                                    </div>
-                                                    <div className="p-3">
-                                                        <h4 className="font-semibold truncate text-sm">{p.name}</h4>
-                                                        <p className="font-bold">{p.price}</p>
-                                                        <div className="flex items-center gap-1 text-xs text-amber-400 mt-1">
-                                                            <Star className="w-4 h-4 fill-current" />
-                                                            <span>4.8</span>
-                                                            <span className="text-muted-foreground">({(product as any).reviews || '1.2k'})</span>
-                                                        </div>
-                                                        <div className="flex items-center gap-4 text-xs text-muted-foreground mt-1">
-                                                            <div className="flex items-center gap-1"><Package className="w-3 h-3" /> {p.stock} left</div>
-                                                            <div className="flex items-center gap-1"><Users className="w-3 h-3" /> {p.sold} sold</div>
-                                                        </div>
-                                                    </div>
-                                                </Card>
-                                            </Link>
-                                        ))}
-                                    </div>
-                                </div>
-                                <div className="mt-8">
                                     <h2 className="text-2xl font-bold mb-4">Related Product Streams</h2>
                                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                                         {relatedStreams.map((stream: any) => (
@@ -1066,8 +1042,8 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                 {recentlyViewedItems.length > 0 && (
                                     <div className="mt-8">
                                         <h2 className="text-2xl font-bold mb-4">Recently Viewed</h2>
-                                        <ScrollArea className="w-full whitespace-nowrap">
-                                            <div className="flex gap-4 pb-4">
+                                        <div className="overflow-x-auto pb-4">
+                                            <div className="flex gap-4">
                                                 {recentlyViewedItems.map((item) => (
                                                 <Link href={`/product/${item.key}`} key={item.id} className="w-40 flex-shrink-0">
                                                     <Card className="overflow-hidden group h-full">
@@ -1091,8 +1067,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                                 </Link>
                                                 ))}
                                             </div>
-                                            <ScrollBar orientation="horizontal" />
-                                        </ScrollArea>
+                                        </div>
                                     </div>
                                 )}
                             </div>
