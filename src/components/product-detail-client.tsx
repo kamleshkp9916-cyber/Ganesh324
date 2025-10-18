@@ -827,59 +827,58 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                             </Button>
                                         )}
                                     </div>
-                                    <Card className="mt-4">
-                                        <CardContent className="p-4 space-y-4">
+                                     <div className="mt-4 space-y-4">
+                                        <div className="flex items-start gap-3">
+                                            <Truck className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                                            <div>
+                                                <h4 className="font-semibold">Delivery Information</h4>
+                                                {user && userData?.addresses && userData.addresses.length > 0 ? (
+                                                     <div className="text-sm mt-1">
+                                                        <p>Deliver to <span className="font-semibold">{userData.addresses[0].name}</span></p>
+                                                        <p className="text-muted-foreground">{userData.addresses[0].village}, {userData.addresses[0].city}, {userData.addresses[0].state} - {userData.addresses[0].pincode}</p>
+                                                        <p className="text-muted-foreground font-semibold mt-1">Delivery by {estimatedDeliveryDate}</p>
+                                                         <Button variant="link" className="p-0 h-auto text-xs" onClick={() => setIsAddressDialogOpen(true)}>Change Address</Button>
+                                                    </div>
+                                                ) : (
+                                                    <div className="flex items-center gap-2 mt-1">
+                                                        <Input value={pincode} onChange={(e) => setPincode(e.target.value)} placeholder="Enter Pincode" className="max-w-xs h-9" />
+                                                        <Button variant="outline" size="sm" onClick={handlePincodeCheck} disabled={checkingPincode}>
+                                                            {checkingPincode && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} Check
+                                                        </Button>
+                                                    </div>
+                                                )}
+                                                 {isDeliverable !== null && !user && (
+                                                    <p className={cn("text-xs mt-1", isDeliverable ? "text-green-600" : "text-destructive")}>
+                                                        {isDeliverable ? `Delivery available to ${pincode} by ${estimatedDeliveryDate}` : `Delivery not available to ${pincode}`}
+                                                    </p>
+                                                )}
+                                            </div>
+                                        </div>
+                                        <Separator />
+                                         <div className="space-y-4">
                                             <div className="flex items-start gap-3">
-                                                <Truck className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                                                <RotateCcw className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
                                                 <div>
-                                                    <h4 className="font-semibold">Delivery Information</h4>
-                                                    {user && userData?.addresses && userData.addresses.length > 0 ? (
-                                                         <div className="text-sm mt-1">
-                                                            <p>Deliver to <span className="font-semibold">{userData.addresses[0].name} - {userData.addresses[0].pincode}</span></p>
-                                                            <p className="text-muted-foreground">Delivery by {estimatedDeliveryDate}</p>
-                                                             <Button variant="link" className="p-0 h-auto text-xs" onClick={() => setIsAddressDialogOpen(true)}>Change</Button>
-                                                        </div>
-                                                    ) : (
-                                                        <div className="flex items-center gap-2 mt-1">
-                                                            <Input value={pincode} onChange={(e) => setPincode(e.target.value)} placeholder="Enter Pincode" className="max-w-xs h-9" />
-                                                            <Button variant="outline" size="sm" onClick={handlePincodeCheck} disabled={checkingPincode}>
-                                                                {checkingPincode && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} Check
-                                                            </Button>
-                                                        </div>
-                                                    )}
-                                                     {isDeliverable !== null && !user && (
-                                                        <p className={cn("text-xs mt-1", isDeliverable ? "text-green-600" : "text-destructive")}>
-                                                            {isDeliverable ? `Delivery available to ${pincode} by ${estimatedDeliveryDate}` : `Delivery not available to ${pincode}`}
-                                                        </p>
-                                                    )}
+                                                    <h4 className="font-semibold">7-Day Return Policy</h4>
+                                                    <p className="text-xs text-muted-foreground">Return this item within 7 days of delivery for a full refund.</p>
                                                 </div>
                                             </div>
-                                             <Separator />
-                                            <div className="flex flex-col space-y-4">
-                                                <div className="flex items-start gap-3">
-                                                    <RotateCcw className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                                                    <div>
-                                                        <h4 className="font-semibold">7-Day Return Policy</h4>
-                                                        <p className="text-xs text-muted-foreground">Return this item within 7 days of delivery for a full refund.</p>
-                                                    </div>
-                                                </div>
-                                                <div className="flex items-start gap-3">
-                                                    <Banknote className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                                                    <div>
-                                                        <h4 className="font-semibold">Pay on Delivery</h4>
-                                                        <p className="text-xs text-muted-foreground">Pay with cash at your doorstep. Available on eligible orders.</p>
-                                                    </div>
-                                                </div>
-                                                <div className="flex items-start gap-3">
-                                                    <ShieldCheck className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                                                    <div>
-                                                        <h4 className="font-semibold">100% Genuine</h4>
-                                                        <p className="text-xs text-muted-foreground">All products are sourced directly from brands and verified sellers.</p>
-                                                    </div>
+                                            <div className="flex items-start gap-3">
+                                                <Banknote className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                                                <div>
+                                                    <h4 className="font-semibold">Pay on Delivery</h4>
+                                                    <p className="text-xs text-muted-foreground">Pay with cash at your doorstep. Available on eligible orders.</p>
                                                 </div>
                                             </div>
-                                        </CardContent>
-                                    </Card>
+                                            <div className="flex items-start gap-3">
+                                                <ShieldCheck className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                                                <div>
+                                                    <h4 className="font-semibold">100% Genuine</h4>
+                                                    <p className="text-xs text-muted-foreground">All products are sourced directly from brands and verified sellers.</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                             <div className="md:col-span-2 space-y-8 mt-8">
@@ -1142,3 +1141,5 @@ export function ProductDetailClient({ productId }: { productId: string }) {
         </>
     );
 }
+
+    
