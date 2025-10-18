@@ -34,6 +34,7 @@ import { EditAddressForm } from './edit-address-form';
 import { updateUserData } from '@/lib/follow-data';
 import ProductSearch from '@/components/ProductSearch';
 import { SimilarProductsOverlay } from './similar-products-overlay';
+import { Sheet, SheetContent, SheetTrigger } from './ui/sheet';
 
 const mockQandA = [
     { id: 1, question: "Does this camera come with a roll of film?", questioner: "Alice", answer: "Yes, it comes with one 24-exposure roll of color film to get you started!", answerer: "GadgetGuru" },
@@ -512,6 +513,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
     }
 
     const seller = productToSellerMapping[product.key];
+    const allOffers = [...mockAdminOffers, (product as any).offer].filter(Boolean);
 
     return (
         <>
@@ -550,11 +552,11 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
                                 <Card>
                                     <CardContent className="p-4">
-                                         <div className="relative">
+                                        <div className="relative">
                                             <Dialog>
                                                 <DialogTrigger asChild>
-                                                    <div className="aspect-square w-full relative bg-muted rounded-lg overflow-hidden mb-4 cursor-pointer group">
-                                                        {selectedImage && (
+                                                     <div className="aspect-square w-full relative bg-muted rounded-lg overflow-hidden mb-4 cursor-pointer group">
+                                                         {selectedImage && (
                                                             <Image
                                                                 src={selectedImage}
                                                                 alt={product.name}
@@ -564,7 +566,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                                             />
                                                         )}
                                                          {isScanning && (
-                                                            <div className="absolute inset-0 bg-black/30 scan-animation overflow-hidden"></div>
+                                                            <div className="absolute inset-0 bg-black/30 shimmer-scan overflow-hidden"></div>
                                                          )}
                                                     </div>
                                                 </DialogTrigger>
@@ -582,14 +584,13 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                                 </DialogContent>
                                             </Dialog>
                                             <div className="absolute bottom-2 right-2 z-20">
-                                                <div className="relative">
-                                                     <Button size="sm" className="rounded-full bg-black/50 text-white backdrop-blur-sm flex items-center gap-1.5 h-8" onClick={handleSimilarClick} disabled={isScanning}>
-                                                         {isScanning ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-                                                         <span className="text-xs">Similar Product</span>
-                                                     </Button>
-                                                </div>
+                                                 <div className="relative">
+                                                      <Button size="sm" className="rounded-full bg-black/50 text-white backdrop-blur-sm flex items-center gap-1.5 h-8" onClick={handleSimilarClick} disabled={isScanning}>
+                                                          {isScanning ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+                                                          <span className="text-xs">Similar Product</span>
+                                                      </Button>
+                                                 </div>
                                             </div>
-                                            
                                         </div>
                                         <ScrollArea>
                                             <div className="flex gap-2 pb-2">
@@ -616,13 +617,13 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                         </ScrollArea>
                                     </CardContent>
                                 </Card>
-                                 <SimilarProductsOverlay
+                                {showSimilarOverlay && <SimilarProductsOverlay
                                     isOpen={showSimilarOverlay}
                                     onClose={() => setShowSimilarOverlay(false)}
                                     similarProducts={similarProducts}
                                     relatedStreams={relatedStreams}
                                     isLoading={isLoadingSimilar}
-                                />
+                                />}
                                 <div className="flex flex-col gap-4">
                                         <div className="flex justify-between items-start">
                                         <div>
@@ -815,29 +816,47 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                             <div className="md:col-span-2 space-y-8 mt-8">
                                 
                                     <Card>
-                                    <CardHeader>
-                                    <CardTitle>Available Offers</CardTitle>
-                                    </CardHeader>
-                                    <CardContent className="space-y-3">
-                                    {mockAdminOffers.map((offer, index) => (
-                                        <div key={index} className="flex items-start gap-3 text-sm">
-                                            <div className="flex-shrink-0 mt-1">{offer.icon}</div>
-                                            <div>
-                                                <h5 className="font-semibold">{offer.title}</h5>
-                                                <p className="text-muted-foreground">{offer.description}</p>
-                                            </div>
-                                        </div>
-                                    ))}
-                                    {(product as any).offer?.title && (
-                                            <div className="flex items-start gap-3 text-sm">
-                                                <div className="flex-shrink-0 mt-1"><Ticket className="h-5 w-5 text-primary" /></div>
-                                                <div>
-                                                    <h5 className="font-semibold">{(product as any).offer.title}</h5>
-                                                    <p className="text-muted-foreground">{(product as any).offer.description}</p>
+                                        <CardHeader className="flex flex-row items-center justify-between pb-2">
+                                            <CardTitle className="text-base">Available Offers</CardTitle>
+                                        </CardHeader>
+                                        <CardContent className="pb-2 space-y-3">
+                                            {allOffers.slice(0,1).map((offer, index) => (
+                                                <div key={index} className="flex items-start gap-3 text-sm">
+                                                    <div className="flex-shrink-0 mt-1">{offer.icon}</div>
+                                                    <div>
+                                                        <h5 className="font-semibold">{offer.title}</h5>
+                                                        <p className="text-muted-foreground">{offer.description}</p>
+                                                    </div>
                                                 </div>
-                                            </div>
+                                            ))}
+                                        </CardContent>
+                                        {allOffers.length > 1 && (
+                                            <CardFooter className="pt-0">
+                                                <Sheet>
+                                                    <SheetTrigger asChild>
+                                                        <Button variant="link" className="p-0 h-auto">View All Offers</Button>
+                                                    </SheetTrigger>
+                                                    <SheetContent side="bottom" className="h-auto max-h-[80vh]">
+                                                        <SheetHeader className="text-left p-4">
+                                                            <DialogTitle>All Available Offers</DialogTitle>
+                                                        </SheetHeader>
+                                                        <ScrollArea className="h-full">
+                                                            <div className="p-4 space-y-4">
+                                                            {allOffers.map((offer, index) => (
+                                                                <div key={index} className="flex items-start gap-3 text-sm p-3 rounded-lg border">
+                                                                    <div className="flex-shrink-0 mt-1">{offer.icon}</div>
+                                                                    <div>
+                                                                        <h5 className="font-semibold">{offer.title}</h5>
+                                                                        <p className="text-muted-foreground">{offer.description}</p>
+                                                                    </div>
+                                                                </div>
+                                                            ))}
+                                                            </div>
+                                                        </ScrollArea>
+                                                    </SheetContent>
+                                                </Sheet>
+                                            </CardFooter>
                                         )}
-                                    </CardContent>
                                 </Card>
                                 <Separator />
 
