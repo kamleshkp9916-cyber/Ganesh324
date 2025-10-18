@@ -911,7 +911,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                             <Link href={`/product/${productId}/details`}>View Details</Link>
                                         </Button>
                                     </div>
-                                    <div className="p-2 mt-2">
+                                    <div className="p-2 mt-2 grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
                                         <ul className="space-y-3 text-sm">
                                             {currentHighlights.map((highlight: string, index: number) => (
                                                 <li key={index} className="flex items-start gap-3">
@@ -920,6 +920,15 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                                 </li>
                                             ))}
                                         </ul>
+                                        <div className="relative aspect-square w-full max-w-xs mx-auto">
+                                            <Image 
+                                                src="https://picsum.photos/seed/product-highlights/400/400"
+                                                alt="Product highlights"
+                                                fill
+                                                className="object-cover rounded-lg"
+                                                data-ai-hint="product feature"
+                                            />
+                                        </div>
                                     </div>
                                 </div>
 
@@ -1116,5 +1125,3 @@ export function ProductDetailClient({ productId }: { productId: string }) {
         </>
     );
 }
-
-    
