@@ -64,7 +64,7 @@ export default function ListedProductsPage() {
   const [storedFeaturedProducts] = useLocalStorage<FeaturedProduct[]>(HUB_FEATURED_PRODUCTS_KEY, defaultFeaturedProducts);
 
   const [searchResults, setSearchResults] = useState<any[]>([]);
-  const [isSearching, setIsSearching] = useState(false);
+  const [showSearchResults, setShowSearchResults] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
@@ -89,7 +89,7 @@ export default function ListedProductsPage() {
   const onSearchComplete = (results: any[], query: string) => {
     setSearchResults(results);
     setSearchQuery(query);
-    setIsSearching(true);
+    setShowSearchResults(true);
   };
   
   const renderSearchResults = () => (
@@ -133,8 +133,8 @@ export default function ListedProductsPage() {
             <div className="flex items-center justify-between h-16 px-4 sm:px-6 lg:px-8">
                      <div className="flex items-center gap-2">
                         <Button variant="ghost" size="icon" className="-ml-2" onClick={() => {
-                            if (isSearching) {
-                                setIsSearching(false);
+                            if (showSearchResults) {
+                                setShowSearchResults(false);
                                 setSearchQuery('');
                                 setSearchResults([]);
                             } else {
@@ -231,7 +231,7 @@ export default function ListedProductsPage() {
 
       <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-10 flex-grow">
          
-         {isSearching ? renderSearchResults() : (
+         {showSearchResults ? renderSearchResults() : (
            <>
             {isMounted && hubBanner ? (
             <Card className="overflow-hidden border-none shadow-lg mb-10">

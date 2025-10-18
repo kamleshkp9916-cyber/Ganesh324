@@ -30,19 +30,27 @@ interface ProductForKeywords {
  */
 export function generateKeywords(product: ProductForKeywords) {
   const tokens: string[] = [];
-
-  // Title tokens (split words)
   const title = normalize(product.name || '');
-  title.split(' ').forEach(t => t.length > 1 && tokens.push(t));
 
-  // Brand
+  // Add full words
+  title.split(' ').forEach(t => {
+    if (t.length > 1) tokens.push(t);
+  });
+
+  // Add partial words (n-grams) from title for "search-as-you-type"
+  title.split(' ').forEach(word => {
+    if (word.length > 2) {
+      for (let i = 3; i <= word.length; i++) {
+        tokens.push(word.substring(0, i));
+      }
+    }
+  });
+
+  // Add other fields
   if (product.brand) tokens.push(normalize(product.brand));
-
-  // Category & Subcategory
   if (product.category) tokens.push(normalize(product.category));
   if (product.subcategory) tokens.push(normalize(product.subcategory));
   
-  // Sizes and colors from top-level fields (comma-separated strings)
   if (product.availableSizes) {
     product.availableSizes.split(',').forEach(s => tokens.push(normalize(s)));
   }
@@ -50,20 +58,10 @@ export function generateKeywords(product: ProductForKeywords) {
     product.availableColors.split(',').forEach(c => tokens.push(normalize(c)));
   }
 
-  // Sizes and colors from variants array
   (product.variants || []).forEach(v => {
     if (v.size) tokens.push(normalize(v.size));
     if (v.color) tokens.push(normalize(v.color));
   });
 
-  // Add some n-grams for title (optional) — e.g. "slim fit" -> 'slim', 'fit', 'slim fit'
-  const titleWords = title.split(' ');
-  if (titleWords.length > 1) {
-    for (let i = 0; i < titleWords.length - 1; i++) {
-      const bigram = `${titleWords[i]} ${titleWords[i + 1]}`.trim();
-      if (bigram.length) tokens.push(bigram);
-    }
-  }
-
-  return unique(tokens).slice(0, 100); // cap size
+  return unique(tokens).slice(0, 100);
 }
