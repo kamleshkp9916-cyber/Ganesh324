@@ -137,17 +137,16 @@ export function SimilarProductsOverlay({
                                 sizes="33vw"
                                 className="object-cover w-full h-full group-hover:scale-105 transition-transform"
                             />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex flex-col justify-end p-2">
-                                <div className="flex items-start gap-2 text-white">
-                                    <Avatar className="w-8 h-8 border-2 border-background">
-                                        <AvatarImage src={s.avatarUrl} />
-                                        <AvatarFallback>{s.name.charAt(0)}</AvatarFallback>
-                                    </Avatar>
-                                    <div className="flex-1 overflow-hidden">
-                                        <p className="font-semibold text-xs group-hover:underline truncate">{s.name}</p>
-                                        <p className="text-xs opacity-80">{s.category}</p>
-                                    </div>
-                                </div>
+                        </div>
+                        <div className="flex items-start gap-2 mt-2">
+                            <Avatar className="w-8 h-8 border-2 border-background">
+                                <AvatarImage src={s.avatarUrl} />
+                                <AvatarFallback>{s.name.charAt(0)}</AvatarFallback>
+                            </Avatar>
+                            <div className="flex-1 overflow-hidden">
+                                <p className="font-semibold text-xs group-hover:underline truncate">{s.title || s.name}</p>
+                                <p className="text-xs text-muted-foreground">{s.category}</p>
+                                <p className="text-xs text-primary font-semibold mt-0.5">#{s.category.toLowerCase().replace(/\s+/g, '')}</p>
                             </div>
                         </div>
                     </Link>
