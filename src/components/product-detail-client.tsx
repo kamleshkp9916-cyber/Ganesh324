@@ -35,6 +35,7 @@ import { updateUserData } from '@/lib/follow-data';
 import ProductSearch from '@/components/ProductSearch';
 import { SimilarProductsOverlay } from './similar-products-overlay';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from './ui/sheet';
+import { FeedbackDialog } from './feedback-dialog';
 
 const mockQandA = [
     { id: 1, question: "Does this camera come with a roll of film?", questioner: "Alice", answer: "Yes, it comes with one 24-exposure roll of color film to get you started!", answerer: "GadgetGuru" },
@@ -570,17 +571,24 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                     <div className="flex-grow max-w-md mx-4">
                         <ProductSearch onSearchComplete={onSearchComplete} />
                     </div>
-                    <Button asChild variant="ghost" className="relative">
-                        <Link href="/cart">
-                            <ShoppingCart className="h-5 w-5" />
-                            <span className="hidden sm:inline ml-2">My Cart</span>
-                            {cartCount > 0 && (
-                                <Badge variant="destructive" className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center text-xs">
-                                    {cartCount}
-                                </Badge>
-                            )}
-                        </Link>
-                    </Button>
+                    <div className="flex items-center">
+                        <Button asChild variant="ghost" className="relative">
+                            <Link href="/cart">
+                                <ShoppingCart className="h-5 w-5" />
+                                <span className="hidden sm:inline ml-2">My Cart</span>
+                                {cartCount > 0 && (
+                                    <Badge variant="destructive" className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center text-xs">
+                                        {cartCount}
+                                    </Badge>
+                                )}
+                            </Link>
+                        </Button>
+                         <FeedbackDialog>
+                           <Button variant="ghost" size="icon">
+                              <MessageSquare className="h-5 w-5" />
+                          </Button>
+                        </FeedbackDialog>
+                    </div>
                 </header>
 
                 <main>
@@ -590,7 +598,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                 <div>
                                     <Dialog>
                                         <Card>
-                                            <CardContent className="p-0">
+                                            <CardContent className="p-4">
                                                 <DialogTrigger asChild>
                                                     <div className="aspect-square w-full bg-muted rounded-lg overflow-hidden mb-4 cursor-pointer group relative">
                                                         {selectedMedia?.type === 'image' && selectedMedia.url && (
@@ -619,7 +627,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                                 </DialogTrigger>
                                                 
                                                 <ScrollArea>
-                                                  <div className="flex gap-2 pb-2 px-4">
+                                                  <div className="flex gap-2 pb-2">
                                                       {mediaItems.map((item: any, index: number) => (
                                                           <button
                                                               key={index}
@@ -697,12 +705,12 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                                 <Heart className={cn("h-6 w-6", wishlisted ? "fill-red-500 text-red-500" : "text-muted-foreground")} />
                                             </Button>
                                             <Button variant="ghost" size="icon" onClick={handleShare}>
-                                                <Share2 className="h-6 w-6" />
+                                                <Share2 className="h-5 w-5" />
                                             </Button>
                                             <AlertDialog>
                                                 <AlertDialogTrigger asChild>
                                                     <Button variant="ghost" size="icon">
-                                                        <Flag className="h-6 w-6" />
+                                                        <Flag className="h-5 w-5" />
                                                     </Button>
                                                 </AlertDialogTrigger>
                                                 <AlertDialogContent>
@@ -933,6 +941,31 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                 </div>
                             </div>
                             <div className="md:col-span-2 space-y-8 mt-8">
+                                <Card>
+                                    <CardHeader>
+                                        <CardTitle>Sold By</CardTitle>
+                                    </CardHeader>
+                                    <CardContent>
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-4">
+                                                <Avatar>
+                                                    <AvatarImage src={seller.avatarUrl} />
+                                                    <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
+                                                </Avatar>
+                                                <div>
+                                                    <Link href={`/seller/profile?userId=${seller.uid}`} className="font-semibold hover:underline">{seller.name}</Link>
+                                                    <div className="flex items-center gap-1 text-xs text-amber-400 mt-1">
+                                                        <Star className="w-4 h-4 fill-current" />
+                                                        <span>4.8</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <Button asChild variant="outline">
+                                                <Link href={`/seller/profile?userId=${seller.uid}`}>View Profile</Link>
+                                            </Button>
+                                        </div>
+                                    </CardContent>
+                                </Card>
                                  <div>
                                     <div className="flex items-center justify-between">
                                         <h3 className="text-xl font-bold">Highlights</h3>
@@ -963,32 +996,6 @@ export function ProductDetailClient({ productId }: { productId: string }) {
 
                                 <Separator />
                                 
-                                <Card>
-                                    <CardHeader>
-                                        <CardTitle>Sold By</CardTitle>
-                                    </CardHeader>
-                                    <CardContent>
-                                        <div className="flex items-center justify-between">
-                                            <div className="flex items-center gap-4">
-                                                <Avatar>
-                                                    <AvatarImage src={seller.avatarUrl} />
-                                                    <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
-                                                </Avatar>
-                                                <div>
-                                                    <Link href={`/seller/profile?userId=${seller.uid}`} className="font-semibold hover:underline">{seller.name}</Link>
-                                                    <div className="flex items-center gap-1 text-xs text-amber-400 mt-1">
-                                                        <Star className="w-4 h-4 fill-current" />
-                                                        <span>4.8</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <Button asChild variant="outline">
-                                                <Link href={`/seller/profile?userId=${seller.uid}`}>View Profile</Link>
-                                            </Button>
-                                        </div>
-                                    </CardContent>
-                                </Card>
-
                                 <Card>
                                         <CardHeader className="flex items-center justify-between">
                                         <CardTitle>Ratings & Reviews</CardTitle>
