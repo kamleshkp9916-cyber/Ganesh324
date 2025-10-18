@@ -32,6 +32,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
 import { categories } from "@/lib/categories";
 import { Separator } from "../ui/separator";
+import { generateKeywords } from "@/lib/generateKeywords";
 
 const variantSchema = z.object({
     size: z.string().optional(),
@@ -58,8 +59,8 @@ const productFormSchema = z.object({
   subcategory: z.string().min(1, "Sub-category is required."),
   brand: z.string().optional(),
   modelNumber: z.string().optional(),
-  size: z.string().optional(),
-  color: z.string().optional(),
+  availableSizes: z.string().optional(),
+  availableColors: z.string().optional(),
   origin: z.string().optional(),
   variants: z.array(variantSchema).optional(),
   highlights: z.string().optional(),
@@ -146,8 +147,8 @@ export function ProductForm({ onSave, productToEdit }: ProductFormProps) {
       subcategory: "",
       brand: "",
       modelNumber: "",
-      size: "",
-      color: "",
+      availableSizes: "",
+      availableColors: "",
       origin: "",
       variants: [],
       highlights: "",
@@ -185,35 +186,6 @@ export function ProductForm({ onSave, productToEdit }: ProductFormProps) {
     form.reset(defaultValues);
   }, [productToEdit, form, defaultValues]);
 
-  function generateKeywords(values: Product): string[] {
-    const keywords = new Set<string>();
-  
-    const toAdd = [
-      values.name,
-      values.brand,
-      values.category,
-      values.subcategory,
-      values.color,
-    ];
-  
-    toAdd.forEach(field => {
-      if (field) {
-        field.toLowerCase().split(/\s+/).forEach(word => keywords.add(word.replace(/[^a-z0-9]/gi, '')));
-      }
-    });
-
-    values.variants?.forEach(variant => {
-        if(variant.color) variant.color.toLowerCase().split(/\s+/).forEach(word => keywords.add(word.replace(/[^a-z0-9]/gi, '')));
-        if(variant.size) variant.size.toLowerCase().split(/\s+/).forEach(word => keywords.add(word.replace(/[^a-z0-9]/gi, '')));
-    });
-
-    if (values.availableSizes) {
-      values.availableSizes.split(',').forEach((s: string) => keywords.add(s.trim().toLowerCase()));
-    }
-  
-    return Array.from(keywords).filter(Boolean);
-  }
-
   function onSubmit(values: z.infer<typeof productFormSchema>) {
     setIsSaving(true);
     
@@ -222,7 +194,7 @@ export function ProductForm({ onSave, productToEdit }: ProductFormProps) {
         values.stock = values.variants.reduce((acc, variant) => acc + (variant.stock || 0), 0);
     }
 
-    const keywords = generateKeywords(values as Product);
+    const keywords = generateKeywords(values);
     const finalValues = { ...values, keywords };
 
     setTimeout(() => {
@@ -288,17 +260,17 @@ export function ProductForm({ onSave, productToEdit }: ProductFormProps) {
                    )}/>
                </div>
 
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <FormField name="size" control={form.control} render={({ field }) => (
-                        <FormItem><FormLabel>Size (Default)</FormLabel><FormControl><Input placeholder="e.g., Large" {...field} /></FormControl><FormMessage /></FormItem>
+                <div className="grid grid-cols-2 md:grid-cols-2 gap-4">
+                    <FormField name="availableSizes" control={form.control} render={({ field }) => (
+                        <FormItem><FormLabel>Available Sizes (comma-separated)</FormLabel><FormControl><Input placeholder="e.g., S, M, L, XL" {...field} /></FormControl><FormMessage /></FormItem>
                     )}/>
-                    <FormField name="color" control={form.control} render={({ field }) => (
-                        <FormItem><FormLabel>Color (Default)</FormLabel><FormControl><Input placeholder="e.g., Brown" {...field} /></FormControl><FormMessage /></FormItem>
-                    )}/>
-                    <FormField name="origin" control={form.control} render={({ field }) => (
-                        <FormItem><FormLabel>Country of Origin</FormLabel><FormControl><Input placeholder="e.g., India" {...field} /></FormControl><FormMessage /></FormItem>
+                    <FormField name="availableColors" control={form.control} render={({ field }) => (
+                        <FormItem><FormLabel>Available Colors (comma-separated)</FormLabel><FormControl><Input placeholder="e.g., Red, Blue, Green" {...field} /></FormControl><FormMessage /></FormItem>
                     )}/>
                 </div>
+                 <FormField name="origin" control={form.control} render={({ field }) => (
+                    <FormItem><FormLabel>Country of Origin</FormLabel><FormControl><Input placeholder="e.g., India" {...field} /></FormControl><FormMessage /></FormItem>
+                )}/>
 
                <FormField name="price" control={form.control} render={({ field }) => (
                 <FormItem><FormLabel>Base Price</FormLabel><div className="relative"><span className="absolute inset-y-0 left-0 flex items-center pl-3 text-muted-foreground">₹</span><FormControl><Input type="number" placeholder="0.00" className="pl-6" {...field} /></FormControl></div><FormDescription>This will be used if a variant has no specific price.</FormDescription><FormMessage /></FormItem>
@@ -396,5 +368,3 @@ export function ProductForm({ onSave, productToEdit }: ProductFormProps) {
     </Form>
   )
 }
-
-    
