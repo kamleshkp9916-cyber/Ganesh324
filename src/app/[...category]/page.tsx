@@ -101,7 +101,7 @@ export default function CategoryPage() {
             <main className="container mx-auto py-6">
                  <div className="p-4 border-b flex flex-col sm:flex-row items-center gap-4 sticky top-[65px] bg-background/80 backdrop-blur-sm z-20 -mx-4 sm:mx-0">
                     <div className="relative flex-1 w-full">
-                        <ProductSearch onSearchComplete={onSearchComplete} initialProducts={categoryProducts} />
+                        <ProductSearch onSearchComplete={onSearchComplete} />
                     </div>
                      <div className="flex items-center gap-2 w-full sm:w-auto">
                         <DropdownMenu>
@@ -176,3 +176,4 @@ export default function CategoryPage() {
         </div>
     );
 }
+    
