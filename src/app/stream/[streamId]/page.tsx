@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import {
@@ -124,7 +123,7 @@ import { useInView } from "react-intersection-observer";
 import { useMiniPlayer } from "@/context/MiniPlayerContext";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useIsMobile } from "@/hooks/use-is-mobile";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { format, formatDistanceToNow, isThisWeek, isThisYear, parseISO, parse } from 'date-fns';
 
@@ -232,9 +231,8 @@ const productToSellerMapping: { [key: string]: { name: string; avatarUrl: string
     'prod_30': { name: 'Everyday', avatarUrl: 'https://placehold.co/80x80.png', uid: 'everyday-uid' },
     'prod_31': { name: 'SunChaser', avatarUrl: 'https://placehold.co/80x80.png', uid: 'sunchaser-uid' },
     'prod_32': { name: 'Elegance', avatarUrl: 'https://placehold.co/80x80.png', uid: 'elegance-uid' },
-    'prod_33': { name: 'SleekFit', avatarUrl: 'https://placehold.co/80x80.png', uid: 'sleekfit-uid' },
+    'prod_33': { name: 'SleekFit', avatarUrl: 'https://placehold.co/80x80.png', uid: 'sleekfit-uid' }
 };
-
 
 const ReportDialog = ({ onSubmit }: { onSubmit: (reason: string, details: string) => void }) => {
     const [reason, setReason] = useState("");
@@ -1545,7 +1543,7 @@ const ChatPanel = ({
       messageToSend = `@${replyingTo.name.split(' ')[0]} ${newMessage}`;
     }
 
-    handlers.handleNewMessageSubmit({ text: messageToSend, replyingTo });
+    console.log("New Message:", messageToSend);
 
     setNewMessage("");
     setReplyingTo(null);
@@ -1586,13 +1584,10 @@ const ChatPanel = ({
                                         </>
                                     )}
                                     {item.type === 'offer' && (
-                                         <div className="flex items-start gap-3">
-                                            <div className="flex-shrink-0 mt-1">{item.icon}</div>
-                                            <div>
-                                                <h5 className="font-semibold">{item.title}</h5>
-                                                <p className="text-sm text-muted-foreground">{item.description}</p>
-                                            </div>
-                                        </div>
+                                        <>
+                                            <p className="font-bold text-primary">{item.title}</p>
+                                            <p>{item.description}</p>
+                                        </>
                                     )}
                                     {item.type === 'product' && (
                                         <div className="flex items-center gap-2">
