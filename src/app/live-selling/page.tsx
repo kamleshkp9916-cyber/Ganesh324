@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import Link from 'next/link';
@@ -239,6 +240,7 @@ export default function LiveSellingPage() {
                     hint: liveStreamData.product?.name?.toLowerCase() || 'live stream',
                     productId: liveStreamData.product?.id,
                     isMyStream: true,
+                    title: liveStreamData.title,
                 };
                 setAllSellers(currentSellers => {
                     const existingSellers = currentSellers.filter(s => s.id !== newSellerCard.id);
@@ -942,7 +944,7 @@ export default function LiveSellingPage() {
                                                     <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
                                                 </Avatar>
                                                 <div className="flex-1">
-                                                    <p className="font-semibold text-xs group-hover:underline truncate">{seller.name}</p>
+                                                    <p className="font-semibold text-xs group-hover:underline truncate">{seller.title || seller.name}</p>
                                                     <p className="text-xs text-muted-foreground">{seller.category}</p>
                                                     <p className="text-xs text-primary font-semibold mt-0.5">#{seller.category.toLowerCase()}</p>
                                                 </div>
@@ -968,4 +970,3 @@ export default function LiveSellingPage() {
   );
 }
 
-    
