@@ -111,6 +111,7 @@ import { PromotionalCarousel } from '@/components/promotional-carousel';
 import { Logo } from '@/components/logo';
 import { categories } from '@/lib/categories';
 import { Separator } from '@/components/ui/separator';
+import { ProductSearchWithStreams } from '@/components/ProductSearchWithStreams';
 
 
 const liveSellers = [
@@ -625,7 +626,7 @@ export default function LiveSellingPage() {
             </AlertDialogContent>
         </AlertDialog>
         <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab} className="w-full flex flex-col flex-grow">
-            <header className="sticky top-0 z-50 w-full border-b bg-background/80 backdrop-blur-sm">
+             <header className="sticky top-0 z-50 w-full border-b bg-background/80 backdrop-blur-sm">
                 <div className="flex items-center justify-between h-16 px-4 sm:px-6 lg:px-8">
                      <div className="flex items-center gap-1 sm:gap-2">
                          <Link href="/live-selling" className="flex items-center gap-2">
@@ -830,6 +831,9 @@ export default function LiveSellingPage() {
             </div>
 
             <div className="flex-grow">
+                {isSearchOpen ? (
+                    <ProductSearchWithStreams />
+                ) : (
                 <TabsContent value="all" className="mt-0">
                     <div className="space-y-8 mt-0">
                         <div className="container mx-auto px-4 sm:px-6 lg:px-8 pt-8">
@@ -983,6 +987,8 @@ export default function LiveSellingPage() {
                         </section>
                     </div>
                 </TabsContent>
+                )}
+
                 <TabsContent value="live" className="mt-0">
                     <div className="container mx-auto px-4 sm:px-6 lg:px-8 pt-8">
                             <div className="flex flex-wrap gap-2 mb-6">
@@ -1053,7 +1059,3 @@ export default function LiveSellingPage() {
     </>
   );
 }
-
-    
-
-    
