@@ -36,7 +36,7 @@ export function SimilarProductsOverlay({
 
   return (
     <div 
-        className="absolute bottom-12 right-0 z-40 bg-background/80 backdrop-blur-lg border rounded-lg shadow-xl w-full max-w-2xl animate-in fade-in-0 zoom-in-95 duration-300"
+        className="fixed bottom-0 left-0 right-0 z-40 bg-background/80 backdrop-blur-lg border-t rounded-t-lg shadow-2xl animate-in fade-in-0 slide-in-from-bottom-5 duration-300"
         onClick={(e) => e.stopPropagation()}
     >
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4">
