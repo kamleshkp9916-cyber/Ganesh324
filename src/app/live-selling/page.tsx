@@ -178,98 +178,6 @@ function FeedPostSkeleton() {
     );
 }
 
-function CommentSheet({ postId, trigger }: { postId: string, trigger: React.ReactNode }) {
-    const { user, userData } = useAuth();
-    const [comments, setComments] = useState<any[]>([]);
-    const [newComment, setNewComment] = useState("");
-    const [isLoading, setIsLoading] = useState(true);
-
-    useEffect(() => {
-        const db = getFirestoreDb();
-        const commentsQuery = query(collection(db, `posts/${postId}/comments`), orderBy("timestamp", "asc"));
-        const unsubscribe = onSnapshot(commentsQuery, (snapshot) => {
-            const commentsData = snapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data(),
-                timestamp: doc.data().timestamp ? format(new Date((doc.data().timestamp as Timestamp).seconds * 1000), 'PPp') : 'just now'
-            }));
-            setComments(commentsData);
-            setIsLoading(false);
-        });
-        return () => unsubscribe();
-    }, [postId]);
-
-    const handlePostComment = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!newComment.trim() || !user || !userData) return;
-        
-        const db = getFirestoreDb();
-        await addDoc(collection(db, `posts/${postId}/comments`), {
-            authorName: userData.displayName,
-            authorId: user.uid,
-            authorAvatar: userData.photoURL,
-            text: newComment.trim(),
-            timestamp: serverTimestamp(),
-        });
-
-        // Also increment the replies count on the post
-        await updateDoc(doc(db, 'posts', postId), {
-            replies: increment(1)
-        });
-
-        setNewComment("");
-    };
-
-    return (
-         <Sheet>
-            <SheetTrigger asChild>{trigger}</SheetTrigger>
-            <SheetContent side="bottom" className="h-[85vh] flex flex-col p-0">
-                <SheetHeader className="p-4 border-b">
-                    <SheetTitle>Comments</SheetTitle>
-                </SheetHeader>
-                <ScrollArea className="flex-1 px-4">
-                    {isLoading ? (
-                        <div className="space-y-4 py-4">
-                             <Skeleton className="h-10 w-full" />
-                             <Skeleton className="h-10 w-full" />
-                        </div>
-                    ) : comments.length > 0 ? (
-                        <div className="space-y-4 py-4">
-                            {comments.map(comment => (
-                                <div key={comment.id} className="flex items-start gap-3">
-                                    <Avatar className="h-8 w-8">
-                                        <AvatarImage src={comment.authorAvatar} />
-                                        <AvatarFallback>{comment.authorName.charAt(0)}</AvatarFallback>
-                                    </Avatar>
-                                    <div className="flex-grow bg-muted p-2 rounded-lg">
-                                        <div className="flex justify-between items-center text-xs">
-                                            <p className="font-semibold">{comment.authorName}</p>
-                                            <p className="text-muted-foreground">{comment.timestamp}</p>
-                                        </div>
-                                        <p className="text-sm">{comment.text}</p>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    ) : (
-                        <p className="text-center text-muted-foreground py-8">No comments yet. Be the first to reply!</p>
-                    )}
-                </ScrollArea>
-                <DialogFooter className="p-4 border-t">
-                    <form onSubmit={handlePostComment} className="w-full flex items-center gap-2">
-                        <Input 
-                            placeholder="Add a comment..."
-                            value={newComment}
-                            onChange={(e) => setNewComment(e.target.value)}
-                        />
-                        <Button type="submit" disabled={!newComment.trim()}><Send className="w-4 h-4" /></Button>
-                    </form>
-                </DialogFooter>
-            </SheetContent>
-        </Sheet>
-    )
-}
-
 export default function LiveSellingPage() {
   const [isLoadingSellers, setIsLoadingSellers] = useState(true);
   const [isLoadingFeed, setIsLoadingFeed] = useState(true);
@@ -385,7 +293,7 @@ export default function LiveSellingPage() {
           }
       }
       return products
-          .sort((a,b) => ((b as any).isAuctionItem ? 1 : 0) - ((a as any).isAuctionItem ? 1 : 0))
+          .sort((a,b) => (b.isAuctionItem ? 1 : 0) - (a.isAuctionItem ? 1 : 0))
           .slice(0, 40);
   }, [activeProductFilter]);
 
@@ -1060,4 +968,4 @@ export default function LiveSellingPage() {
   );
 }
 
-
+    
