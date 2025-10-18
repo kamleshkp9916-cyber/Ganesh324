@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
@@ -466,6 +465,24 @@ export function ProductDetailClient({ productId }: { productId: string }) {
         }, 1500);
     };
 
+    const renderDescriptionWithHashtags = (text: string) => {
+        const parts = text.split(/(#\w+)/g);
+        return parts.map((part, index) => {
+            if (part.startsWith('#')) {
+                return (
+                    <button 
+                        key={index} 
+                        className="text-primary hover:underline font-semibold"
+                        onClick={() => onSearchComplete([], part)}
+                    >
+                        {part}
+                    </button>
+                );
+            }
+            return part;
+        });
+    };
+
     const renderSearchResults = () => (
         <div className="container mx-auto py-6">
             <h2 className="text-2xl font-bold mb-4">
@@ -568,7 +585,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                                         )}
                                                         {isScanning && (
                                                             <div className="absolute inset-0 bg-black/30 overflow-hidden">
-                                                                <div className="scan-animation"></div>
+                                                                <div className="shimmer-scan-animation"></div>
                                                             </div>
                                                         )}
                                                     </div>
@@ -587,16 +604,16 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                                 </DialogContent>
                                             </Dialog>
                                             
-                                            <div className="absolute top-2 right-2 z-20 flex flex-col gap-2 items-end lg:hidden">
-                                                <Button variant="ghost" size="icon" className="h-9 w-9 bg-background/60 backdrop-blur-sm" onClick={handleWishlistToggle}>
+                                            <div className="absolute top-2 right-2 z-20 flex flex-col gap-2 items-end">
+                                                <Button variant="ghost" size="icon" className="h-9 w-9 bg-background/60 backdrop-blur-sm lg:hidden" onClick={handleWishlistToggle}>
                                                     <Heart className={cn("h-5 w-5", wishlisted ? "fill-red-500 text-red-500" : "text-muted-foreground")} />
                                                 </Button>
-                                                <Button variant="ghost" size="icon" className="h-9 w-9 bg-background/60 backdrop-blur-sm" onClick={handleShare}>
+                                                <Button variant="ghost" size="icon" className="h-9 w-9 bg-background/60 backdrop-blur-sm lg:hidden" onClick={handleShare}>
                                                     <Share2 className="h-5 w-5" />
                                                 </Button>
                                                 <AlertDialog>
                                                     <AlertDialogTrigger asChild>
-                                                        <Button variant="ghost" size="icon" className="h-9 w-9 bg-background/60 backdrop-blur-sm">
+                                                        <Button variant="ghost" size="icon" className="h-9 w-9 bg-background/60 backdrop-blur-sm lg:hidden">
                                                             <Flag className="h-5 w-5" />
                                                         </Button>
                                                     </AlertDialogTrigger>
@@ -657,7 +674,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                     isLoading={isLoadingSimilar}
                                 />}
                                 <div className="flex flex-col gap-4">
-                                     <div>
+                                    <div>
                                         <div className="flex justify-between items-start gap-4">
                                             <div className="flex-1">
                                                 {product.brand && <p className="text-sm font-medium text-primary mb-1">{product.brand}</p>}
@@ -691,7 +708,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                                 </AlertDialog>
                                             </div>
                                         </div>
-                                         <p className="text-muted-foreground mt-2">{product.description}</p>
+                                         <div className="text-muted-foreground mt-2">{renderDescriptionWithHashtags(product.description)}</div>
                                     </div>
                                     <div>
                                         <div className="flex items-center gap-4 flex-wrap">
@@ -846,12 +863,12 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                             <div className="md:col-span-2 space-y-8 mt-8">
                                 
                                 <Card>
-                                    <CardHeader className="flex flex-row items-center justify-between pb-0 mb-0">
+                                    <CardHeader className="flex flex-row items-center justify-between pb-2">
                                         <CardTitle className="text-base">Available Offers</CardTitle>
                                         {allOffers.length > 1 && (
                                             <Sheet>
                                                 <SheetTrigger asChild>
-                                                    <Button variant="link" className="p-0 h-auto">View All Offers</Button>
+                                                    <Button variant="link" className="p-0 h-auto">View All</Button>
                                                 </SheetTrigger>
                                                 <SheetContent side="bottom" className="h-auto max-h-[80vh]">
                                                     <SheetHeader className="text-left p-4">
@@ -888,7 +905,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                 </Card>
                                 <Separator />
 
-                                 <div className="space-y-4">
+                                <div className="space-y-4">
                                     <div className="flex items-center justify-between">
                                         <h3 className="text-xl font-bold">Highlights</h3>
                                         <Button asChild variant="link">
@@ -1031,7 +1048,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                                         {relatedStreams.map((stream: any) => (
                                             <Link href={`/stream/${stream.id}`} key={stream.id} className="group block">
-                                                <div className="relative rounded-lg overflow-hidden aspect-[16/9] bg-muted">
+                                                <div className="relative rounded-lg overflow-hidden aspect-video bg-muted">
                                                     <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
                                                     <div className="absolute top-2 right-2 z-10">
                                                         <Badge variant="secondary" className="bg-black/50 text-white gap-1.5">
