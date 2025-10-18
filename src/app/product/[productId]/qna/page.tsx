@@ -32,6 +32,7 @@ export default function ProductQnaPage() {
     const { user } = useAuth();
     const { toast } = useToast();
     const [newQuestion, setNewQuestion] = useState("");
+    const [qnaList, setQnaList] = useState(mockQandA);
 
     const product = productDetails[productId as keyof typeof productDetails];
 
@@ -45,7 +46,16 @@ export default function ProductQnaPage() {
             return;
         }
         if (newQuestion.trim()) {
-            console.log("New question:", newQuestion);
+             const newQuestionObject = {
+                id: Date.now(),
+                question: newQuestion,
+                questioner: user.displayName || 'You',
+                answer: null,
+                answerer: null,
+                timestamp: new Date(),
+            };
+            setQnaList(prevList => [newQuestionObject, ...prevList]);
+
             toast({
                 title: "Question Submitted!",
                 description: "Your question has been sent to the seller. You will be notified when they answer.",
@@ -96,7 +106,7 @@ export default function ProductQnaPage() {
                                      <CardDescription>Find answers to what other customers are asking.</CardDescription>
                                 </CardHeader>
                                 <CardContent className="space-y-6">
-                                    {mockQandA.map(qa => (
+                                    {qnaList.map(qa => (
                                         <div key={qa.id}>
                                             <div className="flex items-start gap-3">
                                                 <Avatar className="h-8 w-8">
@@ -110,11 +120,11 @@ export default function ProductQnaPage() {
                                                     <p className="text-sm">{qa.question}</p>
                                                 </div>
                                             </div>
-                                            {qa.answer && (
+                                            {qa.answer ? (
                                                 <div className="flex items-start gap-3 mt-3 pl-8">
                                                      <Avatar className="h-8 w-8">
-                                                         <AvatarImage src={`https://placehold.co/40x40.png?text=${qa.answerer.charAt(0)}`} />
-                                                        <AvatarFallback>{qa.answerer.charAt(0)}</AvatarFallback>
+                                                         <AvatarImage src={`https://placehold.co/40x40.png?text=${qa.answerer?.charAt(0)}`} />
+                                                        <AvatarFallback>{qa.answerer?.charAt(0)}</AvatarFallback>
                                                     </Avatar>
                                                     <div>
                                                          <div className="flex items-center gap-2">
@@ -124,10 +134,21 @@ export default function ProductQnaPage() {
                                                         <p className="text-sm text-muted-foreground">{qa.answer}</p>
                                                     </div>
                                                 </div>
+                                            ) : (
+                                                <div className="flex items-start gap-3 mt-3 pl-8">
+                                                    <Avatar className="h-8 w-8">
+                                                        <AvatarImage src={`https://placehold.co/40x40.png?text=S`} />
+                                                        <AvatarFallback>S</AvatarFallback>
+                                                    </Avatar>
+                                                    <div>
+                                                        <p className="font-semibold text-sm text-primary">Seller</p>
+                                                        <p className="text-sm text-muted-foreground italic">Pending answer from seller...</p>
+                                                    </div>
+                                                </div>
                                             )}
                                         </div>
                                     ))}
-                                    {mockQandA.length === 0 && (
+                                    {qnaList.length === 0 && (
                                         <p className="text-center text-muted-foreground py-8">No questions have been asked yet.</p>
                                     )}
                                 </CardContent>
@@ -147,6 +168,7 @@ export default function ProductQnaPage() {
                                         value={newQuestion}
                                         onChange={(e) => setNewQuestion(e.target.value)}
                                         placeholder="Type your question here..."
+                                        onKeyDown={(e) => { if (e.key === 'Enter') handleAskQuestion()}}
                                     />
                                     <Button onClick={handleAskQuestion} disabled={!newQuestion.trim()}>
                                         <Send className="w-4 h-4" />
