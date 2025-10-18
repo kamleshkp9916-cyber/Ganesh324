@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { ArrowLeft, Star, ThumbsUp, ThumbsDown, MessageSquare, ShoppingCart, ShieldCheck, Heart, Share2, Truck, Tag, Banknote, Ticket, ChevronDown, RotateCcw, Sparkles, CheckCircle, Users, HelpCircle, Send, Image as ImageIcon, Edit, Trash2, Flag, Play, Loader2, Package, Plus, X, Video } from 'lucide-react';
+import { ArrowLeft, Star, ThumbsUp, ThumbsDown, MessageSquare, ShoppingCart, ShieldCheck, Heart, Share2, Truck, Tag, Banknote, Ticket, ChevronDown, RotateCcw, Sparkles, CheckCircle, Users, HelpCircle, Send, Image as ImageIcon, Edit, Trash2, Flag, Play, Loader2, Package, Plus, X, Video, Search } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import Image from 'next/image';
@@ -118,13 +118,14 @@ export function ProductDetailClient({ productId }: { productId: string }) {
     const [currentPrice, setCurrentPrice] = useState<string | null>(null);
     const [currentHighlights, setCurrentHighlights] = useState<string[]>([]);
     const [selectedImage, setSelectedImage] = useState<string | null>(null);
+    const [searchQuery, setSearchQuery] = useState('');
     
     useEffect(() => {
         const details = productDetails[productId as keyof typeof productDetails] || null;
         setProduct(details);
         if(details) {
             setCurrentPrice(details.price);
-            setCurrentHighlights(details.highlights ? details.highlights.split('\\n').filter((h:string) => h.trim() !== '') : []);
+            setCurrentHighlights(details.highlights ? details.highlights.split('\\\\n').filter((h:string) => h.trim() !== '') : []);
             if(details.images.length > 0) {
                 setSelectedImage(details.images[0]);
             }
@@ -158,19 +159,19 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                 (v.color ? v.color === selectedColor : true)
             );
             if (variant) {
-                if (variant.price) setCurrentPrice(`₹${variant.price.toFixed(2)}`);
+                if (variant.price) setCurrentPrice(`₹${''}${variant.price.toFixed(2)}`);
                 else setCurrentPrice(product.price);
 
                 if (variant.image?.preview) setSelectedImage(variant.image.preview);
                 else setSelectedImage(product.images[0]);
                 
-                if (variant.highlights) setCurrentHighlights(variant.highlights.split('\\n').filter((h: string) => h.trim() !== ''));
-                else setCurrentHighlights(product.highlights ? product.highlights.split('\\n').filter((h:string) => h.trim() !== '') : []);
+                if (variant.highlights) setCurrentHighlights(variant.highlights.split('\\\\n').filter((h: string) => h.trim() !== ''));
+                else setCurrentHighlights(product.highlights ? product.highlights.split('\\\\n').filter((h:string) => h.trim() !== '') : []);
 
             } else {
                  setCurrentPrice(product.price);
                  setSelectedImage(product.images[0]);
-                 setCurrentHighlights(product.highlights ? product.highlights.split('\\n').filter((h:string) => h.trim() !== '') : []);
+                 setCurrentHighlights(product.highlights ? product.highlights.split('\\\\n').filter((h:string) => h.trim() !== '') : []);
             }
         }
     }, [selectedSize, selectedColor, product]);
@@ -246,7 +247,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                 const postsData = querySnapshot.docs.map(doc => ({
                     id: doc.id,
                     ...doc.data(),
-                    timestamp: doc.data().timestamp ? formatDistanceToNow(new Date((doc.data().timestamp).seconds * 1000), { addSuffix: true }) : 'just now'
+                    timestamp: doc.data().timestamp ? formatDistanceToNow(new Date((doc.data().timestamp as Timestamp).seconds * 1000), { addSuffix: true }) : 'just now'
                 }));
                 setTaggedPosts(postsData);
             } catch (error) {
@@ -254,7 +255,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
             }
         };
         
-        const productsKey = `sellerProducts_${productToSellerMapping[productId]?.name}`;
+        const productsKey = `sellerProducts_${''}${productToSellerMapping[productId]?.name}`;
         const storedProducts = localStorage.getItem(productsKey);
         if (storedProducts) {
             setSellerProducts(JSON.parse(storedProducts));
@@ -455,11 +456,19 @@ export function ProductDetailClient({ productId }: { productId: string }) {
     return (
         <>
             <div className="min-h-screen bg-background">
-                <header className="p-4 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-sm z-30 border-b">
+                 <header className="p-4 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-sm z-30 border-b">
                     <Button variant="ghost" size="icon" onClick={() => router.back()}>
                         <ArrowLeft className="h-6 w-6" />
                     </Button>
-                    <h1 className="text-xl font-bold truncate">{product.name}</h1>
+                    <div className="relative flex-grow max-w-md mx-4">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input
+                            placeholder={`Search in ${product.category}...`}
+                            className="pl-9 rounded-full"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                        />
+                    </div>
                     <Button asChild variant="ghost" className="relative">
                         <Link href="/cart">
                             <ShoppingCart className="h-5 w-5" />
@@ -517,7 +526,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                             >
                                                 <Image
                                                     src={img}
-                                                    alt={`Thumbnail ${index + 1}`}
+                                                    alt={`Thumbnail ${''}${index + 1}`}
                                                     width={64}
                                                     height={64}
                                                     className="object-cover w-full h-full"
@@ -915,7 +924,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                             </div>
                                             <Image
                                                 src={stream.thumbnailUrl}
-                                                alt={`Live stream from ${stream.name}`}
+                                                alt={`Live stream from ${''}${stream.name}`}
                                                 fill
                                                 sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                                                 className="object-cover w-full h-full group-hover:scale-105 transition-transform"
