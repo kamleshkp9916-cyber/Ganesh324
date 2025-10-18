@@ -40,7 +40,7 @@ export function SimilarProductsOverlay({
         onClick={(e) => e.stopPropagation()}
     >
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-2">
-        <div className="flex justify-between items-center mb-2">
+        <div className="flex justify-between items-center mb-1">
             <h2 className="text-xl font-bold">You Might Also Like</h2>
             <Button variant="ghost" size="icon" onClick={onClose}>
                 <X className="h-5 w-5" />
@@ -61,7 +61,7 @@ export function SimilarProductsOverlay({
             <Carousel opts={{ align: "start", loop: false }} className="w-full">
               <CarouselContent className="-ml-2">
                 {similarProducts.map((p) => (
-                  <CarouselItem key={p.id} className="basis-1/3 sm:basis-1/4 md:basis-1/5 lg:basis-1/6 xl:basis-1/8 pl-2">
+                  <CarouselItem key={p.id} className="basis-1/2 sm:basis-1/3 md:basis-1/4 lg:basis-1/5 xl:basis-1/6 pl-2">
                     <Link href={`/product/${p.key}`} className="group block">
                       <Card className="w-full group overflow-hidden h-full flex flex-col">
                         <div className="relative aspect-square bg-muted">
@@ -73,13 +73,17 @@ export function SimilarProductsOverlay({
                             className="object-cover transition-transform group-hover:scale-105"
                           />
                         </div>
-                        <div className="p-2">
-                          <h4 className="font-semibold truncate text-xs">{p.name}</h4>
-                          <p className="font-bold text-sm">{p.price}</p>
+                        <div className="p-2 flex-grow flex flex-col">
+                          <h4 className="font-semibold truncate text-xs flex-grow">{p.name}</h4>
+                          <p className="font-bold text-sm mt-1">{p.price}</p>
                            <div className="flex items-center gap-1 text-xs text-amber-400 mt-1">
                             <Star className="w-3 h-3 fill-current" />
                             <span className="font-semibold text-foreground">4.8</span>
                             <span className="text-muted-foreground">({p.reviews || '1.2k'})</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
+                              <div className="flex items-center gap-1"><Package className="w-3 h-3" /> {p.stock} left</div>
+                              <div className="flex items-center gap-1"><Users className="w-3 h-3" /> {p.sold} sold</div>
                           </div>
                         </div>
                       </Card>
