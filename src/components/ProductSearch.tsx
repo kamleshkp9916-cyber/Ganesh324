@@ -1,15 +1,15 @@
-
 "use client"
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { getFirestore, collection, query, where, getDocs, limit } from 'firebase/firestore';
 import { getFirestoreDb } from '@/lib/firebase';
 import { useDebounce } from '@/hooks/use-debounce';
-import { normalize, unique } from '@/lib/generateKeywords';
+import { normalize, unique, generateKeywords } from '@/lib/generateKeywords';
 import { Input } from './ui/input';
 import { Popover, PopoverAnchor, PopoverContent } from './ui/popover';
 import { Loader2, Search } from 'lucide-react';
 import Link from 'next/link';
+import { productDetails } from '@/lib/product-data';
 
 interface Product {
     id: string;
@@ -20,11 +20,10 @@ interface Product {
 
 interface ProductSearchProps {
     onSearchComplete: (results: Product[], query: string) => void;
-    initialProducts?: Product[];
 }
 
 
-export default function ProductSearch({ onSearchComplete, initialProducts = [] }: ProductSearchProps) {
+export default function ProductSearch({ onSearchComplete }: ProductSearchProps) {
   const db = getFirestoreDb();
   const [q, setQ] = useState('');
   const debouncedQuery = useDebounce(q, 350);
@@ -32,6 +31,13 @@ export default function ProductSearch({ onSearchComplete, initialProducts = [] }
   const [loading, setLoading] = useState(false);
   const [popoverOpen, setPopoverOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
+
+  useEffect(() => {
+    // Fetch and prepare products on mount
+    const products = Object.values(productDetails).map(p => ({...p, keywords: generateKeywords(p)}));
+    setAllProducts(products as Product[]);
+  }, []);
 
   const tokenize = (text: string): string[] => {
     if (!text || !text.trim()) return [];
@@ -45,7 +51,6 @@ export default function ProductSearch({ onSearchComplete, initialProducts = [] }
       setSuggestions([]);
       setLoading(false);
       setPopoverOpen(false);
-      // When the query is cleared, also clear the parent component's results.
       onSearchComplete([], '');
       return;
     }
@@ -53,10 +58,6 @@ export default function ProductSearch({ onSearchComplete, initialProducts = [] }
     const tokens = tokenize(queryText);
 
     try {
-      // For demo, we are filtering local mock data
-      const allProducts = initialProducts;
-
-      // Score and sort products
       const scored = allProducts.map(doc => {
         const k = (doc.keywords || []).map(x => String(x).toLowerCase());
         const score = tokens.reduce((s, t) => s + (k.includes(t) ? 1 : 0), 0);
@@ -80,7 +81,7 @@ export default function ProductSearch({ onSearchComplete, initialProducts = [] }
     } finally {
       setLoading(false);
     }
-  }, [initialProducts, onSearchComplete]);
+  }, [allProducts, onSearchComplete]);
 
   useEffect(() => {
     if (debouncedQuery) {
@@ -88,8 +89,6 @@ export default function ProductSearch({ onSearchComplete, initialProducts = [] }
     } else {
         setSuggestions([]);
         setPopoverOpen(false);
-        // If the debounced query is empty, it means the user cleared the input.
-        // We trigger a full search with an empty query to clear the results in the parent.
         onSearchComplete([], '');
     }
   }, [debouncedQuery, runSearch, onSearchComplete]);
@@ -104,7 +103,7 @@ export default function ProductSearch({ onSearchComplete, initialProducts = [] }
     setQ(newQuery);
     if (!newQuery.trim()) {
       setPopoverOpen(false);
-      onSearchComplete([], ''); // Immediately clear results on empty input
+      onSearchComplete([], '');
     }
   }
 
@@ -149,3 +148,4 @@ export default function ProductSearch({ onSearchComplete, initialProducts = [] }
     </div>
   );
 }
+    
