@@ -136,84 +136,68 @@ export function ProductDetailClient({ productId }: { productId: string }) {
     
     const product = useMemo(() => productDetails[productId as keyof typeof productDetails] || null, [productId]);
     
-    // This effect will run every time the productId changes.
+    // This effect will run every time the productId changes, thanks to the key prop in page.tsx
     useEffect(() => {
-      // 1. Reset all relevant state
-      setWishlisted(false);
-      setInCart(false);
-      setPincode("");
-      setIsDeliverable(null);
-      setReviews([]);
-      setTaggedPosts([]);
-      setSellerProducts([]);
-      setSelectedSize(null);
-      setSelectedColor(null);
-      setSelectedMedia(null);
-      
-      const currentProduct = productDetails[productId as keyof typeof productDetails] || null;
+        // Reset search state on every product change to prevent showing old results
+        setShowSearchResults(false);
+        setSearchResults([]);
+        setSearchQuery('');
+        
+        const currentProduct = productDetails[productId as keyof typeof productDetails] || null;
 
-      if(currentProduct) {
-          // 2. Set the title
-          document.title = currentProduct.name;
+        if (currentProduct) {
+            document.title = currentProduct.name;
+            const productForHistory: Product = {
+                id: currentProduct.id,
+                key: currentProduct.key,
+                name: currentProduct.name,
+                price: currentProduct.price,
+                imageUrl: currentProduct.images[0],
+                hint: currentProduct.hint,
+                brand: currentProduct.brand,
+                category: currentProduct.category,
+            };
+            addRecentlyViewed(productForHistory);
+            setRecentlyViewedItems(getRecentlyViewed().filter(p => p.key !== currentProduct.key)); 
 
-          // 3. Update recently viewed
-          const productForHistory: Product = {
-              id: currentProduct.id,
-              key: currentProduct.key,
-              name: currentProduct.name,
-              price: currentProduct.price,
-              imageUrl: currentProduct.images[0],
-              hint: currentProduct.hint,
-              brand: currentProduct.brand,
-              category: currentProduct.category,
-          };
-          addRecentlyViewed(productForHistory);
-          setRecentlyViewedItems(getRecentlyViewed().filter(p => p.key !== currentProduct.key)); 
+            setWishlisted(isWishlisted(currentProduct.id));
+            setInCart(isProductInCart(currentProduct.id));
+            setReviews(getReviews(currentProduct.key));
 
-          // 4. Check wishlist and cart status
-          setWishlisted(isWishlisted(currentProduct.id));
-          setInCart(isProductInCart(currentProduct.id));
-          
-          // 5. Fetch reviews
-          setReviews(getReviews(currentProduct.key));
+            setCurrentPrice(currentProduct.price);
+            setCurrentHighlights(currentProduct.highlights ? currentProduct.highlights.split('\\\\n').filter((h:string) => h.trim() !== '') : []);
+            const mediaItems = [...(currentProduct.media || []), ...currentProduct.images.map((url: string) => ({type: 'image', url: url}))];
+            const uniqueMedia = Array.from(new Map(mediaItems.map(item => [item.url, item])).values());
+            if(uniqueMedia.length > 0) {
+                setSelectedMedia(uniqueMedia[0] as any);
+            }
 
-          // 6. Set initial price, media, and highlights
-          setCurrentPrice(currentProduct.price);
-          setCurrentHighlights(currentProduct.highlights ? currentProduct.highlights.split('\\\\n').filter((h:string) => h.trim() !== '') : []);
-          const mediaItems = [...(currentProduct.media || []), ...currentProduct.images.map((url: string) => ({type: 'image', url: url}))];
-          const uniqueMedia = Array.from(new Map(mediaItems.map(item => [item.url, item])).values());
-          if(uniqueMedia.length > 0) {
-              setSelectedMedia(uniqueMedia[0] as any);
-          }
+            if (currentProduct.availableSizes?.split(',').map((s:string) => s.trim()).length > 0) {
+                setSelectedSize(currentProduct.availableSizes.split(',').map((s:string) => s.trim())[0]);
+            }
+            if (currentProduct.availableColors?.split(',').map((s:string) => s.trim()).length > 0) {
+                setSelectedColor(currentProduct.availableColors.split(',').map((s:string) => s.trim())[0]);
+            }
 
-          // 7. Set default variants
-          if (currentProduct.availableSizes?.split(',').map((s:string) => s.trim()).length > 0) {
-              setSelectedSize(currentProduct.availableSizes.split(',').map((s:string) => s.trim())[0]);
-          }
-          if (currentProduct.availableColors?.split(',').map((s:string) => s.trim()).length > 0) {
-              setSelectedColor(currentProduct.availableColors.split(',').map((s:string) => s.trim())[0]);
-          }
-
-          // 8. Fetch tagged posts (async)
-          const fetchTaggedPosts = async () => {
-              try {
-                  const db = getFirestoreDb();
-                  const postsRef = collection(db, "posts");
-                  const q = query(postsRef, where("taggedProducts.key", "==", currentProduct.key));
-                  const querySnapshot = await getDocs(q);
-                  const postsData = querySnapshot.docs.map(doc => ({
-                      id: doc.id,
-                      ...doc.data(),
-                      timestamp: doc.data().timestamp ? formatDistanceToNow(new Date((doc.data().timestamp as any).seconds * 1000), { addSuffix: true }) : 'just now'
-                  }));
-                  setTaggedPosts(postsData);
-              } catch (error) {
-                  console.error("Error fetching tagged posts:", error);
-              }
-          };
-          fetchTaggedPosts();
-      }
-    }, [productId]); // The key dependency that drives the reset
+            const fetchTaggedPosts = async () => {
+                try {
+                    const db = getFirestoreDb();
+                    const postsRef = collection(db, "posts");
+                    const q = query(postsRef, where("taggedProducts.key", "==", currentProduct.key));
+                    const querySnapshot = await getDocs(q);
+                    const postsData = querySnapshot.docs.map(doc => ({
+                        id: doc.id,
+                        ...doc.data(),
+                        timestamp: doc.data().timestamp ? formatDistanceToNow(new Date((doc.data().timestamp as any).seconds * 1000), { addSuffix: true }) : 'just now'
+                    }));
+                    setTaggedPosts(postsData);
+                } catch (error) {
+                    console.error("Error fetching tagged posts:", error);
+                }
+            };
+            fetchTaggedPosts();
+        }
+    }, [productId]); 
 
     const availableSizes = useMemo(() => product?.availableSizes ? product.availableSizes.split(',').map((s: string) => s.trim()) : [], [product]);
     const availableColors = useMemo(() => product?.availableColors ? product.availableColors.split(',').map((s: string) => s.trim()) : [], [product]);
@@ -586,7 +570,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                         </Button>
                          <FeedbackDialog>
                            <Button variant="ghost">
-                              <span className="hidden md:inline">Feedback</span>
+                              Feedback
                           </Button>
                         </FeedbackDialog>
                     </div>
@@ -816,30 +800,49 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                             </Button>
                                         )}
                                     </div>
-                                     <div className="pt-4 border-t">
-                                        <div className="space-y-4 text-sm">
-                                            <div className="flex items-start gap-3">
-                                                <RotateCcw className="h-5 w-5 text-primary mt-0.5" />
-                                                <div>
-                                                    <h4 className="font-semibold">7-Day Return Policy</h4>
-                                                    <p className="text-xs text-muted-foreground">Return this item within 7 days of delivery for a full refund.</p>
+                                    <div className="pt-4 space-y-4 text-sm">
+                                        <div className="flex items-start gap-3">
+                                            <Truck className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                                            <div>
+                                                <h4 className="font-semibold">Delivery Information</h4>
+                                                <div className="flex items-center gap-2 mt-1">
+                                                    <Input value={pincode} onChange={(e) => setPincode(e.target.value)} placeholder="Enter Pincode" className="max-w-xs h-9" />
+                                                    <Button variant="outline" size="sm" onClick={handlePincodeCheck} disabled={checkingPincode}>
+                                                        {checkingPincode && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} Check
+                                                    </Button>
                                                 </div>
-                                            </div>
-                                            <div className="flex items-start gap-3">
-                                                <Banknote className="h-5 w-5 text-primary mt-0.5" />
-                                                <div>
-                                                    <h4 className="font-semibold">Pay on Delivery</h4>
-                                                    <p className="text-xs text-muted-foreground">Pay with cash at your doorstep. Available on eligible orders.</p>
-                                                </div>
-                                            </div>
-                                            <div className="flex items-start gap-3">
-                                                <ShieldCheck className="h-5 w-5 text-primary mt-0.5" />
-                                                <div>
-                                                    <h4 className="font-semibold">100% Genuine</h4>
-                                                    <p className="text-xs text-muted-foreground">All products are sourced directly from brands and verified sellers.</p>
-                                                </div>
+                                                {isDeliverable !== null && (
+                                                    <p className={cn("text-xs mt-1", isDeliverable ? "text-green-600" : "text-destructive")}>
+                                                        {isDeliverable ? `Delivery available to ${pincode} by ${estimatedDeliveryDate}` : `Delivery not available to ${pincode}`}
+                                                    </p>
+                                                )}
                                             </div>
                                         </div>
+                                        <div className="pt-4 border-t">
+                                          <div className="space-y-4 text-sm">
+                                              <div className="flex items-start gap-3">
+                                                  <RotateCcw className="h-5 w-5 text-primary mt-0.5" />
+                                                  <div>
+                                                      <h4 className="font-semibold">7-Day Return Policy</h4>
+                                                      <p className="text-xs text-muted-foreground">Return this item within 7 days of delivery for a full refund.</p>
+                                                  </div>
+                                              </div>
+                                              <div className="flex items-start gap-3">
+                                                  <Banknote className="h-5 w-5 text-primary mt-0.5" />
+                                                  <div>
+                                                      <h4 className="font-semibold">Pay on Delivery</h4>
+                                                      <p className="text-xs text-muted-foreground">Pay with cash at your doorstep. Available on eligible orders.</p>
+                                                  </div>
+                                              </div>
+                                              <div className="flex items-start gap-3">
+                                                  <ShieldCheck className="h-5 w-5 text-primary mt-0.5" />
+                                                  <div>
+                                                      <h4 className="font-semibold">100% Genuine</h4>
+                                                      <p className="text-xs text-muted-foreground">All products are sourced directly from brands and verified sellers.</p>
+                                                  </div>
+                                              </div>
+                                          </div>
+                                      </div>
                                     </div>
                                 </div>
                             </div>
@@ -906,11 +909,11 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                         <Button variant="outline" onClick={openReviewDialog}>Write a Review</Button>
                                     </CardFooter>
                                 </Card>
-                                
-                                <Separator />
-                                
+                                <Separator/>
                                 <div className="space-y-4">
-                                    <h3 className="text-lg font-semibold">Sold By</h3>
+                                    <CardHeader className="p-0">
+                                        <CardTitle>Sold By</CardTitle>
+                                    </CardHeader>
                                     <div className="flex items-center justify-between">
                                         <div className="flex items-center gap-4">
                                             <Avatar>
@@ -930,7 +933,6 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                         </Button>
                                     </div>
                                 </div>
-                                
                                 <Separator />
                                 
                                 <Card>
