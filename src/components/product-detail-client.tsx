@@ -887,19 +887,22 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                             </ScrollArea>
                                         </SheetContent>
                                     </Sheet>
-                                    <div className="grid grid-cols-3 gap-2 text-center text-xs text-muted-foreground pt-4">
-                                        <Link href="/help" className="flex flex-col items-center gap-1 hover:text-primary">
-                                            <RotateCcw className="h-6 w-6" />
-                                            <span>7-Day Return Policy</span>
-                                        </Link>
-                                        <Link href="/help" className="flex flex-col items-center gap-1 hover:text-primary">
-                                            <Banknote className="h-6 w-6" />
-                                            <span>Pay on Delivery</span>
-                                        </Link>
-                                        <Link href="/help" className="flex flex-col items-center gap-1 hover:text-primary">
-                                            <ShieldCheck className="h-6 w-6" />
-                                            <span>100% Genuine</span>
-                                        </Link>
+                                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm pt-4 border-t">
+                                        <div className="flex flex-col items-center text-center gap-2">
+                                            <RotateCcw className="h-6 w-6 text-primary" />
+                                            <h4 className="font-semibold">7-Day Return Policy</h4>
+                                            <p className="text-xs text-muted-foreground">Return this item within 7 days of delivery for a full refund.</p>
+                                        </div>
+                                        <div className="flex flex-col items-center text-center gap-2">
+                                            <Banknote className="h-6 w-6 text-primary" />
+                                            <h4 className="font-semibold">Pay on Delivery</h4>
+                                            <p className="text-xs text-muted-foreground">Pay with cash at your doorstep. Available on eligible orders.</p>
+                                        </div>
+                                        <div className="flex flex-col items-center text-center gap-2">
+                                            <ShieldCheck className="h-6 w-6 text-primary" />
+                                            <h4 className="font-semibold">100% Genuine</h4>
+                                            <p className="text-xs text-muted-foreground">All products are sourced directly from brands and verified sellers.</p>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
