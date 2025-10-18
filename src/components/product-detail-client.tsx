@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
@@ -574,8 +575,8 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                     <div className="flex items-center">
                         <Button asChild variant="ghost" className="relative">
                             <Link href="/cart">
-                                <ShoppingCart className="h-5 w-5" />
-                                <span className="hidden sm:inline ml-2">My Cart</span>
+                                <ShoppingCart className="mr-2 h-5 w-5" />
+                                <span className="hidden sm:inline">My Cart</span>
                                 {cartCount > 0 && (
                                     <Badge variant="destructive" className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center text-xs">
                                         {cartCount}
@@ -690,9 +691,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                                     View {sellerLiveStream ? 'Live' : 'Recorded'} Stream
                                                 </Link>
                                             </Button>
-                                            <p className="text-xs text-muted-foreground mt-1">
-                                                Want a better look? See this product live in action for an interactive demo!
-                                            </p>
+                                             <p className="text-xs text-muted-foreground mt-1">Want a better look? See this product live in action for an interactive demo!</p>
                                         </div>
                                     )}
                                 </div>
@@ -847,15 +846,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                             <div className="md:col-span-2 space-y-8 mt-8">
                                 <div>
                                     <div className="p-2 mt-2 grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
-                                         <ul className="space-y-3 text-sm">
-                                            {currentHighlights.map((highlight: string, index: number) => (
-                                                <li key={index} className="flex items-start gap-3">
-                                                    <CheckCircle className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
-                                                    <span className="text-muted-foreground">{highlight}</span>
-                                                </li>
-                                            ))}
-                                        </ul>
-                                         <div className="relative aspect-square w-full max-w-xs mx-auto">
+                                        <div className="relative aspect-square w-full max-w-xs mx-auto">
                                             <Image 
                                                 src="https://picsum.photos/seed/product-highlights/400/400"
                                                 alt="Product highlights"
@@ -864,6 +855,14 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                                 data-ai-hint="product feature"
                                             />
                                         </div>
+                                         <ul className="space-y-3 text-sm">
+                                            {currentHighlights.map((highlight: string, index: number) => (
+                                                <li key={index} className="flex items-start gap-3">
+                                                    <CheckCircle className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
+                                                    <span className="text-muted-foreground">{highlight}</span>
+                                                </li>
+                                            ))}
+                                        </ul>
                                     </div>
                                 </div>
                                 <Separator />
@@ -910,8 +909,8 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                 
                                 <Separator />
                                 
-                                <div>
-                                    <h3 className="text-lg font-semibold mb-2">Sold By</h3>
+                                <div className="space-y-4">
+                                    <h3 className="text-lg font-semibold">Sold By</h3>
                                     <div className="flex items-center justify-between">
                                         <div className="flex items-center gap-4">
                                             <Avatar>
@@ -1023,7 +1022,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                                                 <AvatarFallback>{stream.name.charAt(0)}</AvatarFallback>
                                                             </Avatar>
                                                             <div className="flex-1 overflow-hidden">
-                                                                <p className="font-semibold text-xs group-hover:underline truncate">{stream.name}</p>
+                                                                <p className="font-semibold text-xs group-hover:underline truncate">{stream.title || stream.name}</p>
                                                                 <p className="text-xs opacity-80">{stream.category}</p>
                                                             </div>
                                                         </div>
