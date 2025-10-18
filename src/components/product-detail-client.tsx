@@ -33,6 +33,7 @@ import { Label } from '@/components/ui/label';
 import { EditAddressForm } from './edit-address-form';
 import { updateUserData } from '@/lib/follow-data';
 import ProductSearch from '@/components/ProductSearch';
+import { SimilarProductsOverlay } from './similar-products-overlay';
 
 const mockQandA = [
     { id: 1, question: "Does this camera come with a roll of film?", questioner: "Alice", answer: "Yes, it comes with one 24-exposure roll of color film to get you started!", answerer: "GadgetGuru" },
@@ -123,10 +124,10 @@ export function ProductDetailClient({ productId }: { productId: string }) {
     const [currentHighlights, setCurrentHighlights] = useState<string[]>([]);
     const [selectedImage, setSelectedImage] = useState<string | null>(null);
     
-    // Search State
     const [searchResults, setSearchResults] = useState<any[]>([]);
     const [showSearchResults, setShowSearchResults] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
+    const [showSimilarOverlay, setShowSimilarOverlay] = useState(false);
 
     useEffect(() => {
         const details = productDetails[productId as keyof typeof productDetails] || null;
@@ -547,8 +548,8 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                                             className="object-contain group-hover:scale-105 transition-transform"
                                                         />
                                                     )}
-                                                     <div className="absolute bottom-2 right-2">
-                                                        <Button size="sm" className="rounded-full bg-black/50 text-white backdrop-blur-sm flex items-center gap-1.5 h-8">
+                                                    <div className="absolute bottom-2 right-2">
+                                                        <Button size="sm" className="rounded-full bg-black/50 text-white backdrop-blur-sm flex items-center gap-1.5 h-8" onClick={(e) => { e.stopPropagation(); setShowSimilarOverlay(true); }}>
                                                             <Sparkles className="h-4 w-4" />
                                                             <span className="text-xs">Similar Product</span>
                                                         </Button>
@@ -1052,6 +1053,12 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                         </div>
                     )}
                 </main>
+                <SimilarProductsOverlay
+                    isOpen={showSimilarOverlay}
+                    onClose={() => setShowSimilarOverlay(false)}
+                    similarProducts={similarProducts}
+                    relatedStreams={relatedStreams}
+                />
                 <Dialog open={isReviewDialogOpen} onOpenChange={setIsReviewDialogOpen}>
                     <ReviewDialog 
                         order={{ products: [product] } as any} 
