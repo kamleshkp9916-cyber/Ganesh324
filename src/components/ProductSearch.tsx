@@ -1,4 +1,3 @@
-
 "use client"
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
@@ -46,9 +45,7 @@ export default function ProductSearch({ onSearchComplete, initialProducts = [] }
       setLoading(false);
       setPopoverOpen(false);
       // When the query is cleared, also clear the parent component's results.
-      if (fullSearch) {
-          onSearchComplete([], '');
-      }
+      onSearchComplete([], '');
       return;
     }
     setLoading(true);
@@ -92,9 +89,9 @@ export default function ProductSearch({ onSearchComplete, initialProducts = [] }
         setPopoverOpen(false);
         // If the debounced query is empty, it means the user cleared the input.
         // We trigger a full search with an empty query to clear the results in the parent.
-        runSearch('', true);
+        onSearchComplete([], '');
     }
-  }, [debouncedQuery, runSearch]);
+  }, [debouncedQuery, runSearch, onSearchComplete]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
       e.preventDefault();
