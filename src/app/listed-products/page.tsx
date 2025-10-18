@@ -69,7 +69,6 @@ export default function ListedProductsPage() {
   const [searchSuggestions, setSearchSuggestions] = useState<any[]>([]);
   const [showSearchResults, setShowSearchResults] = useState(false);
   const [searchResults, setSearchResults] = useState<any[]>([]);
-  const [isSuggestionsPopoverOpen, setIsSuggestionsPopoverOpen] = useState(false);
 
   useEffect(() => {
     setIsMounted(true);
@@ -88,10 +87,8 @@ export default function ListedProductsPage() {
             const allProducts = Object.values(productDetails);
             const filtered = allProducts.filter(p => p.name.toLowerCase().includes(debouncedSearchQuery.toLowerCase()));
             setSearchSuggestions(filtered.slice(0, 5));
-            setIsSuggestionsPopoverOpen(true);
         } else {
             setSearchSuggestions([]);
-            setIsSuggestionsPopoverOpen(false);
         }
     }, [debouncedSearchQuery]);
 
@@ -101,7 +98,7 @@ export default function ListedProductsPage() {
         const results = allProducts.filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase()));
         setSearchResults(results);
         setShowSearchResults(true);
-        setIsSuggestionsPopoverOpen(false);
+        setSearchSuggestions([]);
     };
 
   const getCategoryPath = (categoryName: string, subcategoryName?: string) => {
@@ -127,7 +124,7 @@ export default function ListedProductsPage() {
                     </div>
 
                     <div className="hidden lg:flex flex-1 justify-center px-8">
-                         <Popover open={isSuggestionsPopoverOpen} onOpenChange={setIsSuggestionsPopoverOpen}>
+                         <Popover open={searchSuggestions.length > 0} onOpenChange={(open) => {if(!open) setSearchSuggestions([])}}>
                             <PopoverAnchor asChild>
                                 <form className="relative w-full max-w-lg" onSubmit={handleSearchSubmit}>
                                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
@@ -136,18 +133,17 @@ export default function ListedProductsPage() {
                                         className="rounded-full pr-10 pl-10"
                                         value={searchQuery}
                                         onChange={(e) => setSearchQuery(e.target.value)}
-                                        onFocus={() => {if(searchSuggestions.length > 0) setIsSuggestionsPopoverOpen(true)}}
                                     />
                                 </form>
                             </PopoverAnchor>
-                            <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                            <PopoverContent className="w-[--radix-popover-trigger-width] p-0" onOpenAutoFocus={(e) => e.preventDefault()}>
                                 {searchSuggestions.map(suggestion => (
                                     <div 
                                         key={suggestion.key} 
                                         className="p-2 hover:bg-accent cursor-pointer text-sm"
                                         onClick={() => {
                                             setSearchQuery(suggestion.name);
-                                            setIsSuggestionsPopoverOpen(false);
+                                            setSearchSuggestions([]);
                                         }}
                                     >
                                         {suggestion.name}
@@ -347,7 +343,3 @@ const ListItem = React.forwardRef<
   )
 })
 ListItem.displayName = "ListItem"
-
-    
-
-    

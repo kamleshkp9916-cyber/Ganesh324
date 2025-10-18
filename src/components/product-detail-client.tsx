@@ -127,7 +127,6 @@ export function ProductDetailClient({ productId }: { productId: string }) {
     const [searchSuggestions, setSearchSuggestions] = useState<any[]>([]);
     const [showSearchResults, setShowSearchResults] = useState(false);
     const [searchResults, setSearchResults] = useState<any[]>([]);
-    const [isSuggestionsPopoverOpen, setIsSuggestionsPopoverOpen] = useState(false);
     
     useEffect(() => {
         const details = productDetails[productId as keyof typeof productDetails] || null;
@@ -206,10 +205,8 @@ export function ProductDetailClient({ productId }: { productId: string }) {
             const allProducts = Object.values(productDetails);
             const filtered = allProducts.filter(p => p.name.toLowerCase().includes(debouncedSearchQuery.toLowerCase()));
             setSearchSuggestions(filtered.slice(0, 5));
-            setIsSuggestionsPopoverOpen(true);
         } else {
             setSearchSuggestions([]);
-            setIsSuggestionsPopoverOpen(false);
         }
     }, [debouncedSearchQuery]);
 
@@ -219,7 +216,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
         const results = allProducts.filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase()));
         setSearchResults(results);
         setShowSearchResults(true);
-        setIsSuggestionsPopoverOpen(false);
+        setSearchSuggestions([]);
     };
 
     const averageRating = useMemo(() => {
@@ -490,7 +487,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                     <Button variant="ghost" size="icon" onClick={() => router.back()}>
                         <ArrowLeft className="h-6 w-6" />
                     </Button>
-                    <Popover open={isSuggestionsPopoverOpen} onOpenChange={setIsSuggestionsPopoverOpen}>
+                     <Popover open={searchSuggestions.length > 0} onOpenChange={(open) => {if(!open) setSearchSuggestions([])}}>
                         <PopoverAnchor asChild>
                             <form className="relative flex-grow max-w-md mx-4" onSubmit={handleSearchSubmit}>
                                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -499,18 +496,17 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                     className="pl-9 rounded-full"
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
-                                    onFocus={() => { if(searchSuggestions.length > 0) setIsSuggestionsPopoverOpen(true)}}
                                 />
                             </form>
                         </PopoverAnchor>
-                        <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                        <PopoverContent className="w-[--radix-popover-trigger-width] p-0" onOpenAutoFocus={(e) => e.preventDefault()}>
                             {searchSuggestions.map(suggestion => (
                                 <div 
                                     key={suggestion.key} 
                                     className="p-2 hover:bg-accent cursor-pointer text-sm"
                                     onClick={() => {
                                         setSearchQuery(suggestion.name);
-                                        setIsSuggestionsPopoverOpen(false);
+                                        setSearchSuggestions([]);
                                     }}
                                 >
                                     {suggestion.name}
@@ -712,7 +708,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                     {(variantStock !== undefined && variantStock > 0) ? (
                                         <>
                                             {inCart ? (
-                                                 <Button size="lg" className="w-full" asChild>
+                                                 <Button size="lg" className="w-full" asChild variant="outline">
                                                     <Link href="/cart">
                                                         Proceed Further
                                                     </Link>
