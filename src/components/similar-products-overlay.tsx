@@ -35,7 +35,7 @@ export function SimilarProductsOverlay({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-40 bg-background/80 backdrop-blur-lg border-t animate-in slide-in-from-bottom-full duration-500">
+    <div className="fixed bottom-0 left-0 right-0 z-40 bg-background/80 backdrop-blur-lg border-t animate-in zoom-in-95 slide-in-from-bottom-5 duration-300">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4">
         <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-bold">You Might Also Like</h2>
