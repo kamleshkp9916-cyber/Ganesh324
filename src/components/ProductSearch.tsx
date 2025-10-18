@@ -1,7 +1,7 @@
 
 "use client"
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { getFirestore, collection, query, where, getDocs, limit } from 'firebase/firestore';
 import { getFirestoreDb } from '@/lib/firebase';
 import { useDebounce } from '@/hooks/use-debounce';
@@ -18,12 +18,18 @@ interface Product {
     [key: string]: any;
 }
 
-export default function ProductSearch() {
+interface ProductSearchProps {
+    onSearchComplete: (results: Product[], query: string) => void;
+}
+
+
+export default function ProductSearch({ onSearchComplete }: ProductSearchProps) {
   const db = getFirestoreDb();
   const [q, setQ] = useState('');
   const debouncedQuery = useDebounce(q, 350);
   const [suggestions, setSuggestions] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);
+  const [popoverOpen, setPopoverOpen] = useState(false);
 
   const tokenize = (text: string): string[] => {
     if (!text || !text.trim()) return [];
@@ -32,7 +38,7 @@ export default function ProductSearch() {
     return unique(parts.concat([normalizedText])).slice(0, 10);
   };
   
-  const runSearch = useCallback(async (queryText: string) => {
+  const runSearch = useCallback(async (queryText: string, fullSearch = false) => {
     if (!queryText || !queryText.trim()) {
       setSuggestions([]);
       setLoading(false);
@@ -43,12 +49,10 @@ export default function ProductSearch() {
 
     try {
       const productsRef = collection(db, 'products');
-      // Firestore 'array-contains-any' supports up to 10 elements in the array
       const qRef = query(productsRef, where('keywords', 'array-contains-any', tokens.slice(0, 10)), limit(50));
       const snap = await getDocs(qRef);
       const docs = snap.docs.map(d => ({ id: d.id, ...d.data() } as Product));
 
-      // Basic client-side score: prefer docs with more matching tokens
       const scored = docs.map(doc => {
         const k = (doc.keywords || []).map(x => String(x).toLowerCase());
         const score = tokens.reduce((s, t) => s + (k.includes(t) ? 1 : 0), 0);
@@ -57,29 +61,39 @@ export default function ProductSearch() {
 
       const sorted = scored.map(x => x.doc);
 
-      setSuggestions(sorted.slice(0, 6));
+      if (fullSearch) {
+        onSearchComplete(sorted, queryText);
+        setSuggestions([]);
+        setPopoverOpen(false);
+      } else {
+        setSuggestions(sorted.slice(0, 6));
+        setPopoverOpen(sorted.length > 0);
+      }
     } catch (e) {
       console.error('Search error', e);
       setSuggestions([]);
     } finally {
       setLoading(false);
     }
-  }, [db]);
+  }, [db, onSearchComplete]);
 
   useEffect(() => {
-    runSearch(debouncedQuery);
+    if (debouncedQuery) {
+        runSearch(debouncedQuery);
+    } else {
+        setSuggestions([]);
+        setPopoverOpen(false);
+    }
   }, [debouncedQuery, runSearch]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
       e.preventDefault();
-      // This is where you would navigate to a full search results page
-      // For now, we'll just log it.
-      console.log("Submitting search for:", q);
+      runSearch(q, true);
   };
 
   return (
     <div className="relative w-full">
-      <Popover open={suggestions.length > 0} onOpenChange={(open) => {if(!open) setSuggestions([])}}>
+      <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
         <PopoverAnchor asChild>
           <form className="relative w-full" onSubmit={handleSearchSubmit}>
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
@@ -98,11 +112,12 @@ export default function ProductSearch() {
             {suggestions.map(suggestion => (
                 <Link 
                     key={suggestion.id} 
-                    href={`/product/${suggestion.id}`} 
+                    href={`/product/${suggestion.key || suggestion.id}`} 
                     className="block p-2 hover:bg-accent cursor-pointer text-sm"
                     onClick={() => {
                         setQ('');
                         setSuggestions([]);
+                        setPopoverOpen(false);
                     }}
                 >
                     {suggestion.name}

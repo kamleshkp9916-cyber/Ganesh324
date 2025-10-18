@@ -63,6 +63,10 @@ export default function ListedProductsPage() {
   const [storedHubBanner] = useLocalStorage<HubBanner>(HUB_BANNER_KEY, defaultHubBanner);
   const [storedFeaturedProducts] = useLocalStorage<FeaturedProduct[]>(HUB_FEATURED_PRODUCTS_KEY, defaultFeaturedProducts);
 
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+
   useEffect(() => {
     setIsMounted(true);
   }, []);
@@ -81,13 +85,62 @@ export default function ListedProductsPage() {
     }
     return basePath;
   }
+  
+  const onSearchComplete = (results: any[], query: string) => {
+    setSearchResults(results);
+    setSearchQuery(query);
+    setIsSearching(true);
+  };
+  
+  const renderSearchResults = () => (
+    <div className="container mx-auto py-6">
+      <h2 className="text-2xl font-bold mb-4">
+        Search Results for "{searchQuery}"
+      </h2>
+      {searchResults.length > 0 ? (
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+          {searchResults.map((p) => (
+            <Link href={`/product/${p.key || p.id}`} key={p.id} className="group block">
+              <Card className="w-full group overflow-hidden">
+                <div className="aspect-square bg-muted rounded-t-lg overflow-hidden relative">
+                  <Image
+                    src={p.images?.[0] || "https://placehold.co/200x200.png"}
+                    alt={p.name}
+                    fill
+                    className="object-cover w-full h-full group-hover:scale-105 transition-transform"
+                  />
+                </div>
+                <div className="p-3">
+                  <h4 className="font-semibold truncate text-sm">{p.name}</h4>
+                  <p className="font-bold text-foreground">{p.price}</p>
+                </div>
+              </Card>
+            </Link>
+          ))}
+        </div>
+      ) : (
+        <div className="text-center py-12 text-muted-foreground">
+          <p>No products found for "{searchQuery}".</p>
+        </div>
+      )}
+    </div>
+  );
+
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
        <header className="border-b sticky top-0 bg-background/95 z-50">
             <div className="flex items-center justify-between h-16 px-4 sm:px-6 lg:px-8">
                      <div className="flex items-center gap-2">
-                        <Button variant="ghost" size="icon" className="-ml-2" onClick={() => router.back()}>
+                        <Button variant="ghost" size="icon" className="-ml-2" onClick={() => {
+                            if (isSearching) {
+                                setIsSearching(false);
+                                setSearchQuery('');
+                                setSearchResults([]);
+                            } else {
+                                router.back()
+                            }
+                        }}>
                           <ArrowLeft className="h-6 w-6" />
                         </Button>
                         <Link href="/live-selling" className="flex items-center gap-2">
@@ -98,7 +151,7 @@ export default function ListedProductsPage() {
 
                     <div className="hidden lg:flex flex-1 justify-center px-8">
                          <div className="w-full max-w-lg">
-                           <ProductSearch />
+                           <ProductSearch onSearchComplete={onSearchComplete} />
                          </div>
                     </div>
                     
@@ -178,6 +231,8 @@ export default function ListedProductsPage() {
 
       <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-10 flex-grow">
          
+         {isSearching ? renderSearchResults() : (
+           <>
             {isMounted && hubBanner ? (
             <Card className="overflow-hidden border-none shadow-lg mb-10">
             <CardContent className="p-0 relative">
@@ -237,6 +292,8 @@ export default function ListedProductsPage() {
                 ))}
             </div>
         </section>
+        </>
+         )}
       </main>
     </div>
   );
