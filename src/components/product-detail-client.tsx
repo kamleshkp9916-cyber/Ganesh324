@@ -510,7 +510,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
     };
 
     const renderDescriptionWithHashtags = (text: string) => {
-        const parts = text.split(/(#\w+)/g);
+        const parts = text.split(/(#\\w+)/g);
         return parts.map((part, index) => {
             if (part.startsWith('#')) {
                 return (
@@ -774,13 +774,13 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                             </AlertDialog>
                                         </div>
                                     </div>
-                                    <div className='space-y-1'>
+                                    <div className='space-y-2'>
                                         {product.brand && <p className="text-sm font-medium text-primary">{product.brand}</p>}
                                         <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">{product.name}</h1>
                                         <p className="text-muted-foreground text-sm">{renderDescriptionWithHashtags(product.description)}</p>
                                     </div>
                                     <div>
-                                        <div className="flex items-center gap-4 flex-wrap">
+                                        <div className="flex items-center gap-4 flex-wrap mt-2">
                                             {currentPrice && <p className="text-3xl font-bold text-foreground">{currentPrice}</p>}
                                             <div className="flex items-center gap-2">
                                                     <div className="flex items-center gap-1 text-amber-400">
@@ -915,8 +915,8 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                     </div>
                                 </div>
                             </div>
-                            <div className="md:col-span-2 space-y-8 mt-8">
-                                 <div>
+                            <div className="md:col-span-2 space-y-6">
+                                <div>
                                     <h2 className="text-xl font-bold mb-2">Highlights</h2>
                                     <ul className="space-y-3 text-sm">
                                         {currentHighlights.map((highlight: string, index: number) => (
@@ -1018,7 +1018,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                                     <div className="flex-1 overflow-hidden">
                                                         <p className="font-semibold text-sm leading-tight group-hover:underline truncate">{stream.title || stream.name}</p>
                                                         <p className="text-xs text-muted-foreground">{stream.name}</p>
-                                                         <p className="text-xs text-primary font-semibold mt-0.5">#{stream.category.toLowerCase().replace(/\s+/g, '')}</p>
+                                                         <p className="text-xs text-primary font-semibold mt-0.5">#{stream.category.toLowerCase().replace(/\\s+/g, '')}</p>
                                                     </div>
                                                 </div>
                                             </Link>
