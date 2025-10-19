@@ -741,7 +741,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                     )}
                                 </div>
                                 
-                                <div className="flex flex-col gap-2">
+                                <div className="flex flex-col gap-4">
                                     <div className="flex items-start justify-between">
                                         <div className="text-sm font-mono text-muted-foreground">
                                             {product.key}
@@ -915,9 +915,9 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                     </div>
                                 </div>
                             </div>
-                            <div className="md:col-span-2 space-y-6">
-                                <div>
-                                    <h2 className="text-xl font-bold mb-2">Highlights</h2>
+                            <div className="md:col-span-2 space-y-4">
+                                <div className="space-y-3">
+                                    <h2 className="text-xl font-bold">Highlights</h2>
                                     <ul className="space-y-3 text-sm">
                                         {currentHighlights.map((highlight: string, index: number) => (
                                             <li key={index} className="flex items-start gap-3">
@@ -926,7 +926,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                             </li>
                                         ))}
                                     </ul>
-                                    <div className="mt-4 text-center">
+                                    <div className="text-center">
                                         <Button asChild variant="link">
                                             <Link href={`/product/${productId}/details`}>View All Details</Link>
                                         </Button>
@@ -1025,7 +1025,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                         ))}
                                     </div>
                                 </div>
-                                <Card>
+                                <Card className="mt-6">
                                     <CardHeader>
                                         <div className="flex items-center justify-between">
                                             <h3 className="text-lg font-semibold">Sold By</h3>
