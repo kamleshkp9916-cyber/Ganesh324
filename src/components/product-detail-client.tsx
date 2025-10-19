@@ -742,8 +742,8 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                 </div>
                                 
                                 <div className="flex flex-col gap-2">
-                                     <div className="flex items-start justify-between gap-4">
-                                        <div className="text-sm font-mono text-muted-foreground mt-2">
+                                    <div className="flex items-start justify-between">
+                                        <div className="text-sm font-mono text-muted-foreground">
                                             {product.key}
                                         </div>
                                         <div className="flex items-center ml-auto">
@@ -1025,7 +1025,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                         ))}
                                     </div>
                                 </div>
-                                <Card className="mt-8">
+                                <Card>
                                     <CardHeader>
                                         <div className="flex items-center justify-between">
                                             <h3 className="text-lg font-semibold">Sold By</h3>
