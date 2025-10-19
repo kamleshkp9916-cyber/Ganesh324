@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useRouter } from 'next/navigation';
@@ -119,12 +120,12 @@ export default function CheckoutPage() {
                  <div className="flex items-center justify-between mb-6">
                     <div className="relative w-full max-w-xs">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Input placeholder="Search" className="pl-9" />
+                        <Input placeholder="Search" className="pl-9 rounded-full" />
                     </div>
                     <div className="flex items-center gap-4">
-                        <ShoppingBag className="h-6 w-6 text-muted-foreground" />
-                        <Heart className="h-6 w-6 text-muted-foreground" />
-                        <User className="h-6 w-6 text-muted-foreground" />
+                        <ShoppingBag className="h-5 w-5 text-muted-foreground" />
+                        <Heart className="h-5 w-5 text-muted-foreground" />
+                        <User className="h-5 w-5 text-muted-foreground" />
                     </div>
                 </div>
                  <h2 className="text-2xl font-bold mb-4">Your Cart</h2>
