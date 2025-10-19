@@ -741,7 +741,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                     )}
                                 </div>
                                 
-                                <div className="flex flex-col gap-4">
+                                <div className="flex flex-col gap-2">
                                     <div className="flex items-start justify-between">
                                         <div className="text-sm font-mono text-muted-foreground">
                                             {product.key}
@@ -779,8 +779,8 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                         <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">{product.name}</h1>
                                         <p className="text-muted-foreground text-sm">{renderDescriptionWithHashtags(product.description)}</p>
                                     </div>
-                                    <div>
-                                        <div className="flex items-center gap-4 flex-wrap mt-2">
+                                    <div className="pt-2">
+                                        <div className="flex items-center gap-4 flex-wrap">
                                             {currentPrice && <p className="text-3xl font-bold text-foreground">{currentPrice}</p>}
                                             <div className="flex items-center gap-2">
                                                     <div className="flex items-center gap-1 text-amber-400">
@@ -915,7 +915,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                     </div>
                                 </div>
                             </div>
-                            <div className="md:col-span-2 space-y-4">
+                             <div className="md:col-span-2 space-y-4">
                                 <div className="space-y-3">
                                     <h2 className="text-xl font-bold">Highlights</h2>
                                     <ul className="space-y-3 text-sm">
@@ -1000,7 +1000,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                 </Card>
 
                                 <Separator />
-                                 <div className="mt-8">
+                                 <div className="mt-4">
                                     <h2 className="text-2xl font-bold mb-4">Related Product Streams</h2>
                                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                                         {relatedStreams.map((stream: any) => (
@@ -1025,7 +1025,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                         ))}
                                     </div>
                                 </div>
-                                <Card className="mt-6">
+                                <Card className="mt-4">
                                     <CardHeader>
                                         <div className="flex items-center justify-between">
                                             <h3 className="text-lg font-semibold">Sold By</h3>
