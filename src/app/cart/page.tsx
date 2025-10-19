@@ -193,19 +193,8 @@ export default function CartPage() {
   };
 
   const handleCheckout = async () => {
-    // Mock checkout
     setIsCheckingOut(true);
-    setTimeout(() => {
-      if (!isBuyNow) {
-        localStorage.removeItem('streamcart_cart');
-      }
-      toast({
-        title: "Order Placed!",
-        description: `Your order has been successfully placed.`,
-      });
-      router.push(`/delivery-information/mock-order-id`);
-      setIsCheckingOut(false);
-    }, 1500)
+    router.push('/checkout');
   };
 
 
@@ -394,5 +383,3 @@ export default function CartPage() {
     </div>
   );
 }
-
-    
