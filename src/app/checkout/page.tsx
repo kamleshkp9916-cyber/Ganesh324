@@ -1,9 +1,8 @@
-
 "use client";
 
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Tag, Info } from 'lucide-react';
+import { ArrowLeft, Tag, Info, Search, Heart, User, ShoppingBag } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import Image from 'next/image';
 import { Input } from '@/components/ui/input';
@@ -117,6 +116,17 @@ export default function CheckoutPage() {
                 </div>
             </div>
             <div className="bg-background border-l py-8 px-4 md:px-12 h-screen sticky top-0">
+                 <div className="flex items-center justify-between mb-6">
+                    <div className="relative w-full max-w-xs">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input placeholder="Search" className="pl-9" />
+                    </div>
+                    <div className="flex items-center gap-4">
+                        <ShoppingBag className="h-6 w-6 text-muted-foreground" />
+                        <Heart className="h-6 w-6 text-muted-foreground" />
+                        <User className="h-6 w-6 text-muted-foreground" />
+                    </div>
+                </div>
                  <h2 className="text-2xl font-bold mb-4">Your Cart</h2>
                   <div className="space-y-4">
                     {cartItems.map(item => (
