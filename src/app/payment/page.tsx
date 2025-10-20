@@ -195,6 +195,7 @@ export default function PaymentPage() {
 
   const handlePlaceOrder = (e: React.FormEvent) => {
     e.preventDefault();
+    let paymentSuccess = true;
     
     if (paymentMethod === 'upi') {
         const upiIdInput = (e.target as HTMLFormElement).querySelector('#upi-id') as HTMLInputElement;
@@ -211,16 +212,32 @@ export default function PaymentPage() {
         }
     }
     
+    if(paymentMethod === 'credit' || paymentMethod === 'debit') {
+        const cardNumberInput = (e.target as HTMLFormElement).querySelector('#card-number') as HTMLInputElement;
+        // Simple mock validation for demo
+        if (cardNumberInput && cardNumberInput.value.length < 16) {
+            paymentSuccess = false;
+        }
+    }
+
     setIsProcessing(true);
     setTimeout(() => {
         setIsProcessing(false);
-        toast({
-            title: "Order Placed!",
-            description: "Your order has been successfully placed. Thank you for shopping with StreamCart!",
-        });
-        localStorage.removeItem('streamcart_cart');
-        localStorage.removeItem('appliedCoupon');
-        router.push('/orders');
+        if (paymentSuccess) {
+            toast({
+                title: "✅ Payment Successful!",
+                description: "Redirecting to your orders...",
+            });
+            localStorage.removeItem('streamcart_cart');
+            localStorage.removeItem('appliedCoupon');
+            router.push('/orders');
+        } else {
+             toast({
+                variant: "destructive",
+                title: "❌ Transaction Failed",
+                description: "Your payment could not be processed. Please try another method.",
+            });
+        }
     }, 3000);
   }
   
@@ -385,7 +402,10 @@ export default function PaymentPage() {
                  <Button variant="ghost" size="icon" onClick={() => router.back()}>
                     <ArrowLeft className="h-6 w-6" />
                 </Button>
-                <h1 className="text-xl font-bold hidden sm:inline">Checkout</h1>
+                <div className='flex flex-col sm:flex-row sm:items-center sm:gap-2'>
+                    <h1 className="text-xl font-bold hidden sm:inline">Checkout</h1>
+                    <p className="text-xs sm:text-sm text-muted-foreground">(Step 2 of 3)</p>
+                </div>
             </div>
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <ShieldCheck className="h-4 w-4" />
@@ -405,7 +425,7 @@ export default function PaymentPage() {
                                          key={method.id}
                                          onClick={() => setPaymentMethod(method.id as PaymentMethod)}
                                          disabled={method.disabled}
-                                         className={cn("w-full p-4 text-left font-semibold flex items-center gap-3 transition-colors disabled:opacity-50 disabled:cursor-not-allowed",
+                                         className={cn("w-full p-4 text-left font-semibold flex items-center gap-3 transition-colors disabled:opacity-50 disabled:cursor-not-allowed border-b last:border-b-0 md:border-b",
                                              paymentMethod === method.id ? 'bg-primary/10 text-primary' : 'hover:bg-muted/50'
                                          )}
                                      >
@@ -427,7 +447,7 @@ export default function PaymentPage() {
                         <CardHeader>
                             <div className="flex items-center justify-between">
                                 <CardTitle>Order Summary</CardTitle>
-                                <Button asChild variant="link" size="sm" className="p-0 h-auto text-sm hover:text-primary">
+                                <Button asChild variant="link" size="sm" className="p-0 h-auto text-sm text-primary hover:underline">
                                     <Link href="/cart">
                                         <Edit className="mr-1 h-3 w-3" /> Edit
                                     </Link>
@@ -437,7 +457,7 @@ export default function PaymentPage() {
                         <CardContent>
                              <div className="space-y-4 max-h-60 overflow-y-auto pr-2">
                                 {cartItems.map((item) => (
-                                    <div key={`${'${item.id}'}-${'${item.size || \'\'}'}-${'${item.color || \'\'}'}`} className="flex items-start gap-4">
+                                    <div key={`${item.id}-${item.size || ''}-${item.color || ''}`} className="flex items-start gap-4">
                                         <div className="relative w-16 h-16 rounded-md border flex-shrink-0">
                                             <Image src={item.imageUrl} alt={item.name} layout="fill" className="object-cover rounded-md" data-ai-hint={item.hint}/>
                                         </div>
@@ -512,3 +532,4 @@ export default function PaymentPage() {
     </div>
   );
 }
+
