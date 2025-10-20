@@ -42,13 +42,13 @@ export default function PaymentPage() {
   const [shippingSettings] = useLocalStorage<ShippingSettings>(SHIPPING_SETTINGS_KEY, defaultShippingSettings);
   const [allOffers] = useLocalStorage<Coupon[]>(COUPONS_KEY, []);
 
-  const paymentMethods: { id: PaymentMethod, label: string, icon: React.ReactNode, disabled?: boolean, offer?: string }[] = [
-    { id: 'wallet', label: 'Wallet', icon: <Wallet/>, offer: '5% Cashback' },
+  const paymentMethods: { id: PaymentMethod, label: string, icon: React.ReactNode, disabled?: boolean }[] = [
+    { id: 'wallet', label: 'Wallet', icon: <Wallet/> },
     { id: 'coins', label: 'Coins', icon: <Coins/>, disabled: true },
-    { id: 'upi', label: 'UPI', icon: <QrCode/>, offer: 'Upto ₹100 Cashback' },
+    { id: 'upi', label: 'UPI', icon: <QrCode/> },
     { id: 'cod', label: 'Cash on Delivery', icon: <Banknote/>, disabled: true },
     { id: 'debit', label: 'Debit Card', icon: <CreditCard/> },
-    { id: 'credit', label: 'Credit Card', icon: <CreditCard/>, offer: 'No Cost EMI' }
+    { id: 'credit', label: 'Credit Card', icon: <CreditCard/> }
   ];
 
   useEffect(() => {
@@ -172,7 +172,7 @@ export default function PaymentPage() {
     }, 3000);
   }
 
-  if (!isClient || loading || cartItems.length === 0) {
+  if (!isClient || loading || (cartItems.length === 0 && isClient)) {
       return <div className="h-screen w-full flex items-center justify-center"><LoadingSpinner /></div>
   }
 
@@ -323,7 +323,6 @@ export default function PaymentPage() {
                                             {method.icon}
                                             {method.label}
                                         </div>
-                                        {method.offer && <span className="text-xs font-medium text-green-600">{method.offer}</span>}
                                     </button>
                                 ))}
                             </div>
