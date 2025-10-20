@@ -19,6 +19,7 @@ const faqData = [
   {
     category: "Payments & Wallet",
     questions: [
+      { q: "What happens if my payment fails?", a: "If your payment fails, your order will not be processed. You will not be charged, and any amount deducted from your bank will be automatically refunded within 5-7 business days. You can try the payment again with the same or a different payment method." },
       { q: "What payment methods do you accept?", a: "We accept all major credit/debit cards, UPI (including Google Pay, PhonePe, etc.), Net Banking, and our own StreamCart Wallet." },
       { q: "How do I get a refund?", a: "Once a return is successfully processed and the item is received by the seller, the refund amount will be credited to your original payment method or your StreamCart Wallet within 5-7 business days." },
       { q: "How do I add money to my wallet?", a: "You can add money to your wallet from the 'Wallet' section in your profile. We support various top-up methods including UPI and credit/debit cards." },
