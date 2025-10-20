@@ -105,7 +105,8 @@ export default function CartPage() {
             setCartItems([buyNowItem]);
           }
         } else {
-          setCartItems(getCart());
+            // Only read from local storage if it's not a "Buy Now" flow
+            setCartItems(getCart());
         }
       }
     }
@@ -401,3 +402,4 @@ export default function CartPage() {
     </div>
   );
 }
+
