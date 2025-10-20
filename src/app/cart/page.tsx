@@ -110,8 +110,8 @@ export default function CartPage() {
   }, [user, userData, isBuyNow, buyNowProductId, buyNowSize, buyNowColor, loading, isClient, router]);
 
 
-  const handleRemoveFromCart = (productId: number) => {
-    removeFromCart(productId);
+  const handleRemoveFromCart = (productId: number, size?: string, color?: string) => {
+    removeFromCart(productId, size, color);
     setCartItems(getCart());
     toast({
       title: "Item Removed",
@@ -119,7 +119,7 @@ export default function CartPage() {
     });
   };
 
-  const handleQuantityChange = (productId: number, newQuantity: number) => {
+  const handleQuantityChange = (productId: number, newQuantity: number, size?: string, color?: string) => {
       if (isBuyNow) {
           setCartItems(currentItems => 
               currentItems.map(item => 
@@ -127,7 +127,7 @@ export default function CartPage() {
               )
           );
       } else {
-          updateCartQuantity(productId, newQuantity);
+          updateCartQuantity(productId, newQuantity, size, color);
           setCartItems(getCart());
       }
   };
@@ -236,7 +236,7 @@ export default function CartPage() {
                             <CardContent className="p-0">
                                 <div className="divide-y">
                                     {cartItems.map(item => (
-                                        <div key={item.id} className="p-4 flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                                        <div key={`${item.id}-${item.size || ''}-${item.color || ''}`} className="p-4 flex flex-col sm:flex-row items-start sm:items-center gap-4">
                                             <Link href={`/product/${item.key}`} className="block flex-shrink-0">
                                                 <Image src={item.imageUrl || 'https://placehold.co/100x100.png'} alt={item.name} width={100} height={100} className="rounded-lg object-cover" data-ai-hint={item.hint} />
                                             </Link>
@@ -265,11 +265,11 @@ export default function CartPage() {
                                             </div>
                                             
                                             <div className="flex items-center gap-2">
-                                                <Button size="icon" variant="outline" className="h-8 w-8" onClick={() => handleQuantityChange(item.id, item.quantity - 1)} disabled={item.quantity <= 1}>
+                                                <Button size="icon" variant="outline" className="h-8 w-8" onClick={() => handleQuantityChange(item.id, item.quantity - 1, item.size, item.color)} disabled={item.quantity <= 1}>
                                                     <Minus className="h-4 w-4" />
                                                 </Button>
                                                 <span className="w-10 text-center font-semibold">{item.quantity}</span>
-                                                <Button size="icon" variant="outline" className="h-8 w-8" onClick={() => handleQuantityChange(item.id, item.quantity + 1)}>
+                                                <Button size="icon" variant="outline" className="h-8 w-8" onClick={() => handleQuantityChange(item.id, item.quantity + 1, item.size, item.color)}>
                                                     <Plus className="h-4 w-4" />
                                                 </Button>
                                             </div>
@@ -277,7 +277,7 @@ export default function CartPage() {
                                                 ₹{(parseFloat(item.price.replace('₹', '').replace(/,/g, '')) * item.quantity).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                             </div>
                                             {!isBuyNow && (
-                                                <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive h-8 w-8" onClick={() => handleRemoveFromCart(item.id)}>
+                                                <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive h-8 w-8" onClick={() => handleRemoveFromCart(item.id, item.size, item.color)}>
                                                     <Trash2 className="h-4 w-4" />
                                                 </Button>
                                             )}
