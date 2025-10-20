@@ -114,7 +114,12 @@ export default function PaymentPage() {
     const tax = sub * 0.05; // 5% mock tax
 
     let discount = 0;
-    if (appliedCoupon) {
+    const productHasOffer = cartItems.some(item => {
+        const productDetail = productDetails[item.key as keyof typeof productDetails];
+        return productDetail && productDetail.discountPercentage && productDetail.discountPercentage > 0;
+    });
+
+    if (appliedCoupon && !productHasOffer) {
         const couponSubtotal = cartItems.reduce((acc, item) => {
             const itemCategory = productDetails[item.key as keyof typeof productDetails]?.category;
             const applicableOffer = allOffers.find(offer =>
@@ -413,9 +418,9 @@ export default function PaymentPage() {
                         <CardHeader>
                             <div className="flex items-center justify-between">
                                 <CardTitle>Order Summary</CardTitle>
-                                <Button asChild variant="outline" size="sm">
+                                <Button asChild variant="ghost" size="sm">
                                     <Link href="/cart">
-                                        <Edit className="mr-2 h-4 w-4" /> Edit
+                                        Edit
                                     </Link>
                                 </Button>
                             </div>
