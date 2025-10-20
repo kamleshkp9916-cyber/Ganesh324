@@ -1,10 +1,9 @@
-
 "use client";
 
 import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { CreditCard, ShieldCheck, Banknote, Lock, Info, Loader2, ArrowRight, Wallet, QrCode, ArrowLeft, Coins } from 'lucide-react';
+import { CreditCard, ShieldCheck, Banknote, Lock, Info, Loader2, ArrowRight, Wallet, QrCode, ArrowLeft, Coins, Ticket } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
@@ -39,14 +38,15 @@ export default function PaymentPage() {
   const [appliedCoupon, setAppliedCoupon] = useState<Coupon | null>(null);
 
   const [shippingSettings] = useLocalStorage<ShippingSettings>(SHIPPING_SETTINGS_KEY, defaultShippingSettings);
-  
-  const paymentMethods = [
-    { id: 'wallet', label: 'Wallet', icon: <Wallet/> },
+  const [allOffers] = useLocalStorage<Coupon[]>(COUPONS_KEY, []);
+
+  const paymentMethods: { id: PaymentMethod, label: string, icon: React.ReactNode, disabled?: boolean, offer?: string }[] = [
+    { id: 'wallet', label: 'Wallet', icon: <Wallet/>, offer: '5% Cashback' },
     { id: 'coins', label: 'Coins', icon: <Coins/>, disabled: true },
-    { id: 'upi', label: 'UPI', icon: <QrCode/> },
+    { id: 'upi', label: 'UPI', icon: <QrCode/>, offer: 'Upto ₹100 Cashback' },
     { id: 'cod', label: 'Cash on Delivery', icon: <Banknote/>, disabled: true },
     { id: 'debit', label: 'Debit Card', icon: <CreditCard/> },
-    { id: 'credit', label: 'Credit Card', icon: <CreditCard/> }
+    { id: 'credit', label: 'Credit Card', icon: <CreditCard/>, offer: 'No Cost EMI' }
   ];
 
   useEffect(() => {
@@ -88,7 +88,7 @@ export default function PaymentPage() {
             return acc;
         }, 0);
 
-        if (!appliedCoupon.minOrderValue || sub >= appliedCoupon.minOrderValue) {
+        if (!appliedCoupon.minOrderValue || sub >= couponSubtotal) {
             if (appliedCoupon.discountType === 'percentage') {
                 discount = couponSubtotal * (appliedCoupon.discountValue / 100);
                 if (appliedCoupon.maxDiscount && discount > appliedCoupon.maxDiscount) {
@@ -111,18 +111,40 @@ export default function PaymentPage() {
     };
   }, [cartItems, shippingSettings, appliedCoupon]);
 
+  const availableOffers = useMemo(() => {
+    return allOffers.filter(offer => {
+      const isExpired = offer.expiresAt && new Date(offer.expiresAt) < new Date();
+      if (isExpired) return false;
+
+      const meetsMinOrder = !offer.minOrderValue || subtotal >= offer.minOrderValue;
+      if (!meetsMinOrder) return false;
+
+      if (offer.applicableCategories?.includes('All')) {
+        return true;
+      }
+      
+      return cartItems.some(item => {
+        const itemCategory = productDetails[item.key as keyof typeof productDetails]?.category;
+        return itemCategory && offer.applicableCategories?.includes(itemCategory);
+      });
+    });
+  }, [allOffers, cartItems, subtotal]);
 
   const handlePlaceOrder = (e: React.FormEvent) => {
     e.preventDefault();
+    
     if (paymentMethod === 'upi') {
-        const upiId = (e.target as HTMLFormElement)['upi-id'].value;
-        if (!/^[a-zA-Z0-9.\-_]{2,256}@[a-zA-Z]{2,64}$/.test(upiId)) {
-            toast({
-                variant: "destructive",
-                title: "Invalid UPI ID",
-                description: "Please enter a valid UPI ID to proceed.",
-            });
-            return;
+        const upiIdInput = (e.target as HTMLFormElement).querySelector('#upi-id') as HTMLInputElement;
+        if (upiIdInput) {
+            const upiId = upiIdInput.value;
+             if (!/^[a-zA-Z0-9.\-_]{2,256}@[a-zA-Z]{2,64}$/.test(upiId)) {
+                toast({
+                    variant: "destructive",
+                    title: "Invalid UPI ID",
+                    description: "Please enter a valid UPI ID to proceed.",
+                });
+                return;
+            }
         }
     }
     
@@ -168,7 +190,7 @@ export default function PaymentPage() {
                             <span className="font-bold">₹{(42580.22 - total).toLocaleString('en-IN')}</span>
                         </div>
                     </div>
-                     <Button type="submit" size="lg" className="w-full bg-blue-600 hover:bg-blue-700">
+                     <Button type="submit" size="lg" className="w-full">
                         {isProcessing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                         Pay from Wallet
                     </Button>
@@ -198,7 +220,7 @@ export default function PaymentPage() {
                             Waiting for approval in your UPI app
                         </div>
                     )}
-                    <Button type="submit" size="lg" className="w-full bg-blue-600 hover:bg-blue-700">
+                    <Button type="submit" size="lg" className="w-full">
                          {isProcessing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                         Pay Now <ArrowRight className="ml-2 h-4 w-4" />
                     </Button>
@@ -242,7 +264,7 @@ export default function PaymentPage() {
                     {paymentMethod === 'credit' && <p className="text-xs text-muted-foreground">We do not store your card details.</p>}
                     <div className="flex justify-between items-center">
                         <p className="text-xs text-muted-foreground flex items-center gap-2"><Lock className="h-3 w-3"/> Secured by 3D Secure</p>
-                        <Button type="submit" size="lg" className="bg-blue-600 hover:bg-blue-700">
+                        <Button type="submit" size="lg">
                              {isProcessing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                             Pay Now
                         </Button>
@@ -282,12 +304,15 @@ export default function PaymentPage() {
                                         key={method.id}
                                         onClick={() => setPaymentMethod(method.id as PaymentMethod)}
                                         disabled={method.disabled}
-                                        className={cn("w-full p-4 text-left font-semibold flex items-center gap-3 transition-colors disabled:opacity-50 disabled:cursor-not-allowed",
-                                            paymentMethod === method.id ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300' : 'hover:bg-muted/50'
+                                        className={cn("w-full p-4 text-left font-semibold flex items-center justify-between gap-3 transition-colors disabled:opacity-50 disabled:cursor-not-allowed",
+                                            paymentMethod === method.id ? 'bg-primary/10 text-primary' : 'hover:bg-muted/50'
                                         )}
                                     >
-                                        {method.icon}
-                                        {method.label}
+                                        <div className="flex items-center gap-3">
+                                            {method.icon}
+                                            {method.label}
+                                        </div>
+                                        {method.offer && <span className="text-xs font-medium text-green-600">{method.offer}</span>}
                                     </button>
                                 ))}
                             </div>
@@ -296,6 +321,37 @@ export default function PaymentPage() {
                             </div>
                         </div>
                     </Card>
+
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2">
+                                <Ticket className="h-5 w-5"/> Available Offers &amp; Coupons
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-3">
+                            {availableOffers.length > 0 ? availableOffers.map((offer) => (
+                                <div key={offer.code} className="p-3 border rounded-lg flex items-center justify-between gap-2">
+                                    <div>
+                                        <h4 className="font-semibold">{offer.description}</h4>
+                                        <p className="text-xs text-muted-foreground">
+                                            {offer.discountType === 'fixed'
+                                                ? `Get flat ₹${offer.discountValue} off.`
+                                                : `Get ${offer.discountValue}% off.`}
+                                            {offer.minOrderValue ? ` on orders above ₹${offer.minOrderValue}.` : ''}
+                                        </p>
+                                    </div>
+                                    <Button variant="link" className="p-0 h-auto" onClick={() => {
+                                        toast({ title: 'Coupon Code Copied!', description: `Code ${offer.code} copied to clipboard.` });
+                                        navigator.clipboard.writeText(offer.code);
+                                    }}>
+                                        Copy Code
+                                    </Button>
+                                </div>
+                            )) : (
+                                <p className="text-sm text-muted-foreground text-center py-4">No offers available for your cart.</p>
+                            )}
+                        </CardContent>
+                    </Card>
                 </div>
 
                 <div className="lg:sticky top-24 space-y-6">
@@ -303,26 +359,26 @@ export default function PaymentPage() {
                         <CardHeader>
                             <CardTitle>Order Summary</CardTitle>
                         </CardHeader>
-                        <CardContent className="space-y-4">
-                             <div className="space-y-4 max-h-60 overflow-y-auto">
+                        <CardContent>
+                             <div className="space-y-4 max-h-60 overflow-y-auto pr-2">
                                 {cartItems.map((item) => (
-                                    <div key={`${item.id}-${item.size || ''}-${item.color || ''}`} className="flex items-center gap-4">
+                                    <div key={`${item.id}-${item.size || ''}-${item.color || ''}`} className="flex items-start gap-4">
                                         <div className="relative w-16 h-16 rounded-md border flex-shrink-0">
                                             <Image src={item.imageUrl} alt={item.name} layout="fill" className="object-cover rounded-md" data-ai-hint={item.hint}/>
                                         </div>
                                         <div className="flex-grow">
-                                            <p className="font-semibold text-sm">{item.name}</p>
-                                            <p className="text-xs text-muted-foreground">Qty: {item.quantity}</p>
+                                            <p className="font-semibold text-sm leading-tight">{item.name}</p>
                                             <div className="flex items-center gap-2 text-xs text-muted-foreground">
                                                 {item.color && <span>Color: {item.color}</span>}
                                                 {item.size && <span>Size: {item.size}</span>}
                                             </div>
+                                            <p className="text-xs text-muted-foreground">Qty: {item.quantity}</p>
                                         </div>
                                         <p className="font-semibold text-sm">₹{(parseFloat(item.price.replace(/[^0-9.-]+/g, '')) * item.quantity).toLocaleString('en-IN')}</p>
                                     </div>
                                 ))}
                             </div>
-                            <Separator />
+                            <Separator className="my-4" />
                             <div className="space-y-2 text-sm">
                                 <div className="flex justify-between">
                                     <span className="text-muted-foreground">Subtotal</span>
@@ -343,12 +399,19 @@ export default function PaymentPage() {
                                     <span>₹{estimatedTaxes.toFixed(2)}</span>
                                 </div>
                             </div>
-                            <Separator />
+                            <Separator className="my-4" />
                             <div className="flex justify-between font-bold text-lg">
                                 <span>Total</span>
                                 <span>₹{total.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                             </div>
                         </CardContent>
+                         <CardFooter className="flex-col items-start gap-2 text-xs text-muted-foreground">
+                            <div className="flex items-center gap-2">
+                               <ShieldCheck className="h-4 w-4 text-green-500" />
+                               <span>Secure Checkout</span>
+                            </div>
+                            <p>By completing your purchase you agree to our <Link href="/terms-and-conditions" className="underline hover:text-primary">Terms</Link> and <Link href="/privacy-and-security" className="underline hover:text-primary">Privacy Policy</Link>.</p>
+                        </CardFooter>
                     </Card>
                 </div>
             </div>
