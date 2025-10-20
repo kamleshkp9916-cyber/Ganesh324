@@ -109,17 +109,22 @@ export const isProductInCart = (productId: number): boolean => {
 
 export const addToCart = (product: CartProduct) => {
     const items = getCart();
-    const existingProductIndex = items.findIndex(p => p.id === product.id && p.size === product.size && p.color === product.color);
+    const existingProductIndex = items.findIndex(p => 
+        p.id === product.id && 
+        p.size === product.size && 
+        p.color === product.color
+    );
     
     if (existingProductIndex > -1) {
-        // Product exists, update quantity
+        // Product with the same variant exists, update quantity
         items[existingProductIndex].quantity += product.quantity;
     } else {
-        // Product is new, add it to cart
+        // Product is new or a new variant, add it to cart
         items.push({ ...product, quantity: product.quantity || 1 });
     }
     localStorage.setItem(CART_KEY, JSON.stringify(items));
 };
+
 
 export const removeFromCart = (productId: number) => {
     const items = getCart();
