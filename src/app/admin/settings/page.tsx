@@ -86,6 +86,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { useLocalStorage } from "@/hooks/use-local-storage"
 import { categories } from "@/lib/categories";
 import { Checkbox } from "@/components/ui/checkbox"
+import { Separator } from "@/components/ui/separator"
 
 
 const FLAGGED_COMMENTS_KEY = 'streamcart_flagged_comments';
@@ -187,7 +188,6 @@ const defaultShippingSettings: ShippingSettings = {
     deliveryCharge: 50.00
 };
 
-
 const initialFlaggedContent = [
     { id: 1, type: 'User Profile', content: 'Inappropriate bio for user "SpamBot99"', targetId: 'SpamBot99', reporter: 'AdminBot', status: 'Pending' },
     { id: 2, type: 'Product Image', content: 'Misleading image for "Magic Beans"', targetId: 'prod_1', reporter: 'JaneDoe', status: 'Pending' },
@@ -235,45 +235,6 @@ const defaultFeaturedProducts: FeaturedProduct[] = [
   { imageUrl: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500&h=500&fit=crop', name: 'Headphones', model: 'AudioMax 3' },
 ];
 
-const footerContentSchema = z.object({
-  description: z.string().min(10, "Description is required."),
-  address: z.string().min(10, "Address is required."),
-  phone: z.string().min(10, "Phone number is required."),
-  email: z.string().email("Invalid email address."),
-  facebook: z.string().url().or(z.literal("")),
-  twitter: z.string().url().or(z.literal("")),
-  linkedin: z.string().url().or(z.literal("")),
-  instagram: z.string().url().or(z.literal("")),
-});
-export type FooterContent = z.infer<typeof footerContentSchema>;
-
-const shippingSettingsSchema = z.object({
-  deliveryCharge: z.coerce.number().min(0, "Charge must be non-negative."),
-});
-export type ShippingSettings = z.infer<typeof shippingSettingsSchema>;
-
-const defaultFooterContent: FooterContent = {
-  description: "Your one-stop shop for live shopping. Discover, engage, and buy in real-time.",
-  address: "123 Stream St, Commerce City, IN",
-  phone: "(+91) 98765 43210",
-  email: "streamcartcom@gmail.com",
-  facebook: "https://facebook.com",
-  twitter: "https://twitter.com",
-  linkedin: "https://linkedin.com",
-  instagram: "https://instagram.com",
-};
-
-const defaultShippingSettings: ShippingSettings = {
-    deliveryCharge: 50.00
-};
-
-
-const initialFlaggedContent = [
-    { id: 1, type: 'User Profile', content: 'Inappropriate bio for user "SpamBot99"', targetId: 'SpamBot99', reporter: 'AdminBot', status: 'Pending' },
-    { id: 2, type: 'Product Image', content: 'Misleading image for "Magic Beans"', targetId: 'prod_1', reporter: 'JaneDoe', status: 'Pending' },
-    { id: 3, type: 'Chat Message', content: 'Harassment in chat from "User123"', targetId: 'User123', reporter: 'User456', status: 'Pending' },
-    { id: 4, type: 'Live Stream', content: 'Off-topic content in "GadgetGuru" stream', targetId: 'GadgetGuru', reporter: 'CommunityMod', status: 'Reviewed' },
-];
 
 const CouponForm = ({ onSave, existingCoupon, closeDialog }: { onSave: (coupon: Coupon) => void, existingCoupon?: Coupon, closeDialog: () => void }) => {
     const [isLoading, setIsLoading] = useState(false);
