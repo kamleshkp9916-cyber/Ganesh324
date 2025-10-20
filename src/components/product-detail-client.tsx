@@ -450,7 +450,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                 });
             }
         });
-    }, [product, currentPrice, selectedSize, selectedColor, handleAuthAction, toast]);
+    }, [product, currentPrice, selectedSize, selectedColor, toast]);
     
     const handleWishlistToggle = () => {
         handleAuthAction(() => {
