@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { useState, useEffect, useRef } from 'react';
@@ -48,7 +47,7 @@ const QuickReplyButtons = ({ replies, onSelect }: { replies: string[], onSelect:
 );
 
 
-export function HelpChat({ order, onClose, initialOptions, onExecuteAction }: { order: Order, onClose: () => void, initialOptions?: string[], onExecuteAction?: (action: string) => void }) {
+export function HelpChat({ order, onClose, initialOptions, onExecuteAction }: { order: Order | null, onClose: () => void, initialOptions?: string[], onExecuteAction?: (action: string) => void }) {
     const { user, userData } = useAuth();
     const router = useRouter();
     const [step, setStep] = useState<ChatStep>('initial');

@@ -4,7 +4,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Button, buttonVariants } from '@/components/ui/button';
-import { CreditCard, ShieldCheck, Banknote, Lock, Info, Loader2, ArrowRight, Wallet, QrCode, ArrowLeft, Coins, Ticket, Edit, Home } from 'lucide-react';
+import { CreditCard, ShieldCheck, Banknote, Lock, Info, Loader2, ArrowRight, Wallet, QrCode, ArrowLeft, Coins, Ticket, Edit, Home, MessageSquare } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
@@ -24,6 +24,8 @@ import Link from 'next/link';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from '@/components/ui/dialog';
 import { EditAddressForm } from '@/components/edit-address-form';
 import { updateUserData } from '@/lib/follow-data';
+import { HelpChat } from '@/components/help-chat';
+
 
 const defaultShippingSettings: ShippingSettings = {
     deliveryCharge: 50.00
@@ -103,6 +105,8 @@ export default function PaymentPage() {
   const [shippingSettings] = useLocalStorage<ShippingSettings>(SHIPPING_SETTINGS_KEY, defaultShippingSettings);
   const [allOffers, setAllOffers] = useLocalStorage<Coupon[]>(COUPONS_KEY, []);
   
+  const [isHelpChatOpen, setIsHelpChatOpen] = useState(false);
+
   useEffect(() => {
     setIsClient(true);
     if (typeof window !== 'undefined') {
@@ -580,7 +584,7 @@ export default function PaymentPage() {
                         <CardContent>
                              <div className="space-y-4 max-h-60 overflow-y-auto pr-2">
                                 {cartItems.map((item) => (
-                                    <div key={`${item.id}-${item.size || ''}-${item.color || ''}`} className="flex items-start gap-4">
+                                    <div key={`${''}${item.id}-${item.size || ''}-${item.color || ''}`} className="flex items-start gap-4">
                                         <div className="relative w-16 h-16 rounded-md border flex-shrink-0">
                                             <Image src={item.imageUrl} alt={item.name} layout="fill" className="object-cover rounded-md" data-ai-hint={item.hint}/>
                                         </div>
@@ -654,6 +658,18 @@ export default function PaymentPage() {
             </div>
         </div>
       </main>
+        <div className="fixed bottom-4 left-4 z-50">
+            <Button variant="ghost" onClick={() => setIsHelpChatOpen(true)}>
+                <MessageSquare className="mr-2 h-4 w-4" /> Help & Support
+            </Button>
+        </div>
+        {isHelpChatOpen && (
+            <HelpChat
+                order={null}
+                onClose={() => setIsHelpChatOpen(false)}
+                initialOptions={["Payment issue", "Delivery inquiry", "Problem with an item", "Talk to a support executive"]}
+            />
+        )}
     </div>
     </>
   );
