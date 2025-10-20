@@ -21,6 +21,7 @@ import { UserData, updateUserData } from '@/lib/follow-data';
 import { COUPONS_KEY, SHIPPING_SETTINGS_KEY, ShippingSettings } from '@/app/admin/settings/page';
 import { useLocalStorage } from '@/hooks/use-local-storage';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
 
 function EmptyCart() {
     const router = useRouter();
@@ -48,6 +49,7 @@ export default function CartPage() {
   const [address, setAddress] = useState(userData?.addresses?.[0] || null);
   const [isAddressDialogOpen, setIsAddressDialogOpen] = useState(false);
   const [appliedCoupon, setAppliedCoupon] = useState<any | null>(null);
+  const [couponCode, setCouponCode] = useState("");
   const [isCheckingOut, setIsCheckingOut] = useState(false);
   const [availableCoupons, setAvailableCoupons] = useState<any[]>([]);
   const [estimatedDeliveryDate, setEstimatedDeliveryDate] = useState('');
@@ -171,10 +173,20 @@ export default function CartPage() {
   }, [appliedCoupon, subtotal]);
 
   const shippingCost = shippingSettings?.deliveryCharge ?? 50.00;
-  const total = subtotal - couponDiscount + shippingCost;
+  const estimatedTaxes = subtotal * 0.05;
+  const total = subtotal - couponDiscount + shippingCost + estimatedTaxes;
 
-  const handleApplyCoupon = (coupon: any) => {
-    if (coupon.code === 'SAVE100' && subtotal < 1000) {
+  const handleApplyCoupon = () => {
+    const couponToApply = availableCoupons.find(c => c.code.toLowerCase() === couponCode.toLowerCase());
+    if (!couponToApply) {
+        toast({
+            variant: "destructive",
+            title: "Invalid Coupon",
+            description: "The discount code you entered is not valid."
+        });
+        return;
+    }
+    if (couponToApply.code === 'SAVE100' && subtotal < 1000) {
         toast({
             variant: "destructive",
             title: "Cannot Apply Coupon",
@@ -182,18 +194,10 @@ export default function CartPage() {
         });
         return;
     }
-    setAppliedCoupon(coupon);
+    setAppliedCoupon(couponToApply);
     toast({
         title: "Coupon Applied!",
-        description: `You've got a discount with ${coupon.code}.`
-    });
-  };
-
-  const handleRemoveCoupon = () => {
-    setAppliedCoupon(null);
-    toast({
-        title: "Coupon Removed",
-        description: "The coupon has been removed from your order."
+        description: `You've got a discount with ${couponToApply.code}.`
     });
   };
 
@@ -293,64 +297,49 @@ export default function CartPage() {
                     </div>
 
                      <div className="lg:sticky top-24 space-y-6">
-                         <Card>
-                            <CardHeader>
-                                <CardTitle>Price Details</CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                                <div className="flex justify-between">
-                                    <span className="text-muted-foreground">Subtotal</span>
-                                    <span>₹{subtotal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                        <Card>
+                            <CardContent className="p-6 space-y-4">
+                                <div className="flex gap-2">
+                                    <Input 
+                                        placeholder="Discount code" 
+                                        value={couponCode}
+                                        onChange={(e) => setCouponCode(e.target.value)}
+                                        disabled={!!appliedCoupon}
+                                    />
+                                    <Button onClick={handleApplyCoupon} disabled={!couponCode || !!appliedCoupon}>Apply</Button>
                                 </div>
-                                {appliedCoupon && (
-                                     <div className="flex justify-between items-center text-green-600 dark:text-green-400">
-                                        <span className="flex items-center gap-1.5"><Tag className="h-4 w-4"/> Coupon ({appliedCoupon.code})</span>
-                                        <div className="flex items-center gap-1">
-                                            <span>- ₹{couponDiscount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-                                            <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-destructive" onClick={handleRemoveCoupon}>
-                                                <X className="h-4 w-4" />
-                                            </Button>
-                                        </div>
+                                <Separator />
+                                <div className="space-y-2 text-sm">
+                                    <div className="flex justify-between">
+                                        <span className="text-muted-foreground">Subtotal</span>
+                                        <span>₹{subtotal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                                     </div>
-                                )}
-                                <div className="flex justify-between">
-                                    <span className="text-muted-foreground">Delivery Charges</span>
-                                    <span>₹{shippingCost.toFixed(2)}</span>
+                                    {appliedCoupon && (
+                                        <div className="flex justify-between items-center text-green-600 dark:text-green-400">
+                                            <span className="flex items-center gap-1.5"><Tag className="h-4 w-4"/> Coupon ({appliedCoupon.code})</span>
+                                            <span>- ₹{couponDiscount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                                        </div>
+                                    )}
+                                    <div className="flex justify-between">
+                                        <span className="text-muted-foreground">Shipping</span>
+                                        <span>₹{shippingCost.toFixed(2)}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <span className="text-muted-foreground">Estimated taxes</span>
+                                        <span>₹{estimatedTaxes.toFixed(2)}</span>
+                                    </div>
                                 </div>
                                 <Separator />
                                 <div className="flex justify-between font-bold text-lg">
-                                    <span>Total Amount</span>
+                                    <span>Total</span>
                                     <span>₹{total.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                                 </div>
                             </CardContent>
                             <CardFooter>
                                 <Button className="w-full" size="lg" onClick={handleCheckout} disabled={true}>
-                                    Checkout Coming Soon
+                                    Continue to Payment
                                 </Button>
                             </CardFooter>
-                        </Card>
-
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Available Coupons</CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                               {availableCoupons.map(coupon => (
-                                <div key={coupon.id} className="flex items-center justify-between p-3 bg-primary/5 border-l-4 border-primary rounded-r-lg">
-                                    <div className="flex items-center gap-3">
-                                        <Ticket className="h-6 w-6 text-primary" />
-                                        <div>
-                                            <p className="font-bold text-primary">{coupon.code}</p>
-                                            <p className="text-xs text-muted-foreground">{coupon.description}</p>
-                                        </div>
-                                    </div>
-                                    <Button size="sm" variant="outline" onClick={() => handleApplyCoupon(coupon)} disabled={appliedCoupon?.code === coupon.code}>
-                                        {appliedCoupon?.code === coupon.code ? 'Applied' : 'Apply'}
-                                    </Button>
-                                </div>
-                               ))}
-                               {availableCoupons.length === 0 && <p className="text-sm text-center text-muted-foreground">No coupons available right now.</p>}
-                            </CardContent>
                         </Card>
                         
                         <Card>
