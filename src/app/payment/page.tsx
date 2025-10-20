@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, CreditCard, ShieldCheck, Banknote, Lock, Info, Loader2, ArrowRight, Wallet, QrCode } from 'lucide-react';
@@ -15,23 +15,52 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';
-import { productDetails } from '@/lib/product-data';
+import { getCart, CartProduct } from '@/lib/product-history';
+import { useAuth } from '@/hooks/use-auth';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
+import { SHIPPING_SETTINGS_KEY, ShippingSettings } from '@/app/admin/settings/page';
+import { useLocalStorage } from '@/hooks/use-local-storage';
 
+
+const defaultShippingSettings: ShippingSettings = {
+    deliveryCharge: 50.00
+};
 
 export default function PaymentPage() {
   const router = useRouter();
   const { toast } = useToast();
+  const { user, loading } = useAuth();
   const [paymentMethod, setPaymentMethod] = useState("credit-card");
   const [isProcessing, setIsProcessing] = useState(false);
   const [invalidCard, setInvalidCard] = useState(false);
+  const [cartItems, setCartItems] = useState<CartProduct[]>([]);
+  const [isClient, setIsClient] = useState(false);
 
-  // Mock data that would come from the previous page
-  const product = productDetails['prod_5']; // Everyday Backpack
-  const subtotal = 3499;
-  const shipping = 99;
-  const tax = 189;
-  const giftWrap = 49;
-  const total = subtotal + shipping + tax;
+  const [shippingSettings] = useLocalStorage<ShippingSettings>(SHIPPING_SETTINGS_KEY, defaultShippingSettings);
+  
+  useEffect(() => {
+    setIsClient(true);
+    setCartItems(getCart());
+  }, []);
+
+  const { subtotal, shippingCost, estimatedTaxes, total } = useMemo(() => {
+    const sub = cartItems.reduce((acc, item) => {
+        const price = parseFloat(item.price.replace(/[^0-9.-]+/g,""));
+        return acc + (price * item.quantity);
+    }, 0);
+
+    const ship = shippingSettings?.deliveryCharge ?? 50.00;
+    const tax = sub * 0.05; // 5% mock tax
+    const tot = sub + ship + tax;
+    
+    return {
+        subtotal: sub,
+        shippingCost: ship,
+        estimatedTaxes: tax,
+        total: tot
+    };
+  }, [cartItems, shippingSettings]);
+
 
   const handlePlaceOrder = (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,8 +72,18 @@ export default function PaymentPage() {
             description: "Your order has been successfully placed. Thank you for shopping with StreamCart!",
         });
         // In a real app, you'd clear the cart here
+        localStorage.removeItem('streamcart_cart');
         router.push('/orders'); // Redirect to orders page
     }, 3000);
+  }
+
+  if (!isClient || loading) {
+      return <div className="h-screen w-full flex items-center justify-center"><LoadingSpinner /></div>
+  }
+
+  if (!user) {
+      router.push('/');
+      return null;
   }
 
   return (
@@ -70,7 +109,47 @@ export default function PaymentPage() {
                         <CardTitle className="text-2xl">Complete Your Payment</CardTitle>
                     </CardHeader>
                     <CardContent>
-                         <Accordion type="single" collapsible defaultValue="upi" className="w-full space-y-4">
+                         <Accordion type="single" collapsible defaultValue="credit" className="w-full space-y-4">
+                            {/* Credit Card */}
+                             <AccordionItem value="credit" className="border rounded-lg">
+                                <AccordionTrigger className="p-4 font-semibold">
+                                     <div className="flex items-center gap-3">
+                                        <CreditCard className="h-6 w-6" />
+                                        <span>Credit Card</span>
+                                    </div>
+                                </AccordionTrigger>
+                                <AccordionContent className="p-4 border-t">
+                                     <form className="space-y-4" onSubmit={handlePlaceOrder}>
+                                         <div className="space-y-1">
+                                            <Label htmlFor="credit-card-number">Card Number</Label>
+                                            <div className="relative">
+                                                <Input id="credit-card-number" placeholder="1234 5678 9012 3456" />
+                                                <Info className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                            </div>
+                                            <p className="text-xs text-muted-foreground">We do not store your card details.</p>
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div className="space-y-1">
+                                                <Label htmlFor="credit-expiry">Expiry</Label>
+                                                <Input id="credit-expiry" placeholder="MM / YY" />
+                                            </div>
+                                            <div className="space-y-1">
+                                                <Label htmlFor="credit-cvv">CVV</Label>
+                                                <Input id="credit-cvv" type="password" placeholder="•••" />
+                                            </div>
+                                        </div>
+                                        <div className="space-y-1">
+                                            <Label htmlFor="credit-name">Name on Card</Label>
+                                            <Input id="credit-name" placeholder="Full name" />
+                                        </div>
+                                        <div className="flex justify-between items-center">
+                                            <p className="text-xs text-muted-foreground flex items-center gap-2"><Lock className="h-3 w-3"/> PCI DSS compliant</p>
+                                            <Button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white">Pay Now</Button>
+                                        </div>
+                                    </form>
+                                </AccordionContent>
+                            </AccordionItem>
+                            
                             {/* UPI Payment */}
                             <AccordionItem value="upi" className="border rounded-lg">
                                 <AccordionTrigger className="p-4 font-semibold">
@@ -103,37 +182,13 @@ export default function PaymentPage() {
                             </AccordionItem>
 
                              {/* Cash on Delivery */}
-                            <AccordionItem value="cod" className="border rounded-lg">
-                                <AccordionTrigger className="p-4 font-semibold">
+                            <AccordionItem value="cod" className="border rounded-lg opacity-50 cursor-not-allowed">
+                                <AccordionTrigger className="p-4 font-semibold" disabled>
                                     <div className="flex items-center gap-3">
                                         <Banknote className="h-6 w-6" />
-                                        <span>Cash on Delivery</span>
+                                        <span>Cash on Delivery (Currently Unavailable)</span>
                                     </div>
                                 </AccordionTrigger>
-                                <AccordionContent className="p-4 border-t">
-                                     <form className="space-y-4" onSubmit={handlePlaceOrder}>
-                                        <div className="space-y-1">
-                                            <Label htmlFor="cod-contact">Contact Number</Label>
-                                            <Input id="cod-contact" defaultValue="+91 98765 43210" />
-                                            <p className="text-xs text-muted-foreground">Used for delivery coordination.</p>
-                                        </div>
-                                        <div className="space-y-1">
-                                            <Label htmlFor="cod-address">Delivery Address</Label>
-                                            <Input id="cod-address" placeholder="House / Flat, Street, City, Pincode" />
-                                        </div>
-                                        <div className="flex items-center space-x-2">
-                                            <Checkbox id="pay-doorstep" />
-                                            <label htmlFor="pay-doorstep" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                                                Pay at your doorstep
-                                            </label>
-                                        </div>
-                                        <div className="flex justify-end">
-                                            <Button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white">
-                                                Proceed to Payment
-                                            </Button>
-                                        </div>
-                                    </form>
-                                </AccordionContent>
                             </AccordionItem>
 
                             {/* Debit Card */}
@@ -179,46 +234,6 @@ export default function PaymentPage() {
                                     </form>
                                 </AccordionContent>
                             </AccordionItem>
-
-                             {/* Credit Card */}
-                             <AccordionItem value="credit" className="border rounded-lg">
-                                <AccordionTrigger className="p-4 font-semibold">
-                                     <div className="flex items-center gap-3">
-                                        <CreditCard className="h-6 w-6" />
-                                        <span>Credit Card</span>
-                                    </div>
-                                </AccordionTrigger>
-                                <AccordionContent className="p-4 border-t">
-                                     <form className="space-y-4" onSubmit={handlePlaceOrder}>
-                                         <div className="space-y-1">
-                                            <Label htmlFor="credit-card-number">Card Number</Label>
-                                            <div className="relative">
-                                                <Input id="credit-card-number" placeholder="1234 5678 9012 3456" />
-                                                <Info className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                            </div>
-                                            <p className="text-xs text-muted-foreground">We do not store your card details.</p>
-                                        </div>
-                                        <div className="grid grid-cols-2 gap-4">
-                                            <div className="space-y-1">
-                                                <Label htmlFor="credit-expiry">Expiry</Label>
-                                                <Input id="credit-expiry" placeholder="MM / YY" />
-                                            </div>
-                                            <div className="space-y-1">
-                                                <Label htmlFor="credit-cvv">CVV</Label>
-                                                <Input id="credit-cvv" type="password" placeholder="•••" />
-                                            </div>
-                                        </div>
-                                        <div className="space-y-1">
-                                            <Label htmlFor="credit-name">Name on Card</Label>
-                                            <Input id="credit-name" placeholder="Full name" />
-                                        </div>
-                                        <div className="flex justify-between items-center">
-                                            <p className="text-xs text-muted-foreground flex items-center gap-2"><Lock className="h-3 w-3"/> PCI DSS compliant</p>
-                                            <Button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white">Pay Now</Button>
-                                        </div>
-                                    </form>
-                                </AccordionContent>
-                            </AccordionItem>
                         </Accordion>
                         
                          <Card className="mt-6">
@@ -243,33 +258,35 @@ export default function PaymentPage() {
                         <CardTitle>Order Summary</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                        <div className="flex items-center gap-4">
-                            <Image src="https://placehold.co/80x80.png" alt={product.name} width={80} height={80} className="rounded-md border" />
-                            <div>
-                                <p className="font-semibold">{product.name}</p>
-                                <p className="text-sm text-muted-foreground">Color: Charcoal • Qty: 1</p>
-                                <p className="font-bold">₹{subtotal.toLocaleString('en-IN')}</p>
+                        {cartItems.map((item) => (
+                             <div key={`${item.id}-${item.size || ''}-${item.color || ''}`} className="flex items-center gap-4">
+                                <Image src={item.imageUrl} alt={item.name} width={80} height={80} className="rounded-md border" />
+                                <div>
+                                    <p className="font-semibold">{item.name}</p>
+                                    <p className="text-sm text-muted-foreground">Qty: {item.quantity}</p>
+                                    <p className="font-bold">{item.price}</p>
+                                </div>
                             </div>
-                        </div>
+                        ))}
                         <Separator />
                          <div className="space-y-2 text-sm">
                             <div className="flex justify-between">
                                 <span className="text-muted-foreground">Subtotal</span>
-                                <span>₹{subtotal.toLocaleString('en-IN')}</span>
+                                <span>₹{subtotal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                             </div>
                             <div className="flex justify-between">
                                 <span className="text-muted-foreground">Shipping</span>
-                                <span>₹{shipping}</span>
+                                <span>₹{shippingCost.toFixed(2)}</span>
                             </div>
                             <div className="flex justify-between">
-                                <span className="text-muted-foreground">Tax</span>
-                                <span>₹{tax}</span>
+                                <span className="text-muted-foreground">Estimated taxes</span>
+                                <span>₹{estimatedTaxes.toFixed(2)}</span>
                             </div>
                         </div>
                         <Separator />
                         <div className="flex justify-between font-bold text-lg">
                             <span>Total</span>
-                            <span>₹{total.toLocaleString('en-IN')}</span>
+                            <span>₹{total.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                         </div>
                         <div className="mt-4 p-3 bg-green-100 dark:bg-green-900/20 rounded-lg flex items-center gap-2 text-sm text-green-700 dark:text-green-300">
                             <ShieldCheck className="h-4 w-4"/>
@@ -281,13 +298,6 @@ export default function PaymentPage() {
                             <div className="flex justify-between">
                                 <Label htmlFor="promo-code">Promo Code</Label>
                                 <Button variant="link" className="p-0 h-auto text-xs">ENTER CODE</Button>
-                            </div>
-                             <div className="flex justify-between">
-                                <div className="flex items-center space-x-2">
-                                    <Checkbox id="gift-wrap" />
-                                    <Label htmlFor="gift-wrap" className="text-sm font-medium">Gift wrap</Label>
-                                </div>
-                                <span>+ ₹{giftWrap}</span>
                             </div>
                         </div>
                     </CardContent>
