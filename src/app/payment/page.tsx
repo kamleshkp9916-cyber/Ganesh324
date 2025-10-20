@@ -18,9 +18,9 @@ import { cn } from '@/lib/utils';
 import { getCart, CartProduct } from '@/lib/product-history';
 import { useAuth } from '@/hooks/use-auth';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
-import { SHIPPING_SETTINGS_KEY, ShippingSettings } from '@/app/admin/settings/page';
+import { SHIPPING_SETTINGS_KEY, ShippingSettings, Coupon, COUPONS_KEY } from '@/app/admin/settings/page';
 import { useLocalStorage } from '@/hooks/use-local-storage';
-
+import { productDetails } from '@/lib/product-data';
 
 const defaultShippingSettings: ShippingSettings = {
     deliveryCharge: 50.00
@@ -35,15 +35,23 @@ export default function PaymentPage() {
   const [invalidCard, setInvalidCard] = useState(false);
   const [cartItems, setCartItems] = useState<CartProduct[]>([]);
   const [isClient, setIsClient] = useState(false);
+  const [appliedCoupon, setAppliedCoupon] = useState<Coupon | null>(null);
+  const [availableOffers, setAvailableOffers] = useState<Coupon[]>([]);
 
   const [shippingSettings] = useLocalStorage<ShippingSettings>(SHIPPING_SETTINGS_KEY, defaultShippingSettings);
+  const [storedCoupons] = useLocalStorage<Coupon[]>(COUPONS_KEY, []);
   
   useEffect(() => {
     setIsClient(true);
-    setCartItems(getCart());
+    const cart = getCart();
+    setCartItems(cart);
+    const coupon = localStorage.getItem('appliedCoupon');
+    if (coupon) {
+      setAppliedCoupon(JSON.parse(coupon));
+    }
   }, []);
 
-  const { subtotal, shippingCost, estimatedTaxes, total } = useMemo(() => {
+  const { subtotal, couponDiscount, shippingCost, estimatedTaxes, total } = useMemo(() => {
     const sub = cartItems.reduce((acc, item) => {
         const price = parseFloat(item.price.replace(/[^0-9.-]+/g,""));
         return acc + (price * item.quantity);
@@ -51,15 +59,56 @@ export default function PaymentPage() {
 
     const ship = shippingSettings?.deliveryCharge ?? 50.00;
     const tax = sub * 0.05; // 5% mock tax
-    const tot = sub + ship + tax;
+    
+    let discount = 0;
+    if (appliedCoupon) {
+        const couponSubtotal = cartItems.reduce((acc, item) => {
+            const itemCategory = productDetails[item.key as keyof typeof productDetails]?.category;
+            if (appliedCoupon.applicableCategories?.includes('All') || (itemCategory && appliedCoupon.applicableCategories?.includes(itemCategory))) {
+                 const price = parseFloat(item.price.replace('₹', '').replace(/,/g, ''));
+                 return acc + (price * item.quantity);
+            }
+            return acc;
+        }, 0);
+
+        if (!appliedCoupon.minOrderValue || sub >= appliedCoupon.minOrderValue) {
+            if (appliedCoupon.discountType === 'percentage') {
+                discount = couponSubtotal * (appliedCoupon.discountValue / 100);
+                if (appliedCoupon.maxDiscount && discount > appliedCoupon.maxDiscount) {
+                    discount = appliedCoupon.maxDiscount;
+                }
+            } else {
+                discount = appliedCoupon.discountValue;
+            }
+        }
+    }
+
+    const tot = sub - discount + ship + tax;
     
     return {
         subtotal: sub,
+        couponDiscount: discount,
         shippingCost: ship,
         estimatedTaxes: tax,
         total: tot
     };
-  }, [cartItems, shippingSettings]);
+  }, [cartItems, shippingSettings, appliedCoupon]);
+
+  useEffect(() => {
+      if (cartItems.length > 0) {
+          const applicable = storedCoupons.filter(coupon => {
+              if (coupon.minOrderValue && subtotal < coupon.minOrderValue) {
+                  return false;
+              }
+              const cartCategories = new Set(cartItems.map(item => productDetails[item.key as keyof typeof productDetails]?.category));
+              if (coupon.applicableCategories?.includes('All')) {
+                  return true;
+              }
+              return coupon.applicableCategories?.some(cat => cartCategories.has(cat));
+          });
+          setAvailableOffers(applicable);
+      }
+  }, [cartItems, storedCoupons, subtotal]);
 
 
   const handlePlaceOrder = (e: React.FormEvent) => {
@@ -71,9 +120,9 @@ export default function PaymentPage() {
             title: "Order Placed!",
             description: "Your order has been successfully placed. Thank you for shopping with StreamCart!",
         });
-        // In a real app, you'd clear the cart here
         localStorage.removeItem('streamcart_cart');
-        router.push('/orders'); // Redirect to orders page
+        localStorage.removeItem('appliedCoupon');
+        router.push('/orders');
     }, 3000);
   }
 
@@ -109,38 +158,37 @@ export default function PaymentPage() {
                         <CardTitle className="text-2xl">Complete Your Payment</CardTitle>
                     </CardHeader>
                     <CardContent>
-                         <Accordion type="single" collapsible defaultValue="credit" className="w-full space-y-4">
-                            {/* Credit Card */}
-                             <AccordionItem value="credit" className="border rounded-lg">
+                         <Accordion type="single" collapsible defaultValue="credit-card" className="w-full space-y-4">
+                            <AccordionItem value="credit-card" className="border rounded-lg">
                                 <AccordionTrigger className="p-4 font-semibold">
                                      <div className="flex items-center gap-3">
                                         <CreditCard className="h-6 w-6" />
-                                        <span>Credit Card</span>
+                                        <span>Credit / Debit Card</span>
                                     </div>
                                 </AccordionTrigger>
                                 <AccordionContent className="p-4 border-t">
                                      <form className="space-y-4" onSubmit={handlePlaceOrder}>
                                          <div className="space-y-1">
-                                            <Label htmlFor="credit-card-number">Card Number</Label>
+                                            <Label htmlFor="card-number">Card Number</Label>
                                             <div className="relative">
-                                                <Input id="credit-card-number" placeholder="1234 5678 9012 3456" />
+                                                <Input id="card-number" placeholder="1234 5678 9012 3456" />
                                                 <Info className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                                             </div>
                                             <p className="text-xs text-muted-foreground">We do not store your card details.</p>
                                         </div>
                                         <div className="grid grid-cols-2 gap-4">
                                             <div className="space-y-1">
-                                                <Label htmlFor="credit-expiry">Expiry</Label>
-                                                <Input id="credit-expiry" placeholder="MM / YY" />
+                                                <Label htmlFor="expiry">Expiry</Label>
+                                                <Input id="expiry" placeholder="MM / YY" />
                                             </div>
                                             <div className="space-y-1">
-                                                <Label htmlFor="credit-cvv">CVV</Label>
-                                                <Input id="credit-cvv" type="password" placeholder="•••" />
+                                                <Label htmlFor="cvv">CVV</Label>
+                                                <Input id="cvv" type="password" placeholder="•••" />
                                             </div>
                                         </div>
                                         <div className="space-y-1">
-                                            <Label htmlFor="credit-name">Name on Card</Label>
-                                            <Input id="credit-name" placeholder="Full name" />
+                                            <Label htmlFor="name">Name on Card</Label>
+                                            <Input id="name" placeholder="Full name" />
                                         </div>
                                         <div className="flex justify-between items-center">
                                             <p className="text-xs text-muted-foreground flex items-center gap-2"><Lock className="h-3 w-3"/> PCI DSS compliant</p>
@@ -150,7 +198,6 @@ export default function PaymentPage() {
                                 </AccordionContent>
                             </AccordionItem>
                             
-                            {/* UPI Payment */}
                             <AccordionItem value="upi" className="border rounded-lg">
                                 <AccordionTrigger className="p-4 font-semibold">
                                     <div className="flex items-center gap-3">
@@ -181,7 +228,6 @@ export default function PaymentPage() {
                                 </AccordionContent>
                             </AccordionItem>
 
-                             {/* Cash on Delivery */}
                             <AccordionItem value="cod" className="border rounded-lg opacity-50 cursor-not-allowed">
                                 <AccordionTrigger className="p-4 font-semibold" disabled>
                                     <div className="flex items-center gap-3">
@@ -191,49 +237,6 @@ export default function PaymentPage() {
                                 </AccordionTrigger>
                             </AccordionItem>
 
-                            {/* Debit Card */}
-                             <AccordionItem value="debit" className="border rounded-lg">
-                                <AccordionTrigger className="p-4 font-semibold">
-                                     <div className="flex items-center gap-3">
-                                        <CreditCard className="h-6 w-6" />
-                                        <span>Debit Card</span>
-                                    </div>
-                                </AccordionTrigger>
-                                <AccordionContent className="p-4 border-t">
-                                      <form className="space-y-4" onSubmit={handlePlaceOrder}>
-                                         <div className="space-y-1">
-                                            <Label htmlFor="debit-card-number">Card Number</Label>
-                                            <div className="relative">
-                                                <Input id="debit-card-number" placeholder="1234 5678 9012 3456" onChange={(e) => { e.target.value === '1111222233334444' ? setInvalidCard(true) : setInvalidCard(false) }} />
-                                                <Info className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                            </div>
-                                             {invalidCard && (
-                                                <div className="bg-red-100 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-xs p-2 rounded-md mt-1">
-                                                    Invalid card number. Please check and try again.
-                                                </div>
-                                             )}
-                                        </div>
-                                        <div className="grid grid-cols-2 gap-4">
-                                            <div className="space-y-1">
-                                                <Label htmlFor="debit-expiry">Expiry</Label>
-                                                <Input id="debit-expiry" placeholder="MM / YY" />
-                                            </div>
-                                            <div className="space-y-1">
-                                                <Label htmlFor="debit-cvv">CVV</Label>
-                                                <Input id="debit-cvv" type="password" placeholder="•••" />
-                                            </div>
-                                        </div>
-                                        <div className="space-y-1">
-                                            <Label htmlFor="debit-name">Name on Card</Label>
-                                            <Input id="debit-name" placeholder="Full name" />
-                                        </div>
-                                        <div className="flex justify-between items-center">
-                                            <p className="text-xs text-muted-foreground flex items-center gap-2"><Lock className="h-3 w-3"/> Secured by 3D Secure</p>
-                                            <Button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white">Pay Now</Button>
-                                        </div>
-                                    </form>
-                                </AccordionContent>
-                            </AccordionItem>
                         </Accordion>
                         
                          <Card className="mt-6">
@@ -242,10 +245,16 @@ export default function PaymentPage() {
                                 <CardDescription>This area will display confirmation or error messages after the transaction.</CardDescription>
                             </CardHeader>
                             <CardContent>
-                                <div className="flex items-center gap-2 text-muted-foreground">
-                                    <Loader2 className="h-4 w-4 animate-spin"/>
-                                    <p>Processing your payment...</p>
-                                </div>
+                                {isProcessing ? (
+                                    <div className="flex items-center gap-2 text-muted-foreground">
+                                        <Loader2 className="h-4 w-4 animate-spin"/>
+                                        <p>Processing your payment...</p>
+                                    </div>
+                                ) : (
+                                    <div className="text-muted-foreground">
+                                        <p>Waiting for payment...</p>
+                                    </div>
+                                )}
                             </CardContent>
                         </Card>
                     </CardContent>
@@ -274,6 +283,12 @@ export default function PaymentPage() {
                                 <span className="text-muted-foreground">Subtotal</span>
                                 <span>₹{subtotal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                             </div>
+                             {couponDiscount > 0 && (
+                                <div className="flex justify-between items-center text-green-600 dark:text-green-400">
+                                    <span className="flex items-center gap-1.5"><Tag className="h-4 w-4"/> Coupon Discount</span>
+                                    <span>- ₹{couponDiscount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                                </div>
+                            )}
                             <div className="flex justify-between">
                                 <span className="text-muted-foreground">Shipping</span>
                                 <span>₹{shippingCost.toFixed(2)}</span>
@@ -295,9 +310,15 @@ export default function PaymentPage() {
                         <p className="text-xs text-muted-foreground text-center px-4">By completing your purchase you agree to our Terms and Privacy Policy.</p>
                          <Separator />
                           <div className="space-y-2">
-                            <div className="flex justify-between">
-                                <Label htmlFor="promo-code">Promo Code</Label>
-                                <Button variant="link" className="p-0 h-auto text-xs">ENTER CODE</Button>
+                             <Label>Available Offers</Label>
+                             <div className="space-y-2">
+                                {availableOffers.map(offer => (
+                                    <button key={offer.id} onClick={() => router.push('/cart')} className="w-full text-left p-2 border rounded-lg hover:bg-muted/50">
+                                        <p className="font-bold text-primary flex items-center gap-1"><Ticket className="h-4 w-4" /> {offer.code}</p>
+                                        <p className="text-xs text-muted-foreground">{offer.description}</p>
+                                    </button>
+                                ))}
+                                {availableOffers.length === 0 && <p className="text-xs text-muted-foreground text-center py-2">No offers available for your cart.</p>}
                             </div>
                         </div>
                     </CardContent>

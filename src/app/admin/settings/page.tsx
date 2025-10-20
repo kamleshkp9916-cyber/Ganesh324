@@ -28,6 +28,7 @@ import {
   Info,
   Link2,
   Truck,
+  GanttChart,
 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
@@ -84,6 +85,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useLocalStorage } from "@/hooks/use-local-storage"
 import { categories } from "@/lib/categories";
+import { Checkbox } from "@/components/ui/checkbox"
 
 
 const FLAGGED_COMMENTS_KEY = 'streamcart_flagged_comments';
@@ -113,7 +115,11 @@ const couponSchema = z.object({
   discountType: z.enum(['percentage', 'fixed']),
   discountValue: z.number().positive("Discount must be a positive number."),
   expiresAt: z.date().optional(),
+  minOrderValue: z.number().optional(),
+  applicableCategories: z.array(z.string()).optional(),
+  maxDiscount: z.number().optional(),
 });
+
 export type Coupon = z.infer<typeof couponSchema>;
 
 const slideSchema = z.object({
@@ -190,8 +196,8 @@ const initialFlaggedContent = [
 ];
 
 const initialCoupons: Coupon[] = [
-    { id: 1, code: 'STREAM10', description: '10% off on all orders', discountType: 'percentage', discountValue: 10, expiresAt: new Date(new Date().setDate(new Date().getDate() + 7)) },
-    { id: 2, code: 'SAVE100', description: '₹100 off on orders above ₹1000', discountType: 'fixed', discountValue: 100 },
+    { id: 1, code: 'STREAM10', description: '10% off on all orders', discountType: 'percentage', discountValue: 10, expiresAt: new Date(new Date().setDate(new Date().getDate() + 7)), applicableCategories: ['All'], minOrderValue: 0 },
+    { id: 2, code: 'SAVE100', description: '₹100 off on orders above ₹1000', discountType: 'fixed', discountValue: 100, minOrderValue: 1000, applicableCategories: ['All'] },
 ];
 
 const initialSlides: Slide[] = [
@@ -229,12 +235,63 @@ const defaultFeaturedProducts: FeaturedProduct[] = [
   { imageUrl: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500&h=500&fit=crop', name: 'Headphones', model: 'AudioMax 3' },
 ];
 
+const footerContentSchema = z.object({
+  description: z.string().min(10, "Description is required."),
+  address: z.string().min(10, "Address is required."),
+  phone: z.string().min(10, "Phone number is required."),
+  email: z.string().email("Invalid email address."),
+  facebook: z.string().url().or(z.literal("")),
+  twitter: z.string().url().or(z.literal("")),
+  linkedin: z.string().url().or(z.literal("")),
+  instagram: z.string().url().or(z.literal("")),
+});
+export type FooterContent = z.infer<typeof footerContentSchema>;
+
+const shippingSettingsSchema = z.object({
+  deliveryCharge: z.coerce.number().min(0, "Charge must be non-negative."),
+});
+export type ShippingSettings = z.infer<typeof shippingSettingsSchema>;
+
+const defaultFooterContent: FooterContent = {
+  description: "Your one-stop shop for live shopping. Discover, engage, and buy in real-time.",
+  address: "123 Stream St, Commerce City, IN",
+  phone: "(+91) 98765 43210",
+  email: "streamcartcom@gmail.com",
+  facebook: "https://facebook.com",
+  twitter: "https://twitter.com",
+  linkedin: "https://linkedin.com",
+  instagram: "https://instagram.com",
+};
+
+const defaultShippingSettings: ShippingSettings = {
+    deliveryCharge: 50.00
+};
+
+
+const initialFlaggedContent = [
+    { id: 1, type: 'User Profile', content: 'Inappropriate bio for user "SpamBot99"', targetId: 'SpamBot99', reporter: 'AdminBot', status: 'Pending' },
+    { id: 2, type: 'Product Image', content: 'Misleading image for "Magic Beans"', targetId: 'prod_1', reporter: 'JaneDoe', status: 'Pending' },
+    { id: 3, type: 'Chat Message', content: 'Harassment in chat from "User123"', targetId: 'User123', reporter: 'User456', status: 'Pending' },
+    { id: 4, type: 'Live Stream', content: 'Off-topic content in "GadgetGuru" stream', targetId: 'GadgetGuru', reporter: 'CommunityMod', status: 'Reviewed' },
+];
+
 const CouponForm = ({ onSave, existingCoupon, closeDialog }: { onSave: (coupon: Coupon) => void, existingCoupon?: Coupon, closeDialog: () => void }) => {
     const [isLoading, setIsLoading] = useState(false);
 
     const form = useForm<z.infer<typeof couponSchema>>({
         resolver: zodResolver(couponSchema),
-        defaultValues: existingCoupon || { code: "", description: "", discountType: "percentage", discountValue: 0, },
+        defaultValues: existingCoupon ? {
+            ...existingCoupon,
+            applicableCategories: existingCoupon.applicableCategories || ['All']
+        } : {
+            code: "",
+            description: "",
+            discountType: "percentage",
+            discountValue: 0,
+            minOrderValue: 0,
+            maxDiscount: 0,
+            applicableCategories: ['All'],
+        },
     });
 
     const onSubmit = (values: z.infer<typeof couponSchema>) => {
@@ -245,6 +302,8 @@ const CouponForm = ({ onSave, existingCoupon, closeDialog }: { onSave: (coupon: 
             closeDialog();
         }, 500);
     };
+
+    const allCategories = useMemo(() => ['All', ...categories.map(c => c.name)], []);
 
     return (
         <Form {...form}>
@@ -268,6 +327,59 @@ const CouponForm = ({ onSave, existingCoupon, closeDialog }: { onSave: (coupon: 
                 <FormField control={form.control} name="expiresAt" render={({ field }) => (
                     <FormItem className="flex flex-col"><FormLabel>Expiration Date (Optional)</FormLabel><Popover><PopoverTrigger asChild><FormControl><Button variant={"outline"} className={cn("w-[240px] pl-3 text-left font-normal", !field.value && "text-muted-foreground")}>{field.value ? format(new Date(field.value), "PPP") : <span>Pick a date</span>}<CalendarIcon className="ml-auto h-4 w-4 opacity-50" /></Button></FormControl></PopoverTrigger><PopoverContent className="w-auto p-0" align="start"><Calendar mode="single" selected={field.value ? new Date(field.value) : undefined} onSelect={field.onChange} disabled={(date) => date < new Date(new Date().setDate(new Date().getDate()-1)) } initialFocus /></PopoverContent></Popover><FormMessage /></FormItem>
                 )}/>
+                <Separator />
+                <h4 className="font-medium text-sm">Conditions</h4>
+                <div className="grid grid-cols-2 gap-4">
+                     <FormField control={form.control} name="minOrderValue" render={({ field }) => (
+                        <FormItem><FormLabel>Min. Order Value (₹)</FormLabel><FormControl><Input type="number" placeholder="e.g., 500" {...field} onChange={e => field.onChange(parseFloat(e.target.value))} /></FormControl><FormDescription className="text-xs">Leave as 0 for no minimum.</FormDescription><FormMessage /></FormItem>
+                    )} />
+                     <FormField control={form.control} name="maxDiscount" render={({ field }) => (
+                        <FormItem><FormLabel>Max. Discount (₹)</FormLabel><FormControl><Input type="number" placeholder="e.g., 1000" {...field} onChange={e => field.onChange(parseFloat(e.target.value))} /></FormControl><FormDescription className="text-xs">For percentage discounts.</FormDescription><FormMessage /></FormItem>
+                    )} />
+                </div>
+                <FormField
+                    control={form.control}
+                    name="applicableCategories"
+                    render={() => (
+                        <FormItem>
+                            <div className="mb-4">
+                                <FormLabel className="text-base">Applicable Categories</FormLabel>
+                                <FormDescription>Select categories where this coupon can be used. "All" applies to everything.</FormDescription>
+                            </div>
+                            <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                                {allCategories.map((item) => (
+                                    <FormField
+                                        key={item}
+                                        control={form.control}
+                                        name="applicableCategories"
+                                        render={({ field }) => {
+                                        return (
+                                            <FormItem key={item} className="flex flex-row items-start space-x-3 space-y-0">
+                                                <FormControl>
+                                                    <Checkbox
+                                                        checked={field.value?.includes(item)}
+                                                        onCheckedChange={(checked) => {
+                                                            return checked
+                                                            ? field.onChange([...(field.value || []), item])
+                                                            : field.onChange(
+                                                                field.value?.filter(
+                                                                    (value) => value !== item
+                                                                )
+                                                                )
+                                                        }}
+                                                    />
+                                                </FormControl>
+                                                <FormLabel className="text-sm font-normal">{item}</FormLabel>
+                                            </FormItem>
+                                        )
+                                        }}
+                                    />
+                                ))}
+                            </div>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
                 <DialogFooter className="pt-4"><Button type="button" variant="ghost" onClick={closeDialog}>Cancel</Button><Button type="submit" disabled={isLoading}>{isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}Save Coupon</Button></DialogFooter>
             </form>
         </Form>
@@ -751,7 +863,7 @@ export default function AdminSettingsPage() {
   return (
     <>
         <Dialog open={isCouponFormOpen} onOpenChange={setIsCouponFormOpen}>
-             <DialogContent>
+             <DialogContent className="max-w-2xl">
                 <DialogHeader><DialogTitle>{editingCoupon ? 'Edit' : 'Add New'} Coupon</DialogTitle><DialogDescription>Fill in the details for the discount coupon.</DialogDescription></DialogHeader>
                 <CouponForm onSave={handleSaveCoupon} existingCoupon={editingCoupon} closeDialog={() => setIsCouponFormOpen(false)} />
             </DialogContent>
@@ -892,21 +1004,28 @@ export default function AdminSettingsPage() {
                 </Card>
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between">
-                        <div><CardTitle>Coupon Management</CardTitle><CardDescription>Create and manage discount coupons for your store.</CardDescription></div>
-                        <Button size="sm" onClick={() => openCouponForm()}><PlusCircle className="mr-2 h-4 w-4" />Add New Coupon</Button>
+                        <div><CardTitle>Discounts & Offers</CardTitle><CardDescription>Create and manage global discount coupons and offers.</CardDescription></div>
+                        <Button size="sm" onClick={() => openCouponForm()}><PlusCircle className="mr-2 h-4 w-4" />Add New Offer</Button>
                     </CardHeader>
                     <CardContent className="space-y-4">
                         {coupons.length > 0 ? coupons.map(coupon => (
                              <div key={coupon.id} className={cn("flex items-center justify-between rounded-lg border p-4", coupon.expiresAt && new Date(coupon.expiresAt) < new Date() && "bg-muted/50")}>
                                 <div className="flex items-center gap-4"><div className="w-12 h-12 bg-muted rounded-md flex items-center justify-center"><Ticket className="h-6 w-6 text-primary" /></div>
-                                    <div><h4 className="font-semibold">{coupon.code}</h4><p className="text-xs text-muted-foreground">{coupon.description}</p>
+                                    <div>
+                                        <h4 className="font-semibold">{coupon.code}</h4>
+                                        <p className="text-xs text-muted-foreground">{coupon.description}</p>
+                                        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground mt-1">
+                                            {coupon.minOrderValue && coupon.minOrderValue > 0 ? <Badge variant="outline">Min: ₹{coupon.minOrderValue}</Badge> : null}
+                                            {coupon.maxDiscount && coupon.maxDiscount > 0 ? <Badge variant="outline">Max: ₹{coupon.maxDiscount}</Badge> : null}
+                                            {coupon.applicableCategories && coupon.applicableCategories.length > 0 && coupon.applicableCategories[0] !== 'All' ? <Badge variant="outline" className="flex items-center gap-1"><GanttChart className="h-3 w-3" /> {coupon.applicableCategories.join(', ')}</Badge> : null}
+                                        </div>
                                         {coupon.expiresAt ? (<p className={cn("text-xs mt-1", new Date(coupon.expiresAt) < new Date() ? 'text-destructive font-semibold' : 'text-muted-foreground')}>Expires on: {format(new Date(coupon.expiresAt), 'PPP')}{new Date(coupon.expiresAt) < new Date() && <Badge variant="destructive" className="ml-2">Expired</Badge>}</p>) : null}
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-2"><Button variant="ghost" size="icon" onClick={() => openCouponForm(coupon)}><Edit className="h-4 w-4" /></Button><Button variant="ghost" size="icon" className="text-destructive hover:text-destructive" onClick={() => handleDeleteCoupon(coupon.id!)}><Trash2 className="h-4 w-4" /></Button></div>
                             </div>
                         )) : (
-                            isMounted ? <p className="text-center text-muted-foreground py-4">No coupons have been created yet.</p> : <Skeleton className="w-full h-24" />
+                            isMounted ? <p className="text-center text-muted-foreground py-4">No offers have been created yet.</p> : <Skeleton className="w-full h-24" />
                         )}
                     </CardContent>
                 </Card>

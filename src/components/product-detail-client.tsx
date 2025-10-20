@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
@@ -16,7 +15,7 @@ import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { addRecentlyViewed, addToCart, addToWishlist, isWishlisted, Product, isProductInCart, getRecentlyViewed, getCart } from '@/lib/product-history';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
-import { format, addDays, parse, differenceInDays } from 'date-fns';
+import { format, addDays, parse, differenceInDays, intervalToDuration, formatDuration } from 'date-fns';
 import { Input } from '@/components/ui/input';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from './ui/dialog';
@@ -37,6 +36,44 @@ import ProductSearch from '@/components/ProductSearch';
 import { SimilarProductsOverlay } from './similar-products-overlay';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from './ui/sheet';
 import { FeedbackDialog } from './feedback-dialog';
+import { useLocalStorage } from '@/hooks/use-local-storage';
+import { COUPONS_KEY, Coupon } from '@/app/admin/settings/page';
+
+
+const CountdownTimer = ({ expiryDate, onExpire }: { expiryDate: string | Date, onExpire: () => void }) => {
+    const [timeLeft, setTimeLeft] = useState<Duration | null>(null);
+
+    useEffect(() => {
+        const calculateTimeLeft = () => {
+            const now = new Date();
+            const expiry = new Date(expiryDate);
+            const duration = intervalToDuration({ start: now, end: expiry });
+
+            if (expiry > now) {
+                setTimeLeft(duration);
+            } else {
+                setTimeLeft(null);
+                onExpire();
+                clearInterval(timer);
+            }
+        };
+
+        calculateTimeLeft();
+        const timer = setInterval(calculateTimeLeft, 1000);
+
+        return () => clearInterval(timer);
+    }, [expiryDate, onExpire]);
+
+    if (!timeLeft) {
+        return null; // Or some 'Expired' message
+    }
+
+    return (
+        <span className="font-mono text-destructive tracking-widest">
+            {formatDuration(timeLeft, { format: ['days', 'hours', 'minutes', 'seconds'] })}
+        </span>
+    );
+};
 
 const mockQandA = [
     { id: 1, question: "Does this camera come with a roll of film?", questioner: "Alice", answer: "Yes, it comes with one 24-exposure roll of color film to get you started!", answerer: "GadgetGuru" },
@@ -47,8 +84,8 @@ const mockQandA = [
 ];
 
 const mockAdminOffers = [
-    { icon: <Ticket className="h-5 w-5 text-primary" />, title: "Special Price", description: "Get this for ₹11,000 using the code VINTAGE10" },
-    { icon: <Banknote className="h-5 w-5 text-primary" />, title: "Bank Offer", description: "10% Instant Discount on HDFC Bank Credit Card" },
+    { icon: <Ticket className="h-5 w-5 text-primary" />, title: "Special Price", description: "Get this for ₹11,000 using the code VINTAGE10", code: 'VINTAGE10' },
+    { icon: <Banknote className="h-5 w-5 text-primary" />, title: "Bank Offer", description: "10% Instant Discount on HDFC Bank Credit Card", code: null },
 ];
 
 const productToSellerMapping: { [key: string]: { name: string; avatarUrl: string, uid: string } } = {
@@ -135,8 +172,43 @@ export function ProductDetailClient({ productId }: { productId: string }) {
     const [isLoadingSimilar, setIsLoadingSimilar] = useState(false);
     const [isAuthDialogOpen, setIsAuthDialogOpen] = useState(false);
     const [hasPurchased, setHasPurchased] = useState(false);
+    const [activeOffer, setActiveOffer] = useState<Coupon | null>(null);
     
+    const [allOffers] = useLocalStorage<Coupon[]>(COUPONS_KEY, []);
+
     const product = useMemo(() => productDetails[productId as keyof typeof productDetails] || null, [productId]);
+
+    const { discountedPrice, discountPercentage } = useMemo(() => {
+        if (!activeOffer || !currentPrice) return { discountedPrice: null, discountPercentage: null };
+
+        const price = parseFloat(currentPrice.replace(/[^0-9.-]+/g, ''));
+        let discount = 0;
+
+        if (activeOffer.discountType === 'percentage') {
+            discount = price * (activeOffer.discountValue / 100);
+             if (activeOffer.maxDiscount && discount > activeOffer.maxDiscount) {
+                discount = activeOffer.maxDiscount;
+            }
+        } else {
+            discount = activeOffer.discountValue;
+        }
+        
+        const finalPrice = price - discount;
+        const percentage = Math.round((discount / price) * 100);
+
+        return {
+            discountedPrice: `₹${finalPrice.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+            discountPercentage: percentage
+        };
+    }, [activeOffer, currentPrice]);
+
+    const handleOfferExpired = useCallback(() => {
+        setActiveOffer(null);
+        toast({
+            title: "Offer Expired",
+            description: "The special offer for this product has just expired.",
+        });
+    }, [toast]);
     
     useEffect(() => {
         const currentProduct = productDetails[productId as keyof typeof productDetails] || null;
@@ -191,8 +263,17 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                 }
             };
             fetchTaggedPosts();
+
+            // Find applicable offer
+            const productCategory = currentProduct.category;
+            const applicableOffer = allOffers.find(offer =>
+                (offer.applicableCategories?.includes('All') || (productCategory && offer.applicableCategories?.includes(productCategory))) &&
+                (!offer.minOrderValue || parseFloat(currentProduct.price.replace(/[^0-9.-]+/g, '')) >= offer.minOrderValue) &&
+                (!offer.expiresAt || new Date(offer.expiresAt) > new Date())
+            );
+            setActiveOffer(applicableOffer || null);
         }
-    }, [productId]); 
+    }, [productId, allOffers]); 
 
     useEffect(() => {
         if (product) {
@@ -216,7 +297,6 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                 
                 const purchased = querySnapshot.docs.some(doc => {
                     const order = doc.data();
-                    // Also check for delivered status
                     const isDelivered = order.timeline.some((t: any) => t.status === 'Delivered' && t.completed);
                     return isDelivered && order.products.some((p: any) => p.key === product.key);
                 });
@@ -365,7 +445,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                     hint: product.hint,
                     brand: product.brand,
                     category: product.category,
-                    quantity: 1, // Always add one at a time
+                    quantity: 1,
                     size: selectedSize || undefined,
                     color: selectedColor || undefined,
                 };
@@ -598,7 +678,6 @@ export function ProductDetailClient({ productId }: { productId: string }) {
 
 
     const seller = productToSellerMapping[product.key];
-    const allOffers = [...mockAdminOffers, (product as any).offer].filter(Boolean);
     const sellerLiveStream = liveSellers.find(s => s.id === seller.uid);
 
     return (
@@ -797,8 +876,19 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                         <p className="text-muted-foreground text-sm">{renderDescriptionWithHashtags(product.description)}</p>
                                     </div>
                                     <div>
-                                        <div className="flex items-center gap-4 flex-wrap">
-                                            {currentPrice && <p className="text-3xl font-bold text-foreground">{currentPrice}</p>}
+                                         <div className="flex items-baseline gap-4 flex-wrap">
+                                            <p className={cn("text-3xl font-bold text-foreground", discountedPrice && "text-muted-foreground line-through")}>{currentPrice}</p>
+                                            {discountedPrice && <p className="text-3xl font-bold text-destructive">{discountedPrice}</p>}
+                                            {discountPercentage && <Badge variant="destructive">{discountPercentage}% OFF</Badge>}
+                                        </div>
+                                        {activeOffer && activeOffer.expiresAt && (
+                                            <Card className="mt-2 border-dashed border-primary/50 bg-primary/5">
+                                                <CardContent className="p-3 text-center text-sm">
+                                                    <p className="font-semibold text-primary">Offer ends in: <CountdownTimer expiryDate={activeOffer.expiresAt} onExpire={handleOfferExpired} /></p>
+                                                </CardContent>
+                                            </Card>
+                                        )}
+                                        <div className="flex items-center gap-4 flex-wrap mt-2">
                                             <div className="flex items-center gap-2">
                                                     <div className="flex items-center gap-1 text-amber-400">
                                                         <Star className="h-5 w-5 fill-current" />
@@ -860,7 +950,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                             <div className="flex flex-col gap-2">
                                                 {inCart ? (
                                                     <Button size="lg" className="w-full" asChild>
-                                                        <Link href="/cart">Proceed Further</Link>
+                                                        <Link href="/cart">Go to Cart</Link>
                                                     </Button>
                                                 ) : (
                                                     <Button size="lg" className="w-full" variant="outline" onClick={handleAddToCart}>
