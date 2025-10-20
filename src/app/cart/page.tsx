@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -42,7 +43,6 @@ const defaultShippingSettings: ShippingSettings = {
 
 export default function CartPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const { user, userData, loading } = useAuth();
   const { toast } = useToast();
   const [cartItems, setCartItems] = useState<CartProduct[]>([]);
@@ -57,11 +57,6 @@ export default function CartPage() {
   
   const [shippingSettings] = useLocalStorage<ShippingSettings>(SHIPPING_SETTINGS_KEY, defaultShippingSettings);
   const [storedCoupons] = useLocalStorage<Coupon[]>(COUPONS_KEY, []);
-
-  const buyNowProductId = searchParams.get('productId');
-  const buyNowSize = searchParams.get('size');
-  const buyNowColor = searchParams.get('color');
-  const isBuyNow = searchParams.get('buyNow') === 'true';
 
   useEffect(() => {
     setIsClient(true);
@@ -95,23 +90,10 @@ export default function CartPage() {
     
     setEstimatedDeliveryDate(format(addDays(new Date(), 5), 'E, MMM dd, yyyy'));
 
-    if (isBuyNow && buyNowProductId) {
-        const productData = productDetails[buyNowProductId as keyof typeof productDetails];
-        if (productData) {
-            const buyNowItem: CartProduct = {
-                ...productData,
-                quantity: 1,
-                imageUrl: productData.images[0],
-                size: buyNowSize || undefined,
-                color: buyNowColor || undefined,
-            };
-            setCartItems([buyNowItem]);
-        }
-    } else {
-        // Only read from local storage if it's not a "Buy Now" flow
-        setCartItems(getCart());
-    }
-  }, [user, userData, isBuyNow, buyNowProductId, buyNowSize, buyNowColor, loading, isClient, router]);
+    // The cart should always be loaded from local storage now
+    setCartItems(getCart());
+    
+  }, [user, userData, loading, isClient, router]);
 
 
   const handleRemoveFromCart = (productId: number, size?: string, color?: string) => {
@@ -124,16 +106,8 @@ export default function CartPage() {
   };
 
   const handleQuantityChange = (productId: number, newQuantity: number, size?: string, color?: string) => {
-      if (isBuyNow) {
-          setCartItems(currentItems => 
-              currentItems.map(item => 
-                  item.id === productId ? { ...item, quantity: Math.max(1, newQuantity) } : item
-              )
-          );
-      } else {
-          updateCartQuantity(productId, newQuantity, size, color);
-          setCartItems(getCart());
-      }
+      updateCartQuantity(productId, newQuantity, size, color);
+      setCartItems(getCart());
   };
 
   const handleAddressSave = (newAddress: any) => {
@@ -223,12 +197,6 @@ export default function CartPage() {
 
   const handleCheckout = () => {
     setIsCheckingOut(true);
-    // Crucially, we save the `cartItems` from the current state.
-    // For "Buy Now", this state contains only the single item.
-    // For a regular cart, it contains the full cart.
-    // This ensures the payment page gets the correct data.
-    saveCart(cartItems); 
-    
     if(appliedCoupon) {
         localStorage.setItem('appliedCoupon', JSON.stringify(appliedCoupon));
     } else {
@@ -245,6 +213,8 @@ export default function CartPage() {
         </div>
     )
   }
+
+  const isBuyNow = cartItems.length === 1 && localStorage.getItem('buyNow') === 'true';
 
   return (
     <div className="min-h-screen bg-muted/40 text-foreground flex flex-col">

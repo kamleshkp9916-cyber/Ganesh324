@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
@@ -12,7 +13,7 @@ import { Badge } from '@/components/ui/badge';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
-import { addRecentlyViewed, addToCart, addToWishlist, isWishlisted, Product, isProductInCart, getRecentlyViewed, getCart } from '@/lib/product-history';
+import { addRecentlyViewed, addToCart, addToWishlist, isWishlisted, Product, isProductInCart, getRecentlyViewed, getCart, saveCart } from '@/lib/product-history';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
 import { format, addDays, parse, differenceInDays, intervalToDuration, formatDuration } from 'date-fns';
@@ -493,18 +494,24 @@ export function ProductDetailClient({ productId }: { productId: string }) {
     const handleBuyNow = () => {
         handleAuthAction(() => {
             if (product) {
-                 if (!userData?.addresses || userData.addresses.length === 0) {
+                if (!userData?.addresses || userData.addresses.length === 0) {
                     setIsAddressDialogOpen(true);
                     return;
                 }
-                const queryParams = new URLSearchParams({
-                    buyNow: 'true',
-                    productId: product.key
-                });
-                if (selectedSize) queryParams.set('size', selectedSize);
-                if (selectedColor) queryParams.set('color', selectedColor);
-                
-                router.push(`/cart?${queryParams.toString()}`);
+                const buyNowCart: CartProduct[] = [{
+                    ...product,
+                    id: product.id,
+                    key: product.key,
+                    name: product.name,
+                    price: currentPrice || product.price,
+                    imageUrl: product.images[0],
+                    quantity: 1,
+                    size: selectedSize || undefined,
+                    color: selectedColor || undefined,
+                }];
+                saveCart(buyNowCart);
+                localStorage.setItem('buyNow', 'true');
+                router.push('/payment');
             }
         });
     };
