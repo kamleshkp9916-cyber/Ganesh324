@@ -179,21 +179,20 @@ export function ProductDetailClient({ productId }: { productId: string }) {
     const product = useMemo(() => productDetails[productId as keyof typeof productDetails] || null, [productId]);
     
     const { compareAtPrice, discountPercentage } = useMemo(() => {
-        if (!product?.compareAtPrice || !currentPrice) return { compareAtPrice: null, discountPercentage: null };
+        if (!product || !currentPrice) return { compareAtPrice: null, discountPercentage: null };
 
-        const comparePrice = parseFloat(String(product.compareAtPrice).replace(/[^0-9.-]+/g, ''));
         const sellingPrice = parseFloat(currentPrice.replace(/[^0-9.-]+/g, ''));
-
-        if (comparePrice > sellingPrice) {
-            const percentage = Math.round(((comparePrice - sellingPrice) / comparePrice) * 100);
-            return {
-                compareAtPrice: `₹${comparePrice.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
-                discountPercentage: percentage
+        
+        if (product.discountPercentage && product.discountPercentage > 0) {
+            const originalPrice = sellingPrice / (1 - (product.discountPercentage / 100));
+             return {
+                compareAtPrice: `₹${originalPrice.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+                discountPercentage: product.discountPercentage
             };
         }
 
         return { compareAtPrice: null, discountPercentage: null };
-    }, [product?.compareAtPrice, currentPrice]);
+    }, [product, currentPrice]);
 
     const handleOfferExpired = useCallback(() => {
         setActiveOffer(null);
@@ -879,7 +878,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                     </div>
                                     <div>
                                         <div className="flex items-baseline gap-2 flex-wrap">
-                                            <p className={cn("text-3xl font-bold text-foreground", compareAtPrice && "text-muted-foreground line-through text-2xl")}>{currentPrice}</p>
+                                            <p className={cn("text-3xl font-bold text-foreground", compareAtPrice && "text-muted-foreground line-through text-2xl")}>{compareAtPrice ? compareAtPrice : currentPrice}</p>
                                             {compareAtPrice && <p className="text-3xl font-bold text-destructive">{currentPrice}</p>}
                                             {discountPercentage && <Badge variant="destructive">{discountPercentage}% OFF</Badge>}
                                         </div>
