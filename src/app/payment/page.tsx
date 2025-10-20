@@ -21,7 +21,7 @@ import { SHIPPING_SETTINGS_KEY, ShippingSettings, Coupon, COUPONS_KEY } from '@/
 import { useLocalStorage } from '@/hooks/use-local-storage';
 import { productDetails } from '@/lib/product-data';
 import Link from 'next/link';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from '@/components/ui/dialog';
 import { EditAddressForm } from '@/components/edit-address-form';
 import { updateUserData } from '@/lib/follow-data';
 
@@ -659,4 +659,3 @@ export default function PaymentPage() {
   );
 }
 
-    
