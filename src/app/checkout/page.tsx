@@ -145,13 +145,15 @@ export default function CheckoutPage() {
                         <div key={item.id} className="flex items-center gap-4">
                            <div className="relative flex-shrink-0">
                                 <Image src={item.imageUrl} alt={item.name} width={64} height={64} className="rounded-md object-cover border" />
-                                <Badge className="absolute -top-2 -right-2 h-5 w-5 justify-center p-0">{item.quantity}</Badge>
                             </div>
                             <div className="flex-grow">
                                 <p className="font-semibold">{item.name}</p>
                                 <p className="text-sm text-muted-foreground">{item.brand}</p>
                             </div>
-                            <p className="font-semibold">₹{(parseFloat(item.price.replace('₹', '').replace(/,/g, '')) * item.quantity).toLocaleString()}</p>
+                            <div className="text-right">
+                                <p className="font-semibold">₹{(parseFloat(item.price.replace('₹', '').replace(/,/g, '')) * item.quantity).toLocaleString()}</p>
+                                <p className="text-sm text-muted-foreground">Qty: {item.quantity}</p>
+                            </div>
                         </div>
                     ))}
                   </div>
