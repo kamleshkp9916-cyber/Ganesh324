@@ -322,20 +322,6 @@ export default function CartPage() {
                                 <CardTitle>Order Summary</CardTitle>
                             </CardHeader>
                             <CardContent className="space-y-4">
-                                <div className="space-y-2">
-                                    <Label htmlFor="coupon-code">Discount Code</Label>
-                                    <div className="flex gap-2">
-                                        <Input 
-                                            id="coupon-code"
-                                            placeholder="Enter code" 
-                                            value={couponCode}
-                                            onChange={(e) => setCouponCode(e.target.value)}
-                                            disabled={!!appliedCoupon}
-                                        />
-                                        <Button onClick={() => handleApplyCoupon(couponCode)} disabled={!couponCode || !!appliedCoupon}>Apply</Button>
-                                    </div>
-                                </div>
-                                <Separator />
                                 <div className="space-y-2 text-sm">
                                     <div className="flex justify-between">
                                         <span className="text-muted-foreground">Subtotal</span>
