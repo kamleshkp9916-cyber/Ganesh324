@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
@@ -157,7 +156,6 @@ export function ProductDetailClient({ productId }: { productId: string }) {
             setRecentlyViewedItems(getRecentlyViewed().filter(p => p.key !== currentProduct.key)); 
 
             setWishlisted(isWishlisted(currentProduct.id));
-            setInCart(isProductInCart(currentProduct.id, selectedSize || undefined, selectedColor || undefined));
             setReviews(getReviews(currentProduct.key));
 
             setCurrentPrice(currentProduct.price);
@@ -193,7 +191,14 @@ export function ProductDetailClient({ productId }: { productId: string }) {
             };
             fetchTaggedPosts();
         }
-    }, [productId, selectedSize, selectedColor]); 
+    }, [productId]); 
+
+    useEffect(() => {
+        if (product) {
+            setInCart(isProductInCart(product.id, selectedSize || undefined, selectedColor || undefined));
+        }
+    }, [product, selectedSize, selectedColor, cartCount]);
+
 
     useEffect(() => {
         if (!user || !product) {
@@ -347,10 +352,10 @@ export function ProductDetailClient({ productId }: { productId: string }) {
         }
     };
 
-    const handleAddToCart = () => {
+    const handleAddToCart = useCallback(() => {
         handleAuthAction(() => {
             if (product) {
-                const productForCart: Product & {size?: string; color?: string;} = {
+                const productForCart: CartProduct = {
                     id: product.id,
                     key: product.key,
                     name: product.name,
@@ -359,18 +364,19 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                     hint: product.hint,
                     brand: product.brand,
                     category: product.category,
+                    quantity: 1, // Always add one at a time
                     size: selectedSize || undefined,
                     color: selectedColor || undefined,
                 };
-                addToCart({ ...productForCart, quantity: 1 });
-                setInCart(true); // Manually update state
+                addToCart(productForCart);
+                setCartCount(getCart().reduce((sum, item) => sum + item.quantity, 0));
                 toast({
                     title: "Added to Cart!",
                     description: `${product.name} has been added to your shopping cart.`,
                 });
             }
         });
-    };
+    }, [product, currentPrice, selectedSize, selectedColor, handleAuthAction, toast]);
     
     const handleWishlistToggle = () => {
         handleAuthAction(() => {
@@ -1121,3 +1127,5 @@ export function ProductDetailClient({ productId }: { productId: string }) {
         </>
     );
 }
+
+    
