@@ -30,7 +30,7 @@ type PaymentMethod = 'upi' | 'cod' | 'debit' | 'credit';
 export default function PaymentPage() {
   const router = useRouter();
   const { toast } = useToast();
-  const { user, loading } = useAuth();
+  const { user, userData, loading } = useAuth();
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("upi");
   const [isProcessing, setIsProcessing] = useState(false);
   const [invalidCard, setInvalidCard] = useState(false);
@@ -79,7 +79,7 @@ export default function PaymentPage() {
         return acc + (price * item.quantity);
     }, 0);
 
-    const ship = shippingSettings?.deliveryCharge ?? 99.00;
+    const ship = shippingSettings?.deliveryCharge ?? 50.00;
     const tax = sub * 0.05; // 5% mock tax
 
     const tot = sub + ship + tax;
@@ -268,16 +268,18 @@ export default function PaymentPage() {
                             <CardTitle>Order Summary</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
-                            {cartItems.map((item) => (
-                                <div key={`${item.id}-${item.size || ''}-${item.color || ''}`} className="flex items-center gap-4">
-                                    <Image src={item.imageUrl} alt={item.name} width={64} height={64} className="rounded-md border" />
-                                    <div className="flex-grow">
-                                        <p className="font-semibold text-sm">{item.name}</p>
-                                        <p className="text-xs text-muted-foreground">Color: {item.color || 'Default'} • Qty: {item.quantity}</p>
+                            <div className="space-y-4 max-h-60 overflow-y-auto">
+                                {cartItems.map((item) => (
+                                    <div key={`${item.id}-${item.size || ''}-${item.color || ''}`} className="flex items-center gap-4">
+                                        <Image src={item.imageUrl} alt={item.name} width={64} height={64} className="rounded-md border" />
+                                        <div className="flex-grow">
+                                            <p className="font-semibold text-sm">{item.name}</p>
+                                            <p className="text-xs text-muted-foreground">Color: {item.color || 'Default'} • Qty: {item.quantity}</p>
+                                        </div>
+                                        <p className="font-semibold text-sm">₹{(parseFloat(item.price.replace(/[^0-9.-]+/g, '')) * item.quantity).toLocaleString('en-IN')}</p>
                                     </div>
-                                    <p className="font-semibold text-sm">{item.price}</p>
-                                </div>
-                            ))}
+                                ))}
+                            </div>
                             <Separator />
                             <div className="space-y-2 text-sm">
                                 <div className="flex justify-between">
@@ -323,5 +325,3 @@ export default function PaymentPage() {
     </div>
   );
 }
-
-    
