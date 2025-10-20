@@ -88,6 +88,11 @@ export default function PaymentPage() {
   const [couponCode, setCouponCode] = useState("");
   const [isCheckingOut, setIsCheckingOut] = useState(false);
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
+  
+  const [savedUpiIds, setSavedUpiIds] = useState(['ganeshprajapati@okhdfcbank']);
+  const [newUpiId, setNewUpiId] = useState('');
+  const [saveUpi, setSaveUpi] = useState(false);
+  const [selectedUpi, setSelectedUpi] = useState(savedUpiIds[0] || '');
 
 
   const [shippingSettings] = useLocalStorage<ShippingSettings>(SHIPPING_SETTINGS_KEY, defaultShippingSettings);
@@ -229,19 +234,17 @@ export default function PaymentPage() {
   const handlePlaceOrder = (e: React.FormEvent) => {
     e.preventDefault();
     let paymentSuccess = true;
+    let upiIdToProcess = '';
     
     if (paymentMethod === 'upi') {
-        const upiIdInput = (e.target as HTMLFormElement).querySelector('#upi-id') as HTMLInputElement;
-        if (upiIdInput) {
-            const upiId = upiIdInput.value;
-             if (!/^[a-zA-Z0-9.\\-_]{2,256}@[a-zA-Z]{2,64}$/.test(upiId)) {
-                toast({
-                    variant: "destructive",
-                    title: "Invalid UPI ID",
-                    description: "Please enter a valid UPI ID to proceed.",
-                });
-                return;
-            }
+        upiIdToProcess = newUpiId || selectedUpi;
+        if (!/^[a-zA-Z0-9.\-_]{2,256}@[a-zA-Z]{2,64}$/.test(upiIdToProcess)) {
+            toast({
+                variant: "destructive",
+                title: "Invalid UPI ID",
+                description: "Please select a saved UPI ID or enter a valid new one.",
+            });
+            return;
         }
     }
     
@@ -257,6 +260,12 @@ export default function PaymentPage() {
     setTimeout(() => {
         setIsProcessing(false);
         if (paymentSuccess) {
+            if (paymentMethod === 'upi' && saveUpi && newUpiId) {
+                setSavedUpiIds(prev => [...prev, newUpiId]);
+                setSaveUpi(false);
+                setNewUpiId('');
+                toast({ title: "UPI ID Saved!" });
+            }
             localStorage.removeItem('streamcart_cart');
             localStorage.removeItem('appliedCoupon');
             setIsSuccessModalOpen(true);
@@ -353,9 +362,27 @@ export default function PaymentPage() {
                             <span>256-bit encrypted</span>
                         </div>
                     </div>
+                    {savedUpiIds.length > 0 && (
+                        <RadioGroup value={selectedUpi} onValueChange={setSelectedUpi} className="space-y-2">
+                            {savedUpiIds.map(id => (
+                                <Label key={id} htmlFor={id} className="flex items-center gap-3 p-3 border rounded-md has-[:checked]:border-primary has-[:checked]:bg-primary/10 cursor-pointer">
+                                    <RadioGroupItem value={id} id={id} />
+                                    {id}
+                                </Label>
+                            ))}
+                        </RadioGroup>
+                    )}
                     <div className="space-y-1">
-                        <Label htmlFor="upi-id">UPI ID</Label>
-                        <Input id="upi-id" placeholder="name@bank" />
+                        <Label htmlFor="upi-id">Or Enter New UPI ID</Label>
+                        <Input id="upi-id" placeholder="name@bank" value={newUpiId} onChange={e => { setNewUpiId(e.target.value); setSelectedUpi(''); }} />
+                        {newUpiId && (
+                            <div className="flex items-center space-x-2 pt-2">
+                                <Checkbox id="save-upi" checked={saveUpi} onCheckedChange={(checked) => setSaveUpi(Boolean(checked))} />
+                                <label htmlFor="save-upi" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                                    Save this UPI ID for future use
+                                </label>
+                            </div>
+                        )}
                         <p className="text-xs text-muted-foreground">We'll send a collect request to this UPI ID.</p>
                     </div>
                     <div className="text-sm text-muted-foreground">
@@ -480,15 +507,13 @@ export default function PaymentPage() {
 
                 <div className="lg:sticky top-24 space-y-6">
                     <Card>
-                        <CardHeader>
-                            <div className="flex items-center justify-between">
-                                <CardTitle>Order Summary</CardTitle>
-                                <Button asChild variant="link" size="sm" className="p-0 h-auto text-sm hover:text-primary">
-                                    <Link href="/cart">
-                                        <Edit className="mr-1 h-3 w-3" /> Edit
-                                    </Link>
-                                </Button>
-                            </div>
+                        <CardHeader className="flex flex-row items-center justify-between">
+                            <CardTitle>Order Summary</CardTitle>
+                            <Button asChild variant="link" size="sm" className="p-0 h-auto text-sm hover:text-primary">
+                                <Link href="/cart">
+                                    <Edit className="mr-1 h-3 w-3" /> Edit
+                                </Link>
+                            </Button>
                         </CardHeader>
                         <CardContent>
                              <div className="space-y-4 max-h-60 overflow-y-auto pr-2">
@@ -536,13 +561,15 @@ export default function PaymentPage() {
                                 <span>₹{total.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                             </div>
                         </CardContent>
-                         <CardFooter className="flex-col items-start gap-4 text-xs text-muted-foreground border-t pt-4">
-                            <div className="flex items-center gap-2">
-                               <ShieldCheck className="h-4 w-4 text-green-500" />
-                               <span>Secure Checkout</span>
+                         <CardFooter className="flex-col items-start gap-4 pt-4 border-t">
+                            <div className="space-y-2 w-full">
+                                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                    <ShieldCheck className="h-4 w-4 text-green-500" />
+                                    <span>Secure Checkout</span>
+                                </div>
+                                <p className="text-xs text-muted-foreground">By completing your purchase you agree to our <Link href="/terms-and-conditions" className="underline hover:text-primary">Terms</Link> and <Link href="/privacy-and-security" className="underline hover:text-primary">Privacy Policy</Link>.</p>
                             </div>
-                            <p>By completing your purchase you agree to our <Link href="/terms-and-conditions" className="underline hover:text-primary">Terms</Link> and <Link href="/privacy-and-security" className="underline hover:text-primary">Privacy Policy</Link>.</p>
-                             <div className="w-full space-y-2 pt-2">
+                            <div className="w-full space-y-2 pt-2">
                                 <Label htmlFor="promo-code">Promo Code</Label>
                                 <div className="flex gap-2">
                                     <Input 
