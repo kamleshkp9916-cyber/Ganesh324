@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -299,7 +298,7 @@ export default function CartPage() {
                                     <span>₹{subtotal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                                 </div>
                                 {appliedCoupon && (
-                                     <div className="flex justify-between items-center text-success">
+                                     <div className="flex justify-between items-center text-green-600 dark:text-green-400">
                                         <span className="flex items-center gap-1.5"><Tag className="h-4 w-4"/> Coupon ({appliedCoupon.code})</span>
                                         <div className="flex items-center gap-1">
                                             <span>- ₹{couponDiscount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
