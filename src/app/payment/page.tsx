@@ -658,7 +658,7 @@ export default function PaymentPage() {
             </div>
         </div>
       </main>
-        <div className="fixed bottom-4 left-4 z-50 flex gap-2">
+        <div className="p-4 mt-8 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 opacity-75">
             <Button variant="ghost" className="text-xs" onClick={() => toast({ title: "Report Sent", description: "Thank you for your feedback." })}><Flag className="mr-1 h-3 w-3" />Report</Button>
             <FeedbackDialog>
                 <Button variant="ghost" className="text-xs"><MessageSquare className="mr-1 h-3 w-3" />Feedback</Button>
@@ -678,5 +678,3 @@ export default function PaymentPage() {
     </>
   );
 }
-
-    
