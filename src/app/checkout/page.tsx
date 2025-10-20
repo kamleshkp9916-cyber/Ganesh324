@@ -116,8 +116,8 @@ export default function CheckoutPage() {
 
   return (
     <div className="min-h-screen bg-muted/40 text-foreground">
-        <div className="grid lg:grid-cols-2">
-            <div className="py-8 px-4 md:px-12">
+        <div className="flex flex-col lg:flex-row">
+            <div className="lg:w-1/2 py-8 px-4 md:px-12 order-2 lg:order-1">
                  <Button variant="ghost" className="mb-4 -ml-4" onClick={() => router.back()}>
                   <ArrowLeft className="h-4 w-4 mr-2" />
                   Back
@@ -127,7 +127,7 @@ export default function CheckoutPage() {
                     <p className="text-muted-foreground">Payment details will go here.</p>
                 </div>
             </div>
-            <div className="bg-background border-l py-8 px-4 md:px-12 h-screen sticky top-0">
+            <div className="lg:w-1/2 bg-background border-l py-8 px-4 md:px-12 order-1 lg:order-2">
                  <div className="flex items-center justify-between mb-6">
                     <div className="relative w-full max-w-xs">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
