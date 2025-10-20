@@ -40,15 +40,24 @@ export default function PaymentPage() {
 
   const [shippingSettings] = useLocalStorage<ShippingSettings>(SHIPPING_SETTINGS_KEY, defaultShippingSettings);
   
+  const paymentMethods = [
+    { id: 'wallet', label: 'Wallet', icon: <Wallet/> },
+    { id: 'coins', label: 'Coins', icon: <Coins/>, disabled: true },
+    { id: 'upi', label: 'UPI', icon: <QrCode/> },
+    { id: 'cod', label: 'Cash on Delivery', icon: <Banknote/>, disabled: true },
+    { id: 'debit', label: 'Debit Card', icon: <CreditCard/> },
+    { id: 'credit', label: 'Credit Card', icon: <CreditCard/> }
+  ];
+
   useEffect(() => {
     setIsClient(true);
     const items = getCart();
-    setCartItems(items);
-    if(items.length === 0){
-        // If cart is empty (e.g. page refresh on buy now), redirect
+    if (items.length === 0) {
+        // If cart is empty (e.g., page refresh on buy now), redirect
         router.replace('/live-selling');
         return;
     }
+    setCartItems(items);
     const couponStr = localStorage.getItem('appliedCoupon');
     if (couponStr) {
       try {
@@ -105,6 +114,18 @@ export default function PaymentPage() {
 
   const handlePlaceOrder = (e: React.FormEvent) => {
     e.preventDefault();
+    if (paymentMethod === 'upi') {
+        const upiId = (e.target as HTMLFormElement)['upi-id'].value;
+        if (!/^[a-zA-Z0-9.\-_]{2,256}@[a-zA-Z]{2,64}$/.test(upiId)) {
+            toast({
+                variant: "destructive",
+                title: "Invalid UPI ID",
+                description: "Please enter a valid UPI ID to proceed.",
+            });
+            return;
+        }
+    }
+    
     setIsProcessing(true);
     setTimeout(() => {
         setIsProcessing(false);
@@ -178,29 +199,16 @@ export default function PaymentPage() {
                         </div>
                     )}
                     <Button type="submit" size="lg" className="w-full bg-blue-600 hover:bg-blue-700">
+                         {isProcessing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                         Pay Now <ArrowRight className="ml-2 h-4 w-4" />
                     </Button>
                 </form>
             );
         case 'cod':
              return (
-                <form className="space-y-4" onSubmit={handlePlaceOrder}>
-                    <div className="space-y-1">
-                        <Label htmlFor="cod-phone">Contact Number</Label>
-                        <Input id="cod-phone" defaultValue={userData?.phone || ''} placeholder="Your contact number for delivery" />
-                    </div>
-                    <div className="space-y-1">
-                         <Label htmlFor="cod-address">Delivery Address</Label>
-                        <p className="text-sm p-3 border rounded-md bg-muted/50">{userData?.addresses?.[0] ? `${userData.addresses[0].village}, ${userData.addresses[0].city}` : "No address saved"}</p>
-                    </div>
-                     <div className="flex items-center space-x-2">
-                        <Checkbox id="terms" />
-                        <label htmlFor="terms" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                        Pay at your doorstep
-                        </label>
-                    </div>
-                    <Button type="submit" size="lg" className="w-full bg-blue-600 hover:bg-blue-700">Proceed to Payment</Button>
-                </form>
+                <div className="text-center text-muted-foreground p-8">
+                    <p>Cash on Delivery is currently unavailable.</p>
+                </div>
             );
         case 'debit':
         case 'credit':
@@ -234,7 +242,10 @@ export default function PaymentPage() {
                     {paymentMethod === 'credit' && <p className="text-xs text-muted-foreground">We do not store your card details.</p>}
                     <div className="flex justify-between items-center">
                         <p className="text-xs text-muted-foreground flex items-center gap-2"><Lock className="h-3 w-3"/> Secured by 3D Secure</p>
-                        <Button type="submit" size="lg" className="bg-blue-600 hover:bg-blue-700">Pay Now</Button>
+                        <Button type="submit" size="lg" className="bg-blue-600 hover:bg-blue-700">
+                             {isProcessing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                            Pay Now
+                        </Button>
                     </div>
                 </form>
             );
@@ -248,14 +259,14 @@ export default function PaymentPage() {
     <div className="min-h-screen bg-muted/40 text-foreground flex flex-col">
        <header className="p-4 flex items-center justify-between sticky top-0 bg-background/90 backdrop-blur-sm z-30">
             <div className="flex items-center gap-2">
-                <Button variant="ghost" size="icon" onClick={() => router.back()}>
+                 <Button variant="ghost" size="icon" onClick={() => router.back()}>
                     <ArrowLeft className="h-6 w-6" />
                 </Button>
                 <h1 className="text-xl font-bold hidden sm:inline">Checkout</h1>
             </div>
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <ShieldCheck className="h-4 w-4" />
-                <span>Secure Payment</span>
+                <span>100% Secure Payment</span>
             </div>
         </header>
 
@@ -266,7 +277,7 @@ export default function PaymentPage() {
                     <Card className="overflow-hidden">
                         <div className="flex flex-col md:flex-row">
                              <div className="w-full md:w-1/3 border-b md:border-b-0 md:border-r">
-                                {[{id: 'wallet', label: 'Wallet', icon: <Wallet/>}, {id: 'coins', label: 'Coins', icon: <Coins/>, disabled: true}, {id: 'upi', label: 'UPI', icon: <QrCode/>}, {id: 'cod', label: 'Cash on Delivery', icon: <Banknote/>}, {id: 'debit', label: 'Debit Card', icon: <CreditCard/>}, {id: 'credit', label: 'Credit Card', icon: <CreditCard/>}].map(method => (
+                                {paymentMethods.map(method => (
                                     <button
                                         key={method.id}
                                         onClick={() => setPaymentMethod(method.id as PaymentMethod)}
@@ -302,8 +313,10 @@ export default function PaymentPage() {
                                         <div className="flex-grow">
                                             <p className="font-semibold text-sm">{item.name}</p>
                                             <p className="text-xs text-muted-foreground">Qty: {item.quantity}</p>
-                                            {item.color && <p className="text-xs text-muted-foreground">Color: {item.color}</p>}
-                                            {item.size && <p className="text-xs text-muted-foreground">Size: {item.size}</p>}
+                                            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                                {item.color && <span>Color: {item.color}</span>}
+                                                {item.size && <span>Size: {item.size}</span>}
+                                            </div>
                                         </div>
                                         <p className="font-semibold text-sm">₹{(parseFloat(item.price.replace(/[^0-9.-]+/g, '')) * item.quantity).toLocaleString('en-IN')}</p>
                                     </div>
@@ -334,13 +347,6 @@ export default function PaymentPage() {
                             <div className="flex justify-between font-bold text-lg">
                                 <span>Total</span>
                                 <span>₹{total.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-                            </div>
-                            <Separator />
-                            <div className="space-y-2">
-                                <div className="flex justify-between items-center text-sm">
-                                    <span>Promo Code</span>
-                                    <Button variant="link" size="sm" className="p-0 h-auto">ENTER CODE</Button>
-                                </div>
                             </div>
                         </CardContent>
                     </Card>
