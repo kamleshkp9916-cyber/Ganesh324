@@ -224,20 +224,29 @@ export default function PaymentPage() {
     }, 3000);
   }
   
-  const handleApplyCoupon = (coupon: Coupon) => {
-    if (coupon.minOrderValue && subtotal < coupon.minOrderValue) {
+  const handleApplyCoupon = (code: string) => {
+    const couponToApply = availableOffers.find(c => c.code.toLowerCase() === code.toLowerCase());
+    if (!couponToApply) {
         toast({
             variant: "destructive",
-            title: "Cannot Apply Coupon",
-            description: `Your order total must be above ₹${coupon.minOrderValue} to use this coupon.`
+            title: "Invalid Coupon",
+            description: "The discount code you entered is not valid."
         });
         return;
     }
-    setAppliedCoupon(coupon);
-    setCouponCode(coupon.code);
+    if (couponToApply.minOrderValue && subtotal < couponToApply.minOrderValue) {
+        toast({
+            variant: "destructive",
+            title: "Cannot Apply Coupon",
+            description: `Your order total must be above ₹${couponToApply.minOrderValue} to use this coupon.`
+        });
+        return;
+    }
+    setAppliedCoupon(couponToApply);
+    setCouponCode(code);
     toast({
         title: "Coupon Applied!",
-        description: `You've got a discount with ${coupon.code}.`
+        description: `You've got a discount with ${couponToApply.code}.`
     });
   };
 
@@ -418,9 +427,9 @@ export default function PaymentPage() {
                         <CardHeader>
                             <div className="flex items-center justify-between">
                                 <CardTitle>Order Summary</CardTitle>
-                                <Button asChild variant="ghost" size="sm">
+                                <Button asChild variant="link" size="sm" className="p-0 h-auto text-sm hover:text-primary">
                                     <Link href="/cart">
-                                        Edit
+                                        <Edit className="mr-1 h-3 w-3" /> Edit
                                     </Link>
                                 </Button>
                             </div>
@@ -428,7 +437,7 @@ export default function PaymentPage() {
                         <CardContent>
                              <div className="space-y-4 max-h-60 overflow-y-auto pr-2">
                                 {cartItems.map((item) => (
-                                    <div key={`${item.id}-${item.size || ''}-${item.color || ''}`} className="flex items-start gap-4">
+                                    <div key={`${'${item.id}'}-${'${item.size || \'\'}'}-${'${item.color || \'\'}'}`} className="flex items-start gap-4">
                                         <div className="relative w-16 h-16 rounded-md border flex-shrink-0">
                                             <Image src={item.imageUrl} alt={item.name} layout="fill" className="object-cover rounded-md" data-ai-hint={item.hint}/>
                                         </div>
@@ -471,12 +480,29 @@ export default function PaymentPage() {
                                 <span>₹{total.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                             </div>
                         </CardContent>
-                         <CardFooter className="flex-col items-start gap-2 text-xs text-muted-foreground">
+                         <CardFooter className="flex-col items-start gap-4 text-xs text-muted-foreground border-t pt-4">
                             <div className="flex items-center gap-2">
                                <ShieldCheck className="h-4 w-4 text-green-500" />
                                <span>Secure Checkout</span>
                             </div>
                             <p>By completing your purchase you agree to our <Link href="/terms-and-conditions" className="underline hover:text-primary">Terms</Link> and <Link href="/privacy-and-security" className="underline hover:text-primary">Privacy Policy</Link>.</p>
+                             <div className="w-full space-y-2 pt-2">
+                                <Label htmlFor="promo-code">Promo Code</Label>
+                                <div className="flex gap-2">
+                                    <Input 
+                                        id="promo-code" 
+                                        placeholder="Enter code" 
+                                        value={couponCode}
+                                        onChange={(e) => setCouponCode(e.target.value)}
+                                        disabled={!!appliedCoupon}
+                                    />
+                                    {appliedCoupon ? (
+                                         <Button variant="outline" onClick={() => { setAppliedCoupon(null); setCouponCode(''); }}>Remove</Button>
+                                    ) : (
+                                         <Button variant="outline" onClick={() => handleApplyCoupon(couponCode)}>Apply</Button>
+                                    )}
+                                </div>
+                            </div>
                         </CardFooter>
                     </Card>
                 </div>
