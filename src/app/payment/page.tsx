@@ -57,8 +57,13 @@ export default function PaymentPage() {
     setIsClient(true);
     const items = getCart();
     if (items.length === 0 && document.referrer && !document.referrer.includes('/cart')) {
-        router.replace('/live-selling');
-        return;
+        // Only redirect if there are no items and the user didn't come from the cart page.
+        // This prevents redirecting "Buy Now" users.
+        const urlParams = new URLSearchParams(window.location.search);
+        if (!urlParams.has('buyNow')) {
+             router.replace('/live-selling');
+             return;
+        }
     }
     setCartItems(items);
     const couponStr = localStorage.getItem('appliedCoupon');
@@ -76,7 +81,7 @@ export default function PaymentPage() {
   const { subtotal, shippingCost, estimatedTaxes, total, couponDiscount } = useMemo(() => {
     const sub = cartItems.reduce((acc, item) => {
         const price = parseFloat(item.price.replace(/[^0-9.-]+/g,""));
-        return acc + (price * item.quantity);
+        return acc + (item.quantity * price);
     }, 0);
 
     const ship = shippingSettings?.deliveryCharge ?? 50.00;
@@ -120,6 +125,7 @@ export default function PaymentPage() {
     if (!allOffers) return [];
     
     const now = new Date();
+    
     const applicable = allOffers.filter(offer => {
       const isExpired = offer.expiresAt && new Date(offer.expiresAt) < now;
       if (isExpired) return false;
@@ -135,10 +141,13 @@ export default function PaymentPage() {
       });
     });
 
-    if (applicable.length > 0) return applicable;
-
+    if (applicable.length > 0) {
+      return applicable;
+    }
+    
+    // Fallback: Show a few general, non-expired offers if no specific ones apply.
     return allOffers
-      .filter(offer => !offer.expiresAt || new Date(offer.expiresAt) >= now)
+      .filter(offer => (!offer.expiresAt || new Date(offer.expiresAt) >= now))
       .slice(0, 3);
       
   }, [allOffers, cartItems, subtotal]);
@@ -208,16 +217,7 @@ export default function PaymentPage() {
     return <div className="h-screen w-full flex items-center justify-center"><LoadingSpinner /></div>
   }
 
-  if(isClient && cartItems.length === 0){
-      return (
-        <div className="h-screen w-full flex items-center justify-center flex-col gap-4">
-            <p>Your cart is empty.</p>
-            <Button onClick={() => router.push('/live-selling')}>Go Shopping</Button>
-        </div>
-      );
-  }
-
-  if (!user) {
+  if(!user) {
       router.push('/');
       return null;
   }
