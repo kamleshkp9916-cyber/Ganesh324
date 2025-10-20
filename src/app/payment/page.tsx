@@ -26,6 +26,11 @@ const defaultShippingSettings: ShippingSettings = {
     deliveryCharge: 50.00
 };
 
+const initialCoupons: Coupon[] = [
+    { id: 1, code: 'STREAM10', description: '10% off on all orders', discountType: 'percentage', discountValue: 10, expiresAt: new Date(new Date().setDate(new Date().getDate() + 7)), applicableCategories: ['All'], minOrderValue: 0 },
+    { id: 2, code: 'SAVE100', description: '₹100 off on orders above ₹1000', discountType: 'fixed', discountValue: 100, minOrderValue: 1000, applicableCategories: ['All'] },
+];
+
 type PaymentMethod = 'upi' | 'cod' | 'debit' | 'credit' | 'wallet' | 'coins';
 
 const paymentMethods = [
@@ -54,10 +59,16 @@ export default function PaymentPage() {
 
   const [shippingSettings] = useLocalStorage<ShippingSettings>(SHIPPING_SETTINGS_KEY, defaultShippingSettings);
   const [allOffers, setAllOffers] = useLocalStorage<Coupon[]>(COUPONS_KEY, []);
-
+  
   useEffect(() => {
     setIsClient(true);
-  }, []);
+    if (typeof window !== 'undefined') {
+        const storedCoupons = localStorage.getItem(COUPONS_KEY);
+        if (!storedCoupons || JSON.parse(storedCoupons).length === 0) {
+            setAllOffers(initialCoupons);
+        }
+    }
+  }, [setAllOffers]);
   
   useEffect(() => {
     if (!isClient) return;
@@ -149,7 +160,10 @@ export default function PaymentPage() {
         const now = new Date();
 
         const applicable = allOffers.filter(offer => {
-             const isExpired = offer.expiresAt && new Date(offer.expiresAt) < now;
+             if (typeof offer.expiresAt === 'string') {
+                offer.expiresAt = new Date(offer.expiresAt);
+             }
+             const isExpired = offer.expiresAt && offer.expiresAt < now;
              if (isExpired) return false;
 
              if (offer.minOrderValue && subtotal < offer.minOrderValue) return false;
@@ -160,15 +174,16 @@ export default function PaymentPage() {
              });
         });
 
-        // Show applicable offers if they exist, otherwise show some general, non-expired offers as a fallback.
         if (applicable.length > 0) {
             return applicable;
         }
 
-        return allOffers.filter(offer => 
-            (!offer.expiresAt || new Date(offer.expiresAt) >= now) &&
-            (offer.applicableCategories?.includes('All'))
-        ).slice(0, 3);
+        return allOffers.filter(offer => {
+            if (typeof offer.expiresAt === 'string') {
+                offer.expiresAt = new Date(offer.expiresAt);
+            }
+            return (!offer.expiresAt || offer.expiresAt >= now);
+        }).slice(0, 3);
     }, [allOffers, cartItems, subtotal]);
 
 
@@ -418,7 +433,7 @@ export default function PaymentPage() {
                                     </Button>
                                 </div>
                             )) : (
-                                <p className="text-sm text-muted-foreground text-center py-4">No offers available for your cart.</p>
+                                <p className="text-sm text-muted-foreground text-center py-4">No special offers available for your cart.</p>
                             )}
                         </CardContent>
                     </Card>
@@ -490,3 +505,5 @@ export default function PaymentPage() {
     </div>
   );
 }
+
+    
