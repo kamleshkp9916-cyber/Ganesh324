@@ -171,10 +171,12 @@ export default function PaymentPage() {
                     <div className="text-sm text-muted-foreground">
                         <p><ShieldCheck className="inline-block h-4 w-4 mr-2 text-green-500"/>Verified by NPCI</p>
                     </div>
-                     <div className="text-sm text-muted-foreground flex items-center gap-2 animate-pulse">
-                        <Loader2 className="h-4 w-4 animate-spin"/>
-                        Waiting for approval in your UPI app
-                    </div>
+                    {isProcessing && (
+                        <div className="text-sm text-muted-foreground flex items-center gap-2 animate-pulse">
+                            <Loader2 className="h-4 w-4 animate-spin"/>
+                            Waiting for approval in your UPI app
+                        </div>
+                    )}
                     <Button type="submit" size="lg" className="w-full bg-blue-600 hover:bg-blue-700">
                         Pay Now <ArrowRight className="ml-2 h-4 w-4" />
                     </Button>
