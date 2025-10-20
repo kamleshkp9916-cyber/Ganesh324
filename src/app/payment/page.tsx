@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { useState, useEffect, useMemo } from 'react';
@@ -196,7 +195,7 @@ export default function PaymentPage() {
         const upiIdInput = (e.target as HTMLFormElement).querySelector('#upi-id') as HTMLInputElement;
         if (upiIdInput) {
             const upiId = upiIdInput.value;
-             if (!/^[a-zA-Z0-9.\-_]{2,256}@[a-zA-Z]{2,64}$/.test(upiId)) {
+             if (!/^[a-zA-Z0-9.\\-_]{2,256}@[a-zA-Z]{2,64}$/.test(upiId)) {
                 toast({
                     variant: "destructive",
                     title: "Invalid UPI ID",
@@ -407,38 +406,6 @@ export default function PaymentPage() {
                         </div>
                     </Card>
 
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="flex items-center gap-2">
-                                <Ticket className="h-5 w-5"/> Available Offers & Coupons
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-3">
-                            {availableOffers.length > 0 ? availableOffers.map((offer) => (
-                                <div key={offer.code} className="p-3 border rounded-lg flex items-center justify-between gap-2">
-                                    <div>
-                                        <h4 className="font-semibold">{offer.description}</h4>
-                                        <p className="text-xs text-muted-foreground">
-                                            {offer.discountType === 'fixed'
-                                                ? `Get flat ₹${offer.discountValue} off.`
-                                                : `Get ${offer.discountValue}% off.`}
-                                            {offer.minOrderValue ? ` on orders above ₹${offer.minOrderValue}.` : ''}
-                                        </p>
-                                    </div>
-                                    <Button
-                                      variant={appliedCoupon?.code === offer.code ? "secondary" : "link"}
-                                      className="p-0 h-auto"
-                                      onClick={() => handleApplyCoupon(offer)}
-                                      disabled={appliedCoupon?.code === offer.code}
-                                    >
-                                      {appliedCoupon?.code === offer.code ? "Applied" : "Apply"}
-                                    </Button>
-                                </div>
-                            )) : (
-                                <p className="text-sm text-muted-foreground text-center py-4">No special offers available for your cart.</p>
-                            )}
-                        </CardContent>
-                    </Card>
                 </div>
 
                 <div className="lg:sticky top-24 space-y-6">
