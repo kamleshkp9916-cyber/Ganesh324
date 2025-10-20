@@ -28,6 +28,16 @@ const defaultShippingSettings: ShippingSettings = {
 
 type PaymentMethod = 'upi' | 'cod' | 'debit' | 'credit' | 'wallet' | 'coins';
 
+const paymentMethods = [
+    { id: 'wallet', label: 'Wallet', icon: <Wallet className="w-5 h-5" />, disabled: false },
+    { id: 'coins', label: 'Coins', icon: <Coins className="w-5 h-5" />, disabled: true },
+    { id: 'upi', label: 'UPI', icon: <QrCode className="w-5 h-5" />, disabled: false },
+    { id: 'cod', label: 'Cash on Delivery', icon: <Banknote className="w-5 h-5" />, disabled: true },
+    { id: 'debit', label: 'Debit Card', icon: <CreditCard className="w-5 h-5" />, disabled: false },
+    { id: 'credit', label: 'Credit Card', icon: <CreditCard className="w-5 h-5" />, disabled: false },
+];
+
+
 export default function PaymentPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -74,7 +84,7 @@ export default function PaymentPage() {
         items = getCart();
     }
     
-    if (items.length === 0) {
+    if (items.length === 0 && isClient) {
         router.replace('/live-selling');
         return;
     }
@@ -207,7 +217,7 @@ export default function PaymentPage() {
     router.push('/payment');
   };
 
-  if (!isClient || loading) {
+  if (!isClient || loading || cartItems.length === 0) {
     return <div className="h-screen w-full flex items-center justify-center"><LoadingSpinner /></div>
   }
 
@@ -345,19 +355,19 @@ export default function PaymentPage() {
                     <Card className="overflow-hidden">
                         <div className="flex flex-col md:flex-row">
                              <div className="w-full md:w-1/3 border-b md:border-b-0 md:border-r">
-                                {paymentMethods.map(method => (
-                                    <button
-                                        key={method.id}
-                                        onClick={() => setPaymentMethod(method.id as PaymentMethod)}
-                                        disabled={method.disabled}
-                                        className={cn("w-full p-4 text-left font-semibold flex items-center gap-3 transition-colors disabled:opacity-50 disabled:cursor-not-allowed",
-                                            paymentMethod === method.id ? 'bg-primary/10 text-primary' : 'hover:bg-muted/50'
-                                        )}
-                                    >
-                                        {method.icon}
-                                        {method.label}
-                                    </button>
-                                ))}
+                                 {paymentMethods.map(method => (
+                                     <button
+                                         key={method.id}
+                                         onClick={() => setPaymentMethod(method.id as PaymentMethod)}
+                                         disabled={method.disabled}
+                                         className={cn("w-full p-4 text-left font-semibold flex items-center gap-3 transition-colors disabled:opacity-50 disabled:cursor-not-allowed",
+                                             paymentMethod === method.id ? 'bg-primary/10 text-primary' : 'hover:bg-muted/50'
+                                         )}
+                                     >
+                                         {method.icon}
+                                         {method.label}
+                                     </button>
+                                 ))}
                             </div>
                             <div className="w-full md:w-2/3 p-6">
                                {renderPaymentContent()}
@@ -393,7 +403,7 @@ export default function PaymentPage() {
                                     </Button>
                                 </div>
                             )) : (
-                                <p className="text-sm text-muted-foreground text-center py-4">No special offers available for your cart.</p>
+                                <p className="text-sm text-muted-foreground text-center py-4">No offers available for your cart.</p>
                             )}
                         </CardContent>
                     </Card>
