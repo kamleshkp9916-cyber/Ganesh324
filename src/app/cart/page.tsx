@@ -244,13 +244,13 @@ export default function CartPage() {
                                                 <Link href={`/product/${item.key}`} className="hover:underline">
                                                     <h3 className="font-semibold">{item.name}</h3>
                                                 </Link>
+                                                <p className="text-sm text-muted-foreground mt-1">{item.price}</p>
                                                 {(item.size || item.color) && (
                                                     <div className="flex items-center gap-2 mt-1">
                                                         {item.size && <Badge variant="outline">Size: {item.size}</Badge>}
                                                         {item.color && <Badge variant="outline">Color: {item.color}</Badge>}
                                                     </div>
                                                 )}
-                                                <p className="text-sm text-muted-foreground mt-1">{item.price}</p>
                                                 <div className="flex items-center gap-4 text-xs text-muted-foreground mt-1">
                                                     <div className="flex items-center gap-1 text-amber-500">
                                                         <Star className="w-3 h-3 fill-current" />
