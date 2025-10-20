@@ -201,14 +201,9 @@ export default function CartPage() {
     });
   };
 
-  const handleCheckout = async () => {
+  const handleCheckout = () => {
     setIsCheckingOut(true);
-    // Checkout page is removed, so we just show a toast for now.
-     toast({
-        title: "Coming Soon!",
-        description: "The checkout process is currently under construction.",
-    });
-    setIsCheckingOut(false);
+    router.push('/payment');
   };
 
 
@@ -336,7 +331,8 @@ export default function CartPage() {
                                 </div>
                             </CardContent>
                             <CardFooter>
-                                <Button className="w-full" size="lg" onClick={handleCheckout} disabled={true}>
+                                <Button className="w-full" size="lg" onClick={handleCheckout} disabled={isCheckingOut}>
+                                    {isCheckingOut && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                                     Continue to Payment
                                 </Button>
                             </CardFooter>
