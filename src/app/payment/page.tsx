@@ -4,7 +4,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { CreditCard, ShieldCheck, Banknote, Lock, Info, Loader2, ArrowRight, Wallet, QrCode, ArrowLeft } from 'lucide-react';
+import { CreditCard, ShieldCheck, Banknote, Lock, Info, Loader2, ArrowRight, Wallet, QrCode, ArrowLeft, Coins } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
@@ -14,7 +14,7 @@ import Image from 'next/image';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';
-import { getCart, CartProduct } from '@/lib/product-history';
+import { getCart, CartProduct, saveCart } from '@/lib/product-history';
 import { useAuth } from '@/hooks/use-auth';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { SHIPPING_SETTINGS_KEY, ShippingSettings, Coupon, COUPONS_KEY } from '@/app/admin/settings/page';
@@ -25,7 +25,7 @@ const defaultShippingSettings: ShippingSettings = {
     deliveryCharge: 50.00
 };
 
-type PaymentMethod = 'upi' | 'cod' | 'debit' | 'credit';
+type PaymentMethod = 'upi' | 'cod' | 'debit' | 'credit' | 'wallet' | 'coins';
 
 export default function PaymentPage() {
   const router = useRouter();
@@ -42,7 +42,13 @@ export default function PaymentPage() {
   
   useEffect(() => {
     setIsClient(true);
-    setCartItems(getCart());
+    const items = getCart();
+    setCartItems(items);
+    if(items.length === 0){
+        // If cart is empty (e.g. page refresh on buy now), redirect
+        router.replace('/live-selling');
+        return;
+    }
     const couponStr = localStorage.getItem('appliedCoupon');
     if (couponStr) {
       try {
@@ -51,7 +57,7 @@ export default function PaymentPage() {
         console.error("Failed to parse applied coupon:", e);
       }
     }
-  }, []);
+  }, [router]);
 
   const { subtotal, shippingCost, estimatedTaxes, total, couponDiscount } = useMemo(() => {
     const sub = cartItems.reduce((acc, item) => {
@@ -123,6 +129,30 @@ export default function PaymentPage() {
   
   const renderPaymentContent = () => {
     switch (paymentMethod) {
+        case 'wallet':
+             return (
+                 <form className="space-y-4" onSubmit={handlePlaceOrder}>
+                    <div className="p-4 border rounded-lg bg-muted/50">
+                        <div className="flex justify-between items-center">
+                            <span className="text-sm text-muted-foreground">Available Balance</span>
+                            <span className="font-bold">₹42,580.22</span>
+                        </div>
+                         <div className="flex justify-between items-center mt-2">
+                            <span className="text-sm text-muted-foreground">Order Total</span>
+                            <span className="font-bold text-primary">- ₹{total.toLocaleString('en-IN')}</span>
+                        </div>
+                        <Separator className="my-3"/>
+                        <div className="flex justify-between items-center">
+                            <span className="text-sm text-muted-foreground">Remaining Balance</span>
+                            <span className="font-bold">₹{(42580.22 - total).toLocaleString('en-IN')}</span>
+                        </div>
+                    </div>
+                     <Button type="submit" size="lg" className="w-full bg-blue-600 hover:bg-blue-700">
+                        {isProcessing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                        Pay from Wallet
+                    </Button>
+                 </form>
+            );
         case 'upi':
             return (
                 <form className="space-y-4" onSubmit={handlePlaceOrder}>
@@ -234,11 +264,11 @@ export default function PaymentPage() {
                     <Card className="overflow-hidden">
                         <div className="flex flex-col md:flex-row">
                              <div className="w-full md:w-1/3 border-b md:border-b-0 md:border-r">
-                                {[{id: 'upi', label: 'UPI', icon: <QrCode/>}, {id: 'cod', label: 'Cash on Delivery', icon: <Banknote/>}, {id: 'debit', label: 'Debit Card', icon: <CreditCard/>}, {id: 'credit', label: 'Credit Card', icon: <CreditCard/>}].map(method => (
+                                {[{id: 'wallet', label: 'Wallet', icon: <Wallet/>}, {id: 'coins', label: 'Coins', icon: <Coins/>, disabled: true}, {id: 'upi', label: 'UPI', icon: <QrCode/>}, {id: 'cod', label: 'Cash on Delivery', icon: <Banknote/>}, {id: 'debit', label: 'Debit Card', icon: <CreditCard/>}, {id: 'credit', label: 'Credit Card', icon: <CreditCard/>}].map(method => (
                                     <button
                                         key={method.id}
                                         onClick={() => setPaymentMethod(method.id as PaymentMethod)}
-                                        disabled={method.id === 'cod'}
+                                        disabled={method.disabled}
                                         className={cn("w-full p-4 text-left font-semibold flex items-center gap-3 transition-colors disabled:opacity-50 disabled:cursor-not-allowed",
                                             paymentMethod === method.id ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300' : 'hover:bg-muted/50'
                                         )}
@@ -252,18 +282,6 @@ export default function PaymentPage() {
                                {renderPaymentContent()}
                             </div>
                         </div>
-                    </Card>
-                     <Card>
-                        <CardHeader>
-                            <CardTitle className="text-lg">Payment Status</CardTitle>
-                            <CardDescription>This area will display confirmation or error messages after the transaction.</CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-muted-foreground flex items-center gap-2">
-                                <Loader2 className="h-4 w-4 animate-spin"/>
-                                <p>Processing your payment...</p>
-                            </div>
-                        </CardContent>
                     </Card>
                 </div>
 
@@ -315,11 +333,6 @@ export default function PaymentPage() {
                                 <span>Total</span>
                                 <span>₹{total.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                             </div>
-                            <div className="mt-4 p-3 bg-green-100 dark:bg-green-900/20 rounded-lg flex items-center gap-2 text-sm text-green-700 dark:text-green-300">
-                                <ShieldCheck className="h-4 w-4"/>
-                                <span>Secure Checkout</span>
-                            </div>
-                            <p className="text-xs text-muted-foreground text-center px-4">By completing your purchase you agree to our Terms and Privacy Policy.</p>
                             <Separator />
                             <div className="space-y-2">
                                 <div className="flex justify-between items-center text-sm">
