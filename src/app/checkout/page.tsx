@@ -140,7 +140,7 @@ export default function CheckoutPage() {
                         </div>
                     </div>
                      <h2 className="text-2xl font-bold mb-4">Your Cart</h2>
-                      <div className="space-y-4 flex-grow overflow-y-auto pr-2 -mr-2">
+                      <div className="space-y-2 flex-grow overflow-y-auto pr-2 -mr-2 lg:overflow-y-visible lg:pr-0 lg:-mr-0">
                         {cartItems.map(item => (
                             <div key={item.id} className="flex items-center gap-3">
                                <div className="relative flex-shrink-0">
