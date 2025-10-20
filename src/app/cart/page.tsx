@@ -85,29 +85,30 @@ export default function CartPage() {
     if (!loading && isClient) {
       if (!user) {
         router.replace("/");
-      } else {
-        if (userData?.addresses && userData.addresses.length > 0) {
-          setAddress(userData.addresses[0]);
-        }
-        
-        setEstimatedDeliveryDate(format(addDays(new Date(), 5), 'E, MMM dd, yyyy'));
+        return;
+      } 
+      
+      if (userData?.addresses && userData.addresses.length > 0) {
+        setAddress(userData.addresses[0]);
+      }
+      
+      setEstimatedDeliveryDate(format(addDays(new Date(), 5), 'E, MMM dd, yyyy'));
 
-        if (isBuyNow && buyNowProductId) {
-          const productData = productDetails[buyNowProductId as keyof typeof productDetails];
-          if (productData) {
-            const buyNowItem: CartProduct = {
-              ...productData,
-              quantity: 1,
-              imageUrl: productData.images[0],
-              size: buyNowSize || undefined,
-              color: buyNowColor || undefined,
-            };
-            setCartItems([buyNowItem]);
-          }
-        } else {
-            // Only read from local storage if it's not a "Buy Now" flow
-            setCartItems(getCart());
+      if (isBuyNow && buyNowProductId) {
+        const productData = productDetails[buyNowProductId as keyof typeof productDetails];
+        if (productData) {
+          const buyNowItem: CartProduct = {
+            ...productData,
+            quantity: 1,
+            imageUrl: productData.images[0],
+            size: buyNowSize || undefined,
+            color: buyNowColor || undefined,
+          };
+          setCartItems([buyNowItem]);
         }
+      } else {
+          // Only read from local storage if it's not a "Buy Now" flow
+          setCartItems(getCart());
       }
     }
   }, [user, userData, isBuyNow, buyNowProductId, buyNowSize, buyNowColor, loading, isClient, router]);
@@ -350,7 +351,7 @@ export default function CartPage() {
                                 </div>
                             </CardContent>
                             <CardFooter>
-                                <Button className="w-full" size="lg" onClick={handleCheckout}>
+                                <Button className="w-full" size="lg" onClick={handleCheckout} disabled={isCheckingOut}>
                                     {isCheckingOut ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                                     Continue to Payment
                                 </Button>
@@ -402,4 +403,3 @@ export default function CartPage() {
     </div>
   );
 }
-
