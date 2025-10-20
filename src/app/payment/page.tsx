@@ -4,7 +4,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, CreditCard, ShieldCheck, Banknote, Lock, Info, Loader2, ArrowRight, Wallet, QrCode } from 'lucide-react';
+import { ArrowLeft, CreditCard, ShieldCheck, Banknote, Lock, Info, Loader2, ArrowRight, Wallet, QrCode, Tag, Ticket } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
@@ -97,14 +97,13 @@ export default function PaymentPage() {
   useEffect(() => {
       if (cartItems.length > 0) {
           const applicable = storedCoupons.filter(coupon => {
-              if (coupon.minOrderValue && subtotal < coupon.minOrderValue) {
-                  return false;
+              if (!coupon.minOrderValue || subtotal >= coupon.minOrderValue) {
+                const cartCategories = new Set(cartItems.map(item => productDetails[item.key as keyof typeof productDetails]?.category));
+                if (coupon.applicableCategories?.includes('All') || coupon.applicableCategories?.some(cat => cartCategories.has(cat))) {
+                    return true;
+                }
               }
-              const cartCategories = new Set(cartItems.map(item => productDetails[item.key as keyof typeof productDetails]?.category));
-              if (coupon.applicableCategories?.includes('All')) {
-                  return true;
-              }
-              return coupon.applicableCategories?.some(cat => cartCategories.has(cat));
+              return false;
           });
           setAvailableOffers(applicable);
       }
@@ -269,12 +268,12 @@ export default function PaymentPage() {
                     <CardContent className="space-y-4">
                         {cartItems.map((item) => (
                              <div key={`${item.id}-${item.size || ''}-${item.color || ''}`} className="flex items-center gap-4">
-                                <Image src={item.imageUrl} alt={item.name} width={80} height={80} className="rounded-md border" />
-                                <div>
-                                    <p className="font-semibold">{item.name}</p>
-                                    <p className="text-sm text-muted-foreground">Qty: {item.quantity}</p>
-                                    <p className="font-bold">{item.price}</p>
+                                <Image src={item.imageUrl} alt={item.name} width={64} height={64} className="rounded-md border" />
+                                <div className="flex-grow">
+                                    <p className="font-semibold text-sm">{item.name}</p>
+                                    <p className="text-xs text-muted-foreground">Qty: {item.quantity}</p>
                                 </div>
+                                <p className="font-semibold text-sm">{item.price}</p>
                             </div>
                         ))}
                         <Separator />
@@ -329,3 +328,5 @@ export default function PaymentPage() {
     </div>
   );
 }
+
+    
