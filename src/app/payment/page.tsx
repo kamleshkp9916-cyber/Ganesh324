@@ -53,7 +53,7 @@ export default function PaymentPage() {
   const [isCheckingOut, setIsCheckingOut] = useState(false);
 
   const [shippingSettings] = useLocalStorage<ShippingSettings>(SHIPPING_SETTINGS_KEY, defaultShippingSettings);
-  const [allOffers] = useLocalStorage<Coupon[]>(COUPONS_KEY, []);
+  const [allOffers, setAllOffers] = useLocalStorage<Coupon[]>(COUPONS_KEY, []);
 
   useEffect(() => {
     setIsClient(true);
@@ -76,12 +76,9 @@ export default function PaymentPage() {
                 size: searchParams.get('size') || undefined,
                 color: searchParams.get('color') || undefined,
             }];
-        } else {
-             // If product not found for buy now, fallback to cart or redirect
-             items = getCart();
         }
     } else {
-        items = getCart();
+         items = getCart();
     }
     
     if (items.length === 0 && isClient) {
@@ -150,11 +147,29 @@ export default function PaymentPage() {
     const availableOffers = useMemo(() => {
         if (!allOffers || allOffers.length === 0) return [];
         const now = new Date();
-        // Return a few general, non-expired offers.
-        return allOffers
-            .filter(offer => (!offer.expiresAt || new Date(offer.expiresAt) >= now))
-            .slice(0, 3);
-    }, [allOffers]);
+
+        const applicable = allOffers.filter(offer => {
+             const isExpired = offer.expiresAt && new Date(offer.expiresAt) < now;
+             if (isExpired) return false;
+
+             if (offer.minOrderValue && subtotal < offer.minOrderValue) return false;
+
+             return cartItems.some(item => {
+                 const itemCategory = productDetails[item.key as keyof typeof productDetails]?.category;
+                 return offer.applicableCategories?.includes('All') || (itemCategory && offer.applicableCategories?.includes(itemCategory));
+             });
+        });
+
+        // Show applicable offers if they exist, otherwise show some general, non-expired offers as a fallback.
+        if (applicable.length > 0) {
+            return applicable;
+        }
+
+        return allOffers.filter(offer => 
+            (!offer.expiresAt || new Date(offer.expiresAt) >= now) &&
+            (offer.applicableCategories?.includes('All'))
+        ).slice(0, 3);
+    }, [allOffers, cartItems, subtotal]);
 
 
   const handlePlaceOrder = (e: React.FormEvent) => {
