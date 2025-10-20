@@ -1,4 +1,5 @@
 
+
 "use client";
 
 export interface Product {
@@ -14,6 +15,8 @@ export interface Product {
 
 export interface CartProduct extends Product {
     quantity: number;
+    size?: string;
+    color?: string;
 }
 
 interface ViewedProduct extends Product {
@@ -106,7 +109,7 @@ export const isProductInCart = (productId: number): boolean => {
 
 export const addToCart = (product: CartProduct) => {
     const items = getCart();
-    const existingProductIndex = items.findIndex(p => p.id === product.id);
+    const existingProductIndex = items.findIndex(p => p.id === product.id && p.size === product.size && p.color === product.color);
     
     if (existingProductIndex > -1) {
         // Product exists, update quantity

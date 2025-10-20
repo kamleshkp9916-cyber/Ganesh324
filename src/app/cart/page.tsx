@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -20,6 +21,7 @@ import { productDetails } from '@/lib/product-data';
 import { UserData, updateUserData } from '@/lib/follow-data';
 import { COUPONS_KEY, SHIPPING_SETTINGS_KEY, ShippingSettings } from '@/app/admin/settings/page';
 import { useLocalStorage } from '@/hooks/use-local-storage';
+import { Badge } from '@/components/ui/badge';
 
 function EmptyCart() {
     const router = useRouter();
@@ -55,6 +57,8 @@ export default function CartPage() {
   const [storedCoupons] = useLocalStorage<any[]>(COUPONS_KEY, []);
 
   const buyNowProductId = searchParams.get('productId');
+  const buyNowSize = searchParams.get('size');
+  const buyNowColor = searchParams.get('color');
   const isBuyNow = searchParams.get('buyNow') === 'true';
 
   useEffect(() => {
@@ -92,7 +96,9 @@ export default function CartPage() {
             const buyNowItem: CartProduct = {
               ...productData,
               quantity: 1,
-              imageUrl: productData.images[0]
+              imageUrl: productData.images[0],
+              size: buyNowSize || undefined,
+              color: buyNowColor || undefined,
             };
             setCartItems([buyNowItem]);
           }
@@ -101,7 +107,7 @@ export default function CartPage() {
         }
       }
     }
-  }, [user, userData, isBuyNow, buyNowProductId, loading, isClient, router]);
+  }, [user, userData, isBuyNow, buyNowProductId, buyNowSize, buyNowColor, loading, isClient, router]);
 
 
   const handleRemoveFromCart = (productId: number) => {
@@ -238,7 +244,13 @@ export default function CartPage() {
                                                 <Link href={`/product/${item.key}`} className="hover:underline">
                                                     <h3 className="font-semibold">{item.name}</h3>
                                                 </Link>
-                                                <p className="text-sm text-muted-foreground">{item.price}</p>
+                                                {(item.size || item.color) && (
+                                                    <div className="flex items-center gap-2 mt-1">
+                                                        {item.size && <Badge variant="outline">Size: {item.size}</Badge>}
+                                                        {item.color && <Badge variant="outline">Color: {item.color}</Badge>}
+                                                    </div>
+                                                )}
+                                                <p className="text-sm text-muted-foreground mt-1">{item.price}</p>
                                                 <div className="flex items-center gap-4 text-xs text-muted-foreground mt-1">
                                                     <div className="flex items-center gap-1 text-amber-500">
                                                         <Star className="w-3 h-3 fill-current" />
