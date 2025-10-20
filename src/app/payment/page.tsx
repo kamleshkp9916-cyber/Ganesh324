@@ -4,7 +4,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { CreditCard, ShieldCheck, Banknote, Lock, Info, Loader2, ArrowRight, Wallet, QrCode, ArrowLeft, Coins, Ticket } from 'lucide-react';
+import { CreditCard, ShieldCheck, Banknote, Lock, Info, Loader2, ArrowRight, Wallet, QrCode, ArrowLeft, Coins, Ticket, Edit } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
@@ -411,7 +411,14 @@ export default function PaymentPage() {
                 <div className="lg:sticky top-24 space-y-6">
                     <Card>
                         <CardHeader>
-                            <CardTitle>Order Summary</CardTitle>
+                            <div className="flex items-center justify-between">
+                                <CardTitle>Order Summary</CardTitle>
+                                <Button asChild variant="outline" size="sm">
+                                    <Link href="/cart">
+                                        <Edit className="mr-2 h-4 w-4" /> Edit
+                                    </Link>
+                                </Button>
+                            </div>
                         </CardHeader>
                         <CardContent>
                              <div className="space-y-4 max-h-60 overflow-y-auto pr-2">
