@@ -102,6 +102,12 @@ export const getCart = (): CartProduct[] => {
     return items ? JSON.parse(items) : [];
 };
 
+export const saveCart = (cartItems: CartProduct[]) => {
+    if (typeof window === 'undefined') return;
+    localStorage.setItem(CART_KEY, JSON.stringify(cartItems));
+    window.dispatchEvent(new Event('storage'));
+}
+
 export const isProductInCart = (productId: number, size?: string, color?: string): boolean => {
     const items = getCart();
     return items.some(p => 

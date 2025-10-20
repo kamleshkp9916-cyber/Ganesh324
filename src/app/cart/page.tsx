@@ -9,7 +9,7 @@ import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import Image from 'next/image';
 import { useToast } from '@/hooks/use-toast';
-import { getCart, removeFromCart, updateCartQuantity, CartProduct } from '@/lib/product-history';
+import { getCart, removeFromCart, updateCartQuantity, CartProduct, saveCart } from '@/lib/product-history';
 import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { Separator } from '@/components/ui/separator';
@@ -221,6 +221,13 @@ export default function CartPage() {
 
   const handleCheckout = () => {
     setIsCheckingOut(true);
+    // Save the current cart state to local storage before navigating
+    saveCart(cartItems);
+    if(appliedCoupon) {
+        localStorage.setItem('appliedCoupon', JSON.stringify(appliedCoupon));
+    } else {
+        localStorage.removeItem('appliedCoupon');
+    }
     router.push('/payment');
   };
 
