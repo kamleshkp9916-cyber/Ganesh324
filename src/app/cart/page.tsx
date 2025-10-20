@@ -223,8 +223,12 @@ export default function CartPage() {
 
   const handleCheckout = () => {
     setIsCheckingOut(true);
-    // Save the current cart state to local storage before navigating
-    saveCart(cartItems);
+    // Crucially, we save the `cartItems` from the current state.
+    // For "Buy Now", this state contains only the single item.
+    // For a regular cart, it contains the full cart.
+    // This ensures the payment page gets the correct data.
+    saveCart(cartItems); 
+    
     if(appliedCoupon) {
         localStorage.setItem('appliedCoupon', JSON.stringify(appliedCoupon));
     } else {
