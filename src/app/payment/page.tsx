@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useState, useEffect, useMemo } from 'react';
@@ -73,26 +74,14 @@ export default function PaymentPage() {
   useEffect(() => {
     if (!isClient) return;
 
-    let items: CartProduct[] = [];
-    const buyNowProductId = searchParams.get('productId');
-    const isBuyNow = searchParams.get('buyNow') === 'true';
-
-    if (isBuyNow && buyNowProductId) {
-        const productData = productDetails[buyNowProductId as keyof typeof productDetails];
-        if (productData) {
-            items = [{
-                ...productData,
-                quantity: 1,
-                imageUrl: productData.images[0],
-                size: searchParams.get('size') || undefined,
-                color: searchParams.get('color') || undefined,
-            }];
-        }
-    } else {
-         items = getCart();
-    }
+    const items = getCart();
     
     if (items.length === 0 && isClient) {
+        toast({
+            title: "Your cart is empty!",
+            description: "Redirecting you to the shopping page.",
+            duration: 3000
+        });
         router.replace('/live-selling');
         return;
     }
@@ -109,7 +98,11 @@ export default function PaymentPage() {
         console.error("Failed to parse applied coupon:", e);
       }
     }
-  }, [isClient, searchParams, router]);
+    
+    // Clear the buy now flag
+    localStorage.removeItem('buyNow');
+
+  }, [isClient, searchParams, router, toast]);
 
 
   const { subtotal, shippingCost, estimatedTaxes, total, couponDiscount } = useMemo(() => {
