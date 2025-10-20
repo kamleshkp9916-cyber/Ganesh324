@@ -4,7 +4,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Button, buttonVariants } from '@/components/ui/button';
-import { CreditCard, ShieldCheck, Banknote, Lock, Info, Loader2, ArrowRight, Wallet, QrCode, ArrowLeft, Coins, Ticket, Edit } from 'lucide-react';
+import { CreditCard, ShieldCheck, Banknote, Lock, Info, Loader2, ArrowRight, Wallet, QrCode, ArrowLeft, Coins, Ticket, Edit, Home } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
@@ -21,15 +21,17 @@ import { SHIPPING_SETTINGS_KEY, ShippingSettings, Coupon, COUPONS_KEY } from '@/
 import { useLocalStorage } from '@/hooks/use-local-storage';
 import { productDetails } from '@/lib/product-data';
 import Link from 'next/link';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { EditAddressForm } from '@/components/edit-address-form';
+import { updateUserData } from '@/lib/follow-data';
 
 const defaultShippingSettings: ShippingSettings = {
     deliveryCharge: 50.00
 };
 
 const initialCoupons: Coupon[] = [
-    { id: 1, code: 'STREAM10', description: '10% off on all orders', discountType: 'percentage', discountValue: 10, expiresAt: new Date(new Date().setDate(new Date().getDate() + 7)), applicableCategories: ['All'], minOrderValue: 0 },
-    { id: 2, code: 'SAVE100', description: '₹100 off on orders above ₹1000', discountType: 'fixed', discountValue: 100, minOrderValue: 1000, applicableCategories: ['All'] },
+    { id: 1, code: 'STREAM10', description: '10% off on all orders', discountType: 'percentage', discountValue: 10, expiresAt: new Date(new Date().setDate(new Date().getDate() + 7)), applicableCategories: ['All'], minOrderValue: 0, status: 'active' },
+    { id: 2, code: 'SAVE100', description: '₹100 off on orders above ₹1000', discountType: 'fixed', discountValue: 100, minOrderValue: 1000, applicableCategories: ['All'], status: 'active' },
 ];
 
 type PaymentMethod = 'upi' | 'cod' | 'debit' | 'credit' | 'wallet' | 'coins';
@@ -94,6 +96,9 @@ export default function PaymentPage() {
   const [saveUpi, setSaveUpi] = useState(false);
   const [selectedUpi, setSelectedUpi] = useState(savedUpiIds[0] || '');
 
+  const [address, setAddress] = useState(userData?.addresses?.[0] || null);
+  const [isAddressDialogOpen, setIsAddressDialogOpen] = useState(false);
+
 
   const [shippingSettings] = useLocalStorage<ShippingSettings>(SHIPPING_SETTINGS_KEY, defaultShippingSettings);
   const [allOffers, setAllOffers] = useLocalStorage<Coupon[]>(COUPONS_KEY, []);
@@ -109,7 +114,7 @@ export default function PaymentPage() {
   }, [setAllOffers]);
   
   useEffect(() => {
-    if (!isClient) return;
+    if (!isClient || !userData) return;
 
     const items = getCart();
     
@@ -125,6 +130,10 @@ export default function PaymentPage() {
 
     setCartItems(items);
     
+    if (userData.addresses && userData.addresses.length > 0) {
+        setAddress(userData.addresses[0]);
+    }
+    
     const couponStr = localStorage.getItem('appliedCoupon');
     if (couponStr) {
       try {
@@ -139,7 +148,7 @@ export default function PaymentPage() {
     // Clear the buy now flag
     localStorage.removeItem('buyNow');
 
-  }, [isClient, searchParams, router, toast]);
+  }, [isClient, searchParams, router, toast, userData]);
 
 
   const { subtotal, shippingCost, estimatedTaxes, total, couponDiscount } = useMemo(() => {
@@ -316,6 +325,21 @@ export default function PaymentPage() {
     }
     router.push('/payment');
   };
+  
+  const handleAddressSave = (newAddress: any) => {
+    setAddress(newAddress);
+    setIsAddressDialogOpen(false);
+    toast({
+        title: "Address Selected!",
+        description: "Your delivery address has been set."
+    })
+  };
+  
+  const handleAddressesUpdate = (newAddresses: any[]) => {
+    if(user){
+      updateUserData(user.uid, { addresses: newAddresses });
+    }
+  }
 
   if (!isClient || loading || cartItems.length === 0) {
     return <div className="h-screen w-full flex items-center justify-center"><LoadingSpinner /></div>
@@ -501,6 +525,44 @@ export default function PaymentPage() {
                                {renderPaymentContent()}
                             </div>
                         </div>
+                    </Card>
+
+                    <Card>
+                        <CardHeader>
+                            <div className="flex items-center justify-between">
+                                <CardTitle>
+                                    Delivery Address
+                                </CardTitle>
+                                <Dialog open={isAddressDialogOpen} onOpenChange={setIsAddressDialogOpen}>
+                                    <DialogTrigger asChild>
+                                        <Button variant="outline" size="sm"><Edit className="mr-2 h-3 w-3" /> {address ? 'Change' : 'Add Address'}</Button>
+                                    </DialogTrigger>
+                                    <DialogContent>
+                                        <DialogHeader>
+                                            <DialogTitle>Change Delivery Address</DialogTitle>
+                                        </DialogHeader>
+                                        <EditAddressForm 
+                                            onSave={handleAddressSave} 
+                                            onCancel={() => setIsAddressDialogOpen(false)}
+                                            onAddressesUpdate={handleAddressesUpdate}
+                                        />
+                                    </DialogContent>
+                                </Dialog>
+                            </div>
+                             <CardDescription>{address ? "Your order will be delivered here." : "Please select or add a delivery address."}</CardDescription>
+                        </CardHeader>
+                        {address && (
+                            <CardContent className="text-sm space-y-2">
+                                <div className="flex items-start gap-3">
+                                    <Home className="h-5 w-5 mt-1 text-muted-foreground"/>
+                                    <div>
+                                        <p className="font-semibold">{address.name}</p>
+                                        <p className="text-muted-foreground">{address.village}, {address.city}, {address.state} - {address.pincode}</p>
+                                        <p className="text-muted-foreground">Phone: {address.phone}</p>
+                                    </div>
+                                </div>
+                            </CardContent>
+                        )}
                     </Card>
 
                 </div>
