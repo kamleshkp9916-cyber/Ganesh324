@@ -45,36 +45,30 @@ export default function PaymentPage() {
   const [shippingSettings] = useLocalStorage<ShippingSettings>(SHIPPING_SETTINGS_KEY, defaultShippingSettings);
   const [allOffers] = useLocalStorage<Coupon[]>(COUPONS_KEY, []);
 
-  const buyNowProductId = searchParams.get('productId');
-  const buyNowSize = searchParams.get('size');
-  const buyNowColor = searchParams.get('color');
-  const isBuyNow = searchParams.get('buyNow') === 'true';
-
-  const paymentMethods: { id: PaymentMethod, label: string, icon: React.ReactNode, disabled?: boolean, offer?: string }[] = [
-    { id: 'wallet', label: 'Wallet', icon: <Wallet/> },
-    { id: 'coins', label: 'Coins', icon: <Coins/>, disabled: true },
-    { id: 'upi', label: 'UPI', icon: <QrCode/> },
-    { id: 'cod', label: 'Cash on Delivery', icon: <Banknote/>, disabled: true },
-    { id: 'debit', label: 'Debit Card', icon: <CreditCard/> },
-    { id: 'credit', label: 'Credit Card', icon: <CreditCard/> }
-  ];
-
   useEffect(() => {
     setIsClient(true);
-    let items: CartProduct[];
+  }, []);
+  
+  useEffect(() => {
+    if (!isClient) return;
+
+    let items: CartProduct[] = [];
+    const buyNowProductId = searchParams.get('productId');
+    const isBuyNow = searchParams.get('buyNow') === 'true';
+
     if (isBuyNow && buyNowProductId) {
         const productData = productDetails[buyNowProductId as keyof typeof productDetails];
         if (productData) {
-            const buyNowItem: CartProduct = {
+            items = [{
                 ...productData,
                 quantity: 1,
                 imageUrl: productData.images[0],
-                size: buyNowSize || undefined,
-                color: buyNowColor || undefined,
-            };
-            items = [buyNowItem];
+                size: searchParams.get('size') || undefined,
+                color: searchParams.get('color') || undefined,
+            }];
         } else {
-            items = getCart(); // Fallback to cart if product not found
+             // If product not found for buy now, fallback to cart or redirect
+             items = getCart();
         }
     } else {
         items = getCart();
@@ -97,7 +91,8 @@ export default function PaymentPage() {
         console.error("Failed to parse applied coupon:", e);
       }
     }
-  }, [isBuyNow, buyNowProductId, buyNowColor, buyNowSize, router]);
+  }, [isClient, searchParams, router]);
+
 
   const { subtotal, shippingCost, estimatedTaxes, total, couponDiscount } = useMemo(() => {
     const sub = cartItems.reduce((acc, item) => {
@@ -142,36 +137,14 @@ export default function PaymentPage() {
     };
   }, [cartItems, shippingSettings, appliedCoupon]);
 
-  const availableOffers = useMemo(() => {
-    if (!allOffers) return [];
-    
-    const now = new Date();
-    
-    const applicable = allOffers.filter(offer => {
-      const isExpired = offer.expiresAt && new Date(offer.expiresAt) < now;
-      if (isExpired) return false;
-
-      const meetsMinOrder = !offer.minOrderValue || subtotal >= offer.minOrderValue;
-      if (!meetsMinOrder) return false;
-      
-      if (offer.applicableCategories?.includes('All')) return true;
-      
-      return cartItems.some(item => {
-        const itemCategory = productDetails[item.key as keyof typeof productDetails]?.category;
-        return itemCategory && offer.applicableCategories?.includes(itemCategory);
-      });
-    });
-
-    if (applicable.length > 0) {
-      return applicable;
-    }
-    
-    // Fallback: Show a few general, non-expired offers if no specific ones apply.
-    return allOffers
-      .filter(offer => (!offer.expiresAt || new Date(offer.expiresAt) >= now))
-      .slice(0, 3);
-      
-  }, [allOffers, cartItems, subtotal]);
+    const availableOffers = useMemo(() => {
+        if (!allOffers || allOffers.length === 0) return [];
+        const now = new Date();
+        // Return a few general, non-expired offers.
+        return allOffers
+            .filter(offer => (!offer.expiresAt || new Date(offer.expiresAt) >= now))
+            .slice(0, 3);
+    }, [allOffers]);
 
 
   const handlePlaceOrder = (e: React.FormEvent) => {
