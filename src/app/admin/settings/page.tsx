@@ -1,4 +1,5 @@
 
+
 "use client"
 
 import {
@@ -29,6 +30,9 @@ import {
   Link2,
   Truck,
   GanttChart,
+  Check,
+  X,
+  Clock,
 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
@@ -119,6 +123,9 @@ const couponSchema = z.object({
   minOrderValue: z.number().optional(),
   applicableCategories: z.array(z.string()).optional(),
   maxDiscount: z.number().optional(),
+  sellerId: z.string().optional(),
+  sellerName: z.string().optional(),
+  status: z.enum(['pending', 'active', 'rejected', 'archived']).default('active'),
 });
 
 export type Coupon = z.infer<typeof couponSchema>;
@@ -196,8 +203,9 @@ const initialFlaggedContent = [
 ];
 
 const initialCoupons: Coupon[] = [
-    { id: 1, code: 'STREAM10', description: '10% off on all orders', discountType: 'percentage', discountValue: 10, expiresAt: new Date(new Date().setDate(new Date().getDate() + 7)), applicableCategories: ['All'], minOrderValue: 0 },
-    { id: 2, code: 'SAVE100', description: '₹100 off on orders above ₹1000', discountType: 'fixed', discountValue: 100, minOrderValue: 1000, applicableCategories: ['All'] },
+    { id: 1, code: 'STREAM10', description: '10% off on all orders', discountType: 'percentage', discountValue: 10, expiresAt: new Date(new Date().setDate(new Date().getDate() + 7)), applicableCategories: ['All'], minOrderValue: 0, status: 'active', sellerId: 'admin' },
+    { id: 2, code: 'SAVE100', description: '₹100 off on orders above ₹1000', discountType: 'fixed', discountValue: 100, minOrderValue: 1000, applicableCategories: ['All'], status: 'active', sellerId: 'admin' },
+    { id: 3, code: 'FREESHIP', description: 'Free shipping on all orders', discountType: 'fixed', discountValue: 0, status: 'pending', sellerId: 'seller1', sellerName: 'FashionFinds'},
 ];
 
 const initialSlides: Slide[] = [
@@ -236,7 +244,24 @@ const defaultFeaturedProducts: FeaturedProduct[] = [
 ];
 
 
-const CouponForm = ({ onSave, existingCoupon, closeDialog }: { onSave: (coupon: Coupon) => void, existingCoupon?: Coupon, closeDialog: () => void }) => {
+const footerContentSchema = z.object({
+  description: z.string().min(10, "Description is required."),
+  address: z.string().min(10, "Address is required."),
+  phone: z.string().min(10, "Phone number is required."),
+  email: z.string().email("Invalid email address."),
+  facebook: z.string().url().or(z.literal("")),
+  twitter: z.string().url().or(z.literal("")),
+  linkedin: z.string().url().or(z.literal("")),
+  instagram: z.string().url().or(z.literal("")),
+});
+export type FooterContent = z.infer<typeof footerContentSchema>;
+
+const shippingSettingsSchema = z.object({
+  deliveryCharge: z.coerce.number().min(0, "Charge must be non-negative."),
+});
+export type ShippingSettings = z.infer<typeof shippingSettingsSchema>;
+
+const CouponForm = ({ onSave, existingCoupon, closeDialog, allCategories }: { onSave: (coupon: Coupon) => void, existingCoupon?: Coupon, closeDialog: () => void, allCategories: string[] }) => {
     const [isLoading, setIsLoading] = useState(false);
 
     const form = useForm<z.infer<typeof couponSchema>>({
@@ -263,8 +288,6 @@ const CouponForm = ({ onSave, existingCoupon, closeDialog }: { onSave: (coupon: 
             closeDialog();
         }, 500);
     };
-
-    const allCategories = useMemo(() => ['All', ...categories.map(c => c.name)], []);
 
     return (
         <Form {...form}>
@@ -663,6 +686,10 @@ export default function AdminSettingsPage() {
   const [isSlideFormOpen, setIsSlideFormOpen] = useState(false);
   const [editingSlide, setEditingSlide] = useState<Slide | undefined>(undefined);
 
+  const allCategories = useMemo(() => ['All', ...categories.map(c => c.name)], []);
+  const adminCoupons = useMemo(() => coupons.filter(c => c.sellerId === 'admin'), [coupons]);
+  const sellerCoupons = useMemo(() => coupons.filter(c => c.sellerId !== 'admin'), [coupons]);
+
 
   // Initialize local storage with default data if it's empty
   useEffect(() => {
@@ -691,12 +718,22 @@ export default function AdminSettingsPage() {
   }, [setCoupons, setSlides, setCategoryBanners, setFeaturedProducts]);
 
   const handleSaveCoupon = (coupon: Coupon) => {
-    const newCoupons = [...coupons];
-    const existingIndex = newCoupons.findIndex(c => c.id === coupon.id);
-    if (existingIndex > -1) newCoupons[existingIndex] = coupon;
-    else newCoupons.unshift({ ...coupon, id: Date.now() });
-    setCoupons(newCoupons);
+    setCoupons(prev => {
+        const newCoupons = [...prev];
+        const existingIndex = newCoupons.findIndex(c => c.id === coupon.id);
+        if (existingIndex > -1) {
+            newCoupons[existingIndex] = coupon;
+        } else {
+            newCoupons.unshift({ ...coupon, id: Date.now(), sellerId: 'admin', status: 'active' });
+        }
+        return newCoupons;
+    });
     toast({ title: "Coupon Saved!", description: `Coupon ${coupon.code} has been updated.` });
+  };
+  
+  const handleCouponStatusChange = (couponId: number, status: Coupon['status']) => {
+    setCoupons(prev => prev.map(c => c.id === couponId ? { ...c, status } : c));
+    toast({ title: "Coupon Status Updated" });
   };
 
   const handleDeleteCoupon = (couponId: number) => {
@@ -826,7 +863,7 @@ export default function AdminSettingsPage() {
         <Dialog open={isCouponFormOpen} onOpenChange={setIsCouponFormOpen}>
              <DialogContent className="max-w-2xl">
                 <DialogHeader><DialogTitle>{editingCoupon ? 'Edit' : 'Add New'} Coupon</DialogTitle><DialogDescription>Fill in the details for the discount coupon.</DialogDescription></DialogHeader>
-                <CouponForm onSave={handleSaveCoupon} existingCoupon={editingCoupon} closeDialog={() => setIsCouponFormOpen(false)} />
+                <CouponForm onSave={handleSaveCoupon} existingCoupon={editingCoupon} closeDialog={() => setIsCouponFormOpen(false)} allCategories={allCategories} />
             </DialogContent>
         </Dialog>
         <Dialog open={isSlideFormOpen} onOpenChange={setIsSlideFormOpen}>
@@ -965,11 +1002,11 @@ export default function AdminSettingsPage() {
                 </Card>
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between">
-                        <div><CardTitle>Discounts & Offers</CardTitle><CardDescription>Create and manage global discount coupons and offers.</CardDescription></div>
-                        <Button size="sm" onClick={() => openCouponForm()}><PlusCircle className="mr-2 h-4 w-4" />Add New Offer</Button>
+                        <div><CardTitle>Admin-Created Coupons</CardTitle><CardDescription>Create and manage global discount coupons.</CardDescription></div>
+                        <Button size="sm" onClick={() => openCouponForm()}><PlusCircle className="mr-2 h-4 w-4" />Add New Coupon</Button>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                        {coupons.length > 0 ? coupons.map(coupon => (
+                        {adminCoupons.length > 0 ? adminCoupons.map(coupon => (
                              <div key={coupon.id} className={cn("flex items-center justify-between rounded-lg border p-4", coupon.expiresAt && new Date(coupon.expiresAt) < new Date() && "bg-muted/50")}>
                                 <div className="flex items-center gap-4"><div className="w-12 h-12 bg-muted rounded-md flex items-center justify-center"><Ticket className="h-6 w-6 text-primary" /></div>
                                     <div>
@@ -986,10 +1023,70 @@ export default function AdminSettingsPage() {
                                 <div className="flex items-center gap-2"><Button variant="ghost" size="icon" onClick={() => openCouponForm(coupon)}><Edit className="h-4 w-4" /></Button><Button variant="ghost" size="icon" className="text-destructive hover:text-destructive" onClick={() => handleDeleteCoupon(coupon.id!)}><Trash2 className="h-4 w-4" /></Button></div>
                             </div>
                         )) : (
-                            isMounted ? <p className="text-center text-muted-foreground py-4">No offers have been created yet.</p> : <Skeleton className="w-full h-24" />
+                            isMounted ? <p className="text-center text-muted-foreground py-4">No admin-created coupons yet.</p> : <Skeleton className="w-full h-24" />
                         )}
                     </CardContent>
                 </Card>
+                
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Seller Promotions</CardTitle>
+                        <CardDescription>Review, approve, or reject coupons submitted by sellers.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Seller</TableHead>
+                                    <TableHead>Code</TableHead>
+                                    <TableHead>Description</TableHead>
+                                    <TableHead>Status</TableHead>
+                                    <TableHead className="text-right">Actions</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {sellerCoupons.map(coupon => (
+                                    <TableRow key={coupon.id}>
+                                        <TableCell>{coupon.sellerName || 'N/A'}</TableCell>
+                                        <TableCell><Badge variant="secondary">{coupon.code}</Badge></TableCell>
+                                        <TableCell>{coupon.description}</TableCell>
+                                        <TableCell>
+                                            <Badge variant={
+                                                coupon.status === 'active' ? 'success' :
+                                                coupon.status === 'pending' ? 'warning' : 'destructive'
+                                            }>
+                                                {coupon.status}
+                                            </Badge>
+                                        </TableCell>
+                                        <TableCell className="text-right">
+                                            {coupon.status === 'pending' && (
+                                                <div className="flex gap-2 justify-end">
+                                                    <Button size="sm" variant="success" onClick={() => handleCouponStatusChange(coupon.id!, 'active')}>
+                                                        <Check className="mr-2 h-4 w-4" /> Approve
+                                                    </Button>
+                                                    <Button size="sm" variant="destructive" onClick={() => handleCouponStatusChange(coupon.id!, 'rejected')}>
+                                                        <X className="mr-2 h-4 w-4" /> Reject
+                                                    </Button>
+                                                </div>
+                                            )}
+                                             {coupon.status === 'active' && (
+                                                <Button size="sm" variant="destructive" onClick={() => handleCouponStatusChange(coupon.id!, 'archived')}>
+                                                    <Archive className="mr-2 h-4 w-4" /> Archive
+                                                </Button>
+                                             )}
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                                {sellerCoupons.length === 0 && (
+                                    <TableRow>
+                                        <TableCell colSpan={5} className="h-24 text-center">No seller promotions to review.</TableCell>
+                                    </TableRow>
+                                )}
+                            </TableBody>
+                        </Table>
+                    </CardContent>
+                </Card>
+
 
                 <Card>
                     <CardHeader>
@@ -1080,5 +1177,3 @@ export default function AdminSettingsPage() {
     </>
   )
 }
-
-    

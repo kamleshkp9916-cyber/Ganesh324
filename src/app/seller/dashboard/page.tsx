@@ -1,4 +1,5 @@
 
+
 "use client"
 
 import {
@@ -14,6 +15,7 @@ import {
   Sparkles,
   ShieldCheck,
   RadioTower,
+  Ticket,
 } from "lucide-react"
 import { useEffect, useState } from "react";
 
@@ -207,6 +209,12 @@ export default function SellerDashboard() {
           >
             Products
           </Link>
+           <Link
+            href="/seller/promotions"
+            className="text-muted-foreground transition-colors hover:text-foreground"
+          >
+            Promotions
+          </Link>
           <Link
             href="/seller/feed"
             className="text-muted-foreground transition-colors hover:text-foreground"
@@ -254,6 +262,12 @@ export default function SellerDashboard() {
                 className="text-muted-foreground hover:text-foreground"
               >
                 Products
+              </Link>
+              <Link
+                href="/seller/promotions"
+                className="text-muted-foreground hover:text-foreground"
+              >
+                Promotions
               </Link>
               <Link
                 href="/seller/feed"
