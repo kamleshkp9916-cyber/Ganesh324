@@ -177,30 +177,23 @@ export function ProductDetailClient({ productId }: { productId: string }) {
     const [allOffers] = useLocalStorage<Coupon[]>(COUPONS_KEY, []);
 
     const product = useMemo(() => productDetails[productId as keyof typeof productDetails] || null, [productId]);
+    
+    const { compareAtPrice, discountPercentage } = useMemo(() => {
+        if (!product?.compareAtPrice || !currentPrice) return { compareAtPrice: null, discountPercentage: null };
 
-    const { discountedPrice, discountPercentage } = useMemo(() => {
-        if (!activeOffer || !currentPrice) return { discountedPrice: null, discountPercentage: null };
+        const comparePrice = parseFloat(String(product.compareAtPrice).replace(/[^0-9.-]+/g, ''));
+        const sellingPrice = parseFloat(currentPrice.replace(/[^0-9.-]+/g, ''));
 
-        const price = parseFloat(currentPrice.replace(/[^0-9.-]+/g, ''));
-        let discount = 0;
-
-        if (activeOffer.discountType === 'percentage') {
-            discount = price * (activeOffer.discountValue / 100);
-             if (activeOffer.maxDiscount && discount > activeOffer.maxDiscount) {
-                discount = activeOffer.maxDiscount;
-            }
-        } else {
-            discount = activeOffer.discountValue;
+        if (comparePrice > sellingPrice) {
+            const percentage = Math.round(((comparePrice - sellingPrice) / comparePrice) * 100);
+            return {
+                compareAtPrice: `₹${comparePrice.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+                discountPercentage: percentage
+            };
         }
-        
-        const finalPrice = price - discount;
-        const percentage = Math.round((discount / price) * 100);
 
-        return {
-            discountedPrice: `₹${finalPrice.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
-            discountPercentage: percentage
-        };
-    }, [activeOffer, currentPrice]);
+        return { compareAtPrice: null, discountPercentage: null };
+    }, [product?.compareAtPrice, currentPrice]);
 
     const handleOfferExpired = useCallback(() => {
         setActiveOffer(null);
@@ -512,7 +505,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                 if (selectedSize) queryParams.set('size', selectedSize);
                 if (selectedColor) queryParams.set('color', selectedColor);
                 
-                router.push(`/payment?${queryParams.toString()}`);
+                router.push(`/cart?${queryParams.toString()}`);
             }
         });
     };
@@ -885,9 +878,9 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                         <p className="text-muted-foreground text-sm">{renderDescriptionWithHashtags(product.description)}</p>
                                     </div>
                                     <div>
-                                         <div className="flex items-baseline gap-4 flex-wrap">
-                                            <p className={cn("text-3xl font-bold text-foreground", discountedPrice && "text-muted-foreground line-through")}>{currentPrice}</p>
-                                            {discountedPrice && <p className="text-3xl font-bold text-destructive">{discountedPrice}</p>}
+                                        <div className="flex items-baseline gap-2 flex-wrap">
+                                            <p className={cn("text-3xl font-bold text-foreground", compareAtPrice && "text-muted-foreground line-through text-2xl")}>{currentPrice}</p>
+                                            {compareAtPrice && <p className="text-3xl font-bold text-destructive">{currentPrice}</p>}
                                             {discountPercentage && <Badge variant="destructive">{discountPercentage}% OFF</Badge>}
                                         </div>
                                         <div className="flex items-center gap-4 flex-wrap mt-2">
@@ -983,7 +976,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                             </CollapsibleTrigger>
                                             <CollapsibleContent>
                                                 <div className="p-4 space-y-3">
-                                                    {allOffers.map((offer: any, index: number) => (
+                                                    {mockAdminOffers.map((offer: any, index: number) => (
                                                         <div key={index} className="flex items-start gap-3 text-sm">
                                                             {offer.icon}
                                                             <div>

@@ -48,6 +48,7 @@ const productFormSchema = z.object({
   name: z.string().min(3, "Product name must be at least 3 characters."),
   description: z.string().min(10, "Description must be at least 10 characters.").max(1000),
   price: z.coerce.number().positive("Price must be a positive number."),
+  compareAtPrice: z.coerce.number().optional(),
   stock: z.coerce.number().int().min(0, "Stock cannot be negative."),
   media: z.array(z.object({
       type: z.enum(['image', 'video']),
@@ -66,7 +67,11 @@ const productFormSchema = z.object({
   variants: z.array(variantSchema).optional(),
   highlights: z.string().optional(),
   keywords: z.array(z.string()).optional(),
-})
+}).refine(data => !data.compareAtPrice || data.compareAtPrice > data.price, {
+    message: "Compare at price must be higher than the selling price.",
+    path: ["compareAtPrice"],
+});
+
 
 export type Product = z.infer<typeof productFormSchema>;
 
@@ -129,6 +134,7 @@ export function ProductForm({ onSave, productToEdit }: ProductFormProps) {
       return {
         ...productToEdit,
         price: parseFloat(String(productToEdit.price).replace(/[^0-9.-]+/g, '')) || 0,
+        compareAtPrice: productToEdit.compareAtPrice ? parseFloat(String(productToEdit.compareAtPrice).replace(/[^0-9.-]+/g, '')) : undefined,
         media: productToEdit.media?.map(item => ({...item, file: undefined })) || [],
         variants: productToEdit.variants?.map(v => ({
             ...v,
@@ -140,6 +146,7 @@ export function ProductForm({ onSave, productToEdit }: ProductFormProps) {
       name: "",
       description: "",
       price: 0,
+      compareAtPrice: undefined,
       stock: 0,
       media: [],
       listingType: "general",
@@ -273,9 +280,29 @@ export function ProductForm({ onSave, productToEdit }: ProductFormProps) {
                     <FormItem><FormLabel>Country of Origin</FormLabel><FormControl><Input placeholder="e.g., India" {...field} /></FormControl><FormMessage /></FormItem>
                 )}/>
 
-               <FormField name="price" control={form.control} render={({ field }) => (
-                <FormItem><FormLabel>Base Price</FormLabel><div className="relative"><span className="absolute inset-y-0 left-0 flex items-center pl-3 text-muted-foreground">₹</span><FormControl><Input type="number" placeholder="0.00" className="pl-6" {...field} /></FormControl></div><FormDescription>This will be used if a variant has no specific price.</FormDescription><FormMessage /></FormItem>
-                )}/>
+                <div className="grid grid-cols-2 gap-4 items-end">
+                    <FormField name="price" control={form.control} render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Selling Price</FormLabel>
+                            <div className="relative">
+                                <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-muted-foreground">₹</span>
+                                <FormControl><Input type="number" placeholder="999.00" className="pl-6" {...field} /></FormControl>
+                            </div>
+                            <FormMessage />
+                        </FormItem>
+                    )}/>
+                    <FormField name="compareAtPrice" control={form.control} render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Compare At Price (Optional)</FormLabel>
+                            <div className="relative">
+                                <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-muted-foreground">₹</span>
+                                <FormControl><Input type="number" placeholder="1499.00" className="pl-6" {...field} /></FormControl>
+                            </div>
+                             <FormDescription className="text-xs">The original, higher price. Creates a "sale" effect.</FormDescription>
+                            <FormMessage />
+                        </FormItem>
+                    )}/>
+                </div>
 
                 <Separator />
 
