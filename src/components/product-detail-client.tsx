@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
@@ -349,15 +350,17 @@ export function ProductDetailClient({ productId }: { productId: string }) {
     const handleAddToCart = () => {
         handleAuthAction(() => {
             if (product) {
-                const productForCart: Product = {
+                const productForCart: Product & {size?: string; color?: string;} = {
                     id: product.id,
                     key: product.key,
                     name: product.name,
-                    price: product.price,
+                    price: currentPrice || product.price,
                     imageUrl: product.images[0],
                     hint: product.hint,
                     brand: product.brand,
                     category: product.category,
+                    size: selectedSize || undefined,
+                    color: selectedColor || undefined,
                 };
                 addToCart({ ...productForCart, quantity: 1 });
                 setInCart(true);
@@ -411,7 +414,14 @@ export function ProductDetailClient({ productId }: { productId: string }) {
     const handleBuyNow = () => {
         handleAuthAction(() => {
             if (product) {
-                router.push(`/cart?buyNow=true&productId=${product.key}`);
+                const queryParams = new URLSearchParams({
+                    buyNow: 'true',
+                    productId: product.key
+                });
+                if (selectedSize) queryParams.set('size', selectedSize);
+                if (selectedColor) queryParams.set('color', selectedColor);
+                
+                router.push(`/cart?${queryParams.toString()}`);
             }
         });
     };
@@ -779,7 +789,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                         <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">{product.name}</h1>
                                         <p className="text-muted-foreground text-sm">{renderDescriptionWithHashtags(product.description)}</p>
                                     </div>
-                                    <div className="pt-2">
+                                    <div>
                                         <div className="flex items-center gap-4 flex-wrap">
                                             {currentPrice && <p className="text-3xl font-bold text-foreground">{currentPrice}</p>}
                                             <div className="flex items-center gap-2">
@@ -1025,7 +1035,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                         ))}
                                     </div>
                                 </div>
-                                <Card className="mt-4">
+                                <Card className="mt-6">
                                     <CardHeader>
                                         <div className="flex items-center justify-between">
                                             <h3 className="text-lg font-semibold">Sold By</h3>
