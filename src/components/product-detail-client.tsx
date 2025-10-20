@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
@@ -1127,5 +1128,3 @@ export function ProductDetailClient({ productId }: { productId: string }) {
         </>
     );
 }
-
-    
