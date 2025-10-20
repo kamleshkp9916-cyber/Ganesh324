@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { CreditCard, ShieldCheck, Banknote, Lock, Info, Loader2, ArrowRight, Wallet, QrCode, ArrowLeft, Coins, Ticket } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
@@ -30,6 +30,7 @@ type PaymentMethod = 'upi' | 'cod' | 'debit' | 'credit' | 'wallet' | 'coins';
 
 export default function PaymentPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { toast } = useToast();
   const { user, userData, loading } = useAuth();
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("upi");
@@ -44,6 +45,11 @@ export default function PaymentPage() {
   const [shippingSettings] = useLocalStorage<ShippingSettings>(SHIPPING_SETTINGS_KEY, defaultShippingSettings);
   const [allOffers] = useLocalStorage<Coupon[]>(COUPONS_KEY, []);
 
+  const buyNowProductId = searchParams.get('productId');
+  const buyNowSize = searchParams.get('size');
+  const buyNowColor = searchParams.get('color');
+  const isBuyNow = searchParams.get('buyNow') === 'true';
+
   const paymentMethods: { id: PaymentMethod, label: string, icon: React.ReactNode, disabled?: boolean, offer?: string }[] = [
     { id: 'wallet', label: 'Wallet', icon: <Wallet/> },
     { id: 'coins', label: 'Coins', icon: <Coins/>, disabled: true },
@@ -55,17 +61,32 @@ export default function PaymentPage() {
 
   useEffect(() => {
     setIsClient(true);
-    const items = getCart();
-    if (items.length === 0 && document.referrer && !document.referrer.includes('/cart')) {
-        // Only redirect if there are no items and the user didn't come from the cart page.
-        // This prevents redirecting "Buy Now" users.
-        const urlParams = new URLSearchParams(window.location.search);
-        if (!urlParams.has('buyNow')) {
-             router.replace('/live-selling');
-             return;
+    let items: CartProduct[];
+    if (isBuyNow && buyNowProductId) {
+        const productData = productDetails[buyNowProductId as keyof typeof productDetails];
+        if (productData) {
+            const buyNowItem: CartProduct = {
+                ...productData,
+                quantity: 1,
+                imageUrl: productData.images[0],
+                size: buyNowSize || undefined,
+                color: buyNowColor || undefined,
+            };
+            items = [buyNowItem];
+        } else {
+            items = getCart(); // Fallback to cart if product not found
         }
+    } else {
+        items = getCart();
     }
+    
+    if (items.length === 0) {
+        router.replace('/live-selling');
+        return;
+    }
+
     setCartItems(items);
+    
     const couponStr = localStorage.getItem('appliedCoupon');
     if (couponStr) {
       try {
@@ -76,7 +97,7 @@ export default function PaymentPage() {
         console.error("Failed to parse applied coupon:", e);
       }
     }
-  }, [router]);
+  }, [isBuyNow, buyNowProductId, buyNowColor, buyNowSize, router]);
 
   const { subtotal, shippingCost, estimatedTaxes, total, couponDiscount } = useMemo(() => {
     const sub = cartItems.reduce((acc, item) => {
