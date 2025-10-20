@@ -42,26 +42,9 @@ export default function PaymentPage() {
   
   useEffect(() => {
     setIsClient(true);
-    const cart = getCart();
-    // For demo purposes, if cart is empty, add a default item.
-    if (cart.length === 0) {
-      const defaultProductKey = 'prod_5';
-      const defaultProduct = productDetails[defaultProductKey];
-      if(defaultProduct) {
-        const defaultCartItem: CartProduct = {
-          ...defaultProduct,
-          id: defaultProduct.id,
-          key: defaultProduct.key,
-          quantity: 1,
-          imageUrl: defaultProduct.images[0],
-          price: '₹3,499.00',
-          color: 'Charcoal'
-        };
-        setCartItems([defaultCartItem]);
-      }
-    } else {
-      setCartItems(cart);
-    }
+    // Directly get the cart from local storage.
+    // The previous logic had a fallback which was causing issues.
+    setCartItems(getCart());
 
     const couponStr = localStorage.getItem('appliedCoupon');
     if (couponStr) {
@@ -271,10 +254,10 @@ export default function PaymentPage() {
                             <div className="space-y-4 max-h-60 overflow-y-auto">
                                 {cartItems.map((item) => (
                                     <div key={`${item.id}-${item.size || ''}-${item.color || ''}`} className="flex items-center gap-4">
-                                        <Image src={item.imageUrl} alt={item.name} width={64} height={64} className="rounded-md border" />
+                                        <Image src={item.imageUrl} alt={item.name} width={64} height={64} className="rounded-md border" data-ai-hint={item.hint}/>
                                         <div className="flex-grow">
                                             <p className="font-semibold text-sm">{item.name}</p>
-                                            <p className="text-xs text-muted-foreground">Color: {item.color || 'Default'} • Qty: {item.quantity}</p>
+                                            <p className="text-xs text-muted-foreground">Qty: {item.quantity}</p>
                                         </div>
                                         <p className="font-semibold text-sm">₹{(parseFloat(item.price.replace(/[^0-9.-]+/g, '')) * item.quantity).toLocaleString('en-IN')}</p>
                                     </div>
