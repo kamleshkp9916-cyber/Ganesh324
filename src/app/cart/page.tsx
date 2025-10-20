@@ -343,12 +343,12 @@ export default function CartPage() {
                         </Card>
                         
                         <Card>
-                             <CardHeader>
+                            <CardHeader>
                                 <div className="flex items-center justify-between">
                                     <CardTitle className="text-base">
                                         Delivery To
                                     </CardTitle>
-                                     <Dialog open={isAddressDialogOpen} onOpenChange={setIsAddressDialogOpen}>
+                                    <Dialog open={isAddressDialogOpen} onOpenChange={setIsAddressDialogOpen}>
                                         <DialogTrigger asChild>
                                             <Button variant="outline" size="sm"><Edit className="mr-2 h-3 w-3" /> {address ? 'Change' : 'Add Address'}</Button>
                                         </DialogTrigger>
