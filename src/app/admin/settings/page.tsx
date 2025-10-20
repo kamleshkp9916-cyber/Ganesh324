@@ -243,24 +243,6 @@ const defaultFeaturedProducts: FeaturedProduct[] = [
   { imageUrl: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500&h=500&fit=crop', name: 'Headphones', model: 'AudioMax 3' },
 ];
 
-
-const footerContentSchema = z.object({
-  description: z.string().min(10, "Description is required."),
-  address: z.string().min(10, "Address is required."),
-  phone: z.string().min(10, "Phone number is required."),
-  email: z.string().email("Invalid email address."),
-  facebook: z.string().url().or(z.literal("")),
-  twitter: z.string().url().or(z.literal("")),
-  linkedin: z.string().url().or(z.literal("")),
-  instagram: z.string().url().or(z.literal("")),
-});
-export type FooterContent = z.infer<typeof footerContentSchema>;
-
-const shippingSettingsSchema = z.object({
-  deliveryCharge: z.coerce.number().min(0, "Charge must be non-negative."),
-});
-export type ShippingSettings = z.infer<typeof shippingSettingsSchema>;
-
 const CouponForm = ({ onSave, existingCoupon, closeDialog, allCategories }: { onSave: (coupon: Coupon) => void, existingCoupon?: Coupon, closeDialog: () => void, allCategories: string[] }) => {
     const [isLoading, setIsLoading] = useState(false);
 
