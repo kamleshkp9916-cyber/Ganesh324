@@ -48,7 +48,7 @@ const productFormSchema = z.object({
   name: z.string().min(3, "Product name must be at least 3 characters."),
   description: z.string().min(10, "Description must be at least 10 characters.").max(1000),
   price: z.coerce.number().positive("Price must be a positive number."),
-  compareAtPrice: z.coerce.number().optional(),
+  discountPercentage: z.coerce.number().optional(),
   stock: z.coerce.number().int().min(0, "Stock cannot be negative."),
   media: z.array(z.object({
       type: z.enum(['image', 'video']),
@@ -67,9 +67,9 @@ const productFormSchema = z.object({
   variants: z.array(variantSchema).optional(),
   highlights: z.string().optional(),
   keywords: z.array(z.string()).optional(),
-}).refine(data => !data.compareAtPrice || data.compareAtPrice > data.price, {
-    message: "Compare at price must be higher than the selling price.",
-    path: ["compareAtPrice"],
+}).refine(data => !data.discountPercentage || (data.discountPercentage > 0 && data.discountPercentage < 100), {
+    message: "Discount must be between 1 and 99.",
+    path: ["discountPercentage"],
 });
 
 
@@ -134,7 +134,7 @@ export function ProductForm({ onSave, productToEdit }: ProductFormProps) {
       return {
         ...productToEdit,
         price: parseFloat(String(productToEdit.price).replace(/[^0-9.-]+/g, '')) || 0,
-        compareAtPrice: productToEdit.compareAtPrice ? parseFloat(String(productToEdit.compareAtPrice).replace(/[^0-9.-]+/g, '')) : undefined,
+        discountPercentage: productToEdit.discountPercentage ? parseFloat(String(productToEdit.discountPercentage)) : undefined,
         media: productToEdit.media?.map(item => ({...item, file: undefined })) || [],
         variants: productToEdit.variants?.map(v => ({
             ...v,
@@ -146,7 +146,7 @@ export function ProductForm({ onSave, productToEdit }: ProductFormProps) {
       name: "",
       description: "",
       price: 0,
-      compareAtPrice: undefined,
+      discountPercentage: undefined,
       stock: 0,
       media: [],
       listingType: "general",
@@ -291,14 +291,14 @@ export function ProductForm({ onSave, productToEdit }: ProductFormProps) {
                             <FormMessage />
                         </FormItem>
                     )}/>
-                    <FormField name="compareAtPrice" control={form.control} render={({ field }) => (
+                    <FormField name="discountPercentage" control={form.control} render={({ field }) => (
                         <FormItem>
-                            <FormLabel>Compare At Price (Optional)</FormLabel>
+                            <FormLabel>Discount Percentage (Optional)</FormLabel>
                             <div className="relative">
-                                <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-muted-foreground">₹</span>
-                                <FormControl><Input type="number" placeholder="1499.00" className="pl-6" {...field} /></FormControl>
+                                <FormControl><Input type="number" placeholder="e.g., 10" className="pr-6" {...field} /></FormControl>
+                                <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-muted-foreground">%</span>
                             </div>
-                             <FormDescription className="text-xs">The original, higher price. Creates a "sale" effect.</FormDescription>
+                             <FormDescription className="text-xs">Creates a "sale" effect by showing a higher original price.</FormDescription>
                             <FormMessage />
                         </FormItem>
                     )}/>
