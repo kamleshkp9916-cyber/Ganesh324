@@ -53,7 +53,7 @@ export default function PaymentPage() {
     }
   }, []);
 
-  const { subtotal, shippingCost, estimatedTaxes, total } = useMemo(() => {
+  const { subtotal, shippingCost, estimatedTaxes, total, couponDiscount } = useMemo(() => {
     const sub = cartItems.reduce((acc, item) => {
         const price = parseFloat(item.price.replace(/[^0-9.-]+/g,""));
         return acc + (price * item.quantity);
@@ -62,15 +62,39 @@ export default function PaymentPage() {
     const ship = shippingSettings?.deliveryCharge ?? 50.00;
     const tax = sub * 0.05; // 5% mock tax
 
-    const tot = sub + ship + tax;
+    let discount = 0;
+    if (appliedCoupon) {
+        const couponSubtotal = cartItems.reduce((acc, item) => {
+            const itemCategory = productDetails[item.key as keyof typeof productDetails]?.category;
+            if (appliedCoupon.applicableCategories?.includes('All') || (itemCategory && appliedCoupon.applicableCategories?.includes(itemCategory))) {
+                const price = parseFloat(item.price.replace(/[^0-9.-]+/g, ''));
+                return acc + (price * item.quantity);
+            }
+            return acc;
+        }, 0);
+
+        if (!appliedCoupon.minOrderValue || sub >= appliedCoupon.minOrderValue) {
+            if (appliedCoupon.discountType === 'percentage') {
+                discount = couponSubtotal * (appliedCoupon.discountValue / 100);
+                if (appliedCoupon.maxDiscount && discount > appliedCoupon.maxDiscount) {
+                    discount = appliedCoupon.maxDiscount;
+                }
+            } else { // fixed amount
+                discount = appliedCoupon.discountValue;
+            }
+        }
+    }
+
+    const tot = sub - discount + ship + tax;
     
     return {
         subtotal: sub,
         shippingCost: ship,
         estimatedTaxes: tax,
-        total: tot
+        total: tot,
+        couponDiscount: discount
     };
-  }, [cartItems, shippingSettings]);
+  }, [cartItems, shippingSettings, appliedCoupon]);
 
 
   const handlePlaceOrder = (e: React.FormEvent) => {
@@ -249,10 +273,12 @@ export default function PaymentPage() {
                             <CardTitle>Order Summary</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
-                            <div className="space-y-4 max-h-60 overflow-y-auto">
+                             <div className="space-y-4 max-h-60 overflow-y-auto">
                                 {cartItems.map((item) => (
                                     <div key={`${item.id}-${item.size || ''}-${item.color || ''}`} className="flex items-center gap-4">
-                                        <Image src={item.imageUrl} alt={item.name} width={64} height={64} className="rounded-md border" data-ai-hint={item.hint}/>
+                                        <div className="relative w-16 h-16 rounded-md border flex-shrink-0">
+                                            <Image src={item.imageUrl} alt={item.name} layout="fill" className="object-cover rounded-md" data-ai-hint={item.hint}/>
+                                        </div>
                                         <div className="flex-grow">
                                             <p className="font-semibold text-sm">{item.name}</p>
                                             <p className="text-xs text-muted-foreground">Qty: {item.quantity}</p>
@@ -269,6 +295,12 @@ export default function PaymentPage() {
                                     <span className="text-muted-foreground">Subtotal</span>
                                     <span>₹{subtotal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                                 </div>
+                                {couponDiscount > 0 && (
+                                     <div className="flex justify-between text-green-600">
+                                        <span className="text-muted-foreground">Discount</span>
+                                        <span>- ₹{couponDiscount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                                    </div>
+                                )}
                                 <div className="flex justify-between">
                                     <span className="text-muted-foreground">Shipping</span>
                                     <span>₹{shippingCost.toFixed(2)}</span>
@@ -289,14 +321,10 @@ export default function PaymentPage() {
                             </div>
                             <p className="text-xs text-muted-foreground text-center px-4">By completing your purchase you agree to our Terms and Privacy Policy.</p>
                             <Separator />
-                             <div className="space-y-2">
+                            <div className="space-y-2">
                                 <div className="flex justify-between items-center text-sm">
                                     <span>Promo Code</span>
                                     <Button variant="link" size="sm" className="p-0 h-auto">ENTER CODE</Button>
-                                </div>
-                                <div className="flex justify-between items-center text-sm">
-                                    <span>Gift wrap</span>
-                                    <span>+ ₹49</span>
                                 </div>
                             </div>
                         </CardContent>
