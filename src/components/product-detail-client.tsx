@@ -501,6 +501,10 @@ export function ProductDetailClient({ productId }: { productId: string }) {
     const handleBuyNow = () => {
         handleAuthAction(() => {
             if (product) {
+                 if (!userData?.addresses || userData.addresses.length === 0) {
+                    setIsAddressDialogOpen(true);
+                    return;
+                }
                 const queryParams = new URLSearchParams({
                     buyNow: 'true',
                     productId: product.key
@@ -508,7 +512,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                 if (selectedSize) queryParams.set('size', selectedSize);
                 if (selectedColor) queryParams.set('color', selectedColor);
                 
-                router.push(`/cart?${queryParams.toString()}`);
+                router.push(`/payment?${queryParams.toString()}`);
             }
         });
     };
@@ -575,10 +579,15 @@ export function ProductDetailClient({ productId }: { productId: string }) {
     };
     
     const handleAddressSave = (address: any) => {
-        toast({
-            title: "Address Updated",
-            description: "Your delivery address has been successfully updated.",
-        });
+        // If they just added their first address, proceed with the "Buy Now" action
+        if (userData?.addresses?.length === 0) {
+            handleBuyNow();
+        } else {
+             toast({
+                title: "Address Updated",
+                description: "Your delivery address has been successfully updated.",
+            });
+        }
         setIsAddressDialogOpen(false);
     };
     
@@ -1230,8 +1239,8 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                 <Dialog open={isAddressDialogOpen} onOpenChange={setIsAddressDialogOpen}>
                     <DialogContent className="max-w-lg h-auto max-h-[85vh] flex flex-col">
                         <DialogHeader>
-                            <DialogTitle>Change Delivery Address</DialogTitle>
-                            <DialogDescription>Select a saved address or add a new one.</DialogDescription>
+                            <DialogTitle>Add Delivery Address</DialogTitle>
+                            <DialogDescription>Please provide a delivery address before proceeding.</DialogDescription>
                         </DialogHeader>
                         <EditAddressForm 
                             onSave={handleAddressSave}
