@@ -4,7 +4,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Button, buttonVariants } from '@/components/ui/button';
-import { CreditCard, ShieldCheck, Banknote, Lock, Info, Loader2, ArrowRight, Wallet, QrCode, ArrowLeft, Coins, Ticket, Edit, Home, MessageSquare } from 'lucide-react';
+import { CreditCard, ShieldCheck, Banknote, Lock, Info, Loader2, ArrowRight, Wallet, QrCode, ArrowLeft, Coins, Ticket, Edit, Home, MessageSquare, HelpCircle, FileText, Send, Flag, LifeBuoy } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
@@ -23,8 +23,8 @@ import { productDetails } from '@/lib/product-data';
 import Link from 'next/link';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from '@/components/ui/dialog';
 import { EditAddressForm } from '@/components/edit-address-form';
-import { updateUserData } from '@/lib/follow-data';
 import { HelpChat } from '@/components/help-chat';
+import { FeedbackDialog } from '@/components/feedback-dialog';
 
 
 const defaultShippingSettings: ShippingSettings = {
@@ -635,7 +635,7 @@ export default function PaymentPage() {
                                 </div>
                                 <p className="text-xs text-muted-foreground">By completing your purchase you agree to our <Link href="/terms-and-conditions" className="underline hover:text-primary">Terms</Link> and <Link href="/privacy-and-security" className="underline hover:text-primary">Privacy Policy</Link>.</p>
                             </div>
-                            <div className="w-full space-y-2 pt-2">
+                             <div className="w-full space-y-2 pt-2">
                                 <Label htmlFor="promo-code">Promo Code</Label>
                                 <div className="flex gap-2">
                                     <Input 
@@ -658,10 +658,14 @@ export default function PaymentPage() {
             </div>
         </div>
       </main>
-        <div className="fixed bottom-4 left-4 z-50">
-            <Button variant="ghost" onClick={() => setIsHelpChatOpen(true)}>
-                <MessageSquare className="mr-2 h-4 w-4" /> Help & Support
-            </Button>
+        <div className="fixed bottom-4 left-4 z-50 flex gap-2">
+            <Button variant="ghost" className="text-xs" onClick={() => toast({ title: "Report Sent", description: "Thank you for your feedback." })}><Flag className="mr-1 h-3 w-3" />Report</Button>
+            <FeedbackDialog>
+                <Button variant="ghost" className="text-xs"><MessageSquare className="mr-1 h-3 w-3" />Feedback</Button>
+            </FeedbackDialog>
+            <Button asChild variant="ghost" className="text-xs"><Link href="/contact"><FileText className="mr-1 h-3 w-3" />Contact Us</Link></Button>
+            <Button asChild variant="ghost" className="text-xs"><Link href="/help"><HelpCircle className="mr-1 h-3 w-3" />Help</Link></Button>
+            <Button variant="ghost" className="text-xs" onClick={() => setIsHelpChatOpen(true)}><LifeBuoy className="mr-1 h-3 w-3" />Live Support</Button>
         </div>
         {isHelpChatOpen && (
             <HelpChat
@@ -675,3 +679,4 @@ export default function PaymentPage() {
   );
 }
 
+    
