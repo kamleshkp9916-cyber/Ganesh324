@@ -22,6 +22,7 @@ import { COUPONS_KEY, SHIPPING_SETTINGS_KEY, ShippingSettings, Coupon } from '@/
 import { useLocalStorage } from '@/hooks/use-local-storage';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 function EmptyCart() {
     const router = useRouter();
