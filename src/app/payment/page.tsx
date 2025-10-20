@@ -3,7 +3,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Button } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button';
 import { CreditCard, ShieldCheck, Banknote, Lock, Info, Loader2, ArrowRight, Wallet, QrCode, ArrowLeft, Coins, Ticket, Edit } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
@@ -21,6 +21,7 @@ import { SHIPPING_SETTINGS_KEY, ShippingSettings, Coupon, COUPONS_KEY } from '@/
 import { useLocalStorage } from '@/hooks/use-local-storage';
 import { productDetails } from '@/lib/product-data';
 import Link from 'next/link';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 const defaultShippingSettings: ShippingSettings = {
     deliveryCharge: 50.00
@@ -42,6 +43,36 @@ const paymentMethods = [
     { id: 'credit', label: 'Credit Card', icon: <CreditCard className="w-5 h-5" />, disabled: false },
 ];
 
+const SuccessModal = ({ isOpen, onClose, productImage, productName }: { isOpen: boolean, onClose: () => void, productImage: string, productName: string }) => {
+    return (
+        <Dialog open={isOpen} onOpenChange={onClose}>
+            <DialogContent className="max-w-3xl p-0" onPointerDownOutside={(e) => e.preventDefault()} showCloseButton={true}>
+                 <div className="grid grid-cols-1 md:grid-cols-2">
+                    <div className="relative aspect-[4/5] hidden md:block">
+                         <Image 
+                            src={productImage} 
+                            alt={productName}
+                            fill
+                            className="object-cover rounded-l-lg"
+                            data-ai-hint="snowboarder"
+                         />
+                    </div>
+                    <div className="p-8 sm:p-12 flex flex-col justify-center items-center text-center">
+                        <h2 className="text-3xl font-bold mb-2">Congratulations</h2>
+                        <p className="text-xl font-semibold mb-4">Your purchase was a success!</p>
+                        <p className="text-muted-foreground mb-8">
+                            Thank you for entrusting your care to us. Please be patient as we process your items as quickly as possible.
+                        </p>
+                        <Button asChild className="w-full">
+                            <Link href="/live-selling" onClick={onClose}>Back to Homepage</Link>
+                        </Button>
+                    </div>
+                </div>
+            </DialogContent>
+        </Dialog>
+    );
+};
+
 
 export default function PaymentPage() {
   const router = useRouter();
@@ -56,6 +87,8 @@ export default function PaymentPage() {
   const [appliedCoupon, setAppliedCoupon] = useState<Coupon | null>(null);
   const [couponCode, setCouponCode] = useState("");
   const [isCheckingOut, setIsCheckingOut] = useState(false);
+  const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
+
 
   const [shippingSettings] = useLocalStorage<ShippingSettings>(SHIPPING_SETTINGS_KEY, defaultShippingSettings);
   const [allOffers, setAllOffers] = useLocalStorage<Coupon[]>(COUPONS_KEY, []);
@@ -224,13 +257,9 @@ export default function PaymentPage() {
     setTimeout(() => {
         setIsProcessing(false);
         if (paymentSuccess) {
-            toast({
-                title: "✅ Payment Successful!",
-                description: "Redirecting to your orders...",
-            });
             localStorage.removeItem('streamcart_cart');
             localStorage.removeItem('appliedCoupon');
-            router.push('/orders');
+            setIsSuccessModalOpen(true);
         } else {
              toast({
                 variant: "destructive",
@@ -396,15 +425,22 @@ export default function PaymentPage() {
 
 
   return (
+    <>
+    <SuccessModal 
+        isOpen={isSuccessModalOpen} 
+        onClose={() => router.push('/live-selling')}
+        productImage={cartItems[0]?.imageUrl || 'https://placehold.co/600x800.png'}
+        productName={cartItems[0]?.name || 'Your Product'}
+    />
     <div className="min-h-screen bg-muted/40 text-foreground flex flex-col">
-       <header className="p-4 flex items-center justify-between sticky top-0 bg-background/90 backdrop-blur-sm z-30">
+       <header className="p-4 flex items-center justify-between sticky top-0 bg-background/90 backdrop-blur-sm z-30 border-b">
             <div className="flex items-center gap-2">
                  <Button variant="ghost" size="icon" onClick={() => router.back()}>
                     <ArrowLeft className="h-6 w-6" />
                 </Button>
                 <div className='flex flex-col sm:flex-row sm:items-center sm:gap-2'>
                     <h1 className="text-xl font-bold hidden sm:inline">Checkout</h1>
-                    <p className="text-xs sm:text-sm text-muted-foreground">(Step 2 of 3)</p>
+                    <p className="text-xs sm:text-sm text-muted-foreground">(Step 2 of 3 — Payment)</p>
                 </div>
             </div>
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -425,7 +461,7 @@ export default function PaymentPage() {
                                          key={method.id}
                                          onClick={() => setPaymentMethod(method.id as PaymentMethod)}
                                          disabled={method.disabled}
-                                         className={cn("w-full p-4 text-left font-semibold flex items-center gap-3 transition-colors disabled:opacity-50 disabled:cursor-not-allowed border-b last:border-b-0 md:border-b",
+                                         className={cn("w-full p-4 text-left font-semibold flex items-center gap-3 transition-colors disabled:opacity-50 disabled:cursor-not-allowed border-b last:border-b-0 md:border-b-0",
                                              paymentMethod === method.id ? 'bg-primary/10 text-primary' : 'hover:bg-muted/50'
                                          )}
                                      >
@@ -447,7 +483,7 @@ export default function PaymentPage() {
                         <CardHeader>
                             <div className="flex items-center justify-between">
                                 <CardTitle>Order Summary</CardTitle>
-                                <Button asChild variant="link" size="sm" className="p-0 h-auto text-sm text-primary hover:underline">
+                                <Button asChild variant="link" size="sm" className={cn(buttonVariants({ variant: "link" }), "p-0 h-auto text-sm")}>
                                     <Link href="/cart">
                                         <Edit className="mr-1 h-3 w-3" /> Edit
                                     </Link>
@@ -530,6 +566,7 @@ export default function PaymentPage() {
         </div>
       </main>
     </div>
+    </>
   );
 }
 
