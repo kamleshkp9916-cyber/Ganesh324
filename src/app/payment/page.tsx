@@ -54,8 +54,9 @@ export default function PaymentPage() {
   useEffect(() => {
     setIsClient(true);
     const items = getCart();
-    if (items.length === 0) {
-        // If cart is empty (e.g., page refresh on buy now), redirect
+    // Only redirect if we are sure there are no items and it's not a page refresh issue.
+    // The main protection is now the loading state check.
+    if (items.length === 0 && document.referrer && !document.referrer.includes('/cart')) {
         router.replace('/live-selling');
         return;
     }
@@ -116,7 +117,6 @@ export default function PaymentPage() {
   const availableOffers = useMemo(() => {
     if (!allOffers) return [];
     
-    // First, get offers that are directly applicable
     const applicable = allOffers.filter(offer => {
       const isExpired = offer.expiresAt && new Date(offer.expiresAt) < new Date();
       if (isExpired) return false;
@@ -134,12 +134,12 @@ export default function PaymentPage() {
 
     if (applicable.length > 0) return applicable;
 
-    // If no offers are directly applicable, show some general active offers
     return allOffers
       .filter(offer => !offer.expiresAt || new Date(offer.expiresAt) >= new Date())
-      .slice(0, 3); // Show up to 3 general offers
+      .slice(0, 3);
       
   }, [allOffers, cartItems, subtotal]);
+
 
   const handlePlaceOrder = (e: React.FormEvent) => {
     e.preventDefault();
@@ -172,7 +172,7 @@ export default function PaymentPage() {
     }, 3000);
   }
 
-  if (!isClient || loading) {
+  if (!isClient || loading || cartItems.length === 0) {
       return <div className="h-screen w-full flex items-center justify-center"><LoadingSpinner /></div>
   }
 
@@ -228,10 +228,10 @@ export default function PaymentPage() {
                     {isProcessing && (
                         <div className="text-sm text-muted-foreground flex items-center gap-2 animate-pulse">
                             <Loader2 className="h-4 w-4 animate-spin"/>
-                            Waiting for approval in your UPI app
+                            Waiting for approval in your UPI app...
                         </div>
                     )}
-                    <Button type="submit" size="lg" className="w-full">
+                    <Button type="submit" size="lg" className="w-full" disabled={isProcessing}>
                          {isProcessing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                         Pay Now <ArrowRight className="ml-2 h-4 w-4" />
                     </Button>
@@ -275,7 +275,7 @@ export default function PaymentPage() {
                     {paymentMethod === 'credit' && <p className="text-xs text-muted-foreground">We do not store your card details.</p>}
                     <div className="flex justify-between items-center">
                         <p className="text-xs text-muted-foreground flex items-center gap-2"><Lock className="h-3 w-3"/> Secured by 3D Secure</p>
-                        <Button type="submit" size="lg">
+                        <Button type="submit" size="lg" disabled={isProcessing}>
                              {isProcessing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                             Pay Now
                         </Button>
