@@ -125,6 +125,15 @@ export default function PaymentPage() {
     if (appliedCoupon) {
         const couponSubtotal = cartItems.reduce((acc, item) => {
             const itemCategory = productDetails[item.key as keyof typeof productDetails]?.category;
+            const applicableOffer = allOffers.find(offer =>
+              (offer.applicableCategories?.includes('All') || (itemCategory && offer.applicableCategories?.includes(itemCategory))) &&
+              (!offer.minOrderValue || sub >= offer.minOrderValue) &&
+              (!offer.expiresAt || new Date(offer.expiresAt) > new Date())
+            );
+            // If an active offer is already better or applied, don't apply coupon discount to this item
+            if(applicableOffer && applicableOffer.code !== appliedCoupon.code) {
+                 return acc;
+            }
             if (appliedCoupon.applicableCategories?.includes('All') || (itemCategory && appliedCoupon.applicableCategories?.includes(itemCategory))) {
                 const price = parseFloat(item.price.replace(/[^0-9.-]+/g, ''));
                 return acc + (price * item.quantity);
@@ -153,7 +162,7 @@ export default function PaymentPage() {
         total: tot,
         couponDiscount: discount
     };
-  }, [cartItems, shippingSettings, appliedCoupon]);
+  }, [cartItems, shippingSettings, appliedCoupon, allOffers]);
 
     const availableOffers = useMemo(() => {
         if (!allOffers || allOffers.length === 0) return [];
@@ -408,7 +417,7 @@ export default function PaymentPage() {
                     <Card>
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2">
-                                <Ticket className="h-5 w-5"/> Available Offers &amp; Coupons
+                                <Ticket className="h-5 w-5"/> Available Offers & Coupons
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-3">
@@ -505,5 +514,3 @@ export default function PaymentPage() {
     </div>
   );
 }
-
-    
