@@ -38,11 +38,13 @@ export default function PaymentPage() {
   const [cartItems, setCartItems] = useState<CartProduct[]>([]);
   const [isClient, setIsClient] = useState(false);
   const [appliedCoupon, setAppliedCoupon] = useState<Coupon | null>(null);
+  const [couponCode, setCouponCode] = useState("");
+  const [isCheckingOut, setIsCheckingOut] = useState(false);
 
   const [shippingSettings] = useLocalStorage<ShippingSettings>(SHIPPING_SETTINGS_KEY, defaultShippingSettings);
   const [allOffers] = useLocalStorage<Coupon[]>(COUPONS_KEY, []);
 
-  const paymentMethods: { id: PaymentMethod, label: string, icon: React.ReactNode, disabled?: boolean }[] = [
+  const paymentMethods: { id: PaymentMethod, label: string, icon: React.ReactNode, disabled?: boolean, offer?: string }[] = [
     { id: 'wallet', label: 'Wallet', icon: <Wallet/> },
     { id: 'coins', label: 'Coins', icon: <Coins/>, disabled: true },
     { id: 'upi', label: 'UPI', icon: <QrCode/> },
@@ -54,8 +56,6 @@ export default function PaymentPage() {
   useEffect(() => {
     setIsClient(true);
     const items = getCart();
-    // Only redirect if we are sure there are no items and it's not a page refresh issue.
-    // The main protection is now the loading state check.
     if (items.length === 0 && document.referrer && !document.referrer.includes('/cart')) {
         router.replace('/live-selling');
         return;
@@ -64,7 +64,9 @@ export default function PaymentPage() {
     const couponStr = localStorage.getItem('appliedCoupon');
     if (couponStr) {
       try {
-        setAppliedCoupon(JSON.parse(couponStr));
+        const parsedCoupon = JSON.parse(couponStr);
+        setAppliedCoupon(parsedCoupon);
+        setCouponCode(parsedCoupon.code);
       } catch (e) {
         console.error("Failed to parse applied coupon:", e);
       }
@@ -117,8 +119,9 @@ export default function PaymentPage() {
   const availableOffers = useMemo(() => {
     if (!allOffers) return [];
     
+    const now = new Date();
     const applicable = allOffers.filter(offer => {
-      const isExpired = offer.expiresAt && new Date(offer.expiresAt) < new Date();
+      const isExpired = offer.expiresAt && new Date(offer.expiresAt) < now;
       if (isExpired) return false;
 
       const meetsMinOrder = !offer.minOrderValue || subtotal >= offer.minOrderValue;
@@ -135,7 +138,7 @@ export default function PaymentPage() {
     if (applicable.length > 0) return applicable;
 
     return allOffers
-      .filter(offer => !offer.expiresAt || new Date(offer.expiresAt) >= new Date())
+      .filter(offer => !offer.expiresAt || new Date(offer.expiresAt) >= now)
       .slice(0, 3);
       
   }, [allOffers, cartItems, subtotal]);
@@ -171,9 +174,47 @@ export default function PaymentPage() {
         router.push('/orders');
     }, 3000);
   }
+  
+  const handleApplyCoupon = (coupon: Coupon) => {
+    if (coupon.minOrderValue && subtotal < coupon.minOrderValue) {
+        toast({
+            variant: "destructive",
+            title: "Cannot Apply Coupon",
+            description: `Your order total must be above ₹${coupon.minOrderValue} to use this coupon.`
+        });
+        return;
+    }
+    setAppliedCoupon(coupon);
+    setCouponCode(coupon.code);
+    toast({
+        title: "Coupon Applied!",
+        description: `You've got a discount with ${coupon.code}.`
+    });
+  };
 
-  if (!isClient || loading || (cartItems.length === 0 && isClient)) {
-      return <div className="h-screen w-full flex items-center justify-center"><LoadingSpinner /></div>
+  const handleCheckout = () => {
+    setIsCheckingOut(true);
+    // Save the current cart state to local storage before navigating
+    saveCart(cartItems);
+    if(appliedCoupon) {
+        localStorage.setItem('appliedCoupon', JSON.stringify(appliedCoupon));
+    } else {
+        localStorage.removeItem('appliedCoupon');
+    }
+    router.push('/payment');
+  };
+
+  if (!isClient || loading) {
+    return <div className="h-screen w-full flex items-center justify-center"><LoadingSpinner /></div>
+  }
+
+  if(isClient && cartItems.length === 0){
+      return (
+        <div className="h-screen w-full flex items-center justify-center flex-col gap-4">
+            <p>Your cart is empty.</p>
+            <Button onClick={() => router.push('/live-selling')}>Go Shopping</Button>
+        </div>
+      );
   }
 
   if (!user) {
@@ -315,14 +356,12 @@ export default function PaymentPage() {
                                         key={method.id}
                                         onClick={() => setPaymentMethod(method.id as PaymentMethod)}
                                         disabled={method.disabled}
-                                        className={cn("w-full p-4 text-left font-semibold flex items-center justify-between gap-3 transition-colors disabled:opacity-50 disabled:cursor-not-allowed",
+                                        className={cn("w-full p-4 text-left font-semibold flex items-center gap-3 transition-colors disabled:opacity-50 disabled:cursor-not-allowed",
                                             paymentMethod === method.id ? 'bg-primary/10 text-primary' : 'hover:bg-muted/50'
                                         )}
                                     >
-                                        <div className="flex items-center gap-3">
-                                            {method.icon}
-                                            {method.label}
-                                        </div>
+                                        {method.icon}
+                                        {method.label}
                                     </button>
                                 ))}
                             </div>
@@ -350,15 +389,17 @@ export default function PaymentPage() {
                                             {offer.minOrderValue ? ` on orders above ₹${offer.minOrderValue}.` : ''}
                                         </p>
                                     </div>
-                                    <Button variant="link" className="p-0 h-auto" onClick={() => {
-                                        toast({ title: 'Coupon Code Copied!', description: `Code ${offer.code} copied to clipboard.` });
-                                        navigator.clipboard.writeText(offer.code);
-                                    }}>
-                                        Copy Code
+                                    <Button
+                                      variant={appliedCoupon?.code === offer.code ? "secondary" : "link"}
+                                      className="p-0 h-auto"
+                                      onClick={() => handleApplyCoupon(offer)}
+                                      disabled={appliedCoupon?.code === offer.code}
+                                    >
+                                      {appliedCoupon?.code === offer.code ? "Applied" : "Apply"}
                                     </Button>
                                 </div>
                             )) : (
-                                <p className="text-sm text-muted-foreground text-center py-4">No offers available for your cart.</p>
+                                <p className="text-sm text-muted-foreground text-center py-4">No special offers available for your cart.</p>
                             )}
                         </CardContent>
                     </Card>
