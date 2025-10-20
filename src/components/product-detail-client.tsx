@@ -157,7 +157,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
             setRecentlyViewedItems(getRecentlyViewed().filter(p => p.key !== currentProduct.key)); 
 
             setWishlisted(isWishlisted(currentProduct.id));
-            setInCart(isProductInCart(currentProduct.id));
+            setInCart(isProductInCart(currentProduct.id, selectedSize || undefined, selectedColor || undefined));
             setReviews(getReviews(currentProduct.key));
 
             setCurrentPrice(currentProduct.price);
@@ -193,7 +193,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
             };
             fetchTaggedPosts();
         }
-    }, [productId]); 
+    }, [productId, selectedSize, selectedColor]); 
 
     useEffect(() => {
         if (!user || !product) {
@@ -363,7 +363,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                     color: selectedColor || undefined,
                 };
                 addToCart({ ...productForCart, quantity: 1 });
-                setInCart(true);
+                setInCart(true); // Manually update state
                 toast({
                     title: "Added to Cart!",
                     description: `${product.name} has been added to your shopping cart.`,
@@ -1028,7 +1028,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                                     <div className="flex-1 overflow-hidden">
                                                         <p className="font-semibold text-sm leading-tight group-hover:underline truncate">{stream.title || stream.name}</p>
                                                         <p className="text-xs text-muted-foreground">{stream.name}</p>
-                                                         <p className="text-xs text-primary font-semibold mt-0.5">#{stream.category.toLowerCase().replace(/\\s+/g, '')}</p>
+                                                         <p className="text-xs text-primary font-semibold mt-0.5">#{stream.category.toLowerCase().replace(/\s+/g, '')}</p>
                                                     </div>
                                                 </div>
                                             </Link>
