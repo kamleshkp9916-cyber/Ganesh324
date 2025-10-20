@@ -45,7 +45,16 @@ export default function CheckoutPage() {
         router.replace('/');
         return;
       }
-      setCartItems(getCart());
+      const cart = getCart();
+      setCartItems(cart);
+      
+      // Check if a coupon was applied on the cart page (this part is conceptual
+      // as state isn't shared directly. A context or URL params would be better)
+      const applied = localStorage.getItem('appliedCoupon');
+      if(applied) {
+          setAppliedCoupon(JSON.parse(applied));
+      }
+
     }
   }, [isClient, user, loading, router]);
   
@@ -85,6 +94,8 @@ export default function CheckoutPage() {
             return;
         }
         setAppliedCoupon(coupon);
+        // Persist for this page (conceptual)
+        localStorage.setItem('appliedCoupon', JSON.stringify(coupon));
         toast({
             title: "Coupon Applied!",
             description: `You've got a discount with ${coupon.code}.`
@@ -167,6 +178,12 @@ export default function CheckoutPage() {
                           <span className="text-muted-foreground">Subtotal</span>
                           <span>₹{subtotal.toFixed(2)}</span>
                       </div>
+                      {appliedCoupon && (
+                         <div className="flex justify-between text-green-600 dark:text-green-400">
+                             <span>Discount ({appliedCoupon.code})</span>
+                             <span>-₹{couponDiscount.toFixed(2)}</span>
+                         </div>
+                      )}
                       <div className="flex justify-between">
                           <span className="text-muted-foreground">Shipping</span>
                           <span>₹{shippingCost.toFixed(2)}</span>

@@ -591,10 +591,31 @@ export default function AdminSettingsPage() {
   const [editingSlide, setEditingSlide] = useState<Slide | undefined>(undefined);
 
 
-  // Load data from local storage on mount
+  // Initialize local storage with default data if it's empty
   useEffect(() => {
     setIsMounted(true);
-  }, []);
+    if (typeof window !== 'undefined') {
+        const existingCoupons = localStorage.getItem(COUPONS_KEY);
+        if (!existingCoupons || JSON.parse(existingCoupons).length === 0) {
+            setCoupons(initialCoupons);
+        }
+        
+        const existingSlides = localStorage.getItem(PROMOTIONAL_SLIDES_KEY);
+        if (!existingSlides || JSON.parse(existingSlides).length === 0) {
+            setSlides(initialSlides);
+        }
+        
+        const existingBanners = localStorage.getItem(CATEGORY_BANNERS_KEY);
+        if (!existingBanners || Object.keys(JSON.parse(existingBanners)).length === 0) {
+            setCategoryBanners(defaultCategoryBanners);
+        }
+
+         const existingFeaturedProducts = localStorage.getItem(HUB_FEATURED_PRODUCTS_KEY);
+        if (!existingFeaturedProducts || JSON.parse(existingFeaturedProducts).length === 0) {
+            setFeaturedProducts(defaultFeaturedProducts);
+        }
+    }
+  }, [setCoupons, setSlides, setCategoryBanners, setFeaturedProducts]);
 
   const handleSaveCoupon = (coupon: Coupon) => {
     const newCoupons = [...coupons];
@@ -979,5 +1000,3 @@ export default function AdminSettingsPage() {
     </>
   )
 }
-
-    
