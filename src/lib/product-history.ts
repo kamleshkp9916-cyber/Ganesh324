@@ -131,16 +131,22 @@ export const addToCart = (product: CartProduct) => {
 };
 
 
-export const removeFromCart = (productId: number) => {
+export const removeFromCart = (productId: number, size?: string, color?: string) => {
     const items = getCart();
-    const newItems = items.filter(p => p.id !== productId);
+    const newItems = items.filter(p => 
+        p.id !== productId || p.size !== size || p.color !== color
+    );
     localStorage.setItem(CART_KEY, JSON.stringify(newItems));
     window.dispatchEvent(new Event('storage'));
 };
 
-export const updateCartQuantity = (productId: number, quantity: number) => {
+export const updateCartQuantity = (productId: number, quantity: number, size?: string, color?: string) => {
     const items = getCart();
-    const productIndex = items.findIndex(p => p.id === productId);
+    const productIndex = items.findIndex(p => 
+        p.id === productId && 
+        p.size === size && 
+        p.color === color
+    );
     
     if (productIndex > -1) {
         if (quantity > 0) {
