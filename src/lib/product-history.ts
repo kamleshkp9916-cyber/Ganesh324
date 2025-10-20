@@ -102,9 +102,13 @@ export const getCart = (): CartProduct[] => {
     return items ? JSON.parse(items) : [];
 };
 
-export const isProductInCart = (productId: number): boolean => {
+export const isProductInCart = (productId: number, size?: string, color?: string): boolean => {
     const items = getCart();
-    return items.some(p => p.id === productId);
+    return items.some(p => 
+        p.id === productId &&
+        p.size === size &&
+        p.color === color
+    );
 };
 
 export const addToCart = (product: CartProduct) => {
@@ -123,6 +127,7 @@ export const addToCart = (product: CartProduct) => {
         items.push({ ...product, quantity: product.quantity || 1 });
     }
     localStorage.setItem(CART_KEY, JSON.stringify(items));
+    window.dispatchEvent(new Event('storage'));
 };
 
 
@@ -130,6 +135,7 @@ export const removeFromCart = (productId: number) => {
     const items = getCart();
     const newItems = items.filter(p => p.id !== productId);
     localStorage.setItem(CART_KEY, JSON.stringify(newItems));
+    window.dispatchEvent(new Event('storage'));
 };
 
 export const updateCartQuantity = (productId: number, quantity: number) => {
@@ -145,4 +151,5 @@ export const updateCartQuantity = (productId: number, quantity: number) => {
         }
     }
     localStorage.setItem(CART_KEY, JSON.stringify(items));
+    window.dispatchEvent(new Event('storage'));
 };
