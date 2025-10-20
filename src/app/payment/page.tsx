@@ -45,9 +45,13 @@ export default function PaymentPage() {
     setIsClient(true);
     const cart = getCart();
     setCartItems(cart);
-    const coupon = localStorage.getItem('appliedCoupon');
-    if (coupon) {
-      setAppliedCoupon(JSON.parse(coupon));
+    const couponStr = localStorage.getItem('appliedCoupon');
+    if (couponStr) {
+      try {
+        setAppliedCoupon(JSON.parse(couponStr));
+      } catch (e) {
+        console.error("Failed to parse applied coupon:", e);
+      }
     }
   }, []);
 
@@ -95,8 +99,11 @@ export default function PaymentPage() {
   }, [cartItems, shippingSettings, appliedCoupon]);
 
   useEffect(() => {
-      if (cartItems.length > 0) {
+      if (cartItems.length > 0 && storedCoupons.length > 0) {
           const applicable = storedCoupons.filter(coupon => {
+              if (coupon.expiresAt && new Date(coupon.expiresAt) < new Date()) {
+                  return false;
+              }
               if (!coupon.minOrderValue || subtotal >= coupon.minOrderValue) {
                 const cartCategories = new Set(cartItems.map(item => productDetails[item.key as keyof typeof productDetails]?.category));
                 if (coupon.applicableCategories?.includes('All') || coupon.applicableCategories?.some(cat => cartCategories.has(cat))) {
@@ -328,5 +335,3 @@ export default function PaymentPage() {
     </div>
   );
 }
-
-    
