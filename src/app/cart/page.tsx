@@ -3,8 +3,8 @@
 "use client";
 
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Button } from '@/components/ui/button';
-import { ArrowLeft, ShoppingCart, Trash2, Plus, Minus, Home, Edit, Tag, Ticket, Star, Users, X, Loader2 } from 'lucide-react';
+import { Button, buttonVariants } from '@/components/ui/button';
+import { ArrowLeft, ShoppingCart, Trash2, Plus, Minus, Home, Edit, Tag, Ticket, Star, Users, X, Loader2, Flag, MessageSquare, HelpCircle, FileText } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -24,6 +24,8 @@ import { useLocalStorage } from '@/hooks/use-local-storage';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { FeedbackDialog } from '@/components/feedback-dialog';
+import { cn } from '@/lib/utils';
 
 function EmptyCart() {
     const router = useRouter();
@@ -290,6 +292,14 @@ export default function CartPage() {
                                 </div>
                             </CardContent>
                         </Card>
+                         <div className="p-4 mt-8 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 opacity-75">
+                            <Button variant="ghost" className="text-xs" onClick={() => toast({ title: "Report Sent", description: "Thank you for your feedback." })}><Flag className="mr-1 h-3 w-3" />Report</Button>
+                            <FeedbackDialog>
+                                <Button variant="ghost" className="text-xs"><MessageSquare className="mr-1 h-3 w-3" />Feedback</Button>
+                            </FeedbackDialog>
+                            <Button asChild variant="ghost" className="text-xs"><Link href="/contact"><FileText className="mr-1 h-3 w-3" />Contact Us</Link></Button>
+                            <Button asChild variant="ghost" className="text-xs"><Link href="/help"><HelpCircle className="mr-1 h-3 w-3" />Help</Link></Button>
+                        </div>
                     </div>
 
                      <div className="lg:sticky top-24 space-y-6">

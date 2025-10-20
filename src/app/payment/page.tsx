@@ -85,7 +85,6 @@ export default function PaymentPage() {
   const { user, userData, loading } = useAuth();
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("upi");
   const [isProcessing, setIsProcessing] = useState(false);
-  const [invalidCard, setInvalidCard] = useState(false);
   const [cartItems, setCartItems] = useState<CartProduct[]>([]);
   const [isClient, setIsClient] = useState(false);
   const [appliedCoupon, setAppliedCoupon] = useState<Coupon | null>(null);
@@ -97,6 +96,8 @@ export default function PaymentPage() {
   const [newUpiId, setNewUpiId] = useState('');
   const [saveUpi, setSaveUpi] = useState(false);
   const [selectedUpi, setSelectedUpi] = useState(savedUpiIds[0] || '');
+  const [cardDetails, setCardDetails] = useState({ number: '', expiry: '', cvv: '', name: '' });
+
 
   const [address, setAddress] = useState(userData?.addresses?.[0] || null);
   const [isAddressDialogOpen, setIsAddressDialogOpen] = useState(false);
@@ -244,31 +245,26 @@ export default function PaymentPage() {
     }, [allOffers, cartItems, subtotal]);
 
 
+  const isPayButtonDisabled = useMemo(() => {
+    if (isProcessing) return true;
+    if (paymentMethod === 'upi') {
+        return !newUpiId.trim() && !selectedUpi.trim();
+    }
+    if (paymentMethod === 'credit' || paymentMethod === 'debit') {
+        const { number, expiry, cvv, name } = cardDetails;
+        // Simple validation, can be improved with regex
+        return !number || number.length < 16 || !expiry || expiry.length < 5 || !cvv || cvv.length < 3 || !name;
+    }
+    return false;
+  }, [isProcessing, paymentMethod, newUpiId, selectedUpi, cardDetails]);
+
+
   const handlePlaceOrder = (e: React.FormEvent) => {
     e.preventDefault();
-    let paymentSuccess = true;
-    let upiIdToProcess = '';
-    
-    if (paymentMethod === 'upi') {
-        upiIdToProcess = newUpiId || selectedUpi;
-        if (!/^[a-zA-Z0-9.\-_]{2,256}@[a-zA-Z]{2,64}$/.test(upiIdToProcess)) {
-            toast({
-                variant: "destructive",
-                title: "Invalid UPI ID",
-                description: "Please select a saved UPI ID or enter a valid new one.",
-            });
-            return;
-        }
-    }
-    
-    if(paymentMethod === 'credit' || paymentMethod === 'debit') {
-        const cardNumberInput = (e.target as HTMLFormElement).querySelector('#card-number') as HTMLInputElement;
-        // Simple mock validation for demo
-        if (cardNumberInput && cardNumberInput.value.length < 16) {
-            paymentSuccess = false;
-        }
-    }
+    if(isPayButtonDisabled) return;
 
+    let paymentSuccess = true;
+    
     setIsProcessing(true);
     setTimeout(() => {
         setIsProcessing(false);
@@ -374,7 +370,7 @@ export default function PaymentPage() {
                             <span className="font-bold">₹{(42580.22 - total).toLocaleString('en-IN')}</span>
                         </div>
                     </div>
-                     <Button type="submit" size="lg" className="w-full">
+                     <Button type="submit" size="lg" className="w-full" disabled={isPayButtonDisabled}>
                         {isProcessing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                         Pay from Wallet
                     </Button>
@@ -391,7 +387,7 @@ export default function PaymentPage() {
                         </div>
                     </div>
                     {savedUpiIds.length > 0 && (
-                        <RadioGroup value={selectedUpi} onValueChange={setSelectedUpi} className="space-y-2">
+                        <RadioGroup value={selectedUpi} onValueChange={(value) => { setSelectedUpi(value); setNewUpiId(''); }} className="space-y-2">
                             {savedUpiIds.map(id => (
                                 <Label key={id} htmlFor={id} className="flex items-center gap-3 p-3 border rounded-md has-[:checked]:border-primary has-[:checked]:bg-primary/10 cursor-pointer">
                                     <RadioGroupItem value={id} id={id} />
@@ -422,7 +418,7 @@ export default function PaymentPage() {
                             Waiting for approval in your UPI app...
                         </div>
                     )}
-                    <Button type="submit" size="lg" className="w-full" disabled={isProcessing}>
+                    <Button type="submit" size="lg" className="w-full" disabled={isPayButtonDisabled}>
                          {isProcessing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                         Pay Now <ArrowRight className="ml-2 h-4 w-4" />
                     </Button>
@@ -441,32 +437,27 @@ export default function PaymentPage() {
                     <div className="space-y-1">
                         <Label htmlFor="card-number">Card Number</Label>
                         <div className="relative">
-                            <Input id="card-number" placeholder="1234 5678 9012 3456" />
+                            <Input id="card-number" placeholder="1234 5678 9012 3456" value={cardDetails.number} onChange={(e) => setCardDetails(prev => ({ ...prev, number: e.target.value }))} maxLength={16} />
                         </div>
-                        {invalidCard && (
-                            <div className="bg-pink-100 dark:bg-pink-900/30 text-red-600 dark:text-red-400 p-2 rounded-md text-xs mt-1">
-                                Invalid card number. Please check and try again.
-                            </div>
-                        )}
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-1">
                             <Label htmlFor="expiry">Expiry</Label>
-                            <Input id="expiry" placeholder="MM / YY" />
+                            <Input id="expiry" placeholder="MM/YY" value={cardDetails.expiry} onChange={(e) => setCardDetails(prev => ({ ...prev, expiry: e.target.value }))} maxLength={5} />
                         </div>
                         <div className="space-y-1">
                             <Label htmlFor="cvv">CVV</Label>
-                            <Input id="cvv" type="password" placeholder="•••" />
+                            <Input id="cvv" type="password" placeholder="•••" value={cardDetails.cvv} onChange={(e) => setCardDetails(prev => ({ ...prev, cvv: e.target.value }))} maxLength={3} />
                         </div>
                     </div>
                     <div className="space-y-1">
                         <Label htmlFor="name">Name on Card</Label>
-                        <Input id="name" placeholder="Full name" />
+                        <Input id="name" placeholder="Full name" value={cardDetails.name} onChange={(e) => setCardDetails(prev => ({ ...prev, name: e.target.value }))} />
                     </div>
                     {paymentMethod === 'credit' && <p className="text-xs text-muted-foreground">We do not store your card details.</p>}
                     <div className="flex justify-between items-center">
                         <p className="text-xs text-muted-foreground flex items-center gap-2"><Lock className="h-3 w-3"/> Secured by 3D Secure</p>
-                        <Button type="submit" size="lg" disabled={isProcessing}>
+                        <Button type="submit" size="lg" disabled={isPayButtonDisabled}>
                              {isProcessing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                             Pay Now
                         </Button>
