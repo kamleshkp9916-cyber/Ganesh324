@@ -18,7 +18,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { EditAddressForm } from '@/components/edit-address-form';
 import { productDetails } from '@/lib/product-data';
 import { UserData, updateUserData } from '@/lib/follow-data';
-import { COUPONS_KEY, SHIPPING_SETTINGS_KEY, ShippingSettings } from '@/app/admin/settings/page';
+import { COUPONS_KEY, SHIPPING_SETTINGS_KEY, ShippingSettings, Coupon } from '@/app/admin/settings/page';
 import { useLocalStorage } from '@/hooks/use-local-storage';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -48,14 +48,14 @@ export default function CartPage() {
   const [isClient, setIsClient] = useState(false);
   const [address, setAddress] = useState(userData?.addresses?.[0] || null);
   const [isAddressDialogOpen, setIsAddressDialogOpen] = useState(false);
-  const [appliedCoupon, setAppliedCoupon] = useState<any | null>(null);
+  const [appliedCoupon, setAppliedCoupon] = useState<Coupon | null>(null);
   const [couponCode, setCouponCode] = useState("");
   const [isCheckingOut, setIsCheckingOut] = useState(false);
-  const [availableCoupons, setAvailableCoupons] = useState<any[]>([]);
+  const [availableCoupons, setAvailableCoupons] = useState<Coupon[]>([]);
   const [estimatedDeliveryDate, setEstimatedDeliveryDate] = useState('');
   
   const [shippingSettings] = useLocalStorage<ShippingSettings>(SHIPPING_SETTINGS_KEY, defaultShippingSettings);
-  const [storedCoupons] = useLocalStorage<any[]>(COUPONS_KEY, []);
+  const [storedCoupons] = useLocalStorage<Coupon[]>(COUPONS_KEY, []);
 
   const buyNowProductId = searchParams.get('productId');
   const buyNowSize = searchParams.get('size');
@@ -162,22 +162,38 @@ export default function CartPage() {
 
   const couponDiscount = useMemo(() => {
     if (!appliedCoupon) return 0;
+
+    const couponSubtotal = cartItems.reduce((acc, item) => {
+        const itemCategory = productDetails[item.key as keyof typeof productDetails]?.category;
+        if (appliedCoupon.applicableCategories?.includes('All') || (itemCategory && appliedCoupon.applicableCategories?.includes(itemCategory))) {
+             const price = parseFloat(item.price.replace('₹', '').replace(/,/g, ''));
+             return acc + (price * item.quantity);
+        }
+        return acc;
+    }, 0);
+
+    if (appliedCoupon.minOrderValue && subtotal < appliedCoupon.minOrderValue) {
+        return 0;
+    }
+
+    let discount = 0;
     if (appliedCoupon.discountType === 'percentage') {
-        return subtotal * (appliedCoupon.discountValue / 100);
+        discount = couponSubtotal * (appliedCoupon.discountValue / 100);
+        if (appliedCoupon.maxDiscount && discount > appliedCoupon.maxDiscount) {
+            discount = appliedCoupon.maxDiscount;
+        }
+    } else { // fixed amount
+        discount = appliedCoupon.discountValue;
     }
-    if (appliedCoupon.discountType === 'fixed') {
-        if (appliedCoupon.code === 'SAVE100' && subtotal < 1000) return 0;
-        return appliedCoupon.discountValue;
-    }
-    return 0;
-  }, [appliedCoupon, subtotal]);
+    return discount;
+}, [appliedCoupon, cartItems, subtotal]);
 
   const shippingCost = shippingSettings?.deliveryCharge ?? 50.00;
   const estimatedTaxes = subtotal * 0.05;
   const total = subtotal - couponDiscount + shippingCost + estimatedTaxes;
 
-  const handleApplyCoupon = () => {
-    const couponToApply = availableCoupons.find(c => c.code.toLowerCase() === couponCode.toLowerCase());
+  const handleApplyCoupon = (code: string) => {
+    const couponToApply = availableCoupons.find(c => c.code.toLowerCase() === code.toLowerCase());
     if (!couponToApply) {
         toast({
             variant: "destructive",
@@ -186,15 +202,16 @@ export default function CartPage() {
         });
         return;
     }
-    if (couponToApply.code === 'SAVE100' && subtotal < 1000) {
+    if (couponToApply.minOrderValue && subtotal < couponToApply.minOrderValue) {
         toast({
             variant: "destructive",
             title: "Cannot Apply Coupon",
-            description: "Your order total must be above ₹1000 to use this coupon."
+            description: `Your order total must be above ₹${couponToApply.minOrderValue} to use this coupon.`
         });
         return;
     }
     setAppliedCoupon(couponToApply);
+    setCouponCode(code);
     toast({
         title: "Coupon Applied!",
         description: `You've got a discount with ${couponToApply.code}.`
@@ -293,15 +310,22 @@ export default function CartPage() {
 
                      <div className="lg:sticky top-24 space-y-6">
                         <Card>
-                            <CardContent className="p-6 space-y-4">
-                                <div className="flex gap-2">
-                                    <Input 
-                                        placeholder="Discount code" 
-                                        value={couponCode}
-                                        onChange={(e) => setCouponCode(e.target.value)}
-                                        disabled={!!appliedCoupon}
-                                    />
-                                    <Button onClick={handleApplyCoupon} disabled={!couponCode || !!appliedCoupon}>Apply</Button>
+                            <CardHeader>
+                                <CardTitle>Order Summary</CardTitle>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                <div className="space-y-2">
+                                    <Label htmlFor="coupon-code">Discount Code</Label>
+                                    <div className="flex gap-2">
+                                        <Input 
+                                            id="coupon-code"
+                                            placeholder="Enter code" 
+                                            value={couponCode}
+                                            onChange={(e) => setCouponCode(e.target.value)}
+                                            disabled={!!appliedCoupon}
+                                        />
+                                        <Button onClick={() => handleApplyCoupon(couponCode)} disabled={!couponCode || !!appliedCoupon}>Apply</Button>
+                                    </div>
                                 </div>
                                 <Separator />
                                 <div className="space-y-2 text-sm">
@@ -331,8 +355,8 @@ export default function CartPage() {
                                 </div>
                             </CardContent>
                             <CardFooter>
-                                <Button className="w-full" size="lg" onClick={handleCheckout} disabled={isCheckingOut}>
-                                    {isCheckingOut && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                <Button className="w-full" size="lg" onClick={handleCheckout}>
+                                    {isCheckingOut ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                                     Continue to Payment
                                 </Button>
                             </CardFooter>
