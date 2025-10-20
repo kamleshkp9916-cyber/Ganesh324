@@ -114,22 +114,31 @@ export default function PaymentPage() {
   }, [cartItems, shippingSettings, appliedCoupon]);
 
   const availableOffers = useMemo(() => {
-    return allOffers.filter(offer => {
+    if (!allOffers) return [];
+    
+    // First, get offers that are directly applicable
+    const applicable = allOffers.filter(offer => {
       const isExpired = offer.expiresAt && new Date(offer.expiresAt) < new Date();
       if (isExpired) return false;
 
       const meetsMinOrder = !offer.minOrderValue || subtotal >= offer.minOrderValue;
       if (!meetsMinOrder) return false;
-
-      if (offer.applicableCategories?.includes('All')) {
-        return true;
-      }
+      
+      if (offer.applicableCategories?.includes('All')) return true;
       
       return cartItems.some(item => {
         const itemCategory = productDetails[item.key as keyof typeof productDetails]?.category;
         return itemCategory && offer.applicableCategories?.includes(itemCategory);
       });
     });
+
+    if (applicable.length > 0) return applicable;
+
+    // If no offers are directly applicable, show some general active offers
+    return allOffers
+      .filter(offer => !offer.expiresAt || new Date(offer.expiresAt) >= new Date())
+      .slice(0, 3); // Show up to 3 general offers
+      
   }, [allOffers, cartItems, subtotal]);
 
   const handlePlaceOrder = (e: React.FormEvent) => {
