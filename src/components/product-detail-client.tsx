@@ -890,13 +890,6 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                             {discountedPrice && <p className="text-3xl font-bold text-destructive">{discountedPrice}</p>}
                                             {discountPercentage && <Badge variant="destructive">{discountPercentage}% OFF</Badge>}
                                         </div>
-                                        {activeOffer && activeOffer.expiresAt && (
-                                            <Card className="mt-2 border-dashed border-primary/50 bg-primary/5">
-                                                <CardContent className="p-3 text-center text-sm">
-                                                    <p className="font-semibold text-primary">Offer ends in: <CountdownTimer expiryDate={activeOffer.expiresAt} onExpire={handleOfferExpired} /></p>
-                                                </CardContent>
-                                            </Card>
-                                        )}
                                         <div className="flex items-center gap-4 flex-wrap mt-2">
                                             <div className="flex items-center gap-2">
                                                     <div className="flex items-center gap-1 text-amber-400">
