@@ -4,7 +4,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { CreditCard, ShieldCheck, Banknote, Lock, Info, Loader2, ArrowRight, Wallet, QrCode } from 'lucide-react';
+import { CreditCard, ShieldCheck, Banknote, Lock, Info, Loader2, ArrowRight, Wallet, QrCode, ArrowLeft } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
@@ -42,10 +42,7 @@ export default function PaymentPage() {
   
   useEffect(() => {
     setIsClient(true);
-    // Directly get the cart from local storage.
-    // The previous logic had a fallback which was causing issues.
     setCartItems(getCart());
-
     const couponStr = localStorage.getItem('appliedCoupon');
     if (couponStr) {
       try {
@@ -195,8 +192,10 @@ export default function PaymentPage() {
     <div className="min-h-screen bg-muted/40 text-foreground flex flex-col">
        <header className="p-4 flex items-center justify-between sticky top-0 bg-background/90 backdrop-blur-sm z-30">
             <div className="flex items-center gap-2">
-                <CreditCard className="h-6 w-6"/>
-                <h1 className="text-xl font-bold">Checkout</h1>
+                <Button variant="ghost" size="icon" onClick={() => router.back()}>
+                    <ArrowLeft className="h-6 w-6" />
+                </Button>
+                <h1 className="text-xl font-bold hidden sm:inline">Checkout</h1>
             </div>
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <ShieldCheck className="h-4 w-4" />
@@ -206,7 +205,6 @@ export default function PaymentPage() {
 
       <main className="flex-grow p-4 md:p-6 lg:p-8">
         <div className="max-w-6xl mx-auto">
-            <h2 className="text-2xl font-bold mb-6">Complete Your Payment</h2>
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
                 <div className="lg:col-span-2 space-y-6">
                     <Card className="overflow-hidden">
@@ -258,6 +256,8 @@ export default function PaymentPage() {
                                         <div className="flex-grow">
                                             <p className="font-semibold text-sm">{item.name}</p>
                                             <p className="text-xs text-muted-foreground">Qty: {item.quantity}</p>
+                                            {item.color && <p className="text-xs text-muted-foreground">Color: {item.color}</p>}
+                                            {item.size && <p className="text-xs text-muted-foreground">Size: {item.size}</p>}
                                         </div>
                                         <p className="font-semibold text-sm">₹{(parseFloat(item.price.replace(/[^0-9.-]+/g, '')) * item.quantity).toLocaleString('en-IN')}</p>
                                     </div>
