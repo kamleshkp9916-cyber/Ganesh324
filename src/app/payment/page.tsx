@@ -46,7 +46,7 @@ const paymentMethods = [
 const SuccessModal = ({ isOpen, onClose, productImage, productName }: { isOpen: boolean, onClose: () => void, productImage: string, productName: string }) => {
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="max-w-3xl p-0" onPointerDownOutside={(e) => e.preventDefault()} showCloseButton={true}>
+            <DialogContent className="max-w-4xl p-0" onPointerDownOutside={(e) => e.preventDefault()}>
                  <div className="grid grid-cols-1 md:grid-cols-2">
                     <div className="relative aspect-[4/5] hidden md:block">
                          <Image 
@@ -483,7 +483,7 @@ export default function PaymentPage() {
                         <CardHeader>
                             <div className="flex items-center justify-between">
                                 <CardTitle>Order Summary</CardTitle>
-                                <Button asChild variant="link" size="sm" className={cn(buttonVariants({ variant: "link" }), "p-0 h-auto text-sm")}>
+                                <Button asChild variant="link" size="sm" className="p-0 h-auto text-sm hover:text-primary">
                                     <Link href="/cart">
                                         <Edit className="mr-1 h-3 w-3" /> Edit
                                     </Link>
@@ -570,3 +570,4 @@ export default function PaymentPage() {
   );
 }
 
+    
