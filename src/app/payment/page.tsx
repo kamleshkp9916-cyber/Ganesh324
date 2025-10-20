@@ -68,12 +68,12 @@ export default function PaymentPage() {
                                     <p className="text-xs text-muted-foreground">Google Pay, PhonePe, Paytm & more</p>
                                 </div>
                             </Label>
-                             <Label htmlFor="pod" className="flex items-center gap-4 p-4 border rounded-lg cursor-pointer has-[:checked]:border-primary has-[:checked]:bg-primary/10">
-                                <RadioGroupItem value="pod" id="pod" />
-                                <Banknote className="h-6 w-6 text-primary" />
+                             <Label htmlFor="pod" className="flex items-center gap-4 p-4 border rounded-lg cursor-not-allowed opacity-50">
+                                <RadioGroupItem value="pod" id="pod" disabled />
+                                <Banknote className="h-6 w-6" />
                                 <div className="flex-grow">
                                     <p className="font-semibold">Pay on Delivery</p>
-                                    <p className="text-xs text-muted-foreground">Pay with cash at your doorstep</p>
+                                    <p className="text-xs text-muted-foreground">Currently unavailable</p>
                                 </div>
                             </Label>
                         </RadioGroup>
