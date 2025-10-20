@@ -878,6 +878,32 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                             </Button>
                                         )}
                                     </div>
+                                    <div className="mt-6 space-y-4">
+                                        <Collapsible>
+                                            <CollapsibleTrigger className="w-full">
+                                                <div className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50">
+                                                    <div className="flex items-center gap-3">
+                                                        <Tag className="h-5 w-5 text-primary"/>
+                                                        <h4 className="font-semibold">Available Offers</h4>
+                                                    </div>
+                                                    <ChevronDown className="h-5 w-5 text-muted-foreground" />
+                                                </div>
+                                            </CollapsibleTrigger>
+                                            <CollapsibleContent>
+                                                <div className="p-4 space-y-3">
+                                                    {allOffers.map((offer: any, index: number) => (
+                                                        <div key={index} className="flex items-start gap-3 text-sm">
+                                                            {offer.icon}
+                                                            <div>
+                                                                <h5 className="font-semibold">{offer.title}</h5>
+                                                                <p className="text-muted-foreground">{offer.description}</p>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </CollapsibleContent>
+                                        </Collapsible>
+                                    </div>
                                     <Separator className="my-4" />
                                     <div className="space-y-4 text-sm">
                                         <div className="space-y-2">
