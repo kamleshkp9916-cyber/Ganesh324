@@ -104,7 +104,7 @@ export default function PaymentPage() {
 
 
   const [shippingSettings] = useLocalStorage<ShippingSettings>(SHIPPING_SETTINGS_KEY, defaultShippingSettings);
-  const [allOffers] = useLocalStorage<Coupon[]>(COUPONS_KEY, []);
+  const [allOffers, setAllOffers] = useLocalStorage<Coupon[]>(COUPONS_KEY, []);
   
   const [isHelpChatOpen, setIsHelpChatOpen] = useState(false);
 
@@ -116,7 +116,7 @@ export default function PaymentPage() {
             setAllOffers(initialCoupons);
         }
     }
-  }, [setAllOffers]);
+  }, []);
   
   useEffect(() => {
     if (!isClient || !userData) return;
@@ -560,7 +560,7 @@ export default function PaymentPage() {
                         )}
                     </Card>
 
-                     <div className="p-4 mt-auto flex items-center justify-center gap-x-2 gap-y-2">
+                    <div className="p-4 mt-auto flex items-center justify-center gap-x-2 gap-y-2">
                         <Button variant="link" className="text-xs text-muted-foreground hover:text-primary" onClick={() => toast({ title: "Report Sent", description: "Thank you for your feedback." })}><Flag className="mr-1 h-3 w-3" />Report</Button>
                         <FeedbackDialog>
                             <Button variant="link" className="text-xs text-muted-foreground hover:text-primary"><MessageSquare className="mr-1 h-3 w-3" />Feedback</Button>
@@ -670,3 +670,5 @@ export default function PaymentPage() {
     </>
   );
 }
+
+    
