@@ -386,7 +386,7 @@ export default function CartPage() {
                                 </CardContent>
                             )}
                         </Card>
-                         <div className="p-4 mt-auto flex items-center justify-center gap-x-2 gap-y-2">
+                         <div className="p-4 mt-auto flex flex-wrap items-center justify-center gap-x-2 gap-y-2">
                             <Button variant="link" className="text-xs text-muted-foreground hover:text-primary" onClick={() => toast({ title: "Report Sent", description: "Thank you for your feedback." })}><Flag className="mr-1 h-3 w-3" />Report</Button>
                             <FeedbackDialog>
                                 <Button variant="link" className="text-xs text-muted-foreground hover:text-primary"><MessageSquare className="mr-1 h-3 w-3" />Feedback</Button>
