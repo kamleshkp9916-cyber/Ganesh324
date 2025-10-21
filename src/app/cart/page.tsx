@@ -379,13 +379,13 @@ export default function CartPage() {
         </div>
       </main>
       <div className="p-4 mt-auto flex flex-wrap items-center justify-center gap-x-4 gap-y-2 opacity-75">
-          <Button variant="ghost" className="text-xs" onClick={() => toast({ title: "Report Sent", description: "Thank you for your feedback." })}><Flag className="mr-1 h-3 w-3" />Report</Button>
+          <Button variant="link" className="text-xs text-muted-foreground" onClick={() => toast({ title: "Report Sent", description: "Thank you for your feedback." })}>Report</Button>
           <FeedbackDialog>
-              <Button variant="ghost" className="text-xs"><MessageSquare className="mr-1 h-3 w-3" />Feedback</Button>
+              <Button variant="link" className="text-xs text-muted-foreground">Feedback</Button>
           </FeedbackDialog>
-          <Button asChild variant="ghost" className="text-xs"><Link href="/contact"><FileText className="mr-1 h-3 w-3" />Contact Us</Link></Button>
-          <Button asChild variant="ghost" className="text-xs"><Link href="/help"><HelpCircle className="mr-1 h-3 w-3" />Help</Link></Button>
-           <Button variant="ghost" className="text-xs" onClick={() => setIsHelpChatOpen(true)}>
+          <Button asChild variant="link" className="text-xs text-muted-foreground"><Link href="/contact">Contact Us</Link></Button>
+          <Button asChild variant="link" className="text-xs text-muted-foreground"><Link href="/help">Help</Link></Button>
+           <Button variant="link" className="text-xs text-muted-foreground" onClick={() => setIsHelpChatOpen(true)}>
             Live Support
           </Button>
       </div>
@@ -404,3 +404,4 @@ export default function CartPage() {
     </div>
   );
 }
+
