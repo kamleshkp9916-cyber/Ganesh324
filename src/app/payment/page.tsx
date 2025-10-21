@@ -116,7 +116,7 @@ export default function PaymentPage() {
             setAllOffers(initialCoupons);
         }
     }
-  }, []);
+  }, [setAllOffers]);
   
   useEffect(() => {
     if (!isClient || !userData) return;
@@ -560,13 +560,13 @@ export default function PaymentPage() {
                         )}
                     </Card>
 
-                    <div className="p-4 mt-auto flex items-center justify-center gap-x-2 gap-y-2">
-                        <Button variant="link" className="text-xs text-muted-foreground hover:text-primary" onClick={() => toast({ title: "Report Sent", description: "Thank you for your feedback." })}><Flag className="mr-1 h-3 w-3" />Report</Button>
+                     <div className="p-4 mt-auto flex flex-wrap items-center justify-center gap-x-2 gap-y-2">
+                        <Button variant="link" className="text-xs text-muted-foreground hover:text-primary px-1" onClick={() => toast({ title: "Report Sent", description: "Thank you for your feedback." })}>Report</Button>
                         <FeedbackDialog>
-                            <Button variant="link" className="text-xs text-muted-foreground hover:text-primary"><MessageSquare className="mr-1 h-3 w-3" />Feedback</Button>
+                            <Button variant="link" className="text-xs text-muted-foreground hover:text-primary px-1">Feedback</Button>
                         </FeedbackDialog>
-                        <Button asChild variant="link" className="text-xs text-muted-foreground hover:text-primary"><Link href="/contact"><FileText className="mr-1 h-3 w-3" />Contact Us</Link></Button>
-                        <Button asChild variant="link" className="text-xs text-muted-foreground hover:text-primary"><Link href="/help"><HelpCircle className="mr-1 h-3 w-3" />Help</Link></Button>
+                        <Button asChild variant="link" className="text-xs text-muted-foreground hover:text-primary px-1"><Link href="/contact">Contact Us</Link></Button>
+                        <Button asChild variant="link" className="text-xs text-muted-foreground hover:text-primary px-1"><Link href="/help">Help</Link></Button>
                     </div>
 
                 </div>
@@ -670,5 +670,3 @@ export default function PaymentPage() {
     </>
   );
 }
-
-    

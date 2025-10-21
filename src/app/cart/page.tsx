@@ -341,7 +341,7 @@ export default function CartPage() {
                                     {isCheckingOut ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                                     Continue to Payment
                                 </Button>
-                                {!address && (
+                                 {!address && (
                                     <p className="text-destructive text-xs text-center mt-2">
                                         Please add or select a delivery address to continue.
                                     </p>
@@ -355,7 +355,7 @@ export default function CartPage() {
                                     <CardTitle className="text-base">
                                         Delivery To
                                     </CardTitle>
-                                    <Dialog open={isAddressDialogOpen} onOpenChange={setIsAddressDialogOpen}>
+                                     <Dialog open={isAddressDialogOpen} onOpenChange={setIsAddressDialogOpen}>
                                         <DialogTrigger asChild>
                                             <Button variant="link" size="sm" className="p-0 h-auto text-sm hover:text-primary"><Edit className="mr-2 h-3 w-3" /> {address ? 'Change' : 'Add Address'}</Button>
                                         </DialogTrigger>
@@ -386,13 +386,13 @@ export default function CartPage() {
                                 </CardContent>
                             )}
                         </Card>
-                         <div className="p-4 mt-auto flex flex-wrap items-center justify-center gap-x-2 gap-y-2">
-                            <Button variant="link" className="text-xs text-muted-foreground hover:text-primary" onClick={() => toast({ title: "Report Sent", description: "Thank you for your feedback." })}><Flag className="mr-1 h-3 w-3" />Report</Button>
+                         <div className="p-4 mt-auto flex items-center justify-center gap-x-2 gap-y-2">
+                            <Button variant="link" className="text-xs text-muted-foreground hover:text-primary px-1" onClick={() => toast({ title: "Report Sent", description: "Thank you for your feedback." })}>Report</Button>
                             <FeedbackDialog>
-                                <Button variant="link" className="text-xs text-muted-foreground hover:text-primary"><MessageSquare className="mr-1 h-3 w-3" />Feedback</Button>
+                                <Button variant="link" className="text-xs text-muted-foreground hover:text-primary px-1">Feedback</Button>
                             </FeedbackDialog>
-                            <Button asChild variant="link" className="text-xs text-muted-foreground hover:text-primary"><Link href="/contact"><FileText className="mr-1 h-3 w-3" />Contact Us</Link></Button>
-                            <Button asChild variant="link" className="text-xs text-muted-foreground hover:text-primary"><Link href="/help"><HelpCircle className="mr-1 h-3 w-3" />Help</Link></Button>
+                            <Button asChild variant="link" className="text-xs text-muted-foreground hover:text-primary px-1"><Link href="/contact">Contact Us</Link></Button>
+                            <Button asChild variant="link" className="text-xs text-muted-foreground hover:text-primary px-1"><Link href="/help">Help</Link></Button>
                       </div>
                      </div>
                 </div>
