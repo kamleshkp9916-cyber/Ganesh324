@@ -845,7 +845,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                     )}
                                 </div>
                                 
-                                <div className="flex flex-col gap-2">
+                                <div className="flex flex-col gap-4">
                                     <div className="flex items-start justify-between">
                                         <div className="text-sm font-mono text-muted-foreground">
                                             {product.key}
@@ -883,32 +883,26 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                         <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">{product.name}</h1>
                                         <p className="text-muted-foreground text-sm">{renderDescriptionWithHashtags(product.description)}</p>
                                     </div>
-                                    <div>
-                                        <div className="flex items-baseline gap-2 flex-wrap">
+                                     <div className="flex flex-col gap-2">
+                                        <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
                                             <p className={cn("text-3xl font-bold text-foreground", compareAtPrice && "text-muted-foreground line-through text-2xl")}>{compareAtPrice ? compareAtPrice : currentPrice}</p>
                                             {compareAtPrice && <p className="text-3xl font-bold text-destructive">{currentPrice}</p>}
                                             {discountPercentage && <Badge variant="destructive">{discountPercentage}% OFF</Badge>}
                                         </div>
-                                        <div className="flex items-center gap-4 flex-wrap mt-2">
+                                        <div className="flex items-center gap-4 flex-wrap text-sm text-muted-foreground">
                                             <div className="flex items-center gap-2">
                                                     <div className="flex items-center gap-1 text-amber-400">
                                                         <Star className="h-5 w-5 fill-current" />
-                                                        <span className="font-bold text-lg text-foreground">{averageRating}</span>
+                                                        <span className="font-bold text-base text-foreground">{averageRating}</span>
                                                     </div>
-                                                    <span className="text-muted-foreground text-sm">({reviews.length} reviews)</span>
+                                                    <span>({reviews.length} reviews)</span>
                                             </div>
-                                            <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                                                <div className="flex items-center gap-1">
-                                                    <Package className="w-4 h-4" />
-                                                    <span>{variantStock ?? product.stock} in stock</span>
-                                                </div>
-                                                <div className="flex items-center gap-1">
-                                                    <Users className="w-4 h-4" />
-                                                    <span>{product.sold} sold</span>
-                                                </div>
-                                            </div>
+                                            <span className="text-muted-foreground/50">|</span>
+                                            <div className="flex items-center gap-1"><Package className="w-4 h-4" /> {variantStock ?? product.stock} in stock</div>
+                                            <span className="text-muted-foreground/50">|</span>
+                                            <div className="flex items-center gap-1"><Users className="w-4 h-4" /> {product.sold} sold</div>
                                         </div>
-                                        <p className="text-sm text-muted-foreground mt-1">(inclusive of all taxes)</p>
+                                         <p className="text-sm text-muted-foreground mt-1">(inclusive of all taxes)</p>
                                     </div>
                                     {availableColors.length > 0 && (
                                         <div className="space-y-2">
