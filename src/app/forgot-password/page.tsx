@@ -3,7 +3,6 @@
 
 import Link from 'next/link';
 import { ForgotPasswordForm } from '@/components/auth/forgot-password-form';
-import { Logo } from '@/components/logo';
 import { ChevronLeft } from 'lucide-react';
 import { Suspense } from 'react';
 
@@ -18,9 +17,6 @@ function ForgotPasswordContent() {
       </div>
       <div className="mx-auto grid w-[380px] gap-8">
         <div className="grid gap-4 text-center">
-          <div className="flex justify-center">
-            <Logo className="h-16 w-16" />
-          </div>
           <h1 className="text-3xl font-bold">Reset Your Password</h1>
           <p className="text-balance text-muted-foreground px-4">
             Enter your email to receive a secure link to reset your password.
@@ -40,5 +36,3 @@ export default function ForgotPasswordPage() {
     </Suspense>
   )
 }
-
-    
