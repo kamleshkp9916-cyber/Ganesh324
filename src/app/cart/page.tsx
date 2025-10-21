@@ -253,7 +253,7 @@ export default function CartPage() {
                             <CardContent className="p-0">
                                 <div className="divide-y">
                                     {cartItems.map(item => (
-                                        <div key={`${item.id}-${item.size || ''}-${item.color || ''}`} className="p-4 flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                                        <div key={`${item.key}-${item.size || 'defaultSize'}-${item.color || 'defaultColor'}`} className="p-4 flex flex-col sm:flex-row items-start sm:items-center gap-4">
                                             <Link href={`/product/${item.key}`} className="block flex-shrink-0">
                                                 <Image src={item.imageUrl || 'https://placehold.co/100x100.png'} alt={item.name} width={100} height={100} className="rounded-lg object-cover" data-ai-hint={item.hint} />
                                             </Link>
@@ -358,7 +358,7 @@ export default function CartPage() {
                                     </CardTitle>
                                     <Dialog open={isAddressDialogOpen} onOpenChange={setIsAddressDialogOpen}>
                                         <DialogTrigger asChild>
-                                            <Button variant="outline" size="sm"><Edit className="mr-2 h-3 w-3" /> {address ? 'Change' : 'Add Address'}</Button>
+                                            <Button variant="link" size="sm" className="p-0 h-auto"><Edit className="mr-2 h-3 w-3" /> {address ? 'Change' : 'Add Address'}</Button>
                                         </DialogTrigger>
                                         <DialogContent>
                                             <DialogHeader>
@@ -392,7 +392,7 @@ export default function CartPage() {
             )}
         </div>
       </main>
-      <div className="p-4 mt-8 flex flex-wrap items-center justify-center gap-x-4 gap-y-2">
+      <div className="fixed bottom-0 left-0 right-0 p-4 bg-background/80 backdrop-blur-sm border-t flex items-center justify-center gap-x-4 gap-y-2 z-20">
             <Button variant="link" className="text-xs text-muted-foreground hover:text-primary" onClick={() => toast({ title: "Report Sent", description: "Thank you for your feedback." })}><Flag className="mr-1 h-3 w-3" />Report</Button>
             <FeedbackDialog>
                 <Button variant="link" className="text-xs text-muted-foreground hover:text-primary"><MessageSquare className="mr-1 h-3 w-3" />Feedback</Button>
