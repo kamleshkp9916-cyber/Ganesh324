@@ -187,7 +187,7 @@ export default function CartPage() {
         toast({
             variant: "destructive",
             title: "Cannot Apply Coupon",
-            description: `Your order total must be above ₹${'${couponToApply.minOrderValue}'} to use this coupon.`
+            description: `Your order total must be above ₹${couponToApply.minOrderValue} to use this coupon.`
         });
         return;
     }
@@ -195,7 +195,7 @@ export default function CartPage() {
     setCouponCode(code);
     toast({
         title: "Coupon Applied!",
-        description: `You've got a discount with ${'${couponToApply.code}'}.`
+        description: `You've got a discount with ${couponToApply.code}.`
     });
   };
 
@@ -248,17 +248,17 @@ export default function CartPage() {
                     <div className="lg:col-span-2 space-y-6">
                         <Card>
                             <CardHeader>
-                                <CardTitle>{isBuyNow ? 'Your Item' : `Your Items (${'${totalItems}'})`}</CardTitle>
+                                <CardTitle>{isBuyNow ? 'Your Item' : `Your Items (${totalItems})`}</CardTitle>
                             </CardHeader>
                             <CardContent className="p-0">
                                 <div className="divide-y">
                                     {cartItems.map(item => (
-                                        <div key={`${'${item.id}'}-${'${item.size || \'\'}'}-${'${item.color || \'\'}'}`} className="p-4 flex flex-col sm:flex-row items-start sm:items-center gap-4">
-                                            <Link href={`/product/${'${item.key}'}`} className="block flex-shrink-0">
+                                        <div key={`${item.id}-${item.size || ''}-${item.color || ''}`} className="p-4 flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                                            <Link href={`/product/${item.key}`} className="block flex-shrink-0">
                                                 <Image src={item.imageUrl || 'https://placehold.co/100x100.png'} alt={item.name} width={100} height={100} className="rounded-lg object-cover" data-ai-hint={item.hint} />
                                             </Link>
                                             <div className="flex-grow">
-                                                <Link href={`/product/${'${item.key}'}`} className="hover:underline">
+                                                <Link href={`/product/${item.key}`} className="hover:underline">
                                                     <h3 className="font-semibold">{item.name}</h3>
                                                 </Link>
                                                 <p className="text-sm text-muted-foreground mt-1">{item.price}</p>
@@ -337,11 +337,16 @@ export default function CartPage() {
                                     <span>₹{total.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                                 </div>
                             </CardContent>
-                            <CardFooter>
+                            <CardFooter className="flex-col items-stretch">
                                 <Button className="w-full" size="lg" onClick={handleCheckout} disabled={isCheckingOut}>
                                     {isCheckingOut ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                                     Continue to Payment
                                 </Button>
+                                {!address && (
+                                    <p className="text-destructive text-xs text-center mt-2">
+                                        Please add or select a delivery address to continue.
+                                    </p>
+                                )}
                             </CardFooter>
                         </Card>
                         
