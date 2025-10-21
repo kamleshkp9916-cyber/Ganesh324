@@ -304,7 +304,7 @@ export default function CartPage() {
                         </Card>
                     </div>
 
-                     <div className="lg:sticky top-24 space-y-6">
+                    <div className="lg:col-span-1 lg:sticky top-24 space-y-6">
                         <Card>
                             <CardHeader>
                                 <CardTitle>Order Summary</CardTitle>
@@ -386,7 +386,7 @@ export default function CartPage() {
                                 </CardContent>
                             )}
                         </Card>
-                         <div className="p-4 mt-auto flex items-center justify-center gap-x-2 gap-y-2">
+                         <div className="p-4 mt-auto flex items-center justify-center gap-x-2">
                             <Button variant="link" className="text-xs text-muted-foreground hover:text-primary px-1" onClick={() => toast({ title: "Report Sent", description: "Thank you for your feedback." })}>Report</Button>
                             <FeedbackDialog>
                                 <Button variant="link" className="text-xs text-muted-foreground hover:text-primary px-1">Feedback</Button>
