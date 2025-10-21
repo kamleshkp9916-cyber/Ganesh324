@@ -185,7 +185,7 @@ export default function CartPage() {
         toast({
             variant: "destructive",
             title: "Cannot Apply Coupon",
-            description: `Your order total must be above ₹${couponToApply.minOrderValue} to use this coupon.`
+            description: `Your order total must be above ₹${'${couponToApply.minOrderValue}'} to use this coupon.`
         });
         return;
     }
@@ -193,7 +193,7 @@ export default function CartPage() {
     setCouponCode(code);
     toast({
         title: "Coupon Applied!",
-        description: `You've got a discount with ${couponToApply.code}.`
+        description: `You've got a discount with ${'${couponToApply.code}'}.`
     });
   };
 
@@ -242,12 +242,12 @@ export default function CartPage() {
                             <CardContent className="p-0">
                                 <div className="divide-y">
                                     {cartItems.map(item => (
-                                        <div key={`${item.id}-${item.size || ''}-${item.color || ''}`} className="p-4 flex flex-col sm:flex-row items-start sm:items-center gap-4">
-                                            <Link href={`/product/${item.key}`} className="block flex-shrink-0">
-                                                <Image src={item.imageUrl || 'https://placehold.co/100x100.png'} alt={item.name} width={100} height={100} className="rounded-lg object-cover" data-ai-hint={item.hint} />
+                                        <div key={`${'${item.id}'}-${'${item.size}' || ''}-${'${item.color}' || ''}`} className="p-4 flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                                            <Link href={`/product/${'${item.key}'}`} className="block flex-shrink-0">
+                                                <Image src={'${item.imageUrl}' || 'https://placehold.co/100x100.png'} alt={item.name} width={100} height={100} className="rounded-lg object-cover" data-ai-hint={item.hint} />
                                             </Link>
                                             <div className="flex-grow">
-                                                <Link href={`/product/${item.key}`} className="hover:underline">
+                                                <Link href={`/product/${'${item.key}'}`} className="hover:underline">
                                                     <h3 className="font-semibold">{item.name}</h3>
                                                 </Link>
                                                 <p className="text-sm text-muted-foreground mt-1">{item.price}</p>
@@ -292,14 +292,6 @@ export default function CartPage() {
                                 </div>
                             </CardContent>
                         </Card>
-                         <div className="p-4 mt-8 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 opacity-75">
-                            <Button variant="ghost" className="text-xs" onClick={() => toast({ title: "Report Sent", description: "Thank you for your feedback." })}><Flag className="mr-1 h-3 w-3" />Report</Button>
-                            <FeedbackDialog>
-                                <Button variant="ghost" className="text-xs"><MessageSquare className="mr-1 h-3 w-3" />Feedback</Button>
-                            </FeedbackDialog>
-                            <Button asChild variant="ghost" className="text-xs"><Link href="/contact"><FileText className="mr-1 h-3 w-3" />Contact Us</Link></Button>
-                            <Button asChild variant="ghost" className="text-xs"><Link href="/help"><HelpCircle className="mr-1 h-3 w-3" />Help</Link></Button>
-                        </div>
                     </div>
 
                      <div className="lg:sticky top-24 space-y-6">
@@ -384,6 +376,14 @@ export default function CartPage() {
             )}
         </div>
       </main>
+      <div className="p-4 mt-auto flex flex-wrap items-center justify-center gap-x-4 gap-y-2 opacity-75">
+          <Button variant="ghost" className="text-xs" onClick={() => toast({ title: "Report Sent", description: "Thank you for your feedback." })}><Flag className="mr-1 h-3 w-3" />Report</Button>
+          <FeedbackDialog>
+              <Button variant="ghost" className="text-xs"><MessageSquare className="mr-1 h-3 w-3" />Feedback</Button>
+          </FeedbackDialog>
+          <Button asChild variant="ghost" className="text-xs"><Link href="/contact"><FileText className="mr-1 h-3 w-3" />Contact Us</Link></Button>
+          <Button asChild variant="ghost" className="text-xs"><Link href="/help"><HelpCircle className="mr-1 h-3 w-3" />Help</Link></Button>
+      </div>
     </div>
   );
 }
