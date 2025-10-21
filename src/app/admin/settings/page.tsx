@@ -245,21 +245,6 @@ const defaultFeaturedProducts: FeaturedProduct[] = [
   { imageUrl: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500&h=500&fit=crop', name: 'Headphones', model: 'AudioMax 3' },
 ];
 
-const defaultFooterContent: FooterContent = {
-  description: "Your one-stop shop for live shopping. Discover, engage, and buy in real-time.",
-  address: "123 Stream St, Commerce City, IN",
-  phone: "(+91) 98765 43210",
-  email: "streamcartcom@gmail.com",
-  facebook: "https://facebook.com",
-  twitter: "https://twitter.com",
-  linkedin: "https://linkedin.com",
-  instagram: "https://instagram.com",
-};
-
-const defaultShippingSettings: ShippingSettings = {
-    deliveryCharge: 50.00
-};
-
 const CouponForm = ({ onSave, existingCoupon, closeDialog, allCategories }: { onSave: (coupon: Coupon) => void, existingCoupon?: Coupon, closeDialog: () => void, allCategories: string[] }) => {
     const [isLoading, setIsLoading] = useState(false);
 
