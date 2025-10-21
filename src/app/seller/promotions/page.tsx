@@ -13,7 +13,7 @@ import {
   Edit,
   CalendarIcon,
   GanttChart,
-  Badge,
+  Badge as BadgeIcon,
 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -75,6 +75,8 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { DialogFooter, DialogClose } from "@/components/ui/dialog"
 import { Loader2 } from "lucide-react"
 import { categories } from "@/lib/categories"
+import { Badge } from "@/components/ui/badge"
+import { Textarea } from "@/components/ui/textarea"
 
 const couponSchema = z.object({
   id: z.number().optional(),
@@ -84,26 +86,32 @@ const couponSchema = z.object({
   discountValue: z.number().positive("Discount must be a positive number."),
   expiresAt: z.date().optional(),
   minOrderValue: z.number().optional(),
-  applicableCategories: z.array(z.string()).optional(),
+  applicableProducts: z.array(z.string()).optional(),
   maxDiscount: z.number().optional(),
   sellerId: z.string().optional(),
   sellerName: z.string().optional(),
   status: z.enum(['pending', 'active', 'rejected', 'archived']).default('pending'),
+  terms: z.string().optional(),
 });
 
-const CouponForm = ({ onSave, existingCoupon, closeDialog, allCategories }: { onSave: (coupon: Coupon) => void, existingCoupon?: Coupon, closeDialog: () => void, allCategories: string[] }) => {
+const CouponForm = ({ onSave, existingCoupon, closeDialog, sellerProducts }: { onSave: (coupon: Coupon) => void, existingCoupon?: Coupon, closeDialog: () => void, sellerProducts: any[] }) => {
     const [isLoading, setIsLoading] = useState(false);
 
     const form = useForm<z.infer<typeof couponSchema>>({
         resolver: zodResolver(couponSchema),
-        defaultValues: existingCoupon || {
+        defaultValues: existingCoupon ? {
+            ...existingCoupon,
+            expiresAt: existingCoupon.expiresAt ? new Date(existingCoupon.expiresAt) : undefined,
+            applicableProducts: existingCoupon.applicableProducts || []
+        } : {
             code: "",
             description: "",
             discountType: "percentage",
             discountValue: 0,
             minOrderValue: 0,
             maxDiscount: 0,
-            applicableCategories: ['All'],
+            applicableProducts: [],
+            terms: "",
         },
     });
 
@@ -124,9 +132,12 @@ const CouponForm = ({ onSave, existingCoupon, closeDialog, allCategories }: { on
                         <FormItem><FormLabel>Coupon Code</FormLabel><FormControl><Input placeholder="e.g., MYSHOP10" {...field} onChange={(e) => field.onChange(e.target.value.toUpperCase())} /></FormControl><FormMessage /></FormItem>
                     )} />
                     <FormField control={form.control} name="description" render={({ field }) => (
-                        <FormItem><FormLabel>Description</FormLabel><FormControl><Input placeholder="e.g., 10% off on all my products" {...field} /></FormControl><FormMessage /></FormItem>
+                        <FormItem><FormLabel>Short Description</FormLabel><FormControl><Input placeholder="e.g., 10% off on my products" {...field} /></FormControl><FormMessage /></FormItem>
                     )} />
                 </div>
+                 <FormField control={form.control} name="terms" render={({ field }) => (
+                    <FormItem><FormLabel>Terms & Conditions</FormLabel><FormControl><Textarea placeholder="Full terms of the offer..." {...field} /></FormControl><FormMessage /></FormItem>
+                )}/>
                  <div className="grid grid-cols-2 gap-4">
                      <FormField control={form.control} name="discountType" render={({ field }) => (
                         <FormItem><FormLabel>Discount Type</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue placeholder="Select type" /></SelectTrigger></FormControl><SelectContent><SelectItem value="percentage">Percentage (%)</SelectItem><SelectItem value="fixed">Fixed Amount (₹)</SelectItem></SelectContent></Select><FormMessage /></FormItem>
@@ -138,6 +149,49 @@ const CouponForm = ({ onSave, existingCoupon, closeDialog, allCategories }: { on
                 <FormField control={form.control} name="expiresAt" render={({ field }) => (
                     <FormItem className="flex flex-col"><FormLabel>Expiration Date (Optional)</FormLabel><Popover><PopoverTrigger asChild><FormControl><Button variant={"outline"} className={cn("w-[240px] pl-3 text-left font-normal", !field.value && "text-muted-foreground")}>{field.value ? format(new Date(field.value), "PPP") : <span>Pick a date</span>}<CalendarIcon className="ml-auto h-4 w-4 opacity-50" /></Button></FormControl></PopoverTrigger><PopoverContent className="w-auto p-0" align="start"><Calendar mode="single" selected={field.value ? new Date(field.value) : undefined} onSelect={field.onChange} disabled={(date) => date < new Date(new Date().setDate(new Date().getDate()-1)) } initialFocus /></PopoverContent></Popover><FormMessage /></FormItem>
                 )}/>
+                <FormField
+                    control={form.control}
+                    name="applicableProducts"
+                    render={() => (
+                        <FormItem>
+                            <div className="mb-4">
+                                <FormLabel className="text-base">Applicable Products</FormLabel>
+                                <FormDescription>Select which of your products this coupon will apply to. If none are selected, it will apply to all.</FormDescription>
+                            </div>
+                            <div className="grid grid-cols-2 md:grid-cols-3 gap-2 max-h-40 overflow-y-auto">
+                                {sellerProducts.map((product) => (
+                                    <FormField
+                                        key={product.id}
+                                        control={form.control}
+                                        name="applicableProducts"
+                                        render={({ field }) => {
+                                        return (
+                                            <FormItem key={product.id} className="flex flex-row items-start space-x-3 space-y-0">
+                                                <FormControl>
+                                                    <Checkbox
+                                                        checked={field.value?.includes(product.id)}
+                                                        onCheckedChange={(checked) => {
+                                                            return checked
+                                                            ? field.onChange([...(field.value || []), product.id])
+                                                            : field.onChange(
+                                                                field.value?.filter(
+                                                                    (value) => value !== product.id
+                                                                )
+                                                                )
+                                                        }}
+                                                    />
+                                                </FormControl>
+                                                <FormLabel className="text-sm font-normal">{product.name}</FormLabel>
+                                            </FormItem>
+                                        )
+                                        }}
+                                    />
+                                ))}
+                            </div>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
                 <DialogFooter className="pt-4"><Button type="button" variant="ghost" onClick={closeDialog}>Cancel</Button><Button type="submit" disabled={isLoading}>{isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}Submit for Approval</Button></DialogFooter>
             </form>
         </Form>
@@ -153,7 +207,7 @@ export default function SellerPromotionsPage() {
     const [coupons, setCoupons] = useLocalStorage<Coupon[]>(COUPONS_KEY, []);
     const [isCouponFormOpen, setIsCouponFormOpen] = useState(false);
     const [editingCoupon, setEditingCoupon] = useState<Coupon | undefined>(undefined);
-    const allCategories = useMemo(() => ['All', ...categories.map(c => c.name)], []);
+    const [sellerProducts, setSellerProducts] = useState<any[]>([]);
     
     const sellerCoupons = useMemo(() => {
         if (!user) return [];
@@ -162,7 +216,14 @@ export default function SellerPromotionsPage() {
 
     useEffect(() => {
         setIsMounted(true);
-    }, []);
+        if (userData) {
+            const productsKey = `sellerProducts`; // Generic key
+            const storedProducts = localStorage.getItem(productsKey);
+            if (storedProducts) {
+                setSellerProducts(JSON.parse(storedProducts));
+            }
+        }
+    }, [userData]);
 
     if (!isMounted || loading || !userData) {
         return <div className="flex h-screen items-center justify-center"><LoadingSpinner /></div>;
@@ -245,7 +306,7 @@ export default function SellerPromotionsPage() {
                                         </div>
                                     </div>
                                     <div className="flex items-center gap-2">
-                                        <Button variant="ghost" size="icon" onClick={() => openCouponForm(coupon)} disabled={coupon.status === 'active'}><Edit className="h-4 w-4" /></Button>
+                                        <Button variant="ghost" size="icon" onClick={() => openCouponForm(coupon)}><Edit className="h-4 w-4" /></Button>
                                         <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive" onClick={() => handleDeleteCoupon(coupon.id!)}><Trash2 className="h-4 w-4" /></Button>
                                     </div>
                                 </div>
@@ -263,7 +324,7 @@ export default function SellerPromotionsPage() {
                         {editingCoupon ? 'Edit your coupon details. Changes will be sent for re-approval.' : 'Fill in the details for your new coupon. It will be sent to an admin for approval.'}
                     </DialogDescription>
                 </DialogHeader>
-                <CouponForm onSave={handleSaveCoupon} existingCoupon={editingCoupon} closeDialog={() => setIsCouponFormOpen(false)} allCategories={allCategories} />
+                <CouponForm onSave={handleSaveCoupon} existingCoupon={editingCoupon} closeDialog={() => setIsCouponFormOpen(false)} sellerProducts={sellerProducts} />
             </DialogContent>
         </Dialog>
     )
