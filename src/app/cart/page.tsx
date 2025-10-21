@@ -187,7 +187,7 @@ export default function CartPage() {
         toast({
             variant: "destructive",
             title: "Cannot Apply Coupon",
-            description: `Your order total must be above ₹${couponToApply.minOrderValue} to use this coupon.`
+            description: `Your order total must be above ₹${'${couponToApply.minOrderValue}'} to use this coupon.`
         });
         return;
     }
@@ -195,11 +195,20 @@ export default function CartPage() {
     setCouponCode(code);
     toast({
         title: "Coupon Applied!",
-        description: `You've got a discount with ${couponToApply.code}.`
+        description: `You've got a discount with ${'${couponToApply.code}'}.`
     });
   };
 
   const handleCheckout = () => {
+    if (!address) {
+        toast({
+            variant: "destructive",
+            title: "No Delivery Address",
+            description: "Please add or select a delivery address to continue.",
+        });
+        return;
+    }
+
     setIsCheckingOut(true);
     if(appliedCoupon) {
         localStorage.setItem('appliedCoupon', JSON.stringify(appliedCoupon));
@@ -239,17 +248,17 @@ export default function CartPage() {
                     <div className="lg:col-span-2 space-y-6">
                         <Card>
                             <CardHeader>
-                                <CardTitle>{isBuyNow ? 'Your Item' : `Your Items (${totalItems})`}</CardTitle>
+                                <CardTitle>{isBuyNow ? 'Your Item' : `Your Items (${'${totalItems}'})`}</CardTitle>
                             </CardHeader>
                             <CardContent className="p-0">
                                 <div className="divide-y">
                                     {cartItems.map(item => (
-                                        <div key={`${item.id}-${item.size || ''}-${item.color || ''}`} className="p-4 flex flex-col sm:flex-row items-start sm:items-center gap-4">
-                                            <Link href={`/product/${item.key}`} className="block flex-shrink-0">
+                                        <div key={`${'${item.id}'}-${'${item.size || \'\'}'}-${'${item.color || \'\'}'}`} className="p-4 flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                                            <Link href={`/product/${'${item.key}'}`} className="block flex-shrink-0">
                                                 <Image src={item.imageUrl || 'https://placehold.co/100x100.png'} alt={item.name} width={100} height={100} className="rounded-lg object-cover" data-ai-hint={item.hint} />
                                             </Link>
                                             <div className="flex-grow">
-                                                <Link href={`/product/${item.key}`} className="hover:underline">
+                                                <Link href={`/product/${'${item.key}'}`} className="hover:underline">
                                                     <h3 className="font-semibold">{item.name}</h3>
                                                 </Link>
                                                 <p className="text-sm text-muted-foreground mt-1">{item.price}</p>
@@ -378,14 +387,14 @@ export default function CartPage() {
             )}
         </div>
       </main>
-      <div className="p-4 mt-auto flex flex-wrap items-center justify-center gap-x-4 gap-y-2 opacity-75">
-          <Button variant="link" className="text-xs text-muted-foreground" onClick={() => toast({ title: "Report Sent", description: "Thank you for your feedback." })}>Report</Button>
-          <FeedbackDialog>
-              <Button variant="link" className="text-xs text-muted-foreground">Feedback</Button>
-          </FeedbackDialog>
-          <Button asChild variant="link" className="text-xs text-muted-foreground"><Link href="/contact">Contact Us</Link></Button>
-          <Button asChild variant="link" className="text-xs text-muted-foreground"><Link href="/help">Help</Link></Button>
-           <Button variant="link" className="text-xs text-muted-foreground" onClick={() => setIsHelpChatOpen(true)}>
+      <div className="p-4 mt-8 flex flex-wrap items-center justify-center gap-x-4 gap-y-2">
+            <Button variant="link" className="text-xs text-muted-foreground hover:text-primary" onClick={() => toast({ title: "Report Sent", description: "Thank you for your feedback." })}><Flag className="mr-1 h-3 w-3" />Report</Button>
+            <FeedbackDialog>
+                <Button variant="link" className="text-xs text-muted-foreground hover:text-primary"><MessageSquare className="mr-1 h-3 w-3" />Feedback</Button>
+            </FeedbackDialog>
+            <Button asChild variant="link" className="text-xs text-muted-foreground hover:text-primary"><Link href="/contact"><FileText className="mr-1 h-3 w-3" />Contact Us</Link></Button>
+            <Button asChild variant="link" className="text-xs text-muted-foreground hover:text-primary"><Link href="/help"><HelpCircle className="mr-1 h-3 w-3" />Help</Link></Button>
+            <Button variant="link" className="text-xs text-muted-foreground hover:text-primary" onClick={() => setIsHelpChatOpen(true)}>
             Live Support
           </Button>
       </div>
