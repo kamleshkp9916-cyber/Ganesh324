@@ -567,7 +567,6 @@ export default function PaymentPage() {
                         </FeedbackDialog>
                         <Button asChild variant="link" className="text-xs text-muted-foreground hover:text-primary"><Link href="/contact"><FileText className="mr-1 h-3 w-3" />Contact Us</Link></Button>
                         <Button asChild variant="link" className="text-xs text-muted-foreground hover:text-primary"><Link href="/help"><HelpCircle className="mr-1 h-3 w-3" />Help</Link></Button>
-                        <Button variant="link" className="text-xs text-muted-foreground hover:text-primary" onClick={() => setIsHelpChatOpen(true)}><LifeBuoy className="mr-1 h-3 w-3" />Live Support</Button>
                     </div>
 
                 </div>

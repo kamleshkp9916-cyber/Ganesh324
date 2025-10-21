@@ -223,7 +223,7 @@ export default function CartPage() {
         <div className="flex items-center justify-center min-h-screen">
             <LoadingSpinner />
         </div>
-    )
+    );
   }
 
   const isBuyNow = cartItems.length === 1 && localStorage.getItem('buyNow') === 'true';
@@ -309,9 +309,6 @@ export default function CartPage() {
                             </FeedbackDialog>
                             <Button asChild variant="link" className="text-xs text-muted-foreground hover:text-primary"><Link href="/contact"><FileText className="mr-1 h-3 w-3" />Contact Us</Link></Button>
                             <Button asChild variant="link" className="text-xs text-muted-foreground hover:text-primary"><Link href="/help"><HelpCircle className="mr-1 h-3 w-3" />Help</Link></Button>
-                            <Button variant="link" className="text-xs text-muted-foreground hover:text-primary" onClick={() => setIsHelpChatOpen(true)}>
-                            Live Support
-                          </Button>
                       </div>
                     </div>
 
@@ -368,7 +365,7 @@ export default function CartPage() {
                                     </CardTitle>
                                     <Dialog open={isAddressDialogOpen} onOpenChange={setIsAddressDialogOpen}>
                                         <DialogTrigger asChild>
-                                            <Button variant="link" size="sm" className="p-0 h-auto"><Edit className="mr-2 h-3 w-3" /> {address ? 'Change' : 'Add Address'}</Button>
+                                            <Button variant="link" size="sm" className="p-0 h-auto text-sm hover:text-primary"><Edit className="mr-2 h-3 w-3" /> {address ? 'Change' : 'Add Address'}</Button>
                                         </DialogTrigger>
                                         <DialogContent>
                                             <DialogHeader>
