@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useState, useEffect, useMemo } from 'react';
@@ -560,13 +561,13 @@ export default function PaymentPage() {
                         )}
                     </Card>
 
-                     <div className="p-4 mt-auto flex flex-wrap items-center justify-center gap-x-2 gap-y-2">
-                        <Button variant="link" className="text-xs text-muted-foreground hover:text-primary px-1" onClick={() => toast({ title: "Report Sent", description: "Thank you for your feedback." })}>Report</Button>
+                     <div className="p-4 mt-auto flex flex-wrap items-center justify-center gap-x-4 gap-y-2">
+                        <Button variant="link" className="text-xs text-muted-foreground hover:text-primary px-2" onClick={() => toast({ title: "Report Sent", description: "Thank you for your feedback." })}>Report</Button>
                         <FeedbackDialog>
-                            <Button variant="link" className="text-xs text-muted-foreground hover:text-primary px-1">Feedback</Button>
+                            <Button variant="link" className="text-xs text-muted-foreground hover:text-primary px-2">Feedback</Button>
                         </FeedbackDialog>
-                        <Button asChild variant="link" className="text-xs text-muted-foreground hover:text-primary px-1"><Link href="/contact">Contact Us</Link></Button>
-                        <Button asChild variant="link" className="text-xs text-muted-foreground hover:text-primary px-1"><Link href="/help">Help</Link></Button>
+                        <Button asChild variant="link" className="text-xs text-muted-foreground hover:text-primary px-2"><Link href="/contact">Contact Us</Link></Button>
+                        <Button asChild variant="link" className="text-xs text-muted-foreground hover:text-primary px-2"><Link href="/help">Help</Link></Button>
                     </div>
 
                 </div>

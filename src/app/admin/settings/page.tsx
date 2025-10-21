@@ -126,6 +126,8 @@ const couponSchema = z.object({
   sellerId: z.string().optional(),
   sellerName: z.string().optional(),
   status: z.enum(['pending', 'active', 'rejected', 'archived']).default('active'),
+  terms: z.string().optional(),
+  applicableProducts: z.array(z.string()).optional(),
 });
 
 export type Coupon = z.infer<typeof couponSchema>;
@@ -243,6 +245,21 @@ const defaultFeaturedProducts: FeaturedProduct[] = [
   { imageUrl: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500&h=500&fit=crop', name: 'Headphones', model: 'AudioMax 3' },
 ];
 
+const defaultFooterContent: FooterContent = {
+  description: "Your one-stop shop for live shopping. Discover, engage, and buy in real-time.",
+  address: "123 Stream St, Commerce City, IN",
+  phone: "(+91) 98765 43210",
+  email: "streamcartcom@gmail.com",
+  facebook: "https://facebook.com",
+  twitter: "https://twitter.com",
+  linkedin: "https://linkedin.com",
+  instagram: "https://instagram.com",
+};
+
+const defaultShippingSettings: ShippingSettings = {
+    deliveryCharge: 50.00
+};
+
 const CouponForm = ({ onSave, existingCoupon, closeDialog, allCategories }: { onSave: (coupon: Coupon) => void, existingCoupon?: Coupon, closeDialog: () => void, allCategories: string[] }) => {
     const [isLoading, setIsLoading] = useState(false);
 
@@ -250,6 +267,7 @@ const CouponForm = ({ onSave, existingCoupon, closeDialog, allCategories }: { on
         resolver: zodResolver(couponSchema),
         defaultValues: existingCoupon ? {
             ...existingCoupon,
+            expiresAt: existingCoupon.expiresAt ? new Date(existingCoupon.expiresAt) : undefined,
             applicableCategories: existingCoupon.applicableCategories || ['All']
         } : {
             code: "",
@@ -259,6 +277,7 @@ const CouponForm = ({ onSave, existingCoupon, closeDialog, allCategories }: { on
             minOrderValue: 0,
             maxDiscount: 0,
             applicableCategories: ['All'],
+            terms: "",
         },
     });
 
@@ -279,9 +298,12 @@ const CouponForm = ({ onSave, existingCoupon, closeDialog, allCategories }: { on
                         <FormItem><FormLabel>Coupon Code</FormLabel><FormControl><Input placeholder="e.g., SALE10" {...field} onChange={(e) => field.onChange(e.target.value.toUpperCase())} /></FormControl><FormMessage /></FormItem>
                     )} />
                     <FormField control={form.control} name="description" render={({ field }) => (
-                        <FormItem><FormLabel>Description</FormLabel><FormControl><Input placeholder="e.g., 10% off electronics" {...field} /></FormControl><FormMessage /></FormItem>
+                        <FormItem><FormLabel>Short Description</FormLabel><FormControl><Input placeholder="e.g., 10% off electronics" {...field} /></FormControl><FormMessage /></FormItem>
                     )} />
                 </div>
+                 <FormField control={form.control} name="terms" render={({ field }) => (
+                    <FormItem><FormLabel>Terms & Conditions</FormLabel><FormControl><Textarea placeholder="Full terms of the offer..." {...field} /></FormControl><FormMessage /></FormItem>
+                )}/>
                  <div className="grid grid-cols-2 gap-4">
                      <FormField control={form.control} name="discountType" render={({ field }) => (
                         <FormItem><FormLabel>Discount Type</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue placeholder="Select type" /></SelectTrigger></FormControl><SelectContent><SelectItem value="percentage">Percentage (%)</SelectItem><SelectItem value="fixed">Fixed Amount (₹)</SelectItem></SelectContent></Select><FormMessage /></FormItem>
