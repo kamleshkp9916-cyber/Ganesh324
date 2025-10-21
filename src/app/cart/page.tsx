@@ -302,14 +302,6 @@ export default function CartPage() {
                                 </div>
                             </CardContent>
                         </Card>
-                         <div className="p-4 mt-auto flex flex-wrap items-center justify-end gap-x-4 gap-y-2">
-                            <Button variant="link" className="text-xs text-muted-foreground hover:text-primary" onClick={() => toast({ title: "Report Sent", description: "Thank you for your feedback." })}><Flag className="mr-1 h-3 w-3" />Report</Button>
-                            <FeedbackDialog>
-                                <Button variant="link" className="text-xs text-muted-foreground hover:text-primary"><MessageSquare className="mr-1 h-3 w-3" />Feedback</Button>
-                            </FeedbackDialog>
-                            <Button asChild variant="link" className="text-xs text-muted-foreground hover:text-primary"><Link href="/contact"><FileText className="mr-1 h-3 w-3" />Contact Us</Link></Button>
-                            <Button asChild variant="link" className="text-xs text-muted-foreground hover:text-primary"><Link href="/help"><HelpCircle className="mr-1 h-3 w-3" />Help</Link></Button>
-                      </div>
                     </div>
 
                      <div className="lg:sticky top-24 space-y-6">
@@ -394,6 +386,14 @@ export default function CartPage() {
                                 </CardContent>
                             )}
                         </Card>
+                         <div className="p-4 mt-auto flex flex-wrap items-center justify-end gap-x-4 gap-y-2">
+                            <Button variant="link" className="text-xs text-muted-foreground hover:text-primary" onClick={() => toast({ title: "Report Sent", description: "Thank you for your feedback." })}><Flag className="mr-1 h-3 w-3" />Report</Button>
+                            <FeedbackDialog>
+                                <Button variant="link" className="text-xs text-muted-foreground hover:text-primary"><MessageSquare className="mr-1 h-3 w-3" />Feedback</Button>
+                            </FeedbackDialog>
+                            <Button asChild variant="link" className="text-xs text-muted-foreground hover:text-primary"><Link href="/contact"><FileText className="mr-1 h-3 w-3" />Contact Us</Link></Button>
+                            <Button asChild variant="link" className="text-xs text-muted-foreground hover:text-primary"><Link href="/help"><HelpCircle className="mr-1 h-3 w-3" />Help</Link></Button>
+                      </div>
                      </div>
                 </div>
             )}
