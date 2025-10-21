@@ -16,7 +16,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Menu, ShoppingBag, User, X, ChevronRight, ArrowLeft, Search, List } from "lucide-react";
-import { Logo } from "@/components/logo";
 import { useLocalStorage } from "@/hooks/use-local-storage";
 import { HUB_BANNER_KEY, HubBanner, HUB_FEATURED_PRODUCTS_KEY, FeaturedProduct } from '@/app/admin/settings/page';
 import { useState, useEffect, useCallback } from "react";
@@ -144,7 +143,6 @@ export default function ListedProductsPage() {
                           <ArrowLeft className="h-6 w-6" />
                         </Button>
                         <Link href="/live-selling" className="flex items-center gap-2">
-                            <Logo className="h-7 w-7" />
                             <span className="font-bold text-lg hidden sm:inline-block">StreamCart</span>
                         </Link>
                     </div>
@@ -171,7 +169,6 @@ export default function ListedProductsPage() {
                             <SheetContent side="right" className="w-full max-w-sm p-0 flex flex-col">
                                 <SheetHeader className="flex justify-between items-center p-4 border-b">
                                     <Link href="/live-selling" className="flex items-center gap-2">
-                                        <Logo className="h-7 w-7" />
                                         <SheetTitle className="font-bold text-lg">StreamCart</SheetTitle>
                                     </Link>
                                 </SheetHeader>

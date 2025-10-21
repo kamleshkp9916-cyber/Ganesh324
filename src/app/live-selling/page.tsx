@@ -109,7 +109,6 @@ import { ref as storageRef, deleteObject } from 'firebase/storage';
 import { isFollowing, toggleFollow, UserData, getUserByDisplayName } from '@/lib/follow-data';
 import { productDetails } from '@/lib/product-data';
 import { PromotionalCarousel } from '@/components/promotional-carousel';
-import { Logo } from '@/components/logo';
 import { categories } from '@/lib/categories';
 import { Separator } from '@/components/ui/separator';
 import { ProductSearchWithStreams } from '@/components/ProductSearchWithStreams';
@@ -540,7 +539,6 @@ export default function LiveSellingPage() {
                 <div className="flex items-center justify-between h-16 px-4 sm:px-6 lg:px-8">
                      <div className="flex items-center gap-1 sm:gap-2">
                          <Link href="/live-selling" className="flex items-center gap-2">
-                             <Logo className="h-7 w-7" />
                              <span className="font-bold text-lg hidden sm:inline-block">StreamCart</span>
                          </Link>
                     </div>
@@ -969,4 +967,3 @@ export default function LiveSellingPage() {
     </>
   );
 }
-

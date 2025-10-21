@@ -17,7 +17,6 @@ import { Label } from '@/components/ui/label';
 import Image from 'next/image';
 import { WithdrawForm } from '@/components/settings-forms';
 import { Badge, BadgeProps } from '@/components/ui/badge';
-import { Logo } from '@/components/logo';
 import Link from 'next/link';
 import { Separator } from '@/components/ui/separator';
 import {

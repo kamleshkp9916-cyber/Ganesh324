@@ -4,7 +4,6 @@
 import Link from 'next/link';
 import { LoginForm } from '@/components/auth/login-form';
 import { Button } from '@/components/ui/button';
-import { Logo } from '@/components/logo';
 import { ArrowRight } from 'lucide-react';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { useEffect, useState } from 'react';
@@ -31,7 +30,6 @@ export default function Home() {
     <div className="w-full min-h-screen grid lg:grid-cols-2">
       <div className="hidden lg:flex flex-col items-center justify-center bg-gray-100 dark:bg-gray-900 text-foreground p-8">
         <div className="max-w-md text-center">
-            <Logo className="h-24 w-auto mx-auto mb-6" />
             <h1 className="text-4xl font-bold">Welcome to StreamCart</h1>
             <p className="mt-4 text-lg text-muted-foreground">
                 Your one-stop shop for live shopping. Discover, engage, and buy in real-time.
@@ -49,7 +47,6 @@ export default function Home() {
         <div className="mx-auto w-full max-w-sm space-y-8">
           <div className="grid gap-4 text-center">
              <div className="flex justify-center lg:hidden">
-                <Logo className="h-16 w-16" />
              </div>
             <h2 className="text-3xl font-bold tracking-tight text-foreground">Login to Your Account</h2>
             <p className="text-balance text-muted-foreground">

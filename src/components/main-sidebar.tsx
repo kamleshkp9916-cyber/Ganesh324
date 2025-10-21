@@ -14,7 +14,6 @@ import { cn } from '@/lib/utils';
 import { useSidebar } from './ui/sidebar';
 import { format } from 'url';
 import { ScrollArea } from './ui/scroll-area';
-import { Logo } from './logo';
 import { FeedbackDialog } from './feedback-dialog';
 
 
@@ -66,7 +65,6 @@ export function MainSidebar({ userData, userPosts }: MainSidebarProps) {
         <div className="flex flex-col h-full bg-sidebar-background text-sidebar-foreground">
             <div className="p-4 flex items-center justify-between gap-2 mb-4 flex-shrink-0">
                 <Link href="/live-selling" className="flex items-center gap-2">
-                    <Logo className="h-8 w-8 text-foreground" />
                     <span className="font-bold text-xl">StreamCart</span>
                 </Link>
             </div>
