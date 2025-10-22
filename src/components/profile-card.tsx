@@ -216,7 +216,7 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
     
     // Listen to firestore posts
     const db = getFirestoreDb();
-    const postsQuery = query(collection(db, "posts"), where("sellerId", "==", profileData.uid), orderBy("sellerId", "desc"));
+    const postsQuery = query(collection(db, "posts"), where("sellerId", "==", profileData.uid), orderBy("timestamp", "desc"));
     const unsubscribe = onSnapshot(postsQuery, (snapshot) => {
         const postsData = snapshot.docs.map(doc => ({
             id: doc.id,
@@ -707,51 +707,35 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                           )}
                       </TabsContent>
 
-                      <TabsContent value="posts" className="mt-4 space-y-4">
-                           {isLoadingContent ? (
-                             <Card><CardContent className="p-4 space-y-4"><Skeleton className="h-24 w-full" /><Skeleton className="h-24 w-full" /></CardContent></Card>
+                      <TabsContent value="posts" className="mt-4">
+                          {isLoadingContent ? (
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                <Skeleton className="h-64 w-full" />
+                                <Skeleton className="h-64 w-full" />
+                                <Skeleton className="h-64 w-full" />
+                            </div>
                            ) : userPosts.length > 0 ? (
-                                userPosts.map(post => (
-                                   <Card key={post.id} className="overflow-hidden">
-                                       <div className="p-4">
-                                           <div className="flex items-center gap-3 mb-3">
-                                               <Avatar className="h-10 w-10">
-                                                   <AvatarImage src={post.avatarUrl} alt={post.sellerName} />
-                                                   <AvatarFallback>{post.sellerName.charAt(0)}</AvatarFallback>
-                                               </Avatar>
-                                               <div className="flex-grow">
-                                                   <p className="font-semibold">{post.sellerName}</p>
-                                                   <p className="text-xs text-muted-foreground">{post.timestamp}</p>
-                                               </div>
-                                           </div>
-                                       </div>
-                                       <div className="px-4 pb-4">
-                                           <p className="text-sm mb-2">{post.content}</p>
-                                            {post.mediaUrl &&
-                                               <div className="w-full max-w-sm bg-muted rounded-lg overflow-hidden">
-                                                   {post.mediaType === 'video' ? (
-                                                       <video src={post.mediaUrl} controls className="w-full h-auto object-cover" />
-                                                   ) : (
-                                                       <Image src={post.mediaUrl} alt="Feed item" width={400} height={300} className="w-full h-auto object-cover" />
-                                                   )}
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                {userPosts.map(post => (
+                                   <Card key={post.id} className="overflow-hidden flex flex-col">
+                                       <div className="p-4 flex-grow">
+                                            <p className="text-sm text-muted-foreground line-clamp-4 mb-2">{post.content}</p>
+                                            {post.images && post.images.length > 0 &&
+                                               <div className="w-full aspect-video bg-muted rounded-lg overflow-hidden mt-auto">
+                                                   <Image src={post.images[0].url} alt="Feed item" width={400} height={300} className="w-full h-full object-cover" />
                                                </div>
                                            }
                                        </div>
-                                       <div className="px-4 pb-3 flex justify-between items-center text-sm text-muted-foreground">
+                                       <div className="px-4 pb-3 mt-auto flex justify-between items-center text-sm text-muted-foreground border-t pt-3">
                                            <div className="flex items-center gap-4">
-                                               <button className="flex items-center gap-1.5 hover:text-primary">
-                                                   <Heart className="w-4 h-4" />
-                                                   <span>{post.likes}</span>
-                                               </button>
-                                               <button className="flex items-center gap-1.5 hover:text-primary">
-                                                   <MessageSquare className="w-4 h-4" />
-                                                   <span>{post.replies}</span>
-                                               </button>
+                                               <span className="flex items-center gap-1.5"><Heart className="w-4 h-4" />{post.likes || 0}</span>
+                                               <span className="flex items-center gap-1.5"><MessageSquare className="w-4 h-4" />{post.replies || 0}</span>
                                            </div>
-                                           {post.location && <span className="text-xs">{post.location}</span>}
+                                           <span className="text-xs">{post.timestamp}</span>
                                        </div>
                                    </Card>
-                               ))
+                               ))}
+                               </div>
                             ) : (
                                <Card className="text-center py-12 text-muted-foreground flex flex-col items-center gap-4">
                                     <h3 className="text-xl font-semibold">No Posts Yet</h3>
