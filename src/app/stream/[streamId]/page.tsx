@@ -278,8 +278,8 @@ const ReportDialog = ({ onSubmit }: { onSubmit: (reason: string, details: string
     )
 };
 
-const RatingDialog = ({ onRate, sellerName }: { onRate: (rating: number) => void, sellerName: string }) => {
-    const [rating, setRating] = useState(0);
+const RatingDialog = ({ onRate, sellerName, initialRating }: { onRate: (rating: number) => void, sellerName: string, initialRating: number }) => {
+    const [rating, setRating] = useState(initialRating || 0);
     const [hoverRating, setHoverRating] = useState(0);
 
     return (
@@ -563,7 +563,7 @@ const renderWithHashtagsAndLinks = (text: string) => {
     });
 };
 
-const StreamInfo = ({ seller, streamData, handleFollowToggle, isFollowingState, isRatingDialogOpen, setIsRatingDialogOpen, handleRateStream, isPastStream, ...props }: any) => {
+const StreamInfo = ({ seller, streamData, handleFollowToggle, isFollowingState, isRatingDialogOpen, setIsRatingDialogOpen, handleRateStream, isPastStream, userRating, ...props }: any) => {
     if (!seller) {
         return (
             <div className="space-y-4">
@@ -589,7 +589,15 @@ const StreamInfo = ({ seller, streamData, handleFollowToggle, isFollowingState, 
                              )}
                             {!isPastStream && (
                                 <DialogTrigger asChild>
-                                    <Button variant="link" className="text-xs p-0 h-auto">Rate Stream</Button>
+                                    <Button variant="link" className="text-xs p-0 h-auto">
+                                        {userRating ? (
+                                            <span className="flex items-center gap-1">
+                                                You rated: 
+                                                <span className="flex text-yellow-400">{[...Array(userRating)].map((_, i) => <Star key={i} className="h-3 w-3 fill-current" />)}</span> 
+                                                (Undo)
+                                            </span>
+                                        ) : "Rate Stream"}
+                                    </Button>
                                 </DialogTrigger>
                             )}
                         </div>
@@ -617,7 +625,7 @@ const StreamInfo = ({ seller, streamData, handleFollowToggle, isFollowingState, 
                 
                 <ProductShelf {...props} />
             </div>
-            <RatingDialog onRate={handleRateStream} sellerName={seller.name} />
+            <RatingDialog onRate={handleRateStream} sellerName={seller.name} initialRating={userRating} />
         </Dialog>
     );
 };
@@ -696,10 +704,12 @@ const StreamPage = () => {
     const [isAuthDialogOpen, setIsAuthDialogOpen] = useState(false);
 
     const [isRatingDialogOpen, setIsRatingDialogOpen] = useState(false);
+    const [userRating, setUserRating] = useState<number>(0);
 
     const handleRateStream = (rating: number) => {
         if (!user) return;
         
+        setUserRating(rating);
         toast({
             title: `You rated this stream ${rating} stars!`,
             description: "Thanks for your feedback."
@@ -712,9 +722,6 @@ const StreamPage = () => {
         };
         
         setChatMessages(prev => [...prev, ratingMessage]);
-
-        // In a real app, you'd save this to the backend here
-        // e.g., saveStreamRating(streamId, user.uid, rating);
 
         setIsRatingDialogOpen(false);
     };
@@ -758,7 +765,6 @@ const StreamPage = () => {
          if (streams.length > 50) {
             return streams.slice(0, 51);
         }
-        // Fallback to show some streams if none match the category, excluding the current one
         const fallbackStreams = liveSellers.filter(s => s.id !== streamId);
         
         let i = 0;
@@ -1207,10 +1213,10 @@ const StreamPage = () => {
                         <LoadingSpinner />
                     </div>
                  ) : isMobile ? (
-                     <MobileLayout {...{ router, videoRef, playerRef, handlePlayPause, handleShare, handleMinimize, handleToggleFullscreen, isPaused, seller, streamData, handleFollowToggle, isFollowingState, sellerProducts, handlers, relatedStreams, isChatOpen, setIsChatOpen, chatMessages, pinnedMessages, onClose: () => setIsChatOpen(false), handleAddToCart, handleBuyNow, mobileView, setMobileView, isMuted, setIsMuted, handleGoLive, handleSeek, isLive, formatTime, currentTime, duration, buffered, handleProgressClick, progressContainerRef, activeQuality, setActiveQuality, product, user, walletBalance, setIsSuperChatOpen, isSuperChatOpen, isPastStream, isRatingDialogOpen, setIsRatingDialogOpen, handleRateStream }} />
+                     <MobileLayout {...{ router, videoRef, playerRef, handlePlayPause, handleShare, handleMinimize, handleToggleFullscreen, isPaused, seller, streamData, handleFollowToggle, isFollowingState, sellerProducts, handlers, relatedStreams, isChatOpen, setIsChatOpen, chatMessages, pinnedMessages, onClose: () => setIsChatOpen(false), handleAddToCart, handleBuyNow, mobileView, setMobileView, isMuted, setIsMuted, handleGoLive, handleSeek, isLive, formatTime, currentTime, duration, buffered, handleProgressClick, progressContainerRef, activeQuality, setActiveQuality, product, user, walletBalance, setIsSuperChatOpen, isSuperChatOpen, isPastStream, isRatingDialogOpen, setIsRatingDialogOpen, handleRateStream, userRating }} />
                  ) : (
                     <DesktopLayout 
-                        {...{ router, videoRef, playerRef, handlePlayPause, handleShare, handleMinimize, handleToggleFullscreen, isPaused, seller, streamData, handleFollowToggle, isFollowingState, sellerProducts, handlers, relatedStreams, isChatOpen, setIsChatOpen, chatMessages, pinnedMessages, onClose: () => setIsChatOpen(false), handleAddToCart, handleBuyNow, mobileView, setMobileView, isMuted, setIsMuted, handleGoLive, handleSeek, isLive, formatTime, currentTime, duration, buffered, handleProgressClick, progressContainerRef, mainScrollRef, handleMainScroll, showGoToTop, scrollToTop, activeQuality, setActiveQuality, product, user, cartCount, walletBalance, setIsSuperChatOpen, isSuperChatOpen, inlineAuctionCardRefs, isPastStream, isRatingDialogOpen, setIsRatingDialogOpen, handleRateStream }}
+                        {...{ router, videoRef, playerRef, handlePlayPause, handleShare, handleMinimize, handleToggleFullscreen, isPaused, seller, streamData, handleFollowToggle, isFollowingState, sellerProducts, handlers, relatedStreams, isChatOpen, setIsChatOpen, chatMessages, pinnedMessages, onClose: () => setIsChatOpen(false), handleAddToCart, handleBuyNow, mobileView, setMobileView, isMuted, setIsMuted, handleGoLive, handleSeek, isLive, formatTime, currentTime, duration, buffered, handleProgressClick, progressContainerRef, mainScrollRef, handleMainScroll, showGoToTop, scrollToTop, activeQuality, setActiveQuality, product, user, cartCount, walletBalance, setIsSuperChatOpen, isSuperChatOpen, inlineAuctionCardRefs, isPastStream, isRatingDialogOpen, setIsRatingDialogOpen, handleRateStream, userRating }}
                     />
                  )}
             </div>
@@ -1237,7 +1243,10 @@ return (
                 </Avatar>
                 <div className="overflow-hidden">
                 <h1 className="text-sm font-bold truncate">{props.seller.name}</h1>
-                <p className="text-xs text-muted-foreground">{props.streamData.viewerCount.toLocaleString()} viewers</p>
+                 <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                    <Star className="h-3 w-3 text-amber-400 fill-amber-400" />
+                    <span>{props.seller.rating} ({props.seller.reviews} reviews)</span>
+                </div>
                 </div>
             </div>
             )}
@@ -1626,13 +1635,17 @@ const ChatPanel = ({
   seller: any;
   chatMessages: any[];
   pinnedMessages: any[];
+  activeAuction: any;
+  auctionTime: number | null;
+  highestBid: number;
+  totalBids: number;
   walletBalance: number;
   handlers: any;
+  inlineAuctionCardRefs: React.MutableRefObject<Record<string, HTMLDivElement | null>>;
   onClose: () => void;
   isPastStream: boolean;
   isSuperChatOpen: boolean;
   setIsSuperChatOpen: (open: boolean) => void;
-  inlineAuctionCardRefs: React.MutableRefObject<Record<string, HTMLDivElement | null>>;
 }) => {
   const [newMessage, setNewMessage] = useState("");
   const [replyingTo, setReplyingTo] = useState<{ name: string; id: string } | null>(null);
@@ -1844,6 +1857,7 @@ const ChatPanel = ({
 };
 
 export default StreamPage;
+
 
 
 
