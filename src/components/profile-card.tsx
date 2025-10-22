@@ -296,8 +296,8 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
     }, [profileData.uid]);
 
   const filteredUserPosts = useMemo(() => {
-    return userPosts;
-  }, [userPosts]);
+    return mockUserPosts.filter(p => p.sellerName === displayName);
+  }, [displayName]);
 
 
   const filteredRecentlyViewed = useMemo(() => {
@@ -320,7 +320,7 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
     setWishlist(getWishlist().map(p => p.id));
     toast({
         title: "Added to Wishlist!",
-        description: `${''}${product.name} has been added to your wishlist.`
+        description: `${product.name} has been added to your wishlist.`
     });
   };
   
@@ -585,37 +585,37 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                             )}
                             <div>
                                 <h3 className="text-lg font-semibold mb-4">Past Streams</h3>
-                                <div className="space-y-6">
-                                    {mockPastStreams.map(stream => (
+                                 <div className="space-y-4">
+                                     {mockPastStreams.map(stream => (
                                         <div key={stream.id} className="group block" onClick={() => handleAuthAction(() => router.push(`/stream/${stream.id}?isPast=true`))}>
-                                            <Card className="overflow-hidden bg-card border-border/50 shadow-sm transition-all hover:shadow-md cursor-pointer">
-                                                <CardContent className="p-4">
-                                                    <div className="flex items-center gap-3 mb-3">
-                                                        <Avatar className="h-10 w-10">
+                                            <Card className="overflow-hidden bg-card border-border/50 shadow-sm transition-all hover:shadow-md cursor-pointer flex flex-col md:flex-row">
+                                                <div className="relative aspect-video bg-muted md:w-1/3 md:aspect-auto flex-shrink-0">
+                                                    <Image 
+                                                        src={stream.thumbnailUrl} 
+                                                        alt={stream.title} 
+                                                        fill
+                                                        sizes="(max-width: 768px) 100vw, 33vw"
+                                                        className="object-cover w-full h-full"
+                                                    />
+                                                    <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors flex items-center justify-center">
+                                                        <Play className="h-10 w-10 text-white/70 group-hover:text-white group-hover:scale-110 transition-all" />
+                                                    </div>
+                                                    <div className="absolute bottom-2 right-2 bg-black/50 text-white text-xs px-1.5 py-0.5 rounded-sm">{stream.duration}</div>
+                                                </div>
+                                                <CardContent className="p-4 flex-grow">
+                                                     <div className="flex items-center gap-3 mb-2">
+                                                        <Avatar className="h-8 w-8">
                                                             <AvatarImage src={profileData.photoURL || `https://placehold.co/40x40.png?text=${displayName.charAt(0)}`} alt={displayName} />
                                                             <AvatarFallback>{displayName.charAt(0)}</AvatarFallback>
                                                         </Avatar>
                                                         <div>
-                                                            <p className="font-semibold text-primary">{displayName}</p>
+                                                            <p className="font-semibold text-primary text-sm">{displayName}</p>
                                                             <p className="text-xs text-muted-foreground">{stream.date}</p>
                                                         </div>
                                                     </div>
                                                     <h4 className="font-semibold text-base group-hover:text-primary transition-colors">{stream.title}</h4>
                                                     <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{stream.description}</p>
-                                                    <div className="relative aspect-video bg-muted rounded-md overflow-hidden mt-3">
-                                                        <Image 
-                                                            src={stream.thumbnailUrl} 
-                                                            alt={stream.title} 
-                                                            fill
-                                                            sizes="(max-width: 768px) 100vw, 50vw"
-                                                            className="object-cover w-full h-full"
-                                                        />
-                                                        <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors flex items-center justify-center">
-                                                            <Play className="h-10 w-10 text-white/70 group-hover:text-white group-hover:scale-110 transition-all" />
-                                                        </div>
-                                                         <div className="absolute bottom-2 right-2 bg-black/50 text-white text-xs px-1.5 py-0.5 rounded-sm">{stream.duration}</div>
-                                                    </div>
-                                                    <div className="flex items-center gap-4 text-xs text-muted-foreground mt-2">
+                                                     <div className="flex items-center gap-4 text-xs text-muted-foreground mt-2">
                                                         <span>{stream.views} views</span>
                                                     </div>
                                                 </CardContent>
@@ -725,16 +725,16 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                       </TabsContent>
 
                       <TabsContent value="posts" className="mt-4">
-                           <div className="space-y-4">
+                            <div className="space-y-4">
                                 {isLoadingContent ? (
                                     <>
-                                        <Skeleton className="h-64 w-full rounded-lg" />
-                                        <Skeleton className="h-64 w-full rounded-lg" />
+                                        <Skeleton className="h-40 w-full rounded-lg" />
+                                        <Skeleton className="h-40 w-full rounded-lg" />
                                     </>
                                 ) : filteredUserPosts.length > 0 ? (
-                                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 gap-4">
+                                     <div className="space-y-6">
                                         {filteredUserPosts.map(post => (
-                                            <Card key={post.id} className="overflow-hidden flex flex-col">
+                                            <Card key={post.id} className="overflow-hidden">
                                                 <CardHeader className="p-4">
                                                     <div className="flex items-center gap-3">
                                                         <Avatar className="h-10 w-10">
@@ -747,9 +747,9 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                                                         </div>
                                                     </div>
                                                 </CardHeader>
-                                                <CardContent className="p-4 pt-0 flex-grow">
-                                                    <p className="text-sm line-clamp-4 mb-2">{post.content}</p>
-                                                    {post.images && post.images.length > 0 && (
+                                                <CardContent className="px-4">
+                                                    <p className="text-sm">{post.content}</p>
+                                                     {post.images && post.images.length > 0 && (
                                                         <div className="w-full aspect-video bg-muted rounded-lg overflow-hidden mt-2">
                                                             <Image src={post.images[0].url} alt="Feed item" width={400} height={300} className="w-full h-full object-cover" />
                                                         </div>
