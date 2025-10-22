@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import {
@@ -610,7 +611,6 @@ const RelatedContent = ({ relatedStreams }: { relatedStreams: any[] }) => {
     )
 };
 
-
 const StreamPage = () => {
     const router = useRouter();
     const params = useParams();
@@ -1068,7 +1068,7 @@ const StreamPage = () => {
         toast,
         seller,
         handleNewMessageSubmit,
-        handleAuthAction
+        handleAuthAction,
     }), [toast, handleReply, handleReportMessage, handleTogglePinMessage, handleDeleteMessage, seller, handleNewMessageSubmit, onReportStream, handleAddToCart, handleBuyNow, handleAuthAction]);
     
     if (isMinimized(streamId)) {
@@ -1571,7 +1571,7 @@ const ChatPanel = ({
     if (replyingTo) {
       messageToSend = `@${replyingTo.name.split(' ')[0]} ${newMessage}`;
     }
-    
+
     handlers.handleNewMessageSubmit({ text: messageToSend });
 
     setNewMessage("");
@@ -1735,7 +1735,7 @@ const ChatPanel = ({
                      </PopoverContent>
                 </Popover>
              </div>
-             <Button type="button" variant="ghost" size="icon" className="rounded-full flex-shrink-0 h-11 w-11 text-muted-foreground hover:text-foreground" onClick={() => handlers.handleAuthAction(() => setIsSuperChatOpen(true))}>
+             <Button type="button" variant="ghost" size="icon" className="rounded-full flex-shrink-0 h-11 w-11 text-muted-foreground hover:text-foreground" onClick={handlers.onSuperChatClick}>
                  <DollarSign className="h-5 w-5"/>
              </Button>
              <Button type="submit" size="icon" disabled={!newMessage.trim()} className="rounded-full flex-shrink-0 h-11 w-11 bg-primary hover:bg-primary/90 active:scale-105 transition-transform">
@@ -1747,3 +1747,4 @@ const ChatPanel = ({
   );
 };
 export default StreamPage;
+
