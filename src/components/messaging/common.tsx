@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -187,17 +188,8 @@ export const ConversationList = ({ conversations, selectedConversation, onSelect
         <>
             <header className="p-4 border-b flex items-center justify-between sticky top-0 bg-background z-10 shrink-0 h-16">
                 <div className="flex items-center gap-2">
-                     <Button variant="ghost" size="icon" className="shrink-0 lg:hidden" onClick={() => setOpen(true)}>
-                        <Menu className="h-5 w-5" />
-                        <span className="sr-only">Toggle navigation menu</span>
-                    </Button>
                     <h1 className="text-xl font-bold">Chats</h1>
                 </div>
-                <Button asChild variant="ghost" size="icon" onClick={() => router.back()}>
-                    <Link href="/feed">
-                        <ArrowLeft className="h-5 w-5" />
-                    </Link>
-                </Button>
             </header>
             <div className="p-4 border-b">
                  <div className="relative">
@@ -227,19 +219,48 @@ export const ConversationList = ({ conversations, selectedConversation, onSelect
 };
 
 
-export const ChatWindow = ({ conversation, userData, onBack, messages, onSendMessage, isFullScreen = false }: {
+export const ChatWindow = ({ conversation, userData, onBack, messages: initialMessages, onSendMessage, isFullScreen = false }: {
     conversation: Conversation;
     userData: UserData;
     onBack: () => void;
-    messages: Message[];
-    onSendMessage: (text: string) => void;
+    messages?: Message[];
+    onSendMessage?: (text: string) => void;
     isFullScreen?: boolean;
 }) => {
-    const [isChatLoading, setIsChatLoading] = useState(false);
+    const [messages, setMessages] = useState<Message[]>(initialMessages || []);
+    const [isChatLoading, setIsChatLoading] = useState(true);
     const [newMessage, setNewMessage] = useState("");
     const chatContainerRef = useRef<HTMLDivElement>(null);
     const isMobile = useIsMobile();
     const { user } = useAuth();
+    
+    useEffect(() => {
+        if (!conversation) return;
+        setIsChatLoading(true);
+
+        const db = getFirestoreDb();
+        const messagesQuery = query(collection(db, `conversations/${conversation.conversationId}/messages`), orderBy("timestamp", "asc"));
+        
+        const unsubscribe = onSnapshot(messagesQuery, (snapshot) => {
+            if (!snapshot.metadata.hasPendingWrites) {
+                const fetchedMessages = snapshot.docs.map(doc => {
+                    const data = doc.data();
+                    return {
+                        id: doc.id,
+                        ...data,
+                        timestamp: data.timestamp ? format(data.timestamp.toDate(), 'p') : 'sending...'
+                    } as Message;
+                });
+                setMessages(fetchedMessages);
+                setIsChatLoading(false);
+            }
+        }, (error) => {
+            console.error("Error fetching messages:", error);
+            setIsChatLoading(false);
+        });
+
+        return () => unsubscribe();
+    }, [conversation]);
     
     useEffect(() => {
         chatContainerRef.current?.scrollTo({ top: chatContainerRef.current.scrollHeight, behavior: 'smooth' });
@@ -247,7 +268,7 @@ export const ChatWindow = ({ conversation, userData, onBack, messages, onSendMes
 
     const handleSendMessage = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!newMessage.trim() || !conversation || !user) return;
+        if (!newMessage.trim() || !conversation || !user || !onSendMessage) return;
         
         const currentMessage = newMessage;
         setNewMessage("");
@@ -341,260 +362,4 @@ export const ChatWindow = ({ conversation, userData, onBack, messages, onSendMes
             </footer>
         </div>
     );
-};
-
-export const ChatPanel = ({
-  seller,
-  chatMessages,
-  pinnedMessages,
-  activeAuction,
-  auctionTime,
-  highestBid,
-  totalBids,
-  walletBalance,
-  handlers,
-  inlineAuctionCardRefs,
-  onClose,
-}: {
-  seller: any;
-  chatMessages: any[];
-  pinnedMessages: any[];
-  activeAuction: any;
-  auctionTime: number | null;
-  highestBid: number;
-  totalBids: number;
-  walletBalance: number;
-  handlers: any;
-  inlineAuctionCardRefs: React.MutableRefObject<Record<string, HTMLDivElement | null>>;
-  onClose: () => void;
-}) => {
-  const [newMessage, setNewMessage] = useState("");
-  const [replyingTo, setReplyingTo] = useState<{ name: string; id: string } | null>(null);
-  const [showScrollToBottom, setShowScrollToBottom] = useState(false);
-  const chatContainerRef = useRef<HTMLDivElement>(null);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
-  
-  const handleAutoScroll = useCallback((behavior: 'smooth' | 'auto' = 'smooth') => {
-    messagesEndRef.current?.scrollIntoView({ behavior });
-  }, []);
-
-  const handleManualScroll = (e: React.UIEvent<HTMLDivElement>) => {
-    const target = e.currentTarget;
-    const isScrolledUp = target.scrollHeight - target.scrollTop > target.clientHeight + 200;
-    setShowScrollToBottom(isScrolledUp);
-  };
-  
-  useEffect(() => {
-    handleAutoScroll('auto');
-  }, [chatMessages, handleAutoScroll]);
-
-  const addEmoji = (emoji: string) => {
-    setNewMessage(prev => prev + emoji);
-  };
-
-  const handleNewMessageSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newMessage.trim()) return;
-    
-    let messageToSend = newMessage;
-    if (replyingTo) {
-      messageToSend = `@${replyingTo.name.split(' ')[0]} ${newMessage}`;
-    }
-
-    handlers.handleNewMessageSubmit({ text: messageToSend });
-
-    setNewMessage("");
-    setReplyingTo(null);
-  };
-  
-  const handleReply = (msg: any) => {
-    setReplyingTo({ name: msg.user, id: msg.userId });
-    textareaRef.current?.focus();
-  }
-
-  return (
-    <div className='h-full flex flex-col bg-background'>
-      <header className="p-3 flex items-center justify-between z-10 flex-shrink-0 h-16 border-b border-border sticky top-0 bg-background/80 backdrop-blur-sm">
-        <h3 className="font-bold text-lg text-foreground">Live Chat</h3>
-        <div className="flex items-center gap-1">
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8 relative text-muted-foreground hover:text-foreground">
-                <Pin className="h-5 w-5" />
-                {pinnedMessages && pinnedMessages.length > 0 && <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-primary" />}
-              </Button>
-            </PopoverTrigger>
-             <PopoverContent align="end" className="w-80 bg-background border-border text-foreground p-0">
-                <div className="p-3 border-b">
-                    <h4 className="font-semibold text-sm flex items-center gap-2">
-                        <Pin className="h-4 w-4" /> Pinned Items
-                    </h4>
-                </div>
-                 <ScrollArea className="h-80">
-                     <div className="p-3 space-y-3">
-                        {pinnedMessages && pinnedMessages.length > 0 ? (
-                            pinnedMessages.map((item) => (
-                                <div key={item.id} className="text-xs p-2 rounded-md bg-muted">
-                                    {item.type === 'message' && (
-                                        <>
-                                            <p className="font-bold text-primary">{item.user}</p>
-                                            <p>{item.text}</p>
-                                        </>
-                                    )}
-                                    {item.type === 'offer' && (
-                                        <>
-                                            <p className="font-bold text-primary">{item.title}</p>
-                                            <p>{item.description}</p>
-                                        </>
-                                    )}
-                                    {item.type === 'product' && (
-                                        <div className="flex items-center gap-2">
-                                            <Image src={item.product.images[0]} alt={item.product.name} width={40} height={40} className="rounded-md" />
-                                            <div>
-                                                <p className="font-semibold">{item.product.name}</p>
-                                                <p className="font-bold text-primary">{item.product.price}</p>
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
-                            ))
-                        ) : (
-                            <p className="text-center text-muted-foreground text-xs py-4">Pinned items will appear here.</p>
-                        )}
-                    </div>
-                 </ScrollArea>
-            </PopoverContent>
-          </Popover>
-          <DropdownMenu>
-             <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground">
-                    <MoreVertical className="h-5 w-5" />
-                </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-                 <DropdownMenuItem onSelect={handlers.onReportStream}>
-                    <Flag className="mr-2 h-4 w-4" /> Report Stream
-                </DropdownMenuItem>
-                <FeedbackDialog>
-                    <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                        <MessageCircle className="mr-2 h-4 w-4" />Feedback
-                    </DropdownMenuItem>
-                </FeedbackDialog>
-                <DropdownMenuItem>
-                    <LifeBuoy className="mr-2 h-4 w-4" />Help
-                </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-          <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground lg:hidden" onClick={onClose}>
-            <X className="h-5 w-5" />
-          </Button>
-        </div>
-      </header>
-      <ScrollArea className="flex-grow" ref={chatContainerRef} onScroll={handleManualScroll}>
-          <div className="p-3 space-y-2.5">
-             {chatMessages.map((msg) => {
-                  if (msg.type === 'system') {
-                      return <div key={msg.id} className="text-xs text-center text-muted-foreground italic py-1">{msg.text}</div>
-                  }
-                  if (!msg.user) return null;
-
-                  const isMyMessage = msg.userId === seller?.uid;
-                  const isSellerMessage = msg.userId === seller?.uid;
-                  
-                  return (
-                     <div key={msg.id} className="flex items-start gap-2 w-full group py-0.5 animate-message-in">
-                         <Avatar className="h-8 w-8 mt-0.5">
-                             <AvatarImage src={msg.avatar} />
-                             <AvatarFallback className="bg-gradient-to-br from-red-500 to-yellow-500 text-white font-bold text-xs">
-                                 {msg.user ? msg.user.charAt(0) : 'S'}
-                             </AvatarFallback>
-                         </Avatar>
-                          <div className="flex-grow">
-                             <p className="leading-relaxed break-words text-sm text-foreground">
-                                 <b className="font-semibold text-xs mr-1.5" style={{ color: msg.userColor || 'inherit' }}>{msg.user}:</b>
-                                 <span className="text-sm">
-                                    {msg.replyingTo && <span className="text-primary font-semibold mr-1">@{msg.replyingTo}</span>}
-                                    {msg.text}
-                                 </span>
-                             </p>
-                          </div>
-                          <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                  <button className="text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity p-1">
-                                      <MoreVertical className="w-4 h-4" />
-                                  </button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                  <DropdownMenuItem onSelect={() => handleReply(msg)}>
-                                      <Reply className="mr-2 h-4 w-4" />Reply
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem onSelect={() => handlers.onReportMessage(msg.id)}>
-                                    <Flag className="mr-2 h-4 w-4" />Report
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                          </DropdownMenu>
-                      </div>
-                  )
-              })}
-            <div ref={messagesEndRef} />
-          </div>
-        </ScrollArea>
-        {showScrollToBottom && (
-          <div className="absolute bottom-20 left-1/2 -translate-x-1/2 z-20">
-            <Button
-              variant="secondary"
-              size="sm"
-              className="rounded-full shadow-lg"
-              onClick={() => handleAutoScroll()}
-            >
-              Jump to latest
-            </Button>
-          </div>
-        )}
-      <footer className="p-3 bg-transparent flex-shrink-0">
-          {replyingTo && (
-            <div className="text-xs text-muted-foreground mb-1 px-3 flex justify-between items-center">
-              <span>Replying to <span className="text-primary font-semibold">@{replyingTo.name}</span></span>
-              <button onClick={() => setReplyingTo(null)} className="p-1 rounded-full hover:bg-muted">
-                <X className="w-3 h-3" />
-              </button>
-            </div>
-          )}
-          <form onSubmit={handleNewMessageSubmit} className="flex items-center gap-2">
-             <div className="relative flex-grow">
-                 <Textarea
-                    ref={textareaRef}
-                    placeholder="Send a message..." 
-                    value={newMessage}
-                    onChange={(e) => setNewMessage(e.target.value)}
-                    rows={1}
-                    className='flex-grow resize-none max-h-24 px-4 pr-12 py-3 min-h-11 rounded-full bg-muted text-foreground placeholder:text-muted-foreground border-transparent focus-visible:ring-2 focus-visible:ring-offset-0 focus-visible:ring-primary/30'
-                />
-                <Popover>
-                    <PopoverTrigger asChild>
-                         <Button variant="ghost" size="icon" type="button" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full text-muted-foreground hover:text-foreground">
-                            <Smile className="h-5 w-5" />
-                        </Button>
-                    </PopoverTrigger>
-                     <PopoverContent className="w-80 h-64 mb-2">
-                        <ScrollArea className="h-full">
-                            <div className="grid grid-cols-8 gap-1">
-                                {emojis.map((emoji, index) => (
-                                    <Button key={index} variant="ghost" size="icon" onClick={() => addEmoji(emoji)}>
-                                        {emoji}
-                                    </Button>
-                                ))}
-                            </div>
-                        </ScrollArea>
-                     </PopoverContent>
-                </Popover>
-             </div>
-             <Button type="submit" size="icon" disabled={!newMessage.trim()} className="rounded-full flex-shrink-0 h-11 w-11 bg-primary hover:bg-primary/90 active:scale-105 transition-transform">
-                <Send className="h-5 w-5" />
-            </Button>
-          </form>
-        </footer>
-    </div>
-  );
 };
