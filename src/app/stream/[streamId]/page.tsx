@@ -1068,7 +1068,8 @@ const StreamPage = () => {
         toast,
         seller,
         handleNewMessageSubmit,
-    }), [toast, handleReply, handleReportMessage, handleTogglePinMessage, handleDeleteMessage, seller, handleNewMessageSubmit, onReportStream, handleAddToCart, handleBuyNow]);
+        handleAuthAction
+    }), [toast, handleReply, handleReportMessage, handleTogglePinMessage, handleDeleteMessage, seller, handleNewMessageSubmit, onReportStream, handleAddToCart, handleBuyNow, handleAuthAction]);
     
     if (isMinimized(streamId)) {
         return (
