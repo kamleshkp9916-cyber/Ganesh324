@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
@@ -964,19 +963,21 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                         )}
                                     </div>
                                     <div className="mt-6 space-y-4">
-                                        <Collapsible>
-                                            <CollapsibleTrigger className="w-full">
-                                                <div className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50">
-                                                    <div className="flex items-center gap-3">
-                                                        <Tag className="h-5 w-5 text-primary"/>
-                                                        <h4 className="font-semibold">Available Offers</h4>
-                                                    </div>
-                                                     <div className="flex items-center gap-2">
-                                                        {activeOffer && <Badge variant="secondary">1 Offer</Badge>}
-                                                        <ChevronDown className="h-5 w-5 text-muted-foreground" />
-                                                    </div>
+                                         <Collapsible>
+                                            <div className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50">
+                                                <div className="flex items-center gap-3">
+                                                    <Tag className="h-5 w-5 text-primary"/>
+                                                    <h4 className="font-semibold">Available Offers</h4>
                                                 </div>
-                                            </CollapsibleTrigger>
+                                                <div className="flex items-center gap-2">
+                                                    {activeOffer && <Badge variant="secondary">1 Offer</Badge>}
+                                                    <CollapsibleTrigger asChild>
+                                                        <Button variant="link" size="sm">
+                                                            View all
+                                                        </Button>
+                                                    </CollapsibleTrigger>
+                                                </div>
+                                            </div>
                                             <CollapsibleContent>
                                                 <div className="p-4 space-y-3">
                                                      {mockAdminOffers.map((offer: any, index: number) => (
@@ -993,7 +994,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                                                     className="ml-auto"
                                                                     onClick={() => {
                                                                         navigator.clipboard.writeText(offer.code);
-                                                                        toast({ title: 'Code Copied!', description: `${offer.code} copied to clipboard.` });
+                                                                        toast({ title: 'Code Copied!', description: `${'${offer.code}'} copied to clipboard.` });
                                                                     }}
                                                                 >
                                                                     Copy Code
@@ -1064,7 +1065,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                     <h2 className="text-xl font-bold">Highlights</h2>
                                      {product.highlightsImage && (
                                         <div className="w-full aspect-video bg-muted rounded-lg overflow-hidden relative">
-                                            <Image src={product.highlightsImage} alt={`${product.name} highlights`} layout="fill" className="object-contain" />
+                                            <Image src={product.highlightsImage} alt={`${''}${product.name} highlights`} layout="fill" className="object-contain" />
                                         </div>
                                     )}
                                     <ul className="space-y-3 text-sm">
