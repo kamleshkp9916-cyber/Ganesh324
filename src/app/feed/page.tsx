@@ -637,8 +637,8 @@ function FeedPageContent() {
           userId: userName, // Using name as ID for mock
           userName: userName,
           avatarUrl: `https://placehold.co/40x40.png?text=${userName.charAt(0)}`,
-          lastMessage: messages[messages.length - 1].text || "Image",
-          lastMessageTimestamp: messages[messages.length - 1].timestamp,
+          lastMessage: messages.length > 0 ? (messages[messages.length - 1].text || "Image") : "No messages yet.",
+          lastMessageTimestamp: messages.length > 0 ? messages[messages.length - 1].timestamp : "",
           unreadCount: 0,
         }));
         
@@ -650,7 +650,7 @@ function FeedPageContent() {
             convoToSelect = existingConvo;
           } else {
             // Create a new conversation object locally if it doesn't exist
-            const otherUser = await getUserByDisplayName(preselectUserName || "");
+            const otherUser = await getUserByDisplayName(preselectUserName || "") || { photoURL: '' };
             const newConvo: Conversation = {
               conversationId: preselectUserId,
               userId: preselectUserId,
@@ -1168,13 +1168,10 @@ function FeedPageContent() {
                  <div className="flex flex-col h-full overflow-hidden">
                     <header className="flex-shrink-0 sticky top-0 z-30 bg-background/80 backdrop-blur-sm border-b border-border/50 flex flex-col">
                         <div className="p-4 flex items-center justify-between gap-4">
-                            <div className="flex items-center gap-2">
-                                <div className="lg:hidden">
-                                     <Button variant="ghost" size="icon" onClick={() => setOpen(true)}>
-                                        <Menu className="h-5 w-5" />
-                                    </Button>
-                                </div>
-                            </div>
+                            <Button variant="ghost" className="h-10 px-4" onClick={() => router.back()}>
+                                <ArrowLeft className="h-5 w-5 mr-2" />
+                                Back
+                            </Button>
                             <Popover open={showSuggestions}>
                                 <PopoverAnchor asChild>
                                     <div className="relative flex-grow">
@@ -1220,10 +1217,6 @@ function FeedPageContent() {
                                     </ScrollArea>
                                 </PopoverContent>
                             </Popover>
-                            <Button variant="ghost" className="h-10 px-4" onClick={() => router.back()}>
-                                <ArrowLeft className="h-5 w-5 mr-2" />
-                                Back
-                            </Button>
                         </div>
                     </header>
                     <div className={cn("flex-1 flex flex-col overflow-hidden", isMobile && selectedPostForComments && "hidden")}>
@@ -1336,6 +1329,7 @@ export default function FeedPage() {
     
 
     
+
 
 
 
