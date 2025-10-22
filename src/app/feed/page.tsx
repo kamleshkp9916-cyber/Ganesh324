@@ -669,6 +669,25 @@ function FeedPageContent() {
                         allConvos = [newConvo, ...allConvos];
                         convoToSelect = newConvo;
                     }
+                } else if (preselectUserName) {
+                    // Fallback for mock users or users not found in DB
+                     const conversationId = [user.uid, preselectUserId].sort().join('_');
+                     const existingConvo = allConvos.find(c => c.conversationId === conversationId);
+                     if (existingConvo) {
+                         convoToSelect = existingConvo;
+                     } else {
+                        const newConvo: Conversation = {
+                            conversationId,
+                            userId: preselectUserId,
+                            userName: preselectUserName,
+                            avatarUrl: `https://placehold.co/40x40.png?text=${preselectUserName.charAt(0)}`,
+                            lastMessage: 'New conversation started.',
+                            lastMessageTimestamp: 'now',
+                            unreadCount: 0,
+                        };
+                        allConvos = [newConvo, ...allConvos];
+                        convoToSelect = newConvo;
+                     }
                 }
             } else if (allConvos.length > 0) {
                 convoToSelect = allConvos[0];
@@ -1343,6 +1362,7 @@ export default function FeedPage() {
     
 
     
+
 
 
 
