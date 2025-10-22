@@ -5,7 +5,7 @@ import React from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import { useRouter } from 'next/navigation';
 import { Button, buttonVariants } from '@/components/ui/button';
-import { Edit, Mail, Phone, MapPin, Camera, Truck, Star, ThumbsUp, ThumbsDown, ShoppingBag, Eye, Award, History, Search, Plus, Trash2, Heart, MessageSquare, StarIcon, UserPlus, Users, Package, PackageSearch, Loader2, UserCheck, Instagram, Twitter, Youtube, Video, Facebook, Twitch, Play, MoreHorizontal, ArrowUp, ArrowDown } from 'lucide-react';
+import { Edit, Mail, Phone, MapPin, Camera, Truck, Star, ThumbsUp, ThumbsDown, ShoppingBag, Eye, Award, History, Search, Plus, Trash2, Heart, MessageSquare, StarIcon, UserPlus, Users, Package, PackageSearch, Loader2, UserCheck, Instagram, Twitter, Youtube, Video, Facebook, Twitch, Play, MoreHorizontal, ArrowUp, ArrowDown, Flag } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { useEffect, useState, useRef, useMemo, useCallback } from 'react';
@@ -35,6 +35,7 @@ import { getFirestoreDb } from '@/lib/firebase';
 import { getStatusFromTimeline } from '@/lib/order-data';
 import { formatDistanceToNow } from 'date-fns';
 import { productDetails } from '@/lib/product-data';
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from './ui/dropdown-menu';
 
 const mockReviews = [
     { id: 1, productName: 'Wireless Headphones', rating: 5, review: 'Absolutely amazing sound quality and comfort. Best purchase this year!', date: '2 weeks ago', imageUrl: 'https://placehold.co/100x100.png', hint: 'modern headphones', productInfo: 'These are the latest model with active noise cancellation and a 20-hour battery life. Sold by GadgetGuru.' },
@@ -222,7 +223,7 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
         const postsData = snapshot.docs.map(doc => ({
             id: doc.id,
             ...doc.data(),
-            timestamp: doc.data().timestamp ? formatDistanceToNow(new Date((doc.data().timestamp as Timestamp).seconds * 1000), { addSuffix: true }) : 'just now'
+            timestamp: doc.data().timestamp, // Keep it as a Timestamp for now
         }));
         setUserPosts(postsData);
     });
@@ -269,7 +270,7 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
         sellerId: profileData.uid,
         sellerName: profileData.displayName,
         avatarUrl: profileData.photoURL,
-        timestamp: formatDistanceToNow(new Date(), { addSuffix: true }),
+        timestamp: new Date(),
         content: `Welcome to my page! Check out our latest products and live streams. #welcome #${profileData.displayName.toLowerCase().replace(/\s+/g, '')}`,
         images: [{ url: 'https://placehold.co/600x400.png' }],
         likes: 15,
@@ -321,14 +322,34 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
     });
   };
 
+  const handleReportPost = () => {
+      handleAuthAction(() => {
+          toast({ title: 'Post Reported', description: 'Thank you for your feedback.' });
+      });
+  };
+
+  const renderContentWithHashtags = (text: string) => {
+    const parts = text.split(/(#\w+)/g);
+    return parts.map((part, index) => {
+        if (part.startsWith('#')) {
+            return (
+                <button key={index} className="text-primary hover:underline font-semibold">
+                    {part}
+                </button>
+            );
+        }
+        return part;
+    });
+  };
+
   const sellerAverageRating = (mockReviews.reduce((acc, review) => acc + review.rating, 0) / mockReviews.length).toFixed(1);
   
   const showAdminView = userData?.role === 'admin';
 
   return (
     <>
-      <div className="p-4 sm:p-6 flex items-center gap-4 sm:gap-6 relative bg-card">
-          <div className="relative z-10 flex-shrink-0">
+      <div className="p-4 sm:p-6 flex items-start gap-4 sm:gap-6 relative">
+           <div className="relative z-10 flex-shrink-0">
               <Avatar className="h-20 w-20 sm:h-24 sm:w-24 border-4 border-background shadow-lg">
                   <AvatarImage src={profileImage || profileData?.photoURL || `https://placehold.co/128x128.png?text=${displayName.charAt(0)}`} alt={displayName} />
                   <AvatarFallback className="text-4xl">{displayName.charAt(0) || user?.email?.charAt(0)}</AvatarFallback>
@@ -568,28 +589,36 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                                                             </Avatar>
                                                             <div>
                                                                 <p className="font-semibold text-primary">{post.sellerName}</p>
-                                                                <p className="text-xs text-muted-foreground">{post.timestamp}</p>
+                                                                <p className="text-xs text-muted-foreground">
+                                                                    {post.timestamp ? formatDistanceToNow(post.timestamp.toDate(), { addSuffix: true }) : 'just now'}
+                                                                </p>
                                                             </div>
                                                         </div>
-                                                         {isOwnProfile && (
-                                                            <DropdownMenu>
-                                                                <DropdownMenuTrigger asChild>
-                                                                    <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0 -mr-2 -mt-2">
-                                                                        <MoreHorizontal className="w-4 h-4" />
-                                                                    </Button>
-                                                                </DropdownMenuTrigger>
-                                                                <DropdownMenuContent align="end">
-                                                                    <DropdownMenuItem>
-                                                                        <Edit className="mr-2 h-4 w-4" /> Edit
+                                                        <DropdownMenu>
+                                                            <DropdownMenuTrigger asChild>
+                                                                <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0 -mr-2 -mt-2">
+                                                                    <MoreHorizontal className="w-4 h-4" />
+                                                                </Button>
+                                                            </DropdownMenuTrigger>
+                                                            <DropdownMenuContent align="end">
+                                                                {isOwnProfile ? (
+                                                                    <>
+                                                                        <DropdownMenuItem>
+                                                                            <Edit className="mr-2 h-4 w-4" /> Edit
+                                                                        </DropdownMenuItem>
+                                                                        <DropdownMenuItem className="text-destructive">
+                                                                            <Trash2 className="mr-2 h-4 w-4" /> Delete
+                                                                        </DropdownMenuItem>
+                                                                    </>
+                                                                ) : (
+                                                                    <DropdownMenuItem onSelect={handleReportPost}>
+                                                                        <Flag className="mr-2 h-4 w-4" /> Report
                                                                     </DropdownMenuItem>
-                                                                    <DropdownMenuItem className="text-destructive">
-                                                                        <Trash2 className="mr-2 h-4 w-4" /> Delete
-                                                                    </DropdownMenuItem>
-                                                                </DropdownMenuContent>
-                                                            </DropdownMenu>
-                                                        )}
+                                                                )}
+                                                            </DropdownMenuContent>
+                                                        </DropdownMenu>
                                                     </div>
-                                                    <p className="text-sm">{post.content}</p>
+                                                    <div className="text-sm whitespace-pre-wrap">{renderContentWithHashtags(post.content)}</div>
                                                 </CardHeader>
                                                 {post.images && post.images.length > 0 && (
                                                     <CardContent className="p-0">
@@ -639,7 +668,7 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                             )}
                             <div>
                                  <h3 className="text-lg font-semibold mb-4">Past Streams</h3>
-                                <div className="space-y-4">
+                                 <div className="space-y-4">
                                     {mockPastStreams.map((stream, index) => (
                                         <div key={stream.id || index} className="group block" onClick={() => handleAuthAction(() => router.push(`/stream/${stream.id}?isPast=true`))}>
                                             <Card className="overflow-hidden bg-card border-border/50 shadow-sm transition-all hover:shadow-md cursor-pointer flex flex-col md:flex-row">
@@ -895,3 +924,5 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
     </>
   );
 }
+
+    
