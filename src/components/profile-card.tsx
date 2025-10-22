@@ -270,7 +270,7 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
         sellerId: profileData.uid,
         sellerName: profileData.displayName,
         avatarUrl: profileData.photoURL,
-        timestamp: new Date(),
+        timestamp: new Date(), // This will be a JS Date object
         content: `Welcome to my page! Check out our latest products and live streams. #welcome #${profileData.displayName.toLowerCase().replace(/\s+/g, '')}`,
         images: [{ url: 'https://placehold.co/600x400.png' }],
         likes: 15,
@@ -348,15 +348,15 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
 
   return (
     <>
-      <div className="p-4 sm:p-6 flex items-start gap-4 sm:gap-6 relative">
-           <div className="relative z-10 flex-shrink-0">
+      <div className="p-4 sm:p-6 flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-6 relative">
+          <div className="relative z-10 flex-shrink-0">
               <Avatar className="h-20 w-20 sm:h-24 sm:w-24 border-4 border-background shadow-lg">
                   <AvatarImage src={profileImage || profileData?.photoURL || `https://placehold.co/128x128.png?text=${displayName.charAt(0)}`} alt={displayName} />
                   <AvatarFallback className="text-4xl">{displayName.charAt(0) || user?.email?.charAt(0)}</AvatarFallback>
               </Avatar>
           </div>
           
-          <div className="relative z-10 flex flex-col items-start text-foreground flex-grow text-left">
+          <div className="relative z-10 flex flex-col items-center sm:items-start text-foreground flex-grow text-center sm:text-left">
               <div className="flex items-center gap-2">
                   <h2 className="text-2xl sm:text-3xl font-bold">{displayName}</h2>
                   {profileData.role === 'seller' && (
@@ -368,10 +368,10 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
               </div>
               {isOwnProfile && <p className="text-sm text-muted-foreground">{profileData.email}</p>}
               
-              <div className="flex gap-6 pt-2 sm:pt-4 text-left">
+              <div className="flex gap-6 pt-2 sm:pt-4">
                   <Dialog>
                       <DialogTrigger asChild>
-                          <div className="text-left cursor-pointer">
+                          <div className="text-center cursor-pointer">
                               <p className="text-xl sm:text-2xl font-bold">{followingList.length}</p>
                               <p className="text-xs sm:text-sm text-muted-foreground">Following</p>
                           </div>
@@ -499,55 +499,6 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                       </div>
                   </div>
                   <Separator />
-                  <div>
-                      <div className="flex items-center justify-between mb-2">
-                          <h3 className="text-lg font-semibold">Delivery Addresses</h3>
-                          {isOwnProfile && (
-                            <Dialog open={isAddressDialogOpen} onOpenChange={setIsAddressDialogOpen}>
-                                <DialogTrigger asChild>
-                                <Button variant="outline" size="sm">
-                                        <Plus className="h-4 w-4 mr-2" />
-                                        Add/Manage
-                                    </Button>
-                                </DialogTrigger>
-                                <DialogContent className="max-w-lg h-auto max-h-[85vh] flex flex-col">
-                                    <DialogHeader>
-                                        <DialogTitle>Manage Delivery Addresses</DialogTitle>
-                                    </DialogHeader>
-                                    <EditAddressForm 
-                                        onSave={(addr) => {
-                                            const newAddresses = profileData.addresses ? [...profileData.addresses] : [];
-                                            const existingIndex = newAddresses.findIndex(a => a.id === addr.id);
-                                            if (existingIndex > -1) {
-                                                newAddresses[existingIndex] = addr;
-                                            } else {
-                                                newAddresses.push({ ...addr, id: Date.now() });
-                                            }
-                                            onAddressesUpdate(newAddresses);
-                                            setIsAddressDialogOpen(false);
-                                        }}
-                                        onCancel={() => setIsAddressDialogOpen(false)}
-                                        onAddressesUpdate={onAddressesUpdate}
-                                    />
-                                </DialogContent>
-                            </Dialog>
-                          )}
-                      </div>
-                      {addresses && addresses.length > 0 ? (
-                        <div className="space-y-2">
-                            {addresses.map((address: any) => (
-                                <div key={address.id} className="p-3 rounded-lg border bg-muted/50">
-                                    <p className="font-semibold text-foreground">{address.name}</p>
-                                    <p className="text-sm text-muted-foreground">{address.village}, {address.district}, {address.city}, {address.state} - {address.pincode}</p>
-                                    <p className="text-sm text-muted-foreground">Phone: {address.phone}</p>
-                                </div>
-                            ))}
-                        </div>
-                      ) : (
-                         <div className="text-center py-8 text-muted-foreground">No addresses added yet.</div>
-                      )}
-                  </div>
-                  <Separator />
                   </>
               )}
               
@@ -578,8 +529,10 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                                     </div>
                                 ) : filteredUserPosts.length > 0 ? (
                                     <div className="space-y-6">
-                                        {filteredUserPosts.map(post => (
-                                           <Card key={post.id} className="overflow-hidden">
+                                        {filteredUserPosts.map(post => {
+                                            const postDate = post.timestamp?.toDate ? post.timestamp.toDate() : post.timestamp;
+                                            return (
+                                            <Card key={post.id} className="overflow-hidden">
                                                 <CardHeader className="p-4">
                                                     <div className="flex items-start justify-between">
                                                         <div className="flex items-center gap-3 mb-3">
@@ -590,11 +543,11 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                                                             <div>
                                                                 <p className="font-semibold text-primary">{post.sellerName}</p>
                                                                 <p className="text-xs text-muted-foreground">
-                                                                    {post.timestamp ? formatDistanceToNow(post.timestamp.toDate(), { addSuffix: true }) : 'just now'}
+                                                                    {post.timestamp ? formatDistanceToNow(postDate, { addSuffix: true }) : 'just now'}
                                                                 </p>
                                                             </div>
                                                         </div>
-                                                        <DropdownMenu>
+                                                         <DropdownMenu>
                                                             <DropdownMenuTrigger asChild>
                                                                 <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0 -mr-2 -mt-2">
                                                                     <MoreHorizontal className="w-4 h-4" />
@@ -635,7 +588,8 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                                                     <button className="flex items-center gap-1.5 hover:text-primary"><MessageSquare className="w-4 h-4" />{post.replies || 0} Comments</button>
                                                 </CardFooter>
                                             </Card>
-                                        ))}
+                                            )
+                                        })}
                                     </div>
                                 ) : (
                                     <Card className="text-center py-12 text-muted-foreground flex flex-col items-center gap-4">
@@ -680,7 +634,7 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                                                     <div className="absolute bottom-2 right-2 bg-black/50 text-white text-xs px-1.5 py-0.5 rounded-sm">{stream.duration}</div>
                                                 </div>
                                                 <CardContent className="p-4 flex-grow">
-                                                     <div className="flex items-center gap-3 mb-2">
+                                                    <div className="flex items-center gap-3 mb-2">
                                                         <Avatar className="h-8 w-8">
                                                             <AvatarImage src={profileData.photoURL || `https://placehold.co/40x40.png?text=${displayName.charAt(0)}`} alt={displayName} />
                                                             <AvatarFallback>{displayName.charAt(0)}</AvatarFallback>
@@ -924,5 +878,3 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
     </>
   );
 }
-
-    
