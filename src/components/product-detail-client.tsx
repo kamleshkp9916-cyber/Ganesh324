@@ -832,7 +832,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                         {isScanning ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
                                         <span>Find Similar Products</span>
                                     </Button>
-                                    {sellerLiveStream && (
+                                    {seller && sellerLiveStream && (
                                          <div className="mt-2 text-center">
                                             <Button asChild variant="secondary" className="w-full">
                                                 <Link href={`/stream/${sellerLiveStream.id}`}>
@@ -897,9 +897,9 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                                     </div>
                                                     <span>({reviews.length} reviews)</span>
                                             </div>
-                                            <span className="text-muted-foreground/50">|</span>
+                                            <span className="text-muted-foreground/50 hidden sm:inline">|</span>
                                             <div className="flex items-center gap-1"><Package className="w-4 h-4" /> {variantStock ?? product.stock} in stock</div>
-                                            <span className="text-muted-foreground/50">|</span>
+                                            <span className="text-muted-foreground/50 hidden sm:inline">|</span>
                                             <div className="flex items-center gap-1"><Users className="w-4 h-4" /> {product.sold} sold</div>
                                         </div>
                                          <p className="text-sm text-muted-foreground mt-1">(inclusive of all taxes)</p>
@@ -971,18 +971,34 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                                         <Tag className="h-5 w-5 text-primary"/>
                                                         <h4 className="font-semibold">Available Offers</h4>
                                                     </div>
-                                                    <ChevronDown className="h-5 w-5 text-muted-foreground" />
+                                                     <div className="flex items-center gap-2">
+                                                        {activeOffer && <Badge variant="secondary">1 Offer</Badge>}
+                                                        <ChevronDown className="h-5 w-5 text-muted-foreground" />
+                                                    </div>
                                                 </div>
                                             </CollapsibleTrigger>
                                             <CollapsibleContent>
                                                 <div className="p-4 space-y-3">
-                                                    {mockAdminOffers.map((offer: any, index: number) => (
+                                                     {mockAdminOffers.map((offer: any, index: number) => (
                                                         <div key={index} className="flex items-start gap-3 text-sm">
                                                             {offer.icon}
                                                             <div>
                                                                 <h5 className="font-semibold">{offer.title}</h5>
                                                                 <p className="text-muted-foreground">{offer.description}</p>
                                                             </div>
+                                                             {offer.code && (
+                                                                <Button
+                                                                    variant="ghost"
+                                                                    size="sm"
+                                                                    className="ml-auto"
+                                                                    onClick={() => {
+                                                                        navigator.clipboard.writeText(offer.code);
+                                                                        toast({ title: 'Code Copied!', description: `${offer.code} copied to clipboard.` });
+                                                                    }}
+                                                                >
+                                                                    Copy Code
+                                                                </Button>
+                                                            )}
                                                         </div>
                                                     ))}
                                                 </div>
@@ -1046,6 +1062,11 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                              <div className="md:col-span-2 space-y-4">
                                 <div className="space-y-3">
                                     <h2 className="text-xl font-bold">Highlights</h2>
+                                     {product.highlightsImage && (
+                                        <div className="w-full aspect-video bg-muted rounded-lg overflow-hidden relative">
+                                            <Image src={product.highlightsImage} alt={`${product.name} highlights`} layout="fill" className="object-contain" />
+                                        </div>
+                                    )}
                                     <ul className="space-y-3 text-sm">
                                         {currentHighlights.map((highlight: string, index: number) => (
                                             <li key={index} className="flex items-start gap-3">

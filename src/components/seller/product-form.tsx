@@ -66,6 +66,7 @@ const productFormSchema = z.object({
   origin: z.string().optional(),
   variants: z.array(variantSchema).optional(),
   highlights: z.string().optional(),
+  highlightsImage: z.any().optional(),
   keywords: z.array(z.string()).optional(),
 }).refine(data => !data.discountPercentage || (data.discountPercentage > 0 && data.discountPercentage < 100), {
     message: "Discount must be between 1 and 99.",
@@ -245,7 +246,17 @@ export function ProductForm({ onSave, productToEdit }: ProductFormProps) {
                   <FormItem>
                       <FormLabel>Product Highlights</FormLabel>
                       <FormControl><Textarea placeholder="Enter key features, one per line." {...field} /></FormControl>
-                      <FormDescription>Each line will be shown as a separate highlight point.</FormDescription>
+                      <FormDescription>Each line will be shown as a separate bullet point.</FormDescription>
+                      <FormMessage />
+                  </FormItem>
+              )}/>
+               <FormField name="highlightsImage" control={form.control} render={({ field }) => (
+                  <FormItem>
+                      <FormLabel>Highlights Image (Optional)</FormLabel>
+                      <FormControl>
+                          <Input type="file" accept="image/*" onChange={e => field.onChange(e.target.files?.[0])} />
+                      </FormControl>
+                      <FormDescription>An image to display prominently in the highlights section.</FormDescription>
                       <FormMessage />
                   </FormItem>
               )}/>
