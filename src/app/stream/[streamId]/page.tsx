@@ -86,7 +86,7 @@ import React, { useEffect, useState, useRef, useMemo, useCallback } from "react"
 import { productDetails } from "@/lib/product-data";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { useToast } from "@/hooks/use-toast";
-import { addToCart, isProductInCart, getCart } from '@/lib/product-history';
+import { addToCart, isProductInCart, getCart, saveCart } from '@/lib/product-history';
 import { cn } from "@/lib/utils";
 import {
   DropdownMenu,
@@ -629,7 +629,7 @@ const StreamPage = () => {
     const [isFollowingState, setIsFollowingState] = useState(false);
     
     const [cartCount, setCartCount] = useState(0);
-    const [walletBalance, setWalletBalance] = useState(0);
+    const [walletBalance, setWalletBalance] = useState(42580.22);
     
     const isMobile = useIsMobile();
         
@@ -1125,10 +1125,6 @@ const StreamPage = () => {
                 }} />
             </Dialog>
 
-            <Dialog open={isSuperChatOpen} onOpenChange={setIsSuperChatOpen}>
-                <SuperChatDialog walletBalance={walletBalance} handlers={handlers} isSuperChatOpen={isSuperChatOpen} setIsSuperChatOpen={setIsSuperChatOpen} />
-            </Dialog>
-            
              <div className={cn("bg-background text-foreground", isMobile ? 'flex flex-col h-dvh' : 'h-screen')}>
                  {isMobile === undefined ? (
                     <div className="flex h-screen items-center justify-center">
@@ -1264,7 +1260,7 @@ return (
                 onClose={() => {}}
                 walletBalance={walletBalance}
                 isPastStream={isPastStream}
-                onSuperChatClick={() => setIsSuperChatOpen(true)}
+                setIsSuperChatOpen={setIsSuperChatOpen}
                 inlineAuctionCardRefs={props.inlineAuctionCardRefs}
             />
         </aside>
@@ -1507,7 +1503,7 @@ const ChatMessage = ({ msg, handlers, seller }: { msg: any, handlers: any, selle
                     </span>
                     {msg.isSeller && <Badge variant="outline" className="mr-1.5 border-yellow-400/50 text-yellow-400 h-4 text-[10px] px-1.5">Seller</Badge>}
                 </div>
-                 <div className="text-sm whitespace-pre-wrap break-words leading-snug text-foreground">
+                 <div className="text-sm whitespace-pre-wrap break-words text-foreground/80 leading-snug">
                     {renderWithHashtagsAndLinks(msg.text)}
                  </div>
             </div>
@@ -1537,18 +1533,30 @@ const ChatPanel = ({
   seller,
   chatMessages,
   pinnedMessages,
+  activeAuction,
+  auctionTime,
+  highestBid,
+  totalBids,
   walletBalance,
   handlers,
+  inlineAuctionCardRefs,
   onClose,
   isPastStream,
+  setIsSuperChatOpen,
 }: {
   seller: any;
   chatMessages: any[];
   pinnedMessages: any[];
+  activeAuction: any;
+  auctionTime: number | null;
+  highestBid: number;
+  totalBids: number;
   walletBalance: number;
   handlers: any;
+  inlineAuctionCardRefs: React.MutableRefObject<Record<string, HTMLDivElement | null>>;
   onClose: () => void;
   isPastStream: boolean;
+  setIsSuperChatOpen: (open: boolean) => void;
 }) => {
   const [newMessage, setNewMessage] = useState("");
   const [replyingTo, setReplyingTo] = useState<{ name: string; id: string } | null>(null);
@@ -1556,7 +1564,6 @@ const ChatPanel = ({
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const [isSuperChatOpen, setIsSuperChatOpen] = useState(false);
   
   const handleAutoScroll = useCallback((behavior: 'smooth' | 'auto' = 'smooth') => {
     messagesEndRef.current?.scrollIntoView({ behavior });
@@ -1750,7 +1757,14 @@ const ChatPanel = ({
                      </PopoverContent>
                 </Popover>
              </div>
-             <SuperChatDialog walletBalance={walletBalance} handlers={handlers} isSuperChatOpen={isSuperChatOpen} setIsSuperChatOpen={setIsSuperChatOpen} />
+             <Dialog onOpenChange={setIsSuperChatOpen}>
+                <DialogTrigger asChild>
+                    <Button type="button" variant="ghost" size="icon" className="rounded-full flex-shrink-0 h-11 w-11 text-muted-foreground hover:text-foreground" onClick={() => handlers.handleAuthAction(() => setIsSuperChatOpen(true))}>
+                        <DollarSign className="h-5 w-5"/>
+                    </Button>
+                </DialogTrigger>
+                <SuperChatDialog walletBalance={walletBalance} handlers={handlers} isSuperChatOpen={isSuperChatOpen} setIsSuperChatOpen={setIsSuperChatOpen} />
+            </Dialog>
              <Button type="submit" size="icon" disabled={!newMessage.trim()} className="rounded-full flex-shrink-0 h-11 w-11 bg-primary hover:bg-primary/90 active:scale-105 transition-transform">
                 <Send className="h-5 w-5" />
             </Button>
@@ -1761,6 +1775,7 @@ const ChatPanel = ({
 };
 
 export default StreamPage;
+
 
 
 
