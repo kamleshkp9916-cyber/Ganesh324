@@ -187,7 +187,7 @@ export const ConversationList = ({ conversations, selectedConversation, onSelect
         <>
             <header className="p-4 border-b flex items-center justify-between sticky top-0 bg-background z-10 shrink-0 h-16">
                 <div className="flex items-center gap-2">
-                     <Button variant="outline" size="icon" className="shrink-0 lg:hidden" onClick={() => setOpen(true)}>
+                     <Button variant="ghost" size="icon" className="shrink-0 lg:hidden" onClick={() => setOpen(true)}>
                         <Menu className="h-5 w-5" />
                         <span className="sr-only">Toggle navigation menu</span>
                     </Button>
