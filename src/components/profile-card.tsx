@@ -270,7 +270,7 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
         sellerName: profileData.displayName,
         avatarUrl: profileData.photoURL,
         timestamp: formatDistanceToNow(new Date(), { addSuffix: true }),
-        content: `Welcome to my page! Check out our latest products and live streams. #welcome #${profileData.displayName.toLowerCase()}`,
+        content: `Welcome to my page! Check out our latest products and live streams. #welcome #${profileData.displayName.toLowerCase().replace(/\\s+/g, '')}`,
         images: [{ url: 'https://placehold.co/600x400.png' }],
         likes: 15,
         replies: 2,
@@ -335,7 +335,7 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
               </Avatar>
           </div>
           
-          <div className="relative z-10 text-foreground flex-grow text-center sm:text-left">
+          <div className="relative z-10 flex flex-col items-center sm:items-start text-foreground flex-grow text-center sm:text-left">
               <div className="flex flex-col sm:flex-row items-center justify-center sm:justify-start gap-2">
                   <h2 className="text-2xl sm:text-3xl font-bold">{displayName}</h2>
                   {profileData.role === 'seller' && (
@@ -350,7 +350,7 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
               <div className="flex justify-center sm:justify-start gap-6 sm:gap-8 pt-2 sm:pt-4 text-left">
                   <Dialog>
                       <DialogTrigger asChild>
-                          <div className="text-left cursor-pointer">
+                          <div className="text-center cursor-pointer">
                               <p className="text-xl sm:text-2xl font-bold">{followingList.length}</p>
                               <p className="text-xs sm:text-sm text-muted-foreground">Following</p>
                           </div>
@@ -638,7 +638,7 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                                 </div>
                             )}
                             <div>
-                                <h3 className="text-lg font-semibold mb-4">Past Streams</h3>
+                                 <h3 className="text-lg font-semibold mb-4">Past Streams</h3>
                                 <div className="space-y-4">
                                     {mockPastStreams.map((stream, index) => (
                                         <div key={stream.id || index} className="group block" onClick={() => handleAuthAction(() => router.push(`/stream/${stream.id}?isPast=true`))}>
@@ -651,7 +651,7 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                                                     <div className="absolute bottom-2 right-2 bg-black/50 text-white text-xs px-1.5 py-0.5 rounded-sm">{stream.duration}</div>
                                                 </div>
                                                 <CardContent className="p-4 flex-grow">
-                                                    <div className="flex items-center gap-3 mb-2">
+                                                     <div className="flex items-center gap-3 mb-2">
                                                         <Avatar className="h-8 w-8">
                                                             <AvatarImage src={profileData.photoURL || `https://placehold.co/40x40.png?text=${displayName.charAt(0)}`} alt={displayName} />
                                                             <AvatarFallback>{displayName.charAt(0)}</AvatarFallback>
