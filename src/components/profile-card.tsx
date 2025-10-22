@@ -54,10 +54,10 @@ const mockAchievements = [
 ];
 
 const mockBeautyBoxProducts = [
-    { id: 'bb_prod_1', name: 'Vitamin C Serum', category: "Beauty", price: 2500, stock: 50, images: [{ preview: "https://placehold.co/200x200.png?text=Serum" }], hint: "skincare serum" },
-    { id: 'bb_prod_2', name: 'Matte Lipstick', category: "Beauty", price: 1200, stock: 100, images: [{ preview: "https://placehold.co/200x200.png?text=Lipstick" }], hint: "red lipstick" },
-    { id: 'bb_prod_3', name: 'Eyeshadow Palette', category: "Beauty", price: 3500, stock: 30, images: [{ preview: "https://placehold.co/200x200.png?text=Palette" }], hint: "eyeshadow palette" },
-    { id: 'bb_prod_4', name: 'Hydrating Face Mask', category: "Beauty", price: 800, stock: 75, images: [{ preview: "https://placehold.co/200x200.png?text=Mask" }], hint: "face mask" },
+    { id: 'bb_prod_1', name: 'Vitamin C Serum', category: "Beauty", price: 2500, stock: 50, sold: 200, images: [{ preview: "https://placehold.co/200x200.png?text=Serum" }], hint: "skincare serum" },
+    { id: 'bb_prod_2', name: 'Matte Lipstick', category: "Beauty", price: 1200, stock: 100, sold: 500, images: [{ preview: "https://placehold.co/200x200.png?text=Lipstick" }], hint: "red lipstick" },
+    { id: 'bb_prod_3', name: 'Eyeshadow Palette', category: "Beauty", price: 3500, stock: 30, sold: 150, images: [{ preview: "https://placehold.co/200x200.png?text=Palette" }], hint: "eyeshadow palette" },
+    { id: 'bb_prod_4', name: 'Hydrating Face Mask', category: "Beauty", price: 800, stock: 75, sold: 400, images: [{ preview: "https://placehold.co/200x200.png?text=Mask" }], hint: "face mask" },
 ];
 
 const liveSellers = [
@@ -282,7 +282,7 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
     setWishlist(getWishlist().map(p => p.id));
     toast({
         title: "Added to Wishlist!",
-        description: `${''}${product.name} has been added to your wishlist.`
+        description: `${product.name} has been added to your wishlist.`
     });
   };
   
@@ -675,32 +675,35 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
                                       {filteredProducts.map((product: any) => (
                                           <Link href={`/product/${product.id}`} key={product.id} className="group block">
-                                              <Card className="w-full group overflow-hidden">
-                                                  <div className="aspect-square bg-muted rounded-t-lg overflow-hidden relative">
-                                                      <Image 
-                                                          src={product.images?.[0]?.preview || "https://placehold.co/200x200.png"}
-                                                          alt={product.name}
-                                                          fill
-                                                          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
-                                                          className="object-cover w-full h-full group-hover:scale-105 transition-transform"
-                                                          data-ai-hint={product.hint || 'product image'}
-                                                      />
-                                                       {product.stock === 0 && (
+                                                <Card className="w-full overflow-hidden h-full flex flex-col">
+                                                    <div className="relative aspect-square bg-muted">
+                                                        <Image
+                                                            src={product.images[0]?.preview || "https://placehold.co/200x200.png"}
+                                                            alt={product.name}
+                                                            fill
+                                                            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
+                                                            className="object-cover transition-transform group-hover:scale-105"
+                                                        />
+                                                         {product.stock === 0 && (
                                                             <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
                                                                 <Badge variant="destructive">Out of Stock</Badge>
                                                             </div>
                                                         )}
-                                                  </div>
-                                                  <div className="p-3">
-                                                      <h4 className="font-semibold truncate text-sm">{product.name}</h4>
-                                                      <p className="font-bold text-foreground">₹{product.price.toLocaleString()}</p>
-                                                      <div className="flex items-center gap-1 text-xs text-amber-400 mt-1">
-                                                          <Star className="w-4 h-4 fill-current" />
-                                                          <span>{averageRating}</span>
-                                                          <span className="text-muted-foreground">({mockReviews.length})</span>
-                                                      </div>
-                                                  </div>
-                                              </Card>
+                                                    </div>
+                                                    <div className="p-3 flex-grow flex flex-col">
+                                                        <h4 className="font-semibold truncate text-sm flex-grow">{product.name}</h4>
+                                                        <p className="font-bold text-foreground mt-1">₹{product.price.toLocaleString()}</p>
+                                                        <div className="flex items-center gap-1 text-xs text-amber-400 mt-1">
+                                                            <Star className="w-4 h-4 fill-current" />
+                                                            <span>{averageRating}</span>
+                                                            <span className="text-muted-foreground">({mockReviews.length})</span>
+                                                        </div>
+                                                        <div className="flex items-center gap-4 text-xs text-muted-foreground mt-1">
+                                                            <div className="flex items-center gap-1"><Package className="w-3 h-3" /> {product.stock} left</div>
+                                                            <div className="flex items-center gap-1"><Users className="w-3 h-3" /> {product.sold || 0} sold</div>
+                                                        </div>
+                                                    </div>
+                                                </Card>
                                           </Link>
                                       ))}
                                   </div>
@@ -892,3 +895,5 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
     </>
   );
 }
+
+    
