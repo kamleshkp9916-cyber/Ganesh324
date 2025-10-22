@@ -108,7 +108,7 @@ import { collection, query, orderBy, onSnapshot, Timestamp, deleteDoc, doc, upda
 import { getFirestoreDb, getFirebaseStorage } from '@/lib/firebase';
 import { format, formatDistanceToNow, formatDistanceToNowStrict, isThisWeek, isThisYear } from 'date-fns';
 import { ref as storageRef, deleteObject, uploadString, getDownloadURL } from 'firebase/storage';
-import { isFollowing, toggleFollow, UserData, getUserByDisplayName, getFollowing } from '@/lib/follow-data';
+import { isFollowing, toggleFollow, UserData, getUserByDisplayName, getFollowing, getOrCreateConversation } from '@/lib/follow-data';
 import { productDetails } from '@/lib/product-data';
 import { PromotionalCarousel } from '@/components/promotional-carousel';
 import { Logo } from '@/components/logo';
@@ -167,26 +167,14 @@ const liveSellersData = [
     { id: '10', name: 'GamerGuild', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Gaming', viewers: 4200, buyers: 102, rating: 4.9, reviews: 80, hint: 'esports competition', productId: 'prod_10' },
 ];
 
-const mockConversations: Conversation[] = [
-    { conversationId: '1', userId: "support", userName: "StreamCart Support", avatarUrl: "https://placehold.co/40x40/000000/FFFFFF?text=SC", lastMessage: "Yes, we can help with that!", lastMessageTimestamp: "10:30 AM", unreadCount: 1, isExecutive: true },
-    { conversationId: '2', userId: "fashionfinds-uid", userName: "FashionFinds", avatarUrl: "https://placehold.co/40x40.png", lastMessage: "Awesome! Could you tell me a bit more about the lens?", lastMessageTimestamp: "10:01 AM", unreadCount: 0 },
-    { conversationId: '3', userId: "gadgetguru-uid", userName: "GadgetGuru", avatarUrl: "https://placehold.co/40x40.png", lastMessage: "Sure, what would you like to know?", lastMessageTimestamp: "Yesterday", unreadCount: 0 },
-];
-
-const mockMessages: Record<string, Message[]> = {
-  "support": [
-    { id: 1, senderId: 'customer', text: 'I have an issue with my recent order.', timestamp: '10:28 AM', status: 'read' },
-    { id: 2, senderId: 'support', text: 'Hello! I can certainly help you with that. Can you please provide me with the order ID?', timestamp: '10:29 AM' },
-    { id: 3, senderId: 'customer', text: 'It is #ORD5896.', timestamp: '10:29 AM', status: 'read' },
-    { id: 4, senderId: 'support', text: 'Thank you. One moment while I look that up for you.', timestamp: '10:30 AM' },
-  ],
-  "fashionfinds-uid": [
-    { id: 1, text: "Hey! I saw your stream and I'm interested in the vintage camera. Is it still available?", senderId: 'customer', timestamp: '10:00 AM', status: 'read' },
+const mockChatDatabase: Record<string, Message[]> = {
+  "FashionFinds": [
+    { id: 1, text: "Hey! I saw your stream and I'm interested in the vintage camera. Is it still available?", senderId: 'customer', timestamp: '10:00 AM' },
     { id: 2, text: "Hi there! Yes, it is. It's in great working condition.", senderId: 'seller', timestamp: '10:01 AM' },
-    { id: 3, text: "Awesome! Could you tell me a bit more about the lens?", senderId: 'customer', timestamp: '10:01 AM', status: 'delivered' },
+    { id: 3, text: "Awesome! Could you tell me a bit more about the lens?", senderId: 'customer', timestamp: '10:01 AM' },
   ],
-  "gadgetguru-uid": [
-      { id: 1, text: "I have a question about the X-1 Drone.", senderId: 'customer', timestamp: 'Yesterday', status: 'read' },
+  "GadgetGuru": [
+      { id: 1, text: "I have a question about the X-1 Drone.", senderId: 'customer', timestamp: 'Yesterday' },
       { id: 2, text: "Sure, what would you like to know?", senderId: 'seller', timestamp: 'Yesterday' },
   ]
 };
@@ -520,10 +508,10 @@ function FeedPageContent() {
 
   const showSuggestions = debouncedSearchTerm.length > 0 && (searchSuggestions.users.length > 0 || searchSuggestions.hashtags.length > 0 || searchSuggestions.posts.length > 0);
 
-  const handleSelectConversation = (convo: Conversation) => {
+   const handleSelectConversation = (convo: Conversation) => {
     setSelectedConversation(convo);
     // @ts-ignore
-    setCurrentMessages(mockMessages[convo.userId] || []);
+    setCurrentMessages(mockChatDatabase[convo.userName] || []);
   };
 
   const handleSendMessage = (text: string) => {
@@ -531,6 +519,7 @@ function FeedPageContent() {
     const newMessage: Message = {
       id: Date.now(),
       senderId: user.uid,
+      user: userData?.displayName,
       text: text,
       timestamp: format(new Date(), 'p'),
       status: 'sent',
@@ -630,7 +619,7 @@ function FeedPageContent() {
   }, [loadFollowData, loadSavedPosts]);
 
  useEffect(() => {
-    const handleTabChange = () => {
+    const handleTabChange = async () => {
       const tabFromUrl = searchParams.get('tab');
       if (tabFromUrl && ['feed', 'saves', 'messages'].includes(tabFromUrl)) {
         setMainTab(tabFromUrl);
@@ -639,37 +628,50 @@ function FeedPageContent() {
       }
 
       if (tabFromUrl === 'messages' && user && userData) {
-        let allConvos = [...mockConversations];
-        let convoToSelect: Conversation | null = null;
-        
         const preselectUserId = searchParams.get('userId');
         const preselectUserName = searchParams.get('userName');
 
+        // This is a simplified version. In a real app, you'd fetch from a backend.
+        let allConvos = Object.entries(mockChatDatabase).map(([userName, messages]) => ({
+          conversationId: userName, // Using name as ID for mock
+          userId: userName, // Using name as ID for mock
+          userName: userName,
+          avatarUrl: `https://placehold.co/40x40.png?text=${userName.charAt(0)}`,
+          lastMessage: messages[messages.length - 1].text || "Image",
+          lastMessageTimestamp: messages[messages.length - 1].timestamp,
+          unreadCount: 0,
+        }));
+        
+        let convoToSelect: Conversation | null = null;
+        
         if (preselectUserId) {
-          const existingConvo = allConvos.find(c => c.userId === preselectUserId);
+          const existingConvo = allConvos.find(c => c.userId === preselectUserId || c.userName === preselectUserName);
           if (existingConvo) {
             convoToSelect = existingConvo;
           } else {
             // Create a new conversation object locally if it doesn't exist
+            const otherUser = await getUserByDisplayName(preselectUserName || "");
             const newConvo: Conversation = {
-              conversationId: preselectUserId, // Use UID as a temporary unique ID
+              conversationId: preselectUserId,
               userId: preselectUserId,
               userName: preselectUserName || 'New Chat',
-              avatarUrl: `https://placehold.co/40x40.png?text=${(preselectUserName || 'U').charAt(0)}`,
+              avatarUrl: otherUser?.photoURL || `https://placehold.co/40x40.png?text=${(preselectUserName || 'U').charAt(0)}`,
               lastMessage: "Start a new conversation.",
               lastMessageTimestamp: 'now',
               unreadCount: 0,
             };
             allConvos = [newConvo, ...allConvos];
             convoToSelect = newConvo;
+            // Add to mock DB for this session
+            mockChatDatabase[newConvo.userName] = [];
           }
         } else if (allConvos.length > 0) {
-          convoToSelect = allConvos[0];
+            convoToSelect = allConvos[0];
         }
 
         setConversations(allConvos);
         
-        if (convoToSelect) {
+        if (convoToSelect && !isMobile) {
           handleSelectConversation(convoToSelect);
         }
       }
@@ -678,7 +680,7 @@ function FeedPageContent() {
         handleTabChange();
     }
 // eslint-disable-next-line react-hooks/exhaustive-deps
-}, [searchParams, isMounted, user, userData]);
+}, [searchParams, isMounted, user, userData, isMobile]);
 
 
 
@@ -1218,11 +1220,9 @@ function FeedPageContent() {
                                     </ScrollArea>
                                 </PopoverContent>
                             </Popover>
-                            <Button variant="ghost" asChild className="h-10 px-4">
-                              <Link href="/live-selling">
-                                  <ArrowLeft className="h-5 w-5 mr-2" />
-                                  Back
-                              </Link>
+                            <Button variant="ghost" className="h-10 px-4" onClick={() => router.back()}>
+                                <ArrowLeft className="h-5 w-5 mr-2" />
+                                Back
                             </Button>
                         </div>
                     </header>
@@ -1336,6 +1336,7 @@ export default function FeedPage() {
     
 
     
+
 
 
 
