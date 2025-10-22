@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import React from 'react';
@@ -695,7 +696,7 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                                                         <p className="font-bold text-foreground mt-1">₹{product.price.toLocaleString()}</p>
                                                         <div className="flex items-center gap-1 text-xs text-amber-400 mt-1">
                                                             <Star className="w-4 h-4 fill-current" />
-                                                            <span>{averageRating}</span>
+                                                            <span>{sellerAverageRating}</span>
                                                             <span className="text-muted-foreground">({mockReviews.length})</span>
                                                         </div>
                                                         <div className="flex items-center gap-4 text-xs text-muted-foreground mt-1">
