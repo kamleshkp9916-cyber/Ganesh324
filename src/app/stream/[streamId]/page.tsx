@@ -545,9 +545,9 @@ const StreamInfo = ({ seller, streamData, handleFollowToggle, isFollowingState, 
         <div className="space-y-4">
             <div className="mb-4">
                 <h2 className="font-bold text-lg">Topic</h2>
-                <div className="text-sm text-muted-foreground mt-1 space-y-4">
+                 <div className="text-sm text-muted-foreground mt-1 space-y-4">
                     <div>{renderWithHashtagsAndLinks(streamData.description || "Welcome to the live stream!")}</div>
-                     {streamData.startedAt && (
+                    {streamData.startedAt && (
                         <div className="flex items-center gap-2 text-xs">
                             <Clock className="h-4 w-4" />
                             <span>Started {formatDistanceToNow(new Date(streamData.startedAt), { addSuffix: true })}</span>
@@ -1151,7 +1151,7 @@ const StreamPage = () => {
 const MemoizedStreamInfo = React.memo(StreamInfo);
 const MemoizedRelatedContent = React.memo(RelatedContent);
 
-const DesktopLayout = React.memo(({ handlers, chatMessages, cartCount, walletBalance, isPastStream, isSuperChatOpen, setIsSuperChatOpen, ...props }: any) => {
+const DesktopLayout = React.memo(({ user, handlers, chatMessages, cartCount, walletBalance, isPastStream, isSuperChatOpen, setIsSuperChatOpen, ...props }: any) => {
 return (
 <div className="flex flex-col h-screen overflow-hidden">
     <header className="p-3 flex items-center justify-between z-40 h-16 shrink-0 w-full">
@@ -1173,17 +1173,23 @@ return (
             )}
         </div>
         <div className="flex items-center gap-2">
-            <Button asChild variant="ghost">
-                <Link href="/cart" className="relative">
-                    <ShoppingCart className="mr-2 h-4 w-4" />
-                    My Cart
-                    {cartCount > 0 && (
-                        <Badge variant="destructive" className="absolute -top-1 -right-2 h-5 w-5 p-0 flex items-center justify-center text-xs">
-                            {cartCount}
-                        </Badge>
-                    )}
-                </Link>
-            </Button>
+            {user ? (
+                <Button asChild variant="ghost">
+                    <Link href="/cart" className="relative">
+                        <ShoppingCart className="mr-2 h-4 w-4" />
+                        My Cart
+                        {cartCount > 0 && (
+                            <Badge variant="destructive" className="absolute -top-1 -right-2 h-5 w-5 p-0 flex items-center justify-center text-xs">
+                                {cartCount}
+                            </Badge>
+                        )}
+                    </Link>
+                </Button>
+            ) : (
+                <Button asChild>
+                    <Link href="/">Login / Sign Up</Link>
+                </Button>
+            )}
         </div>
     </header>
     <div className="flex-1 grid grid-cols-[1fr,384px] overflow-hidden">
@@ -1545,7 +1551,7 @@ const ChatPanel = ({
   onClose,
   isPastStream,
   isSuperChatOpen,
-  setIsSuperChatOpen
+  setIsSuperChatOpen,
 }: {
   seller: any;
   chatMessages: any[];
@@ -1556,6 +1562,7 @@ const ChatPanel = ({
   isPastStream: boolean;
   isSuperChatOpen: boolean;
   setIsSuperChatOpen: (open: boolean) => void;
+  inlineAuctionCardRefs: React.MutableRefObject<Record<string, HTMLDivElement | null>>;
 }) => {
   const [newMessage, setNewMessage] = useState("");
   const [replyingTo, setReplyingTo] = useState<{ name: string; id: string } | null>(null);
@@ -1767,5 +1774,6 @@ const ChatPanel = ({
 };
 
 export default StreamPage;
+
 
 
