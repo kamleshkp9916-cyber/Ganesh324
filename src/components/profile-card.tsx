@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import React from 'react';
@@ -113,7 +112,7 @@ function ReviewSkeleton() {
     );
 }
 
-export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFollowToggle: onFollowToggleProp }: { profileData: UserData, isOwnProfile: boolean, onAddressesUpdate: (addresses: any[]) => void, onFollowToggle?: () => void }) {
+export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFollowToggle: onFollowToggleProp, handleAuthAction }: { profileData: UserData, isOwnProfile: boolean, onAddressesUpdate: (addresses: any[]) => void, onFollowToggle?: () => void, handleAuthAction: (callback: () => void) => void }) {
   const { user, userData } = useAuth();
   const { toast } = useToast();
   const [profileImage, setProfileImage] = useState<string | null>(null);
@@ -288,20 +287,14 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
   };
   
   const handleFollowToggle = async () => {
-    if (!user) {
-        toast({
-            variant: "destructive",
-            title: "Login Required",
-            description: "You need to be logged in to follow users."
-        });
-        return;
-    }
-    setIsFollowed(prev => !prev);
-    await toggleFollow(user.uid, profileData.uid);
-    if (onFollowToggleProp) {
-        onFollowToggleProp();
-    }
-    loadFollowData(); // Reload data to update dialog list
+    handleAuthAction(async () => {
+        setIsFollowed(prev => !prev);
+        await toggleFollow(user!.uid, profileData.uid);
+        if (onFollowToggleProp) {
+            onFollowToggleProp();
+        }
+        loadFollowData();
+    });
   };
 
   const sellerAverageRating = (mockReviews.reduce((acc, review) => acc + review.rating, 0) / mockReviews.length).toFixed(1);
@@ -413,7 +406,7 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                             {isFollowed ? <UserCheck className="mr-2 h-4 w-4" /> : <UserPlus className="mr-2 h-4 w-4" />}
                             {isFollowed ? "Following" : "Follow"}
                         </Button>
-                        <Button variant="outline" onClick={() => setIsChatOpen(true)}>
+                        <Button variant="outline" onClick={() => handleAuthAction(() => setIsChatOpen(true))}>
                             <MessageSquare className="mr-2 h-4 w-4" />
                             Message
                         </Button>
@@ -556,7 +549,7 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                                 <h3 className="text-lg font-semibold mb-4">Past Streams</h3>
                                 <div className="md:hidden space-y-4">
                                      {mockPastStreams.map(stream => (
-                                        <Link href={`/stream/${stream.id}?isPast=true`} key={stream.id} className="group block">
+                                        <div key={stream.id} className="group block" onClick={() => handleAuthAction(() => router.push(`/stream/${stream.id}?isPast=true`))}>
                                             <Card className="overflow-hidden bg-card border-border/50 shadow-sm transition-all hover:shadow-md">
                                                 <div className="relative aspect-video bg-muted overflow-hidden">
                                                     <Image 
@@ -578,15 +571,15 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                                                     </div>
                                                 </div>
                                             </Card>
-                                        </Link>
+                                        </div>
                                     ))}
                                 </div>
                                 <div className="hidden md:block">
                                     <ScrollArea>
                                         <div className="flex gap-4 pb-4">
                                             {mockPastStreams.map(stream => (
-                                                <Link href={`/stream/${stream.id}?isPast=true`} key={stream.id} className="group block w-64 flex-shrink-0">
-                                                    <Card className="overflow-hidden bg-card border-border/50 shadow-sm transition-all hover:shadow-md">
+                                                <div key={stream.id} className="group block w-64 flex-shrink-0" onClick={() => handleAuthAction(() => router.push(`/stream/${stream.id}?isPast=true`))}>
+                                                    <Card className="overflow-hidden bg-card border-border/50 shadow-sm transition-all hover:shadow-md cursor-pointer">
                                                         <div className="relative aspect-video bg-muted overflow-hidden">
                                                             <Image 
                                                                 src={stream.thumbnailUrl} 
@@ -607,7 +600,7 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                                                             </div>
                                                         </div>
                                                     </Card>
-                                                </Link>
+                                                </div>
                                             ))}
                                         </div>
                                         <ScrollBar orientation="horizontal" />
