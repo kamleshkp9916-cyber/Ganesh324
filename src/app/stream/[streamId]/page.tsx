@@ -547,6 +547,12 @@ const StreamInfo = ({ seller, streamData, handleFollowToggle, isFollowingState, 
                 <h2 className="font-bold text-lg">Topic</h2>
                 <div className="text-sm text-muted-foreground mt-1 space-y-4">
                     <div>{renderWithHashtagsAndLinks(streamData.description || "Welcome to the live stream!")}</div>
+                     {streamData.startedAt && (
+                        <div className="flex items-center gap-2 text-xs">
+                            <Clock className="h-4 w-4" />
+                            <span>Started {formatDistanceToNow(new Date(streamData.startedAt), { addSuffix: true })}</span>
+                        </div>
+                    )}
                 </div>
             </div>
             <div className="flex items-center justify-between gap-2">
@@ -1131,10 +1137,10 @@ const StreamPage = () => {
                         <LoadingSpinner />
                     </div>
                  ) : isMobile ? (
-                     <MobileLayout {...{ router, videoRef, playerRef, handlePlayPause, handleShare, handleMinimize, handleToggleFullscreen, isPaused, seller, streamData, handleFollowToggle, isFollowingState, sellerProducts, handlers, relatedStreams, isChatOpen, setIsChatOpen, chatMessages, pinnedMessages, onClose: () => setIsChatOpen(false), handleAddToCart, handleBuyNow, mobileView, setMobileView, isMuted, setIsMuted, handleGoLive, handleSeek, isLive, formatTime, currentTime, duration, buffered, handleProgressClick, progressContainerRef, activeQuality, setActiveQuality, product, user, walletBalance, setIsSuperChatOpen, isPastStream }} />
+                     <MobileLayout {...{ router, videoRef, playerRef, handlePlayPause, handleShare, handleMinimize, handleToggleFullscreen, isPaused, seller, streamData, handleFollowToggle, isFollowingState, sellerProducts, handlers, relatedStreams, isChatOpen, setIsChatOpen, chatMessages, pinnedMessages, onClose: () => setIsChatOpen(false), handleAddToCart, handleBuyNow, mobileView, setMobileView, isMuted, setIsMuted, handleGoLive, handleSeek, isLive, formatTime, currentTime, duration, buffered, handleProgressClick, progressContainerRef, activeQuality, setActiveQuality, product, user, walletBalance, setIsSuperChatOpen, isSuperChatOpen, isPastStream }} />
                  ) : (
                     <DesktopLayout 
-                        {...{ router, videoRef, playerRef, handlePlayPause, handleShare, handleMinimize, handleToggleFullscreen, isPaused, seller, streamData, handleFollowToggle, isFollowingState, sellerProducts, handlers, relatedStreams, isChatOpen, setIsChatOpen, chatMessages, pinnedMessages, onClose: () => setIsChatOpen(false), handleAddToCart, handleBuyNow, mobileView, setMobileView, isMuted, setIsMuted, handleGoLive, handleSeek, isLive, formatTime, currentTime, duration, buffered, handleProgressClick, progressContainerRef, mainScrollRef, handleMainScroll, showGoToTop, scrollToTop, activeQuality, setActiveQuality, product, user, cartCount, walletBalance, setIsSuperChatOpen, inlineAuctionCardRefs, isPastStream }}
+                        {...{ router, videoRef, playerRef, handlePlayPause, handleShare, handleMinimize, handleToggleFullscreen, isPaused, seller, streamData, handleFollowToggle, isFollowingState, sellerProducts, handlers, relatedStreams, isChatOpen, setIsChatOpen, chatMessages, pinnedMessages, onClose: () => setIsChatOpen(false), handleAddToCart, handleBuyNow, mobileView, setMobileView, isMuted, setIsMuted, handleGoLive, handleSeek, isLive, formatTime, currentTime, duration, buffered, handleProgressClick, progressContainerRef, mainScrollRef, handleMainScroll, showGoToTop, scrollToTop, activeQuality, setActiveQuality, product, user, cartCount, walletBalance, setIsSuperChatOpen, isSuperChatOpen, inlineAuctionCardRefs, isPastStream }}
                     />
                  )}
             </div>
@@ -1145,7 +1151,7 @@ const StreamPage = () => {
 const MemoizedStreamInfo = React.memo(StreamInfo);
 const MemoizedRelatedContent = React.memo(RelatedContent);
 
-const DesktopLayout = React.memo(({ handlers, chatMessages, cartCount, walletBalance, isPastStream, ...props }: any) => {
+const DesktopLayout = React.memo(({ handlers, chatMessages, cartCount, walletBalance, isPastStream, isSuperChatOpen, setIsSuperChatOpen, ...props }: any) => {
 return (
 <div className="flex flex-col h-screen overflow-hidden">
     <header className="p-3 flex items-center justify-between z-40 h-16 shrink-0 w-full">
@@ -1259,10 +1265,10 @@ return (
                 handlers={handlers}
                 onClose={() => {}}
                 walletBalance={walletBalance}
-                isPastStream={isPastStream}
-                setIsSuperChatOpen={props.setIsSuperChatOpen}
-                isSuperChatOpen={props.isSuperChatOpen}
+                isSuperChatOpen={isSuperChatOpen}
+                setIsSuperChatOpen={setIsSuperChatOpen}
                 inlineAuctionCardRefs={props.inlineAuctionCardRefs}
+                isPastStream={isPastStream}
             />
         </aside>
     </div>
@@ -1270,7 +1276,7 @@ return (
 )});
 DesktopLayout.displayName = "DesktopLayout";
 
-const MobileLayout = React.memo(({ handlers, chatMessages, walletBalance, setIsSuperChatOpen, isSuperChatOpen, isPastStream, ...props }: any) => {
+const MobileLayout = React.memo(({ handlers, chatMessages, walletBalance, isPastStream, isSuperChatOpen, setIsSuperChatOpen, ...props }: any) => {
     const { isMuted, setIsMuted, handleGoLive, isLive, formatTime, currentTime, duration, handleShare, handleToggleFullscreen, progressContainerRef, handleProgressClick, isPaused, handlePlayPause, handleSeek, handleMinimize, activeQuality, setActiveQuality } = props;
     return (
         <div className="flex flex-col h-dvh overflow-hidden relative">
@@ -1434,7 +1440,7 @@ const SuperChatDialog = ({ walletBalance, handlers, isSuperChatOpen, setIsSuperC
     return (
         <Dialog open={isSuperChatOpen} onOpenChange={setIsSuperChatOpen}>
              <DialogTrigger asChild>
-                <Button type="button" variant="ghost" size="icon" className="rounded-full flex-shrink-0 h-11 w-11 text-muted-foreground hover:text-foreground" onClick={() => handlers.handleAuthAction(() => setIsSuperChatOpen(true))}>
+                <Button type="button" variant="ghost" size="icon" className="rounded-full flex-shrink-0 h-11 w-11 text-muted-foreground hover:text-foreground">
                     <DollarSign className="h-5 w-5"/>
                 </Button>
             </DialogTrigger>
@@ -1534,28 +1540,18 @@ const ChatPanel = ({
   seller,
   chatMessages,
   pinnedMessages,
-  activeAuction,
-  auctionTime,
-  highestBid,
-  totalBids,
   walletBalance,
   handlers,
-  inlineAuctionCardRefs,
   onClose,
   isPastStream,
   isSuperChatOpen,
-  setIsSuperChatOpen,
+  setIsSuperChatOpen
 }: {
   seller: any;
   chatMessages: any[];
   pinnedMessages: any[];
-  activeAuction: any;
-  auctionTime: number | null;
-  highestBid: number;
-  totalBids: number;
   walletBalance: number;
   handlers: any;
-  inlineAuctionCardRefs: React.MutableRefObject<Record<string, HTMLDivElement | null>>;
   onClose: () => void;
   isPastStream: boolean;
   isSuperChatOpen: boolean;
@@ -1672,7 +1668,7 @@ const ChatPanel = ({
                     <Flag className="mr-2 h-4 w-4" /> Report Stream
                 </DropdownMenuItem>
                 <FeedbackDialog>
-                    <DropdownMenuItem onSelect={(e) => handlers.handleAuthAction(() => e.preventDefault())}>
+                    <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
                         <MessageCircle className="mr-2 h-4 w-4" />Feedback
                     </DropdownMenuItem>
                 </FeedbackDialog>
@@ -1760,7 +1756,14 @@ const ChatPanel = ({
                      </PopoverContent>
                 </Popover>
              </div>
-             <SuperChatDialog walletBalance={walletBalance} handlers={handlers} isSuperChatOpen={isSuperChatOpen} setIsSuperChatOpen={setIsSuperChatOpen} />
+             <Dialog open={isSuperChatOpen} onOpenChange={setIsSuperChatOpen}>
+                 <DialogTrigger asChild>
+                    <Button type="button" variant="ghost" size="icon" className="rounded-full flex-shrink-0 h-11 w-11 text-muted-foreground hover:text-foreground" onClick={() => handlers.handleAuthAction(() => setIsSuperChatOpen(true))}>
+                        <DollarSign className="h-5 w-5"/>
+                    </Button>
+                </DialogTrigger>
+                 <SuperChatDialog walletBalance={walletBalance} handlers={handlers} isSuperChatOpen={isSuperChatOpen} setIsSuperChatOpen={setIsSuperChatOpen} />
+             </Dialog>
              <Button type="submit" size="icon" disabled={!newMessage.trim()} className="rounded-full flex-shrink-0 h-11 w-11 bg-primary hover:bg-primary/90 active:scale-105 transition-transform">
                 <Send className="h-5 w-5" />
             </Button>
@@ -1771,3 +1774,4 @@ const ChatPanel = ({
 };
 
 export default StreamPage;
+
