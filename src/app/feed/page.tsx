@@ -116,7 +116,7 @@ import { categories } from '@/lib/categories';
 import { Separator } from '@/components/ui/separator';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
-import { useIsMobile } from '@/hooks/use-mobile';
+import { useIsMobile } from '@/hooks/use-is-mobile';
 import { getSavedPosts, isPostSaved, toggleSavePost } from '@/lib/post-history';
 import { useDebounce } from '@/hooks/use-debounce';
 import { Highlight } from '@/components/highlight';
@@ -126,6 +126,8 @@ import { MainSidebar } from '@/components/main-sidebar';
 import { SidebarProvider, useSidebar } from '@/components/ui/sidebar';
 import { ConversationList, ChatWindow, Conversation, Message } from '@/components/messaging/common';
 import { addToCart } from '@/lib/product-history';
+import { getOrCreateConversation as getOrCreateConversationFlow, getConversations } from '@/ai/flows/chat-flow';
+
 
 const liveSellers = [
     { id: '1', name: 'FashionFinds', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Fashion', viewers: 1200, buyers: 25, rating: 4.8, reviews: 12, hint: 'woman posing stylish outfit', productId: 'prod_1' },
@@ -629,14 +631,7 @@ function FeedPageContent() {
   }, [loadFollowData, loadSavedPosts]);
 
  useEffect(() => {
-    const handleTabChange = (newTab: string) => {
-        if (newTab !== mainTab) {
-            setMainTab(newTab);
-            router.push(`/feed?tab=${newTab}`, { scroll: false });
-        }
-    };
-
-    if (isMounted) {
+    const handleTabChange = async () => {
         const tabFromUrl = searchParams.get('tab');
         if (tabFromUrl && ['feed', 'saves', 'messages'].includes(tabFromUrl)) {
             setMainTab(tabFromUrl);
@@ -644,14 +639,53 @@ function FeedPageContent() {
             setMainTab('feed');
         }
         
-        if (mainTab === 'messages') {
-            setConversations(mockConversations);
-            if (mockConversations.length > 0 && !isMobile) {
-                handleSelectConversation(mockConversations[0]);
+        if (tabFromUrl === 'messages') {
+            const convos = await getConversations(user!.uid);
+            const preselectUserId = searchParams.get('userId');
+            const preselectUserName = searchParams.get('userName');
+            
+            let convoToSelect: Conversation | null = null;
+            let allConvos = [...convos];
+
+            if (preselectUserId && user && userData) {
+                const otherUser: UserData | null = await getUserByDisplayName(preselectUserName || '');
+
+                if (otherUser) {
+                    const conversationId = await getOrCreateConversationFlow(user.uid, preselectUserId, userData, otherUser);
+                    const existingConvo = allConvos.find(c => c.conversationId === conversationId);
+                    
+                    if (existingConvo) {
+                        convoToSelect = existingConvo;
+                    } else {
+                        const newConvo: Conversation = {
+                            conversationId,
+                            userId: preselectUserId,
+                            userName: preselectUserName || 'New Chat',
+                            avatarUrl: otherUser.photoURL || `https://placehold.co/40x40.png?text=${(preselectUserName || 'U').charAt(0)}`,
+                            lastMessage: 'New conversation started.',
+                            lastMessageTimestamp: 'now',
+                            unreadCount: 0,
+                        };
+                        allConvos = [newConvo, ...allConvos];
+                        convoToSelect = newConvo;
+                    }
+                }
+            } else if (allConvos.length > 0) {
+                convoToSelect = allConvos[0];
+            }
+            
+            setConversations(allConvos);
+
+            if (convoToSelect && !isMobile) {
+                handleSelectConversation(convoToSelect);
             }
         }
+    };
+
+    if (isMounted && user) {
+        handleTabChange();
     }
-}, [mainTab, isMobile, isMounted, searchParams, pathname, router]);
+}, [searchParams, isMounted, user, userData, isMobile]);
 
 
 
@@ -1309,6 +1343,7 @@ export default function FeedPage() {
     
 
     
+
 
 
 
