@@ -81,7 +81,7 @@ import { Card, CardFooter, CardContent, CardHeader, CardTitle, CardDescription }
 import { Input } from "@/components/ui/input";
 import Image from 'next/image';
 import Link from "next/link";
-import { useRouter, useParams } from "next/navigation";
+import { useRouter, useParams, useSearchParams } from "next/navigation";
 import React, { useEffect, useState, useRef, useMemo, useCallback } from "react";
 import { productDetails } from "@/lib/product-data";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
@@ -614,7 +614,11 @@ const RelatedContent = ({ relatedStreams }: { relatedStreams: any[] }) => {
 const StreamPage = () => {
     const router = useRouter();
     const params = useParams();
+    const searchParams = useSearchParams();
+
     const streamId = params.streamId as string;
+    const isPastStream = searchParams.get('isPast') === 'true';
+
     const { user } = useAuth();
     const { toast } = useToast();
     const { minimizedStream, minimizeStream, closeMinimizedStream, isMinimized } = useMiniPlayer();
@@ -881,7 +885,7 @@ const StreamPage = () => {
                 if (video.buffered.length > 0) {
                     setBuffered(video.buffered.end(video.buffered.length - 1));
                 }
-                const isCurrentlyLive = (video.duration - video.currentTime) < 2;
+                const isCurrentlyLive = (video.duration - video.currentTime) < 2 && !isPastStream;
                 if (isLive !== isCurrentlyLive) {
                     setIsLive(isCurrentlyLive);
                 }
@@ -914,7 +918,7 @@ const StreamPage = () => {
                 video.removeEventListener("pause", onPause);
             };
         }
-    }, [isMuted, isMinimized, streamId, isLive, isMobile]);
+    }, [isMuted, isMinimized, streamId, isLive, isMobile, isPastStream]);
     
     const handleToggleFullscreen = () => {
         const elem = playerRef.current;
@@ -1120,6 +1124,10 @@ const StreamPage = () => {
                     setIsReportOpen(false);
                 }} />
             </Dialog>
+
+            <Dialog open={isSuperChatOpen} onOpenChange={setIsSuperChatOpen}>
+                <SuperChatDialog walletBalance={walletBalance} handlers={handlers} isSuperChatOpen={isSuperChatOpen} setIsSuperChatOpen={setIsSuperChatOpen} />
+            </Dialog>
             
              <div className={cn("bg-background text-foreground", isMobile ? 'flex flex-col h-dvh' : 'h-screen')}>
                  {isMobile === undefined ? (
@@ -1127,10 +1135,10 @@ const StreamPage = () => {
                         <LoadingSpinner />
                     </div>
                  ) : isMobile ? (
-                     <MobileLayout {...{ router, videoRef, playerRef, handlePlayPause, handleShare, handleMinimize, handleToggleFullscreen, isPaused, seller, streamData, handleFollowToggle, isFollowingState, sellerProducts, handlers, relatedStreams, isChatOpen, setIsChatOpen, chatMessages, pinnedMessages, onClose: () => setIsChatOpen(false), handleAddToCart, handleBuyNow, mobileView, setMobileView, isMuted, setIsMuted, handleGoLive, handleSeek, isLive, formatTime, currentTime, duration, buffered, handleProgressClick, progressContainerRef, activeQuality, setActiveQuality, product, user, walletBalance, setIsSuperChatOpen }} />
+                     <MobileLayout {...{ router, videoRef, playerRef, handlePlayPause, handleShare, handleMinimize, handleToggleFullscreen, isPaused, seller, streamData, handleFollowToggle, isFollowingState, sellerProducts, handlers, relatedStreams, isChatOpen, setIsChatOpen, chatMessages, pinnedMessages, onClose: () => setIsChatOpen(false), handleAddToCart, handleBuyNow, mobileView, setMobileView, isMuted, setIsMuted, handleGoLive, handleSeek, isLive, formatTime, currentTime, duration, buffered, handleProgressClick, progressContainerRef, activeQuality, setActiveQuality, product, user, walletBalance, setIsSuperChatOpen, isPastStream }} />
                  ) : (
                     <DesktopLayout 
-                        {...{ router, videoRef, playerRef, handlePlayPause, handleShare, handleMinimize, handleToggleFullscreen, isPaused, seller, streamData, handleFollowToggle, isFollowingState, sellerProducts, handlers, relatedStreams, isChatOpen, setIsChatOpen, chatMessages, pinnedMessages, onClose: () => setIsChatOpen(false), handleAddToCart, handleBuyNow, mobileView, setMobileView, isMuted, setIsMuted, handleGoLive, handleSeek, isLive, formatTime, currentTime, duration, buffered, handleProgressClick, progressContainerRef, mainScrollRef, handleMainScroll, showGoToTop, scrollToTop, activeQuality, setActiveQuality, product, user, cartCount, walletBalance, setIsSuperChatOpen, inlineAuctionCardRefs }}
+                        {...{ router, videoRef, playerRef, handlePlayPause, handleShare, handleMinimize, handleToggleFullscreen, isPaused, seller, streamData, handleFollowToggle, isFollowingState, sellerProducts, handlers, relatedStreams, isChatOpen, setIsChatOpen, chatMessages, pinnedMessages, onClose: () => setIsChatOpen(false), handleAddToCart, handleBuyNow, mobileView, setMobileView, isMuted, setIsMuted, handleGoLive, handleSeek, isLive, formatTime, currentTime, duration, buffered, handleProgressClick, progressContainerRef, mainScrollRef, handleMainScroll, showGoToTop, scrollToTop, activeQuality, setActiveQuality, product, user, cartCount, walletBalance, setIsSuperChatOpen, inlineAuctionCardRefs, isPastStream }}
                     />
                  )}
             </div>
@@ -1141,7 +1149,7 @@ const StreamPage = () => {
 const MemoizedStreamInfo = React.memo(StreamInfo);
 const MemoizedRelatedContent = React.memo(RelatedContent);
 
-const DesktopLayout = React.memo(({ handlers, chatMessages, cartCount, walletBalance, setIsSuperChatOpen, ...props }: any) => {
+const DesktopLayout = React.memo(({ handlers, chatMessages, cartCount, walletBalance, setIsSuperChatOpen, isPastStream, ...props }: any) => {
 return (
 <div className="flex flex-col h-screen overflow-hidden">
     <header className="p-3 flex items-center justify-between z-40 h-16 shrink-0 w-full">
@@ -1181,7 +1189,10 @@ return (
             <div className="w-full aspect-video bg-black relative" ref={props.playerRef}>
                 <video ref={props.videoRef} src={props.streamData.streamUrl || "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"} className="w-full h-full object-cover" loop />
                  <div className="absolute top-3 left-3 z-10 flex items-center gap-2">
-                    <Badge variant="destructive" className="gap-1.5"><div className="h-2 w-2 rounded-full bg-white animate-pulse" /> LIVE</Badge>
+                    <Badge variant={isPastStream ? 'outline' : 'destructive'} className={cn(isPastStream && 'bg-black/50 text-white border-white/30', "gap-1.5")}>
+                        {!isPastStream && <div className="h-2 w-2 rounded-full bg-white animate-pulse" />}
+                        {isPastStream ? 'RECORDED' : 'LIVE'}
+                    </Badge>
                     <Badge variant="secondary" className="bg-black/50 text-white gap-1.5"><Users className="w-3 h-3"/> {props.streamData.viewerCount.toLocaleString()}</Badge>
                 </div>
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent flex flex-col justify-end p-4 text-white">
@@ -1195,7 +1206,7 @@ return (
                               </Button>
                               <Button variant="ghost" size="icon" className="w-10 h-10" onClick={() => props.handleSeek('backward')}><Rewind className="w-5 h-5" /></Button>
                               <Button variant="ghost" size="icon" className="w-10 h-10" onClick={() => props.handleSeek('forward')}><FastForward className="w-5 h-5" /></Button>
-                              <Button
+                              {!isPastStream && <Button
                                 variant="destructive"
                                 className="gap-1.5 h-8 text-xs sm:text-sm"
                                 onClick={props.handleGoLive}
@@ -1203,7 +1214,7 @@ return (
                             >
                                 <div className={cn("h-2 w-2 rounded-full bg-white", !props.isLive && "animate-pulse")} />
                                 {props.isLive ? 'LIVE' : 'Go Live'}
-                            </Button>
+                            </Button>}
                             <Button variant="ghost" size="icon" onClick={() => props.setIsMuted((prev: any) => !prev)}>
                                 {props.isMuted ? <VolumeX /> : <Volume2 />}
                             </Button>
@@ -1252,6 +1263,7 @@ return (
                 handlers={handlers}
                 onClose={() => {}}
                 walletBalance={walletBalance}
+                isPastStream={isPastStream}
                 onSuperChatClick={() => setIsSuperChatOpen(true)}
                 inlineAuctionCardRefs={props.inlineAuctionCardRefs}
             />
@@ -1261,7 +1273,7 @@ return (
 )});
 DesktopLayout.displayName = "DesktopLayout";
 
-const MobileLayout = React.memo(({ handlers, chatMessages, walletBalance, setIsSuperChatOpen, ...props }: any) => {
+const MobileLayout = React.memo(({ handlers, chatMessages, walletBalance, setIsSuperChatOpen, isPastStream, ...props }: any) => {
     const { isMuted, setIsMuted, handleGoLive, isLive, formatTime, currentTime, duration, handleShare, handleToggleFullscreen, progressContainerRef, handleProgressClick, isPaused, handlePlayPause, handleSeek, handleMinimize, activeQuality, setActiveQuality } = props;
     return (
         <div className="flex flex-col h-dvh overflow-hidden relative">
@@ -1295,7 +1307,10 @@ const MobileLayout = React.memo(({ handlers, chatMessages, walletBalance, setIsS
             <div className="w-full aspect-video bg-black relative flex-shrink-0" ref={props.playerRef}>
                 <video ref={props.videoRef} src={props.streamData.streamUrl || "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"} className="w-full h-full object-cover" loop onClick={handlePlayPause}/>
                  <div className="absolute top-3 left-3 z-10 flex items-center gap-2">
-                    <Badge variant="destructive" className="gap-1.5"><div className="h-2 w-2 rounded-full bg-white animate-pulse" /> LIVE</Badge>
+                    <Badge variant={isPastStream ? 'outline' : 'destructive'} className={cn(isPastStream && 'bg-black/50 text-white border-white/30', "gap-1.5")}>
+                        {!isPastStream && <div className="h-2 w-2 rounded-full bg-white animate-pulse" />}
+                        {isPastStream ? 'RECORDED' : 'LIVE'}
+                    </Badge>
                     <Badge variant="secondary" className="bg-black/50 text-white gap-1.5"><Users className="w-3 h-3"/> {props.streamData.viewerCount.toLocaleString()}</Badge>
                 </div>
                  <div className="absolute inset-0 bg-black/10 flex items-center justify-center gap-4">
@@ -1311,7 +1326,7 @@ const MobileLayout = React.memo(({ handlers, chatMessages, walletBalance, setIsS
                     </div>
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-1">
-                             <Button
+                             {!isPastStream && <Button
                                 variant="destructive"
                                 className="gap-1 h-7 px-2 text-xs"
                                 onClick={handleGoLive}
@@ -1319,7 +1334,7 @@ const MobileLayout = React.memo(({ handlers, chatMessages, walletBalance, setIsS
                             >
                                 <div className={cn("h-1.5 w-1.5 rounded-full bg-white", !isLive && "animate-pulse")} />
                                 {isLive ? 'LIVE' : 'Go Live'}
-                            </Button>
+                            </Button>}
                             <p className="text-xs font-mono">{formatTime(currentTime)} / {formatTime(duration)}</p>
                         </div>
                         <div className="flex items-center gap-0.5">
@@ -1364,7 +1379,7 @@ const MobileLayout = React.memo(({ handlers, chatMessages, walletBalance, setIsS
                     </ScrollArea>
                 ) : (
                     <div className="h-full flex flex-col bg-background">
-                        <ChatPanel {...{...props, handlers, chatMessages, walletBalance, setIsSuperChatOpen, inlineAuctionCardRefs: props.inlineAuctionCardRefs }} onClose={() => props.setMobileView('stream')} />
+                        <ChatPanel {...{...props, handlers, chatMessages, walletBalance, setIsSuperChatOpen, inlineAuctionCardRefs: props.inlineAuctionCardRefs, isPastStream }} onClose={() => props.setMobileView('stream')} />
                     </div>
                 )}
             </div>
@@ -1421,6 +1436,11 @@ const SuperChatDialog = ({ walletBalance, handlers, isSuperChatOpen, setIsSuperC
 
     return (
         <Dialog open={isSuperChatOpen} onOpenChange={setIsSuperChatOpen}>
+             <DialogTrigger asChild>
+                <Button type="button" variant="ghost" size="icon" className="rounded-full flex-shrink-0 h-11 w-11 text-muted-foreground hover:text-foreground">
+                    <DollarSign className="h-5 w-5"/>
+                </Button>
+            </DialogTrigger>
             <DialogContent>
                 <DialogHeader>
                     <DialogTitle>Send a Super Chat</DialogTitle>
@@ -1520,6 +1540,7 @@ const ChatPanel = ({
   walletBalance,
   handlers,
   onClose,
+  isPastStream,
 }: {
   seller: any;
   chatMessages: any[];
@@ -1527,6 +1548,7 @@ const ChatPanel = ({
   walletBalance: number;
   handlers: any;
   onClose: () => void;
+  isPastStream: boolean;
 }) => {
   const [newMessage, setNewMessage] = useState("");
   const [replyingTo, setReplyingTo] = useState<{ name: string; id: string } | null>(null);
@@ -1534,6 +1556,7 @@ const ChatPanel = ({
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const [isSuperChatOpen, setIsSuperChatOpen] = useState(false);
   
   const handleAutoScroll = useCallback((behavior: 'smooth' | 'auto' = 'smooth') => {
     messagesEndRef.current?.scrollIntoView({ behavior });
@@ -1576,7 +1599,9 @@ const ChatPanel = ({
   return (
     <div className='h-full flex flex-col bg-background'>
       <header className="p-3 flex items-center justify-between z-10 flex-shrink-0 h-16 border-b border-border sticky top-0 bg-background/80 backdrop-blur-sm">
-        <h3 className="font-bold text-lg text-foreground">Live Chat</h3>
+        <h3 className="font-bold text-lg text-foreground">
+            {isPastStream ? 'Chat Replay' : 'Live Chat'}
+        </h3>
         <div className="flex items-center gap-1">
           <Popover>
             <PopoverTrigger asChild>
@@ -1636,11 +1661,11 @@ const ChatPanel = ({
                  <DropdownMenuItem onSelect={handlers.onReportStream}>
                     <Flag className="mr-2 h-4 w-4" /> Report Stream
                 </DropdownMenuItem>
-                 <FeedbackDialog>
+                <FeedbackDialog>
                     <DropdownMenuItem onSelect={(e) => handlers.handleAuthAction(() => e.preventDefault())}>
                         <MessageCircle className="mr-2 h-4 w-4" />Feedback
                     </DropdownMenuItem>
-                 </FeedbackDialog>
+                </FeedbackDialog>
                 <DropdownMenuItem>
                     <LifeBuoy className="mr-2 h-4 w-4" />Help
                 </DropdownMenuItem>
@@ -1687,7 +1712,7 @@ const ChatPanel = ({
             </Button>
           </div>
         )}
-      <footer className="p-3 bg-transparent flex-shrink-0">
+      {!isPastStream && <footer className="p-3 bg-transparent flex-shrink-0">
           {replyingTo && (
             <div className="text-xs text-muted-foreground mb-1 px-3 flex justify-between items-center">
               <span>Replying to <span className="text-primary font-semibold">@{replyingTo.name}</span></span>
@@ -1725,24 +1750,18 @@ const ChatPanel = ({
                      </PopoverContent>
                 </Popover>
              </div>
-             <Dialog>
-                <DialogTrigger asChild>
-                     <Button type="button" variant="ghost" size="icon" className="rounded-full flex-shrink-0 h-11 w-11 text-muted-foreground hover:text-foreground">
-                        <DollarSign className="h-5 w-5"/>
-                    </Button>
-                </DialogTrigger>
-                <SuperChatDialog walletBalance={walletBalance} handlers={handlers} onSuperChatClick={() => {}} />
-             </Dialog>
+             <SuperChatDialog walletBalance={walletBalance} handlers={handlers} isSuperChatOpen={isSuperChatOpen} setIsSuperChatOpen={setIsSuperChatOpen} />
              <Button type="submit" size="icon" disabled={!newMessage.trim()} className="rounded-full flex-shrink-0 h-11 w-11 bg-primary hover:bg-primary/90 active:scale-105 transition-transform">
                 <Send className="h-5 w-5" />
             </Button>
           </form>
-        </footer>
+        </footer>}
     </div>
   );
 };
 
 export default StreamPage;
+
 
 
 

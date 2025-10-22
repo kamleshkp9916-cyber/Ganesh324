@@ -74,10 +74,10 @@ const liveSellers = [
 ];
 
 const mockPastStreams = [
-    { id: 1, title: 'Unboxing the Latest Tech', date: '3 days ago', views: '1.2M', thumbnailUrl: 'https://placehold.co/400x225.png?text=Past+Stream+1' },
-    { id: 2, title: 'Fall Fashion Lookbook', date: '1 week ago', views: '890k', thumbnailUrl: 'https://placehold.co/400x225.png?text=Past+Stream+2' },
-    { id: 3, title: 'Kitchen Gadgets You Need', date: '2 weeks ago', views: '2.1M', thumbnailUrl: 'https://placehold.co/400x225.png?text=Past+Stream+3' },
-    { id: 4, title: 'Morning Skincare Routine', date: '1 month ago', views: '500k', thumbnailUrl: 'https://placehold.co/400x225.png?text=Past+Stream+4' },
+    { id: 'gadgetguru-uid', title: 'Unboxing the Latest Tech', date: '3 days ago', views: '1.2M', thumbnailUrl: 'https://placehold.co/400x225.png?text=Past+Stream+1' },
+    { id: 'fashionfinds-uid', title: 'Fall Fashion Lookbook', date: '1 week ago', views: '890k', thumbnailUrl: 'https://placehold.co/400x225.png?text=Past+Stream+2' },
+    { id: 'kitchenwiz-uid', title: 'Kitchen Gadgets You Need', date: '2 weeks ago', views: '2.1M', thumbnailUrl: 'https://placehold.co/400x225.png?text=Past+Stream+3' },
+    { id: 'beautybox-uid', title: 'Morning Skincare Routine', date: '1 month ago', views: '500k', thumbnailUrl: 'https://placehold.co/400x225.png?text=Past+Stream+4' },
 ];
 
 function ProductSkeletonGrid() {
@@ -319,7 +319,7 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
           
           <div className="relative z-10 text-foreground flex-grow text-center sm:text-left">
               <div className="flex flex-col sm:flex-row items-center justify-center sm:justify-start gap-2">
-                  <h2 className="text-2xl sm:text-3xl font-bold">{displayName}</h2>
+                  <h2 className="text-2xl sm:text-3xl font-bold" style={{ color: profileData.color || 'inherit' }}>{displayName}</h2>
                   {profileData.role === 'seller' && (
                       <Badge variant="secondary" className="flex items-center gap-1">
                           <Star className="h-3 w-3" />
@@ -555,7 +555,7 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                                 <h3 className="text-lg font-semibold mb-4">Past Streams</h3>
                                 <div className="md:hidden space-y-4">
                                      {mockPastStreams.map(stream => (
-                                        <Link href="#" key={stream.id} className="group block">
+                                        <Link href={`/stream/${stream.id}?isPast=true`} key={stream.id} className="group block">
                                             <Card className="overflow-hidden bg-card border-border/50 shadow-sm transition-all hover:shadow-md">
                                                 <div className="relative aspect-video bg-muted overflow-hidden">
                                                     <Image 
@@ -584,7 +584,7 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                                     <ScrollArea>
                                         <div className="flex gap-4 pb-4">
                                             {mockPastStreams.map(stream => (
-                                                <Link href="#" key={stream.id} className="group block w-64 flex-shrink-0">
+                                                <Link href={`/stream/${stream.id}?isPast=true`} key={stream.id} className="group block w-64 flex-shrink-0">
                                                     <Card className="overflow-hidden bg-card border-border/50 shadow-sm transition-all hover:shadow-md">
                                                         <div className="relative aspect-video bg-muted overflow-hidden">
                                                             <Image 
