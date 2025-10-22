@@ -709,46 +709,45 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                       </TabsContent>
 
                       <TabsContent value="posts" className="mt-4">
-                          {isLoadingContent ? (
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                <Skeleton className="h-64 w-full" />
-                                <Skeleton className="h-64 w-full" />
-                                <Skeleton className="h-64 w-full" />
-                            </div>
-                           ) : userPosts.length > 0 ? (
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                {userPosts.map(post => (
-                                   <Card key={post.id} className="overflow-hidden flex flex-col">
-                                       <div className="p-4 flex-grow">
-                                            <p className="text-sm text-muted-foreground line-clamp-4 mb-2">{post.content}</p>
-                                            {post.images && post.images.length > 0 &&
-                                               <div className="w-full aspect-video bg-muted rounded-lg overflow-hidden mt-auto">
-                                                   <Image src={post.images[0].url} alt="Feed item" width={400} height={300} className="w-full h-full object-cover" />
-                                               </div>
-                                           }
-                                       </div>
-                                       <div className="px-4 pb-3 mt-auto flex justify-between items-center text-sm text-muted-foreground border-t pt-3">
-                                           <div className="flex items-center gap-4">
-                                               <span className="flex items-center gap-1.5"><Heart className="w-4 h-4" />{post.likes || 0}</span>
-                                               <span className="flex items-center gap-1.5"><MessageSquare className="w-4 h-4" />{post.replies || 0}</span>
-                                           </div>
-                                           <span className="text-xs">{post.timestamp}</span>
-                                       </div>
-                                   </Card>
-                               ))}
+                           {isLoadingContent ? (
+                               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                   <Skeleton className="h-64 w-full" />
+                                   <Skeleton className="h-64 w-full" />
+                                   <Skeleton className="h-64 w-full" />
                                </div>
-                            ) : (
+                           ) : userPosts.length > 0 ? (
+                               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                   {userPosts.map(post => (
+                                       <Card key={post.id} className="overflow-hidden flex flex-col">
+                                           <div className="p-4 flex-grow">
+                                               <p className="text-sm text-muted-foreground line-clamp-4 mb-2">{post.content}</p>
+                                               {post.images && post.images.length > 0 &&
+                                                  <div className="w-full aspect-video bg-muted rounded-lg overflow-hidden mt-auto">
+                                                      <Image src={post.images[0].url} alt="Feed item" width={400} height={300} className="w-full h-full object-cover" />
+                                                  </div>
+                                               }
+                                           </div>
+                                           <div className="px-4 pb-3 mt-auto flex justify-between items-center text-sm text-muted-foreground border-t pt-3">
+                                               <div className="flex items-center gap-4">
+                                                   <span className="flex items-center gap-1.5"><Heart className="w-4 h-4" />{post.likes || 0}</span>
+                                                   <span className="flex items-center gap-1.5"><MessageSquare className="w-4 h-4" />{post.replies || 0}</span>
+                                               </div>
+                                               <span className="text-xs">{post.timestamp}</span>
+                                           </div>
+                                       </Card>
+                                   ))}
+                               </div>
+                           ) : (
                                <Card className="text-center py-12 text-muted-foreground flex flex-col items-center gap-4">
-                                    <h3 className="text-xl font-semibold">No Posts Yet</h3>
-                                    <p>This seller hasn't posted anything yet.</p>
-                                    {isOwnProfile && <p>Why not create your first post?</p>}
-                                    {isOwnProfile && (
-                                        <div className="w-full max-w-lg p-4">
+                                   <h3 className="text-xl font-semibold">No Posts Yet</h3>
+                                   <p>{isOwnProfile ? "You haven't posted anything yet." : "This seller hasn't posted anything yet."}</p>
+                                   {isOwnProfile && (
+                                       <div className="w-full max-w-lg p-4">
                                             <CreatePostForm onPost={async (data) => console.log(data)} onFinishEditing={() => {}} isSubmitting={false} />
-                                        </div>
-                                    )}
-                                </Card>
-                            )}
+                                       </div>
+                                   )}
+                               </Card>
+                           )}
                       </TabsContent>
 
                       <TabsContent value="recent" className="mt-4">
@@ -874,5 +873,3 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
     </>
   );
 }
-
-    
