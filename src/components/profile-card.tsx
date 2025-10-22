@@ -80,39 +80,6 @@ const mockPastStreams = [
     { id: 'beautybox-uid', title: 'Morning Skincare Routine', description: 'A step-by-step guide to my go-to morning skincare routine for a glowing complexion. We\'ll cover cleansers, serums, moisturizers, and of course, SPF! I\'ll share my holy grail products and answer all your skincare questions. Let\'s get glowing!', date: '1 month ago', views: '500k', duration: '25:00', thumbnailUrl: 'https://placehold.co/400x225.png?text=Past+Stream+4' },
 ];
 
-const mockUserPosts = [
-    {
-        id: 'post1',
-        content: 'Just dropped a new collection of vintage denim jackets! Check them out in my shop. #vintagefashion #denim #ootd',
-        images: [{ url: 'https://images.unsplash.com/photo-1596700204352-c82d33d3140a?w=800&h=800&fit=crop' }],
-        likes: 152,
-        replies: 12,
-        timestamp: '2 hours ago',
-        sellerName: 'FashionFinds',
-        avatarUrl: 'https://placehold.co/40x40.png'
-    },
-    {
-        id: 'post2',
-        content: 'Going live in 15 minutes to showcase some beautiful summer dresses. See you there! ☀️👗',
-        images: [{ url: 'https://images.unsplash.com/photo-1579626539953-33973641a2a4?w=800&h=800&fit=crop' }],
-        likes: 230,
-        replies: 25,
-        timestamp: '1 day ago',
-        sellerName: 'FashionFinds',
-        avatarUrl: 'https://placehold.co/40x40.png'
-    },
-     {
-        id: 'post3',
-        content: 'This handcrafted vase is a true piece of art. Only a few left in stock!',
-        images: [{ url: 'https://placehold.co/600x600.png' }],
-        likes: 98,
-        replies: 5,
-        timestamp: '3 days ago',
-        sellerName: 'ArtisanAlley',
-        avatarUrl: 'https://placehold.co/40x40.png'
-    },
-];
-
 function ProductSkeletonGrid() {
     return (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -295,9 +262,10 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
         return liveSellers.filter(s => s.id === profileData.uid);
     }, [profileData.uid]);
 
+
   const filteredUserPosts = useMemo(() => {
-    return mockUserPosts.filter(p => p.sellerName === displayName);
-  }, [displayName]);
+    return userPosts;
+  }, [userPosts]);
 
 
   const filteredRecentlyViewed = useMemo(() => {
@@ -585,25 +553,19 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                             )}
                             <div>
                                 <h3 className="text-lg font-semibold mb-4">Past Streams</h3>
-                                 <div className="space-y-4">
-                                     {mockPastStreams.map(stream => (
-                                        <div key={stream.id} className="group block" onClick={() => handleAuthAction(() => router.push(`/stream/${stream.id}?isPast=true`))}>
+                                <div className="space-y-4">
+                                    {mockPastStreams.map((stream, index) => (
+                                        <div key={stream.id || index} className="group block" onClick={() => handleAuthAction(() => router.push(`/stream/${stream.id}?isPast=true`))}>
                                             <Card className="overflow-hidden bg-card border-border/50 shadow-sm transition-all hover:shadow-md cursor-pointer flex flex-col md:flex-row">
                                                 <div className="relative aspect-video bg-muted md:w-1/3 md:aspect-auto flex-shrink-0">
-                                                    <Image 
-                                                        src={stream.thumbnailUrl} 
-                                                        alt={stream.title} 
-                                                        fill
-                                                        sizes="(max-width: 768px) 100vw, 33vw"
-                                                        className="object-cover w-full h-full"
-                                                    />
+                                                    <Image src={stream.thumbnailUrl} alt={stream.title} fill sizes="(max-width: 768px) 100vw, 33vw" className="object-cover w-full h-full" />
                                                     <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors flex items-center justify-center">
                                                         <Play className="h-10 w-10 text-white/70 group-hover:text-white group-hover:scale-110 transition-all" />
                                                     </div>
                                                     <div className="absolute bottom-2 right-2 bg-black/50 text-white text-xs px-1.5 py-0.5 rounded-sm">{stream.duration}</div>
                                                 </div>
                                                 <CardContent className="p-4 flex-grow">
-                                                     <div className="flex items-center gap-3 mb-2">
+                                                    <div className="flex items-center gap-3 mb-2">
                                                         <Avatar className="h-8 w-8">
                                                             <AvatarImage src={profileData.photoURL || `https://placehold.co/40x40.png?text=${displayName.charAt(0)}`} alt={displayName} />
                                                             <AvatarFallback>{displayName.charAt(0)}</AvatarFallback>
@@ -615,7 +577,7 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                                                     </div>
                                                     <h4 className="font-semibold text-base group-hover:text-primary transition-colors">{stream.title}</h4>
                                                     <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{stream.description}</p>
-                                                     <div className="flex items-center gap-4 text-xs text-muted-foreground mt-2">
+                                                    <div className="flex items-center gap-4 text-xs text-muted-foreground mt-2">
                                                         <span>{stream.views} views</span>
                                                     </div>
                                                 </CardContent>
@@ -727,31 +689,48 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                       <TabsContent value="posts" className="mt-4">
                             <div className="space-y-4">
                                 {isLoadingContent ? (
-                                    <>
+                                    <div className="space-y-4">
                                         <Skeleton className="h-40 w-full rounded-lg" />
                                         <Skeleton className="h-40 w-full rounded-lg" />
-                                    </>
+                                    </div>
                                 ) : filteredUserPosts.length > 0 ? (
                                      <div className="space-y-6">
                                         {filteredUserPosts.map(post => (
                                             <Card key={post.id} className="overflow-hidden">
-                                                <CardHeader className="p-4">
-                                                    <div className="flex items-center gap-3">
-                                                        <Avatar className="h-10 w-10">
-                                                            <AvatarImage src={post.avatarUrl} alt={post.sellerName} />
-                                                            <AvatarFallback>{post.sellerName?.charAt(0)}</AvatarFallback>
-                                                        </Avatar>
-                                                        <div>
-                                                            <p className="font-semibold text-primary">{post.sellerName}</p>
-                                                            <p className="text-xs text-muted-foreground">{post.timestamp}</p>
+                                                <CardContent className="p-4">
+                                                    <div className="flex items-start justify-between">
+                                                        <div className="flex items-center gap-3 mb-3">
+                                                            <Avatar className="h-10 w-10">
+                                                                <AvatarImage src={post.avatarUrl} alt={post.sellerName} />
+                                                                <AvatarFallback>{post.sellerName?.charAt(0)}</AvatarFallback>
+                                                            </Avatar>
+                                                            <div>
+                                                                <p className="font-semibold text-primary">{post.sellerName}</p>
+                                                                <p className="text-xs text-muted-foreground">{post.timestamp}</p>
+                                                            </div>
                                                         </div>
+                                                        {isOwnProfile && (
+                                                            <DropdownMenu>
+                                                                <DropdownMenuTrigger asChild>
+                                                                    <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0 -mr-2 -mt-2">
+                                                                        <MoreHorizontal className="w-4 h-4" />
+                                                                    </Button>
+                                                                </DropdownMenuTrigger>
+                                                                <DropdownMenuContent align="end">
+                                                                    <DropdownMenuItem>
+                                                                        <Edit className="mr-2 h-4 w-4" /> Edit
+                                                                    </DropdownMenuItem>
+                                                                    <DropdownMenuItem className="text-destructive">
+                                                                        <Trash2 className="mr-2 h-4 w-4" /> Delete
+                                                                    </DropdownMenuItem>
+                                                                </DropdownMenuContent>
+                                                            </DropdownMenu>
+                                                        )}
                                                     </div>
-                                                </CardHeader>
-                                                <CardContent className="px-4">
                                                     <p className="text-sm">{post.content}</p>
-                                                     {post.images && post.images.length > 0 && (
-                                                        <div className="w-full aspect-video bg-muted rounded-lg overflow-hidden mt-2">
-                                                            <Image src={post.images[0].url} alt="Feed item" width={400} height={300} className="w-full h-full object-cover" />
+                                                    {post.images && post.images.length > 0 && (
+                                                        <div className="mt-2 rounded-lg overflow-hidden">
+                                                          <Image src={post.images[0].url} alt="Post image" width={600} height={400} className="w-full h-auto object-cover" />
                                                         </div>
                                                     )}
                                                 </CardContent>
