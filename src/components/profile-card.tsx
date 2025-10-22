@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Edit, Mail, Phone, MapPin, Camera, Truck, Star, ThumbsUp, ShoppingBag, Eye, Award, History, Search, Plus, Trash2, Heart, MessageSquare, StarIcon, UserPlus, Users, Package, PackageSearch, Loader2, UserCheck, Instagram, Twitter, Youtube, Video, Facebook, Twitch, Play } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { useEffect, useState, useRef, useMemo, useCallback } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog';
 import { cn } from '@/lib/utils';
@@ -316,7 +316,7 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
     setWishlist(getWishlist().map(p => p.id));
     toast({
         title: "Added to Wishlist!",
-        description: `${product.name} has been added to your wishlist.`
+        description: `${''}${product.name} has been added to your wishlist.`
     });
   };
   
@@ -570,7 +570,7 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                                                     <div className="absolute inset-0 bg-black/30" />
                                                     <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
                                                     <div className="absolute bottom-2 left-2 z-10 text-white">
-                                                        <h4 className="font-bold">{stream.title || `${stream.name}'s Stream`}</h4>
+                                                        <h4 className="font-bold">{stream.title || `${'${stream.name}'}'s Stream`}</h4>
                                                         <p className="text-xs">{stream.viewers.toLocaleString()} viewers</p>
                                                     </div>
                                                 </div>
@@ -742,43 +742,43 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                       </TabsContent>
 
                       <TabsContent value="posts" className="mt-4">
-                           {isLoadingContent ? (
-                               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                   <Skeleton className="h-64 w-full" />
-                                   <Skeleton className="h-64 w-full" />
-                                   <Skeleton className="h-64 w-full" />
-                               </div>
-                           ) : userPosts.length > 0 ? (
-                               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                                   {userPosts.map(post => (
-                                     <Card key={post.id} className="overflow-hidden flex flex-col">
-                                        <CardHeader className="p-4">
-                                            <div className="flex items-center gap-3">
-                                                <Avatar className="h-10 w-10">
-                                                    <AvatarImage src={post.avatarUrl} alt={post.sellerName} />
-                                                    <AvatarFallback>{post.sellerName?.charAt(0)}</AvatarFallback>
-                                                </Avatar>
-                                                <div>
-                                                    <p className="font-semibold text-primary">{post.sellerName}</p>
-                                                    <p className="text-xs text-muted-foreground">{post.timestamp}</p>
+                          {isLoadingContent ? (
+                              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                  <Skeleton className="h-64 w-full" />
+                                  <Skeleton className="h-64 w-full" />
+                                  <Skeleton className="h-64 w-full" />
+                              </div>
+                          ) : mockUserPosts.length > 0 ? (
+                                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                                    {mockUserPosts.map(post => (
+                                        <Card key={post.id} className="overflow-hidden flex flex-col">
+                                            <CardHeader className="p-4">
+                                                <div className="flex items-center gap-3 mb-3">
+                                                    <Avatar className="h-10 w-10">
+                                                        <AvatarImage src={post.avatarUrl} alt={post.sellerName} />
+                                                        <AvatarFallback>{post.sellerName?.charAt(0)}</AvatarFallback>
+                                                    </Avatar>
+                                                    <div>
+                                                        <p className="font-semibold text-primary">{post.sellerName}</p>
+                                                        <p className="text-xs text-muted-foreground">{post.timestamp}</p>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        </CardHeader>
-                                        <CardContent className="p-4 pt-0">
-                                            <p className="text-sm text-muted-foreground mb-2">{post.content}</p>
-                                            {post.images && post.images.length > 0 && (
-                                                <div className="w-full aspect-video bg-muted rounded-lg overflow-hidden mt-2">
-                                                    <Image src={post.images[0].url} alt="Feed item" width={400} height={300} className="w-full h-full object-cover" />
+                                            </CardHeader>
+                                            <CardContent className="p-4 pt-0">
+                                                <p className="text-sm text-muted-foreground mb-2">{post.content}</p>
+                                                {post.images && post.images.length > 0 && (
+                                                    <div className="w-full aspect-video bg-muted rounded-lg overflow-hidden mt-2">
+                                                        <Image src={post.images[0].url} alt="Feed item" width={400} height={300} className="w-full h-full object-cover" />
+                                                    </div>
+                                                )}
+                                            </CardContent>
+                                            <CardFooter className="px-4 pb-3 flex justify-between items-center text-sm text-muted-foreground border-t mt-auto pt-3">
+                                                <div className="flex items-center gap-4">
+                                                    <span className="flex items-center gap-1.5"><Heart className="w-4 h-4" />{post.likes || 0}</span>
+                                                    <span className="flex items-center gap-1.5"><MessageSquare className="w-4 h-4" />{post.replies || 0}</span>
                                                 </div>
-                                            )}
-                                        </CardContent>
-                                        <div className="px-4 pb-3 flex justify-between items-center text-sm text-muted-foreground border-t mt-auto pt-3">
-                                            <div className="flex items-center gap-4">
-                                                <span className="flex items-center gap-1.5"><Heart className="w-4 h-4" />{post.likes || 0}</span>
-                                                <span className="flex items-center gap-1.5"><MessageSquare className="w-4 h-4" />{post.replies || 0}</span>
-                                            </div>
-                                        </div>
-                                    </Card>
+                                            </CardFooter>
+                                        </Card>
                                    ))}
                                </div>
                            ) : (
@@ -912,5 +912,3 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
     </>
   );
 }
-
-    
