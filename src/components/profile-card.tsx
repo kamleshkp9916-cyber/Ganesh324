@@ -136,7 +136,6 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
   
   const [isFollowed, setIsFollowed] = useState(false);
 
-  const [isChatOpen, setIsChatOpen] = useState(false);
   const [activeCategory, setActiveCategory] = useState("All");
   const [userOrders, setUserOrders] = useState<any[]>([]);
   const [isLoadingOrders, setIsLoadingOrders] = useState(false);
@@ -348,7 +347,7 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
 
   return (
     <>
-      <div className="p-4 sm:p-6 flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-6 relative">
+      <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-6 relative p-4 sm:p-6">
           <div className="relative z-10 flex-shrink-0">
               <Avatar className="h-20 w-20 sm:h-24 sm:w-24 border-4 border-background shadow-lg">
                   <AvatarImage src={profileImage || profileData?.photoURL || `https://placehold.co/128x128.png?text=${displayName.charAt(0)}`} alt={displayName} />
@@ -451,7 +450,7 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                             {isFollowed ? <UserCheck className="mr-2 h-4 w-4" /> : <UserPlus className="mr-2 h-4 w-4" />}
                             {isFollowed ? "Following" : "Follow"}
                         </Button>
-                        <Button variant="outline" onClick={() => handleAuthAction(() => setIsChatOpen(true))}>
+                        <Button variant="outline" onClick={() => handleAuthAction(() => router.push(`/feed?tab=messages&userId=${profileData.uid}&userName=${profileData.displayName}`))}>
                             <MessageSquare className="mr-2 h-4 w-4" />
                             Message
                         </Button>
@@ -620,40 +619,38 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                                     ))}
                                 </div>
                             )}
-                            <div>
-                                 <h3 className="text-lg font-semibold mb-4">Past Streams</h3>
-                                 <div className="space-y-4">
-                                    {mockPastStreams.map((stream, index) => (
-                                        <div key={stream.id || index} className="group block" onClick={() => handleAuthAction(() => router.push(`/stream/${stream.id}?isPast=true`))}>
-                                            <Card className="overflow-hidden bg-card border-border/50 shadow-sm transition-all hover:shadow-md cursor-pointer flex flex-col md:flex-row">
-                                                <div className="relative aspect-video bg-muted md:w-1/3 md:aspect-auto flex-shrink-0">
-                                                    <Image src={stream.thumbnailUrl} alt={stream.title} fill sizes="(max-width: 768px) 100vw, 33vw" className="object-cover w-full h-full" />
-                                                    <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors flex items-center justify-center">
-                                                        <Play className="h-10 w-10 text-white/70 group-hover:text-white group-hover:scale-110 transition-all" />
-                                                    </div>
-                                                    <div className="absolute bottom-2 right-2 bg-black/50 text-white text-xs px-1.5 py-0.5 rounded-sm">{stream.duration}</div>
+                            <div className="space-y-4">
+                                <h3 className="text-lg font-semibold">Past Streams</h3>
+                                {mockPastStreams.map((stream, index) => (
+                                    <div key={stream.id || index} className="group block" onClick={() => handleAuthAction(() => router.push(`/stream/${stream.id}?isPast=true`))}>
+                                        <Card className="overflow-hidden bg-card border-border/50 shadow-sm transition-all hover:shadow-md cursor-pointer flex flex-col md:flex-row">
+                                            <div className="relative aspect-video bg-muted md:w-1/3 md:aspect-auto flex-shrink-0">
+                                                <Image src={stream.thumbnailUrl} alt={stream.title} fill sizes="(max-width: 768px) 100vw, 33vw" className="object-cover w-full h-full" />
+                                                <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors flex items-center justify-center">
+                                                    <Play className="h-10 w-10 text-white/70 group-hover:text-white group-hover:scale-110 transition-all" />
                                                 </div>
-                                                <CardContent className="p-4 flex-grow">
-                                                    <div className="flex items-center gap-3 mb-2">
-                                                        <Avatar className="h-8 w-8">
-                                                            <AvatarImage src={profileData.photoURL || `https://placehold.co/40x40.png?text=${displayName.charAt(0)}`} alt={displayName} />
-                                                            <AvatarFallback>{displayName.charAt(0)}</AvatarFallback>
-                                                        </Avatar>
-                                                        <div>
-                                                            <p className="font-semibold text-primary text-sm">{displayName}</p>
-                                                            <p className="text-xs text-muted-foreground">{stream.date}</p>
-                                                        </div>
+                                                <div className="absolute bottom-2 right-2 bg-black/50 text-white text-xs px-1.5 py-0.5 rounded-sm">{stream.duration}</div>
+                                            </div>
+                                            <CardContent className="p-4 flex-grow">
+                                                 <div className="flex items-center gap-3 mb-2">
+                                                    <Avatar className="h-8 w-8">
+                                                        <AvatarImage src={profileData.photoURL || `https://placehold.co/40x40.png?text=${displayName.charAt(0)}`} alt={displayName} />
+                                                        <AvatarFallback>{displayName.charAt(0)}</AvatarFallback>
+                                                    </Avatar>
+                                                    <div>
+                                                        <p className="font-semibold text-primary text-sm">{displayName}</p>
+                                                        <p className="text-xs text-muted-foreground">{stream.date}</p>
                                                     </div>
-                                                    <h4 className="font-semibold text-base group-hover:text-primary transition-colors">{stream.title}</h4>
-                                                    <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{stream.description}</p>
-                                                    <div className="flex items-center gap-4 text-xs text-muted-foreground mt-2">
-                                                        <span>{stream.views} views</span>
-                                                    </div>
-                                                </CardContent>
-                                            </Card>
-                                        </div>
-                                    ))}
-                                </div>
+                                                </div>
+                                                <h4 className="font-semibold text-base group-hover:text-primary transition-colors">{stream.title}</h4>
+                                                <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{stream.description}</p>
+                                                <div className="flex items-center gap-4 text-xs text-muted-foreground mt-2">
+                                                    <span>{stream.views} views</span>
+                                                </div>
+                                            </CardContent>
+                                        </Card>
+                                    </div>
+                                ))}
                             </div>
                         </TabsContent>
                       <TabsContent value="orders" className="mt-4">
@@ -869,12 +866,6 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
               </div>
           </CardContent>
       </div>
-      {isChatOpen && !isOwnProfile && (
-          <ChatPopup 
-              user={{ displayName, photoURL: profileData.photoURL || '' }}
-              onClose={() => setIsChatOpen(false)} 
-          />
-      )}
     </>
   );
 }
