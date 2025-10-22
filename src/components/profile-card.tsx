@@ -295,6 +295,10 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
         return liveSellers.filter(s => s.id === profileData.uid);
     }, [profileData.uid]);
 
+  const filteredUserPosts = useMemo(() => {
+    return mockUserPosts.filter(p => p.sellerName === displayName);
+  }, [displayName]);
+
 
   const filteredRecentlyViewed = useMemo(() => {
     if (!searchTerm) return recentlyViewedItems;
@@ -742,15 +746,15 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                       </TabsContent>
 
                       <TabsContent value="posts" className="mt-4">
-                           {isLoadingContent ? (
-                               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                                   <Skeleton className="h-64 w-full" />
-                                   <Skeleton className="h-64 w-full" />
-                                   <Skeleton className="h-64 w-full" />
-                               </div>
-                           ) : mockUserPosts.filter(p => p.sellerName === displayName).length > 0 ? (
+                            {isLoadingContent ? (
+                                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                                    <Skeleton className="h-64 w-full" />
+                                    <Skeleton className="h-64 w-full" />
+                                    <Skeleton className="h-64 w-full" />
+                                </div>
+                            ) : filteredUserPosts.length > 0 ? (
                                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 auto-rows-fr gap-4">
-                                    {mockUserPosts.filter(p => p.sellerName === displayName).map(post => (
+                                    {filteredUserPosts.map(post => (
                                         <Card key={post.id} className="overflow-hidden flex flex-col">
                                             <CardHeader className="p-4">
                                                 <div className="flex items-center gap-3 mb-3">
@@ -782,7 +786,7 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                                     ))}
                                 </div>
                             ) : (
-                               <Card className="text-center py-12 text-muted-foreground flex flex-col items-center gap-4">
+                                <Card className="text-center py-12 text-muted-foreground flex flex-col items-center gap-4">
                                    <h3 className="text-xl font-semibold">No Posts Yet</h3>
                                    <p>{isOwnProfile ? "You haven't posted anything yet." : "This seller hasn't posted anything yet."}</p>
                                </Card>
@@ -912,5 +916,3 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
     </>
   );
 }
-
-    
