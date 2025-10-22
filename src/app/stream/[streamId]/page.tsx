@@ -1097,7 +1097,7 @@ export default function StreamPage() {
                 <SuperChatDialog walletBalance={walletBalance} handlers={handlers} onSuperChatClick={() => setIsSuperChatOpen(true)} />
             </Dialog>
 
-             <div className={cn("bg-black text-foreground", isMobile ? 'flex flex-col h-dvh' : 'h-screen')}>
+             <div className={cn("bg-background text-foreground", isMobile ? 'flex flex-col h-dvh' : 'h-screen')}>
                  {isMobile === undefined ? (
                     <div className="flex h-screen items-center justify-center">
                         <LoadingSpinner />
@@ -1555,19 +1555,19 @@ const ChatPanel = ({
   }
 
   return (
-    <div className='h-full flex flex-col bg-black'>
-      <header className="p-3 flex items-center justify-between z-10 flex-shrink-0 h-16 border-b border-[rgba(255,255,255,0.04)] sticky top-0 bg-[#0f1113]/80 backdrop-blur-sm">
-        <h3 className="font-bold text-lg text-white">Live Chat</h3>
+    <div className='h-full flex flex-col bg-background'>
+      <header className="p-3 flex items-center justify-between z-10 flex-shrink-0 h-16 border-b sticky top-0 bg-background/80 backdrop-blur-sm">
+        <h3 className="font-bold text-lg">Live Chat</h3>
         <div className="flex items-center gap-1">
           <Popover>
             <PopoverTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8 relative text-muted-foreground hover:text-white">
+              <Button variant="ghost" size="icon" className="h-8 w-8 relative text-muted-foreground hover:text-foreground">
                 <Pin className="h-5 w-5" />
                 {pinnedMessages && pinnedMessages.length > 0 && <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-primary" />}
               </Button>
             </PopoverTrigger>
-             <PopoverContent align="end" className="w-80 bg-[#141516] border-gray-800 text-white p-0">
-                <div className="p-3 border-b border-gray-700">
+             <PopoverContent align="end" className="w-80 p-0">
+                <div className="p-3 border-b">
                     <h4 className="font-semibold text-sm flex items-center gap-2">
                         <Pin className="h-4 w-4" /> Pinned Items
                     </h4>
@@ -1576,7 +1576,7 @@ const ChatPanel = ({
                      <div className="p-3 space-y-3">
                         {pinnedMessages && pinnedMessages.length > 0 ? (
                             pinnedMessages.map((item) => (
-                                <div key={item.id} className="text-xs p-2 rounded-md bg-white/5">
+                                <div key={item.id} className="text-xs p-2 rounded-md bg-muted">
                                     {item.type === 'message' && (
                                         <>
                                             <p className="font-bold text-primary">{item.user}</p>
@@ -1609,7 +1609,7 @@ const ChatPanel = ({
           </Popover>
           <DropdownMenu>
              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-white">
+                <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground">
                     <MoreVertical className="h-5 w-5" />
                 </Button>
             </DropdownMenuTrigger>
@@ -1627,7 +1627,7 @@ const ChatPanel = ({
                 </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-          <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-white lg:hidden" onClick={onClose}>
+          <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground lg:hidden" onClick={onClose}>
             <X className="h-5 w-5" />
           </Button>
         </div>
@@ -1636,7 +1636,7 @@ const ChatPanel = ({
           <div className="p-3 space-y-2.5">
              {chatMessages.map((msg) => {
                   if (msg.type === 'system') {
-                      return <div key={msg.id} className="text-xs text-center text-[#9AA1A6] italic py-1">{msg.text}</div>
+                      return <div key={msg.id} className="text-xs text-center text-muted-foreground italic py-1">{msg.text}</div>
                   }
                    if (msg.type === 'product_promo') {
                     return <ProductPromoCard key={msg.id} msg={msg} handlers={handlers} />
@@ -1685,11 +1685,11 @@ const ChatPanel = ({
                     value={newMessage}
                     onChange={(e) => setNewMessage(e.target.value)}
                     rows={1}
-                    className='flex-grow resize-none max-h-24 px-4 pr-12 py-3 min-h-11 rounded-full bg-[#0f1113] text-white placeholder:text-[#7d8488] border-none focus-visible:ring-2 focus-visible:ring-offset-0 focus-visible:ring-[#E43F3F]/30'
+                    className='flex-grow resize-none max-h-24 px-4 pr-12 py-3 min-h-11 rounded-full bg-muted text-foreground placeholder:text-muted-foreground border-transparent focus-visible:ring-2 focus-visible:ring-offset-0'
                 />
                 <Popover>
                     <PopoverTrigger asChild>
-                         <Button variant="ghost" size="icon" type="button" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full text-muted-foreground hover:text-white">
+                         <Button variant="ghost" size="icon" type="button" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full text-muted-foreground hover:text-foreground">
                             <Smile className="h-5 w-5" />
                         </Button>
                     </PopoverTrigger>
@@ -1706,7 +1706,7 @@ const ChatPanel = ({
                      </PopoverContent>
                 </Popover>
              </div>
-             <Button type="button" variant="ghost" size="icon" className="rounded-full flex-shrink-0 h-11 w-11 text-muted-foreground hover:text-white" onClick={handlers.onSuperChatClick}>
+             <Button type="button" variant="ghost" size="icon" className="rounded-full flex-shrink-0 h-11 w-11 text-muted-foreground hover:text-foreground" onClick={handlers.onSuperChatClick}>
                  <DollarSign className="h-5 w-5"/>
              </Button>
              <Button type="submit" size="icon" disabled={!newMessage.trim()} className="rounded-full flex-shrink-0 h-11 w-11 bg-[#E43F3F] hover:bg-[#E43F3F]/90 active:scale-105 transition-transform">
