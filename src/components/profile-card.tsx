@@ -34,7 +34,7 @@ import { getFirestore, collection, query, where, getDocs, orderBy, onSnapshot, s
 import { getFirestoreDb } from '@/lib/firebase';
 import { getStatusFromTimeline } from '@/lib/order-data';
 import { formatDistanceToNow } from 'date-fns';
-
+import { productDetails } from '@/lib/product-data';
 
 const mockReviews = [
     { id: 1, productName: 'Wireless Headphones', rating: 5, review: 'Absolutely amazing sound quality and comfort. Best purchase this year!', date: '2 weeks ago', imageUrl: 'https://placehold.co/100x100.png', hint: 'modern headphones', productInfo: 'These are the latest model with active noise cancellation and a 20-hour battery life. Sold by GadgetGuru.' },
@@ -262,10 +262,28 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
         return liveSellers.filter(s => s.id === profileData.uid);
     }, [profileData.uid]);
 
-
+    
   const filteredUserPosts = useMemo(() => {
-    return userPosts;
-  }, [userPosts]);
+    const mockSellerPost = {
+        id: 'mock-post-for-seller',
+        sellerId: profileData.uid,
+        sellerName: profileData.displayName,
+        avatarUrl: profileData.photoURL,
+        timestamp: formatDistanceToNow(new Date(), { addSuffix: true }),
+        content: `Welcome to my page! Check out our latest products and live streams. #welcome #${profileData.displayName.toLowerCase()}`,
+        images: [{ url: 'https://placehold.co/600x400.png' }],
+        likes: 15,
+        replies: 2,
+    };
+      
+    // Combine mock post with real posts, ensuring no duplicates if mock is somehow in db
+    const combined = [...userPosts];
+    if (!userPosts.find(p => p.id === mockSellerPost.id)) {
+        combined.unshift(mockSellerPost);
+    }
+
+    return combined;
+  }, [userPosts, profileData.uid, profileData.displayName, profileData.photoURL]);
 
 
   const filteredRecentlyViewed = useMemo(() => {
@@ -530,6 +548,74 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                                )}
                           </TabsList>
                       </ScrollArea>
+                       <TabsContent value="posts" className="mt-4">
+                            <div className="space-y-4">
+                                {isLoadingContent ? (
+                                    <div className="space-y-4">
+                                        <Skeleton className="h-40 w-full rounded-lg" />
+                                        <Skeleton className="h-40 w-full rounded-lg" />
+                                    </div>
+                                ) : filteredUserPosts.length > 0 ? (
+                                    <div className="space-y-6">
+                                        {filteredUserPosts.map(post => (
+                                           <Card key={post.id} className="overflow-hidden">
+                                                <CardHeader className="p-4">
+                                                    <div className="flex items-start justify-between">
+                                                        <div className="flex items-center gap-3 mb-3">
+                                                            <Avatar className="h-10 w-10">
+                                                                <AvatarImage src={post.avatarUrl} alt={post.sellerName} />
+                                                                <AvatarFallback>{post.sellerName?.charAt(0)}</AvatarFallback>
+                                                            </Avatar>
+                                                            <div>
+                                                                <p className="font-semibold text-primary">{post.sellerName}</p>
+                                                                <p className="text-xs text-muted-foreground">{post.timestamp}</p>
+                                                            </div>
+                                                        </div>
+                                                         {isOwnProfile && (
+                                                            <DropdownMenu>
+                                                                <DropdownMenuTrigger asChild>
+                                                                    <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0 -mr-2 -mt-2">
+                                                                        <MoreHorizontal className="w-4 h-4" />
+                                                                    </Button>
+                                                                </DropdownMenuTrigger>
+                                                                <DropdownMenuContent align="end">
+                                                                    <DropdownMenuItem>
+                                                                        <Edit className="mr-2 h-4 w-4" /> Edit
+                                                                    </DropdownMenuItem>
+                                                                    <DropdownMenuItem className="text-destructive">
+                                                                        <Trash2 className="mr-2 h-4 w-4" /> Delete
+                                                                    </DropdownMenuItem>
+                                                                </DropdownMenuContent>
+                                                            </DropdownMenu>
+                                                        )}
+                                                    </div>
+                                                    <p className="text-sm">{post.content}</p>
+                                                </CardHeader>
+                                                {post.images && post.images.length > 0 && (
+                                                    <CardContent className="p-0">
+                                                        <div className="aspect-video relative">
+                                                            <Image src={post.images[0].url} alt="Post image" fill className="object-cover" />
+                                                        </div>
+                                                    </CardContent>
+                                                )}
+                                                <CardFooter className="px-4 pb-3 flex justify-between items-center text-sm text-muted-foreground mt-auto pt-3 border-t">
+                                                    <div className="flex items-center gap-4">
+                                                        <button className="flex items-center gap-1.5 hover:text-primary"><ArrowUp className="w-4 h-4" />{post.likes || 0}</button>
+                                                        <button className="flex items-center gap-1.5 hover:text-primary"><ArrowDown className="w-4 h-4" /></button>
+                                                    </div>
+                                                    <button className="flex items-center gap-1.5 hover:text-primary"><MessageSquare className="w-4 h-4" />{post.replies || 0} Comments</button>
+                                                </CardFooter>
+                                            </Card>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <Card className="text-center py-12 text-muted-foreground flex flex-col items-center gap-4">
+                                        <h3 className="text-xl font-semibold">No Posts Yet</h3>
+                                        <p>{isOwnProfile ? "You haven't posted anything yet." : "This seller hasn't posted anything yet."}</p>
+                                    </Card>
+                                )}
+                            </div>
+                        </TabsContent>
                       <TabsContent value="sessions" className="mt-4">
                             {sellerLiveStreams.length > 0 && (
                                 <div className="mb-8">
@@ -685,73 +771,6 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                               )
                           )}
                       </TabsContent>
-
-                      <TabsContent value="posts" className="mt-4">
-                            <div className="space-y-4">
-                                {isLoadingContent ? (
-                                    <div className="space-y-4">
-                                        <Skeleton className="h-40 w-full rounded-lg" />
-                                        <Skeleton className="h-40 w-full rounded-lg" />
-                                    </div>
-                                ) : filteredUserPosts.length > 0 ? (
-                                     <div className="space-y-6">
-                                        {filteredUserPosts.map(post => (
-                                            <Card key={post.id} className="overflow-hidden">
-                                                <CardContent className="p-4">
-                                                    <div className="flex items-start justify-between">
-                                                        <div className="flex items-center gap-3 mb-3">
-                                                            <Avatar className="h-10 w-10">
-                                                                <AvatarImage src={post.avatarUrl} alt={post.sellerName} />
-                                                                <AvatarFallback>{post.sellerName?.charAt(0)}</AvatarFallback>
-                                                            </Avatar>
-                                                            <div>
-                                                                <p className="font-semibold text-primary">{post.sellerName}</p>
-                                                                <p className="text-xs text-muted-foreground">{post.timestamp}</p>
-                                                            </div>
-                                                        </div>
-                                                        {isOwnProfile && (
-                                                            <DropdownMenu>
-                                                                <DropdownMenuTrigger asChild>
-                                                                    <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0 -mr-2 -mt-2">
-                                                                        <MoreHorizontal className="w-4 h-4" />
-                                                                    </Button>
-                                                                </DropdownMenuTrigger>
-                                                                <DropdownMenuContent align="end">
-                                                                    <DropdownMenuItem>
-                                                                        <Edit className="mr-2 h-4 w-4" /> Edit
-                                                                    </DropdownMenuItem>
-                                                                    <DropdownMenuItem className="text-destructive">
-                                                                        <Trash2 className="mr-2 h-4 w-4" /> Delete
-                                                                    </DropdownMenuItem>
-                                                                </DropdownMenuContent>
-                                                            </DropdownMenu>
-                                                        )}
-                                                    </div>
-                                                    <p className="text-sm">{post.content}</p>
-                                                    {post.images && post.images.length > 0 && (
-                                                        <div className="mt-2 rounded-lg overflow-hidden">
-                                                          <Image src={post.images[0].url} alt="Post image" width={600} height={400} className="w-full h-auto object-cover" />
-                                                        </div>
-                                                    )}
-                                                </CardContent>
-                                                <CardFooter className="px-4 pb-3 flex justify-between items-center text-sm text-muted-foreground border-t mt-auto pt-3">
-                                                    <div className="flex items-center gap-4">
-                                                        <button className="flex items-center gap-1.5 hover:text-primary"><ArrowUp className="w-4 h-4" />{post.likes || 0}</button>
-                                                        <button className="flex items-center gap-1.5 hover:text-primary"><ArrowDown className="w-4 h-4" /></button>
-                                                    </div>
-                                                    <button className="flex items-center gap-1.5 hover:text-primary"><MessageSquare className="w-4 h-4" />{post.replies || 0} Comments</button>
-                                                </CardFooter>
-                                            </Card>
-                                        ))}
-                                    </div>
-                                ) : (
-                                    <Card className="text-center py-12 text-muted-foreground flex flex-col items-center gap-4">
-                                        <h3 className="text-xl font-semibold">No Posts Yet</h3>
-                                        <p>{isOwnProfile ? "You haven't posted anything yet." : "This seller hasn't posted anything yet."}</p>
-                                    </Card>
-                                )}
-                            </div>
-                        </TabsContent>
 
                       <TabsContent value="recent" className="mt-4">
                             {isLoadingContent ? <ProductSkeletonGrid /> : (
