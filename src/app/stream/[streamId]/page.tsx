@@ -278,6 +278,38 @@ const ReportDialog = ({ onSubmit }: { onSubmit: (reason: string, details: string
     )
 };
 
+const RatingDialog = ({ onRate, sellerName }: { onRate: (rating: number) => void, sellerName: string }) => {
+    const [rating, setRating] = useState(0);
+    const [hoverRating, setHoverRating] = useState(0);
+
+    return (
+        <DialogContent>
+            <DialogHeader>
+                <DialogTitle>Rate the Stream</DialogTitle>
+                <DialogDescription>How would you rate your experience with {sellerName}?</DialogDescription>
+            </DialogHeader>
+            <div className="flex items-center justify-center gap-2 py-4">
+                {[1, 2, 3, 4, 5].map((star) => (
+                    <Star
+                        key={star}
+                        className={cn(
+                            "h-10 w-10 cursor-pointer transition-colors",
+                            (hoverRating || rating) >= star ? "text-yellow-400 fill-yellow-400" : "text-muted-foreground"
+                        )}
+                        onClick={() => setRating(star)}
+                        onMouseEnter={() => setHoverRating(star)}
+                        onMouseLeave={() => setHoverRating(0)}
+                    />
+                ))}
+            </div>
+            <DialogFooter>
+                <DialogClose asChild><Button variant="outline">Cancel</Button></DialogClose>
+                <Button onClick={() => onRate(rating)} disabled={rating === 0}>Submit Rating</Button>
+            </DialogFooter>
+        </DialogContent>
+    );
+};
+
 const ProductShelfContent = ({ sellerProducts, handleAddToCart, handleBuyNow, isMobile, onClose, toast }: { sellerProducts: any[], handleAddToCart: (product: any) => void, handleBuyNow: (product: any) => void, isMobile: boolean, onClose: () => void, toast: any }) => {
     return (
         <>
@@ -531,7 +563,7 @@ const renderWithHashtagsAndLinks = (text: string) => {
     });
 };
 
-const StreamInfo = ({ seller, streamData, handleFollowToggle, isFollowingState, ...props }: any) => {
+const StreamInfo = ({ seller, streamData, handleFollowToggle, isFollowingState, isRatingDialogOpen, setIsRatingDialogOpen, handleRateStream, isPastStream, ...props }: any) => {
     if (!seller) {
         return (
             <div className="space-y-4">
@@ -542,37 +574,51 @@ const StreamInfo = ({ seller, streamData, handleFollowToggle, isFollowingState, 
         );
     }
     return (
-        <div className="space-y-4">
-            <div className="mb-4">
-                <h2 className="font-bold text-lg">Topic</h2>
-                 <div className="text-sm text-muted-foreground mt-1 space-y-4">
-                    <div>{renderWithHashtagsAndLinks(streamData.description || "Welcome to the live stream!")}</div>
-                    {streamData.startedAt && (
-                        <div className="flex items-center gap-2 text-xs">
-                            <Clock className="h-4 w-4" />
-                            <span>Started {formatDistanceToNow(new Date(streamData.startedAt), { addSuffix: true })}</span>
+        <Dialog open={isRatingDialogOpen} onOpenChange={setIsRatingDialogOpen}>
+            <div className="space-y-4">
+                <div className="mb-4">
+                    <h2 className="font-bold text-lg">Topic</h2>
+                     <div className="text-sm text-muted-foreground mt-1 space-y-4">
+                        <div>{renderWithHashtagsAndLinks(streamData.description || "Welcome to the live stream!")}</div>
+                         <div className="flex items-center gap-2 text-xs">
+                             {streamData.startedAt && (
+                                <>
+                                    <Clock className="h-4 w-4" />
+                                    <span>Started {formatDistanceToNow(new Date(streamData.startedAt), { addSuffix: true })}</span>
+                                </>
+                             )}
+                            {!isPastStream && (
+                                <DialogTrigger asChild>
+                                    <Button variant="link" className="text-xs p-0 h-auto">Rate Stream</Button>
+                                </DialogTrigger>
+                            )}
                         </div>
-                    )}
-                </div>
-            </div>
-            <div className="flex items-center justify-between gap-2">
-                <Link href={`/seller/profile?userId=${seller.id}`} className="flex items-center gap-3 group flex-grow overflow-hidden">
-                    <Avatar className="h-12 w-12 flex-shrink-0">
-                        <AvatarImage src={seller.avatarUrl} />
-                        <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
-                    </Avatar>
-                    <div className="flex-grow overflow-hidden">
-                        <h3 className="font-semibold truncate group-hover:underline">{seller.name}</h3>
                     </div>
-                </Link>
-                <Button onClick={handleFollowToggle} variant={isFollowingState ? "outline" : "default"} className="flex-shrink-0">
-                    {isFollowingState ? <UserCheck className="mr-2 h-4 w-4" /> : <UserPlus className="mr-2 h-4 w-4" />}
-                    {isFollowingState ? "Following" : "Follow"}
-                </Button>
+                </div>
+                <div className="flex items-center justify-between gap-2">
+                    <Link href={`/seller/profile?userId=${seller.id}`} className="flex items-center gap-3 group flex-grow overflow-hidden">
+                        <Avatar className="h-12 w-12 flex-shrink-0">
+                            <AvatarImage src={seller.avatarUrl} />
+                            <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                        <div className="flex-grow overflow-hidden">
+                            <h3 className="font-semibold truncate group-hover:underline">{seller.name}</h3>
+                             <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                                <Star className="h-3 w-3 text-amber-400 fill-amber-400" />
+                                <span>{seller.rating} ({seller.reviews} reviews)</span>
+                            </div>
+                        </div>
+                    </Link>
+                    <Button onClick={handleFollowToggle} variant={isFollowingState ? "outline" : "default"} className="flex-shrink-0">
+                        {isFollowingState ? <UserCheck className="mr-2 h-4 w-4" /> : <UserPlus className="mr-2 h-4 w-4" />}
+                        {isFollowingState ? "Following" : "Follow"}
+                    </Button>
+                </div>
+                
+                <ProductShelf {...props} />
             </div>
-            
-            <ProductShelf {...props} />
-        </div>
+            <RatingDialog onRate={handleRateStream} sellerName={seller.name} />
+        </Dialog>
     );
 };
 
@@ -648,6 +694,30 @@ const StreamPage = () => {
     
     const [chatMessages, setChatMessages] = useState<any[]>([]);
     const [isAuthDialogOpen, setIsAuthDialogOpen] = useState(false);
+
+    const [isRatingDialogOpen, setIsRatingDialogOpen] = useState(false);
+
+    const handleRateStream = (rating: number) => {
+        if (!user) return;
+        
+        toast({
+            title: `You rated this stream ${rating} stars!`,
+            description: "Thanks for your feedback."
+        });
+
+        const ratingMessage = {
+            id: `rating-${Date.now()}`,
+            type: 'system',
+            text: `${user.displayName} rated the stream ${'★'.repeat(rating)}${'☆'.repeat(5 - rating)}`,
+        };
+        
+        setChatMessages(prev => [...prev, ratingMessage]);
+
+        // In a real app, you'd save this to the backend here
+        // e.g., saveStreamRating(streamId, user.uid, rating);
+
+        setIsRatingDialogOpen(false);
+    };
 
     useEffect(() => {
         if (seller) {
@@ -1137,10 +1207,10 @@ const StreamPage = () => {
                         <LoadingSpinner />
                     </div>
                  ) : isMobile ? (
-                     <MobileLayout {...{ router, videoRef, playerRef, handlePlayPause, handleShare, handleMinimize, handleToggleFullscreen, isPaused, seller, streamData, handleFollowToggle, isFollowingState, sellerProducts, handlers, relatedStreams, isChatOpen, setIsChatOpen, chatMessages, pinnedMessages, onClose: () => setIsChatOpen(false), handleAddToCart, handleBuyNow, mobileView, setMobileView, isMuted, setIsMuted, handleGoLive, handleSeek, isLive, formatTime, currentTime, duration, buffered, handleProgressClick, progressContainerRef, activeQuality, setActiveQuality, product, user, walletBalance, setIsSuperChatOpen, isSuperChatOpen, isPastStream }} />
+                     <MobileLayout {...{ router, videoRef, playerRef, handlePlayPause, handleShare, handleMinimize, handleToggleFullscreen, isPaused, seller, streamData, handleFollowToggle, isFollowingState, sellerProducts, handlers, relatedStreams, isChatOpen, setIsChatOpen, chatMessages, pinnedMessages, onClose: () => setIsChatOpen(false), handleAddToCart, handleBuyNow, mobileView, setMobileView, isMuted, setIsMuted, handleGoLive, handleSeek, isLive, formatTime, currentTime, duration, buffered, handleProgressClick, progressContainerRef, activeQuality, setActiveQuality, product, user, walletBalance, setIsSuperChatOpen, isSuperChatOpen, isPastStream, isRatingDialogOpen, setIsRatingDialogOpen, handleRateStream }} />
                  ) : (
                     <DesktopLayout 
-                        {...{ router, videoRef, playerRef, handlePlayPause, handleShare, handleMinimize, handleToggleFullscreen, isPaused, seller, streamData, handleFollowToggle, isFollowingState, sellerProducts, handlers, relatedStreams, isChatOpen, setIsChatOpen, chatMessages, pinnedMessages, onClose: () => setIsChatOpen(false), handleAddToCart, handleBuyNow, mobileView, setMobileView, isMuted, setIsMuted, handleGoLive, handleSeek, isLive, formatTime, currentTime, duration, buffered, handleProgressClick, progressContainerRef, mainScrollRef, handleMainScroll, showGoToTop, scrollToTop, activeQuality, setActiveQuality, product, user, cartCount, walletBalance, setIsSuperChatOpen, isSuperChatOpen, inlineAuctionCardRefs, isPastStream }}
+                        {...{ router, videoRef, playerRef, handlePlayPause, handleShare, handleMinimize, handleToggleFullscreen, isPaused, seller, streamData, handleFollowToggle, isFollowingState, sellerProducts, handlers, relatedStreams, isChatOpen, setIsChatOpen, chatMessages, pinnedMessages, onClose: () => setIsChatOpen(false), handleAddToCart, handleBuyNow, mobileView, setMobileView, isMuted, setIsMuted, handleGoLive, handleSeek, isLive, formatTime, currentTime, duration, buffered, handleProgressClick, progressContainerRef, mainScrollRef, handleMainScroll, showGoToTop, scrollToTop, activeQuality, setActiveQuality, product, user, cartCount, walletBalance, setIsSuperChatOpen, isSuperChatOpen, inlineAuctionCardRefs, isPastStream, isRatingDialogOpen, setIsRatingDialogOpen, handleRateStream }}
                     />
                  )}
             </div>
@@ -1151,7 +1221,7 @@ const StreamPage = () => {
 const MemoizedStreamInfo = React.memo(StreamInfo);
 const MemoizedRelatedContent = React.memo(RelatedContent);
 
-const DesktopLayout = React.memo(({ user, handlers, chatMessages, cartCount, walletBalance, isPastStream, isSuperChatOpen, setIsSuperChatOpen, ...props }: any) => {
+const DesktopLayout = React.memo(({ user, handlers, chatMessages, cartCount, walletBalance, isSuperChatOpen, setIsSuperChatOpen, ...props }: any) => {
 return (
 <div className="flex flex-col h-screen overflow-hidden">
     <header className="p-3 flex items-center justify-between z-40 h-16 shrink-0 w-full">
@@ -1197,9 +1267,9 @@ return (
             <div className="w-full aspect-video bg-black relative" ref={props.playerRef}>
                 <video ref={props.videoRef} src={props.streamData.streamUrl || "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"} className="w-full h-full object-cover" loop />
                  <div className="absolute top-3 left-3 z-10 flex items-center gap-2">
-                    <Badge variant={isPastStream ? 'outline' : 'destructive'} className={cn(isPastStream && 'bg-black/50 text-white border-white/30', "gap-1.5")}>
-                        {!isPastStream && <div className="h-2 w-2 rounded-full bg-white animate-pulse" />}
-                        {isPastStream ? 'RECORDED' : 'LIVE'}
+                    <Badge variant={props.isPastStream ? 'outline' : 'destructive'} className={cn(props.isPastStream && 'bg-black/50 text-white border-white/30', "gap-1.5")}>
+                        {!props.isPastStream && <div className="h-2 w-2 rounded-full bg-white animate-pulse" />}
+                        {props.isPastStream ? 'RECORDED' : 'LIVE'}
                     </Badge>
                     <Badge variant="secondary" className="bg-black/50 text-white gap-1.5"><Users className="w-3 h-3"/> {props.streamData.viewerCount.toLocaleString()}</Badge>
                 </div>
@@ -1214,7 +1284,7 @@ return (
                               </Button>
                               <Button variant="ghost" size="icon" className="w-10 h-10" onClick={() => props.handleSeek('backward')}><Rewind className="w-5 h-5" /></Button>
                               <Button variant="ghost" size="icon" className="w-10 h-10" onClick={() => props.handleSeek('forward')}><FastForward className="w-5 h-5" /></Button>
-                              {!isPastStream && <Button
+                              {!props.isPastStream && <Button
                                 variant="destructive"
                                 className="gap-1.5 h-8 text-xs sm:text-sm"
                                 onClick={props.handleGoLive}
@@ -1274,7 +1344,7 @@ return (
                 isSuperChatOpen={isSuperChatOpen}
                 setIsSuperChatOpen={setIsSuperChatOpen}
                 inlineAuctionCardRefs={props.inlineAuctionCardRefs}
-                isPastStream={isPastStream}
+                isPastStream={props.isPastStream}
             />
         </aside>
     </div>
@@ -1774,6 +1844,7 @@ const ChatPanel = ({
 };
 
 export default StreamPage;
+
 
 
 
