@@ -74,10 +74,10 @@ const liveSellers = [
 ];
 
 const mockPastStreams = [
-    { id: 'gadgetguru-uid', title: 'Unboxing the Latest Tech', date: '3 days ago', views: '1.2M', thumbnailUrl: 'https://placehold.co/400x225.png?text=Past+Stream+1' },
-    { id: 'fashionfinds-uid', title: 'Fall Fashion Lookbook', date: '1 week ago', views: '890k', thumbnailUrl: 'https://placehold.co/400x225.png?text=Past+Stream+2' },
-    { id: 'kitchenwiz-uid', title: 'Kitchen Gadgets You Need', date: '2 weeks ago', views: '2.1M', thumbnailUrl: 'https://placehold.co/400x225.png?text=Past+Stream+3' },
-    { id: 'beautybox-uid', title: 'Morning Skincare Routine', date: '1 month ago', views: '500k', thumbnailUrl: 'https://placehold.co/400x225.png?text=Past+Stream+4' },
+    { id: 'gadgetguru-uid', title: 'Unboxing the Latest Tech', date: '3 days ago', views: '1.2M', duration: '45:12', thumbnailUrl: 'https://placehold.co/400x225.png?text=Past+Stream+1' },
+    { id: 'fashionfinds-uid', title: 'Fall Fashion Lookbook', date: '1 week ago', views: '890k', duration: '1:02:30', thumbnailUrl: 'https://placehold.co/400x225.png?text=Past+Stream+2' },
+    { id: 'kitchenwiz-uid', title: 'Kitchen Gadgets You Need', date: '2 weeks ago', views: '2.1M', duration: '33:45', thumbnailUrl: 'https://placehold.co/400x225.png?text=Past+Stream+3' },
+    { id: 'beautybox-uid', title: 'Morning Skincare Routine', date: '1 month ago', views: '500k', duration: '25:00', thumbnailUrl: 'https://placehold.co/400x225.png?text=Past+Stream+4' },
 ];
 
 const mockUserPosts = [
@@ -320,7 +320,7 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
     setWishlist(getWishlist().map(p => p.id));
     toast({
         title: "Added to Wishlist!",
-        description: `${'${product.name}'} has been added to your wishlist.`
+        description: `${product.name} has been added to your wishlist.`
     });
   };
   
@@ -600,6 +600,7 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                                                     <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors flex items-center justify-center">
                                                         <Play className="h-12 w-12 text-white/70 group-hover:text-white group-hover:scale-110 transition-all" />
                                                     </div>
+                                                    <div className="absolute bottom-2 right-2 bg-black/50 text-white text-xs font-semibold px-1.5 py-0.5 rounded-sm">{stream.duration}</div>
                                                 </div>
                                                 <div className="p-3">
                                                     <h4 className="font-semibold text-sm truncate group-hover:text-primary transition-colors">{stream.title}</h4>
@@ -629,6 +630,7 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                                                             <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors flex items-center justify-center">
                                                                 <Play className="h-12 w-12 text-white/70 group-hover:text-white group-hover:scale-110 transition-all" />
                                                             </div>
+                                                            <div className="absolute bottom-2 right-2 bg-black/50 text-white text-xs font-semibold px-1.5 py-0.5 rounded-sm">{stream.duration}</div>
                                                         </div>
                                                         <div className="p-3">
                                                             <h4 className="font-semibold text-sm truncate group-hover:text-primary transition-colors">{stream.title}</h4>
@@ -753,11 +755,11 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                                         <Skeleton className="h-64 w-full rounded-lg" />
                                     </>
                                 ) : filteredUserPosts.length > 0 ? (
-                                    filteredUserPosts.map(post => (
-                                        <Card key={post.id} className="overflow-hidden">
-                                            <CardContent className="p-4">
-                                                <div className="flex items-start justify-between">
-                                                    <div className="flex items-center gap-3 mb-3">
+                                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                        {filteredUserPosts.map(post => (
+                                            <Card key={post.id} className="overflow-hidden flex flex-col">
+                                                <CardHeader className="p-4">
+                                                     <div className="flex items-center gap-3">
                                                         <Avatar className="h-10 w-10">
                                                             <AvatarImage src={post.avatarUrl} alt={post.sellerName} />
                                                             <AvatarFallback>{post.sellerName?.charAt(0)}</AvatarFallback>
@@ -767,26 +769,25 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                                                             <p className="text-xs text-muted-foreground">{post.timestamp}</p>
                                                         </div>
                                                     </div>
-                                                    <Button variant="ghost" size="icon" className="h-8 w-8">
-                                                        <MoreHorizontal className="w-4 h-4" />
-                                                    </Button>
-                                                </div>
-                                                <p className="text-sm mb-3">{post.content}</p>
-                                                {post.images && post.images.length > 0 && (
-                                                    <div className="w-full aspect-video bg-muted rounded-lg overflow-hidden">
-                                                        <Image src={post.images[0].url} alt="Feed item" width={400} height={300} className="w-full h-full object-cover" />
+                                                </CardHeader>
+                                                <CardContent className="p-4 pt-0 flex-grow">
+                                                    <p className="text-sm line-clamp-4 mb-2">{post.content}</p>
+                                                    {post.images && post.images.length > 0 && (
+                                                        <div className="w-full aspect-video bg-muted rounded-lg overflow-hidden mt-2">
+                                                            <Image src={post.images[0].url} alt="Feed item" width={400} height={300} className="w-full h-full object-cover" />
+                                                        </div>
+                                                    )}
+                                                </CardContent>
+                                                <CardFooter className="px-4 pb-3 flex justify-between items-center text-sm text-muted-foreground border-t mt-auto pt-3">
+                                                    <div className="flex items-center gap-4">
+                                                        <button className="flex items-center gap-1.5 hover:text-primary"><ArrowUp className="w-4 h-4" />{post.likes || 0}</button>
+                                                        <button className="flex items-center gap-1.5 hover:text-primary"><ArrowDown className="w-4 h-4" /></button>
                                                     </div>
-                                                )}
-                                            </CardContent>
-                                            <CardFooter className="px-4 pb-3 flex justify-between items-center text-sm text-muted-foreground border-t mt-auto pt-3">
-                                                <div className="flex items-center gap-4">
-                                                    <button className="flex items-center gap-1.5 hover:text-primary"><ArrowUp className="w-4 h-4" />{post.likes || 0}</button>
-                                                    <button className="flex items-center gap-1.5 hover:text-primary"><ArrowDown className="w-4 h-4" /></button>
-                                                </div>
-                                                <button className="flex items-center gap-1.5 hover:text-primary"><MessageSquare className="w-4 h-4" />{post.replies || 0} Comments</button>
-                                            </CardFooter>
-                                        </Card>
-                                    ))
+                                                    <button className="flex items-center gap-1.5 hover:text-primary"><MessageSquare className="w-4 h-4" />{post.replies || 0} Comments</button>
+                                                </CardFooter>
+                                            </Card>
+                                        ))}
+                                    </div>
                                 ) : (
                                     <Card className="text-center py-12 text-muted-foreground flex flex-col items-center gap-4">
                                         <h3 className="text-xl font-semibold">No Posts Yet</h3>
@@ -919,3 +920,5 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
     </>
   );
 }
+
+    
