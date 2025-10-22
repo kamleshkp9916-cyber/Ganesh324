@@ -80,6 +80,33 @@ const mockPastStreams = [
     { id: 'beautybox-uid', title: 'Morning Skincare Routine', date: '1 month ago', views: '500k', thumbnailUrl: 'https://placehold.co/400x225.png?text=Past+Stream+4' },
 ];
 
+const mockUserPosts = [
+    {
+        id: 'post1',
+        content: 'Just dropped a new collection of vintage denim jackets! Check them out in my shop. #vintagefashion #denim #ootd',
+        images: [{ url: 'https://images.unsplash.com/photo-1596700204352-c82d33d3140a?w=800&h=800&fit=crop' }],
+        likes: 152,
+        replies: 12,
+        timestamp: '2 hours ago',
+    },
+    {
+        id: 'post2',
+        content: 'Going live in 15 minutes to showcase some beautiful summer dresses. See you there! ☀️👗',
+        images: [{ url: 'https://images.unsplash.com/photo-1579626539953-33973641a2a4?w=800&h=800&fit=crop' }],
+        likes: 230,
+        replies: 25,
+        timestamp: '1 day ago',
+    },
+     {
+        id: 'post3',
+        content: 'This handcrafted vase is a true piece of art. Only a few left in stock!',
+        images: [{ url: 'https://placehold.co/600x600.png' }],
+        likes: 98,
+        replies: 5,
+        timestamp: '3 days ago',
+    },
+];
+
 function ProductSkeletonGrid() {
     return (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -283,7 +310,7 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
     setWishlist(getWishlist().map(p => p.id));
     toast({
         title: "Added to Wishlist!",
-        description: `${product.name} has been added to your wishlist.`
+        description: `${''}${product.name} has been added to your wishlist.`
     });
   };
   
@@ -715,9 +742,9 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                                    <Skeleton className="h-64 w-full" />
                                    <Skeleton className="h-64 w-full" />
                                </div>
-                           ) : userPosts.length > 0 ? (
+                           ) : mockUserPosts.length > 0 ? (
                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                   {userPosts.map(post => (
+                                   {mockUserPosts.map(post => (
                                        <Card key={post.id} className="overflow-hidden flex flex-col">
                                            <div className="p-4 flex-grow">
                                                <p className="text-sm text-muted-foreground line-clamp-4 mb-2">{post.content}</p>
@@ -738,14 +765,9 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                                    ))}
                                </div>
                            ) : (
-                               <Card className="text-center py-12 text-muted-foreground flex flex-col items-center gap-4">
+                                <Card className="text-center py-12 text-muted-foreground flex flex-col items-center gap-4">
                                    <h3 className="text-xl font-semibold">No Posts Yet</h3>
-                                   <p>{isOwnProfile ? "You haven't posted anything yet." : "This seller hasn't posted anything yet."}</p>
-                                   {isOwnProfile && (
-                                       <div className="w-full max-w-lg p-4">
-                                            <CreatePostForm onPost={async (data) => console.log(data)} onFinishEditing={() => {}} isSubmitting={false} />
-                                       </div>
-                                   )}
+                                    <p>{isOwnProfile ? "You haven't posted anything yet." : "This seller hasn't posted anything yet."}</p>
                                </Card>
                            )}
                       </TabsContent>
@@ -873,3 +895,5 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
     </>
   );
 }
+
+    
