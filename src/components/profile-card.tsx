@@ -743,7 +743,7 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
 
                       <TabsContent value="posts" className="mt-4">
                            {isLoadingContent ? (
-                               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                                    <Skeleton className="h-64 w-full" />
                                    <Skeleton className="h-64 w-full" />
                                    <Skeleton className="h-64 w-full" />
