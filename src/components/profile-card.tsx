@@ -74,10 +74,10 @@ const liveSellers = [
 ];
 
 const mockPastStreams = [
-    { id: 'gadgetguru-uid', title: 'Unboxing the Latest Tech', date: '3 days ago', views: '1.2M', duration: '45:12', thumbnailUrl: 'https://placehold.co/400x225.png?text=Past+Stream+1' },
-    { id: 'fashionfinds-uid', title: 'Fall Fashion Lookbook', date: '1 week ago', views: '890k', duration: '1:02:30', thumbnailUrl: 'https://placehold.co/400x225.png?text=Past+Stream+2' },
-    { id: 'kitchenwiz-uid', title: 'Kitchen Gadgets You Need', date: '2 weeks ago', views: '2.1M', duration: '33:45', thumbnailUrl: 'https://placehold.co/400x225.png?text=Past+Stream+3' },
-    { id: 'beautybox-uid', title: 'Morning Skincare Routine', date: '1 month ago', views: '500k', duration: '25:00', thumbnailUrl: 'https://placehold.co/400x225.png?text=Past+Stream+4' },
+    { id: 'gadgetguru-uid', title: 'Unboxing the Latest Tech', description: 'Join me as I unbox and review the most anticipated gadgets of the month. We\'ll take a look at the new smartphone, a pair of noise-cancelling headphones, and a surprise gadget you won\'t want to miss. Get ready for in-depth analysis, first impressions, and maybe a few giveaways!', date: '3 days ago', views: '1.2M', duration: '45:12', thumbnailUrl: 'https://placehold.co/400x225.png?text=Past+Stream+1' },
+    { id: 'fashionfinds-uid', title: 'Fall Fashion Lookbook', description: 'Discover the key trends for this fall season. I\'ll be styling five essential looks, from cozy knits to statement coats. We\'ll discuss color palettes, textures, and how to mix and match pieces to create your perfect autumn wardrobe. Get your notepads ready!', date: '1 week ago', views: '890k', duration: '1:02:30', thumbnailUrl: 'https://placehold.co/400x225.png?text=Past+Stream+2' },
+    { id: 'kitchenwiz-uid', title: 'Kitchen Gadgets You Need', description: 'Tired of tedious meal prep? I\'m showcasing five game-changing kitchen gadgets that will save you time and effort. From a high-speed blender to a smart air fryer, see them in action and learn some new recipes along the way. Your kitchen will thank you!', date: '2 weeks ago', views: '2.1M', duration: '33:45', thumbnailUrl: 'https://placehold.co/400x225.png?text=Past+Stream+3' },
+    { id: 'beautybox-uid', title: 'Morning Skincare Routine', description: 'A step-by-step guide to my go-to morning skincare routine for a glowing complexion. We\'ll cover cleansers, serums, moisturizers, and of course, SPF! I\'ll share my holy grail products and answer all your skincare questions. Let\'s get glowing!', date: '1 month ago', views: '500k', duration: '25:00', thumbnailUrl: 'https://placehold.co/400x225.png?text=Past+Stream+4' },
 ];
 
 const mockUserPosts = [
@@ -320,7 +320,7 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
     setWishlist(getWishlist().map(p => p.id));
     toast({
         title: "Added to Wishlist!",
-        description: `${product.name} has been added to your wishlist.`
+        description: `${''}${product.name} has been added to your wishlist.`
     });
   };
   
@@ -585,30 +585,40 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                             )}
                             <div>
                                 <h3 className="text-lg font-semibold mb-4">Past Streams</h3>
-                                <div className="space-y-4">
-                                     {mockPastStreams.map(stream => (
+                                <div className="space-y-6">
+                                    {mockPastStreams.map(stream => (
                                         <div key={stream.id} className="group block" onClick={() => handleAuthAction(() => router.push(`/stream/${stream.id}?isPast=true`))}>
-                                            <Card className="overflow-hidden bg-card border-border/50 shadow-sm transition-all hover:shadow-md cursor-pointer flex flex-col md:flex-row">
-                                                <div className="relative aspect-video bg-muted overflow-hidden flex-shrink-0 w-full md:w-48">
-                                                    <Image 
-                                                        src={stream.thumbnailUrl} 
-                                                        alt={stream.title} 
-                                                        fill
-                                                        sizes="(max-width: 768px) 100vw, 200px"
-                                                        className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-300"
-                                                    />
-                                                    <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors flex items-center justify-center">
-                                                        <Play className="h-10 w-10 text-white/70 group-hover:text-white group-hover:scale-110 transition-all" />
+                                            <Card className="overflow-hidden bg-card border-border/50 shadow-sm transition-all hover:shadow-md cursor-pointer">
+                                                <CardContent className="p-4">
+                                                    <div className="flex items-center gap-3 mb-3">
+                                                        <Avatar className="h-10 w-10">
+                                                            <AvatarImage src={profileData.photoURL || `https://placehold.co/40x40.png?text=${displayName.charAt(0)}`} alt={displayName} />
+                                                            <AvatarFallback>{displayName.charAt(0)}</AvatarFallback>
+                                                        </Avatar>
+                                                        <div>
+                                                            <p className="font-semibold text-primary">{displayName}</p>
+                                                            <p className="text-xs text-muted-foreground">{stream.date}</p>
+                                                        </div>
                                                     </div>
-                                                </div>
-                                                <div className="p-3 flex flex-col">
-                                                    <h4 className="font-semibold text-sm group-hover:text-primary transition-colors">{stream.title}</h4>
-                                                     <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground mt-1">
-                                                        <span>{stream.date}</span>
+                                                    <h4 className="font-semibold text-base group-hover:text-primary transition-colors">{stream.title}</h4>
+                                                    <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{stream.description}</p>
+                                                    <div className="relative aspect-video bg-muted rounded-md overflow-hidden mt-3">
+                                                        <Image 
+                                                            src={stream.thumbnailUrl} 
+                                                            alt={stream.title} 
+                                                            fill
+                                                            sizes="(max-width: 768px) 100vw, 50vw"
+                                                            className="object-cover w-full h-full"
+                                                        />
+                                                        <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors flex items-center justify-center">
+                                                            <Play className="h-10 w-10 text-white/70 group-hover:text-white group-hover:scale-110 transition-all" />
+                                                        </div>
+                                                         <div className="absolute bottom-2 right-2 bg-black/50 text-white text-xs px-1.5 py-0.5 rounded-sm">{stream.duration}</div>
+                                                    </div>
+                                                    <div className="flex items-center gap-4 text-xs text-muted-foreground mt-2">
                                                         <span>{stream.views} views</span>
-                                                        <span>{stream.duration}</span>
                                                     </div>
-                                                </div>
+                                                </CardContent>
                                             </Card>
                                         </div>
                                     ))}
