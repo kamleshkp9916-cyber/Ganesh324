@@ -158,7 +158,7 @@ export const ChatMessage = ({ msg, currentUserId }: { msg: Message, currentUserI
                     </DropdownMenuContent>
                 </DropdownMenu>
             )}
-            <div className={cn("max-w-[86%] rounded-[18px] px-3 py-1.5", isMyMessage ? "bg-primary text-primary-foreground" : "bg-[#141516] text-[#E6ECEF]")}>
+            <div className={cn("max-w-[86%] rounded-[18px] px-3 py-1.5", isMyMessage ? "bg-primary text-primary-foreground" : "bg-muted text-foreground")}>
                 {msg.text && <p className="text-sm whitespace-pre-wrap">{msg.text}</p>}
                 {msg.imageUrl && <img src={msg.imageUrl} alt="sent" className="rounded-md max-w-full h-auto mt-2" />}
                 <div className={cn("text-xs mt-1 flex items-center gap-1", isMyMessage ? "text-primary-foreground/70 justify-end" : "text-muted-foreground justify-end")}>
@@ -289,7 +289,7 @@ export const ChatWindow = ({ conversation, userData, onBack, messages, onSendMes
                     </DropdownMenuContent>
                 </DropdownMenu>
             </header>
-            <ScrollArea className="flex-grow bg-background" ref={chatContainerRef}>
+            <ScrollArea className="flex-grow bg-muted/20" ref={chatContainerRef}>
                 <div className="p-4 space-y-4">
                     {isChatLoading ? (
                         <div className="space-y-4">
@@ -402,7 +402,7 @@ export const ChatPanel = ({
       messageToSend = `@${replyingTo.name.split(' ')[0]} ${newMessage}`;
     }
 
-    console.log("New Message:", messageToSend);
+    handlers.handleNewMessageSubmit({ text: messageToSend });
 
     setNewMessage("");
     setReplyingTo(null);
@@ -414,19 +414,19 @@ export const ChatPanel = ({
   }
 
   return (
-    <div className='h-full flex flex-col bg-black'>
-      <header className="p-3 flex items-center justify-between z-10 flex-shrink-0 h-16 border-b border-[rgba(255,255,255,0.04)] sticky top-0 bg-[#0f1113]/80 backdrop-blur-sm">
-        <h3 className="font-bold text-lg text-white">Live Chat</h3>
+    <div className='h-full flex flex-col bg-background'>
+      <header className="p-3 flex items-center justify-between z-10 flex-shrink-0 h-16 border-b border-border sticky top-0 bg-background/80 backdrop-blur-sm">
+        <h3 className="font-bold text-lg text-foreground">Live Chat</h3>
         <div className="flex items-center gap-1">
           <Popover>
             <PopoverTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8 relative text-muted-foreground hover:text-white">
+              <Button variant="ghost" size="icon" className="h-8 w-8 relative text-muted-foreground hover:text-foreground">
                 <Pin className="h-5 w-5" />
                 {pinnedMessages && pinnedMessages.length > 0 && <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-primary" />}
               </Button>
             </PopoverTrigger>
-             <PopoverContent align="end" className="w-80 bg-[#141516] border-gray-800 text-white p-0">
-                <div className="p-3 border-b border-gray-700">
+             <PopoverContent align="end" className="w-80 bg-background border-border text-foreground p-0">
+                <div className="p-3 border-b">
                     <h4 className="font-semibold text-sm flex items-center gap-2">
                         <Pin className="h-4 w-4" /> Pinned Items
                     </h4>
@@ -435,7 +435,7 @@ export const ChatPanel = ({
                      <div className="p-3 space-y-3">
                         {pinnedMessages && pinnedMessages.length > 0 ? (
                             pinnedMessages.map((item) => (
-                                <div key={item.id} className="text-xs p-2 rounded-md bg-white/5">
+                                <div key={item.id} className="text-xs p-2 rounded-md bg-muted">
                                     {item.type === 'message' && (
                                         <>
                                             <p className="font-bold text-primary">{item.user}</p>
@@ -468,7 +468,7 @@ export const ChatPanel = ({
           </Popover>
           <DropdownMenu>
              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-white">
+                <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground">
                     <MoreVertical className="h-5 w-5" />
                 </Button>
             </DropdownMenuTrigger>
@@ -486,7 +486,7 @@ export const ChatPanel = ({
                 </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-          <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-white lg:hidden" onClick={onClose}>
+          <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground lg:hidden" onClick={onClose}>
             <X className="h-5 w-5" />
           </Button>
         </div>
@@ -495,7 +495,7 @@ export const ChatPanel = ({
           <div className="p-3 space-y-2.5">
              {chatMessages.map((msg) => {
                   if (msg.type === 'system') {
-                      return <div key={msg.id} className="text-xs text-center text-[#9AA1A6] italic py-1">{msg.text}</div>
+                      return <div key={msg.id} className="text-xs text-center text-muted-foreground italic py-1">{msg.text}</div>
                   }
                   if (!msg.user) return null;
 
@@ -503,13 +503,15 @@ export const ChatPanel = ({
                   const isSellerMessage = msg.userId === seller?.uid;
                   
                   return (
-                     <div key={msg.id} className="flex items-start gap-3 w-full group text-sm animate-message-in">
-                         <Avatar className="h-9 w-9 mt-0.5 border border-[rgba(255,255,255,0.04)]">
+                     <div key={msg.id} className="flex items-start gap-2 w-full group py-0.5 animate-message-in">
+                         <Avatar className="h-8 w-8 mt-0.5">
                              <AvatarImage src={msg.avatar} />
-                             <AvatarFallback className="bg-gradient-to-br from-red-500 to-yellow-500 text-white font-bold">{msg.user.charAt(0)}</AvatarFallback>
+                             <AvatarFallback className="bg-gradient-to-br from-red-500 to-yellow-500 text-white font-bold text-xs">
+                                 {msg.user ? msg.user.charAt(0) : 'S'}
+                             </AvatarFallback>
                          </Avatar>
                           <div className="flex-grow">
-                             <p className="leading-relaxed break-words text-sm text-[#E6ECEF]">
+                             <p className="leading-relaxed break-words text-sm text-foreground">
                                  <b className="font-semibold text-xs mr-1.5" style={{ color: msg.userColor || 'inherit' }}>{msg.user}:</b>
                                  <span className="text-sm">
                                     {msg.replyingTo && <span className="text-primary font-semibold mr-1">@{msg.replyingTo}</span>}
@@ -567,11 +569,11 @@ export const ChatPanel = ({
                     value={newMessage}
                     onChange={(e) => setNewMessage(e.target.value)}
                     rows={1}
-                    className='flex-grow resize-none max-h-24 px-4 pr-12 py-3 min-h-11 rounded-full bg-[#0f1113] text-white placeholder:text-[#7d8488] border-none focus-visible:ring-2 focus-visible:ring-offset-0 focus-visible:ring-[#E43F3F]/30'
+                    className='flex-grow resize-none max-h-24 px-4 pr-12 py-3 min-h-11 rounded-full bg-muted text-foreground placeholder:text-muted-foreground border-transparent focus-visible:ring-2 focus-visible:ring-offset-0 focus-visible:ring-primary/30'
                 />
                 <Popover>
                     <PopoverTrigger asChild>
-                         <Button variant="ghost" size="icon" type="button" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full text-muted-foreground hover:text-white">
+                         <Button variant="ghost" size="icon" type="button" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full text-muted-foreground hover:text-foreground">
                             <Smile className="h-5 w-5" />
                         </Button>
                     </PopoverTrigger>
@@ -588,7 +590,7 @@ export const ChatPanel = ({
                      </PopoverContent>
                 </Popover>
              </div>
-             <Button type="submit" size="icon" disabled={!newMessage.trim()} className="rounded-full flex-shrink-0 h-11 w-11 bg-[#E43F3F] hover:bg-[#E43F3F]/90 active:scale-105 transition-transform">
+             <Button type="submit" size="icon" disabled={!newMessage.trim()} className="rounded-full flex-shrink-0 h-11 w-11 bg-primary hover:bg-primary/90 active:scale-105 transition-transform">
                 <Send className="h-5 w-5" />
             </Button>
           </form>
