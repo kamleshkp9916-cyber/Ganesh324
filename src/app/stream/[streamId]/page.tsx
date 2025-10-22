@@ -618,6 +618,7 @@ const StreamPage = () => {
     const { user } = useAuth();
     const { toast } = useToast();
     const { minimizedStream, minimizeStream, closeMinimizedStream, isMinimized } = useMiniPlayer();
+    const inlineAuctionCardRefs = useRef<Record<string, HTMLDivElement | null>>({});
     
     const [isReportOpen, setIsReportOpen] = useState(false);
     const [pinnedMessages, setPinnedMessages] = useState<any[]>(mockAdminOffers.map(o => ({...o, type: 'offer', id: o.title })));
@@ -704,7 +705,6 @@ const StreamPage = () => {
     const videoRef = useRef<HTMLVideoElement>(null);
     const playerRef = useRef<HTMLDivElement>(null);
     const progressContainerRef = useRef<HTMLDivElement>(null);
-    const inlineAuctionCardRefs = useRef<Record<string, HTMLDivElement | null>>({});
     
     const [isPaused, setIsPaused] = useState(true);
     const [isMuted, setIsMuted] = useState(true);
@@ -1121,10 +1121,6 @@ const StreamPage = () => {
                 }} />
             </Dialog>
             
-            <Dialog open={isSuperChatOpen} onOpenChange={setIsSuperChatOpen}>
-                <SuperChatDialog walletBalance={walletBalance} handlers={handlers} onSuperChatClick={() => handleAuthAction(() => setIsSuperChatOpen(true))} />
-            </Dialog>
-
              <div className={cn("bg-background text-foreground", isMobile ? 'flex flex-col h-dvh' : 'h-screen')}>
                  {isMobile === undefined ? (
                     <div className="flex h-screen items-center justify-center">
@@ -1735,9 +1731,14 @@ const ChatPanel = ({
                      </PopoverContent>
                 </Popover>
              </div>
-             <Button type="button" variant="ghost" size="icon" className="rounded-full flex-shrink-0 h-11 w-11 text-muted-foreground hover:text-foreground" onClick={handlers.onSuperChatClick}>
-                 <DollarSign className="h-5 w-5"/>
-             </Button>
+             <Dialog>
+                <DialogTrigger asChild>
+                    <Button type="button" variant="ghost" size="icon" className="rounded-full flex-shrink-0 h-11 w-11 text-muted-foreground hover:text-foreground" onClick={handlers.onSuperChatClick}>
+                        <DollarSign className="h-5 w-5"/>
+                    </Button>
+                </DialogTrigger>
+                <SuperChatDialog walletBalance={walletBalance} handlers={handlers} onSuperChatClick={() => handlers.handleAuthAction(() => {})} />
+             </Dialog>
              <Button type="submit" size="icon" disabled={!newMessage.trim()} className="rounded-full flex-shrink-0 h-11 w-11 bg-primary hover:bg-primary/90 active:scale-105 transition-transform">
                 <Send className="h-5 w-5" />
             </Button>
@@ -1747,4 +1748,5 @@ const ChatPanel = ({
   );
 };
 export default StreamPage;
+
 
