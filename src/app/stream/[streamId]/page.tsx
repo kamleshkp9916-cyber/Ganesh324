@@ -1252,7 +1252,7 @@ return (
                 handlers={handlers}
                 onClose={() => {}}
                 walletBalance={walletBalance}
-                onSuperChatClick={() => handlers.handleAuthAction(() => setIsSuperChatOpen(true))}
+                onSuperChatClick={() => setIsSuperChatOpen(true)}
                 inlineAuctionCardRefs={props.inlineAuctionCardRefs}
             />
         </aside>
@@ -1398,7 +1398,7 @@ const SuperChatMessage = ({ msg }: { msg: any }) => (
     </div>
 );
 
-const SuperChatDialog = ({ walletBalance, handlers, onSuperChatClick }: { walletBalance?: number, handlers: any, onSuperChatClick: () => void }) => {
+const SuperChatDialog = ({ walletBalance, handlers, isSuperChatOpen, setIsSuperChatOpen }: { walletBalance?: number, handlers: any, isSuperChatOpen: boolean, setIsSuperChatOpen: (open: boolean) => void }) => {
     const [amount, setAmount] = useState(50);
     const [message, setMessage] = useState('');
     const [paymentMethod, setPaymentMethod] = useState('wallet');
@@ -1414,48 +1414,52 @@ const SuperChatDialog = ({ walletBalance, handlers, onSuperChatClick }: { wallet
         }
         handlers.handleNewMessageSubmit({ text: message, amount });
         handlers.toast({ title: 'Super Chat Sent!', description: `You donated ₹${amount}` });
-        document.getElementById('closeSuperChatDialog')?.click();
+        setIsSuperChatOpen(false);
+        setMessage('');
+        setAmount(50);
     };
 
     return (
-        <DialogContent>
-            <DialogHeader>
-                <DialogTitle>Send a Super Chat</DialogTitle>
-                <DialogDescription>Highlight your message and support the creator!</DialogDescription>
-            </DialogHeader>
-            <div className="py-4 space-y-4">
-                <div className="text-center">
-                    <p className="text-4xl font-bold">₹{amount}</p>
+        <Dialog open={isSuperChatOpen} onOpenChange={setIsSuperChatOpen}>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>Send a Super Chat</DialogTitle>
+                    <DialogDescription>Highlight your message and support the creator!</DialogDescription>
+                </DialogHeader>
+                <div className="py-4 space-y-4">
+                    <div className="text-center">
+                        <p className="text-4xl font-bold">₹{amount}</p>
+                    </div>
+                    <Slider defaultValue={[50]} value={[amount]} max={5000} step={10} onValueChange={(value) => setAmount(value[0])} />
+                    <div className="grid grid-cols-4 gap-2">
+                        {[50, 100, 250, 500].map(val => (
+                            <Button key={val} variant="outline" onClick={() => setAmount(val)}>₹{val}</Button>
+                        ))}
+                    </div>
+                    <Textarea placeholder="Your highlighted message..." value={message} onChange={(e) => setMessage(e.target.value)} />
+                    <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod} className="flex gap-4 pt-2">
+                        <Label htmlFor="pay-wallet" className="flex-1 flex items-center gap-2 p-3 border rounded-md cursor-pointer has-[:checked]:border-primary has-[:checked]:bg-primary/10">
+                            <RadioGroupItem value="wallet" id="pay-wallet" />
+                            <Wallet className="w-5 h-5"/>
+                            <div>
+                              Wallet
+                              <span className="text-xs text-muted-foreground block">Bal: ₹{typeof walletBalance === 'number' ? walletBalance.toFixed(2) : '0.00'}</span>
+                            </div>
+                        </Label>
+                        <Label htmlFor="pay-upi" className="flex-1 flex items-center gap-2 p-3 border rounded-md cursor-pointer has-[:checked]:border-primary has-[:checked]:bg-primary/10">
+                            <RadioGroupItem value="upi" id="pay-upi" />
+                            <Image src="https://upload.wikimedia.org/wikipedia/commons/e/e1/UPI-Logo-vector.svg" alt="UPI" width={24} height={24} /> UPI
+                        </Label>
+                    </RadioGroup>
                 </div>
-                <Slider defaultValue={[50]} value={[amount]} max={5000} step={10} onValueChange={(value) => setAmount(value[0])} />
-                <div className="grid grid-cols-4 gap-2">
-                    {[50, 100, 250, 500].map(val => (
-                        <Button key={val} variant="outline" onClick={() => setAmount(val)}>₹{val}</Button>
-                    ))}
-                </div>
-                <Textarea placeholder="Your highlighted message..." value={message} onChange={(e) => setMessage(e.target.value)} />
-                <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod} className="flex gap-4 pt-2">
-                    <Label htmlFor="pay-wallet" className="flex-1 flex items-center gap-2 p-3 border rounded-md cursor-pointer has-[:checked]:border-primary has-[:checked]:bg-primary/10">
-                        <RadioGroupItem value="wallet" id="pay-wallet" />
-                        <Wallet className="w-5 h-5"/>
-                        <div>
-                          Wallet
-                          <span className="text-xs text-muted-foreground block">Bal: ₹{typeof walletBalance === 'number' ? walletBalance.toFixed(2) : '0.00'}</span>
-                        </div>
-                    </Label>
-                    <Label htmlFor="pay-upi" className="flex-1 flex items-center gap-2 p-3 border rounded-md cursor-pointer has-[:checked]:border-primary has-[:checked]:bg-primary/10">
-                        <RadioGroupItem value="upi" id="pay-upi" />
-                        <Image src="https://upload.wikimedia.org/wikipedia/commons/e/e1/UPI-Logo-vector.svg" alt="UPI" width={24} height={24} /> UPI
-                    </Label>
-                </RadioGroup>
-            </div>
-            <DialogFooter>
-                <DialogClose asChild>
-                    <Button type="button" variant="ghost" id="closeSuperChatDialog">Cancel</Button>
-                </DialogClose>
-                <Button onClick={handleSendSuperChat} disabled={!message.trim()}>Send Super Chat for ₹{amount}</Button>
-            </DialogFooter>
-        </DialogContent>
+                <DialogFooter>
+                    <DialogClose asChild>
+                        <Button type="button" variant="ghost">Cancel</Button>
+                    </DialogClose>
+                    <Button onClick={handleSendSuperChat} disabled={!message.trim()}>Send Super Chat for ₹{amount}</Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
     );
 };
 
@@ -1470,7 +1474,7 @@ const ChatMessage = ({ msg, handlers, seller }: { msg: any, handlers: any, selle
 
     return (
         <div className="flex items-start gap-3 w-full group py-0.5 animate-message-in">
-             <Avatar className="h-9 w-9 mt-0.5">
+             <Avatar className="h-6 w-6 mt-0.5">
                 <AvatarImage src={msg.avatar} />
                 <AvatarFallback className="bg-gradient-to-br from-red-500 to-yellow-500 text-white font-bold text-[10px]">
                      {msg.user ? msg.user.charAt(0) : 'S'}
@@ -1513,25 +1517,15 @@ const ChatPanel = ({
   seller,
   chatMessages,
   pinnedMessages,
-  activeAuction,
-  auctionTime,
-  highestBid,
-  totalBids,
   walletBalance,
   handlers,
-  inlineAuctionCardRefs,
   onClose,
 }: {
   seller: any;
   chatMessages: any[];
   pinnedMessages: any[];
-  activeAuction: any;
-  auctionTime: number | null;
-  highestBid: number;
-  totalBids: number;
   walletBalance: number;
   handlers: any;
-  inlineAuctionCardRefs: React.MutableRefObject<Record<string, HTMLDivElement | null>>;
   onClose: () => void;
 }) => {
   const [newMessage, setNewMessage] = useState("");
@@ -1642,11 +1636,11 @@ const ChatPanel = ({
                  <DropdownMenuItem onSelect={handlers.onReportStream}>
                     <Flag className="mr-2 h-4 w-4" /> Report Stream
                 </DropdownMenuItem>
-                <FeedbackDialog>
-                    <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                 <FeedbackDialog>
+                    <DropdownMenuItem onSelect={(e) => handlers.handleAuthAction(() => e.preventDefault())}>
                         <MessageCircle className="mr-2 h-4 w-4" />Feedback
                     </DropdownMenuItem>
-                </FeedbackDialog>
+                 </FeedbackDialog>
                 <DropdownMenuItem>
                     <LifeBuoy className="mr-2 h-4 w-4" />Help
                 </DropdownMenuItem>
@@ -1733,11 +1727,11 @@ const ChatPanel = ({
              </div>
              <Dialog>
                 <DialogTrigger asChild>
-                    <Button type="button" variant="ghost" size="icon" className="rounded-full flex-shrink-0 h-11 w-11 text-muted-foreground hover:text-foreground" onClick={handlers.onSuperChatClick}>
+                     <Button type="button" variant="ghost" size="icon" className="rounded-full flex-shrink-0 h-11 w-11 text-muted-foreground hover:text-foreground">
                         <DollarSign className="h-5 w-5"/>
                     </Button>
                 </DialogTrigger>
-                <SuperChatDialog walletBalance={walletBalance} handlers={handlers} onSuperChatClick={() => handlers.handleAuthAction(() => {})} />
+                <SuperChatDialog walletBalance={walletBalance} handlers={handlers} onSuperChatClick={() => {}} />
              </Dialog>
              <Button type="submit" size="icon" disabled={!newMessage.trim()} className="rounded-full flex-shrink-0 h-11 w-11 bg-primary hover:bg-primary/90 active:scale-105 transition-transform">
                 <Send className="h-5 w-5" />
@@ -1747,6 +1741,8 @@ const ChatPanel = ({
     </div>
   );
 };
+
 export default StreamPage;
+
 
 
