@@ -639,55 +639,41 @@ function FeedPageContent() {
             setMainTab('feed');
         }
         
-        if (tabFromUrl === 'messages') {
-            const convos = await getConversations(user!.uid);
+        if (tabFromUrl === 'messages' && user && userData) {
+            const convos = await getConversations(user.uid);
+            let allConvos = [...convos];
+            let convoToSelect: Conversation | null = null;
+
             const preselectUserId = searchParams.get('userId');
             const preselectUserName = searchParams.get('userName');
-            
-            let convoToSelect: Conversation | null = null;
-            let allConvos = [...convos];
 
-            if (preselectUserId && user && userData) {
-                const otherUser: UserData | null = await getUserByDisplayName(preselectUserName || '');
+            if (preselectUserId) {
+                const existingConvo = allConvos.find(c => c.userId === preselectUserId);
 
-                if (otherUser) {
-                    const conversationId = await getOrCreateConversationFlow(user.uid, preselectUserId, userData, otherUser);
-                    const existingConvo = allConvos.find(c => c.conversationId === conversationId);
+                if (existingConvo) {
+                    convoToSelect = existingConvo;
+                } else {
+                    const otherUser: UserData | null = await getUserByDisplayName(preselectUserName || '') || {
+                      uid: preselectUserId,
+                      displayName: preselectUserName || 'New Chat',
+                      photoURL: `https://placehold.co/40x40.png?text=${(preselectUserName || 'U').charAt(0)}`,
+                      email: '', role: 'customer', followers: 0, following: 0, bio: '', location: '', phone: '', addresses: [], color: ''
+                    };
                     
-                    if (existingConvo) {
-                        convoToSelect = existingConvo;
-                    } else {
-                        const newConvo: Conversation = {
-                            conversationId,
-                            userId: preselectUserId,
-                            userName: preselectUserName || 'New Chat',
-                            avatarUrl: otherUser.photoURL || `https://placehold.co/40x40.png?text=${(preselectUserName || 'U').charAt(0)}`,
-                            lastMessage: 'New conversation started.',
-                            lastMessageTimestamp: 'now',
-                            unreadCount: 0,
-                        };
-                        allConvos = [newConvo, ...allConvos];
-                        convoToSelect = newConvo;
+                    if(otherUser) {
+                      const conversationId = await getOrCreateConversationFlow(user.uid, preselectUserId, userData, otherUser);
+                      const newConvo: Conversation = {
+                          conversationId,
+                          userId: preselectUserId,
+                          userName: preselectUserName || 'New Chat',
+                          avatarUrl: otherUser.photoURL || `https://placehold.co/40x40.png?text=${(preselectUserName || 'U').charAt(0)}`,
+                          lastMessage: 'New conversation started.',
+                          lastMessageTimestamp: 'now',
+                          unreadCount: 0,
+                      };
+                      allConvos.unshift(newConvo);
+                      convoToSelect = newConvo;
                     }
-                } else if (preselectUserName) {
-                    // Fallback for mock users or users not found in DB
-                     const conversationId = [user.uid, preselectUserId].sort().join('_');
-                     const existingConvo = allConvos.find(c => c.conversationId === conversationId);
-                     if (existingConvo) {
-                         convoToSelect = existingConvo;
-                     } else {
-                        const newConvo: Conversation = {
-                            conversationId,
-                            userId: preselectUserId,
-                            userName: preselectUserName,
-                            avatarUrl: `https://placehold.co/40x40.png?text=${preselectUserName.charAt(0)}`,
-                            lastMessage: 'New conversation started.',
-                            lastMessageTimestamp: 'now',
-                            unreadCount: 0,
-                        };
-                        allConvos = [newConvo, ...allConvos];
-                        convoToSelect = newConvo;
-                     }
                 }
             } else if (allConvos.length > 0) {
                 convoToSelect = allConvos[0];
@@ -695,7 +681,7 @@ function FeedPageContent() {
             
             setConversations(allConvos);
 
-            if (convoToSelect && !isMobile) {
+            if (convoToSelect) {
                 handleSelectConversation(convoToSelect);
             }
         }
@@ -704,6 +690,7 @@ function FeedPageContent() {
     if (isMounted && user) {
         handleTabChange();
     }
+// eslint-disable-next-line react-hooks/exhaustive-deps
 }, [searchParams, isMounted, user, userData, isMobile]);
 
 
@@ -1362,6 +1349,7 @@ export default function FeedPage() {
     
 
     
+
 
 
 
