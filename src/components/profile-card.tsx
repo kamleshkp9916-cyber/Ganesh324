@@ -319,7 +319,7 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
           
           <div className="relative z-10 text-foreground flex-grow text-center sm:text-left">
               <div className="flex flex-col sm:flex-row items-center justify-center sm:justify-start gap-2">
-                  <h2 className="text-2xl sm:text-3xl font-bold" style={{ color: profileData.color || 'inherit' }}>{displayName}</h2>
+                  <h2 className="text-2xl sm:text-3xl font-bold">{displayName}</h2>
                   {profileData.role === 'seller' && (
                       <Badge variant="secondary" className="flex items-center gap-1">
                           <Star className="h-3 w-3" />
