@@ -139,6 +139,7 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
   const [activeCategory, setActiveCategory] = useState("All");
   const [userOrders, setUserOrders] = useState<any[]>([]);
   const [isLoadingOrders, setIsLoadingOrders] = useState(false);
+  const router = useRouter();
   
   const loadFollowData = async () => {
     if (user) {
@@ -666,8 +667,8 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                           </div>
                           {isLoadingContent ? <ProductSkeletonGrid /> : (
                                   filteredProducts.length > 0 ? (
-                                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                                      {filteredProducts.map((product: any) => (
+                                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                                        {filteredProducts.map((product: any) => (
                                           <Link href={`/product/${product.id}`} key={product.id} className="group block">
                                                 <Card className="w-full overflow-hidden h-full flex flex-col">
                                                     <div className="relative aspect-square bg-muted">
@@ -873,3 +874,5 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
     </>
   );
 }
+
+    
