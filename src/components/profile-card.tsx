@@ -88,6 +88,8 @@ const mockUserPosts = [
         likes: 152,
         replies: 12,
         timestamp: '2 hours ago',
+        sellerName: 'FashionFinds',
+        avatarUrl: 'https://placehold.co/40x40.png'
     },
     {
         id: 'post2',
@@ -96,6 +98,8 @@ const mockUserPosts = [
         likes: 230,
         replies: 25,
         timestamp: '1 day ago',
+        sellerName: 'FashionFinds',
+        avatarUrl: 'https://placehold.co/40x40.png'
     },
      {
         id: 'post3',
@@ -104,6 +108,8 @@ const mockUserPosts = [
         likes: 98,
         replies: 5,
         timestamp: '3 days ago',
+        sellerName: 'ArtisanAlley',
+        avatarUrl: 'https://placehold.co/40x40.png'
     },
 ];
 
@@ -743,36 +749,36 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                                    <Skeleton className="h-64 w-full" />
                                </div>
                            ) : userPosts.length > 0 ? (
-                               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                   {userPosts.map(post => (
-                                       <Card key={post.id} className="overflow-hidden flex flex-col">
-                                           <div className="p-4 flex-grow">
-                                                <div className="flex items-center gap-3 mb-3">
-                                                    <Avatar className="h-10 w-10">
-                                                        <AvatarImage src={post.avatarUrl} alt={post.sellerName} />
-                                                        <AvatarFallback>{post.sellerName.charAt(0)}</AvatarFallback>
-                                                    </Avatar>
-                                                    <div>
-                                                        <p className="font-semibold text-primary">{post.sellerName}</p>
-                                                        <p className="text-xs text-muted-foreground">{post.timestamp}</p>
-                                                    </div>
-                                                </div>
-                                               <p className="text-sm text-muted-foreground line-clamp-4 mb-2">{post.content}</p>
-                                               {post.images && post.images.length > 0 &&
-                                                  <div className="w-full aspect-video bg-muted rounded-lg overflow-hidden mt-auto">
-                                                      <Image src={post.images[0].url} alt="Feed item" width={400} height={300} className="w-full h-full object-cover" />
-                                                  </div>
-                                               }
-                                           </div>
-                                           <div className="px-4 pb-3 mt-auto flex justify-between items-center text-sm text-muted-foreground border-t pt-3">
-                                               <div className="flex items-center gap-4">
-                                                   <span className="flex items-center gap-1.5"><Heart className="w-4 h-4" />{post.likes || 0}</span>
-                                                   <span className="flex items-center gap-1.5"><MessageSquare className="w-4 h-4" />{post.replies || 0}</span>
-                                               </div>
-                                           </div>
-                                       </Card>
-                                   ))}
-                               </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                {mockUserPosts.map(post => (
+                                <Card key={post.id} className="overflow-hidden flex flex-col">
+                                    <CardContent className="p-4 flex-grow flex flex-col">
+                                        <div className="flex items-center gap-3 mb-3">
+                                            <Avatar className="h-10 w-10">
+                                                <AvatarImage src={post.avatarUrl} alt={post.sellerName} />
+                                                <AvatarFallback>{post.sellerName?.charAt(0)}</AvatarFallback>
+                                            </Avatar>
+                                            <div>
+                                                <p className="font-semibold text-primary">{post.sellerName}</p>
+                                                <p className="text-xs text-muted-foreground">{post.timestamp}</p>
+                                            </div>
+                                        </div>
+                                        <p className="text-sm text-muted-foreground line-clamp-4 mb-2 flex-grow">{post.content}</p>
+                                        {post.images && post.images.length > 0 &&
+                                            <div className="w-full aspect-video bg-muted rounded-lg overflow-hidden mt-auto">
+                                                <Image src={post.images[0].url} alt="Feed item" width={400} height={300} className="w-full h-full object-cover" />
+                                            </div>
+                                        }
+                                    </CardContent>
+                                    <div className="px-4 pb-3 flex justify-between items-center text-sm text-muted-foreground border-t pt-3">
+                                        <div className="flex items-center gap-4">
+                                            <span className="flex items-center gap-1.5"><Heart className="w-4 h-4" />{post.likes || 0}</span>
+                                            <span className="flex items-center gap-1.5"><MessageSquare className="w-4 h-4" />{post.replies || 0}</span>
+                                        </div>
+                                    </div>
+                                </Card>
+                                ))}
+                            </div>
                            ) : (
                                 <Card className="text-center py-12 text-muted-foreground flex flex-col items-center gap-4">
                                    <h3 className="text-xl font-semibold">No Posts Yet</h3>
@@ -904,5 +910,3 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
     </>
   );
 }
-
-    
