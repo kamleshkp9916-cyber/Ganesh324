@@ -649,7 +649,6 @@ function FeedPageContent() {
 
             if (preselectUserId) {
                 const existingConvo = allConvos.find(c => c.userId === preselectUserId);
-
                 if (existingConvo) {
                     convoToSelect = existingConvo;
                 } else {
@@ -671,7 +670,7 @@ function FeedPageContent() {
                           lastMessageTimestamp: 'now',
                           unreadCount: 0,
                       };
-                      allConvos.unshift(newConvo);
+                      allConvos = [newConvo, ...allConvos];
                       convoToSelect = newConvo;
                     }
                 }
@@ -1349,6 +1348,7 @@ export default function FeedPage() {
     
 
     
+
 
 
 
