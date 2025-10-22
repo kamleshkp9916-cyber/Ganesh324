@@ -270,7 +270,7 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
         sellerName: profileData.displayName,
         avatarUrl: profileData.photoURL,
         timestamp: formatDistanceToNow(new Date(), { addSuffix: true }),
-        content: `Welcome to my page! Check out our latest products and live streams. #welcome #${profileData.displayName.toLowerCase().replace(/\\s+/g, '')}`,
+        content: `Welcome to my page! Check out our latest products and live streams. #welcome #${profileData.displayName.toLowerCase().replace(/\s+/g, '')}`,
         images: [{ url: 'https://placehold.co/600x400.png' }],
         likes: 15,
         replies: 2,
@@ -327,7 +327,7 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
 
   return (
     <>
-      <div className="p-4 sm:p-6 flex flex-col sm:flex-row items-center gap-4 sm:gap-6 relative bg-card">
+      <div className="p-4 sm:p-6 flex items-center gap-4 sm:gap-6 relative bg-card">
           <div className="relative z-10 flex-shrink-0">
               <Avatar className="h-20 w-20 sm:h-24 sm:w-24 border-4 border-background shadow-lg">
                   <AvatarImage src={profileImage || profileData?.photoURL || `https://placehold.co/128x128.png?text=${displayName.charAt(0)}`} alt={displayName} />
@@ -335,8 +335,8 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
               </Avatar>
           </div>
           
-          <div className="relative z-10 flex flex-col items-center sm:items-start text-foreground flex-grow text-center sm:text-left">
-              <div className="flex flex-col sm:flex-row items-center justify-center sm:justify-start gap-2">
+          <div className="relative z-10 flex flex-col items-start text-foreground flex-grow text-left">
+              <div className="flex items-center gap-2">
                   <h2 className="text-2xl sm:text-3xl font-bold">{displayName}</h2>
                   {profileData.role === 'seller' && (
                       <Badge variant="secondary" className="flex items-center gap-1">
@@ -347,10 +347,10 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
               </div>
               {isOwnProfile && <p className="text-sm text-muted-foreground">{profileData.email}</p>}
               
-              <div className="flex justify-center sm:justify-start gap-6 sm:gap-8 pt-2 sm:pt-4 text-left">
+              <div className="flex gap-6 pt-2 sm:pt-4 text-left">
                   <Dialog>
                       <DialogTrigger asChild>
-                          <div className="text-center cursor-pointer">
+                          <div className="text-left cursor-pointer">
                               <p className="text-xl sm:text-2xl font-bold">{followingList.length}</p>
                               <p className="text-xs sm:text-sm text-muted-foreground">Following</p>
                           </div>
@@ -425,7 +425,7 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
               </div>
 
                 {!isOwnProfile && profileData.role === 'seller' && (
-                    <div className="flex justify-center sm:justify-start gap-2 mt-4">
+                    <div className="flex gap-2 mt-4">
                          <Button onClick={handleFollowToggle} variant={isFollowed ? "outline" : "default"}>
                             {isFollowed ? <UserCheck className="mr-2 h-4 w-4" /> : <UserPlus className="mr-2 h-4 w-4" />}
                             {isFollowed ? "Following" : "Follow"}
