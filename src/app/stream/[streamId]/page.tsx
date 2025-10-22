@@ -1756,14 +1756,7 @@ const ChatPanel = ({
                      </PopoverContent>
                 </Popover>
              </div>
-             <Dialog open={isSuperChatOpen} onOpenChange={setIsSuperChatOpen}>
-                 <DialogTrigger asChild>
-                    <Button type="button" variant="ghost" size="icon" className="rounded-full flex-shrink-0 h-11 w-11 text-muted-foreground hover:text-foreground" onClick={() => handlers.handleAuthAction(() => setIsSuperChatOpen(true))}>
-                        <DollarSign className="h-5 w-5"/>
-                    </Button>
-                </DialogTrigger>
-                 <SuperChatDialog walletBalance={walletBalance} handlers={handlers} isSuperChatOpen={isSuperChatOpen} setIsSuperChatOpen={setIsSuperChatOpen} />
-             </Dialog>
+             <SuperChatDialog walletBalance={walletBalance} handlers={handlers} isSuperChatOpen={isSuperChatOpen} setIsSuperChatOpen={setIsSuperChatOpen} />
              <Button type="submit" size="icon" disabled={!newMessage.trim()} className="rounded-full flex-shrink-0 h-11 w-11 bg-primary hover:bg-primary/90 active:scale-105 transition-transform">
                 <Send className="h-5 w-5" />
             </Button>
@@ -1774,4 +1767,5 @@ const ChatPanel = ({
 };
 
 export default StreamPage;
+
 
