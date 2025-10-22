@@ -316,7 +316,7 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
     setWishlist(getWishlist().map(p => p.id));
     toast({
         title: "Added to Wishlist!",
-        description: `${''}${product.name} has been added to your wishlist.`
+        description: `${product.name} has been added to your wishlist.`
     });
   };
   
@@ -742,51 +742,51 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                       </TabsContent>
 
                       <TabsContent value="posts" className="mt-4">
-                          {isLoadingContent ? (
-                              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                  <Skeleton className="h-64 w-full" />
-                                  <Skeleton className="h-64 w-full" />
-                                  <Skeleton className="h-64 w-full" />
-                              </div>
-                          ) : mockUserPosts.length > 0 ? (
-                                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                                    {mockUserPosts.map(post => (
-                                        <Card key={post.id} className="overflow-hidden flex flex-col">
-                                            <CardHeader className="p-4">
-                                                <div className="flex items-center gap-3 mb-3">
-                                                    <Avatar className="h-10 w-10">
-                                                        <AvatarImage src={post.avatarUrl} alt={post.sellerName} />
-                                                        <AvatarFallback>{post.sellerName?.charAt(0)}</AvatarFallback>
-                                                    </Avatar>
-                                                    <div>
-                                                        <p className="font-semibold text-primary">{post.sellerName}</p>
-                                                        <p className="text-xs text-muted-foreground">{post.timestamp}</p>
-                                                    </div>
+                        {isLoadingContent ? (
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                <Skeleton className="h-64 w-full" />
+                                <Skeleton className="h-64 w-full" />
+                                <Skeleton className="h-64 w-full" />
+                            </div>
+                        ) : mockUserPosts.filter(p => p.sellerName === displayName).length > 0 ? (
+                            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                                {mockUserPosts.filter(p => p.sellerName === displayName).map(post => (
+                                    <Card key={post.id} className="overflow-hidden flex flex-col">
+                                        <CardHeader className="p-4">
+                                            <div className="flex items-center gap-3 mb-3">
+                                                <Avatar className="h-10 w-10">
+                                                    <AvatarImage src={post.avatarUrl} alt={post.sellerName} />
+                                                    <AvatarFallback>{post.sellerName?.charAt(0)}</AvatarFallback>
+                                                </Avatar>
+                                                <div>
+                                                    <p className="font-semibold text-primary">{post.sellerName}</p>
+                                                    <p className="text-xs text-muted-foreground">{post.timestamp}</p>
                                                 </div>
-                                            </CardHeader>
-                                            <CardContent className="p-4 pt-0">
-                                                <p className="text-sm text-muted-foreground mb-2">{post.content}</p>
-                                                {post.images && post.images.length > 0 && (
-                                                    <div className="w-full aspect-video bg-muted rounded-lg overflow-hidden mt-2">
-                                                        <Image src={post.images[0].url} alt="Feed item" width={400} height={300} className="w-full h-full object-cover" />
-                                                    </div>
-                                                )}
-                                            </CardContent>
-                                            <CardFooter className="px-4 pb-3 flex justify-between items-center text-sm text-muted-foreground border-t mt-auto pt-3">
-                                                <div className="flex items-center gap-4">
-                                                    <span className="flex items-center gap-1.5"><Heart className="w-4 h-4" />{post.likes || 0}</span>
-                                                    <span className="flex items-center gap-1.5"><MessageSquare className="w-4 h-4" />{post.replies || 0}</span>
+                                            </div>
+                                        </CardHeader>
+                                        <CardContent className="p-4 pt-0 flex-grow">
+                                            <p className="text-sm text-muted-foreground mb-2">{post.content}</p>
+                                            {post.images && post.images.length > 0 && (
+                                                <div className="w-full aspect-video bg-muted rounded-lg overflow-hidden mt-2">
+                                                    <Image src={post.images[0].url} alt="Feed item" width={400} height={300} className="w-full h-full object-cover" />
                                                 </div>
-                                            </CardFooter>
-                                        </Card>
-                                   ))}
-                               </div>
-                           ) : (
-                                <Card className="text-center py-12 text-muted-foreground flex flex-col items-center gap-4">
-                                   <h3 className="text-xl font-semibold">No Posts Yet</h3>
-                                   <p>{isOwnProfile ? "You haven't posted anything yet." : "This seller hasn't posted anything yet."}</p>
-                               </Card>
-                           )}
+                                            )}
+                                        </CardContent>
+                                        <CardFooter className="px-4 pb-3 flex justify-between items-center text-sm text-muted-foreground border-t mt-auto pt-3">
+                                            <div className="flex items-center gap-4">
+                                                <span className="flex items-center gap-1.5"><Heart className="w-4 h-4" />{post.likes || 0}</span>
+                                                <span className="flex items-center gap-1.5"><MessageSquare className="w-4 h-4" />{post.replies || 0}</span>
+                                            </div>
+                                        </CardFooter>
+                                    </Card>
+                                ))}
+                            </div>
+                        ) : (
+                             <Card className="text-center py-12 text-muted-foreground flex flex-col items-center gap-4">
+                                <h3 className="text-xl font-semibold">No Posts Yet</h3>
+                                <p>{isOwnProfile ? "You haven't posted anything yet." : "This seller hasn't posted anything yet."}</p>
+                            </Card>
+                         )}
                       </TabsContent>
 
                       <TabsContent value="recent" className="mt-4">
