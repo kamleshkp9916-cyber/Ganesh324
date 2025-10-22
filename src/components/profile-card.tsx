@@ -742,11 +742,21 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                                    <Skeleton className="h-64 w-full" />
                                    <Skeleton className="h-64 w-full" />
                                </div>
-                           ) : mockUserPosts.length > 0 ? (
+                           ) : userPosts.length > 0 ? (
                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                   {mockUserPosts.map(post => (
+                                   {userPosts.map(post => (
                                        <Card key={post.id} className="overflow-hidden flex flex-col">
                                            <div className="p-4 flex-grow">
+                                                <div className="flex items-center gap-3 mb-3">
+                                                    <Avatar className="h-10 w-10">
+                                                        <AvatarImage src={post.avatarUrl} alt={post.sellerName} />
+                                                        <AvatarFallback>{post.sellerName.charAt(0)}</AvatarFallback>
+                                                    </Avatar>
+                                                    <div>
+                                                        <p className="font-semibold text-primary">{post.sellerName}</p>
+                                                        <p className="text-xs text-muted-foreground">{post.timestamp}</p>
+                                                    </div>
+                                                </div>
                                                <p className="text-sm text-muted-foreground line-clamp-4 mb-2">{post.content}</p>
                                                {post.images && post.images.length > 0 &&
                                                   <div className="w-full aspect-video bg-muted rounded-lg overflow-hidden mt-auto">
@@ -759,7 +769,6 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                                                    <span className="flex items-center gap-1.5"><Heart className="w-4 h-4" />{post.likes || 0}</span>
                                                    <span className="flex items-center gap-1.5"><MessageSquare className="w-4 h-4" />{post.replies || 0}</span>
                                                </div>
-                                               <span className="text-xs">{post.timestamp}</span>
                                            </div>
                                        </Card>
                                    ))}
