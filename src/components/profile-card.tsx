@@ -296,8 +296,8 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
     }, [profileData.uid]);
 
   const filteredUserPosts = useMemo(() => {
-    return mockUserPosts.filter(p => p.sellerName === displayName);
-  }, [displayName]);
+    return userPosts;
+  }, [userPosts]);
 
 
   const filteredRecentlyViewed = useMemo(() => {
@@ -585,16 +585,16 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                             )}
                             <div>
                                 <h3 className="text-lg font-semibold mb-4">Past Streams</h3>
-                                <div className="md:hidden space-y-4">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                      {mockPastStreams.map(stream => (
                                         <div key={stream.id} className="group block" onClick={() => handleAuthAction(() => router.push(`/stream/${stream.id}?isPast=true`))}>
-                                            <Card className="overflow-hidden bg-card border-border/50 shadow-sm transition-all hover:shadow-md">
+                                            <Card className="overflow-hidden bg-card border-border/50 shadow-sm transition-all hover:shadow-md cursor-pointer">
                                                 <div className="relative aspect-video bg-muted overflow-hidden">
                                                     <Image 
                                                         src={stream.thumbnailUrl} 
                                                         alt={stream.title} 
                                                         fill
-                                                        sizes="100vw"
+                                                        sizes="(max-width: 768px) 50vw, 33vw"
                                                         className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-300"
                                                     />
                                                     <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors flex items-center justify-center">
@@ -612,39 +612,6 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                                             </Card>
                                         </div>
                                     ))}
-                                </div>
-                                <div className="hidden md:block">
-                                    <ScrollArea>
-                                        <div className="flex gap-4 pb-4">
-                                            {mockPastStreams.map(stream => (
-                                                <div key={stream.id} className="group block w-64 flex-shrink-0" onClick={() => handleAuthAction(() => router.push(`/stream/${stream.id}?isPast=true`))}>
-                                                    <Card className="overflow-hidden bg-card border-border/50 shadow-sm transition-all hover:shadow-md cursor-pointer">
-                                                        <div className="relative aspect-video bg-muted overflow-hidden">
-                                                            <Image 
-                                                                src={stream.thumbnailUrl} 
-                                                                alt={stream.title} 
-                                                                fill
-                                                                sizes="256px"
-                                                                className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-300"
-                                                            />
-                                                            <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors flex items-center justify-center">
-                                                                <Play className="h-12 w-12 text-white/70 group-hover:text-white group-hover:scale-110 transition-all" />
-                                                            </div>
-                                                            <div className="absolute bottom-2 right-2 bg-black/50 text-white text-xs font-semibold px-1.5 py-0.5 rounded-sm">{stream.duration}</div>
-                                                        </div>
-                                                        <div className="p-3">
-                                                            <h4 className="font-semibold text-sm truncate group-hover:text-primary transition-colors">{stream.title}</h4>
-                                                            <div className="flex justify-between items-center text-xs text-muted-foreground mt-1">
-                                                                <span>{stream.date}</span>
-                                                                <span>{stream.views} views</span>
-                                                            </div>
-                                                        </div>
-                                                    </Card>
-                                                </div>
-                                            ))}
-                                        </div>
-                                        <ScrollBar orientation="horizontal" />
-                                    </ScrollArea>
                                 </div>
                             </div>
                         </TabsContent>
@@ -748,16 +715,16 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                       </TabsContent>
 
                       <TabsContent value="posts" className="mt-4">
-                            <div className="space-y-4">
+                           <div className="space-y-4">
                                 {isLoadingContent ? (
                                     <>
                                         <Skeleton className="h-64 w-full rounded-lg" />
                                         <Skeleton className="h-64 w-full rounded-lg" />
                                     </>
                                 ) : filteredUserPosts.length > 0 ? (
-                                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         {filteredUserPosts.map(post => (
-                                            <Card key={post.id} className="overflow-hidden flex flex-col">
+                                             <Card key={post.id} className="overflow-hidden flex flex-col">
                                                 <CardHeader className="p-4">
                                                      <div className="flex items-center gap-3">
                                                         <Avatar className="h-10 w-10">
@@ -771,7 +738,7 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                                                     </div>
                                                 </CardHeader>
                                                 <CardContent className="p-4 pt-0 flex-grow">
-                                                    <p className="text-sm line-clamp-4 mb-2">{post.content}</p>
+                                                    <p className="text-sm line-clamp-3 mb-2">{post.content}</p>
                                                     {post.images && post.images.length > 0 && (
                                                         <div className="w-full aspect-video bg-muted rounded-lg overflow-hidden mt-2">
                                                             <Image src={post.images[0].url} alt="Feed item" width={400} height={300} className="w-full h-full object-cover" />
