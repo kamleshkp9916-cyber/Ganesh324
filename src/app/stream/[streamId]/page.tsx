@@ -123,7 +123,7 @@ import { useInView } from "react-intersection-observer";
 import { useMiniPlayer } from "@/context/MiniPlayerContext";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useIsMobile } from "@/hooks/use-is-mobile";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { format, formatDistanceToNow, isThisWeek, isThisYear, parseISO, parse } from 'date-fns';
 
@@ -611,7 +611,7 @@ const RelatedContent = ({ relatedStreams }: { relatedStreams: any[] }) => {
 };
 
 
-export default function StreamPage() {
+const StreamPage = () => {
     const router = useRouter();
     const params = useParams();
     const streamId = params.streamId as string;
@@ -704,6 +704,7 @@ export default function StreamPage() {
     const videoRef = useRef<HTMLVideoElement>(null);
     const playerRef = useRef<HTMLDivElement>(null);
     const progressContainerRef = useRef<HTMLDivElement>(null);
+    const inlineAuctionCardRefs = useRef<Record<string, HTMLDivElement | null>>({});
     
     const [isPaused, setIsPaused] = useState(true);
     const [isMuted, setIsMuted] = useState(true);
@@ -1071,8 +1072,8 @@ export default function StreamPage() {
     
     if (isMinimized(streamId)) {
         return (
-            <div className="flex h-screen items-center justify-center bg-black">
-                <div className="text-center text-white">
+            <div className="flex h-screen items-center justify-center bg-background">
+                <div className="text-center text-foreground">
                     <h1 className="text-2xl font-bold">Stream is minimized</h1>
                     <p className="text-muted-foreground">This stream is currently playing in the mini-player.</p>
                 </div>
@@ -1132,13 +1133,13 @@ export default function StreamPage() {
                      <MobileLayout {...{ router, videoRef, playerRef, handlePlayPause, handleShare, handleMinimize, handleToggleFullscreen, isPaused, seller, streamData, handleFollowToggle, isFollowingState, sellerProducts, handlers, relatedStreams, isChatOpen, setIsChatOpen, chatMessages, pinnedMessages, onClose: () => setIsChatOpen(false), handleAddToCart, handleBuyNow, mobileView, setMobileView, isMuted, setIsMuted, handleGoLive, handleSeek, isLive, formatTime, currentTime, duration, buffered, handleProgressClick, progressContainerRef, activeQuality, setActiveQuality, product, user, walletBalance, setIsSuperChatOpen }} />
                  ) : (
                     <DesktopLayout 
-                        {...{ router, videoRef, playerRef, handlePlayPause, handleShare, handleMinimize, handleToggleFullscreen, isPaused, seller, streamData, handleFollowToggle, isFollowingState, sellerProducts, handlers, relatedStreams, isChatOpen, setIsChatOpen, chatMessages, pinnedMessages, onClose: () => setIsChatOpen(false), handleAddToCart, handleBuyNow, mobileView, setMobileView, isMuted, setIsMuted, handleGoLive, handleSeek, isLive, formatTime, currentTime, duration, buffered, handleProgressClick, progressContainerRef, mainScrollRef, handleMainScroll, showGoToTop, scrollToTop, activeQuality, setActiveQuality, product, user, cartCount, walletBalance, setIsSuperChatOpen }}
+                        {...{ router, videoRef, playerRef, handlePlayPause, handleShare, handleMinimize, handleToggleFullscreen, isPaused, seller, streamData, handleFollowToggle, isFollowingState, sellerProducts, handlers, relatedStreams, isChatOpen, setIsChatOpen, chatMessages, pinnedMessages, onClose: () => setIsChatOpen(false), handleAddToCart, handleBuyNow, mobileView, setMobileView, isMuted, setIsMuted, handleGoLive, handleSeek, isLive, formatTime, currentTime, duration, buffered, handleProgressClick, progressContainerRef, mainScrollRef, handleMainScroll, showGoToTop, scrollToTop, activeQuality, setActiveQuality, product, user, cartCount, walletBalance, setIsSuperChatOpen, inlineAuctionCardRefs }}
                     />
                  )}
             </div>
         </React.Fragment>
     );
-}
+};
 
 const MemoizedStreamInfo = React.memo(StreamInfo);
 const MemoizedRelatedContent = React.memo(RelatedContent);
@@ -1254,7 +1255,8 @@ return (
                 handlers={handlers}
                 onClose={() => {}}
                 walletBalance={walletBalance}
-                onSuperChatClick={() => handlers.onAuthAction(() => setIsSuperChatOpen(true))}
+                onSuperChatClick={() => handlers.handleAuthAction(() => setIsSuperChatOpen(true))}
+                inlineAuctionCardRefs={props.inlineAuctionCardRefs}
             />
         </aside>
     </div>
@@ -1365,7 +1367,7 @@ const MobileLayout = React.memo(({ handlers, chatMessages, walletBalance, setIsS
                     </ScrollArea>
                 ) : (
                     <div className="h-full flex flex-col bg-background">
-                        <ChatPanel {...{...props, handlers, chatMessages}} onClose={() => props.setMobileView('stream')} />
+                        <ChatPanel {...{...props, handlers, chatMessages, walletBalance, setIsSuperChatOpen, inlineAuctionCardRefs: props.inlineAuctionCardRefs }} onClose={() => props.setMobileView('stream')} />
                     </div>
                 )}
             </div>
@@ -1470,8 +1472,8 @@ const ChatMessage = ({ msg, handlers, seller }: { msg: any, handlers: any, selle
     const handleDelete = () => handlers.onDeleteMessage(msg.id);
 
     return (
-        <div className="flex items-start gap-2 w-full group py-0.5 animate-message-in">
-             <Avatar className="h-6 w-6 mt-0.5">
+        <div className="flex items-start gap-3 w-full group py-0.5 animate-message-in">
+             <Avatar className="h-9 w-9 mt-0.5">
                 <AvatarImage src={msg.avatar} />
                 <AvatarFallback className="bg-gradient-to-br from-red-500 to-yellow-500 text-white font-bold text-[10px]">
                      {msg.user ? msg.user.charAt(0) : 'S'}
@@ -1484,14 +1486,14 @@ const ChatMessage = ({ msg, handlers, seller }: { msg: any, handlers: any, selle
                     </span>
                     {msg.isSeller && <Badge variant="outline" className="mr-1.5 border-yellow-400/50 text-yellow-400 h-4 text-[10px] px-1.5">Seller</Badge>}
                 </div>
-                 <div className="text-sm whitespace-pre-wrap break-words leading-snug text-foreground">
+                 <div className="text-sm whitespace-pre-wrap break-words leading-snug text-[#E6ECEF]">
                     {renderWithHashtagsAndLinks(msg.text)}
                  </div>
             </div>
             <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                     <button className="text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity p-1">
-                        <MoreHorizontal className="w-3 h-3" />
+                        <MoreHorizontal className="w-4 h-4" />
                     </button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
@@ -1582,7 +1584,7 @@ const ChatPanel = ({
 
   return (
     <div className='h-full flex flex-col bg-background'>
-      <header className="p-3 flex items-center justify-between z-10 flex-shrink-0 h-16 border-b sticky top-0 bg-background/80 backdrop-blur-sm">
+      <header className="p-3 flex items-center justify-between z-10 flex-shrink-0 h-16 border-b border-border sticky top-0 bg-background/80 backdrop-blur-sm">
         <h3 className="font-bold text-lg text-foreground">Live Chat</h3>
         <div className="flex items-center gap-1">
           <Popover>
@@ -1711,7 +1713,7 @@ const ChatPanel = ({
                     value={newMessage}
                     onChange={(e) => setNewMessage(e.target.value)}
                     rows={1}
-                    className='flex-grow resize-none max-h-24 px-4 pr-12 py-3 min-h-11 rounded-full bg-muted text-foreground placeholder:text-muted-foreground border-border/50 focus-visible:ring-2 focus-visible:ring-offset-0 focus-visible:ring-primary/30'
+                    className='flex-grow resize-none max-h-24 px-4 pr-12 py-3 min-h-11 rounded-full bg-muted text-foreground placeholder:text-muted-foreground border-transparent focus-visible:ring-2 focus-visible:ring-offset-0 focus-visible:ring-primary/30'
                 />
                 <Popover>
                     <PopoverTrigger asChild>
@@ -1743,3 +1745,6 @@ const ChatPanel = ({
     </div>
   );
 };
+export default StreamPage;
+
+    
