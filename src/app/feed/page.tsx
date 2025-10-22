@@ -126,7 +126,6 @@ import { MainSidebar } from '@/components/main-sidebar';
 import { SidebarProvider, useSidebar } from '@/components/ui/sidebar';
 import { ConversationList, ChatWindow, Conversation, Message } from '@/components/messaging/common';
 import { addToCart } from '@/lib/product-history';
-import { getOrCreateConversation as getOrCreateConversationFlow, getConversations } from '@/ai/flows/chat-flow';
 
 
 const liveSellers = [
@@ -170,8 +169,8 @@ const liveSellersData = [
 
 const mockConversations: Conversation[] = [
     { conversationId: '1', userId: "support", userName: "StreamCart Support", avatarUrl: "https://placehold.co/40x40/000000/FFFFFF?text=SC", lastMessage: "Yes, we can help with that!", lastMessageTimestamp: "10:30 AM", unreadCount: 1, isExecutive: true },
-    { conversationId: '2', userId: "FashionFinds", userName: "FashionFinds", avatarUrl: "https://placehold.co/40x40.png", lastMessage: "Awesome! Could you tell me a bit more about the lens?", lastMessageTimestamp: "10:01 AM", unreadCount: 0 },
-    { conversationId: '3', userId: "GadgetGuru", userName: "GadgetGuru", avatarUrl: "https://placehold.co/40x40.png", lastMessage: "Sure, what would you like to know?", lastMessageTimestamp: "Yesterday", unreadCount: 0 },
+    { conversationId: '2', userId: "fashionfinds-uid", userName: "FashionFinds", avatarUrl: "https://placehold.co/40x40.png", lastMessage: "Awesome! Could you tell me a bit more about the lens?", lastMessageTimestamp: "10:01 AM", unreadCount: 0 },
+    { conversationId: '3', userId: "gadgetguru-uid", userName: "GadgetGuru", avatarUrl: "https://placehold.co/40x40.png", lastMessage: "Sure, what would you like to know?", lastMessageTimestamp: "Yesterday", unreadCount: 0 },
 ];
 
 const mockMessages: Record<string, Message[]> = {
@@ -181,12 +180,12 @@ const mockMessages: Record<string, Message[]> = {
     { id: 3, senderId: 'customer', text: 'It is #ORD5896.', timestamp: '10:29 AM', status: 'read' },
     { id: 4, senderId: 'support', text: 'Thank you. One moment while I look that up for you.', timestamp: '10:30 AM' },
   ],
-  "FashionFinds": [
+  "fashionfinds-uid": [
     { id: 1, text: "Hey! I saw your stream and I'm interested in the vintage camera. Is it still available?", senderId: 'customer', timestamp: '10:00 AM', status: 'read' },
     { id: 2, text: "Hi there! Yes, it is. It's in great working condition.", senderId: 'seller', timestamp: '10:01 AM' },
     { id: 3, text: "Awesome! Could you tell me a bit more about the lens?", senderId: 'customer', timestamp: '10:01 AM', status: 'delivered' },
   ],
-  "GadgetGuru": [
+  "gadgetguru-uid": [
       { id: 1, text: "I have a question about the X-1 Drone.", senderId: 'customer', timestamp: 'Yesterday', status: 'read' },
       { id: 2, text: "Sure, what would you like to know?", senderId: 'seller', timestamp: 'Yesterday' },
   ]
@@ -631,66 +630,55 @@ function FeedPageContent() {
   }, [loadFollowData, loadSavedPosts]);
 
  useEffect(() => {
-    const handleTabChange = async () => {
-        const tabFromUrl = searchParams.get('tab');
-        if (tabFromUrl && ['feed', 'saves', 'messages'].includes(tabFromUrl)) {
-            setMainTab(tabFromUrl);
-        } else if (pathname === '/feed') {
-            setMainTab('feed');
-        }
+    const handleTabChange = () => {
+      const tabFromUrl = searchParams.get('tab');
+      if (tabFromUrl && ['feed', 'saves', 'messages'].includes(tabFromUrl)) {
+        setMainTab(tabFromUrl);
+      } else if (pathname === '/feed') {
+        setMainTab('feed');
+      }
+
+      if (tabFromUrl === 'messages' && user && userData) {
+        let allConvos = [...mockConversations];
+        let convoToSelect: Conversation | null = null;
         
-        if (tabFromUrl === 'messages' && user && userData) {
-            const convos = await getConversations(user.uid);
-            let allConvos = [...convos];
-            let convoToSelect: Conversation | null = null;
+        const preselectUserId = searchParams.get('userId');
+        const preselectUserName = searchParams.get('userName');
 
-            const preselectUserId = searchParams.get('userId');
-            const preselectUserName = searchParams.get('userName');
-
-            if (preselectUserId) {
-                const existingConvo = allConvos.find(c => c.userId === preselectUserId);
-                if (existingConvo) {
-                    convoToSelect = existingConvo;
-                } else {
-                    const otherUser: UserData | null = await getUserByDisplayName(preselectUserName || '') || {
-                      uid: preselectUserId,
-                      displayName: preselectUserName || 'New Chat',
-                      photoURL: `https://placehold.co/40x40.png?text=${(preselectUserName || 'U').charAt(0)}`,
-                      email: '', role: 'customer', followers: 0, following: 0, bio: '', location: '', phone: '', addresses: [], color: ''
-                    };
-                    
-                    if(otherUser) {
-                      const conversationId = await getOrCreateConversationFlow(user.uid, preselectUserId, userData, otherUser);
-                      const newConvo: Conversation = {
-                          conversationId,
-                          userId: preselectUserId,
-                          userName: preselectUserName || 'New Chat',
-                          avatarUrl: otherUser.photoURL || `https://placehold.co/40x40.png?text=${(preselectUserName || 'U').charAt(0)}`,
-                          lastMessage: 'New conversation started.',
-                          lastMessageTimestamp: 'now',
-                          unreadCount: 0,
-                      };
-                      allConvos = [newConvo, ...allConvos];
-                      convoToSelect = newConvo;
-                    }
-                }
-            } else if (allConvos.length > 0) {
-                convoToSelect = allConvos[0];
-            }
-            
-            setConversations(allConvos);
-
-            if (convoToSelect) {
-                handleSelectConversation(convoToSelect);
-            }
+        if (preselectUserId) {
+          const existingConvo = allConvos.find(c => c.userId === preselectUserId);
+          if (existingConvo) {
+            convoToSelect = existingConvo;
+          } else {
+            // Create a new conversation object locally if it doesn't exist
+            const newConvo: Conversation = {
+              conversationId: preselectUserId, // Use UID as a temporary unique ID
+              userId: preselectUserId,
+              userName: preselectUserName || 'New Chat',
+              avatarUrl: `https://placehold.co/40x40.png?text=${(preselectUserName || 'U').charAt(0)}`,
+              lastMessage: "Start a new conversation.",
+              lastMessageTimestamp: 'now',
+              unreadCount: 0,
+            };
+            allConvos = [newConvo, ...allConvos];
+            convoToSelect = newConvo;
+          }
+        } else if (allConvos.length > 0) {
+          convoToSelect = allConvos[0];
         }
-    };
 
+        setConversations(allConvos);
+        
+        if (convoToSelect) {
+          handleSelectConversation(convoToSelect);
+        }
+      }
+    };
     if (isMounted && user) {
         handleTabChange();
     }
 // eslint-disable-next-line react-hooks/exhaustive-deps
-}, [searchParams, isMounted, user, userData, isMobile]);
+}, [searchParams, isMounted, user, userData]);
 
 
 
@@ -1348,6 +1336,7 @@ export default function FeedPage() {
     
 
     
+
 
 
 
