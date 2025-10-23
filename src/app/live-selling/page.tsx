@@ -899,7 +899,8 @@ export default function LiveSellingPage() {
 
                 <TabsContent value="live" className="mt-0">
                     <div className="container mx-auto px-4 sm:px-6 lg:px-8 pt-8">
-                            <div className="flex flex-wrap gap-2 mb-6">
+                            <PromotionalCarousel />
+                            <div className="flex flex-wrap gap-2 mb-6 mt-8">
                                 {liveStreamFilterButtons.map((filter) => (
                                 <Button 
                                     key={filter} 
