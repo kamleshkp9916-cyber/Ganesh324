@@ -751,7 +751,7 @@ export default function LiveSellingPage() {
                             <div className="container mx-auto px-4 sm:px-6 lg:px-8 mb-4">
                                 <h2 className="text-2xl font-bold flex items-center justify-center gap-2"><Flame className="text-primary" /> Top Live Streams</h2>
                             </div>
-                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-2 md:gap-4 px-2 md:px-4">
+                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 md:gap-4 px-2 md:px-4">
                                 {topLiveStreams.map((seller: any) => (
                                      <Link href={`/stream/${seller.id}`} key={seller.id} className="group">
                                         <div className="relative rounded-lg overflow-hidden aspect-[16/9] bg-muted">
@@ -845,7 +845,7 @@ export default function LiveSellingPage() {
                              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 auto-rows-fr gap-4 px-4 sm:px-6 lg:px-8">
                                 {mostReachedPosts.map(post => (
                                      <Card key={post.id} className="overflow-hidden flex flex-col bg-card">
-                                        <div className="p-4">
+                                        <CardHeader className="p-4">
                                             <div className="flex items-start justify-between">
                                                 <div className="flex items-center gap-3 mb-3">
                                                     <Avatar className="h-10 w-10">
@@ -876,7 +876,7 @@ export default function LiveSellingPage() {
                                                 </DropdownMenu>
                                             </div>
                                             <p className="text-sm line-clamp-2">{post.content}</p>
-                                        </div>
+                                        </CardHeader>
                                         <div className="mt-auto px-4 pb-3 flex justify-between items-center text-sm text-muted-foreground">
                                             <div className="flex items-center gap-4">
                                                 <button className="flex items-center gap-1.5 hover:text-primary">
@@ -919,13 +919,13 @@ export default function LiveSellingPage() {
                             </div>
 
                             {isLoadingSellers ? (
-                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
                                     {Array.from({ length: 12 }).map((_, index) => (
                                         <LiveSellerSkeleton key={index} />
                                     ))}
                                 </div>
                             ) : filteredLiveSellers.length > 0 ? (
-                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
                                     {filteredLiveSellers.map((seller: any) => (
                                         <Link href={`/stream/${seller.id}`} key={seller.id} className="group">
                                             <div className="relative rounded-lg overflow-hidden aspect-[16/9] bg-muted">
