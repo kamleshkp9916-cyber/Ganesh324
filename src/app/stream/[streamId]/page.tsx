@@ -101,7 +101,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { useAuth } from '@/hooks/use-auth';
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { toggleFollow, getUserData } from '@/lib/follow-data';
+import { toggleFollow, getUserData, UserData } from '@/lib/follow-data';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
@@ -563,7 +563,7 @@ const renderWithHashtagsAndLinks = (text: string) => {
     });
 };
 
-const StreamInfo = ({ seller, streamData, handleFollowToggle, isFollowingState, isRatingDialogOpen, setIsRatingDialogOpen, handleRateStream, isPastStream, userRating, ...props }: any) => {
+const StreamInfo = ({ sellerData, seller, streamData, handleFollowToggle, isFollowingState, isRatingDialogOpen, setIsRatingDialogOpen, handleRateStream, isPastStream, userRating, ...props }: any) => {
     if (!seller) {
         return (
             <div className="space-y-4">
@@ -612,8 +612,8 @@ const StreamInfo = ({ seller, streamData, handleFollowToggle, isFollowingState, 
                         <div className="flex-grow overflow-hidden">
                             <h3 className="font-semibold truncate group-hover:underline">{seller.name}</h3>
                              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                                <Star className="h-3 w-3 text-amber-400 fill-amber-400" />
-                                <span>{seller.rating} ({seller.reviews} reviews)</span>
+                                <Users className="h-3 w-3"/>
+                                <span>{sellerData?.followers ? `${sellerData.followers.toLocaleString()} followers` : 'Loading...'}</span>
                             </div>
                         </div>
                     </Link>
@@ -690,6 +690,7 @@ const StreamPage = () => {
     
     const [cartCount, setCartCount] = useState(0);
     const [walletBalance, setWalletBalance] = useState(42580.22);
+    const [sellerData, setSellerData] = useState<UserData | null>(null);
     
     const isMobile = useIsMobile();
         
@@ -756,6 +757,14 @@ const StreamPage = () => {
             setChatMessages(initialMessages);
         }
     }, [seller]);
+
+    useEffect(() => {
+        if (streamId) {
+            getUserData(streamId).then(data => {
+                setSellerData(data);
+            });
+        }
+    }, [streamId]);
 
     const relatedStreams = useMemo(() => {
         if (!seller) return [];
@@ -1213,10 +1222,10 @@ const StreamPage = () => {
                         <LoadingSpinner />
                     </div>
                  ) : isMobile ? (
-                     <MobileLayout {...{ router, videoRef, playerRef, handlePlayPause, handleShare, handleMinimize, handleToggleFullscreen, isPaused, seller, streamData, handleFollowToggle, isFollowingState, sellerProducts, handlers, relatedStreams, isChatOpen, setIsChatOpen, chatMessages, pinnedMessages, onClose: () => setIsChatOpen(false), handleAddToCart, handleBuyNow, mobileView, setMobileView, isMuted, setIsMuted, handleGoLive, handleSeek, isLive, formatTime, currentTime, duration, buffered, handleProgressClick, progressContainerRef, activeQuality, setActiveQuality, product, user, walletBalance, setIsSuperChatOpen, isSuperChatOpen, isPastStream, isRatingDialogOpen, setIsRatingDialogOpen, handleRateStream, userRating }} />
+                     <MobileLayout {...{ router, videoRef, playerRef, handlePlayPause, handleShare, handleMinimize, handleToggleFullscreen, isPaused, seller, sellerData, streamData, handleFollowToggle, isFollowingState, sellerProducts, handlers, relatedStreams, isChatOpen, setIsChatOpen, chatMessages, pinnedMessages, onClose: () => setIsChatOpen(false), handleAddToCart, handleBuyNow, mobileView, setMobileView, isMuted, setIsMuted, handleGoLive, handleSeek, isLive, formatTime, currentTime, duration, buffered, handleProgressClick, progressContainerRef, activeQuality, setActiveQuality, product, user, walletBalance, setIsSuperChatOpen, isSuperChatOpen, isPastStream, isRatingDialogOpen, setIsRatingDialogOpen, handleRateStream, userRating }} />
                  ) : (
                     <DesktopLayout 
-                        {...{ router, videoRef, playerRef, handlePlayPause, handleShare, handleMinimize, handleToggleFullscreen, isPaused, seller, streamData, handleFollowToggle, isFollowingState, sellerProducts, handlers, relatedStreams, isChatOpen, setIsChatOpen, chatMessages, pinnedMessages, onClose: () => setIsChatOpen(false), handleAddToCart, handleBuyNow, mobileView, setMobileView, isMuted, setIsMuted, handleGoLive, handleSeek, isLive, formatTime, currentTime, duration, buffered, handleProgressClick, progressContainerRef, mainScrollRef, handleMainScroll, showGoToTop, scrollToTop, activeQuality, setActiveQuality, product, user, cartCount, walletBalance, setIsSuperChatOpen, isSuperChatOpen, inlineAuctionCardRefs, isPastStream, isRatingDialogOpen, setIsRatingDialogOpen, handleRateStream, userRating }}
+                        {...{ router, videoRef, playerRef, handlePlayPause, handleShare, handleMinimize, handleToggleFullscreen, isPaused, seller, sellerData, streamData, handleFollowToggle, isFollowingState, sellerProducts, handlers, relatedStreams, isChatOpen, setIsChatOpen, chatMessages, pinnedMessages, onClose: () => setIsChatOpen(false), handleAddToCart, handleBuyNow, mobileView, setMobileView, isMuted, setIsMuted, handleGoLive, handleSeek, isLive, formatTime, currentTime, duration, buffered, handleProgressClick, progressContainerRef, mainScrollRef, handleMainScroll, showGoToTop, scrollToTop, activeQuality, setActiveQuality, product, user, cartCount, walletBalance, setIsSuperChatOpen, isSuperChatOpen, inlineAuctionCardRefs, isPastStream, isRatingDialogOpen, setIsRatingDialogOpen, handleRateStream, userRating }}
                     />
                  )}
             </div>
@@ -1244,8 +1253,8 @@ return (
                 <div className="overflow-hidden">
                 <h1 className="text-sm font-bold truncate">{props.seller.name}</h1>
                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                    <Star className="h-3 w-3 text-amber-400 fill-amber-400" />
-                    <span>{props.seller.rating} ({props.seller.reviews} reviews)</span>
+                    <Users className="h-3 w-3" />
+                    <span>{props.sellerData?.followers ? `${props.sellerData.followers.toLocaleString()} followers` : 'Loading...'}</span>
                 </div>
                 </div>
             </div>
@@ -1857,6 +1866,7 @@ const ChatPanel = ({
 };
 
 export default StreamPage;
+
 
 
 
