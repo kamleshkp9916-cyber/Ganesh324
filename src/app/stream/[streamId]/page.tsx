@@ -124,7 +124,7 @@ import { useInView } from "react-intersection-observer";
 import { useMiniPlayer } from "@/context/MiniPlayerContext";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { useIsMobile } from "@/hooks/use-is-mobile";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { format, formatDistanceToNow, isThisWeek, isThisYear, parseISO, parse } from 'date-fns';
 
@@ -563,7 +563,7 @@ const renderWithHashtagsAndLinks = (text: string) => {
     });
 };
 
-const StreamInfo = ({ sellerData, seller, streamData, handleFollowToggle, isFollowingState, isRatingDialogOpen, setIsRatingDialogOpen, handleRateStream, isPastStream, userRating, ...props }: any) => {
+const StreamInfo = ({ seller, sellerData, streamData, handleFollowToggle, isFollowingState, isRatingDialogOpen, setIsRatingDialogOpen, handleRateStream, isPastStream, userRating, ...props }: any) => {
     if (!seller) {
         return (
             <div className="space-y-4">
@@ -611,9 +611,15 @@ const StreamInfo = ({ sellerData, seller, streamData, handleFollowToggle, isFoll
                         </Avatar>
                         <div className="flex-grow overflow-hidden">
                             <h3 className="font-semibold truncate group-hover:underline">{seller.name}</h3>
-                             <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                                <Users className="h-3 w-3"/>
-                                <span>{sellerData?.followers ? `${sellerData.followers.toLocaleString()} followers` : 'Loading...'}</span>
+                            <div className="flex items-center gap-3">
+                                <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                                    <Users className="h-3 w-3"/>
+                                    <span>{sellerData?.followers ? `${sellerData.followers.toLocaleString()} followers` : 'Loading...'}</span>
+                                </div>
+                                <div className="flex items-center gap-1 text-xs text-amber-500">
+                                    <Star className="h-3 w-3 fill-current" />
+                                    <span>{seller.rating}</span>
+                                </div>
                             </div>
                         </div>
                     </Link>
@@ -1253,7 +1259,7 @@ return (
                 <div className="overflow-hidden">
                 <h1 className="text-sm font-bold truncate">{props.seller.name}</h1>
                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                    <Users className="h-3 w-3" />
+                    <Users className="h-3 w-3"/>
                     <span>{props.sellerData?.followers ? `${props.sellerData.followers.toLocaleString()} followers` : 'Loading...'}</span>
                 </div>
                 </div>
@@ -1866,9 +1872,3 @@ const ChatPanel = ({
 };
 
 export default StreamPage;
-
-
-
-
-
-
