@@ -847,6 +847,9 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                             </CardContent>
                                         </Card>
                                         <DialogContent className="max-w-3xl max-h-[90vh]">
+                                             <DialogHeader>
+                                                <DialogTitle>{product.name}</DialogTitle>
+                                            </DialogHeader>
                                             <div className="relative aspect-square w-full">
                                                 {selectedMedia?.type === 'image' && selectedMedia.url && (
                                                     <Image src={selectedMedia.url} alt={product.name} fill className="object-contain" />
@@ -971,6 +974,8 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                         )}
                                     </div>
                                     
+                                    <Separator className="my-6" />
+
                                      <div className="space-y-4 pt-4">
                                         <div className="flex items-center justify-between">
                                             <h4 className="font-semibold text-base">Delivery Information</h4>
@@ -1117,40 +1122,47 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                     </CardHeader>
                                     <CardContent className="space-y-4">
                                         {reviewImages.length > 0 && (
-                                            <Dialog>
-                                                <div className="grid grid-cols-4 gap-2">
-                                                    {reviewImages.slice(0, 3).map((img, index) => (
-                                                        <DialogTrigger asChild key={index}>
-                                                             <div className="relative aspect-square rounded-md overflow-hidden cursor-pointer">
+                                            <div className="grid grid-cols-4 gap-2">
+                                                {reviewImages.slice(0, 3).map((img, index) => (
+                                                    <Dialog key={index}>
+                                                        <DialogTrigger asChild>
+                                                            <div className="relative aspect-square rounded-md overflow-hidden cursor-pointer">
                                                                 <Image src={img} alt={`Review image ${index + 1}`} layout="fill" className="object-cover" />
                                                             </div>
                                                         </DialogTrigger>
-                                                    ))}
-                                                    {reviewImages.length > 3 && (
+                                                        <DialogContent className="max-w-3xl h-auto max-h-[80vh]">
+                                                            <div className="relative aspect-square">
+                                                                <Image src={img} alt="Review full view" layout="fill" className="object-contain" />
+                                                            </div>
+                                                        </DialogContent>
+                                                    </Dialog>
+                                                ))}
+                                                {reviewImages.length > 3 && (
+                                                    <Dialog>
                                                         <DialogTrigger asChild>
                                                             <div className="relative aspect-square rounded-md overflow-hidden bg-muted cursor-pointer flex items-center justify-center">
                                                                 <Image src={reviewImages[3]} alt="More review images" layout="fill" className="object-cover opacity-50" />
                                                                 <span className="absolute text-white font-bold text-lg">+{reviewImages.length - 3}</span>
                                                             </div>
                                                         </DialogTrigger>
-                                                    )}
-                                                </div>
-                                                <DialogContent className="max-w-4xl p-0">
-                                                    <Carousel className="w-full">
-                                                        <CarouselContent>
-                                                            {reviewImages.map((img, index) => (
-                                                                <CarouselItem key={index}>
-                                                                    <div className="aspect-video relative">
-                                                                        <Image src={img} alt={`Review image slide ${index + 1}`} layout="fill" className="object-contain" />
-                                                                    </div>
-                                                                </CarouselItem>
-                                                            ))}
-                                                        </CarouselContent>
-                                                        <CarouselPrevious />
-                                                        <CarouselNext />
-                                                    </Carousel>
-                                                </DialogContent>
-                                            </Dialog>
+                                                         <DialogContent className="max-w-4xl p-0">
+                                                            <Carousel className="w-full">
+                                                                <CarouselContent>
+                                                                    {reviewImages.map((img, index) => (
+                                                                        <CarouselItem key={index}>
+                                                                            <div className="aspect-video relative">
+                                                                                <Image src={img} alt={`Review image slide ${index + 1}`} layout="fill" className="object-contain" />
+                                                                            </div>
+                                                                        </CarouselItem>
+                                                                    ))}
+                                                                </CarouselContent>
+                                                                <CarouselPrevious />
+                                                                <CarouselNext />
+                                                            </Carousel>
+                                                        </DialogContent>
+                                                    </Dialog>
+                                                )}
+                                            </div>
                                         )}
                                         {reviews.length > 0 ? (
                                             <div className="space-y-4">
