@@ -822,8 +822,8 @@ export default function LiveSellingPage() {
                             </div>
                         </section>
                         
-                         <section className="container mx-auto px-4 sm:px-6 lg:px-8">
-                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <section className="container mx-auto px-4 sm:px-6 lg:px-8">
+                             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                                 {mostPopularStreams.length > 0 && (
                                 <div className="lg:col-span-1">
                                     <Card className="overflow-hidden bg-muted/30 border-border/50 h-full group">
@@ -943,7 +943,7 @@ export default function LiveSellingPage() {
                                             </div>
                                             <p className="text-sm line-clamp-2">{post.content}</p>
                                         </CardHeader>
-                                        <div className="mt-auto px-4 pb-3 flex justify-between items-center text-sm text-muted-foreground">
+                                        <CardFooter className="px-4 pb-3 flex justify-between items-center text-sm text-muted-foreground mt-auto pt-3 border-t">
                                             <div className="flex items-center gap-4">
                                                 <button className="flex items-center gap-1.5 hover:text-primary">
                                                     <Heart className="w-4 h-4" />
@@ -954,7 +954,7 @@ export default function LiveSellingPage() {
                                                     <span>{post.replies || 0}</span>
                                                 </button>
                                             </div>
-                                        </div>
+                                        </CardFooter>
                                     </Card>
                                 ))}
                             </div>
@@ -1034,3 +1034,5 @@ export default function LiveSellingPage() {
     </>
   );
 }
+
+    
