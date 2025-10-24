@@ -139,9 +139,9 @@ const liveSellers = [
 ];
 
 const mockReviews = [
-    { id: 1, userId: 'user1', author: 'Ganesh', avatar: 'https://placehold.co/40x40.png?text=G', rating: 5, text: 'This camera is a dream! It takes beautiful, authentic photos and is in perfect condition. The seller was super helpful with my questions before I bought it. Highly recommend!', date: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString() },
-    { id: 2, userId: 'user2', author: 'Alex', avatar: 'https://placehold.co/40x40.png?text=A', rating: 4, text: "Really happy with this purchase. It's a bit heavier than I expected, but it feels solid and well-made. The image quality is superb for a vintage camera.", date: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString() },
-    { id: 3, userId: 'user3', author: 'Priya', avatar: 'https://placehold.co/40x40.png?text=P', rating: 5, text: "Arrived faster than expected and was packaged very securely. The camera works perfectly. Can't wait to shoot my first roll of film!", date: new Date(Date.now() - 25 * 24 * 60 * 60 * 1000).toISOString() }
+    { id: 1, userId: 'user1', author: 'Ganesh', avatar: 'https://placehold.co/40x40.png?text=G', rating: 5, text: 'This camera is a dream! It takes beautiful, authentic photos and is in perfect condition. The seller was super helpful with my questions before I bought it. Highly recommend!', date: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(), imageUrl: 'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=800&h=800&fit=crop' },
+    { id: 2, userId: 'user2', author: 'Alex', avatar: 'https://placehold.co/40x40.png?text=A', rating: 4, text: "Really happy with this purchase. It's a bit heavier than I expected, but it feels solid and well-made. The image quality is superb for a vintage camera.", date: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(), imageUrl: 'https://images.unsplash.com/photo-1502920923512-3b053c00473a?w=800&h=800&fit=crop' },
+    { id: 3, userId: 'user3', author: 'Priya', avatar: 'https://placehold.co/40x40.png?text=P', rating: 5, text: "Arrived faster than expected and was packaged very securely. The camera works perfectly. Can't wait to shoot my first roll of film!", date: new Date(Date.now() - 25 * 24 * 60 * 60 * 1000).toISOString(), imageUrl: 'https://images.unsplash.com/photo-1510127034890-ba27088e2591?w=800&h=800&fit=crop' }
 ];
 
 export function ProductDetailClient({ productId }: { productId: string }) {
@@ -1099,8 +1099,19 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                         <span className="text-sm font-medium text-muted-foreground">{reviews.length} Reviews</span>
                                     </CardHeader>
                                     <CardContent className="space-y-4">
+                                         {reviews && reviews.length > 0 && (
+                                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                                                {reviews.slice(0, 3).map((review) => (
+                                                    review.imageUrl && (
+                                                        <div key={review.id} className="aspect-square relative rounded-md overflow-hidden">
+                                                            <Image src={review.imageUrl} alt={`Review by ${review.author}`} fill className="object-cover" />
+                                                        </div>
+                                                    )
+                                                ))}
+                                            </div>
+                                        )}
                                         {reviews.length > 0 ? (
-                                            reviews.slice(0, 3).map((review) => (
+                                            reviews.slice(0, 2).map((review) => (
                                                 <Card key={review.id} className="bg-muted/50">
                                                     <CardContent className="p-4">
                                                         <div className="flex gap-4">
@@ -1129,11 +1140,9 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                         )}
                                     </CardContent>
                                      <CardFooter className="flex-col sm:flex-row items-stretch sm:items-center sm:justify-center gap-4">
-                                        {reviews.length > 3 && 
-                                            <Button variant="outline" className="w-full sm:w-auto" asChild>
-                                                <Link href={`/product/${productId}/reviews`}>View All {reviews.length} Reviews</Link>
-                                            </Button>
-                                        }
+                                        <Button variant="outline" className="w-full sm:w-auto" asChild>
+                                            <Link href={`/product/${productId}/reviews`}>View All {reviews.length} Reviews</Link>
+                                        </Button>
                                         <Button variant="default" className="w-full sm:w-auto" onClick={openReviewDialog}>
                                             <Star className="mr-2 h-4 w-4" />
                                             Write a Review
