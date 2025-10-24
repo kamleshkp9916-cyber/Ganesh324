@@ -782,6 +782,33 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                                                 <Video className="h-3 w-3 mr-1"/> From Stream
                                                             </Badge>
                                                         )}
+                                                        <div className="absolute top-2 right-2 z-20 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                            <Button variant="secondary" size="icon" className="h-8 w-8 rounded-full" onClick={(e) => {e.stopPropagation(); handleWishlistToggle();}}>
+                                                                <Heart className={cn("h-4 w-4", wishlisted ? "fill-red-500 text-red-500" : "text-muted-foreground")} />
+                                                            </Button>
+                                                            <Button variant="secondary" size="icon" className="h-8 w-8 rounded-full" onClick={(e) => {e.stopPropagation(); handleShare();}}>
+                                                                <Share2 className="h-4 w-4" />
+                                                            </Button>
+                                                             <AlertDialog>
+                                                                <AlertDialogTrigger asChild>
+                                                                    <Button variant="secondary" size="icon" className="h-8 w-8 rounded-full" onClick={(e) => e.stopPropagation()}>
+                                                                        <Flag className="h-4 w-4" />
+                                                                    </Button>
+                                                                </AlertDialogTrigger>
+                                                                <AlertDialogContent>
+                                                                    <AlertDialogHeader>
+                                                                        <AlertDialogTitle>Report Product?</AlertDialogTitle>
+                                                                        <AlertDialogDescription>
+                                                                            If this product violates our community guidelines, please report it. Our team will review it shortly.
+                                                                        </AlertDialogDescription>
+                                                                    </AlertDialogHeader>
+                                                                    <AlertDialogFooter>
+                                                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                                        <AlertDialogAction onClick={handleReportProduct}>Confirm Report</AlertDialogAction>
+                                                                    </AlertDialogFooter>
+                                                                </AlertDialogContent>
+                                                            </AlertDialog>
+                                                        </div>
                                                     </div>
                                                 </DialogTrigger>
                                                 
@@ -855,37 +882,8 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                 </div>
                                 
                                 <div className="lg:col-span-1 space-y-4">
-                                    <div className="flex items-start justify-between">
-                                        <div className="text-sm font-mono text-muted-foreground">
-                                            {product.key}
-                                        </div>
-                                        <div className="flex items-center ml-auto">
-                                            <Button variant="ghost" size="icon" onClick={handleWishlistToggle}>
-                                                <Heart className={cn("h-6 w-6", wishlisted ? "fill-red-500 text-red-500" : "text-muted-foreground")} />
-                                            </Button>
-                                            <Button variant="ghost" size="icon" onClick={handleShare}>
-                                                <Share2 className="h-5 w-5" />
-                                            </Button>
-                                            <AlertDialog>
-                                                <AlertDialogTrigger asChild>
-                                                    <Button variant="ghost" size="icon">
-                                                        <Flag className="h-5 w-5" />
-                                                    </Button>
-                                                </AlertDialogTrigger>
-                                                <AlertDialogContent>
-                                                    <AlertDialogHeader>
-                                                        <AlertDialogTitle>Report Product?</AlertDialogTitle>
-                                                        <AlertDialogDescription>
-                                                            If this product violates our community guidelines, please report it. Our team will review it shortly.
-                                                        </AlertDialogDescription>
-                                                    </AlertDialogHeader>
-                                                    <AlertDialogFooter>
-                                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                                        <AlertDialogAction onClick={handleReportProduct}>Confirm Report</AlertDialogAction>
-                                                    </AlertDialogFooter>
-                                                </AlertDialogContent>
-                                            </AlertDialog>
-                                        </div>
+                                    <div className="text-sm font-mono text-muted-foreground">
+                                        {product.key}
                                     </div>
                                     <div className='space-y-2'>
                                         {product.brand && <p className="text-sm font-medium text-primary">{product.brand}</p>}
@@ -913,6 +911,40 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                         </div>
                                          <p className="text-sm text-muted-foreground mt-1">(inclusive of all taxes)</p>
                                     </div>
+                                    <Card>
+                                        <CardHeader>
+                                            <CardTitle className="flex items-center justify-between text-base">
+                                                Available Offers
+                                                <Ticket className="h-5 w-5 text-muted-foreground" />
+                                            </CardTitle>
+                                        </CardHeader>
+                                        <CardContent>
+                                            <div className="space-y-3">
+                                                {mockAdminOffers.map((offer: any, index: number) => (
+                                                    <div key={index} className="flex items-start gap-3 text-sm">
+                                                        {offer.icon}
+                                                        <div>
+                                                            <h5 className="font-semibold">{offer.title}</h5>
+                                                            <p className="text-muted-foreground">{offer.description}</p>
+                                                        </div>
+                                                        {offer.code && (
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="sm"
+                                                                className="ml-auto"
+                                                                onClick={() => {
+                                                                    navigator.clipboard.writeText(offer.code);
+                                                                    toast({ title: 'Code Copied!', description: `${offer.code} copied to clipboard.` });
+                                                                }}
+                                                            >
+                                                                Copy Code
+                                                            </Button>
+                                                        )}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </CardContent>
+                                    </Card>
                                     {availableColors.length > 0 && (
                                         <div className="space-y-2">
                                             <Label className="font-semibold">Color: <span className="font-normal">{selectedColor}</span></Label>
@@ -976,9 +1008,23 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                         <div className="flex items-center justify-between">
                                             <h4 className="font-semibold text-base">Delivery Information</h4>
                                             {user && userData?.addresses && userData.addresses.length > 0 && (
-                                                <Button variant="link" className="p-0 h-auto text-xs" onClick={() => handleAuthAction(() => setIsAddressDialogOpen(true))}>
-                                                    <Edit className="mr-1 h-3 w-3" /> Change
-                                                </Button>
+                                                <Dialog open={isAddressDialogOpen} onOpenChange={setIsAddressDialogOpen}>
+                                                    <DialogTrigger asChild>
+                                                        <Button variant="link" className="p-0 h-auto text-xs">
+                                                            <Edit className="mr-1 h-3 w-3" /> Change
+                                                        </Button>
+                                                    </DialogTrigger>
+                                                     <DialogContent>
+                                                        <DialogHeader>
+                                                            <DialogTitle>Change Delivery Address</DialogTitle>
+                                                        </DialogHeader>
+                                                        <EditAddressForm 
+                                                            onSave={handleAddressSave} 
+                                                            onCancel={() => setIsAddressDialogOpen(false)}
+                                                            onAddressesUpdate={handleAddressesUpdate}
+                                                        />
+                                                    </DialogContent>
+                                                </Dialog>
                                             )}
                                         </div>
                                         {user && userData?.addresses && userData.addresses.length > 0 ? (
@@ -1033,44 +1079,11 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                             </div>
                             <div className="col-span-full mt-8 space-y-8">
                                 <Separator/>
-                                 <Card>
-                                    <CardHeader>
-                                        <h3 className="text-lg font-semibold">Available Offers</h3>
-                                    </CardHeader>
-                                    <CardContent>
-                                        <div className="space-y-3">
-                                            {mockAdminOffers.map((offer: any, index: number) => (
-                                                <div key={index} className="flex items-start gap-3 text-sm">
-                                                    {offer.icon}
-                                                    <div>
-                                                        <h5 className="font-semibold">{offer.title}</h5>
-                                                        <p className="text-muted-foreground">{offer.description}</p>
-                                                    </div>
-                                                    {offer.code && (
-                                                        <Button
-                                                            variant="ghost"
-                                                            size="sm"
-                                                            className="ml-auto"
-                                                            onClick={() => {
-                                                                navigator.clipboard.writeText(offer.code);
-                                                                toast({ title: 'Code Copied!', description: `${offer.code} copied to clipboard.` });
-                                                            }}
-                                                        >
-                                                            Copy Code
-                                                        </Button>
-                                                    )}
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </CardContent>
-                                </Card>
-
-                                <Separator />
-                                <div className="space-y-3">
+                                 <div className="space-y-3">
                                     <h2 className="text-xl font-bold">Highlights</h2>
                                      {product.highlightsImage && (
                                         <div className="w-full aspect-video bg-muted rounded-lg overflow-hidden relative">
-                                            <Image src={product.highlightsImage} alt={`${''}${product.name} highlights`} layout="fill" className="object-contain" />
+                                            <Image src={product.highlightsImage} alt={`$${product.name} highlights`} layout="fill" className="object-contain" />
                                         </div>
                                     )}
                                     <ul className="space-y-3 text-sm">
@@ -1102,47 +1115,40 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                     </CardHeader>
                                     <CardContent className="space-y-4">
                                         {reviewImages.length > 0 && (
-                                             <div className="flex gap-2">
-                                                {reviewImages.slice(0, 3).map((img, index) => (
-                                                    <Dialog key={index}>
-                                                        <DialogTrigger asChild>
-                                                            <div className="relative w-20 h-20 rounded-md overflow-hidden cursor-pointer">
+                                            <Dialog>
+                                                <div className="flex gap-2">
+                                                    {reviewImages.slice(0, 3).map((img, index) => (
+                                                        <DialogTrigger asChild key={index}>
+                                                             <div className="relative w-20 h-20 rounded-md overflow-hidden cursor-pointer">
                                                                 <Image src={img} alt={`Review image ${index + 1}`} layout="fill" className="object-cover" />
                                                             </div>
                                                         </DialogTrigger>
-                                                        <DialogContent className="max-w-3xl max-h-[90vh]">
-                                                            <div className="relative aspect-square w-full">
-                                                                <Image src={img} alt={`Review image ${index + 1}`} fill className="object-contain" />
-                                                            </div>
-                                                        </DialogContent>
-                                                    </Dialog>
-                                                ))}
-                                                {reviewImages.length > 3 && (
-                                                    <Dialog>
+                                                    ))}
+                                                    {reviewImages.length > 3 && (
                                                         <DialogTrigger asChild>
                                                             <div className="relative w-20 h-20 rounded-md overflow-hidden bg-muted cursor-pointer flex items-center justify-center">
                                                                 <Image src={reviewImages[3]} alt="More review images" layout="fill" className="object-cover opacity-50" />
                                                                 <span className="absolute text-white font-bold text-lg">+{reviewImages.length - 3}</span>
                                                             </div>
                                                         </DialogTrigger>
-                                                        <DialogContent className="max-w-4xl p-0">
-                                                            <Carousel className="w-full">
-                                                                <CarouselContent>
-                                                                    {reviewImages.map((img, index) => (
-                                                                        <CarouselItem key={index}>
-                                                                            <div className="aspect-video relative">
-                                                                                <Image src={img} alt={`Review image slide ${index + 1}`} layout="fill" className="object-contain" />
-                                                                            </div>
-                                                                        </CarouselItem>
-                                                                    ))}
-                                                                </CarouselContent>
-                                                                <CarouselPrevious />
-                                                                <CarouselNext />
-                                                            </Carousel>
-                                                        </DialogContent>
-                                                    </Dialog>
-                                                )}
-                                            </div>
+                                                    )}
+                                                </div>
+                                                <DialogContent className="max-w-4xl p-0">
+                                                    <Carousel className="w-full">
+                                                        <CarouselContent>
+                                                            {reviewImages.map((img, index) => (
+                                                                <CarouselItem key={index}>
+                                                                    <div className="aspect-video relative">
+                                                                        <Image src={img} alt={`Review image slide ${index + 1}`} layout="fill" className="object-contain" />
+                                                                    </div>
+                                                                </CarouselItem>
+                                                            ))}
+                                                        </CarouselContent>
+                                                        <CarouselPrevious />
+                                                        <CarouselNext />
+                                                    </Carousel>
+                                                </DialogContent>
+                                            </Dialog>
                                         )}
                                         {reviews.length > 0 ? (
                                             <div className="space-y-4">
