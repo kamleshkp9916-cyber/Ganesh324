@@ -882,72 +882,6 @@ export default function LiveSellingPage() {
                         <div className="container mx-auto px-4 sm:px-6 lg:px-8 pt-8">
                             <PromotionalCarousel />
                         </div>
-                        <section>
-                            <div className="container mx-auto px-4 sm:px-6 lg:px-8 mb-4">
-                                <h2 className="text-2xl font-bold flex items-center justify-center gap-2"><Flame className="text-primary" /> Top Live Streams</h2>
-                            </div>
-                            {isMobile ? (
-                                <Carousel className="w-full px-4">
-                                    <CarouselContent className="-ml-2">
-                                        {topLiveStreams.map((seller: any) => (
-                                            <CarouselItem key={seller.id} className="pl-2 basis-3/4 sm:basis-1/2">
-                                                 <Link href={`/stream/${seller.id}`} className="group">
-                                                    <div className="relative rounded-lg overflow-hidden aspect-[16/9] bg-muted">
-                                                        <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
-                                                        <div className="absolute top-2 right-2 z-10">
-                                                            <Badge variant="secondary" className="bg-background/60 backdrop-blur-sm gap-1.5">
-                                                                <Users className="h-3 w-3"/>
-                                                                {seller.viewers}
-                                                            </Badge>
-                                                        </div>
-                                                    </div>
-                                                    <div className="flex items-start gap-2 mt-2">
-                                                        <Avatar className="w-7 h-7">
-                                                            <AvatarImage src={seller.avatarUrl} />
-                                                            <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
-                                                        </Avatar>
-                                                        <div className="flex-1">
-                                                            <p className="font-semibold text-xs group-hover:underline truncate">{seller.title || seller.name}</p>
-                                                            <p className="text-xs text-muted-foreground">{seller.category}</p>
-                                                            <p className="text-xs text-primary font-semibold mt-0.5">#{seller.category.toLowerCase()}</p>
-                                                        </div>
-                                                    </div>
-                                                </Link>
-                                            </CarouselItem>
-                                        ))}
-                                    </CarouselContent>
-                                    <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2" />
-                                    <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2" />
-                                </Carousel>
-                            ) : (
-                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 md:gap-4 px-2 md:px-4">
-                                    {topLiveStreams.map((seller: any) => (
-                                        <Link href={`/stream/${seller.id}`} key={seller.id} className="group">
-                                            <div className="relative rounded-lg overflow-hidden aspect-[16/9] bg-muted">
-                                                <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
-                                                <div className="absolute top-2 right-2 z-10">
-                                                    <Badge variant="secondary" className="bg-background/60 backdrop-blur-sm gap-1.5">
-                                                        <Users className="h-3 w-3"/>
-                                                        {seller.viewers}
-                                                    </Badge>
-                                                </div>
-                                            </div>
-                                            <div className="flex items-start gap-2 mt-2">
-                                                <Avatar className="w-7 h-7">
-                                                    <AvatarImage src={seller.avatarUrl} />
-                                                    <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
-                                                </Avatar>
-                                                <div className="flex-1">
-                                                    <p className="font-semibold text-xs group-hover:underline truncate">{seller.title || seller.name}</p>
-                                                    <p className="text-xs text-muted-foreground">{seller.category}</p>
-                                                    <p className="text-xs text-primary font-semibold mt-0.5">#{seller.category.toLowerCase()}</p>
-                                                </div>
-                                            </div>
-                                        </Link>
-                                    ))}
-                                </div>
-                            )}
-                        </section>
                         
                          <section className="container mx-auto px-4 sm:px-6 lg:px-8 mt-8">
                              <div className="bg-muted/30 rounded-lg p-4 sm:p-6 lg:p-8">
@@ -970,61 +904,6 @@ export default function LiveSellingPage() {
                             </Card>
                         </div>
                         
-                        <section className="mt-8">
-                             <div className="container mx-auto px-4 sm:px-6 lg:px-8 mb-4">
-                                <h2 className="text-2xl font-bold flex items-center justify-center gap-2"><TrendingUp className="text-primary" /> Most Reached Posts</h2>
-                            </div>
-                             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 auto-rows-fr gap-4 px-4 sm:px-6 lg:px-8">
-                                {mostReachedPosts.map(post => (
-                                     <Card key={post.id} className="overflow-hidden flex flex-col bg-card">
-                                        <CardHeader className="p-4">
-                                            <div className="flex items-start justify-between">
-                                                <div className="flex items-center gap-3 mb-3">
-                                                    <Avatar className="h-10 w-10">
-                                                        <AvatarImage src={post.avatarUrl} alt={post.sellerName} />
-                                                        <AvatarFallback>{post.sellerName.charAt(0)}</AvatarFallback>
-                                                    </Avatar>
-                                                    <div>
-                                                        <p className="font-semibold text-primary">{post.sellerName}</p>
-                                                        <p className="text-xs text-muted-foreground">{post.timestamp}</p>
-                                                    </div>
-                                                </div>
-                                                <DropdownMenu>
-                                                    <DropdownMenuTrigger asChild>
-                                                        <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0 -mr-2 -mt-2">
-                                                            <MoreHorizontal className="w-4 h-4" />
-                                                        </Button>
-                                                    </DropdownMenuTrigger>
-                                                    <DropdownMenuContent align="end">
-                                                        <DropdownMenuItem onSelect={() => handleShare(post.id)}>
-                                                            <Share2 className="mr-2 h-4 w-4" />
-                                                            <span>Share</span>
-                                                        </DropdownMenuItem>
-                                                        <DropdownMenuItem onSelect={submitReport}>
-                                                            <Flag className="mr-2 h-4 w-4" />
-                                                            <span>Report</span>
-                                                        </DropdownMenuItem>
-                                                    </DropdownMenuContent>
-                                                </DropdownMenu>
-                                            </div>
-                                            <p className="text-sm line-clamp-2">{post.content}</p>
-                                        </CardHeader>
-                                        <CardFooter className="px-4 pb-3 flex justify-between items-center text-sm text-muted-foreground mt-auto pt-3 border-t">
-                                            <div className="flex items-center gap-4">
-                                                <button className="flex items-center gap-1.5 hover:text-primary">
-                                                    <Heart className="w-4 h-4" />
-                                                    <span>{post.likes || 0}</span>
-                                                </button>
-                                                <button className="flex items-center gap-1.5 hover:text-primary">
-                                                    <MessageSquare className="w-4 h-4" />
-                                                    <span>{post.replies || 0}</span>
-                                                </button>
-                                            </div>
-                                        </CardFooter>
-                                    </Card>
-                                ))}
-                            </div>
-                        </section>
                     </div>
                 </TabsContent>
                 )}
