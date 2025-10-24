@@ -118,7 +118,7 @@ import { Separator } from '@/components/ui/separator';
 import { ProductSearchWithStreams } from '@/components/ProductSearchWithStreams';
 import { motion } from 'framer-motion';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
-import { useIsMobile } from '@/hooks/use-is-mobile';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 
 const liveSellers = [
