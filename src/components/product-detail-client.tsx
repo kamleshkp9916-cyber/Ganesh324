@@ -39,6 +39,7 @@ import { FeedbackDialog } from './feedback-dialog';
 import { useLocalStorage } from '@/hooks/use-local-storage';
 import { COUPONS_KEY, Coupon } from '@/app/admin/settings/page';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from './ui/carousel';
+import { RadioGroup, RadioGroupItem } from './ui/radio-group';
 
 
 const CountdownTimer = ({ expiryDate, onExpire }: { expiryDate: string | Date, onExpire: () => void }) => {
@@ -144,6 +145,57 @@ const mockReviews = [
     { id: 3, userId: 'user3', author: 'Priya', avatar: 'https://placehold.co/40x40.png?text=P', rating: 5, text: "Arrived faster than expected and was packaged very securely. The camera works perfectly. Can't wait to shoot my first roll of film!", date: new Date(Date.now() - 25 * 24 * 60 * 60 * 1000).toISOString(), imageUrl: 'https://images.unsplash.com/photo-1510127034890-ba27088e2591?w=800&h=800&fit=crop' }
 ];
 
+const reportReasons = [
+    { value: "inaccurate", label: "Inaccurate product information" },
+    { value: "prohibited", label: "Prohibited item" },
+    { value: "offensive", label: "Offensive content" },
+    { value: "scam", label: "Scam or fraud" },
+    { value: "other", label: "Other" },
+];
+
+const ReportDialog = ({ onSubmit }: { onSubmit: (reason: string, details: string) => void }) => {
+    const [reason, setReason] = useState("");
+    const [details, setDetails] = useState("");
+
+    const handleSubmit = () => {
+        onSubmit(reason, details);
+    };
+
+    return (
+        <DialogContent>
+            <DialogHeader>
+                <DialogTitle>Report Product</DialogTitle>
+                <DialogDescription>
+                    Help us understand the problem. Why are you reporting this product?
+                </DialogDescription>
+            </DialogHeader>
+            <div className="py-4 space-y-4">
+                <RadioGroup value={reason} onValueChange={setReason}>
+                    <div className="space-y-2">
+                        {reportReasons.map(r => (
+                            <div key={r.value} className="flex items-center">
+                                <RadioGroupItem value={r.value} id={`report-${r.value}`} />
+                                <Label htmlFor={`report-${r.value}`} className="ml-2 cursor-pointer">{r.label}</Label>
+                            </div>
+                        ))}
+                    </div>
+                </RadioGroup>
+                {reason === 'other' && (
+                    <Textarea 
+                        placeholder="Please provide more details..." 
+                        value={details}
+                        onChange={(e) => setDetails(e.target.value)}
+                    />
+                )}
+            </div>
+            <DialogFooter>
+                <DialogClose asChild><Button variant="outline">Cancel</Button></DialogClose>
+                <Button onClick={handleSubmit} disabled={!reason || (reason === 'other' && !details.trim())}>Submit Report</Button>
+            </DialogFooter>
+        </DialogContent>
+    );
+};
+
 export function ProductDetailClient({ productId }: { productId: string }) {
     const router = useRouter();
     const { user, userData } = useAuth();
@@ -180,6 +232,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
     const [isAuthDialogOpen, setIsAuthDialogOpen] = useState(false);
     const [hasPurchased, setHasPurchased] = useState(false);
     const [activeOffer, setActiveOffer] = useState<Coupon | null>(null);
+    const [isReportOpen, setIsReportOpen] = useState(false);
     
     const [allOffers] = useLocalStorage<Coupon[]>(COUPONS_KEY, []);
 
@@ -492,11 +545,13 @@ export function ProductDetailClient({ productId }: { productId: string }) {
         });
     };
 
-    const handleReportProduct = () => {
+    const handleReportProduct = (reason: string, details: string) => {
+        console.log("Reporting product:", { productId: product?.key, reason, details });
         toast({
             title: "Product Reported",
             description: "Thank you for your feedback. Our moderation team will review this product shortly.",
         });
+        setIsReportOpen(false);
     };
     
     const handleBuyNow = () => {
@@ -702,10 +757,10 @@ export function ProductDetailClient({ productId }: { productId: string }) {
              <AlertDialog open={isAuthDialogOpen} onOpenChange={setIsAuthDialogOpen}>
                 <AlertDialogContent>
                     <AlertDialogHeader>
-                        <AlertDialogTitle>Authentication Required</AlertDialogTitle>
-                        <AlertDialogDescription>
+                        <DialogTitle>Authentication Required</DialogTitle>
+                        <DialogDescription>
                             You need to be logged in to perform this action. Please log in or create an account to continue.
-                        </AlertDialogDescription>
+                        </DialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                         <AlertDialogCancel>Cancel</AlertDialogCancel>
@@ -714,6 +769,9 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
+            <Dialog open={isReportOpen} onOpenChange={setIsReportOpen}>
+                <ReportDialog onSubmit={handleReportProduct} />
+            </Dialog>
             <div className="min-h-screen bg-background">
                 <header className="p-4 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-sm z-30 border-b">
                     <Button variant="ghost" size="icon" onClick={() => {
@@ -782,32 +840,18 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                                                 <Video className="h-3 w-3 mr-1"/> From Stream
                                                             </Badge>
                                                         )}
-                                                        <div className="absolute top-2 right-2 z-20 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                         <div className="absolute top-2 right-2 z-20 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                                                             <Button variant="secondary" size="icon" className="h-8 w-8 rounded-full" onClick={(e) => {e.stopPropagation(); handleWishlistToggle();}}>
                                                                 <Heart className={cn("h-4 w-4", wishlisted ? "fill-red-500 text-red-500" : "text-muted-foreground")} />
                                                             </Button>
                                                             <Button variant="secondary" size="icon" className="h-8 w-8 rounded-full" onClick={(e) => {e.stopPropagation(); handleShare();}}>
                                                                 <Share2 className="h-4 w-4" />
                                                             </Button>
-                                                             <AlertDialog>
-                                                                <AlertDialogTrigger asChild>
-                                                                    <Button variant="secondary" size="icon" className="h-8 w-8 rounded-full" onClick={(e) => e.stopPropagation()}>
-                                                                        <Flag className="h-4 w-4" />
-                                                                    </Button>
-                                                                </AlertDialogTrigger>
-                                                                <AlertDialogContent>
-                                                                    <AlertDialogHeader>
-                                                                        <AlertDialogTitle>Report Product?</AlertDialogTitle>
-                                                                        <AlertDialogDescription>
-                                                                            If this product violates our community guidelines, please report it. Our team will review it shortly.
-                                                                        </AlertDialogDescription>
-                                                                    </AlertDialogHeader>
-                                                                    <AlertDialogFooter>
-                                                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                                                        <AlertDialogAction onClick={handleReportProduct}>Confirm Report</AlertDialogAction>
-                                                                    </AlertDialogFooter>
-                                                                </AlertDialogContent>
-                                                            </AlertDialog>
+                                                             <DialogTrigger asChild>
+                                                                 <Button variant="secondary" size="icon" className="h-8 w-8 rounded-full" onClick={(e) => { e.stopPropagation(); handleAuthAction(() => setIsReportOpen(true)); }}>
+                                                                    <Flag className="h-4 w-4" />
+                                                                </Button>
+                                                             </DialogTrigger>
                                                         </div>
                                                     </div>
                                                 </DialogTrigger>
@@ -991,7 +1035,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                                             <DialogTitle>Change Delivery Address</DialogTitle>
                                                         </DialogHeader>
                                                         <EditAddressForm 
-                                                            onSave={handleAddressSave} 
+                                                            onSave={handleAddressSave}
                                                             onCancel={() => setIsAddressDialogOpen(false)}
                                                             onAddressesUpdate={handleAddressesUpdate}
                                                         />
@@ -1048,10 +1092,11 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                             </div>
                                         </div>
                                     </div>
+                                    <Separator />
                                 </div>
                             </div>
                             <div className="col-span-full mt-8 space-y-8">
-                                 <Card className="w-full">
+                                <Card className="w-full">
                                     <CardHeader>
                                         <CardTitle className="flex items-center justify-between text-base">
                                             Available Offers
@@ -1085,7 +1130,6 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                         </div>
                                     </CardContent>
                                 </Card>
-                                <Separator/>
                                  <div className="space-y-3">
                                     <h2 className="text-xl font-bold">Highlights</h2>
                                      {product.highlightsImage && (
@@ -1191,7 +1235,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                         </Button>
                                     </CardFooter>
                                 </Card>
-                                <Separator/>
+                                <Separator />
                                 
                                 <Card>
                                     <CardHeader className="flex flex-row items-center justify-between">
