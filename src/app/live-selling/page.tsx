@@ -331,6 +331,27 @@ export default function LiveSellingPage() {
   const isMobile = useIsMobile();
   const [openProductSheet, setOpenProductSheet] = useState<string | null>(null);
 
+  const productToSeller = (productId: string) => {
+    const sellerInfo = Object.values(liveSellers).find(s => s.productId === productId);
+    return sellerInfo || null;
+  }
+  
+  const sellerProducts = (sellerId: string) => {
+      if (!sellerId) return [];
+      return Object.values(productDetails).filter(p => productToSeller(p.key)?.id === sellerId);
+  }
+
+  const handleAddToCart = (product: any) => {
+    handleAuthAction(() => {
+        addToCart({ ...product, quantity: 1 });
+        setCartCount(getCart().reduce((sum, item) => sum + item.quantity, 0));
+        toast({
+            title: "Added to Cart!",
+            description: `${product.name} has been added to your cart.`
+        });
+    });
+  };
+
   const renderProductCard = (product: any) => (
     <Link href={`/product/${product.key}`} key={product.key} className="group block">
         <Card className="w-full overflow-hidden h-full flex flex-col">
@@ -543,27 +564,6 @@ export default function LiveSellingPage() {
       .sort((a, b) => (b.sold || 0) - (a.sold || 0))
       .slice(0, 4);
   }, []);
-
-  const productToSeller = (productId: string) => {
-    const sellerInfo = Object.values(liveSellers).find(s => s.productId === productId);
-    return sellerInfo || null;
-  }
-  
-  const sellerProducts = (sellerId: string) => {
-      if (!sellerId) return [];
-      return Object.values(productDetails).filter(p => productToSeller(p.key)?.id === sellerId);
-  }
-
-  const handleAddToCart = (product: any) => {
-    handleAuthAction(() => {
-        addToCart({ ...product, quantity: 1 });
-        setCartCount(getCart().reduce((sum, item) => sum + item.quantity, 0));
-        toast({
-            title: "Added to Cart!",
-            description: `${product.name} has been added to your cart.`
-        });
-    });
-  };
 
   return (
     <>
@@ -826,9 +826,9 @@ export default function LiveSellingPage() {
                                                         <div className="flex-1 overflow-hidden">
                                                             <div className="flex items-center justify-between">
                                                                 <Link href={`/stream/${seller.id}`} className="font-semibold text-sm leading-tight group-hover:underline truncate">{seller.title || seller.name}</Link>
-                                                                <Sheet onOpenChange={(isOpen) => setOpenProductSheet(isOpen ? seller.id : null)}>
+                                                                 <Sheet onOpenChange={(isOpen) => setOpenProductSheet(isOpen ? seller.id : null)}>
                                                                     <SheetTrigger asChild>
-                                                                        <Button variant="ghost" size="icon" className="h-7 w-7 flex-shrink-0 -mr-2 text-muted-foreground hover:text-primary">
+                                                                        <Button variant="ghost" size="icon" className="h-7 w-7 flex-shrink-0 text-muted-foreground hover:text-primary">
                                                                             <ShoppingBag className="h-4 w-4" />
                                                                         </Button>
                                                                     </SheetTrigger>
@@ -885,8 +885,8 @@ export default function LiveSellingPage() {
                                     <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2 hidden lg:flex" />
                                 </Carousel>
                             </section>
-                            <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-                                <div className="bg-card rounded-lg p-4 sm:p-6 lg:p-8">
+                             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+                                <div className="bg-card rounded-lg p-4 sm:p-6 lg:p-8 border">
                                     <h2 className="text-3xl font-bold text-center mb-6">Shop by Category</h2>
                                     <CategoryGrid />
                                 </div>
