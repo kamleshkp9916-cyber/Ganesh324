@@ -118,15 +118,15 @@ import { ProductSearchWithStreams } from '@/components/ProductSearchWithStreams'
 
 
 const liveSellers = [
-    { id: 'fashionfinds-uid', name: 'FashionFinds', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Fashion', viewers: 1200, buyers: 25, rating: 4.8, reviews: 12, hint: 'woman posing stylish outfit', productId: 'prod_1' },
-    { id: 'gadgetguru-uid', name: 'GadgetGuru', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Electronics', viewers: 2500, buyers: 42, rating: 4.9, reviews: 28, hint: 'unboxing new phone', productId: 'prod_2' },
-    { id: 'homehaven-uid', name: 'HomeHaven', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Home Goods', viewers: 850, buyers: 15, rating: 4.7, reviews: 9, hint: 'modern living room decor', productId: 'prod_3' },
-    { id: 'beautybox-uid', name: 'BeautyBox', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Beauty', viewers: 3100, buyers: 78, rating: 4.9, reviews: 55, hint: 'makeup tutorial', productId: 'prod_4' },
-    { id: 'kitchenwiz-uid', name: 'KitchenWiz', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Kitchenware', viewers: 975, buyers: 0, rating: 0, reviews: 0, hint: 'cooking demonstration', productId: 'prod_5' },
-    { id: 'fitflow-uid', name: 'FitFlow', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Fitness', viewers: 1500, buyers: 33, rating: 4.6, reviews: 18, hint: 'yoga session', productId: 'prod_6' },
-    { id: 'artisanalley-uid', name: 'ArtisanAlley', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Handmade', viewers: 450, buyers: 8, rating: 5.0, reviews: 6, hint: 'pottery making', productId: 'prod_7' },
-    { id: 'petpalace-uid', name: 'PetPalace', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Pet Supplies', viewers: 1800, buyers: 50, rating: 4.8, reviews: 30, hint: 'playing with puppy', productId: 'prod_8' },
-    { id: 'booknook-uid', name: 'BookNook', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Books', viewers: 620, buyers: 12, rating: 4.9, reviews: 10, hint: 'reading book cozy', productId: 'prod_9' },
+    { id: 'fashionfinds-uid', name: 'FashionFinds', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Fashion', viewers: 1200, buyers: 25, rating: 4.8, reviews: 12, hint: 'woman posing stylish outfit', productId: 'prod_1', hasAuction: true },
+    { id: 'gadgetguru-uid', name: 'GadgetGuru', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Electronics', viewers: 2500, buyers: 42, rating: 4.9, reviews: 28, hint: 'unboxing new phone', productId: 'prod_2', hasAuction: false },
+    { id: 'homehaven-uid', name: 'HomeHaven', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Home Goods', viewers: 850, buyers: 15, rating: 4.7, reviews: 9, hint: 'modern living room decor', productId: 'prod_3', hasAuction: false },
+    { id: 'beautybox-uid', name: 'BeautyBox', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Beauty', viewers: 3100, buyers: 78, rating: 4.9, reviews: 55, hint: 'makeup tutorial', productId: 'prod_4', hasAuction: true },
+    { id: 'kitchenwiz-uid', name: 'KitchenWiz', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Kitchenware', viewers: 975, buyers: 0, rating: 0, reviews: 0, hint: 'cooking demonstration', productId: 'prod_5', hasAuction: false },
+    { id: 'fitflow-uid', name: 'FitFlow', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Fitness', viewers: 1500, buyers: 33, rating: 4.6, reviews: 18, hint: 'yoga session', productId: 'prod_6', hasAuction: false },
+    { id: 'artisanalley-uid', name: 'ArtisanAlley', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Handmade', viewers: 450, buyers: 8, rating: 5.0, reviews: 6, hint: 'pottery making', productId: 'prod_7', hasAuction: true },
+    { id: 'petpalace-uid', name: 'PetPalace', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Pet Supplies', viewers: 1800, buyers: 50, rating: 4.8, reviews: 30, hint: 'playing with puppy', productId: 'prod_8', hasAuction: false },
+    { id: 'booknook-uid', name: 'BookNook', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Books', viewers: 620, buyers: 12, rating: 4.9, reviews: 10, hint: 'reading book cozy', productId: 'prod_9', hasAuction: false },
     { id: 'gamerguild-uid', name: 'GamerGuild', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Gaming', viewers: 4200, buyers: 102, rating: 4.9, reviews: 80, hint: 'esports competition', productId: 'prod_10' },
 ];
 
@@ -536,15 +536,10 @@ export default function LiveSellingPage() {
                     data-ai-hint={product.hint}
                 />
             </div>
-            <div className="p-2 flex-grow flex flex-col">
-                <h4 className="font-semibold truncate text-[11px] flex-grow">{product.name}</h4>
-                <p className="font-bold text-xs mt-1">{product.price}</p>
-                <div className="flex items-center gap-1 text-[10px] text-amber-400 mt-1">
-                    <Star className="w-3 h-3 fill-current" />
-                    <span>4.8</span>
-                    <span className="text-muted-foreground">({product.reviews || '1.2k'})</span>
-                </div>
-                 <div className="flex items-center gap-2 text-[10px] text-muted-foreground mt-1">
+            <div className="p-1.5 flex-grow flex flex-col">
+                <h4 className="font-semibold truncate text-[10px] flex-grow">{product.name}</h4>
+                <p className="font-bold text-xs mt-0.5">{product.price}</p>
+                 <div className="flex items-center gap-2 text-[10px] text-muted-foreground mt-0.5">
                     <div className="flex items-center gap-1"><Package className="w-2.5 h-2.5" /> {product.stock} left</div>
                     <div className="flex items-center gap-1"><Users className="w-2.5 h-2.5" /> {product.sold} sold</div>
                 </div>
@@ -822,34 +817,31 @@ export default function LiveSellingPage() {
                             </div>
                         </section>
                         
-                        <section className="container mx-auto px-4 sm:px-6 lg:px-8">
-                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                                {mostPopularStreams.length > 0 && (
-                                <div className="lg:col-span-1">
-                                    <Card className="overflow-hidden bg-muted/30 border-border/50 h-full group">
-                                        <Link href={`/stream/${mostPopularStreams[0].id}`}>
-                                            <div className="relative aspect-video">
-                                                <Image src="https://images.unsplash.com/photo-1555529771-835f59fc5efe?w=1000&h=1000&fit=crop" alt="Top Stream" fill className="object-cover group-hover:scale-105 transition-transform" data-ai-hint="woman fashion sale" />
-                                                <div className="absolute inset-0 bg-black/40" />
-                                                <div className="absolute top-4 left-4 z-10 flex items-center gap-2">
-                                                    <Badge variant="destructive" className="gap-1.5"><div className="h-2 w-2 rounded-full bg-white animate-pulse" />#1 MOST POPULAR</Badge>
-                                                    <Badge variant="secondary" className="bg-background/60 backdrop-blur-sm gap-1.5"><Users className="h-3 w-3"/>{mostPopularStreams[0].viewers.toLocaleString()} watching</Badge>
-                                                </div>
+                         <section className="container mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            {mostPopularStreams.length > 0 && (
+                                <Card className="overflow-hidden bg-muted/30 border-border/50 h-full group">
+                                    <Link href={`/stream/${mostPopularStreams[0].id}`}>
+                                        <div className="relative aspect-video">
+                                            <Image src="https://images.unsplash.com/photo-1555529771-835f59fc5efe?w=1000&h=1000&fit=crop" alt="Top Stream" fill className="object-cover group-hover:scale-105 transition-transform" data-ai-hint="woman fashion sale" />
+                                            <div className="absolute inset-0 bg-black/40" />
+                                            <div className="absolute top-4 left-4 z-10 flex items-center gap-2">
+                                                <Badge variant="destructive" className="gap-1.5"><div className="h-2 w-2 rounded-full bg-white animate-pulse" />#1 MOST POPULAR</Badge>
+                                                <Badge variant="secondary" className="bg-background/60 backdrop-blur-sm gap-1.5"><Users className="h-3 w-3"/>{mostPopularStreams[0].viewers.toLocaleString()} watching</Badge>
                                             </div>
-                                        </Link>
-                                        <div className="p-6">
-                                            <p className="text-sm font-semibold text-primary">{mostPopularStreams[0].category}</p>
-                                            <h3 className="text-2xl font-bold mt-1">{mostPopularStreams[0].name}'s Live Shopping</h3>
-                                            <p className="text-muted-foreground mt-2">Join the #1 most-watched stream on StreamCart right now!</p>
-                                            <Button asChild className="mt-4">
-                                                <Link href={`/stream/${mostPopularStreams[0].id}`}>Join Stream <ArrowRight className="ml-2 h-4 w-4" /></Link>
-                                            </Button>
                                         </div>
-                                    </Card>
-                                </div>
-                                )}
-                                <div className="lg:col-span-1 grid grid-rows-2 gap-6">
-                                    {mostPopularStreams.length > 1 && (
+                                    </Link>
+                                    <div className="p-6">
+                                        <p className="text-sm font-semibold text-primary">{mostPopularStreams[0].category}</p>
+                                        <h3 className="text-2xl font-bold mt-1">{mostPopularStreams[0].name}'s Live Shopping</h3>
+                                        <p className="text-muted-foreground mt-2">Join the #1 most-watched stream on StreamCart right now!</p>
+                                        <Button asChild className="mt-4">
+                                            <Link href={`/stream/${mostPopularStreams[0].id}`}>Join Stream <ArrowRight className="ml-2 h-4 w-4" /></Link>
+                                        </Button>
+                                    </div>
+                                </Card>
+                            )}
+                            <div className="grid grid-rows-2 gap-6">
+                                {mostPopularStreams.length > 1 && (
                                     <Card className="overflow-hidden relative flex items-end text-white group">
                                          <Link href={`/stream/${mostPopularStreams[1].id}`} className='w-full h-full'>
                                             <Image src="https://images.unsplash.com/photo-1506152983158-b4a74a01c721?w=800&h=400&fit=crop" alt="Second most popular stream" fill className="object-cover group-hover:scale-105 transition-transform"/>
@@ -861,8 +853,8 @@ export default function LiveSellingPage() {
                                             </div>
                                         </Link>
                                     </Card>
-                                    )}
-                                    {mostPopularStreams.length > 2 && (
+                                )}
+                                {mostPopularStreams.length > 2 && (
                                     <Card className="overflow-hidden relative flex items-end text-white group">
                                          <Link href={`/stream/${mostPopularStreams[2].id}`} className='w-full h-full'>
                                             <Image src="https://images.unsplash.com/photo-1511556820780-d912e42b4980?w=800&h=400&fit=crop" alt="Third most popular stream" fill className="object-cover group-hover:scale-105 transition-transform"/>
@@ -874,8 +866,7 @@ export default function LiveSellingPage() {
                                             </div>
                                         </Link>
                                     </Card>
-                                    )}
-                                </div>
+                                )}
                             </div>
                         </section>
                         
