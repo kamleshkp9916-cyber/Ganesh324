@@ -212,7 +212,7 @@ const CategoryGrid = () => {
         }, {});
 
         const sortedCategories = Object.entries(categoryCounts)
-            .sort(([, countA], [, countB]) => countB - a)
+            .sort(([, countA], [, countB]) => countB - countA)
             .slice(0, 7)
             .map(([category]) => category);
         
