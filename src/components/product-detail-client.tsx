@@ -813,7 +813,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                     {showSearchResults ? renderSearchResults() : (
                         <div className="container mx-auto py-6">
                             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-                                <div>
+                                <div className="relative">
                                     <Dialog>
                                         <Card className="bg-transparent border-none shadow-none">
                                             <CardContent className="p-0">
@@ -841,19 +841,6 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                                                 <Video className="h-3 w-3 mr-1"/> From Stream
                                                             </Badge>
                                                         )}
-                                                         <div className="absolute top-2 right-2 z-20 flex flex-col gap-2">
-                                                            <Button variant="secondary" size="icon" className="h-8 w-8 rounded-full" onClick={(e) => {e.stopPropagation(); handleWishlistToggle();}}>
-                                                                <Heart className={cn("h-4 w-4", wishlisted ? "fill-red-500 text-red-500" : "text-muted-foreground")} />
-                                                            </Button>
-                                                            <Button variant="secondary" size="icon" className="h-8 w-8 rounded-full" onClick={(e) => {e.stopPropagation(); handleShare();}}>
-                                                                <Share2 className="h-4 w-4" />
-                                                            </Button>
-                                                             <DialogTrigger asChild>
-                                                                 <Button variant="secondary" size="icon" className="h-8 w-8 rounded-full" onClick={(e) => { e.stopPropagation(); handleAuthAction(() => setIsReportOpen(true)); }}>
-                                                                    <Flag className="h-4 w-4" />
-                                                                </Button>
-                                                             </DialogTrigger>
-                                                        </div>
                                                     </div>
                                                 </DialogTrigger>
                                                 
@@ -892,7 +879,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                             </CardContent>
                                         </Card>
                                         <DialogContent className="max-w-3xl max-h-[90vh]">
-                                           <DialogHeader>
+                                            <DialogHeader>
                                                 <DialogTitle>{product.name}</DialogTitle>
                                             </DialogHeader>
                                             <div className="relative aspect-square w-full">
@@ -905,17 +892,28 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                             </div>
                                         </DialogContent>
                                     </Dialog>
-                                     {showSimilarOverlay && <SimilarProductsOverlay
+                                     <div className="absolute top-2 right-2 z-20 flex flex-col gap-2">
+                                        <Button variant="secondary" size="icon" className="h-8 w-8 rounded-full" onClick={(e) => { e.stopPropagation(); handleWishlistToggle(); }}>
+                                            <Heart className={cn("h-4 w-4", wishlisted ? "fill-red-500 text-red-500" : "text-muted-foreground")} />
+                                        </Button>
+                                        <Button variant="secondary" size="icon" className="h-8 w-8 rounded-full" onClick={(e) => { e.stopPropagation(); handleShare(); }}>
+                                            <Share2 className="h-4 w-4" />
+                                        </Button>
+                                        <Button variant="secondary" size="icon" className="h-8 w-8 rounded-full" onClick={(e) => { e.stopPropagation(); handleAuthAction(() => setIsReportOpen(true)); }}>
+                                            <Flag className="h-4 w-4" />
+                                        </Button>
+                                    </div>
+                                    <Button size="lg" className="w-full rounded-full bg-black/50 text-white backdrop-blur-sm flex items-center gap-1.5 mt-4" onClick={handleSimilarClick} disabled={isScanning}>
+                                        {isScanning ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+                                        <span>Find Similar Products</span>
+                                    </Button>
+                                    {showSimilarOverlay && <SimilarProductsOverlay
                                         isOpen={showSimilarOverlay}
                                         onClose={() => setShowSimilarOverlay(false)}
                                         similarProducts={similarProducts}
                                         relatedStreams={relatedStreams}
                                         isLoading={isLoadingSimilar}
                                     />}
-                                    <Button size="lg" className="w-full rounded-full bg-black/50 text-white backdrop-blur-sm flex items-center gap-1.5 mt-4" onClick={handleSimilarClick} disabled={isScanning}>
-                                        {isScanning ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-                                        <span>Find Similar Products</span>
-                                    </Button>
                                     {seller && sellerLiveStream && (
                                          <div className="mt-2 text-center">
                                             <Button asChild variant="secondary" className="w-full">
@@ -945,7 +943,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                                 {compareAtPrice && <p className="text-3xl font-bold text-destructive">{currentPrice}</p>}
                                                 {discountPercentage && <Badge variant="destructive">{discountPercentage}% OFF</Badge>}
                                             </div>
-                                            <div className="flex items-center gap-4 flex-wrap text-sm text-muted-foreground">
+                                             <div className="flex items-center gap-4 flex-wrap text-sm text-muted-foreground">
                                                 <div className="flex items-center gap-2">
                                                         <div className="flex items-center gap-1 text-amber-400">
                                                             <Star className="h-5 w-5 fill-current" />
@@ -1021,7 +1019,8 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                         )}
                                     </div>
                                     
-                                     <div className="space-y-4 pt-4">
+                                    <div className="space-y-4 pt-4 w-full">
+                                        <Card className='p-4'>
                                         <div className="flex items-center justify-between">
                                             <h4 className="font-semibold text-base">Delivery Information</h4>
                                             {user && userData?.addresses && userData.addresses.length > 0 && (
@@ -1045,7 +1044,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                             )}
                                         </div>
                                          {user && userData?.addresses && userData.addresses.length > 0 ? (
-                                            <div className="w-full rounded-md border bg-muted/50 p-4 text-sm">
+                                            <div className="w-full rounded-md text-sm mt-2">
                                                 <div className="flex items-start gap-3">
                                                     <Truck className="h-5 w-5 text-muted-foreground mt-0.5 flex-shrink-0" />
                                                     <div>
@@ -1057,7 +1056,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                                 <p className="text-muted-foreground font-semibold !mt-2">Delivery by {estimatedDeliveryDate}</p>
                                             </div>
                                         ) : (
-                                            <div>
+                                            <div className='mt-2'>
                                                 <div className="flex items-center gap-2">
                                                     <Input value={pincode} onChange={(e) => setPincode(e.target.value)} placeholder="Enter Pincode" className="max-w-xs h-9" />
                                                     <Button variant="outline" size="sm" onClick={handlePincodeCheck} disabled={checkingPincode}>
@@ -1071,6 +1070,8 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                                 )}
                                             </div>
                                         )}
+                                        </Card>
+                                        <Card className='p-4 space-y-4'>
                                         <div className="flex items-start gap-3">
                                             <RotateCcw className="h-5 w-5 text-muted-foreground mt-0.5 flex-shrink-0" />
                                             <div>
@@ -1092,20 +1093,17 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                                 <p className="text-xs text-muted-foreground">All products are sourced directly from brands and verified sellers.</p>
                                             </div>
                                         </div>
+                                        </Card>
                                     </div>
-                                    <Separator />
                                 </div>
                             </div>
                             <div className="col-span-full mt-8 space-y-8">
-                                <Card className="w-full">
-                                    <CardHeader>
-                                        <CardTitle className="flex items-center justify-between text-base">
-                                            Available Offers
-                                            <Ticket className="h-5 w-5 text-muted-foreground" />
-                                        </CardTitle>
+                                <Card>
+                                     <CardHeader>
+                                        <CardTitle>Available Offers</CardTitle>
                                     </CardHeader>
                                     <CardContent>
-                                        <div className="space-y-3">
+                                         <div className="space-y-3">
                                             {mockAdminOffers.map((offer: any, index: number) => (
                                                 <div key={index} className="flex items-start gap-3 text-sm">
                                                     {offer.icon}
