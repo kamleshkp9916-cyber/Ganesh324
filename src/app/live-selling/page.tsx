@@ -119,6 +119,9 @@ import { ProductSearchWithStreams } from '@/components/ProductSearchWithStreams'
 import { motion } from 'framer-motion';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useLocalStorage } from '@/hooks/use-local-storage';
+import { CATEGORY_BANNERS_KEY, CategoryBanners } from '@/app/admin/settings/page';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 
 
 const liveSellers = [
@@ -331,6 +334,7 @@ export default function LiveSellingPage() {
   const isMobile = useIsMobile();
   const [openProductSheet, setOpenProductSheet] = useState<string | null>(null);
   const [selectedBrowseCategory, setSelectedBrowseCategory] = useState<string | null>(null);
+  const [selectedSubCategory, setSelectedSubCategory] = useState<string | null>(null);
 
   const productToSeller = (productId: string) => {
     const sellerInfo = Object.values(liveSellers).find(s => s.productId === productId);
@@ -867,7 +871,7 @@ export default function LiveSellingPage() {
                                                                                         </Card>
                                                                                     ))
                                                                                 ) : (
-                                                                                    <p className="col-span-2 text-center text-muted-foreground py-10">No products to show.</p>
+                                                                                    <p className="col-span-full text-center text-muted-foreground py-10">No products to show.</p>
                                                                                 )}
                                                                             </div>
                                                                         </ScrollArea>
@@ -887,9 +891,13 @@ export default function LiveSellingPage() {
                                 </Carousel>
                             </section>
                              <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-                                <Card className="bg-muted/30 rounded-lg p-4 sm:p-6 lg:p-8 border-none">
-                                    <h2 className="text-3xl font-bold text-center mb-6">Shop by Category</h2>
-                                    <CategoryGrid />
+                                <Card className="bg-card/50 rounded-lg border-none">
+                                     <CardHeader>
+                                        <CardTitle className="text-3xl font-bold text-center">Shop by Category</CardTitle>
+                                    </CardHeader>
+                                    <CardContent>
+                                        <CategoryGrid />
+                                    </CardContent>
                                 </Card>
                             </div>
                             
@@ -982,7 +990,7 @@ export default function LiveSellingPage() {
                                                                                     </Card>
                                                                                 ))
                                                                             ) : (
-                                                                                <p className="col-span-2 text-center text-muted-foreground py-10">No products to show.</p>
+                                                                                <p className="col-span-full text-center text-muted-foreground py-10">No products to show.</p>
                                                                             )}
                                                                         </div>
                                                                     </ScrollArea>
@@ -1001,16 +1009,54 @@ export default function LiveSellingPage() {
                                     <div className="grid grid-cols-[240px_1fr] gap-8 items-start">
                                         <aside className="sticky top-32">
                                             <h3 className="font-semibold mb-2">Categories</h3>
-                                            <div className="flex flex-col gap-1">
-                                                {categories.map(category => (
-                                                    <Button key={category.name} variant="ghost" className={cn("justify-start", selectedBrowseCategory === category.name && "bg-secondary")} onClick={() => setSelectedBrowseCategory(category.name)}>
-                                                        {category.name}
-                                                    </Button>
+                                            <Accordion type="multiple" className="w-full">
+                                                {categories.map((category) => (
+                                                <AccordionItem value={category.name} key={category.name}>
+                                                    <AccordionTrigger
+                                                    className={cn(
+                                                        "text-sm font-semibold hover:no-underline",
+                                                        selectedBrowseCategory === category.name && !selectedSubCategory && "text-primary"
+                                                    )}
+                                                    onClick={() => {
+                                                        setSelectedBrowseCategory(category.name);
+                                                        setSelectedSubCategory(null);
+                                                    }}
+                                                    >
+                                                    {category.name}
+                                                    </AccordionTrigger>
+                                                    <AccordionContent>
+                                                    <div className="flex flex-col space-y-1 pl-4">
+                                                        {category.subcategories.map(sub => (
+                                                        <Button
+                                                            key={sub.name}
+                                                            variant="ghost"
+                                                            className={cn("h-auto justify-start text-sm py-1.5 text-muted-foreground", selectedSubCategory === sub.name && "text-primary font-semibold")}
+                                                            onClick={() => {
+                                                                setSelectedBrowseCategory(category.name);
+                                                                setSelectedSubCategory(sub.name);
+                                                            }}
+                                                        >
+                                                            {sub.name}
+                                                        </Button>
+                                                        ))}
+                                                    </div>
+                                                    </AccordionContent>
+                                                </AccordionItem>
                                                 ))}
-                                            </div>
+                                            </Accordion>
                                         </aside>
                                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                                            {topLiveStreams.filter(s => !selectedBrowseCategory || s.category === selectedBrowseCategory).map((seller: any) => (
+                                            {topLiveStreams.filter(s => {
+                                                if (!selectedBrowseCategory) return true;
+                                                const mainCategoryMatch = s.category === selectedBrowseCategory;
+                                                if (!selectedSubCategory) return mainCategoryMatch;
+                                                
+                                                // This is a mock filter as we don't have subcategory data on streams
+                                                // In a real app, the stream object would have a subcategory field
+                                                const productForStream = Object.values(productDetails).find(p => p.key === s.productId);
+                                                return mainCategoryMatch && productForStream?.subcategory === selectedSubCategory;
+
+                                            }).map((seller: any) => (
                                                 <div key={seller.id} className="group block">
                                                 <Link href={`/stream/${seller.id}`}>
                                                     <div className="relative rounded-lg overflow-hidden aspect-video bg-muted w-full flex-shrink-0">
@@ -1059,3 +1105,4 @@ export default function LiveSellingPage() {
     </>
   );
 }
+
