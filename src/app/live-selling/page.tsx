@@ -118,16 +118,16 @@ import { ProductSearchWithStreams } from '@/components/ProductSearchWithStreams'
 import { motion } from 'framer-motion';
 
 const liveSellers = [
-    { id: 'fashionfinds-uid', name: 'FashionFinds', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Fashion', viewers: 1200, buyers: 25, rating: 4.8, reviews: 12, hint: 'woman posing stylish outfit', productId: 'prod_1', hasAuction: true },
-    { id: 'gadgetguru-uid', name: 'GadgetGuru', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Electronics', viewers: 2500, buyers: 42, rating: 4.9, reviews: 28, hint: 'unboxing new phone', productId: 'prod_2', hasAuction: false },
-    { id: 'homehaven-uid', name: 'HomeHaven', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Home Goods', viewers: 850, buyers: 15, rating: 4.7, reviews: 9, hint: 'modern living room decor', productId: 'prod_3', hasAuction: false },
-    { id: 'beautybox-uid', name: 'BeautyBox', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Beauty', viewers: 3100, buyers: 78, rating: 4.9, reviews: 55, hint: 'makeup tutorial', productId: 'prod_4', hasAuction: true },
-    { id: 'kitchenwiz-uid', name: 'KitchenWiz', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Kitchenware', viewers: 975, buyers: 0, rating: 0, reviews: 0, hint: 'cooking demonstration', productId: 'prod_5', hasAuction: false },
-    { id: 'fitflow-uid', name: 'FitFlow', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Fitness', viewers: 1500, buyers: 33, rating: 4.6, reviews: 18, hint: 'yoga session', productId: 'prod_6', hasAuction: false },
-    { id: 'artisanalley-uid', name: 'ArtisanAlley', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Handmade', viewers: 450, buyers: 8, rating: 5.0, reviews: 6, hint: 'pottery making', productId: 'prod_7', hasAuction: true },
-    { id: 'petpalace-uid', name: 'PetPalace', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Pet Supplies', viewers: 1800, buyers: 50, rating: 4.8, reviews: 30, hint: 'playing with puppy', productId: 'prod_8', hasAuction: false },
-    { id: 'booknook-uid', name: 'BookNook', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Books', viewers: 620, buyers: 12, rating: 4.9, reviews: 10, hint: 'reading book cozy', productId: 'prod_9', hasAuction: false },
-    { id: 'gamerguild-uid', name: 'GamerGuild', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Gaming', viewers: 4200, buyers: 102, rating: 4.9, reviews: 80, hint: 'esports competition', productId: 'prod_10', hasAuction: true },
+    { id: 'fashionfinds-uid', name: 'FashionFinds', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://picsum.photos/seed/fashion-stream/300/450', category: 'Fashion', viewers: 1200, buyers: 25, rating: 4.8, reviews: 12, hint: 'woman posing stylish outfit', productId: 'prod_1', hasAuction: true },
+    { id: 'gadgetguru-uid', name: 'GadgetGuru', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://picsum.photos/seed/tech-stream/300/450', category: 'Electronics', viewers: 2500, buyers: 42, rating: 4.9, reviews: 28, hint: 'unboxing new phone', productId: 'prod_2', hasAuction: false },
+    { id: 'homehaven-uid', name: 'HomeHaven', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://picsum.photos/seed/home-stream/300/450', category: 'Home Goods', viewers: 850, buyers: 15, rating: 4.7, reviews: 9, hint: 'modern living room decor', productId: 'prod_3', hasAuction: false },
+    { id: 'beautybox-uid', name: 'BeautyBox', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://picsum.photos/seed/beauty-stream/300/450', category: 'Beauty', viewers: 3100, buyers: 78, rating: 4.9, reviews: 55, hint: 'makeup tutorial', productId: 'prod_4', hasAuction: true },
+    { id: 'kitchenwiz-uid', name: 'KitchenWiz', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://picsum.photos/seed/kitchen-stream/300/450', category: 'Kitchenware', viewers: 975, buyers: 0, rating: 0, reviews: 0, hint: 'cooking demonstration', productId: 'prod_5', hasAuction: false },
+    { id: 'fitflow-uid', name: 'FitFlow', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://picsum.photos/seed/fitness-stream/300/450', category: 'Fitness', viewers: 1500, buyers: 33, rating: 4.6, reviews: 18, hint: 'yoga session', productId: 'prod_6', hasAuction: false },
+    { id: 'artisanalley-uid', name: 'ArtisanAlley', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://picsum.photos/seed/artisan-stream/300/450', category: 'Handmade', viewers: 450, buyers: 8, rating: 5.0, reviews: 6, hint: 'pottery making', productId: 'prod_7', hasAuction: true },
+    { id: 'petpalace-uid', name: 'PetPalace', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://picsum.photos/seed/pet-stream/300/450', category: 'Pet Supplies', viewers: 1800, buyers: 50, rating: 4.8, reviews: 30, hint: 'playing with puppy', productId: 'prod_8', hasAuction: false },
+    { id: 'booknook-uid', name: 'BookNook', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://picsum.photos/seed/book-stream/300/450', category: 'Books', viewers: 620, buyers: 12, rating: 4.9, reviews: 10, hint: 'reading book cozy', productId: 'prod_9', hasAuction: false },
+    { id: 'gamerguild-uid', name: 'GamerGuild', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://picsum.photos/seed/gaming-stream/300/450', category: 'Gaming', viewers: 4200, buyers: 102, rating: 4.9, reviews: 80, hint: 'esports competition', productId: 'prod_10', hasAuction: true },
 ];
 
 const reportReasons = [
@@ -143,64 +143,12 @@ const mockNotifications = [
     { id: 3, title: 'New message from HomeHaven', description: '"Yes, the blue vases are back in stock!"', time: '4h ago', read: true, href: '/message' },
 ];
 
-const categoryCardsData = [
-  {
-    category: 'Home & Living',
-    product: 'SOFA',
-    image: 'https://picsum.photos/seed/sofa/800/800',
-    hint: 'modern sofa',
-    bgColor: 'bg-gray-100 dark:bg-gray-800',
-    gridClass: 'md:row-span-2 md:col-span-2',
-  },
-  {
-    category: 'Clothing & Shoes',
-    product: 'SNEAKERS',
-    image: 'https://picsum.photos/seed/sneakers/800/800',
-    hint: 'blue sneakers',
-    bgColor: 'bg-blue-100 dark:bg-blue-900/50',
-    gridClass: '',
-  },
-  {
-    category: 'Toys & Entertainment',
-    product: 'TOY TRAIN',
-    image: 'https://picsum.photos/seed/train/800/800',
-    hint: 'toy train',
-    bgColor: 'bg-yellow-100 dark:bg-yellow-900/50',
-    gridClass: '',
-  },
-  {
-    category: 'Toys & Entertainment',
-    product: 'PICTURE FRAME',
-    image: 'https://picsum.photos/seed/frame/800/800',
-    hint: 'picture frame',
-    bgColor: 'bg-rose-100 dark:bg-rose-900/50',
-    gridClass: '',
-  },
-  {
-    category: 'Toys & Entertainment',
-    product: 'PARTY DECORS',
-    image: 'https://picsum.photos/seed/party/800/800',
-    hint: 'party hats',
-    bgColor: 'bg-green-100 dark:bg-green-900/50',
-    gridClass: '',
-  },
-  {
-    category: 'Jewelry & Accessories',
-    product: 'DIAMOND RING',
-    image: 'https://picsum.photos/seed/ring/800/800',
-    hint: 'diamond ring',
-    bgColor: 'bg-red-100 dark:bg-red-900/50',
-    gridClass: 'md:col-span-2',
-  },
-];
-
-
 const AnimatedCategoryCard = ({
   item,
   isHovered,
   setHovered,
 }: {
-  item: typeof categoryCardsData[0];
+  item: any;
   isHovered: boolean;
   setHovered: (val: boolean) => void;
 }) => {
@@ -216,7 +164,7 @@ const AnimatedCategoryCard = ({
     >
       <Image
         src={item.image}
-        alt={item.product}
+        alt={item.product || item.category}
         fill
         sizes="(max-width: 768px) 50vw, 33vw"
         className={cn(
@@ -234,7 +182,7 @@ const AnimatedCategoryCard = ({
       />
       <div className="absolute inset-0 p-6 flex flex-col justify-start">
         <p className="text-sm font-semibold opacity-80">{item.category}</p>
-        <p className="text-2xl font-bold">{item.product}</p>
+        <p className="text-2xl font-bold">{item.product || item.category}</p>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: isHovered ? 1 : 0, y: isHovered ? 0 : 20 }}
@@ -252,6 +200,50 @@ const AnimatedCategoryCard = ({
 
 const CategoryGrid = () => {
     const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+
+    const categoryCardsData = useMemo(() => {
+        const categoryCounts = Object.values(productDetails).reduce((acc: Record<string, number>, product) => {
+            const category = product.category || 'Uncategorized';
+            acc[category] = (acc[category] || 0) + 1;
+            return acc;
+        }, {});
+
+        const sortedCategories = Object.entries(categoryCounts)
+            .sort(([, countA], [, countB]) => countB - countA)
+            .slice(0, 6)
+            .map(([category]) => category);
+        
+        const defaultLayout = [
+            { gridClass: 'md:row-span-2 md:col-span-2', bgColor: 'bg-gray-100 dark:bg-gray-800' },
+            { gridClass: '', bgColor: 'bg-blue-100 dark:bg-blue-900/50' },
+            { gridClass: '', bgColor: 'bg-yellow-100 dark:bg-yellow-900/50' },
+            { gridClass: '', bgColor: 'bg-rose-100 dark:bg-rose-900/50' },
+            { gridClass: '', bgColor: 'bg-green-100 dark:bg-green-900/50' },
+            { gridClass: 'md:col-span-2', bgColor: 'bg-red-100 dark:bg-red-900/50' },
+        ];
+        
+        const categoryDataMap: Record<string, { product: string; image: string; hint: string }> = {
+            'Home': { product: 'SOFA', image: 'https://picsum.photos/seed/sofa/800/800', hint: 'modern sofa' },
+            'Women': { product: 'FASHION', image: 'https://picsum.photos/seed/women-fashion/800/800', hint: 'woman fashion' },
+            'Men': { product: 'STYLE', image: 'https://picsum.photos/seed/men-style/800/800', hint: 'man style' },
+            'Shoes': { product: 'SNEAKERS', image: 'https://picsum.photos/seed/sneakers/800/800', hint: 'blue sneakers' },
+            'Kids': { product: 'TOYS', image: 'https://picsum.photos/seed/train/800/800', hint: 'toy train' },
+            'Electronics': { product: 'GADGETS', image: 'https://picsum.photos/seed/gadget/800/800', hint: 'gadgets' },
+            'Handbags': { product: 'BAGS', image: 'https://picsum.photos/seed/handbag/800/800', hint: 'handbag' },
+            'Trending': { product: 'HOT', image: 'https://picsum.photos/seed/hot/800/800', hint: 'trending' },
+            'Sale': { product: 'DEALS', image: 'https://picsum.photos/seed/sale/800/800', hint: 'sale deals' },
+        };
+
+        return sortedCategories.map((category, index) => {
+            const data = categoryDataMap[category] || { product: category.toUpperCase(), image: `https://picsum.photos/seed/${category.toLowerCase()}/800/800`, hint: category.toLowerCase() };
+            return {
+                category,
+                ...data,
+                ...defaultLayout[index],
+            };
+        });
+
+    }, []);
 
     return (
         <section className="container mx-auto px-4 sm:px-6 lg:px-8 mt-8">
@@ -361,7 +353,7 @@ export default function LiveSellingPage() {
                     id: liveStreamData.seller.uid,
                     name: liveStreamData.seller.name,
                     avatarUrl: liveStreamData.seller.photoURL || 'https://placehold.co/40x40.png',
-                    thumbnailUrl: liveStreamData.product?.image?.preview || 'https://placehold.co/300x450.png',
+                    thumbnailUrl: liveStreamData.product?.image?.preview || 'https://picsum.photos/seed/new-stream/300/450',
                     category: liveStreamData.product?.category || 'General',
                     viewers: Math.floor(Math.random() * 5000),
                     buyers: Math.floor(Math.random() * 100),
@@ -1000,7 +992,7 @@ export default function LiveSellingPage() {
                                     </CardTitle>
                                     <CardDescription>Our top 10 most viewed products.</CardDescription>
                                 </CardHeader>
-                                <CardContent className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                                <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-2">
                                     {popularProducts.map(renderProductCard)}
                                 </CardContent>
                             </Card>
