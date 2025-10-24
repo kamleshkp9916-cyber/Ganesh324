@@ -1109,16 +1109,25 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                     </CardHeader>
                                     <CardContent className="space-y-2">
                                         {reviewImages.length > 0 && (
-                                            <div className="grid grid-cols-4 gap-2 mb-4">
+                                            <div className="flex gap-2 mb-4">
                                                 {reviewImages.slice(0, 3).map((img, index) => (
-                                                    <div key={index} className="relative aspect-square rounded-md overflow-hidden">
-                                                        <Image src={img} alt={`Review image ${index + 1}`} layout="fill" className="object-cover" />
-                                                    </div>
+                                                     <Dialog key={index}>
+                                                        <DialogTrigger asChild>
+                                                            <div className="relative w-24 h-24 rounded-md overflow-hidden cursor-pointer">
+                                                                <Image src={img} alt={`Review image ${index + 1}`} layout="fill" className="object-cover" />
+                                                            </div>
+                                                        </DialogTrigger>
+                                                        <DialogContent className="max-w-3xl max-h-[90vh]">
+                                                            <div className="relative aspect-square w-full">
+                                                                <Image src={img} alt={`Review image ${index + 1}`} fill className="object-contain" />
+                                                            </div>
+                                                        </DialogContent>
+                                                    </Dialog>
                                                 ))}
                                                 {reviewImages.length > 3 && (
                                                     <Dialog>
                                                         <DialogTrigger asChild>
-                                                            <div className="relative aspect-square rounded-md overflow-hidden bg-muted cursor-pointer flex items-center justify-center">
+                                                            <div className="relative w-24 h-24 rounded-md overflow-hidden bg-muted cursor-pointer flex items-center justify-center">
                                                                 <Image src={reviewImages[3]} alt="More review images" layout="fill" className="object-cover opacity-50" />
                                                                 <span className="absolute text-white font-bold text-lg">+{reviewImages.length - 3}</span>
                                                             </div>
