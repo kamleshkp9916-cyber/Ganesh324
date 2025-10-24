@@ -162,6 +162,20 @@ export default function ProductReviewsPage() {
                                     {reviews.map(review => (
                                         <Card key={review.id} className="overflow-hidden">
                                             <CardContent className="p-4 flex flex-col sm:flex-row gap-4">
+                                                {review.imageUrl && (
+                                                    <Dialog>
+                                                        <DialogTrigger asChild>
+                                                            <div className="w-full sm:w-28 h-28 relative flex-shrink-0 rounded-md overflow-hidden group cursor-pointer">
+                                                                <Image src={review.imageUrl} alt="Review attachment" layout="fill" className="object-cover group-hover:scale-105 transition-transform" />
+                                                            </div>
+                                                        </DialogTrigger>
+                                                        <DialogContent className="max-w-3xl h-auto max-h-[80vh]">
+                                                            <div className="relative aspect-square">
+                                                                <Image src={review.imageUrl} alt="Review full view" layout="fill" className="object-contain" />
+                                                            </div>
+                                                        </DialogContent>
+                                                    </Dialog>
+                                                )}
                                                  <div className="flex-grow">
                                                     <div className="flex items-start justify-between">
                                                         <div className="flex items-center gap-3">
@@ -206,11 +220,6 @@ export default function ProductReviewsPage() {
                                                         </div>
                                                     )}
                                                 </div>
-                                                 {review.imageUrl && (
-                                                    <Link href={`/product/${review.productId}?image=${review.imageUrl}`} className="w-full sm:w-28 h-28 relative flex-shrink-0 rounded-md overflow-hidden group">
-                                                        <Image src={review.imageUrl} alt="Review attachment" layout="fill" className="object-cover group-hover:scale-105 transition-transform" />
-                                                    </Link>
-                                                )}
                                             </CardContent>
                                         </Card>
                                     ))}
