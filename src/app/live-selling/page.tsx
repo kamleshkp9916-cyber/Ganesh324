@@ -213,7 +213,7 @@ const CategoryGrid = () => {
         }, {});
 
         const sortedCategories = Object.entries(categoryCounts)
-            .sort(([, countA], [, countB]) => countB - countA)
+            .sort(([, countA], [, countB]) => countB - a)
             .slice(0, 7)
             .map(([category]) => category);
         
@@ -823,7 +823,7 @@ export default function LiveSellingPage() {
                                                                 <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
                                                             </Avatar>
                                                         </Link>
-                                                        <div className="flex-1 overflow-hidden">
+                                                         <div className="flex-1 overflow-hidden">
                                                             <div className="flex items-center justify-between">
                                                                 <Link href={`/stream/${seller.id}`} className="font-semibold text-sm leading-tight group-hover:underline truncate">{seller.title || seller.name}</Link>
                                                                  <Sheet onOpenChange={(isOpen) => setOpenProductSheet(isOpen ? seller.id : null)}>
@@ -910,6 +910,7 @@ export default function LiveSellingPage() {
                     </TabsContent>
                     <TabsContent value="live" className="mt-0">
                          <div className="container mx-auto px-4 sm:px-6 lg:px-8 pt-8">
+                             <PromotionalCarousel />
                              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                                 {topLiveStreams.map((seller: any) => (
                                     <div key={seller.id} className="group block">
