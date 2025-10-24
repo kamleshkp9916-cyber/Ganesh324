@@ -246,22 +246,18 @@ const CategoryGrid = () => {
     }, []);
 
     return (
-        <section className="container mx-auto px-4 sm:px-6 lg:px-8 mt-8">
-            <h2 className="text-3xl font-bold text-center mb-6">Shop by Category</h2>
-             <motion.div layout className="grid grid-cols-1 md:grid-cols-4 md:auto-rows-[180px] gap-4">
-                {categoryCardsData.map((item, index) => (
-                    <AnimatedCategoryCard
-                        key={item.product + index}
-                        item={item}
-                        isHovered={hoveredIndex === index}
-                        setHovered={(isHovered) => setHoveredIndex(isHovered ? index : null)}
-                    />
-                ))}
-            </motion.div>
-        </section>
+        <motion.div layout className="grid grid-cols-1 md:grid-cols-4 md:auto-rows-[180px] gap-4">
+            {categoryCardsData.map((item, index) => (
+                <AnimatedCategoryCard
+                    key={item.product + index}
+                    item={item}
+                    isHovered={hoveredIndex === index}
+                    setHovered={(isHovered) => setHoveredIndex(isHovered ? index : null)}
+                />
+            ))}
+        </motion.div>
     );
 };
-
 
 function LiveSellerSkeleton({key}: {key: React.Key}) {
     return (
@@ -631,8 +627,8 @@ export default function LiveSellingPage() {
                     <span className="text-muted-foreground">({product.reviews || '1.2k'})</span>
                 </div>
                  <div className="flex items-center justify-between text-xs text-muted-foreground mt-1">
-                    <div className="flex items-center gap-1"><Package className="w-3 h-3" /> {product.stock} left</div>
-                    <div className="flex items-center gap-1"><Users className="w-3 h-3" /> {product.sold} sold</div>
+                    <div className="flex items-center gap-1"><Package className="w-3 h-3" /> {product.stock}</div>
+                    <div className="flex items-center gap-1"><Users className="w-3 h-3" /> {product.sold}</div>
                 </div>
             </div>
         </Card>
@@ -967,7 +963,12 @@ export default function LiveSellingPage() {
                                 </div>
                             </div>
                         </section>
-                        <CategoryGrid />
+                        <section className="container mx-auto px-4 sm:px-6 lg:px-8 mt-8">
+                          <div className="bg-muted/30 rounded-lg p-4 sm:p-6 lg:p-8">
+                            <h2 className="text-3xl font-bold text-center mb-6">Shop by Category</h2>
+                            <CategoryGrid />
+                          </div>
+                        </section>
                         
                          <div className="container mx-auto px-4 sm:px-6 lg:px-8 mt-8">
                            <Card>
