@@ -449,7 +449,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                 });
             }
         });
-    }, [product, currentPrice, selectedSize, selectedColor, toast]);
+    }, [product, currentPrice, selectedSize, selectedColor, toast, handleAuthAction]);
     
     const handleWishlistToggle = () => {
         handleAuthAction(() => {
@@ -1061,6 +1061,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                 </div>
                             </div>
                              <div className="md:col-span-2 space-y-4">
+                                <Separator />
                                 <div className="space-y-3">
                                     <h2 className="text-xl font-bold">Highlights</h2>
                                      {product.highlightsImage && (
@@ -1261,5 +1262,3 @@ export function ProductDetailClient({ productId }: { productId: string }) {
         </>
     );
 }
-
-    
