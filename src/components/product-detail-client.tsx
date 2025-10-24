@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
@@ -18,7 +19,7 @@ import Link from 'next/link';
 import { format, addDays, parse, differenceInDays, intervalToDuration, formatDuration } from 'date-fns';
 import { Input } from '@/components/ui/input';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from './ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription, DialogFooter, DialogClose } from './ui/dialog';
 import { ScrollArea, ScrollBar } from './ui/scroll-area';
 import { Textarea } from './ui/textarea';
 import { productDetails } from '@/lib/product-data';
@@ -193,7 +194,7 @@ const ReportDialog = ({ onSubmit }: { onSubmit: (reason: string, details: string
                 <Button onClick={handleSubmit} disabled={!reason || (reason === 'other' && !details.trim())}>Submit Report</Button>
             </DialogFooter>
         </DialogContent>
-    );
+    )
 };
 
 export function ProductDetailClient({ productId }: { productId: string }) {
@@ -840,7 +841,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                                                 <Video className="h-3 w-3 mr-1"/> From Stream
                                                             </Badge>
                                                         )}
-                                                         <div className="absolute top-2 right-2 z-20 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                         <div className="absolute top-2 right-2 z-20 flex flex-col gap-2">
                                                             <Button variant="secondary" size="icon" className="h-8 w-8 rounded-full" onClick={(e) => {e.stopPropagation(); handleWishlistToggle();}}>
                                                                 <Heart className={cn("h-4 w-4", wishlisted ? "fill-red-500 text-red-500" : "text-muted-foreground")} />
                                                             </Button>
@@ -891,7 +892,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                             </CardContent>
                                         </Card>
                                         <DialogContent className="max-w-3xl max-h-[90vh]">
-                                            <DialogHeader>
+                                           <DialogHeader>
                                                 <DialogTitle>{product.name}</DialogTitle>
                                             </DialogHeader>
                                             <div className="relative aspect-square w-full">
