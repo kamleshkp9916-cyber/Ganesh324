@@ -58,6 +58,9 @@ import {
   Sparkles,
   Edit,
   ArrowRight,
+  ShieldCheck,
+  RotateCcw,
+  Banknote,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
@@ -815,26 +818,26 @@ export default function LiveSellingPage() {
                         
                          <section className="container mx-auto px-4 sm:px-6 lg:px-8">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <Card className="overflow-hidden bg-muted/30 border-border/50 md:col-span-1">
-                                    <div className="grid grid-cols-1 md:grid-cols-2 h-full">
-                                        <div className="relative aspect-[4/3] md:aspect-auto">
+                                <div className="md:col-span-1">
+                                    <Card className="overflow-hidden bg-muted/30 border-border/50 h-full">
+                                        <div className="relative aspect-video">
                                             <Image src="https://images.unsplash.com/photo-1555529771-835f59fc5efe?w=1000&h=1000&fit=crop" alt="Flash Sale" fill className="object-cover" data-ai-hint="woman fashion sale" />
                                             <div className="absolute top-4 left-4 z-10 flex items-center gap-2">
                                                 <Badge variant="destructive" className="gap-1.5"><div className="h-2 w-2 rounded-full bg-white animate-pulse" />LIVE</Badge>
                                                 <Badge variant="secondary" className="bg-background/60 backdrop-blur-sm gap-1.5"><Users className="h-3 w-3"/>2.3k watching</Badge>
                                             </div>
                                         </div>
-                                        <div className="p-6 flex flex-col justify-center">
+                                        <div className="p-6">
                                             <p className="text-sm font-semibold text-primary">Live Shopping</p>
                                             <h3 className="text-2xl font-bold mt-1">Flash Sale Stream</h3>
                                             <p className="text-muted-foreground mt-2">Shop in real-time as our host showcases picks. Limited quantities drop during the stream.</p>
-                                            <Button asChild className="mt-4 self-start">
+                                            <Button asChild className="mt-4">
                                                 <Link href="#">Shop The Sale <ArrowRight className="ml-2 h-4 w-4" /></Link>
                                             </Button>
                                         </div>
-                                    </div>
-                                </Card>
-                                <div className="grid grid-rows-2 gap-6 md:col-span-1">
+                                    </Card>
+                                </div>
+                                <div className="md:col-span-1 grid grid-rows-2 gap-6">
                                      <Card className="overflow-hidden relative flex items-end text-white">
                                         <Image src="https://images.unsplash.com/photo-1506152983158-b4a74a01c721?w=800&h=400&fit=crop" alt="New Season" fill className="object-cover"/>
                                         <div className="absolute inset-0 bg-black/40"></div>
@@ -855,6 +858,35 @@ export default function LiveSellingPage() {
                                     </Card>
                                 </div>
                             </div>
+                        </section>
+                        
+                         <section className="container mx-auto px-4 sm:px-6 lg:px-8">
+                           <div className="text-center mb-8">
+                                <h2 className="text-2xl font-bold">On Stream, you'll get these benefits</h2>
+                            </div>
+                           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
+                               <Card className="p-6">
+                                    <div className="mx-auto w-12 h-12 flex items-center justify-center rounded-full bg-primary/10 mb-4">
+                                        <ShieldCheck className="w-6 h-6 text-primary" />
+                                    </div>
+                                    <h3 className="font-semibold text-lg">100% Genuine Products</h3>
+                                    <p className="text-muted-foreground text-sm mt-1">We guarantee authenticity. All products are sourced directly from brands or verified sellers.</p>
+                               </Card>
+                                <Card className="p-6">
+                                    <div className="mx-auto w-12 h-12 flex items-center justify-center rounded-full bg-primary/10 mb-4">
+                                        <RotateCcw className="w-6 h-6 text-primary" />
+                                    </div>
+                                    <h3 className="font-semibold text-lg">7-Day Return Policy</h3>
+                                    <p className="text-muted-foreground text-sm mt-1">Not happy with your order? Return it within 7 days for a refund. No questions asked.</p>
+                               </Card>
+                                <Card className="p-6">
+                                    <div className="mx-auto w-12 h-12 flex items-center justify-center rounded-full bg-primary/10 mb-4">
+                                        <Banknote className="w-6 h-6 text-primary" />
+                                    </div>
+                                    <h3 className="font-semibold text-lg">Pay on Delivery</h3>
+                                    <p className="text-muted-foreground text-sm mt-1">Prefer to pay with cash? We offer Pay on Delivery for eligible orders and locations.</p>
+                               </Card>
+                           </div>
                         </section>
 
                         <div className="container mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
@@ -1012,4 +1044,3 @@ export default function LiveSellingPage() {
     </>
   );
 }
-
