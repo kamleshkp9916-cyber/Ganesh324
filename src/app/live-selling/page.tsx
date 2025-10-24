@@ -102,7 +102,7 @@ import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react'
 import { useRouter } from 'next/navigation';
 import { useTheme } from 'next-themes';
 import { CreatePostForm } from '@/components/create-post-form';
-import { getCart } from '@/lib/product-history';
+import { getCart, addToCart, saveCart } from '@/lib/product-history';
 import { Dialog, DialogHeader, DialogTitle, DialogTrigger, DialogContent, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { GoLiveDialog } from '@/components/go-live-dialog';
@@ -392,12 +392,8 @@ export default function LiveSellingPage() {
       };
     }
   }, [isMounted]);
-
-  const mostReachedPosts = useMemo(() => {
-    return [...feed].sort((a, b) => (b.likes + b.replies) - (a.likes + a.replies)).slice(0, 4);
-  }, [feed]);
-
- useEffect(() => {
+  
+  useEffect(() => {
     if (!isMounted) return;
 
     const sellersTimer = setTimeout(() => setIsLoadingSellers(false), 1000);
@@ -440,32 +436,26 @@ export default function LiveSellingPage() {
       }
     }
   }, [isMounted, activeTab, user, followingIds]);
-  
-  const handleFollowToggle = async (targetId: string) => {
-    if (!user) {
-        handleAuthAction();
-        return;
-    }
-    await toggleFollow(user.uid, targetId);
-    setFollowingIds(prev =>
-      prev.includes(targetId) ? prev.filter(id => id !== targetId) : [...prev, targetId]
-    );
+
+  const handleBuyNow = (product: any) => {
+    handleAuthAction(() => {
+        if (product) {
+            const buyNowCart = [{
+                ...product,
+                id: product.id,
+                key: product.key,
+                name: product.name,
+                price: product.price,
+                imageUrl: product.images[0]?.preview || product.images[0],
+                quantity: 1,
+            }];
+            saveCart(buyNowCart);
+            localStorage.setItem('buyNow', 'true');
+            router.push('/cart');
+        }
+    });
   };
   
-   useEffect(() => {
-    const checkFollowing = async () => {
-        if (!user) return;
-        const promises = suggestedUsers.map(u => isFollowing(user.uid, u.uid));
-        const results = await Promise.all(promises);
-        const following = suggestedUsers.filter((u, index) => results[index]);
-        setFollowingIds(following.map(u => u.uid));
-    };
-
-    if (suggestedUsers.length > 0) {
-        checkFollowing();
-    }
-  }, [user, suggestedUsers]);
-
   const handleAuthAction = (cb?: () => void) => {
     if (!user) {
         setIsAuthDialogOpen(true);
@@ -485,100 +475,11 @@ export default function LiveSellingPage() {
     }
     return sellers.sort((a, b) => b.viewers - a.viewers);
   }, [allSellers, searchTerm]);
-
-  const filteredLiveSellers = useMemo(() => {
-    let sellers = [...allSellers];
-
-    if (activeLiveFilter !== 'All') {
-        sellers = sellers.filter(seller => seller.category === activeLiveFilter);
-    }
-    
-    if (searchTerm) {
-        sellers = sellers.filter(seller => 
-            seller.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            seller.category.toLowerCase().includes(searchTerm.toLowerCase())
-        );
-    }
-
-    return sellers;
-  }, [searchTerm, allSellers, activeLiveFilter]);
-
-  const filteredFeed = useMemo(() => {
-    if (!searchTerm) return feed;
-    return feed.filter(item => 
-        item.sellerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.content.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  }, [searchTerm, feed]);
-
-  
-
-  const handleReply = (sellerName: string) => {
-    handleAuthAction(() => {
-      setReplyTo(sellerName);
-      if (createPostFormRef.current) {
-        createPostFormRef.current.scrollIntoView({ behavior: 'smooth' });
-      }
-    });
-  };
-
-  const handleShare = (postId: number) => {
-    const link = `${window.location.origin}/post/${postId}`;
-    navigator.clipboard.writeText(link);
-    toast({
-        title: "Link Copied!",
-        description: "The post link has been copied to your clipboard.",
-    });
-  };
-
-  const submitReport = () => {
-    handleAuthAction(() => {
-        console.log("Submitting report for reason:", selectedReportReason);
-        toast({
-            title: "Report Submitted",
-            description: "Thank you for your feedback. We will review this post.",
-        });
-        setIsReportDialogOpen(false);
-        setSelectedReportReason("");
-    });
-  };
-  
-  const handleLiveFilterSelect = (filter: string) => {
-    setActiveLiveFilter(filter);
-    setActiveTab('live');
-  };
   
   const markAsRead = (id: number) => {
     setNotifications(current => current.map(n => n.id === id ? { ...n, read: true } : n));
   };
-
-  const handleDeletePost = async (postId: string, mediaUrl: string | null) => {
-    const db = getFirestoreDb();
-    const postRef = doc(db, 'posts', postId);
-    
-    try {
-        await deleteDoc(postRef);
-
-        if (mediaUrl) {
-            const storage = getFirebaseStorage();
-            const mediaRef = ref(storage, mediaUrl);
-            await deleteObject(mediaRef);
-        }
-
-        toast({
-            title: "Post Deleted",
-            description: "Your post has been successfully removed.",
-        });
-    } catch (error) {
-        console.error("Error deleting post: ", error);
-        toast({
-            variant: 'destructive',
-            title: "Error",
-            description: "Could not delete the post. Please try again."
-        });
-    }
-  };
-
+  
   const handleLikePost = async (postId: string) => {
     if (!handleAuthAction()) return;
 
@@ -611,45 +512,21 @@ export default function LiveSellingPage() {
 
   const getCategoryUrl = (categoryName: string) => `/${categoryName.toLowerCase().replace(/\s+/g, '-')}`;
 
-  const renderProductCard = (product: any) => (
-    <Link href={`/product/${product.key}`} key={product.id} className="group block">
-        <Card className="w-full overflow-hidden h-full flex flex-col bg-card shadow-sm hover:shadow-md transition-shadow duration-300">
-            <div className="relative aspect-square bg-muted">
-                <Image
-                    src={product.images[0]}
-                    alt={product.name}
-                    fill
-                    sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                    className="object-cover transition-transform group-hover:scale-105"
-                    data-ai-hint={product.hint}
-                />
-            </div>
-            <div className="p-2 flex-grow flex flex-col">
-                <h4 className="font-semibold truncate text-xs leading-tight flex-grow">{product.name}</h4>
-                <p className="font-bold text-sm mt-0.5">{product.price}</p>
-                <div className="flex items-center gap-1 text-xs text-amber-400 mt-1">
-                    <Star className="w-4 h-4 fill-current" />
-                    <span className="font-semibold text-foreground">4.8</span>
-                    <span className="text-muted-foreground">({product.reviews || '1.2k'})</span>
-                </div>
-                 <div className="flex items-center justify-between text-xs text-muted-foreground mt-1">
-                    <div className="flex items-center gap-1"><Package className="w-3 h-3" /> {product.stock}</div>
-                    <div className="flex items-center gap-1"><Users className="w-3 h-3" /> {product.sold}</div>
-                </div>
-            </div>
-        </Card>
-    </Link>
-  );
-  
-  const mostPopularStreams = useMemo(() => {
-    return [...allSellers].sort((a, b) => b.viewers - a.viewers);
-  }, [allSellers]);
-  
   const popularProducts = useMemo(() => {
     return Object.values(productDetails)
       .sort((a, b) => (b.sold || 0) - (a.sold || 0))
       .slice(0, 4);
   }, []);
+
+  const productToSeller = (productId: string) => {
+    const sellerInfo = Object.values(liveSellers).find(s => s.productId === productId);
+    return sellerInfo || null;
+  }
+  
+  const sellerProducts = (sellerId: string) => {
+      if (!sellerId) return [];
+      return Object.values(productDetails).filter(p => productToSeller(p.key)?.id === sellerId);
+  }
 
   return (
     <>
@@ -901,7 +778,7 @@ export default function LiveSellingPage() {
                                                             <Image src={seller.thumbnailUrl} alt={`Live stream from ${seller.name}`} fill sizes="(max-width: 640px) 75vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw" className="object-cover w-full h-full transition-transform group-hover:scale-105" />
                                                         </div>
                                                     </Link>
-                                                    <div className="flex items-start gap-3 mt-2">
+                                                     <div className="flex items-start gap-3 mt-2">
                                                         <Link href={`/seller/profile?userId=${seller.id}`}>
                                                             <Avatar className="w-10 h-10">
                                                                 <AvatarImage src={seller.avatarUrl} alt={seller.name} />
@@ -909,21 +786,52 @@ export default function LiveSellingPage() {
                                                             </Avatar>
                                                         </Link>
                                                         <div className="flex-1 overflow-hidden">
-                                                            <div className="flex items-center justify-between">
+                                                             <div className="flex items-center justify-between">
                                                                 <Link href={`/stream/${seller.id}`} className="font-semibold text-sm leading-tight group-hover:underline truncate">{seller.title || seller.name}</Link>
-                                                                 <Sheet onOpenChange={() => setOpenProductSheet(seller.id)}>
+                                                                <Sheet onOpenChange={(isOpen) => setOpenProductSheet(isOpen ? seller.id : null)}>
                                                                     <SheetTrigger asChild>
                                                                         <Button variant="ghost" size="icon" className="h-7 w-7 flex-shrink-0 -mr-2 text-muted-foreground hover:text-primary">
                                                                             <ShoppingBag className="h-4 w-4" />
                                                                         </Button>
                                                                     </SheetTrigger>
-                                                                     <SheetContent side="right">
-                                                                        <SheetHeader>
-                                                                            <SheetTitle>Products in this stream</SheetTitle>
+                                                                    <SheetContent side={isMobile ? "bottom" : "right"} className={cn(isMobile ? "h-[80vh] flex flex-col p-0" : "w-96 p-0")}>
+                                                                        <SheetHeader className="p-4 border-b">
+                                                                            <SheetTitle>Products in this Stream</SheetTitle>
                                                                         </SheetHeader>
-                                                                        <div className="py-4">
-                                                                            <p>Products for {seller.name} will be shown here.</p>
-                                                                        </div>
+                                                                        <ScrollArea className="flex-grow">
+                                                                            <div className="p-4 grid grid-cols-2 gap-4">
+                                                                                {sellerProducts(seller.id).length > 0 ? (
+                                                                                    sellerProducts(seller.id).map((product: any) => (
+                                                                                         <Card key={product.id} className="w-full overflow-hidden h-full flex flex-col">
+                                                                                            <Link href={`/product/${product.key}`} className="group block">
+                                                                                                <div className="relative aspect-square bg-muted">
+                                                                                                    <Image
+                                                                                                        src={product.images[0]?.preview || product.images[0]}
+                                                                                                        alt={product.name}
+                                                                                                        fill
+                                                                                                        sizes="50vw"
+                                                                                                        className="object-cover transition-transform group-hover:scale-105"
+                                                                                                    />
+                                                                                                </div>
+                                                                                            </Link>
+                                                                                            <div className="p-2 flex-grow flex flex-col">
+                                                                                                <Link href={`/product/${product.key}`} className="group block">
+                                                                                                    <h4 className="font-semibold truncate text-xs group-hover:underline">{product.name}</h4>
+                                                                                                    <p className="font-bold text-sm">{product.price}</p>
+                                                                                                </Link>
+                                                                                            </div>
+                                                                                            <CardFooter className="p-2">
+                                                                                                <Button size="sm" className="w-full text-xs h-8" onClick={() => toast({title: "Added to Cart"})}>
+                                                                                                    <ShoppingCart className="mr-1 h-3 w-3" /> Cart
+                                                                                                </Button>
+                                                                                            </CardFooter>
+                                                                                        </Card>
+                                                                                    ))
+                                                                                ) : (
+                                                                                    <p className="col-span-2 text-center text-muted-foreground py-10">No products to show.</p>
+                                                                                )}
+                                                                            </div>
+                                                                        </ScrollArea>
                                                                     </SheetContent>
                                                                 </Sheet>
                                                             </div>
@@ -940,7 +848,7 @@ export default function LiveSellingPage() {
                                 </Carousel>
                         </section>
                              <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-                                <div className="bg-muted/30 rounded-lg p-4 sm:p-6 lg:p-8">
+                                <div className="bg-card rounded-lg p-4 sm:p-6 lg:p-8">
                                 <h2 className="text-3xl font-bold text-center mb-6">Shop by Category</h2>
                                 <CategoryGrid />
                               </div>
@@ -963,69 +871,6 @@ export default function LiveSellingPage() {
                     </div>
                 </TabsContent>
                 )}
-
-                <TabsContent value="live" className="mt-0">
-                    <div className="container mx-auto px-4 sm:px-6 lg:px-8 pt-8">
-                            <PromotionalCarousel />
-                            <div className="flex flex-wrap gap-2 mb-6 mt-8">
-                                {liveStreamFilterButtons.map((filter) => (
-                                <Button 
-                                    key={filter} 
-                                    variant={activeLiveFilter === filter ? 'default' : 'outline'} 
-                                    size="sm" 
-                                    className="bg-card/50 rounded-full text-xs md:text-sm h-8 md:h-9"
-                                    onClick={() => setActiveLiveFilter(filter)}
-                                >
-                                    {filter}
-                                </Button>
-                                ))}
-                                <Button variant="ghost" size="sm" className="bg-card/50 rounded-full text-xs md:text-sm h-8 md:h-9">
-                                    Filters
-                                    <ChevronDown className="ml-2 h-4 w-4" />
-                                </Button>
-                            </div>
-
-                            {isLoadingSellers ? (
-                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-                                    {Array.from({ length: 12 }).map((_, index) => (
-                                        <LiveSellerSkeleton key={index} />
-                                    ))}
-                                </div>
-                            ) : filteredLiveSellers.length > 0 ? (
-                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-                                    {filteredLiveSellers.map((seller: any) => (
-                                        <Link href={`/stream/${seller.id}`} key={seller.id} className="group">
-                                            <div className="relative rounded-lg overflow-hidden aspect-[16/9] bg-muted">
-                                                <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
-                                                <div className="absolute top-2 right-2 z-10">
-                                                    <Badge variant="secondary" className="bg-background/60 backdrop-blur-sm gap-1.5">
-                                                        <Users className="h-3 w-3"/>
-                                                        {seller.viewers}
-                                                    </Badge>
-                                                </div>
-                                            </div>
-                                            <div className="flex items-start gap-2 mt-2">
-                                                <Avatar className="w-7 h-7">
-                                                    <AvatarImage src={seller.avatarUrl} />
-                                                    <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
-                                                </Avatar>
-                                                <div className="flex-1 overflow-hidden">
-                                                    <p className="font-semibold text-xs group-hover:underline truncate">{seller.title || seller.name}</p>
-                                                    <p className="text-xs text-muted-foreground">{seller.category}</p>
-                                                    <p className="text-xs text-primary font-semibold mt-0.5">#{seller.category.toLowerCase().replace(/\s+/g, '')}</p>
-                                                </div>
-                                            </div>
-                                        </Link>
-                                    ))}
-                                </div>
-                            ) : (
-                                <div className="text-center py-12 text-muted-foreground">
-                                    <p className="text-lg font-semibold">No results found</p>
-                                    <p>Try searching for something else or changing the filter.</p>
-                                </div>
-                            )}
-                    </div>
-                    </TabsContent>
             </div>
         </Tabs>
         <div className="mt-12">
