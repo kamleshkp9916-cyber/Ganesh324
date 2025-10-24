@@ -391,34 +391,8 @@ export default function LiveSellingPage() {
     }
   }, [isMounted]);
 
-  const trendingTopics = useMemo(() => {
-    const hashtagCounts: { [key: string]: number } = {};
-    feed.forEach(post => {
-      const hashtags = post.content.match(/#\w+/g) || [];
-      hashtags.forEach((tag: string) => {
-        const cleanedTag = tag.substring(1);
-        hashtagCounts[cleanedTag] = (hashtagCounts[cleanedTag] || 0) + 1;
-      });
-    });
-    return Object.entries(hashtagCounts)
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 5)
-      .map(([topic, posts]) => ({ topic, posts: `${posts} post${posts > 1 ? 's' : ''}` }));
-  }, [feed]);
-  
-  const popularProducts = useMemo(() => {
-    return Object.values(productDetails)
-      .sort((a, b) => (b.sold || 0) - (a.sold || 0))
-      .slice(0, 4);
-  }, []);
-
-    const trendingProducts = useMemo(() => {
-        // For demo, we'll just take a different slice of the same sorted data
-        return Object.values(productDetails).sort((a, b) => (b.sold || 0) - (a.sold || 0)).slice(4, 8);
-    }, []);
-
   const mostReachedPosts = useMemo(() => {
-    return [...feed].sort((a, b) => (b.likes + b.replies) - (a.likes + a.replies)).slice(0, 40);
+    return [...feed].sort((a, b) => (b.likes + b.replies) - (a.likes + a.replies)).slice(0, 4);
   }, [feed]);
 
  useEffect(() => {
@@ -643,6 +617,7 @@ export default function LiveSellingPage() {
                     src={product.images[0]}
                     alt={product.name}
                     fill
+                    sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
                     className="object-cover transition-transform group-hover:scale-105"
                     data-ai-hint={product.hint}
                 />
@@ -650,9 +625,14 @@ export default function LiveSellingPage() {
             <div className="p-2 flex-grow flex flex-col">
                 <h4 className="font-semibold truncate text-xs leading-tight flex-grow">{product.name}</h4>
                 <p className="font-bold text-sm mt-0.5">{product.price}</p>
+                <div className="flex items-center gap-1 text-xs text-amber-400 mt-1">
+                    <Star className="w-4 h-4 fill-current" />
+                    <span className="font-semibold text-foreground">4.8</span>
+                    <span className="text-muted-foreground">({product.reviews || '1.2k'})</span>
+                </div>
                  <div className="flex items-center justify-between text-xs text-muted-foreground mt-1">
-                    <div className="flex items-center gap-1"><Package className="w-3 h-3" /> {product.stock}</div>
-                    <div className="flex items-center gap-1"><Users className="w-3 h-3" /> {product.sold}</div>
+                    <div className="flex items-center gap-1"><Package className="w-3 h-3" /> {product.stock} left</div>
+                    <div className="flex items-center gap-1"><Users className="w-3 h-3" /> {product.sold} sold</div>
                 </div>
             </div>
         </Card>
@@ -661,8 +641,13 @@ export default function LiveSellingPage() {
   
   const mostPopularStreams = useMemo(() => {
     return [...allSellers].sort((a, b) => b.viewers - a.viewers);
-}, [allSellers]);
-
+  }, [allSellers]);
+  
+  const popularProducts = useMemo(() => {
+    return Object.values(productDetails)
+      .sort((a, b) => (b.sold || 0) - (a.sold || 0))
+      .slice(0, 4);
+  }, []);
 
   return (
     <>
@@ -934,7 +919,7 @@ export default function LiveSellingPage() {
                                      <Card className="overflow-hidden bg-muted/30 border-border/50 h-full group col-span-1">
                                         <Link href={`/stream/${mostPopularStreams[0].id}`}>
                                             <div className="relative aspect-video">
-                                                <Image src="https://picsum.photos/seed/fashion/1000/1000" alt="Top Stream" fill className="object-cover group-hover:scale-105 transition-transform" data-ai-hint="woman fashion sale" />
+                                                <Image src={mostPopularStreams[0].thumbnailUrl} alt="Top Stream" fill className="object-cover group-hover:scale-105 transition-transform" data-ai-hint="woman fashion sale" />
                                                 <div className="absolute inset-0 bg-black/40" />
                                                 <div className="absolute top-4 left-4 z-10 flex items-center gap-2">
                                                     <Badge variant="destructive" className="gap-1.5"><div className="h-2 w-2 rounded-full bg-white animate-pulse" />#1 MOST POPULAR</Badge>
@@ -956,7 +941,7 @@ export default function LiveSellingPage() {
                                      {mostPopularStreams.length > 1 ? (
                                         <Card className="overflow-hidden relative flex items-end text-white group">
                                              <Link href={`/stream/${mostPopularStreams[1].id}`} className='w-full h-full'>
-                                                <Image src="https://picsum.photos/seed/tech/800/400" alt="Second most popular stream" fill className="object-cover group-hover:scale-105 transition-transform"/>
+                                                <Image src={mostPopularStreams[1].thumbnailUrl} alt="Second most popular stream" fill className="object-cover group-hover:scale-105 transition-transform"/>
                                                 <div className="absolute inset-0 bg-black/40"></div>
                                                 <div className="relative p-6">
                                                     <Badge variant="outline" className="bg-black/50 border-white/30 mb-2">#2 Most Popular</Badge>
@@ -969,7 +954,7 @@ export default function LiveSellingPage() {
                                     {mostPopularStreams.length > 2 ? (
                                         <Card className="overflow-hidden relative flex items-end text-white group">
                                              <Link href={`/stream/${mostPopularStreams[2].id}`} className='w-full h-full'>
-                                                <Image src="https://picsum.photos/seed/beauty/800/400" alt="Third most popular stream" fill className="object-cover group-hover:scale-105 transition-transform"/>
+                                                <Image src={mostPopularStreams[2].thumbnailUrl} alt="Third most popular stream" fill className="object-cover group-hover:scale-105 transition-transform"/>
                                                 <div className="absolute inset-0 bg-black/40"></div>
                                                 <div className="relative p-6">
                                                     <Badge variant="outline" className="bg-black/50 border-white/30 mb-2">#3 Most Popular</Badge>
@@ -992,7 +977,7 @@ export default function LiveSellingPage() {
                                     </CardTitle>
                                     <CardDescription>Our top 10 most viewed products.</CardDescription>
                                 </CardHeader>
-                                <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                                <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-4">
                                     {popularProducts.map(renderProductCard)}
                                 </CardContent>
                             </Card>
