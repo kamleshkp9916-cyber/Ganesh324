@@ -287,19 +287,10 @@ export default function LiveSellingPage() {
   }, [feed]);
   
   const popularProducts = useMemo(() => {
-      let products = Object.values(productDetails);
-      if (activeProductFilter !== 'All') {
-          const lowerCaseFilter = activeProductFilter.toLowerCase();
-          if (lowerCaseFilter === 'fashion') {
-               products = products.filter(p => ['Women', 'Men', 'Handbags', 'Shoes'].includes(p.category));
-          } else {
-               products = products.filter(p => p.category.toLowerCase() === lowerCaseFilter);
-          }
-      }
-      return products
-          .sort((a,b) => (b.isAuctionItem ? 1 : 0) - (a.isAuctionItem ? 1 : 0))
-          .slice(0, 4);
-  }, [activeProductFilter]);
+    return Object.values(productDetails)
+      .sort((a, b) => (b.sold || 0) - (a.sold || 0))
+      .slice(0, 10);
+  }, []);
 
     const trendingProducts = useMemo(() => {
         // For demo, we'll just take a different slice of the same sorted data
@@ -396,7 +387,7 @@ export default function LiveSellingPage() {
             seller.category.toLowerCase().includes(searchTerm.toLowerCase())
         );
     }
-    return sellers.sort((a, b) => b.viewers - a.viewers).slice(0, 8);
+    return sellers.sort((a, b) => b.viewers - a.viewers);
   }, [allSellers, searchTerm]);
 
   const filteredLiveSellers = useMemo(() => {
@@ -549,7 +540,7 @@ export default function LiveSellingPage() {
   );
   
   const mostPopularStreams = useMemo(() => {
-    return [...allSellers].sort((a, b) => b.viewers - a.viewers).slice(0, 3);
+    return [...allSellers].sort((a, b) => b.viewers - a.viewers);
 }, [allSellers]);
 
 
@@ -807,7 +798,7 @@ export default function LiveSellingPage() {
                                                 <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
                                             </Avatar>
                                             <div className="flex-1">
-                                                <p className="font-semibold text-xs group-hover:underline truncate">{seller.name}</p>
+                                                <p className="font-semibold text-xs group-hover:underline truncate">{seller.title || seller.name}</p>
                                                 <p className="text-xs text-muted-foreground">{seller.category}</p>
                                                 <p className="text-xs text-primary font-semibold mt-0.5">#{seller.category.toLowerCase()}</p>
                                             </div>
@@ -818,8 +809,8 @@ export default function LiveSellingPage() {
                         </section>
                         
                          <section className="container mx-auto px-4 sm:px-6 lg:px-8">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <Card className="overflow-hidden bg-muted/30 border-border/50 h-full group col-span-1 md:col-span-2 lg:col-span-1">
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                <Card className="overflow-hidden bg-muted/30 border-border/50 h-full group col-span-1">
                                     {mostPopularStreams.length > 0 ? (
                                         <Link href={`/stream/${mostPopularStreams[0].id}`}>
                                             <div className="relative aspect-video">
@@ -832,7 +823,7 @@ export default function LiveSellingPage() {
                                             </div>
                                             <div className="p-6">
                                                 <p className="text-sm font-semibold text-primary">{mostPopularStreams[0].category}</p>
-                                                <h3 className="text-2xl font-bold mt-1">{mostPopularStreams[0].name}'s Live Shopping</h3>
+                                                <h3 className="text-2xl font-bold mt-1">{mostPopularStreams[0].title || `${mostPopularStreams[0].name}'s Live Shopping`}</h3>
                                                 <p className="text-muted-foreground mt-2">Join the #1 most-watched stream on StreamCart right now!</p>
                                                 <Button asChild className="mt-4">
                                                     <div className='flex'>Join Stream <ArrowRight className="ml-2 h-4 w-4" /></div>
@@ -841,7 +832,7 @@ export default function LiveSellingPage() {
                                         </Link>
                                     ) : <Skeleton className='h-full w-full'/>}
                                 </Card>
-                                 <div className="grid grid-rows-2 gap-6 col-span-1 md:col-span-2 lg:col-span-1">
+                                 <div className="grid grid-rows-2 gap-6 col-span-1">
                                      {mostPopularStreams.length > 1 ? (
                                         <Card className="overflow-hidden relative flex items-end text-white group">
                                              <Link href={`/stream/${mostPopularStreams[1].id}`} className='w-full h-full'>
@@ -849,7 +840,7 @@ export default function LiveSellingPage() {
                                                 <div className="absolute inset-0 bg-black/40"></div>
                                                 <div className="relative p-6">
                                                     <Badge variant="outline" className="bg-black/50 border-white/30 mb-2">#2 Most Popular</Badge>
-                                                    <h3 className="text-2xl font-bold">{mostPopularStreams[1].name}</h3>
+                                                    <h3 className="text-2xl font-bold">{mostPopularStreams[1].title || mostPopularStreams[1].name}</h3>
                                                     <p>{mostPopularStreams[1].viewers.toLocaleString()} watching</p>
                                                 </div>
                                             </Link>
@@ -862,7 +853,7 @@ export default function LiveSellingPage() {
                                                 <div className="absolute inset-0 bg-black/40"></div>
                                                 <div className="relative p-6">
                                                     <Badge variant="outline" className="bg-black/50 border-white/30 mb-2">#3 Most Popular</Badge>
-                                                    <h3 className="text-2xl font-bold">{mostPopularStreams[2].name}</h3>
+                                                    <h3 className="text-2xl font-bold">{mostPopularStreams[2].title || mostPopularStreams[2].name}</h3>
                                                     <p>{mostPopularStreams[2].viewers.toLocaleString()} watching</p>
                                                 </div>
                                             </Link>
@@ -872,27 +863,16 @@ export default function LiveSellingPage() {
                             </div>
                         </section>
                         
-                        <div className="container mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
+                         <div className="container mx-auto px-4 sm:px-6 lg:px-8 mt-8">
                             <Card>
                                 <CardHeader>
                                     <CardTitle className="flex items-center gap-2">
-                                        <Sparkles className="text-primary" /> Popular Products
+                                        <Sparkles className="text-primary" /> Top Picks for You
                                     </CardTitle>
-                                    <CardDescription>Top picks from our sellers.</CardDescription>
+                                    <CardDescription>Our top 10 most viewed products.</CardDescription>
                                 </CardHeader>
-                                <CardContent className="grid grid-cols-2 gap-2">
-                                    {popularProducts.slice(0, 4).map(renderProductCard)}
-                                </CardContent>
-                            </Card>
-                            <Card>
-                                <CardHeader>
-                                    <CardTitle className="flex items-center gap-2">
-                                        <TrendingUp className="text-primary" /> Trending Now
-                                    </CardTitle>
-                                    <CardDescription>What's hot right now.</CardDescription>
-                                </CardHeader>
-                                <CardContent className="grid grid-cols-2 gap-2">
-                                     {trendingProducts.slice(0, 4).map(renderProductCard)}
+                                <CardContent className="grid grid-cols-2 md:grid-cols-5 gap-2">
+                                    {popularProducts.map(renderProductCard)}
                                 </CardContent>
                             </Card>
                         </div>
