@@ -118,7 +118,7 @@ import { Separator } from '@/components/ui/separator';
 import { ProductSearchWithStreams } from '@/components/ProductSearchWithStreams';
 import { motion } from 'framer-motion';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
-import { useIsMobile } from '@/hooks/use-mobile';
+import { useIsMobile } from '@/hooks/use-is-mobile';
 
 
 const liveSellers = [
@@ -131,7 +131,7 @@ const liveSellers = [
     { id: 'artisanalley-uid', name: 'ArtisanAlley', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://picsum.photos/seed/artisan-stream/300/450', category: 'Handmade', viewers: 450, buyers: 8, rating: 5.0, reviews: 6, hint: 'pottery making', productId: 'prod_7', hasAuction: true, description: 'Watch me create a unique ceramic piece from scratch. Live auction at the end!' },
     { id: 'petpalace-uid', name: 'PetPalace', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://picsum.photos/seed/pet-stream/300/450', category: 'Pet Supplies', viewers: 1800, buyers: 50, rating: 4.8, reviews: 30, hint: 'playing with puppy', productId: 'prod_8', hasAuction: false, description: 'Interactive Q&A: All about dog nutrition and our new organic treats.' },
     { id: 'booknook-uid', name: 'BookNook', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://picsum.photos/seed/book-stream/300/450', category: 'Books', viewers: 620, buyers: 12, rating: 4.9, reviews: 10, hint: 'reading book cozy', productId: 'prod_9', hasAuction: false, description: 'Live reading from a new fantasy novel. Spoilers ahead!' },
-    { id: 'gamerguild-uid', name: 'GamerGuild', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://picsum.photos/seed/gaming-stream/300/450', category: 'Gaming', viewers: 4200, buyers: 102, rating: 4.9, reviews: 80, hint: 'esports competition', productId: 'prod_10', hasAuction: true, description: 'Pro-level gameplay and tournament finals. Don\'t miss the action!' },
+    { id: 'gamerguild-uid', name: 'GamerGuild', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://picsum.photos/seed/gaming-stream/300/450', category: 'Gaming', viewers: 4200, buyers: 102, rating: 4.9, reviews: 80, hint: 'esports competition', productId: 'prod_10', hasAuction: true },
 ];
 
 const reportReasons = [
@@ -527,6 +527,33 @@ export default function LiveSellingPage() {
       if (!sellerId) return [];
       return Object.values(productDetails).filter(p => productToSeller(p.key)?.id === sellerId);
   }
+
+  const renderProductCard = (product: any) => (
+    <Link href={`/product/${product.key}`} key={product.key} className="group block">
+        <Card className="w-full overflow-hidden h-full flex flex-col">
+            <div className="relative aspect-square bg-muted">
+                <Image
+                    src={product.images[0]}
+                    alt={product.name}
+                    fill
+                    sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 25vw"
+                    className="object-cover transition-transform group-hover:scale-105"
+                    data-ai-hint={product.hint}
+                />
+            </div>
+            <div className="p-3 flex-grow flex flex-col">
+                <h4 className="font-semibold truncate text-sm flex-grow">{product.name}</h4>
+                <p className="font-bold text-foreground mt-1">{product.price}</p>
+                <div className="flex items-center gap-1 text-xs text-amber-400 mt-1">
+                    <Star className="w-4 h-4 fill-current" />
+                    <span>4.8</span>
+                    <span className="text-muted-foreground">(1.2k reviews)</span>
+                </div>
+            </div>
+        </Card>
+    </Link>
+);
+
 
   return (
     <>
