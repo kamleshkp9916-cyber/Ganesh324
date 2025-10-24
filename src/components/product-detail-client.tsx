@@ -39,6 +39,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from './ui
 import { FeedbackDialog } from './feedback-dialog';
 import { useLocalStorage } from '@/hooks/use-local-storage';
 import { COUPONS_KEY, Coupon } from '@/app/admin/settings/page';
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from './ui/carousel';
 
 
 const CountdownTimer = ({ expiryDate, onExpire }: { expiryDate: string | Date, onExpire: () => void }) => {
@@ -695,6 +696,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
 
     const seller = productToSellerMapping[product.key];
     const sellerLiveStream = liveSellers.find(s => s.id === seller.uid);
+    const reviewImages = reviews.map(r => r.imageUrl).filter(Boolean) as string[];
 
     return (
         <>
@@ -1094,47 +1096,75 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                 </div>
                                 <Separator />
                                 <Card>
-                                    <CardHeader className="flex flex-row items-center justify-between">
-                                        <CardTitle>Ratings & Reviews</CardTitle>
-                                        <span className="text-sm font-medium text-muted-foreground">{reviews.length} Reviews</span>
+                                     <CardHeader>
+                                        <div className="flex items-center justify-between">
+                                            <CardTitle className="flex items-center gap-2">Ratings & Reviews 
+                                                <Badge variant="outline" className="flex items-center gap-1">
+                                                    <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
+                                                    {averageRating}
+                                                </Badge>
+                                            </CardTitle>
+                                            <span className="text-sm font-medium text-muted-foreground">{reviews.length} Reviews</span>
+                                        </div>
                                     </CardHeader>
-                                    <CardContent className="space-y-4">
-                                         {reviews && reviews.length > 0 && (
-                                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                                                {reviews.slice(0, 3).map((review) => (
-                                                    review.imageUrl && (
-                                                        <div key={review.id} className="aspect-square relative rounded-md overflow-hidden">
-                                                            <Image src={review.imageUrl} alt={`Review by ${review.author}`} fill className="object-cover" />
-                                                        </div>
-                                                    )
+                                    <CardContent className="space-y-2">
+                                        {reviewImages.length > 0 && (
+                                            <div className="grid grid-cols-4 gap-2 mb-4 h-24">
+                                                {reviewImages.slice(0, 3).map((img, index) => (
+                                                    <div key={index} className="relative aspect-square rounded-md overflow-hidden">
+                                                        <Image src={img} alt={`Review image ${index + 1}`} layout="fill" className="object-cover" />
+                                                    </div>
                                                 ))}
+                                                {reviewImages.length > 3 && (
+                                                    <Dialog>
+                                                        <DialogTrigger asChild>
+                                                            <div className="relative aspect-square rounded-md overflow-hidden bg-muted cursor-pointer flex items-center justify-center">
+                                                                <Image src={reviewImages[3]} alt="More review images" layout="fill" className="object-cover opacity-50" />
+                                                                <span className="absolute text-white font-bold text-lg">+{reviewImages.length - 3}</span>
+                                                            </div>
+                                                        </DialogTrigger>
+                                                        <DialogContent className="max-w-4xl p-0">
+                                                            <Carousel className="w-full">
+                                                                <CarouselContent>
+                                                                    {reviewImages.map((img, index) => (
+                                                                        <CarouselItem key={index}>
+                                                                            <div className="aspect-video relative">
+                                                                                <Image src={img} alt={`Review image slide ${index + 1}`} layout="fill" className="object-contain" />
+                                                                            </div>
+                                                                        </CarouselItem>
+                                                                    ))}
+                                                                </CarouselContent>
+                                                                <CarouselPrevious />
+                                                                <CarouselNext />
+                                                            </Carousel>
+                                                        </DialogContent>
+                                                    </Dialog>
+                                                )}
                                             </div>
                                         )}
                                         {reviews.length > 0 ? (
-                                            reviews.slice(0, 2).map((review) => (
-                                                <Card key={review.id} className="bg-muted/50">
-                                                    <CardContent className="p-4">
-                                                        <div className="flex gap-4">
-                                                            <Avatar>
-                                                                <AvatarImage src={review.avatar} alt={review.author} />
-                                                                <AvatarFallback>{review.author.charAt(0)}</AvatarFallback>
-                                                            </Avatar>
-                                                            <div className="flex-grow">
-                                                                <div className="flex items-center justify-between">
-                                                                    <h5 className="font-semibold">{review.author}</h5>
-                                                                    <p className="text-xs text-muted-foreground">{formatDistanceToNow(new Date(review.date), { addSuffix: true })}</p>
-                                                                </div>
-                                                                <div className="flex items-center gap-1 mt-1">
-                                                                    {[...Array(5)].map((_, i) => (
-                                                                        <Star key={i} className={cn("h-4 w-4", i < review.rating ? 'text-yellow-400 fill-yellow-400' : 'text-muted-foreground')} />
-                                                                    ))}
-                                                                </div>
-                                                                <p className="text-sm text-muted-foreground mt-2">{review.text}</p>
+                                            <div className="space-y-4 max-h-[150px] overflow-y-auto pr-2">
+                                                {reviews.slice(0, 1).map((review) => (
+                                                    <div key={review.id} className="flex gap-4">
+                                                        <Avatar className="mt-1">
+                                                            <AvatarImage src={review.avatar} alt={review.author} />
+                                                            <AvatarFallback>{review.author.charAt(0)}</AvatarFallback>
+                                                        </Avatar>
+                                                        <div className="flex-grow">
+                                                            <div className="flex items-center justify-between">
+                                                                <h5 className="font-semibold">{review.author}</h5>
+                                                                <p className="text-xs text-muted-foreground">{formatDistanceToNow(new Date(review.date), { addSuffix: true })}</p>
                                                             </div>
+                                                            <div className="flex items-center gap-1 mt-1">
+                                                                {[...Array(5)].map((_, i) => (
+                                                                    <Star key={i} className={cn("h-4 w-4", i < review.rating ? 'text-yellow-400 fill-yellow-400' : 'text-muted-foreground')} />
+                                                                ))}
+                                                            </div>
+                                                            <p className="text-sm text-muted-foreground mt-2 line-clamp-2">{review.text}</p>
                                                         </div>
-                                                    </CardContent>
-                                                </Card>
-                                            ))
+                                                    </div>
+                                                ))}
+                                            </div>
                                         ) : (
                                             <p className="text-sm text-muted-foreground text-center py-4">No reviews yet. Be the first to write one!</p>
                                         )}
