@@ -1107,13 +1107,13 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                             <span className="text-sm font-medium text-muted-foreground">{reviews.length} Reviews</span>
                                         </div>
                                     </CardHeader>
-                                    <CardContent className="space-y-2">
+                                    <CardContent className="space-y-4">
                                         {reviewImages.length > 0 && (
-                                            <div className="flex gap-2 mb-4">
+                                            <div className="flex gap-2">
                                                 {reviewImages.slice(0, 3).map((img, index) => (
                                                      <Dialog key={index}>
                                                         <DialogTrigger asChild>
-                                                            <div className="relative w-24 h-24 rounded-md overflow-hidden cursor-pointer">
+                                                            <div className="relative w-20 h-20 rounded-md overflow-hidden cursor-pointer">
                                                                 <Image src={img} alt={`Review image ${index + 1}`} layout="fill" className="object-cover" />
                                                             </div>
                                                         </DialogTrigger>
@@ -1125,14 +1125,14 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                                     </Dialog>
                                                 ))}
                                                 {reviewImages.length > 3 && (
-                                                    <Dialog>
+                                                     <Dialog>
                                                         <DialogTrigger asChild>
-                                                            <div className="relative w-24 h-24 rounded-md overflow-hidden bg-muted cursor-pointer flex items-center justify-center">
+                                                            <div className="relative w-20 h-20 rounded-md overflow-hidden bg-muted cursor-pointer flex items-center justify-center">
                                                                 <Image src={reviewImages[3]} alt="More review images" layout="fill" className="object-cover opacity-50" />
                                                                 <span className="absolute text-white font-bold text-lg">+{reviewImages.length - 3}</span>
                                                             </div>
                                                         </DialogTrigger>
-                                                        <DialogContent className="max-w-4xl p-0">
+                                                         <DialogContent className="max-w-4xl p-0">
                                                             <Carousel className="w-full">
                                                                 <CarouselContent>
                                                                     {reviewImages.map((img, index) => (
@@ -1152,9 +1152,9 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                             </div>
                                         )}
                                         {reviews.length > 0 ? (
-                                            <div className="space-y-4 max-h-[150px] overflow-y-auto pr-2">
-                                                {reviews.slice(0, 1).map((review) => (
-                                                    <div key={review.id} className="flex gap-4">
+                                            <div className="space-y-4">
+                                                {reviews.slice(0, 3).map((review) => (
+                                                    <div key={review.id} className="flex gap-4 border-t pt-4 first:border-t-0 first:pt-0">
                                                         <Avatar className="mt-1">
                                                             <AvatarImage src={review.avatar} alt={review.author} />
                                                             <AvatarFallback>{review.author.charAt(0)}</AvatarFallback>
