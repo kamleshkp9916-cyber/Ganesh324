@@ -847,7 +847,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                             </CardContent>
                                         </Card>
                                         <DialogContent className="max-w-3xl max-h-[90vh]">
-                                             <DialogHeader>
+                                            <DialogHeader>
                                                 <DialogTitle>{product.name}</DialogTitle>
                                             </DialogHeader>
                                             <div className="relative aspect-square w-full">
@@ -894,25 +894,27 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                         <p className="text-muted-foreground text-sm">{renderDescriptionWithHashtags(product.description)}</p>
                                     </div>
                                      <div className="flex flex-col gap-2">
-                                        <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-                                            <p className={cn("text-3xl font-bold text-foreground", compareAtPrice && "text-muted-foreground line-through text-2xl")}>{compareAtPrice ? compareAtPrice : currentPrice}</p>
-                                            {compareAtPrice && <p className="text-3xl font-bold text-destructive">{currentPrice}</p>}
-                                            {discountPercentage && <Badge variant="destructive">{discountPercentage}% OFF</Badge>}
-                                        </div>
-                                        <div className="flex items-center gap-4 flex-wrap text-sm text-muted-foreground">
-                                            <div className="flex items-center gap-2">
-                                                    <div className="flex items-center gap-1 text-amber-400">
-                                                        <Star className="h-5 w-5 fill-current" />
-                                                        <span className="font-bold text-base text-foreground">{averageRating}</span>
-                                                    </div>
-                                                    <span>({reviews.length} reviews)</span>
+                                        <div className="flex flex-wrap items-baseline gap-x-4 gap-y-2">
+                                            <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                                                <p className={cn("text-3xl font-bold text-foreground", compareAtPrice && "text-muted-foreground line-through text-2xl")}>{compareAtPrice ? compareAtPrice : currentPrice}</p>
+                                                {compareAtPrice && <p className="text-3xl font-bold text-destructive">{currentPrice}</p>}
+                                                {discountPercentage && <Badge variant="destructive">{discountPercentage}% OFF</Badge>}
                                             </div>
-                                            <span className="text-muted-foreground/50 hidden sm:inline">|</span>
-                                            <div className="flex items-center gap-1"><Package className="w-4 h-4" /> {variantStock ?? product.stock} in stock</div>
-                                            <span className="text-muted-foreground/50 hidden sm:inline">|</span>
-                                            <div className="flex items-center gap-1"><Users className="w-4 h-4" /> {product.sold} sold</div>
+                                            <div className="flex items-center gap-4 flex-wrap text-sm text-muted-foreground">
+                                                <div className="flex items-center gap-2">
+                                                        <div className="flex items-center gap-1 text-amber-400">
+                                                            <Star className="h-5 w-5 fill-current" />
+                                                            <span className="font-bold text-base text-foreground">{averageRating}</span>
+                                                        </div>
+                                                        <span>({reviews.length} reviews)</span>
+                                                </div>
+                                                <span className="text-muted-foreground/50 hidden sm:inline">|</span>
+                                                <div className="flex items-center gap-1"><Package className="w-4 h-4" /> {variantStock ?? product.stock} in stock</div>
+                                                <span className="text-muted-foreground/50 hidden sm:inline">|</span>
+                                                <div className="flex items-center gap-1"><Users className="w-4 h-4" /> {product.sold} sold</div>
+                                            </div>
                                         </div>
-                                         <p className="text-sm text-muted-foreground mt-1">(inclusive of all taxes)</p>
+                                        <p className="text-sm text-muted-foreground mt-1">(inclusive of all taxes)</p>
                                     </div>
                                     {availableColors.length > 0 && (
                                         <div className="space-y-2">
@@ -997,14 +999,14 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                                 </Dialog>
                                             )}
                                         </div>
-                                        {user && userData?.addresses && userData.addresses.length > 0 ? (
+                                         {user && userData?.addresses && userData.addresses.length > 0 ? (
                                             <div className="w-full rounded-md border bg-muted/50 p-4 text-sm">
                                                 <div className="flex items-start gap-3">
                                                     <Truck className="h-5 w-5 text-muted-foreground mt-0.5 flex-shrink-0" />
                                                     <div>
-                                                        <p className="font-semibold text-foreground">{userData.addresses[0].name}, {userData.addresses[0].pincode}</p>
-                                                        <p className="text-xs text-muted-foreground">{userData.addresses[0].village}, {userData.addresses[0].city}, {userData.addresses[0].state}</p>
-                                                        <p className="text-xs text-muted-foreground">Phone: {userData.addresses[0].phone}</p>
+                                                        <p className="font-semibold text-foreground">Deliver to {userData.addresses[0].name} - {userData.addresses[0].pincode}</p>
+                                                        <p className="text-xs text-muted-foreground">{userData.addresses[0].village}, {userData.addresses[0].city}</p>
+                                                        <p className="text-xs text-muted-foreground">{userData.addresses[0].phone}</p>
                                                     </div>
                                                 </div>
                                                 <p className="text-muted-foreground font-semibold !mt-2">Delivery by {estimatedDeliveryDate}</p>
@@ -1046,44 +1048,43 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                             </div>
                                         </div>
                                     </div>
-                                    <Separator className="my-6" />
-                                     <Card className="w-full">
-                                        <CardHeader>
-                                            <CardTitle className="flex items-center justify-between text-base">
-                                                Available Offers
-                                                <Ticket className="h-5 w-5 text-muted-foreground" />
-                                            </CardTitle>
-                                        </CardHeader>
-                                        <CardContent>
-                                            <div className="space-y-3">
-                                                {mockAdminOffers.map((offer: any, index: number) => (
-                                                    <div key={index} className="flex items-start gap-3 text-sm">
-                                                        {offer.icon}
-                                                        <div>
-                                                            <h5 className="font-semibold">{offer.title}</h5>
-                                                            <p className="text-muted-foreground">{offer.description}</p>
-                                                        </div>
-                                                        {offer.code && (
-                                                            <Button
-                                                                variant="ghost"
-                                                                size="sm"
-                                                                className="ml-auto"
-                                                                onClick={() => {
-                                                                    navigator.clipboard.writeText(offer.code);
-                                                                    toast({ title: 'Code Copied!', description: `${offer.code} copied to clipboard.` });
-                                                                }}
-                                                            >
-                                                                Copy Code
-                                                            </Button>
-                                                        )}
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </CardContent>
-                                    </Card>
                                 </div>
                             </div>
                             <div className="col-span-full mt-8 space-y-8">
+                                 <Card className="w-full">
+                                    <CardHeader>
+                                        <CardTitle className="flex items-center justify-between text-base">
+                                            Available Offers
+                                            <Ticket className="h-5 w-5 text-muted-foreground" />
+                                        </CardTitle>
+                                    </CardHeader>
+                                    <CardContent>
+                                        <div className="space-y-3">
+                                            {mockAdminOffers.map((offer: any, index: number) => (
+                                                <div key={index} className="flex items-start gap-3 text-sm">
+                                                    {offer.icon}
+                                                    <div>
+                                                        <h5 className="font-semibold">{offer.title}</h5>
+                                                        <p className="text-muted-foreground">{offer.description}</p>
+                                                    </div>
+                                                    {offer.code && (
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            className="ml-auto"
+                                                            onClick={() => {
+                                                                navigator.clipboard.writeText(offer.code);
+                                                                toast({ title: 'Code Copied!', description: `${offer.code} copied to clipboard.` });
+                                                            }}
+                                                        >
+                                                            Copy Code
+                                                        </Button>
+                                                    )}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </CardContent>
+                                </Card>
                                 <Separator/>
                                  <div className="space-y-3">
                                     <h2 className="text-xl font-bold">Highlights</h2>
