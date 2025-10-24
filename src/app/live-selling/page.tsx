@@ -939,10 +939,12 @@ export default function LiveSellingPage() {
                                     <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2 hidden lg:flex" />
                                 </Carousel>
                         </section>
-                             <div className="bg-muted/30 rounded-lg p-4 sm:p-6 lg:p-8">
+                             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+                                <div className="bg-muted/30 rounded-lg p-4 sm:p-6 lg:p-8">
                                 <h2 className="text-3xl font-bold text-center mb-6">Shop by Category</h2>
                                 <CategoryGrid />
                               </div>
+                            </div>
                         
                          <div className="container mx-auto px-4 sm:px-6 lg:px-8 mt-8">
                            <Card>
@@ -1007,7 +1009,7 @@ export default function LiveSellingPage() {
                                                     <AvatarImage src={seller.avatarUrl} />
                                                     <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
                                                 </Avatar>
-                                                <div className="flex-1">
+                                                <div className="flex-1 overflow-hidden">
                                                     <p className="font-semibold text-xs group-hover:underline truncate">{seller.title || seller.name}</p>
                                                     <p className="text-xs text-muted-foreground">{seller.category}</p>
                                                     <p className="text-xs text-primary font-semibold mt-0.5">#{seller.category.toLowerCase().replace(/\s+/g, '')}</p>
