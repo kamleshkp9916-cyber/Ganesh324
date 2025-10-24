@@ -30,7 +30,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { getFirestoreDb } from '@/lib/firebase';
 import { collection, query, where, getDocs, orderBy } from 'firebase/firestore';
 import { formatDistanceToNow } from 'date-fns';
-import { Label } from '@/components/ui/label';
+import { Label } from './ui/label';
 import { EditAddressForm } from './edit-address-form';
 import { updateUserData } from '@/lib/follow-data';
 import ProductSearch from '@/components/ProductSearch';
@@ -1128,9 +1128,16 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                             <p className="text-sm text-muted-foreground text-center py-4">No reviews yet. Be the first to write one!</p>
                                         )}
                                     </CardContent>
-                                    <CardFooter className="flex-col items-stretch gap-4">
-                                        {reviews.length > 3 && <Button variant="link" className="w-full">View All {reviews.length} Reviews</Button>}
-                                        <Button variant="outline" onClick={openReviewDialog}>Write a Review</Button>
+                                     <CardFooter className="flex-col sm:flex-row items-stretch sm:items-center sm:justify-center gap-4">
+                                        {reviews.length > 3 && 
+                                            <Button variant="outline" className="w-full sm:w-auto" asChild>
+                                                <Link href={`/product/${productId}/reviews`}>View All {reviews.length} Reviews</Link>
+                                            </Button>
+                                        }
+                                        <Button variant="default" className="w-full sm:w-auto" onClick={openReviewDialog}>
+                                            <Star className="mr-2 h-4 w-4" />
+                                            Write a Review
+                                        </Button>
                                     </CardFooter>
                                 </Card>
                                 <Separator/>
