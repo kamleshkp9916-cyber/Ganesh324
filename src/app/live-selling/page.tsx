@@ -298,6 +298,11 @@ export default function LiveSellingPage() {
           .slice(0, 40);
   }, [activeProductFilter]);
 
+    const trendingProducts = useMemo(() => {
+        // For demo, we'll just take a different slice of the same sorted data
+        return Object.values(productDetails).sort((a, b) => (b.sold || 0) - (a.sold || 0)).slice(5, 15);
+    }, []);
+
   const mostReachedPosts = useMemo(() => {
     return [...feed].sort((a, b) => (b.likes + b.replies) - (a.likes + a.replies)).slice(0, 40);
   }, [feed]);
@@ -515,6 +520,35 @@ export default function LiveSellingPage() {
 };
 
   const getCategoryUrl = (categoryName: string) => `/${categoryName.toLowerCase().replace(/\s+/g, '-')}`;
+
+  const renderProductCard = (product: any) => (
+    <Link href={`/product/${product.key}`} key={product.id} className="group block">
+        <Card className="w-full overflow-hidden h-full flex flex-col bg-card">
+            <div className="relative aspect-square bg-muted">
+                <Image
+                    src={product.images[0]}
+                    alt={product.name}
+                    fill
+                    className="object-cover transition-transform group-hover:scale-105"
+                    data-ai-hint={product.hint}
+                />
+            </div>
+            <div className="p-3 flex-grow flex flex-col">
+                <h4 className="font-semibold truncate text-sm flex-grow">{product.name}</h4>
+                <p className="font-bold text-foreground mt-1">{product.price}</p>
+                <div className="flex items-center gap-1 text-xs text-amber-400 mt-1">
+                    <Star className="w-4 h-4 fill-current" />
+                    <span>4.8</span>
+                    <span className="text-muted-foreground">({product.reviews || '1.2k'})</span>
+                </div>
+                <div className="flex items-center gap-4 text-xs text-muted-foreground mt-1">
+                    <div className="flex items-center gap-1"><Package className="w-3 h-3" /> {product.stock} left</div>
+                    <div className="flex items-center gap-1"><Users className="w-3 h-3" /> {product.sold} sold</div>
+                </div>
+            </div>
+        </Card>
+    </Link>
+  );
 
   return (
     <>
@@ -779,64 +813,30 @@ export default function LiveSellingPage() {
                             </div>
                         </section>
                         
-                        <section className="mt-8">
-                             <div className="container mx-auto px-4 sm:px-6 lg:px-8 mb-4">
-                                <h2 className="text-2xl font-bold flex items-center justify-center gap-2"><Sparkles className="text-primary" /> Popular Products</h2>
-                            </div>
-                             <div className="container mx-auto px-4 sm:px-6 lg:px-8 mb-6 flex flex-wrap justify-center gap-2">
-                                {productFilterButtons.map((filter) => (
-                                <Button 
-                                    key={filter} 
-                                    variant={activeProductFilter === filter ? 'default' : 'outline'} 
-                                    size="sm" 
-                                    className="rounded-full text-xs md:text-sm h-8 md:h-9"
-                                    onClick={() => setActiveProductFilter(filter)}
-                                >
-                                    {filter}
-                                </Button>
-                                ))}
-                                <Button
-                                    asChild
-                                    variant="outline"
-                                    size="sm"
-                                    className="rounded-full text-xs md:text-sm h-8 md:h-9"
-                                >
-                                    <Link href="/listed-products">
-                                        More
-                                    </Link>
-                                </Button>
-                            </div>
-                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 md:gap-4 px-2 md:px-4">
-                                {popularProducts.map((product: any) => (
-                                     <Link href={`/product/${product.key}`} key={product.id} className="group block">
-                                        <Card className="w-full overflow-hidden h-full flex flex-col bg-card">
-                                            <div className="relative aspect-square bg-muted">
-                                                <Image
-                                                    src={product.images[0]}
-                                                    alt={product.name}
-                                                    fill
-                                                    className="object-cover transition-transform group-hover:scale-105"
-                                                    data-ai-hint={product.hint}
-                                                />
-                                            </div>
-                                            <div className="p-3 flex-grow flex flex-col">
-                                                <h4 className="font-semibold truncate text-sm flex-grow">{product.name}</h4>
-                                                <p className="font-bold text-foreground mt-1">{product.price}</p>
-                                                <div className="flex items-center gap-1 text-xs text-amber-400 mt-1">
-                                                    <Star className="w-4 h-4 fill-current" />
-                                                    <span>4.8</span>
-                                                    <span className="text-muted-foreground">({product.reviews || '1.2k'})</span>
-                                                </div>
-                                                <div className="flex items-center gap-4 text-xs text-muted-foreground mt-1">
-                                                    <div className="flex items-center gap-1"><Package className="w-3 h-3" /> {product.stock} left</div>
-                                                    <div className="flex items-center gap-1"><Users className="w-3 h-3" /> {product.sold} sold</div>
-                                                </div>
-                                            </div>
-                                        </Card>
-                                    </Link>
-                                ))}
-                            </div>
-                        </section>
+                        <div className="container mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle className="flex items-center gap-2">
+                                        <Sparkles className="text-primary" /> Popular Products
+                                    </CardTitle>
+                                    <CardDescription>Top picks from our sellers.</CardDescription>
+                                </CardHeader>
+                                <CardContent className="grid grid-cols-2 gap-4">
+                                    {popularProducts.slice(0, 10).map(renderProductCard)}
+                                </CardContent>
+                            </Card>
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle className="flex items-center gap-2">
+                                        <TrendingUp className="text-primary" /> Trending Now
+                                    </CardTitle>
+                                    <CardDescription>What's hot right now.</CardDescription>
+                                </CardHeader>
+                                <CardContent className="grid grid-cols-2 gap-4">
+                                     {trendingProducts.slice(0, 10).map(renderProductCard)}
+                                </CardContent>
+                            </Card>
+                        </div>
                         
                         <section className="mt-8">
                              <div className="container mx-auto px-4 sm:px-6 lg:px-8 mb-4">
