@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { ArrowLeft, Star, ThumbsUp, ThumbsDown, MessageSquare, ShoppingCart, ShieldCheck, Heart, Share2, Truck, Tag, Banknote, Ticket, ChevronDown, RotateCcw, Sparkles, CheckCircle, Users, HelpCircle, Send, Image as ImageIcon, Edit, Trash2, Flag, Play, Loader2, Package, Plus, X, Video, Search } from 'lucide-react';
+import { ArrowLeft, Star, ThumbsUp, ThumbsDown, MessageSquare, ShoppingCart, ShieldCheck, Heart, Share2, Truck, Tag, Banknote, Ticket, ChevronDown, RotateCcw, Sparkles, CheckCircle, Users, HelpCircle, Send, Image as ImageIcon, Edit, Trash2, Flag, Play, Loader2, Package, Plus, X, Video, Search, AlertTriangle } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import Image from 'next/image';
@@ -752,6 +752,8 @@ export function ProductDetailClient({ productId }: { productId: string }) {
     const sellerLiveStream = liveSellers.find(s => s.id === seller.uid);
     const reviewImages = reviews.map(r => r.imageUrl).filter(Boolean) as string[];
 
+    const stock = variantStock ?? product.stock;
+
     return (
         <>
              <AlertDialog open={isAuthDialogOpen} onOpenChange={setIsAuthDialogOpen}>
@@ -842,14 +844,9 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                                             <Button variant="secondary" size="icon" className="h-8 w-8 rounded-full" onClick={(e) => { e.stopPropagation(); handleShare(); }}>
                                                                 <Share2 className="h-4 w-4" />
                                                             </Button>
-                                                            <Dialog open={isReportOpen} onOpenChange={setIsReportOpen}>
-                                                                <DialogTrigger asChild>
-                                                                    <Button variant="secondary" size="icon" className="h-8 w-8 rounded-full" onClick={(e) => { e.stopPropagation(); handleAuthAction(() => setIsReportOpen(true)); }}>
-                                                                        <Flag className="h-4 w-4" />
-                                                                    </Button>
-                                                                </DialogTrigger>
-                                                                <ReportDialog onSubmit={handleReportProduct} />
-                                                            </Dialog>
+                                                            <Button variant="secondary" size="icon" className="h-8 w-8 rounded-full" onClick={(e) => { e.stopPropagation(); handleAuthAction(() => setIsReportOpen(true)); }}>
+                                                                <Flag className="h-4 w-4" />
+                                                            </Button>
                                                              <FeedbackDialog>
                                                                 <Button variant="secondary" size="icon" className="h-8 w-8 rounded-full">
                                                                     <MessageSquare className="h-4 w-4" />
@@ -958,7 +955,13 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                                     <span>({reviews.length} reviews)</span>
                                             </div>
                                             <span className="text-muted-foreground/50 hidden sm:inline">|</span>
-                                            <div className="flex items-center gap-1"><Package className="w-4 h-4" /> {variantStock ?? product.stock} in stock</div>
+                                            <div className={cn(
+                                                "flex items-center gap-1",
+                                                stock < 20 && "text-destructive font-semibold"
+                                            )}>
+                                                {stock < 20 ? <AlertTriangle className="w-4 h-4" /> : <Package className="w-4 h-4" />}
+                                                {stock < 20 ? `Only ${stock} left!` : `${stock} in stock`}
+                                            </div>
                                             <span className="text-muted-foreground/50 hidden sm:inline">|</span>
                                             <div className="flex items-center gap-1"><Users className="w-4 h-4" /> {product.sold} sold</div>
                                         </div>
@@ -1269,7 +1272,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                     <h2 className="text-2xl font-bold mb-4">Related Product Streams</h2>
                                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                                         {relatedStreams.map((stream: any) => (
-                                             <Link href={`/stream/${stream.id}`} key={stream.id} className="group flex flex-col">
+                                             <Link href={`/stream/${stream.id}`} key={stream.id} className="group block">
                                                 <div className="relative rounded-lg overflow-hidden aspect-video bg-muted w-full flex-shrink-0">
                                                     <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
                                                     <div className="absolute top-2 right-2 z-10"><Badge variant="secondary" className="bg-black/50 text-white"><Users className="w-3 h-3 mr-1"/>{stream.viewers.toLocaleString()}</Badge></div>
