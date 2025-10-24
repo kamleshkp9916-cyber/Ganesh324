@@ -911,40 +911,6 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                         </div>
                                          <p className="text-sm text-muted-foreground mt-1">(inclusive of all taxes)</p>
                                     </div>
-                                    <Card>
-                                        <CardHeader>
-                                            <CardTitle className="flex items-center justify-between text-base">
-                                                Available Offers
-                                                <Ticket className="h-5 w-5 text-muted-foreground" />
-                                            </CardTitle>
-                                        </CardHeader>
-                                        <CardContent>
-                                            <div className="space-y-3">
-                                                {mockAdminOffers.map((offer: any, index: number) => (
-                                                    <div key={index} className="flex items-start gap-3 text-sm">
-                                                        {offer.icon}
-                                                        <div>
-                                                            <h5 className="font-semibold">{offer.title}</h5>
-                                                            <p className="text-muted-foreground">{offer.description}</p>
-                                                        </div>
-                                                        {offer.code && (
-                                                            <Button
-                                                                variant="ghost"
-                                                                size="sm"
-                                                                className="ml-auto"
-                                                                onClick={() => {
-                                                                    navigator.clipboard.writeText(offer.code);
-                                                                    toast({ title: 'Code Copied!', description: `${offer.code} copied to clipboard.` });
-                                                                }}
-                                                            >
-                                                                Copy Code
-                                                            </Button>
-                                                        )}
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </CardContent>
-                                    </Card>
                                     {availableColors.length > 0 && (
                                         <div className="space-y-2">
                                             <Label className="font-semibold">Color: <span className="font-normal">{selectedColor}</span></Label>
@@ -1075,6 +1041,40 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                             </div>
                                         </div>
                                     </div>
+                                    <Card>
+                                        <CardHeader>
+                                            <CardTitle className="flex items-center justify-between text-base">
+                                                Available Offers
+                                                <Ticket className="h-5 w-5 text-muted-foreground" />
+                                            </CardTitle>
+                                        </CardHeader>
+                                        <CardContent>
+                                            <div className="space-y-3">
+                                                {mockAdminOffers.map((offer: any, index: number) => (
+                                                    <div key={index} className="flex items-start gap-3 text-sm">
+                                                        {offer.icon}
+                                                        <div>
+                                                            <h5 className="font-semibold">{offer.title}</h5>
+                                                            <p className="text-muted-foreground">{offer.description}</p>
+                                                        </div>
+                                                        {offer.code && (
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="sm"
+                                                                className="ml-auto"
+                                                                onClick={() => {
+                                                                    navigator.clipboard.writeText(offer.code);
+                                                                    toast({ title: 'Code Copied!', description: `${offer.code} copied to clipboard.` });
+                                                                }}
+                                                            >
+                                                                Copy Code
+                                                            </Button>
+                                                        )}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </CardContent>
+                                    </Card>
                                 </div>
                             </div>
                             <div className="col-span-full mt-8 space-y-8">
@@ -1116,17 +1116,17 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                     <CardContent className="space-y-4">
                                         {reviewImages.length > 0 && (
                                             <Dialog>
-                                                <div className="flex gap-2">
+                                                <div className="grid grid-cols-4 gap-2">
                                                     {reviewImages.slice(0, 3).map((img, index) => (
                                                         <DialogTrigger asChild key={index}>
-                                                             <div className="relative w-20 h-20 rounded-md overflow-hidden cursor-pointer">
+                                                             <div className="relative aspect-square rounded-md overflow-hidden cursor-pointer">
                                                                 <Image src={img} alt={`Review image ${index + 1}`} layout="fill" className="object-cover" />
                                                             </div>
                                                         </DialogTrigger>
                                                     ))}
                                                     {reviewImages.length > 3 && (
                                                         <DialogTrigger asChild>
-                                                            <div className="relative w-20 h-20 rounded-md overflow-hidden bg-muted cursor-pointer flex items-center justify-center">
+                                                            <div className="relative aspect-square rounded-md overflow-hidden bg-muted cursor-pointer flex items-center justify-center">
                                                                 <Image src={reviewImages[3]} alt="More review images" layout="fill" className="object-cover opacity-50" />
                                                                 <span className="absolute text-white font-bold text-lg">+{reviewImages.length - 3}</span>
                                                             </div>
