@@ -1109,7 +1109,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                     </CardHeader>
                                     <CardContent className="space-y-2">
                                         {reviewImages.length > 0 && (
-                                            <div className="grid grid-cols-4 gap-2 mb-4 h-24">
+                                            <div className="grid grid-cols-4 gap-2 mb-4">
                                                 {reviewImages.slice(0, 3).map((img, index) => (
                                                     <div key={index} className="relative aspect-square rounded-md overflow-hidden">
                                                         <Image src={img} alt={`Review image ${index + 1}`} layout="fill" className="object-cover" />
