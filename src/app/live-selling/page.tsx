@@ -147,7 +147,7 @@ const categoryCardsData = [
   {
     category: 'Home & Living',
     product: 'SOFA',
-    image: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=800&q=80',
+    image: 'https://picsum.photos/seed/sofa/800/800',
     hint: 'modern sofa',
     bgColor: 'bg-gray-100 dark:bg-gray-800',
     gridClass: 'md:row-span-2 md:col-span-2',
@@ -155,7 +155,7 @@ const categoryCardsData = [
   {
     category: 'Clothing & Shoes',
     product: 'SNEAKERS',
-    image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=800&q=80',
+    image: 'https://picsum.photos/seed/sneakers/800/800',
     hint: 'blue sneakers',
     bgColor: 'bg-blue-100 dark:bg-blue-900/50',
     gridClass: '',
@@ -163,15 +163,15 @@ const categoryCardsData = [
   {
     category: 'Toys & Entertainment',
     product: 'TOY TRAIN',
-    image: 'https://plus.unsplash.com/premium_photo-1678280209321-a87f2d45a550?w=800&q=80',
+    image: 'https://picsum.photos/seed/train/800/800',
     hint: 'toy train',
     bgColor: 'bg-yellow-100 dark:bg-yellow-900/50',
     gridClass: '',
   },
   {
     category: 'Toys & Entertainment',
-    product: 'TOY TRAIN',
-    image: 'https://images.unsplash.com/photo-1575396348493-a98a2a6f443b?w=800&q=80',
+    product: 'PICTURE FRAME',
+    image: 'https://picsum.photos/seed/frame/800/800',
     hint: 'picture frame',
     bgColor: 'bg-rose-100 dark:bg-rose-900/50',
     gridClass: '',
@@ -179,7 +179,7 @@ const categoryCardsData = [
   {
     category: 'Toys & Entertainment',
     product: 'PARTY DECORS',
-    image: 'https://images.unsplash.com/photo-1514518055146-b8f2788574a6?w=800&q=80',
+    image: 'https://picsum.photos/seed/party/800/800',
     hint: 'party hats',
     bgColor: 'bg-green-100 dark:bg-green-900/50',
     gridClass: '',
@@ -187,7 +187,7 @@ const categoryCardsData = [
   {
     category: 'Jewelry & Accessories',
     product: 'DIAMOND RING',
-    image: 'https://images.unsplash.com/photo-1598501719543-8534f5904d1c?w=800&q=80',
+    image: 'https://picsum.photos/seed/ring/800/800',
     hint: 'diamond ring',
     bgColor: 'bg-red-100 dark:bg-red-900/50',
     gridClass: 'md:col-span-2',
@@ -942,7 +942,7 @@ export default function LiveSellingPage() {
                                      <Card className="overflow-hidden bg-muted/30 border-border/50 h-full group col-span-1">
                                         <Link href={`/stream/${mostPopularStreams[0].id}`}>
                                             <div className="relative aspect-video">
-                                                <Image src="https://images.unsplash.com/photo-1555529771-835f59fc5efe?w=1000&h=1000&fit=crop" alt="Top Stream" fill className="object-cover group-hover:scale-105 transition-transform" data-ai-hint="woman fashion sale" />
+                                                <Image src="https://picsum.photos/seed/fashion/1000/1000" alt="Top Stream" fill className="object-cover group-hover:scale-105 transition-transform" data-ai-hint="woman fashion sale" />
                                                 <div className="absolute inset-0 bg-black/40" />
                                                 <div className="absolute top-4 left-4 z-10 flex items-center gap-2">
                                                     <Badge variant="destructive" className="gap-1.5"><div className="h-2 w-2 rounded-full bg-white animate-pulse" />#1 MOST POPULAR</Badge>
@@ -964,7 +964,7 @@ export default function LiveSellingPage() {
                                      {mostPopularStreams.length > 1 ? (
                                         <Card className="overflow-hidden relative flex items-end text-white group">
                                              <Link href={`/stream/${mostPopularStreams[1].id}`} className='w-full h-full'>
-                                                <Image src="https://images.unsplash.com/photo-1506152983158-b4a74a01c721?w=800&h=400&fit=crop" alt="Second most popular stream" fill className="object-cover group-hover:scale-105 transition-transform"/>
+                                                <Image src="https://picsum.photos/seed/tech/800/400" alt="Second most popular stream" fill className="object-cover group-hover:scale-105 transition-transform"/>
                                                 <div className="absolute inset-0 bg-black/40"></div>
                                                 <div className="relative p-6">
                                                     <Badge variant="outline" className="bg-black/50 border-white/30 mb-2">#2 Most Popular</Badge>
@@ -977,7 +977,7 @@ export default function LiveSellingPage() {
                                     {mostPopularStreams.length > 2 ? (
                                         <Card className="overflow-hidden relative flex items-end text-white group">
                                              <Link href={`/stream/${mostPopularStreams[2].id}`} className='w-full h-full'>
-                                                <Image src="https://images.unsplash.com/photo-1511556820780-d912e42b4980?w=800&h=400&fit=crop" alt="Third most popular stream" fill className="object-cover group-hover:scale-105 transition-transform"/>
+                                                <Image src="https://picsum.photos/seed/beauty/800/400" alt="Third most popular stream" fill className="object-cover group-hover:scale-105 transition-transform"/>
                                                 <div className="absolute inset-0 bg-black/40"></div>
                                                 <div className="relative p-6">
                                                     <Badge variant="outline" className="bg-black/50 border-white/30 mb-2">#3 Most Popular</Badge>
