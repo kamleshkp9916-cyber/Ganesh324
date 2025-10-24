@@ -801,11 +801,6 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                 )}
                             </Link>
                         </Button>
-                         <FeedbackDialog>
-                           <Button variant="ghost">
-                              Feedback
-                          </Button>
-                        </FeedbackDialog>
                     </div>
                 </header>
 
@@ -879,8 +874,8 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                             </CardContent>
                                         </Card>
                                         <DialogContent className="max-w-3xl max-h-[90vh]">
-                                            <DialogHeader>
-                                                <DialogTitle>{product.name}</DialogTitle>
+                                           <DialogHeader>
+                                              <DialogTitle>{product.name}</DialogTitle>
                                             </DialogHeader>
                                             <div className="relative aspect-square w-full">
                                                 {selectedMedia?.type === 'image' && selectedMedia.url && (
@@ -892,7 +887,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                             </div>
                                         </DialogContent>
                                     </Dialog>
-                                     <div className="absolute top-2 right-2 z-20 flex flex-col gap-2">
+                                    <div className="absolute top-2 right-2 z-20 flex flex-col gap-2">
                                         <Button variant="secondary" size="icon" className="h-8 w-8 rounded-full" onClick={(e) => { e.stopPropagation(); handleWishlistToggle(); }}>
                                             <Heart className={cn("h-4 w-4", wishlisted ? "fill-red-500 text-red-500" : "text-muted-foreground")} />
                                         </Button>
@@ -902,6 +897,11 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                         <Button variant="secondary" size="icon" className="h-8 w-8 rounded-full" onClick={(e) => { e.stopPropagation(); handleAuthAction(() => setIsReportOpen(true)); }}>
                                             <Flag className="h-4 w-4" />
                                         </Button>
+                                        <FeedbackDialog>
+                                            <Button variant="secondary" size="icon" className="h-8 w-8 rounded-full lg:hidden">
+                                                <MessageSquare className="h-4 w-4" />
+                                            </Button>
+                                        </FeedbackDialog>
                                     </div>
                                     <Button size="lg" className="w-full rounded-full bg-black/50 text-white backdrop-blur-sm flex items-center gap-1.5 mt-4" onClick={handleSimilarClick} disabled={isScanning}>
                                         {isScanning ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
