@@ -840,62 +840,60 @@ export default function LiveSellingPage() {
                                                                 </Avatar>
                                                             </Link>
                                                             <div className="flex-grow min-w-0">
-                                                                <div className="flex items-center justify-between gap-2">
-                                                                    <Link href={`/stream/${seller.id}`} className="font-semibold text-sm leading-tight group-hover:underline truncate flex-1">
-                                                                        {seller.title || seller.name}
-                                                                    </Link>
-                                                                    <Sheet onOpenChange={(isOpen) => setOpenProductSheet(isOpen ? seller.id : null)}>
-                                                                        <SheetTrigger asChild>
-                                                                            <Button variant="ghost" size="icon" className="h-7 w-7 flex-shrink-0 text-muted-foreground hover:text-primary">
-                                                                                <ShoppingBag className="h-4 w-4" />
-                                                                            </Button>
-                                                                        </SheetTrigger>
-                                                                        <SheetContent side={isMobile ? "bottom" : "right"} className={cn(isMobile ? "h-[80vh] flex flex-col p-0" : "w-96 p-0")}>
-                                                                            {openProductSheet === seller.id && (
-                                                                                <SheetHeader className="p-4 border-b">
-                                                                                    <SheetTitle>Products in this Stream</SheetTitle>
-                                                                                </SheetHeader>
-                                                                            )}
-                                                                            <ScrollArea className="flex-grow">
-                                                                                <div className="p-4 grid grid-cols-2 gap-4">
-                                                                                    {sellerProducts(seller.id).length > 0 ? (
-                                                                                        sellerProducts(seller.id).map((product: any) => (
-                                                                                            <Card key={product.id} className="w-full overflow-hidden h-full flex flex-col">
-                                                                                                <Link href={`/product/${product.key}`} className="group block">
-                                                                                                    <div className="relative aspect-square bg-muted">
-                                                                                                        <Image
-                                                                                                            src={product.images[0]?.preview || product.images[0]}
-                                                                                                            alt={product.name}
-                                                                                                            fill
-                                                                                                            sizes="50vw"
-                                                                                                            className="object-cover transition-transform group-hover:scale-105"
-                                                                                                        />
-                                                                                                    </div>
-                                                                                                </Link>
-                                                                                                <div className="p-2 flex-grow flex flex-col">
-                                                                                                    <Link href={`/product/${product.key}`} className="group block">
-                                                                                                        <h4 className="font-semibold truncate text-xs group-hover:underline">{product.name}</h4>
-                                                                                                        <p className="font-bold text-sm">{product.price}</p>
-                                                                                                    </Link>
-                                                                                                </div>
-                                                                                                <CardFooter className="p-2">
-                                                                                                    <Button size="sm" className="w-full text-xs h-8" onClick={() => handleAddToCart(product)}>
-                                                                                                        <ShoppingCart className="mr-1 h-3 w-3" /> Cart
-                                                                                                    </Button>
-                                                                                                </CardFooter>
-                                                                                            </Card>
-                                                                                        ))
-                                                                                    ) : (
-                                                                                        <p className="col-span-full text-center text-muted-foreground py-10">No products to show.</p>
-                                                                                    )}
-                                                                                </div>
-                                                                            </ScrollArea>
-                                                                        </SheetContent>
-                                                                    </Sheet>
-                                                                </div>
-                                                                <p className="text-xs text-muted-foreground truncate">{seller.description || "Check out the stream for more details!"}</p>
+                                                                <Link href={`/stream/${seller.id}`} className="font-semibold text-sm leading-tight group-hover:underline truncate block">
+                                                                    {seller.title || seller.name}
+                                                                </Link>
+                                                                <p className="text-xs text-muted-foreground truncate">{seller.name}</p>
                                                                 <p className="text-xs text-primary font-semibold mt-0.5">#{seller.category.toLowerCase().replace(/\s+/g, '')}</p>
                                                             </div>
+                                                             <Sheet onOpenChange={(isOpen) => setOpenProductSheet(isOpen ? seller.id : null)}>
+                                                                <SheetTrigger asChild>
+                                                                    <Button variant="ghost" size="icon" className="h-7 w-7 flex-shrink-0 text-muted-foreground hover:text-primary">
+                                                                        <ShoppingBag className="h-4 w-4" />
+                                                                    </Button>
+                                                                </SheetTrigger>
+                                                                <SheetContent side={isMobile ? "bottom" : "right"} className={cn(isMobile ? "h-[80vh] flex flex-col p-0" : "w-96 p-0")}>
+                                                                    {openProductSheet === seller.id && (
+                                                                        <SheetHeader className="p-4 border-b">
+                                                                            <SheetTitle>Products in this Stream</SheetTitle>
+                                                                        </SheetHeader>
+                                                                    )}
+                                                                    <ScrollArea className="flex-grow">
+                                                                        <div className="p-4 grid grid-cols-2 gap-4">
+                                                                            {sellerProducts(seller.id).length > 0 ? (
+                                                                                sellerProducts(seller.id).map((product: any) => (
+                                                                                    <Card key={product.id} className="w-full overflow-hidden h-full flex flex-col">
+                                                                                        <Link href={`/product/${product.key}`} className="group block">
+                                                                                            <div className="relative aspect-square bg-muted">
+                                                                                                <Image
+                                                                                                    src={product.images[0]?.preview || product.images[0]}
+                                                                                                    alt={product.name}
+                                                                                                    fill
+                                                                                                    sizes="50vw"
+                                                                                                    className="object-cover transition-transform group-hover:scale-105"
+                                                                                                />
+                                                                                            </div>
+                                                                                        </Link>
+                                                                                        <div className="p-2 flex-grow flex flex-col">
+                                                                                            <Link href={`/product/${product.key}`} className="group block">
+                                                                                                <h4 className="font-semibold truncate text-xs group-hover:underline">{product.name}</h4>
+                                                                                                <p className="font-bold text-sm">{product.price}</p>
+                                                                                            </Link>
+                                                                                        </div>
+                                                                                        <CardFooter className="p-2">
+                                                                                            <Button size="sm" className="w-full text-xs h-8" onClick={() => handleAddToCart(product)}>
+                                                                                                <ShoppingCart className="mr-1 h-3 w-3" /> Cart
+                                                                                            </Button>
+                                                                                        </CardFooter>
+                                                                                    </Card>
+                                                                                ))
+                                                                            ) : (
+                                                                                <p className="col-span-full text-center text-muted-foreground py-10">No products to show.</p>
+                                                                            )}
+                                                                        </div>
+                                                                    </ScrollArea>
+                                                                </SheetContent>
+                                                            </Sheet>
                                                         </div>
                                                     </div>
                                                 </CarouselItem>
@@ -962,63 +960,61 @@ export default function LiveSellingPage() {
                                                             <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
                                                         </Avatar>
                                                     </Link>
-                                                    <div className="flex-grow min-w-0">
-                                                        <div className="flex items-start justify-between gap-2">
-                                                            <Link href={`/stream/${seller.id}`} className="font-semibold text-sm leading-tight group-hover:underline truncate flex-1">
-                                                                {seller.title || seller.name}
-                                                            </Link>
-                                                            <Sheet onOpenChange={(isOpen) => setOpenProductSheet(isOpen ? seller.id : null)}>
-                                                                <SheetTrigger asChild>
-                                                                    <Button variant="ghost" size="icon" className="h-7 w-7 flex-shrink-0 -mr-2 text-muted-foreground hover:text-primary">
-                                                                        <ShoppingBag className="h-4 w-4" />
-                                                                    </Button>
-                                                                </SheetTrigger>
-                                                                <SheetContent side={isMobile ? "bottom" : "right"} className={cn(isMobile ? "h-[80vh] flex flex-col p-0" : "w-96 p-0")}>
-                                                                    {openProductSheet === seller.id && (
-                                                                        <SheetHeader className="p-4 border-b">
-                                                                            <SheetTitle>Products in this Stream</SheetTitle>
-                                                                        </SheetHeader>
-                                                                    )}
-                                                                    <ScrollArea className="flex-grow">
-                                                                        <div className="p-4 grid grid-cols-2 gap-4">
-                                                                            {sellerProducts(seller.id).length > 0 ? (
-                                                                                sellerProducts(seller.id).map((product: any) => (
-                                                                                    <Card key={product.id} className="w-full overflow-hidden h-full flex flex-col">
-                                                                                        <Link href={`/product/${product.key}`} className="group block">
-                                                                                            <div className="relative aspect-square bg-muted">
-                                                                                                <Image
-                                                                                                    src={product.images[0]?.preview || product.images[0]}
-                                                                                                    alt={product.name}
-                                                                                                    fill
-                                                                                                    sizes="50vw"
-                                                                                                    className="object-cover transition-transform group-hover:scale-105"
-                                                                                                />
-                                                                                            </div>
-                                                                                        </Link>
-                                                                                        <div className="p-2 flex-grow flex flex-col">
-                                                                                            <Link href={`/product/${product.key}`} className="group block">
-                                                                                                <h4 className="font-semibold truncate text-xs group-hover:underline">{product.name}</h4>
-                                                                                                <p className="font-bold text-sm">{product.price}</p>
-                                                                                            </Link>
-                                                                                        </div>
-                                                                                        <CardFooter className="p-2">
-                                                                                            <Button size="sm" className="w-full text-xs h-8" onClick={() => handleAddToCart(product)}>
-                                                                                                <ShoppingCart className="mr-1 h-3 w-3" /> Cart
-                                                                                            </Button>
-                                                                                        </CardFooter>
-                                                                                    </Card>
-                                                                                ))
-                                                                            ) : (
-                                                                                <p className="col-span-full text-center text-muted-foreground py-10">No products to show.</p>
-                                                                            )}
-                                                                        </div>
-                                                                    </ScrollArea>
-                                                                </SheetContent>
-                                                            </Sheet>
-                                                        </div>
-                                                        <p className="text-xs text-muted-foreground truncate">{seller.description || "Check out the stream for more details!"}</p>
+                                                     <div className="flex-grow min-w-0">
+                                                        <Link href={`/stream/${seller.id}`} className="font-semibold text-sm leading-tight group-hover:underline truncate block">
+                                                            {seller.title || seller.name}
+                                                        </Link>
+                                                        <p className="text-xs text-muted-foreground truncate">{seller.name}</p>
                                                         <p className="text-xs text-primary font-semibold mt-0.5">#{seller.category.toLowerCase().replace(/\s+/g, '')}</p>
                                                     </div>
+                                                    <Sheet onOpenChange={(isOpen) => setOpenProductSheet(isOpen ? seller.id : null)}>
+                                                        <SheetTrigger asChild>
+                                                            <Button variant="ghost" size="icon" className="h-7 w-7 flex-shrink-0 -mr-2 text-muted-foreground hover:text-primary">
+                                                                <ShoppingBag className="h-4 w-4" />
+                                                            </Button>
+                                                        </SheetTrigger>
+                                                        <SheetContent side={isMobile ? "bottom" : "right"} className={cn(isMobile ? "h-[80vh] flex flex-col p-0" : "w-96 p-0")}>
+                                                            {openProductSheet === seller.id && (
+                                                                <SheetHeader className="p-4 border-b">
+                                                                    <SheetTitle>Products in this Stream</SheetTitle>
+                                                                </SheetHeader>
+                                                            )}
+                                                            <ScrollArea className="flex-grow">
+                                                                <div className="p-4 grid grid-cols-2 gap-4">
+                                                                    {sellerProducts(seller.id).length > 0 ? (
+                                                                        sellerProducts(seller.id).map((product: any) => (
+                                                                            <Card key={product.id} className="w-full overflow-hidden h-full flex flex-col">
+                                                                                <Link href={`/product/${product.key}`} className="group block">
+                                                                                    <div className="relative aspect-square bg-muted">
+                                                                                        <Image
+                                                                                            src={product.images[0]?.preview || product.images[0]}
+                                                                                            alt={product.name}
+                                                                                            fill
+                                                                                            sizes="50vw"
+                                                                                            className="object-cover transition-transform group-hover:scale-105"
+                                                                                        />
+                                                                                    </div>
+                                                                                </Link>
+                                                                                <div className="p-2 flex-grow flex flex-col">
+                                                                                    <Link href={`/product/${product.key}`} className="group block">
+                                                                                        <h4 className="font-semibold truncate text-xs group-hover:underline">{product.name}</h4>
+                                                                                        <p className="font-bold text-sm">{product.price}</p>
+                                                                                    </Link>
+                                                                                </div>
+                                                                                <CardFooter className="p-2">
+                                                                                    <Button size="sm" className="w-full text-xs h-8" onClick={() => handleAddToCart(product)}>
+                                                                                        <ShoppingCart className="mr-1 h-3 w-3" /> Cart
+                                                                                    </Button>
+                                                                                </CardFooter>
+                                                                            </Card>
+                                                                        ))
+                                                                    ) : (
+                                                                        <p className="col-span-full text-center text-muted-foreground py-10">No products to show.</p>
+                                                                    )}
+                                                                </div>
+                                                            </ScrollArea>
+                                                        </SheetContent>
+                                                    </Sheet>
                                                 </div>
                                             </div>
                                         ))}
@@ -1030,7 +1026,7 @@ export default function LiveSellingPage() {
                                             <h3 className="font-semibold mb-2">Categories</h3>
                                             <Accordion type="single" className="w-full" value={selectedBrowseCategory || ""} onValueChange={(value) => {
                                                 if (selectedBrowseCategory === value) {
-                                                    // This part is now removed to prevent collapsing on second click
+                                                    // This is now handled by onClick on the trigger
                                                 } else {
                                                     setSelectedBrowseCategory(value);
                                                     setSelectedSubCategory(null);
@@ -1045,7 +1041,7 @@ export default function LiveSellingPage() {
                                                         )}
                                                         onClick={(e) => {
                                                             if (selectedBrowseCategory === category.name && !selectedSubCategory) {
-                                                                e.preventDefault(); // Prevent accordion from closing
+                                                                e.preventDefault(); 
                                                             }
                                                             setSelectedBrowseCategory(category.name);
                                                             setSelectedSubCategory(null);
@@ -1104,8 +1100,8 @@ export default function LiveSellingPage() {
                                                         </Avatar>
                                                     </Link>
                                                     <div className="flex-1 overflow-hidden">
-                                                        <Link href={`/stream/${seller.id}`} className="font-semibold text-sm leading-tight group-hover:underline truncate">{seller.title || seller.name}</Link>
-                                                        <p className="text-xs text-muted-foreground truncate">{seller.description || "Check out the stream for more details!"}</p>
+                                                        <Link href={`/stream/${seller.id}`} className="font-semibold text-sm leading-tight group-hover:underline truncate block">{seller.title || seller.name}</Link>
+                                                        <p className="text-xs text-muted-foreground truncate">{seller.name}</p>
                                                         <p className="text-xs text-primary font-semibold mt-0.5">#{seller.category.toLowerCase().replace(/\s+/g, '')}</p>
                                                     </div>
                                                 </div>
