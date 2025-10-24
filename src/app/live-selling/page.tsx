@@ -817,7 +817,7 @@ export default function LiveSellingPage() {
                                                                 <Link href={`/stream/${seller.id}`} className="font-semibold text-sm leading-tight group-hover:underline truncate">{seller.title || seller.name}</Link>
                                                                 <Sheet onOpenChange={(isOpen) => setOpenProductSheet(isOpen ? seller.id : null)}>
                                                                     <SheetTrigger asChild>
-                                                                        <Button variant="ghost" size="icon" className="h-7 w-7 flex-shrink-0 -mr-2 text-muted-foreground hover:text-primary">
+                                                                        <Button variant="ghost" size="icon" className="h-7 w-7 flex-shrink-0 text-muted-foreground hover:text-primary">
                                                                             <ShoppingBag className="h-4 w-4" />
                                                                         </Button>
                                                                     </SheetTrigger>
