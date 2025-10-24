@@ -242,7 +242,7 @@ const CategoryGrid = () => {
         };
 
         return sortedCategories.map((category, index) => {
-            const data = categoryDataMap[category] || { product: category.toUpperCase(), image: `https://picsum.photos/seed/${'${category.toLowerCase()}'}/800/800`, hint: category.toLowerCase() };
+            const data = categoryDataMap[category] || { product: category.toUpperCase(), image: `https://picsum.photos/seed/${category.toLowerCase()}/800/800`, hint: category.toLowerCase() };
             return {
                 category,
                 ...data,
@@ -536,7 +536,7 @@ export default function LiveSellingPage() {
 
     const db = getFirestoreDb();
     const postRef = doc(db, 'posts', postId);
-    const likeRef = doc(db, `posts/${'${postId}'}/likes`, user!.uid);
+    const likeRef = doc(db, `posts/${postId}/likes`, user!.uid);
 
     try {
         await runTransaction(db, async (transaction) => {
@@ -561,7 +561,7 @@ export default function LiveSellingPage() {
     }
 };
 
-  const getCategoryUrl = (categoryName: string) => `/${'${categoryName.toLowerCase().replace(/\s+/g, '-')}'}`;
+  const getCategoryUrl = (categoryName: string) => `/${categoryName.toLowerCase().replace(/\s+/g, '-')}`;
 
   const popularProducts = useMemo(() => {
     return Object.values(productDetails)
@@ -588,406 +588,394 @@ export default function LiveSellingPage() {
                 </AlertDialogFooter>
             </AlertDialogContent>
         </AlertDialog>
-        <Tabs defaultValue="live" value={activeTab} onValueChange={setActiveTab} className="w-full flex flex-col flex-grow">
-             <header className="sticky top-0 z-50 w-full border-b bg-background/80 backdrop-blur-sm">
-                <div className="flex items-center justify-between h-16 px-4 sm:px-6 lg:px-8">
-                     <div className="flex items-center gap-1 sm:gap-2">
-                         <Link href="/live-selling" className="flex items-center gap-2">
-                             <span className="font-bold text-lg hidden sm:inline-block">StreamCart</span>
-                         </Link>
-                    </div>
-
-                    <div className="hidden sm:flex flex-1 justify-center px-8">
-                         <div className={cn(
-                            "relative w-full max-w-sm lg:max-w-md transition-all duration-300",
-                            isSearchOpen ? "w-full" : "w-auto"
-                         )}>
-                            <div className="relative">
-                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground peer-focus:text-foreground"/>
-                                <Input 
-                                    placeholder="Search..." 
-                                    className="rounded-full bg-muted h-10 pl-10 peer transition-all duration-300"
-                                    value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
-                                    onFocus={() => setIsSearchOpen(true)}
-                                    onBlur={() => setIsSearchOpen(false)}
-                                />
-                            </div>
-                        </div>
-                    </div>
-                    
+        <header className="sticky top-0 z-50 w-full border-b bg-background/80 backdrop-blur-sm">
+            <div className="flex items-center justify-between h-16 px-4 sm:px-6 lg:px-8">
                     <div className="flex items-center gap-1 sm:gap-2">
-                        <Button variant="ghost" size="icon" className="sm:hidden" onClick={() => setIsSearchOpen(prev => !prev)}>
-                            <Search className="h-5 w-5"/>
-                        </Button>
-
-                         <Link href="/listed-products" passHref>
-                            <Button variant="ghost" size="icon">
-                                <ShoppingBag className="h-5 w-5"/>
-                            </Button>
+                        <Link href="/live-selling" className="flex items-center gap-2">
+                            <span className="font-bold text-lg hidden sm:inline-block">StreamCart</span>
                         </Link>
-                        
-                         <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                 <Button variant="ghost" size="icon" className="relative">
-                                    <Bell className="h-5 w-5" />
-                                    {unreadCount > 0 && (
-                                        <span className="absolute top-1.5 right-1.5 flex h-2 w-2">
-                                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
-                                            <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
-                                        </span>
-                                    )}
-                                </Button>
-                            </DropdownMenuTrigger>
-                             <DropdownMenuContent align="end" className="w-80">
-                                <DropdownMenuLabel>Notifications</DropdownMenuLabel>
-                                <DropdownMenuSeparator />
-                                {notifications.map(n => (
-                                    <Link key={n.id} href={n.href} passHref>
-                                        <DropdownMenuItem className={cn("flex-col items-start gap-1", !n.read && "bg-primary/5")} onSelect={() => markAsRead(n.id)}>
-                                            <div className="flex justify-between w-full">
-                                                <p className={cn("font-semibold", !n.read && "text-primary")}>{n.title}</p>
-                                                <p className="text-xs text-muted-foreground">{n.time}</p>
-                                            </div>
-                                            <p className="text-sm text-muted-foreground">{n.description}</p>
-                                        </DropdownMenuItem>
-                                    </Link>
-                                ))}
-                                {notifications.length === 0 && (
-                                    <p className="text-center text-sm text-muted-foreground p-4">No new notifications.</p>
-                                )}
-                            </DropdownMenuContent>
-                        </DropdownMenu>
-
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon">
-                                     <Avatar className="h-8 w-8">
-                                        <AvatarImage src={user?.photoURL || undefined} alt={user?.displayName || 'User'}/>
-                                        <AvatarFallback>{isMounted && user?.displayName ? user.displayName.charAt(0).toUpperCase() : <User/>}</AvatarFallback>
-                                    </Avatar>
-                                </Button>
-                            </DropdownMenuTrigger>
-                            {user && userData ? (
-                                <DropdownMenuContent align="end" className="w-64">
-                                    <DropdownMenuLabel>
-                                        <div>{userData?.displayName}</div>
-                                        <div className="text-xs text-muted-foreground font-normal">{userData?.email}</div>
-                                    </DropdownMenuLabel>
-                                    <DropdownMenuSeparator />
-                                     {userData?.role === 'admin' && (
-                                        <DropdownMenuItem onSelect={() => router.push('/admin/dashboard')}>
-                                            <LayoutDashboard className="mr-2 h-4 w-4" />
-                                            <span>Admin Dashboard</span>
-                                        </DropdownMenuItem>
-                                    )}
-                                    {(userData?.role === 'seller') && (
-                                        <DropdownMenuItem onSelect={() => router.push('/seller/dashboard')}>
-                                            <LayoutDashboard className="mr-2 h-4 w-4" />
-                                            <span>Seller Dashboard</span>
-                                        </DropdownMenuItem>
-                                    )}
-                                    <DropdownMenuItem onSelect={() => router.push('/profile')}>
-                                        <User className="mr-2 h-4 w-4" />
-                                        <span>My Profile</span>
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem onSelect={() => router.push('/feed')}>
-                                        <Tv className="mr-2 h-4 w-4" />
-                                        <span>My Feed</span>
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem onSelect={() => router.push('/orders')}>
-                                        <Package className="mr-2 h-4 w-4" />
-                                        <span>My Orders</span>
-                                    </DropdownMenuItem>
-                                     <DropdownMenuItem onSelect={() => router.push('/wishlist')}>
-                                        <Heart className="mr-2 h-4 w-4" />
-                                        <span>My Wishlist</span>
-                                    </DropdownMenuItem>
-                                     <DropdownMenuItem onSelect={() => router.push('/cart')}>
-                                        <ShoppingCart className="mr-2 h-4 w-4" />
-                                        <span>My Cart</span>
-                                         {cartCount > 0 && <Badge variant="destructive" className="ml-auto">{cartCount}</Badge>}
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem onSelect={() => router.push('/wallet')}>
-                                        <Wallet className="mr-2 h-4 w-4" />
-                                        <span>My Wallet</span>
-                                    </DropdownMenuItem>
-                                    <DropdownMenuSeparator />
-                                     <DropdownMenuItem onSelect={() => router.push('/setting')}>
-                                        <Settings className="mr-2 h-4 w-4" />
-                                        <span>Settings</span>
-                                    </DropdownMenuItem>
-                                     <DropdownMenuItem onSelect={() => router.push('/help')}>
-                                        <LifeBuoy className="mr-2 h-4 w-4" />
-                                        <span>Help & Support</span>
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem onSelect={() => router.push('/privacy-and-security')}>
-                                        <Shield className="mr-2 h-4 w-4" />
-                                        <span>Privacy & Security</span>
-                                    </DropdownMenuItem>
-                                    <DropdownMenuSeparator />
-                                    <DropdownMenuSub>
-                                        <DropdownMenuSubTrigger>
-                                            <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0 mr-2" />
-                                            <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100 mr-2" />
-                                            <span>Theme</span>
-                                        </DropdownMenuSubTrigger>
-                                        <DropdownMenuPortal>
-                                            <DropdownMenuSubContent>
-                                                <DropdownMenuItem onClick={() => setTheme("light")}>Light</DropdownMenuItem>
-                                                <DropdownMenuItem onClick={() => setTheme("dark")}>Dark</DropdownMenuItem>
-                                                <DropdownMenuItem onClick={() => setTheme("system")}>System</DropdownMenuItem>
-                                            </DropdownMenuSubContent>
-                                        </DropdownMenuPortal>
-                                    </DropdownMenuSub>
-                                    <DropdownMenuSeparator />
-                                    <DropdownMenuItem onClick={() => signOut(userData?.role === 'seller')}>
-                                        <LogOut className="mr-2 h-4 w-4" />
-                                        <span>Log out</span>
-                                    </DropdownMenuItem>
-                                </DropdownMenuContent>
-                            ) : (
-                                 <DropdownMenuContent align="end">
-                                    <DropdownMenuItem onSelect={() => router.push('/')}>
-                                        <User className="mr-2 h-4 w-4" />
-                                        <span>Login or Sign Up</span>
-                                    </DropdownMenuItem>
-                                 </DropdownMenuContent>
-                            )}
-                        </DropdownMenu>
-                        
-                        {(userData?.role === 'seller' || userData?.role === 'admin') && (
-                             <Dialog>
-                                <DialogTrigger asChild>
-                                    <Button size="sm" className="hidden lg:flex">
-                                        <RadioTower className="mr-2 h-4 w-4"/> Go Live
-                                    </Button>
-                                </DialogTrigger>
-                                <GoLiveDialog />
-                            </Dialog>
-                        )}
-                    </div>
                 </div>
-                 {isSearchOpen && (
-                    <div className="absolute top-16 left-0 w-full p-4 bg-background border-b sm:hidden">
+
+                <div className="hidden sm:flex flex-1 justify-center px-8">
+                        <div className={cn(
+                        "relative w-full max-w-sm lg:max-w-md transition-all duration-300",
+                        isSearchOpen ? "w-full" : "w-auto"
+                        )}>
                         <div className="relative">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground peer-focus:text-foreground"/>
                             <Input 
                                 placeholder="Search..." 
-                                className="rounded-full bg-muted h-10 pl-10"
+                                className="rounded-full bg-muted h-10 pl-10 peer transition-all duration-300"
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
+                                onFocus={() => setIsSearchOpen(true)}
+                                onBlur={() => setIsSearchOpen(false)}
                             />
                         </div>
                     </div>
-                 )}
-            </header>
-            
-            <div className="sticky top-16 z-40 bg-background/80 backdrop-blur-sm">
-                <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex justify-center">
-                    <TabsList className="bg-transparent p-0 h-auto">
-                        <TabsTrigger value="live" className="text-muted-foreground data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-4">Live</TabsTrigger>
-                    </TabsList>
+                </div>
+                
+                <div className="flex items-center gap-1 sm:gap-2">
+                    <Button variant="ghost" size="icon" className="sm:hidden" onClick={() => setIsSearchOpen(prev => !prev)}>
+                        <Search className="h-5 w-5"/>
+                    </Button>
+
+                        <Link href="/listed-products" passHref>
+                        <Button variant="ghost" size="icon">
+                            <ShoppingBag className="h-5 w-5"/>
+                        </Button>
+                    </Link>
+                    
+                        <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon" className="relative">
+                                <Bell className="h-5 w-5" />
+                                {unreadCount > 0 && (
+                                    <span className="absolute top-1.5 right-1.5 flex h-2 w-2">
+                                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                                        <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+                                    </span>
+                                )}
+                            </Button>
+                        </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="w-80">
+                            <DropdownMenuLabel>Notifications</DropdownMenuLabel>
+                            <DropdownMenuSeparator />
+                            {notifications.map(n => (
+                                <Link key={n.id} href={n.href} passHref>
+                                    <DropdownMenuItem className={cn("flex-col items-start gap-1", !n.read && "bg-primary/5")} onSelect={() => markAsRead(n.id)}>
+                                        <div className="flex justify-between w-full">
+                                            <p className={cn("font-semibold", !n.read && "text-primary")}>{n.title}</p>
+                                            <p className="text-xs text-muted-foreground">{n.time}</p>
+                                        </div>
+                                        <p className="text-sm text-muted-foreground">{n.description}</p>
+                                    </DropdownMenuItem>
+                                </Link>
+                            ))}
+                            {notifications.length === 0 && (
+                                <p className="text-center text-sm text-muted-foreground p-4">No new notifications.</p>
+                            )}
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon">
+                                    <Avatar className="h-8 w-8">
+                                    <AvatarImage src={user?.photoURL || undefined} alt={user?.displayName || 'User'}/>
+                                    <AvatarFallback>{isMounted && user?.displayName ? user.displayName.charAt(0).toUpperCase() : <User/>}</AvatarFallback>
+                                </Avatar>
+                            </Button>
+                        </DropdownMenuTrigger>
+                        {user && userData ? (
+                            <DropdownMenuContent align="end" className="w-64">
+                                <DropdownMenuLabel>
+                                    <div>{userData?.displayName}</div>
+                                    <div className="text-xs text-muted-foreground font-normal">{userData?.email}</div>
+                                </DropdownMenuLabel>
+                                <DropdownMenuSeparator />
+                                    {userData?.role === 'admin' && (
+                                    <DropdownMenuItem onSelect={() => router.push('/admin/dashboard')}>
+                                        <LayoutDashboard className="mr-2 h-4 w-4" />
+                                        <span>Admin Dashboard</span>
+                                    </DropdownMenuItem>
+                                )}
+                                {(userData?.role === 'seller') && (
+                                    <DropdownMenuItem onSelect={() => router.push('/seller/dashboard')}>
+                                        <LayoutDashboard className="mr-2 h-4 w-4" />
+                                        <span>Seller Dashboard</span>
+                                    </DropdownMenuItem>
+                                )}
+                                <DropdownMenuItem onSelect={() => router.push('/profile')}>
+                                    <User className="mr-2 h-4 w-4" />
+                                    <span>My Profile</span>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onSelect={() => router.push('/feed')}>
+                                    <Tv className="mr-2 h-4 w-4" />
+                                    <span>My Feed</span>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onSelect={() => router.push('/orders')}>
+                                    <Package className="mr-2 h-4 w-4" />
+                                    <span>My Orders</span>
+                                </DropdownMenuItem>
+                                    <DropdownMenuItem onSelect={() => router.push('/wishlist')}>
+                                    <Heart className="mr-2 h-4 w-4" />
+                                    <span>My Wishlist</span>
+                                </DropdownMenuItem>
+                                    <DropdownMenuItem onSelect={() => router.push('/cart')}>
+                                    <ShoppingCart className="mr-2 h-4 w-4" />
+                                    <span>My Cart</span>
+                                        {cartCount > 0 && <Badge variant="destructive" className="ml-auto">{cartCount}</Badge>}
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onSelect={() => router.push('/wallet')}>
+                                    <Wallet className="mr-2 h-4 w-4" />
+                                    <span>My Wallet</span>
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                    <DropdownMenuItem onSelect={() => router.push('/setting')}>
+                                    <Settings className="mr-2 h-4 w-4" />
+                                    <span>Settings</span>
+                                </DropdownMenuItem>
+                                    <DropdownMenuItem onSelect={() => router.push('/help')}>
+                                    <LifeBuoy className="mr-2 h-4 w-4" />
+                                    <span>Help & Support</span>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onSelect={() => router.push('/privacy-and-security')}>
+                                    <Shield className="mr-2 h-4 w-4" />
+                                    <span>Privacy & Security</span>
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuSub>
+                                    <DropdownMenuSubTrigger>
+                                        <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0 mr-2" />
+                                        <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100 mr-2" />
+                                        <span>Theme</span>
+                                    </DropdownMenuSubTrigger>
+                                    <DropdownMenuPortal>
+                                        <DropdownMenuSubContent>
+                                            <DropdownMenuItem onClick={() => setTheme("light")}>Light</DropdownMenuItem>
+                                            <DropdownMenuItem onClick={() => setTheme("dark")}>Dark</DropdownMenuItem>
+                                            <DropdownMenuItem onClick={() => setTheme("system")}>System</DropdownMenuItem>
+                                        </DropdownMenuSubContent>
+                                    </DropdownMenuPortal>
+                                </DropdownMenuSub>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem onClick={() => signOut(userData?.role === 'seller')}>
+                                    <LogOut className="mr-2 h-4 w-4" />
+                                    <span>Log out</span>
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        ) : (
+                                <DropdownMenuContent align="end">
+                                <DropdownMenuItem onSelect={() => router.push('/')}>
+                                    <User className="mr-2 h-4 w-4" />
+                                    <span>Login or Sign Up</span>
+                                </DropdownMenuItem>
+                                </DropdownMenuContent>
+                        )}
+                    </DropdownMenu>
+                    
+                    {(userData?.role === 'seller' || userData?.role === 'admin') && (
+                            <Dialog>
+                            <DialogTrigger asChild>
+                                <Button size="sm" className="hidden lg:flex">
+                                    <RadioTower className="mr-2 h-4 w-4"/> Go Live
+                                </Button>
+                            </DialogTrigger>
+                            <GoLiveDialog />
+                        </Dialog>
+                    )}
                 </div>
             </div>
-
-            <div className="flex-grow">
-                {isSearchOpen ? (
-                    <ProductSearchWithStreams />
-                ) : (
-                  <>
-                    <TabsContent value="live" className="mt-0">
-                        <div className="container mx-auto px-4 sm:px-6 lg:px-8 pt-8 space-y-8">
-                            <PromotionalCarousel />
-                            <Tabs defaultValue="recommended" className="w-full">
-                                <TabsList>
-                                    <TabsTrigger value="recommended">Recommended</TabsTrigger>
-                                    <TabsTrigger value="browse">Browse</TabsTrigger>
-                                    <TabsTrigger value="following">Following</TabsTrigger>
-                                </TabsList>
-                                <TabsContent value="recommended" className="mt-4">
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                                        {topLiveStreams.map((seller: any) => (
-                                            <div key={seller.id} className="group block">
-                                                <Link href={`/stream/${seller.id}`}>
-                                                    <div className="relative rounded-lg overflow-hidden aspect-video bg-muted w-full flex-shrink-0">
-                                                        <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
-                                                        <div className="absolute top-2 right-2 z-10"><Badge variant="secondary" className="bg-background/60 backdrop-blur-sm gap-1.5">
-                                                            <Users className="h-3 w-3"/>
-                                                            {seller.viewers.toLocaleString()}
-                                                        </Badge></div>
-                                                        <Image src={seller.thumbnailUrl} alt={`Live stream from ${seller.name}`} fill sizes="(max-width: 640px) 75vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw" className="object-cover w-full h-full transition-transform group-hover:scale-105" />
-                                                    </div>
-                                                </Link>
-                                                <div className="flex items-start gap-3 mt-2">
-                                                    <Link href={`/seller/profile?userId=${seller.id}`}>
-                                                        <Avatar className="w-10 h-10">
-                                                            <AvatarImage src={seller.avatarUrl} alt={seller.name} />
-                                                            <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
-                                                        </Avatar>
-                                                    </Link>
-                                                     <div className="flex-grow min-w-0">
-                                                        <Link href={`/stream/${seller.id}`} className="font-semibold text-sm leading-tight group-hover:underline truncate block">
-                                                            {seller.title || seller.name}
-                                                        </Link>
-                                                        <p className="text-xs text-muted-foreground truncate">{seller.name}</p>
-                                                        <p className="text-xs text-primary font-semibold mt-0.5">#{seller.category.toLowerCase().replace(/\s+/g, '')}</p>
-                                                    </div>
-                                                    <Sheet onOpenChange={(isOpen) => setOpenProductSheet(isOpen ? seller.id : null)}>
-                                                        <SheetTrigger asChild>
-                                                            <Button variant="ghost" size="icon" className="h-7 w-7 flex-shrink-0 -mr-2 text-muted-foreground hover:text-primary">
-                                                                <ShoppingBag className="h-4 w-4" />
-                                                            </Button>
-                                                        </SheetTrigger>
-                                                        <SheetContent side={isMobile ? "bottom" : "right"} className={cn(isMobile ? "h-[80vh] flex flex-col p-0" : "w-96 p-0")}>
-                                                            {openProductSheet === seller.id && (
-                                                                <SheetHeader className="p-4 border-b">
-                                                                    <SheetTitle>Products in this Stream</SheetTitle>
-                                                                </SheetHeader>
-                                                            )}
-                                                            <ScrollArea className="flex-grow">
-                                                                <div className="p-4 grid grid-cols-2 gap-4">
-                                                                    {sellerProducts(seller.id).length > 0 ? (
-                                                                        sellerProducts(seller.id).map((product: any) => (
-                                                                            <Card key={product.id} className="w-full overflow-hidden h-full flex flex-col">
-                                                                                <Link href={`/product/${product.key}`} className="group block">
-                                                                                    <div className="relative aspect-square bg-muted">
-                                                                                        <Image
-                                                                                            src={product.images[0]?.preview || product.images[0]}
-                                                                                            alt={product.name}
-                                                                                            fill
-                                                                                            sizes="50vw"
-                                                                                            className="object-cover transition-transform group-hover:scale-105"
-                                                                                        />
-                                                                                    </div>
-                                                                                </Link>
-                                                                                <div className="p-2 flex-grow flex flex-col">
-                                                                                    <Link href={`/product/${product.key}`} className="group block">
-                                                                                        <h4 className="font-semibold truncate text-xs group-hover:underline">{product.name}</h4>
-                                                                                        <p className="font-bold text-sm">{product.price}</p>
-                                                                                    </Link>
-                                                                                </div>
-                                                                                <CardFooter className="p-2">
-                                                                                    <Button size="sm" className="w-full text-xs h-8" onClick={() => handleAddToCart(product)}>
-                                                                                        <ShoppingCart className="mr-1 h-3 w-3" /> Cart
-                                                                                    </Button>
-                                                                                </CardFooter>
-                                                                            </Card>
-                                                                        ))
-                                                                    ) : (
-                                                                        <p className="col-span-full text-center text-muted-foreground py-10">No products to show.</p>
-                                                                    )}
-                                                                </div>
-                                                            </ScrollArea>
-                                                        </SheetContent>
-                                                    </Sheet>
+                {isSearchOpen && (
+                <div className="absolute top-16 left-0 w-full p-4 bg-background border-b sm:hidden">
+                    <div className="relative">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                        <Input 
+                            placeholder="Search..." 
+                            className="rounded-full bg-muted h-10 pl-10"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                        />
+                    </div>
+                </div>
+                )}
+        </header>
+        
+        <div className="flex-grow">
+            {isSearchOpen ? (
+                <ProductSearchWithStreams />
+            ) : (
+                <div className="mt-0">
+                    <div className="container mx-auto px-4 sm:px-6 lg:px-8 pt-8 space-y-8">
+                        <PromotionalCarousel />
+                        <Tabs defaultValue="recommended" className="w-full">
+                            <TabsList>
+                                <TabsTrigger value="recommended">Recommended</TabsTrigger>
+                                <TabsTrigger value="browse">Browse</TabsTrigger>
+                                <TabsTrigger value="following">Following</TabsTrigger>
+                            </TabsList>
+                            <TabsContent value="recommended" className="mt-4">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                                    {topLiveStreams.map((seller: any) => (
+                                        <div key={seller.id} className="group block">
+                                            <Link href={`/stream/${seller.id}`}>
+                                                <div className="relative rounded-lg overflow-hidden aspect-video bg-muted w-full flex-shrink-0">
+                                                    <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
+                                                    <div className="absolute top-2 right-2 z-10"><Badge variant="secondary" className="bg-background/60 backdrop-blur-sm gap-1.5">
+                                                        <Users className="h-3 w-3"/>
+                                                        {seller.viewers.toLocaleString()}
+                                                    </Badge></div>
+                                                    <Image src={seller.thumbnailUrl} alt={`Live stream from ${seller.name}`} fill sizes="(max-width: 640px) 75vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw" className="object-cover w-full h-full transition-transform group-hover:scale-105" />
                                                 </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </TabsContent>
-                                <TabsContent value="browse" className="mt-4">
-                                    <div className="grid grid-cols-[240px_1fr] gap-8 items-start">
-                                        <aside className="sticky top-32">
-                                            <h3 className="font-semibold mb-2">Categories</h3>
-                                            <Accordion type="single" className="w-full" value={selectedBrowseCategory || ""} onValueChange={(value) => {
-                                                if (selectedBrowseCategory === value) {
-                                                    // This is now handled by onClick on the trigger
-                                                } else {
-                                                    setSelectedBrowseCategory(value);
-                                                    setSelectedSubCategory(null);
-                                                }
-                                            }}>
-                                                {categories.map((category) => (
-                                                <AccordionItem value={category.name} key={category.name}>
-                                                    <AccordionTrigger
-                                                        className={cn(
-                                                            "text-sm font-semibold hover:no-underline",
-                                                            selectedBrowseCategory === category.name && !selectedSubCategory && "text-primary"
+                                            </Link>
+                                            <div className="flex items-start gap-3 mt-2">
+                                                <Link href={`/seller/profile?userId=${seller.id}`}>
+                                                    <Avatar className="w-10 h-10">
+                                                        <AvatarImage src={seller.avatarUrl} alt={seller.name} />
+                                                        <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
+                                                    </Avatar>
+                                                </Link>
+                                                    <div className="flex-grow min-w-0">
+                                                    <Link href={`/stream/${seller.id}`} className="font-semibold text-sm leading-tight group-hover:underline truncate block">
+                                                        {seller.title || seller.name}
+                                                    </Link>
+                                                    <p className="text-xs text-muted-foreground truncate">{seller.name}</p>
+                                                    <p className="text-xs text-primary font-semibold mt-0.5">#{seller.category.toLowerCase().replace(/\s+/g, '')}</p>
+                                                </div>
+                                                <Sheet onOpenChange={(isOpen) => setOpenProductSheet(isOpen ? seller.id : null)}>
+                                                    <SheetTrigger asChild>
+                                                        <Button variant="ghost" size="icon" className="h-7 w-7 flex-shrink-0 -mr-2 text-muted-foreground hover:text-primary">
+                                                            <ShoppingBag className="h-4 w-4" />
+                                                        </Button>
+                                                    </SheetTrigger>
+                                                    <SheetContent side={isMobile ? "bottom" : "right"} className={cn(isMobile ? "h-[80vh] flex flex-col p-0" : "w-96 p-0")}>
+                                                        {openProductSheet === seller.id && (
+                                                            <SheetHeader className="p-4 border-b">
+                                                                <SheetTitle>Products in this Stream</SheetTitle>
+                                                            </SheetHeader>
                                                         )}
+                                                        <ScrollArea className="flex-grow">
+                                                            <div className="p-4 grid grid-cols-2 gap-4">
+                                                                {sellerProducts(seller.id).length > 0 ? (
+                                                                    sellerProducts(seller.id).map((product: any) => (
+                                                                        <Card key={product.id} className="w-full overflow-hidden h-full flex flex-col">
+                                                                            <Link href={`/product/${product.key}`} className="group block">
+                                                                                <div className="relative aspect-square bg-muted">
+                                                                                    <Image
+                                                                                        src={product.images[0]?.preview || product.images[0]}
+                                                                                        alt={product.name}
+                                                                                        fill
+                                                                                        sizes="50vw"
+                                                                                        className="object-cover transition-transform group-hover:scale-105"
+                                                                                    />
+                                                                                </div>
+                                                                            </Link>
+                                                                            <div className="p-2 flex-grow flex flex-col">
+                                                                                <Link href={`/product/${product.key}`} className="group block">
+                                                                                    <h4 className="font-semibold truncate text-xs group-hover:underline">{product.name}</h4>
+                                                                                    <p className="font-bold text-sm">{product.price}</p>
+                                                                                </Link>
+                                                                            </div>
+                                                                            <CardFooter className="p-2">
+                                                                                <Button size="sm" className="w-full text-xs h-8" onClick={() => handleAddToCart(product)}>
+                                                                                    <ShoppingCart className="mr-1 h-3 w-3" /> Cart
+                                                                                </Button>
+                                                                            </CardFooter>
+                                                                        </Card>
+                                                                    ))
+                                                                ) : (
+                                                                    <p className="col-span-full text-center text-muted-foreground py-10">No products to show.</p>
+                                                                )}
+                                                            </div>
+                                                        </ScrollArea>
+                                                    </SheetContent>
+                                                </Sheet>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </TabsContent>
+                            <TabsContent value="browse" className="mt-4">
+                                <div className="grid grid-cols-[240px_1fr] gap-8 items-start">
+                                    <aside className="sticky top-32">
+                                        <h3 className="font-semibold mb-2">Categories</h3>
+                                        <Accordion type="single" className="w-full" value={selectedBrowseCategory || ""} onValueChange={(value) => {
+                                            if (selectedBrowseCategory === value) {
+                                                // This is now handled by onClick on the trigger
+                                            } else {
+                                                setSelectedBrowseCategory(value);
+                                                setSelectedSubCategory(null);
+                                            }
+                                        }}>
+                                            {categories.map((category) => (
+                                            <AccordionItem value={category.name} key={category.name}>
+                                                <AccordionTrigger
+                                                    className={cn(
+                                                        "text-sm font-semibold hover:no-underline",
+                                                        selectedBrowseCategory === category.name && !selectedSubCategory && "text-primary"
+                                                    )}
+                                                    onClick={(e) => {
+                                                        if (selectedBrowseCategory === category.name && !selectedSubCategory) {
+                                                            // e.preventDefault(); 
+                                                        }
+                                                        setSelectedBrowseCategory(category.name);
+                                                        setSelectedSubCategory(null);
+                                                    }}
+                                                >
+                                                {category.name}
+                                                </AccordionTrigger>
+                                                <AccordionContent>
+                                                <div className="flex flex-col space-y-1 pl-4">
+                                                    {category.subcategories.map(sub => (
+                                                    <Button
+                                                        key={sub.name}
+                                                        variant="ghost"
+                                                        className={cn("h-auto justify-start text-sm py-1.5 text-muted-foreground", selectedSubCategory === sub.name && "text-primary font-semibold")}
                                                         onClick={(e) => {
-                                                            if (selectedBrowseCategory === category.name && !selectedSubCategory) {
-                                                                // e.preventDefault(); 
-                                                            }
+                                                            e.stopPropagation();
                                                             setSelectedBrowseCategory(category.name);
-                                                            setSelectedSubCategory(null);
+                                                            setSelectedSubCategory(sub.name);
                                                         }}
                                                     >
-                                                    {category.name}
-                                                    </AccordionTrigger>
-                                                    <AccordionContent>
-                                                    <div className="flex flex-col space-y-1 pl-4">
-                                                        {category.subcategories.map(sub => (
-                                                        <Button
-                                                            key={sub.name}
-                                                            variant="ghost"
-                                                            className={cn("h-auto justify-start text-sm py-1.5 text-muted-foreground", selectedSubCategory === sub.name && "text-primary font-semibold")}
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                setSelectedBrowseCategory(category.name);
-                                                                setSelectedSubCategory(sub.name);
-                                                            }}
-                                                        >
-                                                            {sub.name}
-                                                        </Button>
-                                                        ))}
-                                                    </div>
-                                                    </AccordionContent>
-                                                </AccordionItem>
-                                                ))}
-                                            </Accordion>
-                                        </aside>
-                                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                                            {topLiveStreams.filter(s => {
-                                                if (!selectedBrowseCategory) return true;
-                                                const mainCategoryMatch = s.category === selectedBrowseCategory;
-                                                if (!selectedSubCategory) return mainCategoryMatch;
-                                                
-                                                const productForStream = Object.values(productDetails).find(p => p.key === s.productId);
-                                                return mainCategoryMatch && productForStream?.subcategory === selectedSubCategory;
+                                                        {sub.name}
+                                                    </Button>
+                                                    ))}
+                                                </div>
+                                                </AccordionContent>
+                                            </AccordionItem>
+                                            ))}
+                                        </Accordion>
+                                    </aside>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                                        {topLiveStreams.filter(s => {
+                                            if (!selectedBrowseCategory) return true;
+                                            const mainCategoryMatch = s.category === selectedBrowseCategory;
+                                            if (!selectedSubCategory) return mainCategoryMatch;
+                                            
+                                            const productForStream = Object.values(productDetails).find(p => p.key === s.productId);
+                                            return mainCategoryMatch && productForStream?.subcategory === selectedSubCategory;
 
-                                            }).map((seller: any) => (
-                                                <div key={seller.id} className="group block">
-                                                <Link href={`/stream/${seller.id}`}>
-                                                    <div className="relative rounded-lg overflow-hidden aspect-video bg-muted w-full flex-shrink-0">
-                                                        <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
-                                                        <div className="absolute top-2 right-2 z-10"><Badge variant="secondary" className="bg-background/60 backdrop-blur-sm gap-1.5">
-                                                            <Users className="h-3 w-3"/>
-                                                            {seller.viewers.toLocaleString()}
-                                                        </Badge></div>
-                                                        <Image src={seller.thumbnailUrl} alt={`Live stream from ${seller.name}`} fill sizes="(max-width: 640px) 75vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw" className="object-cover w-full h-full transition-transform group-hover:scale-105" />
-                                                    </div>
+                                        }).map((seller: any) => (
+                                            <div key={seller.id} className="group block">
+                                            <Link href={`/stream/${seller.id}`}>
+                                                <div className="relative rounded-lg overflow-hidden aspect-video bg-muted w-full flex-shrink-0">
+                                                    <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
+                                                    <div className="absolute top-2 right-2 z-10"><Badge variant="secondary" className="bg-background/60 backdrop-blur-sm gap-1.5">
+                                                        <Users className="h-3 w-3"/>
+                                                        {seller.viewers.toLocaleString()}
+                                                    </Badge></div>
+                                                    <Image src={seller.thumbnailUrl} alt={`Live stream from ${seller.name}`} fill sizes="(max-width: 640px) 75vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw" className="object-cover w-full h-full transition-transform group-hover:scale-105" />
+                                                </div>
+                                            </Link>
+                                            <div className="flex items-start gap-3 mt-2">
+                                                <Link href={`/seller/profile?userId=${seller.id}`}>
+                                                    <Avatar className="w-10 h-10">
+                                                        <AvatarImage src={seller.avatarUrl} alt={seller.name} />
+                                                        <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
+                                                    </Avatar>
                                                 </Link>
-                                                <div className="flex items-start gap-3 mt-2">
-                                                    <Link href={`/seller/profile?userId=${seller.id}`}>
-                                                        <Avatar className="w-10 h-10">
-                                                            <AvatarImage src={seller.avatarUrl} alt={seller.name} />
-                                                            <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
-                                                        </Avatar>
-                                                    </Link>
-                                                    <div className="flex-1 overflow-hidden">
-                                                        <Link href={`/stream/${seller.id}`} className="font-semibold text-sm leading-tight group-hover:underline truncate block">{seller.title || seller.name}</Link>
-                                                        <p className="text-xs text-muted-foreground truncate">{seller.name}</p>
-                                                        <p className="text-xs text-primary font-semibold mt-0.5">#{seller.category.toLowerCase().replace(/\s+/g, '')}</p>
-                                                    </div>
+                                                <div className="flex-1 overflow-hidden">
+                                                    <Link href={`/stream/${seller.id}`} className="font-semibold text-sm leading-tight group-hover:underline truncate block">{seller.title || seller.name}</Link>
+                                                    <p className="text-xs text-muted-foreground truncate">{seller.name}</p>
+                                                    <p className="text-xs text-primary font-semibold mt-0.5">#{seller.category.toLowerCase().replace(/\s+/g, '')}</p>
                                                 </div>
                                             </div>
-                                            ))}
                                         </div>
+                                        ))}
                                     </div>
-                                </TabsContent>
-                                <TabsContent value="following">
-                                    <div className="text-center py-20 text-muted-foreground">
-                                        <p>Following content coming soon.</p>
-                                    </div>
-                                </TabsContent>
-                            </Tabs>
-                        </div>
-                    </TabsContent>
-                  </>
-                )}
-            </div>
-        </Tabs>
+                                </div>
+                            </TabsContent>
+                            <TabsContent value="following">
+                                <div className="text-center py-20 text-muted-foreground">
+                                    <p>Following content coming soon.</p>
+                                </div>
+                            </TabsContent>
+                        </Tabs>
+                    </div>
+                </div>
+            )}
+        </div>
         <div className="mt-12">
           <Footer />
         </div>
