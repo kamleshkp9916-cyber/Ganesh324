@@ -289,12 +289,12 @@ export default function LiveSellingPage() {
   const popularProducts = useMemo(() => {
     return Object.values(productDetails)
       .sort((a, b) => (b.sold || 0) - (a.sold || 0))
-      .slice(0, 4);
+      .slice(0, 10);
   }, []);
 
     const trendingProducts = useMemo(() => {
         // For demo, we'll just take a different slice of the same sorted data
-        return Object.values(productDetails).sort((a, b) => (b.sold || 0) - (a.sold || 0)).slice(4, 8);
+        return Object.values(productDetails).sort((a, b) => (b.sold || 0) - (a.sold || 0)).slice(4, 14);
     }, []);
 
   const mostReachedPosts = useMemo(() => {
@@ -527,12 +527,17 @@ export default function LiveSellingPage() {
                     data-ai-hint={product.hint}
                 />
             </div>
-            <div className="p-1.5 flex-grow flex flex-col">
+            <div className="p-2 flex-grow flex flex-col">
                 <h4 className="font-semibold truncate text-xs leading-tight flex-grow">{product.name}</h4>
                 <p className="font-bold text-sm mt-0.5">{product.price}</p>
-                 <div className="flex items-center justify-between text-xs text-muted-foreground mt-1">
-                    <div className="flex items-center gap-1"><Star className="w-3 h-3 text-amber-400 fill-amber-400" /> 4.8</div>
+                 <div className="flex items-center gap-1 text-xs text-amber-400 mt-1">
+                    <Star className="w-4 h-4 fill-current" />
+                    <span>4.8</span>
+                    <span className="text-muted-foreground">({product.reviews || '1.2k'})</span>
+                </div>
+                <div className="flex items-center justify-between text-xs text-muted-foreground mt-1">
                     <div className="flex items-center gap-1"><Package className="w-3 h-3" /> {product.stock}</div>
+                    <div className="flex items-center gap-1"><Users className="w-3 h-3" /> {product.sold}</div>
                 </div>
             </div>
         </Card>
@@ -809,9 +814,9 @@ export default function LiveSellingPage() {
                         </section>
                         
                          <section className="container mx-auto px-4 sm:px-6 lg:px-8">
-                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                                <Card className="overflow-hidden bg-muted/30 border-border/50 h-full group col-span-1">
-                                    {mostPopularStreams.length > 0 ? (
+                             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                {mostPopularStreams.length > 0 ? (
+                                     <Card className="overflow-hidden bg-muted/30 border-border/50 h-full group col-span-1">
                                         <Link href={`/stream/${mostPopularStreams[0].id}`}>
                                             <div className="relative aspect-video">
                                                 <Image src="https://images.unsplash.com/photo-1555529771-835f59fc5efe?w=1000&h=1000&fit=crop" alt="Top Stream" fill className="object-cover group-hover:scale-105 transition-transform" data-ai-hint="woman fashion sale" />
@@ -830,8 +835,8 @@ export default function LiveSellingPage() {
                                                 </Button>
                                             </div>
                                         </Link>
-                                    ) : <Skeleton className='h-full w-full'/>}
-                                </Card>
+                                     </Card>
+                                ) : <Skeleton className='h-full w-full'/>}
                                  <div className="grid grid-rows-2 gap-6 col-span-1">
                                      {mostPopularStreams.length > 1 ? (
                                         <Card className="overflow-hidden relative flex items-end text-white group">
@@ -864,15 +869,15 @@ export default function LiveSellingPage() {
                         </section>
                         
                          <div className="container mx-auto px-4 sm:px-6 lg:px-8 mt-8">
-                            <Card>
+                           <Card>
                                 <CardHeader>
                                     <CardTitle className="flex items-center gap-2">
                                         <Sparkles className="text-primary" /> Top Picks for You
                                     </CardTitle>
                                     <CardDescription>Our top 10 most viewed products.</CardDescription>
                                 </CardHeader>
-                                <CardContent className="grid grid-cols-2 md:grid-cols-5 gap-2">
-                                    {popularProducts.map(renderProductCard)}
+                                <CardContent className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                                    {popularProducts.slice(0,10).map(renderProductCard)}
                                 </CardContent>
                             </Card>
                         </div>
