@@ -873,9 +873,9 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                                 </ScrollArea>
                                             </CardContent>
                                         </Card>
-                                        <DialogContent className="max-w-3xl max-h-[90vh]">
-                                           <DialogHeader>
-                                              <DialogTitle>{product.name}</DialogTitle>
+                                         <DialogContent className="max-w-3xl h-auto max-h-[90vh]">
+                                            <DialogHeader>
+                                                <DialogTitle>{product.name}</DialogTitle>
                                             </DialogHeader>
                                             <div className="relative aspect-square w-full">
                                                 {selectedMedia?.type === 'image' && selectedMedia.url && (
@@ -894,7 +894,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                         <Button variant="secondary" size="icon" className="h-8 w-8 rounded-full" onClick={(e) => { e.stopPropagation(); handleShare(); }}>
                                             <Share2 className="h-4 w-4" />
                                         </Button>
-                                        <Dialog open={isReportOpen} onOpenChange={setIsReportOpen}>
+                                         <Dialog open={isReportOpen} onOpenChange={setIsReportOpen}>
                                             <DialogTrigger asChild>
                                                 <Button variant="secondary" size="icon" className="h-8 w-8 rounded-full" onClick={(e) => { e.stopPropagation(); handleAuthAction(() => setIsReportOpen(true)); }}>
                                                     <Flag className="h-4 w-4" />
@@ -903,7 +903,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                             <ReportDialog onSubmit={handleReportProduct} />
                                         </Dialog>
                                         <FeedbackDialog>
-                                            <Button variant="secondary" size="icon" className="h-8 w-8 rounded-full">
+                                            <Button variant="secondary" size="icon" className="h-8 w-8 rounded-full lg:hidden">
                                                 <MessageSquare className="h-4 w-4" />
                                             </Button>
                                         </FeedbackDialog>
@@ -1081,16 +1081,9 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                             <RotateCcw className="h-5 w-5 text-muted-foreground mt-0.5 flex-shrink-0" />
                                             <div>
                                                 <p className="font-semibold">7-Day Return Policy</p>
-                                                <p className="text-xs text-muted-foreground">Return this item within 7 days of delivery for a full refund.</p>
+                                                <p className="text-xs text-muted-foreground">Return this item within 7 days of delivery for a refund.</p>
                                             </div>
                                         </div>
-                                        <div className="flex items-start gap-3">
-                                                <Banknote className="h-5 w-5 text-muted-foreground mt-0.5 flex-shrink-0" />
-                                                <div>
-                                                    <p className="font-semibold">Pay on Delivery</p>
-                                                    <p className="text-xs text-muted-foreground">Pay with cash at your doorstep. Available on eligible orders.</p>
-                                                </div>
-                                            </div>
                                         <div className="flex items-start gap-3">
                                             <ShieldCheck className="h-5 w-5 text-muted-foreground mt-0.5 flex-shrink-0" />
                                             <div>
