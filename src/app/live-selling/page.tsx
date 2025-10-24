@@ -116,6 +116,9 @@ import { categories } from '@/lib/categories';
 import { Separator } from '@/components/ui/separator';
 import { ProductSearchWithStreams } from '@/components/ProductSearchWithStreams';
 import { motion } from 'framer-motion';
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
+import { useIsMobile } from '@/hooks/use-mobile';
+
 
 const liveSellers = [
     { id: 'fashionfinds-uid', name: 'FashionFinds', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://picsum.photos/seed/fashion-stream/300/450', category: 'Fashion', viewers: 1200, buyers: 25, rating: 4.8, reviews: 12, hint: 'woman posing stylish outfit', productId: 'prod_1', hasAuction: true },
@@ -127,7 +130,7 @@ const liveSellers = [
     { id: 'artisanalley-uid', name: 'ArtisanAlley', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://picsum.photos/seed/artisan-stream/300/450', category: 'Handmade', viewers: 450, buyers: 8, rating: 5.0, reviews: 6, hint: 'pottery making', productId: 'prod_7', hasAuction: true },
     { id: 'petpalace-uid', name: 'PetPalace', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://picsum.photos/seed/pet-stream/300/450', category: 'Pet Supplies', viewers: 1800, buyers: 50, rating: 4.8, reviews: 30, hint: 'playing with puppy', productId: 'prod_8', hasAuction: false },
     { id: 'booknook-uid', name: 'BookNook', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://picsum.photos/seed/book-stream/300/450', category: 'Books', viewers: 620, buyers: 12, rating: 4.9, reviews: 10, hint: 'reading book cozy', productId: 'prod_9', hasAuction: false },
-    { id: 'gamerguild-uid', name: 'GamerGuild', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://picsum.photos/seed/gaming-stream/300/450', category: 'Gaming', viewers: 4200, buyers: 102, rating: 4.9, reviews: 80, hint: 'esports competition', productId: 'prod_10', hasAuction: true },
+    { id: 'gamerguild-uid', name: 'GamerGuild', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://picsum.photos/seed/gaming-stream/300/450', category: 'Gaming', viewers: 4200, buyers: 102, rating: 4.9, reviews: 80, hint: 'esports competition', productId: 'prod_10' },
 ];
 
 const reportReasons = [
@@ -209,7 +212,7 @@ const CategoryGrid = () => {
         }, {});
 
         const sortedCategories = Object.entries(categoryCounts)
-            .sort(([, countA], [, countB]) => countB - countA)
+            .sort(([, countA], [, countB]) => countB - a)
             .slice(0, 7)
             .map(([category]) => category);
         
@@ -324,6 +327,7 @@ export default function LiveSellingPage() {
   const [activeLiveFilter, setActiveLiveFilter] = useState('All');
   const [cartCount, setCartCount] = useState(0);
   const [activeProductFilter, setActiveProductFilter] = useState('All');
+  const isMobile = useIsMobile();
 
 
   const liveStreamFilterButtons = useMemo(() => {
@@ -628,8 +632,8 @@ export default function LiveSellingPage() {
                     <span className="text-muted-foreground">({product.reviews || '1.2k'})</span>
                 </div>
                  <div className="flex items-center justify-between text-xs text-muted-foreground mt-1">
-                    <div className="flex items-center gap-1"><Package className="w-3 h-3" /> {product.stock} left</div>
-                    <div className="flex items-center gap-1"><Users className="w-3 h-3" /> {product.sold} sold</div>
+                    <div className="flex items-center gap-1"><Package className="w-3 h-3" /> {product.stock}</div>
+                    <div className="flex items-center gap-1"><Users className="w-3 h-3" /> {product.sold}</div>
                 </div>
             </div>
         </Card>
@@ -882,93 +886,74 @@ export default function LiveSellingPage() {
                             <div className="container mx-auto px-4 sm:px-6 lg:px-8 mb-4">
                                 <h2 className="text-2xl font-bold flex items-center justify-center gap-2"><Flame className="text-primary" /> Top Live Streams</h2>
                             </div>
-                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 md:gap-4 px-2 md:px-4">
-                                {topLiveStreams.map((seller: any) => (
-                                     <Link href={`/stream/${seller.id}`} key={seller.id} className="group">
-                                        <div className="relative rounded-lg overflow-hidden aspect-[16/9] bg-muted">
-                                            <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
-                                            <div className="absolute top-2 right-2 z-10">
-                                                <Badge variant="secondary" className="bg-background/60 backdrop-blur-sm gap-1.5">
-                                                    <Users className="h-3 w-3"/>
-                                                    {seller.viewers}
-                                                </Badge>
-                                            </div>
-                                        </div>
-                                        <div className="flex items-start gap-2 mt-2">
-                                            <Avatar className="w-7 h-7">
-                                                <AvatarImage src={seller.avatarUrl} />
-                                                <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
-                                            </Avatar>
-                                            <div className="flex-1">
-                                                <p className="font-semibold text-xs group-hover:underline truncate">{seller.title || seller.name}</p>
-                                                <p className="text-xs text-muted-foreground">{seller.category}</p>
-                                                <p className="text-xs text-primary font-semibold mt-0.5">#{seller.category.toLowerCase()}</p>
-                                            </div>
-                                        </div>
-                                    </Link>
-                                ))}
-                            </div>
-                        </section>
-                        
-                         <section className="container mx-auto px-4 sm:px-6 lg:px-8">
-                             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                                {mostPopularStreams.length > 0 ? (
-                                     <Card className="overflow-hidden bg-muted/30 border-border/50 h-full group col-span-1">
-                                        <Link href={`/stream/${mostPopularStreams[0].id}`}>
-                                            <div className="relative aspect-video">
-                                                <Image src={mostPopularStreams[0].thumbnailUrl} alt="Top Stream" fill className="object-cover group-hover:scale-105 transition-transform" data-ai-hint="woman fashion sale" />
-                                                <div className="absolute inset-0 bg-black/40" />
-                                                <div className="absolute top-4 left-4 z-10 flex items-center gap-2">
-                                                    <Badge variant="destructive" className="gap-1.5"><div className="h-2 w-2 rounded-full bg-white animate-pulse" />#1 MOST POPULAR</Badge>
-                                                    <Badge variant="secondary" className="bg-background/60 backdrop-blur-sm gap-1.5"><Users className="h-3 w-3"/>{mostPopularStreams[0].viewers.toLocaleString()} watching</Badge>
+                            {isMobile ? (
+                                <Carousel className="w-full px-4">
+                                    <CarouselContent className="-ml-2">
+                                        {topLiveStreams.map((seller: any) => (
+                                            <CarouselItem key={seller.id} className="pl-2 basis-3/4 sm:basis-1/2">
+                                                 <Link href={`/stream/${seller.id}`} className="group">
+                                                    <div className="relative rounded-lg overflow-hidden aspect-[16/9] bg-muted">
+                                                        <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
+                                                        <div className="absolute top-2 right-2 z-10">
+                                                            <Badge variant="secondary" className="bg-background/60 backdrop-blur-sm gap-1.5">
+                                                                <Users className="h-3 w-3"/>
+                                                                {seller.viewers}
+                                                            </Badge>
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex items-start gap-2 mt-2">
+                                                        <Avatar className="w-7 h-7">
+                                                            <AvatarImage src={seller.avatarUrl} />
+                                                            <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
+                                                        </Avatar>
+                                                        <div className="flex-1">
+                                                            <p className="font-semibold text-xs group-hover:underline truncate">{seller.title || seller.name}</p>
+                                                            <p className="text-xs text-muted-foreground">{seller.category}</p>
+                                                            <p className="text-xs text-primary font-semibold mt-0.5">#{seller.category.toLowerCase()}</p>
+                                                        </div>
+                                                    </div>
+                                                </Link>
+                                            </CarouselItem>
+                                        ))}
+                                    </CarouselContent>
+                                    <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2" />
+                                    <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2" />
+                                </Carousel>
+                            ) : (
+                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 md:gap-4 px-2 md:px-4">
+                                    {topLiveStreams.map((seller: any) => (
+                                        <Link href={`/stream/${seller.id}`} key={seller.id} className="group">
+                                            <div className="relative rounded-lg overflow-hidden aspect-[16/9] bg-muted">
+                                                <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
+                                                <div className="absolute top-2 right-2 z-10">
+                                                    <Badge variant="secondary" className="bg-background/60 backdrop-blur-sm gap-1.5">
+                                                        <Users className="h-3 w-3"/>
+                                                        {seller.viewers}
+                                                    </Badge>
                                                 </div>
                                             </div>
-                                            <div className="p-6">
-                                                <p className="text-sm font-semibold text-primary">{mostPopularStreams[0].category}</p>
-                                                <h3 className="text-2xl font-bold mt-1">{mostPopularStreams[0].title || `${mostPopularStreams[0].name}'s Live Shopping`}</h3>
-                                                <p className="text-muted-foreground mt-2">Join the #1 most-watched stream on StreamCart right now!</p>
-                                                <Button asChild className="mt-4">
-                                                    <div className='flex'>Join Stream <ArrowRight className="ml-2 h-4 w-4" /></div>
-                                                </Button>
+                                            <div className="flex items-start gap-2 mt-2">
+                                                <Avatar className="w-7 h-7">
+                                                    <AvatarImage src={seller.avatarUrl} />
+                                                    <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
+                                                </Avatar>
+                                                <div className="flex-1">
+                                                    <p className="font-semibold text-xs group-hover:underline truncate">{seller.title || seller.name}</p>
+                                                    <p className="text-xs text-muted-foreground">{seller.category}</p>
+                                                    <p className="text-xs text-primary font-semibold mt-0.5">#{seller.category.toLowerCase()}</p>
+                                                </div>
                                             </div>
                                         </Link>
-                                     </Card>
-                                ) : <Skeleton className='h-full w-full'/>}
-                                 <div className="grid grid-rows-2 gap-6 col-span-1">
-                                     {mostPopularStreams.length > 1 ? (
-                                        <Card className="overflow-hidden relative flex items-end text-white group">
-                                             <Link href={`/stream/${mostPopularStreams[1].id}`} className='w-full h-full'>
-                                                <Image src={mostPopularStreams[1].thumbnailUrl} alt="Second most popular stream" fill className="object-cover group-hover:scale-105 transition-transform"/>
-                                                <div className="absolute inset-0 bg-black/40"></div>
-                                                <div className="relative p-6">
-                                                    <Badge variant="outline" className="bg-black/50 border-white/30 mb-2">#2 Most Popular</Badge>
-                                                    <h3 className="text-2xl font-bold">{mostPopularStreams[1].title || mostPopularStreams[1].name}</h3>
-                                                    <p>{mostPopularStreams[1].viewers.toLocaleString()} watching</p>
-                                                </div>
-                                            </Link>
-                                        </Card>
-                                    ) : <Skeleton className='h-full w-full'/>}
-                                    {mostPopularStreams.length > 2 ? (
-                                        <Card className="overflow-hidden relative flex items-end text-white group">
-                                             <Link href={`/stream/${mostPopularStreams[2].id}`} className='w-full h-full'>
-                                                <Image src={mostPopularStreams[2].thumbnailUrl} alt="Third most popular stream" fill className="object-cover group-hover:scale-105 transition-transform"/>
-                                                <div className="absolute inset-0 bg-black/40"></div>
-                                                <div className="relative p-6">
-                                                    <Badge variant="outline" className="bg-black/50 border-white/30 mb-2">#3 Most Popular</Badge>
-                                                    <h3 className="text-2xl font-bold">{mostPopularStreams[2].title || mostPopularStreams[2].name}</h3>
-                                                    <p>{mostPopularStreams[2].viewers.toLocaleString()} watching</p>
-                                                </div>
-                                            </Link>
-                                        </Card>
-                                    ) : <Skeleton className='h-full w-full'/>}
+                                    ))}
                                 </div>
-                            </div>
+                            )}
                         </section>
-                        <section className="container mx-auto px-4 sm:px-6 lg:px-8 mt-8">
-                          <div className="bg-muted/30 rounded-lg p-4 sm:p-6 lg:p-8">
-                            <h2 className="text-3xl font-bold text-center mb-6">Shop by Category</h2>
-                            <CategoryGrid />
-                          </div>
+                        
+                         <section className="container mx-auto px-4 sm:px-6 lg:px-8 mt-8">
+                             <div className="bg-muted/30 rounded-lg p-4 sm:p-6 lg:p-8">
+                                <h2 className="text-3xl font-bold text-center mb-6">Shop by Category</h2>
+                                <CategoryGrid />
+                              </div>
                         </section>
                         
                          <div className="container mx-auto px-4 sm:px-6 lg:px-8 mt-8">
