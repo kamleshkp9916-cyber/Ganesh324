@@ -58,6 +58,7 @@ import {
   List,
   Sparkles,
   Edit,
+  ArrowRight,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
@@ -523,7 +524,7 @@ export default function LiveSellingPage() {
 
   const renderProductCard = (product: any) => (
     <Link href={`/product/${product.key}`} key={product.id} className="group block">
-        <Card className="w-full overflow-hidden h-full flex flex-col bg-card">
+        <Card className="w-full overflow-hidden h-full flex flex-col bg-card shadow-sm hover:shadow-md transition-shadow duration-300">
             <div className="relative aspect-square bg-muted">
                 <Image
                     src={product.images[0]}
@@ -541,9 +542,9 @@ export default function LiveSellingPage() {
                     <span>4.8</span>
                     <span className="text-muted-foreground text-[10px]">({product.reviews || '1.2k'})</span>
                 </div>
-                <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
-                    <div className="flex items-center gap-1"><Package className="w-3 h-3" /> {product.stock} left</div>
-                    <div className="flex items-center gap-1"><Users className="w-3 h-3" /> {product.sold} sold</div>
+                 <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
+                    <div className="flex items-center gap-1"><Package className="w-2.5 h-2.5" /> {product.stock} left</div>
+                    <div className="flex items-center gap-1"><Users className="w-2.5 h-2.5" /> {product.sold} sold</div>
                 </div>
             </div>
         </Card>
@@ -699,11 +700,11 @@ export default function LiveSellingPage() {
                                     </DropdownMenuItem>
                                      <DropdownMenuItem onSelect={() => router.push('/help')}>
                                         <LifeBuoy className="mr-2 h-4 w-4" />
-                                        <span>Help &amp; Support</span>
+                                        <span>Help & Support</span>
                                     </DropdownMenuItem>
                                     <DropdownMenuItem onSelect={() => router.push('/privacy-and-security')}>
                                         <Shield className="mr-2 h-4 w-4" />
-                                        <span>Privacy &amp; Security</span>
+                                        <span>Privacy & Security</span>
                                     </DropdownMenuItem>
                                     <DropdownMenuSeparator />
                                     <DropdownMenuSub>
@@ -813,6 +814,52 @@ export default function LiveSellingPage() {
                             </div>
                         </section>
                         
+                         <section className="container mx-auto px-4 sm:px-6 lg:px-8">
+                             <Card className="overflow-hidden bg-muted/30 border-border/50">
+                                <div className="grid grid-cols-1 md:grid-cols-2">
+                                    <div className="relative aspect-video md:aspect-square">
+                                        <Image src="https://images.unsplash.com/photo-1555529771-835f59fc5efe?w=1000&h=1000&fit=crop" alt="Flash Sale" fill className="object-cover" data-ai-hint="woman fashion sale" />
+                                        <div className="absolute top-4 left-4 z-10 flex items-center gap-2">
+                                            <Badge variant="destructive" className="gap-1.5"><div className="h-2 w-2 rounded-full bg-white animate-pulse" />LIVE</Badge>
+                                            <Badge variant="secondary" className="bg-background/60 backdrop-blur-sm gap-1.5"><Users className="h-3 w-3"/>2.3k watching</Badge>
+                                        </div>
+                                    </div>
+                                    <div className="p-6 flex flex-col justify-center">
+                                        <p className="text-sm font-semibold text-primary">Live Shopping</p>
+                                        <h3 className="text-2xl font-bold mt-1">Flash Sale Stream</h3>
+                                        <p className="text-muted-foreground mt-2">Shop in real-time as our host showcases picks. Limited quantities drop during the stream.</p>
+                                        <Button asChild className="mt-4 self-start">
+                                            <Link href="#">Shop The Sale <ArrowRight className="ml-2 h-4 w-4" /></Link>
+                                        </Button>
+                                        <div className="mt-6 space-y-3">
+                                             <Link href="#" className="flex items-center gap-3 p-3 rounded-lg bg-background/50 hover:bg-background transition-colors">
+                                                <Image src="https://images.unsplash.com/photo-1525945367383-a90940981977?w=100&h=100&fit=crop" alt="Summer Wear Bundle" width={48} height={48} className="rounded-md" data-ai-hint="red silk fabric" />
+                                                <div className="flex-grow">
+                                                    <p className="font-semibold text-sm">Summer Wear Bundle</p>
+                                                    <div className="flex items-baseline gap-2">
+                                                        <p className="font-bold text-destructive">₹209.00</p>
+                                                        <p className="text-xs text-muted-foreground line-through">₹389.00</p>
+                                                    </div>
+                                                </div>
+                                                <Button size="sm" variant="outline" className="flex-shrink-0">Add +</Button>
+                                            </Link>
+                                             <Link href="#" className="flex items-center gap-3 p-3 rounded-lg bg-background/50 hover:bg-background transition-colors">
+                                                <Image src="https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?w=100&h=100&fit=crop" alt="Cozy Sweater" width={48} height={48} className="rounded-md" data-ai-hint="cozy sweater" />
+                                                <div className="flex-grow">
+                                                    <p className="font-semibold text-sm">Cozy Sweater</p>
+                                                    <div className="flex items-baseline gap-2">
+                                                        <p className="font-bold text-destructive">₹209.00</p>
+                                                        <p className="text-xs text-muted-foreground line-through">₹399.00</p>
+                                                    </div>
+                                                </div>
+                                                <Button size="sm" variant="outline" className="flex-shrink-0">Add +</Button>
+                                            </Link>
+                                        </div>
+                                    </div>
+                                </div>
+                            </Card>
+                        </section>
+
                         <div className="container mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
                             <Card>
                                 <CardHeader>
@@ -821,7 +868,7 @@ export default function LiveSellingPage() {
                                     </CardTitle>
                                     <CardDescription>Top picks from our sellers.</CardDescription>
                                 </CardHeader>
-                                <CardContent className="grid grid-cols-2 gap-4">
+                                <CardContent className="grid grid-cols-2 gap-2">
                                     {popularProducts.slice(0, 10).map(renderProductCard)}
                                 </CardContent>
                             </Card>
@@ -832,7 +879,7 @@ export default function LiveSellingPage() {
                                     </CardTitle>
                                     <CardDescription>What's hot right now.</CardDescription>
                                 </CardHeader>
-                                <CardContent className="grid grid-cols-2 gap-4">
+                                <CardContent className="grid grid-cols-2 gap-2">
                                      {trendingProducts.slice(0, 10).map(renderProductCard)}
                                 </CardContent>
                             </Card>
