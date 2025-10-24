@@ -115,7 +115,7 @@ import { PromotionalCarousel } from '@/components/promotional-carousel';
 import { categories } from '@/lib/categories';
 import { Separator } from '@/components/ui/separator';
 import { ProductSearchWithStreams } from '@/components/ProductSearchWithStreams';
-
+import { motion } from 'framer-motion';
 
 const liveSellers = [
     { id: 'fashionfinds-uid', name: 'FashionFinds', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Fashion', viewers: 1200, buyers: 25, rating: 4.8, reviews: 12, hint: 'woman posing stylish outfit', productId: 'prod_1', hasAuction: true },
@@ -142,6 +142,134 @@ const mockNotifications = [
     { id: 2, title: 'Flash Sale Alert!', description: 'GadgetGuru is having a 50% off flash sale now!', time: '1h ago', read: false, href: '/seller/profile?userId=GadgetGuru' },
     { id: 3, title: 'New message from HomeHaven', description: '"Yes, the blue vases are back in stock!"', time: '4h ago', read: true, href: '/message' },
 ];
+
+const categoryCardsData = [
+  {
+    category: 'Home & Living',
+    product: 'SOFA',
+    image: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=800&q=80',
+    hint: 'modern sofa',
+    bgColor: 'bg-gray-100 dark:bg-gray-800',
+    gridClass: 'md:row-span-2 md:col-span-2',
+  },
+  {
+    category: 'Clothing & Shoes',
+    product: 'SNEAKERS',
+    image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=800&q=80',
+    hint: 'blue sneakers',
+    bgColor: 'bg-blue-100 dark:bg-blue-900/50',
+    gridClass: '',
+  },
+  {
+    category: 'Toys & Entertainment',
+    product: 'TOY TRAIN',
+    image: 'https://plus.unsplash.com/premium_photo-1678280209321-a87f2d45a550?w=800&q=80',
+    hint: 'toy train',
+    bgColor: 'bg-yellow-100 dark:bg-yellow-900/50',
+    gridClass: '',
+  },
+  {
+    category: 'Toys & Entertainment',
+    product: 'TOY TRAIN',
+    image: 'https://images.unsplash.com/photo-1575396348493-a98a2a6f443b?w=800&q=80',
+    hint: 'picture frame',
+    bgColor: 'bg-rose-100 dark:bg-rose-900/50',
+    gridClass: '',
+  },
+  {
+    category: 'Toys & Entertainment',
+    product: 'PARTY DECORS',
+    image: 'https://images.unsplash.com/photo-1514518055146-b8f2788574a6?w=800&q=80',
+    hint: 'party hats',
+    bgColor: 'bg-green-100 dark:bg-green-900/50',
+    gridClass: '',
+  },
+  {
+    category: 'Jewelry & Accessories',
+    product: 'DIAMOND RING',
+    image: 'https://images.unsplash.com/photo-1598501719543-8534f5904d1c?w=800&q=80',
+    hint: 'diamond ring',
+    bgColor: 'bg-red-100 dark:bg-red-900/50',
+    gridClass: 'md:col-span-2',
+  },
+];
+
+
+const AnimatedCategoryCard = ({
+  item,
+  isHovered,
+  setHovered,
+}: {
+  item: typeof categoryCardsData[0];
+  isHovered: boolean;
+  setHovered: (val: boolean) => void;
+}) => {
+  return (
+    <motion.div
+      className={cn(
+        'relative rounded-2xl overflow-hidden cursor-pointer h-40 md:h-full',
+        item.gridClass
+      )}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      layout
+    >
+      <Image
+        src={item.image}
+        alt={item.product}
+        fill
+        sizes="(max-width: 768px) 50vw, 33vw"
+        className={cn(
+          'object-cover transition-transform duration-500',
+          isHovered ? 'scale-110' : 'scale-100'
+        )}
+        data-ai-hint={item.hint}
+      />
+      <div
+        className={cn(
+          'absolute inset-0 transition-colors',
+          item.bgColor,
+          isHovered ? 'bg-opacity-30' : 'bg-opacity-70'
+        )}
+      />
+      <div className="absolute inset-0 p-6 flex flex-col justify-start">
+        <p className="text-sm font-semibold opacity-80">{item.category}</p>
+        <p className="text-2xl font-bold">{item.product}</p>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: isHovered ? 1 : 0, y: isHovered ? 0 : 20 }}
+          transition={{ duration: 0.3 }}
+          className="mt-auto"
+        >
+          <Button variant="secondary" className="bg-background/80 backdrop-blur-sm">
+            Shop Now <ArrowRight className="ml-2 h-4 w-4" />
+          </Button>
+        </motion.div>
+      </div>
+    </motion.div>
+  );
+};
+
+const CategoryGrid = () => {
+    const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+
+    return (
+        <section className="container mx-auto px-4 sm:px-6 lg:px-8 mt-8">
+            <h2 className="text-3xl font-bold text-center mb-6">Shop by Category</h2>
+             <motion.div layout className="grid grid-cols-1 md:grid-cols-4 md:auto-rows-[180px] gap-4">
+                {categoryCardsData.map((item, index) => (
+                    <AnimatedCategoryCard
+                        key={item.product + index}
+                        item={item}
+                        isHovered={hoveredIndex === index}
+                        setHovered={(isHovered) => setHoveredIndex(isHovered ? index : null)}
+                    />
+                ))}
+            </motion.div>
+        </section>
+    );
+};
+
 
 function LiveSellerSkeleton({key}: {key: React.Key}) {
     return (
@@ -289,12 +417,12 @@ export default function LiveSellingPage() {
   const popularProducts = useMemo(() => {
     return Object.values(productDetails)
       .sort((a, b) => (b.sold || 0) - (a.sold || 0))
-      .slice(0, 10);
+      .slice(0, 4);
   }, []);
 
     const trendingProducts = useMemo(() => {
         // For demo, we'll just take a different slice of the same sorted data
-        return Object.values(productDetails).sort((a, b) => (b.sold || 0) - (a.sold || 0)).slice(4, 14);
+        return Object.values(productDetails).sort((a, b) => (b.sold || 0) - (a.sold || 0)).slice(4, 8);
     }, []);
 
   const mostReachedPosts = useMemo(() => {
@@ -465,7 +593,7 @@ export default function LiveSellingPage() {
 
         if (mediaUrl) {
             const storage = getFirebaseStorage();
-            const mediaRef = storageRef(storage, mediaUrl);
+            const mediaRef = ref(storage, mediaUrl);
             await deleteObject(mediaRef);
         }
 
@@ -530,12 +658,7 @@ export default function LiveSellingPage() {
             <div className="p-2 flex-grow flex flex-col">
                 <h4 className="font-semibold truncate text-xs leading-tight flex-grow">{product.name}</h4>
                 <p className="font-bold text-sm mt-0.5">{product.price}</p>
-                 <div className="flex items-center gap-1 text-xs text-amber-400 mt-1">
-                    <Star className="w-4 h-4 fill-current" />
-                    <span>4.8</span>
-                    <span className="text-muted-foreground">({product.reviews || '1.2k'})</span>
-                </div>
-                <div className="flex items-center justify-between text-xs text-muted-foreground mt-1">
+                 <div className="flex items-center justify-between text-xs text-muted-foreground mt-1">
                     <div className="flex items-center gap-1"><Package className="w-3 h-3" /> {product.stock}</div>
                     <div className="flex items-center gap-1"><Users className="w-3 h-3" /> {product.sold}</div>
                 </div>
@@ -867,6 +990,7 @@ export default function LiveSellingPage() {
                                 </div>
                             </div>
                         </section>
+                        <CategoryGrid />
                         
                          <div className="container mx-auto px-4 sm:px-6 lg:px-8 mt-8">
                            <Card>
@@ -877,7 +1001,7 @@ export default function LiveSellingPage() {
                                     <CardDescription>Our top 10 most viewed products.</CardDescription>
                                 </CardHeader>
                                 <CardContent className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                                    {popularProducts.slice(0,10).map(renderProductCard)}
+                                    {popularProducts.map(renderProductCard)}
                                 </CardContent>
                             </Card>
                         </div>
