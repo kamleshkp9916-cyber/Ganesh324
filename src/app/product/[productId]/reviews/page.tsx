@@ -123,12 +123,7 @@ export default function ProductReviewsPage() {
                                     {reviews.map(review => (
                                         <Link href={`/product/${productId}`} key={review.id} className="block">
                                             <Card className="hover:shadow-md transition-shadow">
-                                                <CardContent className="p-4 flex gap-4">
-                                                    {review.imageUrl && (
-                                                        <div className="w-24 h-24 relative flex-shrink-0">
-                                                            <Image src={review.imageUrl} alt="Review attachment" layout="fill" className="rounded-md object-cover" />
-                                                        </div>
-                                                    )}
+                                                <CardContent className="p-4 flex justify-between items-start gap-4">
                                                     <div className="flex-grow">
                                                         <div className="flex items-start justify-between">
                                                             <div className="flex items-center gap-3">
@@ -147,7 +142,7 @@ export default function ProductReviewsPage() {
                                                             </div>
                                                             <p className="text-xs text-muted-foreground flex-shrink-0 ml-2">{formatDistanceToNow(new Date(review.date), { addSuffix: true })}</p>
                                                         </div>
-                                                        <p className="text-sm text-muted-foreground mt-2 line-clamp-2">{review.text}</p>
+                                                        <p className="text-sm text-muted-foreground mt-2 line-clamp-3">{review.text}</p>
                                                          {user?.uid === review.userId && (
                                                             <div className="flex items-center gap-2 mt-2">
                                                                 <Button variant="ghost" size="sm" className="h-auto px-2 py-1 text-xs" onClick={(e) => { e.preventDefault(); handleEditReview(review); }}>
@@ -173,6 +168,11 @@ export default function ProductReviewsPage() {
                                                             </div>
                                                         )}
                                                     </div>
+                                                     {review.imageUrl && (
+                                                        <div className="w-24 h-24 relative flex-shrink-0">
+                                                            <Image src={review.imageUrl} alt="Review attachment" layout="fill" className="rounded-md object-cover" />
+                                                        </div>
+                                                    )}
                                                 </CardContent>
                                             </Card>
                                         </Link>
