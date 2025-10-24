@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
@@ -137,6 +138,12 @@ const liveSellers = [
     { id: 'gamerguild-uid', name: 'GamerGuild', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Gaming', viewers: 4200, buyers: 102, rating: 4.9, reviews: 80, hint: 'esports competition', productId: 'prod_10', hasAuction: true },
 ];
 
+const mockReviews = [
+    { id: 1, userId: 'user1', author: 'Ganesh', avatar: 'https://placehold.co/40x40.png?text=G', rating: 5, text: 'This camera is a dream! It takes beautiful, authentic photos and is in perfect condition. The seller was super helpful with my questions before I bought it. Highly recommend!', date: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString() },
+    { id: 2, userId: 'user2', author: 'Alex', avatar: 'https://placehold.co/40x40.png?text=A', rating: 4, text: "Really happy with this purchase. It's a bit heavier than I expected, but it feels solid and well-made. The image quality is superb for a vintage camera.", date: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString() },
+    { id: 3, userId: 'user3', author: 'Priya', avatar: 'https://placehold.co/40x40.png?text=P', rating: 5, text: "Arrived faster than expected and was packaged very securely. The camera works perfectly. Can't wait to shoot my first roll of film!", date: new Date(Date.now() - 25 * 24 * 60 * 60 * 1000).toISOString() }
+];
+
 export function ProductDetailClient({ productId }: { productId: string }) {
     const router = useRouter();
     const { user, userData } = useAuth();
@@ -221,7 +228,8 @@ export function ProductDetailClient({ productId }: { productId: string }) {
             setRecentlyViewedItems(getRecentlyViewed().filter(p => p.key !== currentProduct.key)); 
 
             setWishlisted(isWishlisted(currentProduct.id));
-            setReviews(getReviews(currentProduct.key));
+            const existingReviews = getReviews(currentProduct.key);
+            setReviews(existingReviews.length > 0 ? existingReviews : mockReviews);
 
             setCurrentPrice(currentProduct.price);
             setCurrentHighlights(currentProduct.highlights ? currentProduct.highlights.split('\\\\n').filter((h:string) => h.trim() !== '') : []);
@@ -401,7 +409,8 @@ export function ProductDetailClient({ productId }: { productId: string }) {
 
     const fetchReviews = useCallback(() => {
         if (product) {
-            setReviews(getReviews(product.key));
+            const existingReviews = getReviews(product.key);
+            setReviews(existingReviews.length > 0 ? existingReviews : mockReviews);
         }
     }, [product]);
 
