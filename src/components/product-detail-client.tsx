@@ -974,8 +974,6 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                         )}
                                     </div>
                                     
-                                    <Separator className="my-6" />
-
                                      <div className="space-y-4 pt-4">
                                         <div className="flex items-center justify-between">
                                             <h4 className="font-semibold text-base">Delivery Information</h4>
@@ -1000,16 +998,17 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                             )}
                                         </div>
                                         {user && userData?.addresses && userData.addresses.length > 0 ? (
-                                            <>
-                                                <div className="flex items-start gap-3 text-sm">
+                                            <div className="w-full rounded-md border bg-muted/50 p-4 text-sm">
+                                                <div className="flex items-start gap-3">
                                                     <Truck className="h-5 w-5 text-muted-foreground mt-0.5 flex-shrink-0" />
                                                     <div>
-                                                        <p>Deliver to <span className="font-bold text-foreground">{userData.addresses[0].name} - {userData.addresses[0].pincode}</span></p>
-                                                        <p className="text-xs text-muted-foreground">{userData.addresses[0].village}, {userData.addresses[0].city}</p>
+                                                        <p className="font-semibold text-foreground">{userData.addresses[0].name}, {userData.addresses[0].pincode}</p>
+                                                        <p className="text-xs text-muted-foreground">{userData.addresses[0].village}, {userData.addresses[0].city}, {userData.addresses[0].state}</p>
+                                                        <p className="text-xs text-muted-foreground">Phone: {userData.addresses[0].phone}</p>
                                                     </div>
                                                 </div>
                                                 <p className="text-muted-foreground font-semibold !mt-2">Delivery by {estimatedDeliveryDate}</p>
-                                            </>
+                                            </div>
                                         ) : (
                                             <div>
                                                 <div className="flex items-center gap-2">
@@ -1048,7 +1047,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                         </div>
                                     </div>
                                     <Separator className="my-6" />
-                                    <Card>
+                                     <Card className="w-full">
                                         <CardHeader>
                                             <CardTitle className="flex items-center justify-between text-base">
                                                 Available Offers
@@ -1123,35 +1122,25 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                     <CardContent className="space-y-4">
                                         {reviewImages.length > 0 && (
                                             <div className="grid grid-cols-4 gap-2">
-                                                {reviewImages.slice(0, 3).map((img, index) => (
+                                                {reviewImages.slice(0, 4).map((img, index) => (
                                                     <Dialog key={index}>
                                                         <DialogTrigger asChild>
-                                                            <div className="relative aspect-square rounded-md overflow-hidden cursor-pointer">
+                                                            <div className={cn("relative aspect-square rounded-md overflow-hidden cursor-pointer", index === 3 && reviewImages.length > 4 && "bg-black/50")}>
                                                                 <Image src={img} alt={`Review image ${index + 1}`} layout="fill" className="object-cover" />
+                                                                {index === 3 && reviewImages.length > 4 && (
+                                                                    <div className="absolute inset-0 bg-black/60 flex items-center justify-center text-white font-bold text-lg">
+                                                                        +{reviewImages.length - 4}
+                                                                    </div>
+                                                                )}
                                                             </div>
                                                         </DialogTrigger>
-                                                        <DialogContent className="max-w-3xl h-auto max-h-[80vh]">
-                                                            <div className="relative aspect-square">
-                                                                <Image src={img} alt="Review full view" layout="fill" className="object-contain" />
-                                                            </div>
-                                                        </DialogContent>
-                                                    </Dialog>
-                                                ))}
-                                                {reviewImages.length > 3 && (
-                                                    <Dialog>
-                                                        <DialogTrigger asChild>
-                                                            <div className="relative aspect-square rounded-md overflow-hidden bg-muted cursor-pointer flex items-center justify-center">
-                                                                <Image src={reviewImages[3]} alt="More review images" layout="fill" className="object-cover opacity-50" />
-                                                                <span className="absolute text-white font-bold text-lg">+{reviewImages.length - 3}</span>
-                                                            </div>
-                                                        </DialogTrigger>
-                                                         <DialogContent className="max-w-4xl p-0">
+                                                        <DialogContent className="max-w-4xl p-0">
                                                             <Carousel className="w-full">
                                                                 <CarouselContent>
-                                                                    {reviewImages.map((img, index) => (
-                                                                        <CarouselItem key={index}>
+                                                                    {reviewImages.map((img, idx) => (
+                                                                        <CarouselItem key={idx}>
                                                                             <div className="aspect-video relative">
-                                                                                <Image src={img} alt={`Review image slide ${index + 1}`} layout="fill" className="object-contain" />
+                                                                                <Image src={img} alt={`Review image slide ${idx + 1}`} layout="fill" className="object-contain" />
                                                                             </div>
                                                                         </CarouselItem>
                                                                     ))}
@@ -1161,7 +1150,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                                             </Carousel>
                                                         </DialogContent>
                                                     </Dialog>
-                                                )}
+                                                ))}
                                             </div>
                                         )}
                                         {reviews.length > 0 ? (
