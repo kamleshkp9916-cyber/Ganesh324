@@ -121,33 +121,41 @@ export default function ProductReviewsPage() {
 
                                 <div className="space-y-4">
                                     {reviews.map(review => (
-                                        <Card key={review.id}>
-                                            <CardContent className="p-4">
-                                                <div className="flex gap-4">
-                                                    <Avatar>
-                                                        <AvatarImage src={review.avatar} alt={review.author} />
-                                                        <AvatarFallback>{review.author.charAt(0)}</AvatarFallback>
-                                                    </Avatar>
+                                        <Link href={`/product/${productId}`} key={review.id} className="block">
+                                            <Card className="hover:shadow-md transition-shadow">
+                                                <CardContent className="p-4 flex gap-4">
+                                                    {review.imageUrl && (
+                                                        <div className="w-24 h-24 relative flex-shrink-0">
+                                                            <Image src={review.imageUrl} alt="Review attachment" layout="fill" className="rounded-md object-cover" />
+                                                        </div>
+                                                    )}
                                                     <div className="flex-grow">
-                                                        <div className="flex items-center justify-between">
-                                                            <h5 className="font-semibold">{review.author}</h5>
-                                                            <p className="text-xs text-muted-foreground">{formatDistanceToNow(new Date(review.date), { addSuffix: true })}</p>
+                                                        <div className="flex items-start justify-between">
+                                                            <div className="flex items-center gap-3">
+                                                                <Avatar className="h-8 w-8">
+                                                                    <AvatarImage src={review.avatar} alt={review.author} />
+                                                                    <AvatarFallback>{review.author.charAt(0)}</AvatarFallback>
+                                                                </Avatar>
+                                                                <div>
+                                                                    <h5 className="font-semibold text-sm">{review.author}</h5>
+                                                                    <div className="flex items-center gap-1 mt-1">
+                                                                        {[...Array(5)].map((_, i) => (
+                                                                            <Star key={i} className={cn("h-4 w-4", i < review.rating ? 'text-yellow-400 fill-yellow-400' : 'text-muted-foreground')} />
+                                                                        ))}
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <p className="text-xs text-muted-foreground flex-shrink-0 ml-2">{formatDistanceToNow(new Date(review.date), { addSuffix: true })}</p>
                                                         </div>
-                                                        <div className="flex items-center gap-1 mt-1">
-                                                            {[...Array(5)].map((_, i) => (
-                                                                <Star key={i} className={cn("h-4 w-4", i < review.rating ? 'text-yellow-400 fill-yellow-400' : 'text-muted-foreground')} />
-                                                            ))}
-                                                        </div>
-                                                        <p className="text-sm text-muted-foreground mt-2">{review.text}</p>
-                                                        {review.imageUrl && <Image src={review.imageUrl} alt="Review attachment" width={80} height={80} className="mt-2 rounded-md" />}
+                                                        <p className="text-sm text-muted-foreground mt-2 line-clamp-2">{review.text}</p>
                                                          {user?.uid === review.userId && (
                                                             <div className="flex items-center gap-2 mt-2">
-                                                                <Button variant="ghost" size="sm" className="h-auto px-2 py-1 text-xs" onClick={() => handleEditReview(review)}>
+                                                                <Button variant="ghost" size="sm" className="h-auto px-2 py-1 text-xs" onClick={(e) => { e.preventDefault(); handleEditReview(review); }}>
                                                                     <Edit className="mr-1 h-3 w-3" /> Edit
                                                                 </Button>
                                                                 <AlertDialog>
                                                                     <AlertDialogTrigger asChild>
-                                                                        <Button variant="ghost" size="sm" className="h-auto px-2 py-1 text-xs text-destructive hover:text-destructive">
+                                                                        <Button variant="ghost" size="sm" className="h-auto px-2 py-1 text-xs text-destructive hover:text-destructive" onClick={(e) => e.preventDefault()}>
                                                                             <Trash2 className="mr-1 h-3 w-3" /> Delete
                                                                         </Button>
                                                                     </AlertDialogTrigger>
@@ -165,9 +173,9 @@ export default function ProductReviewsPage() {
                                                             </div>
                                                         )}
                                                     </div>
-                                                </div>
-                                            </CardContent>
-                                        </Card>
+                                                </CardContent>
+                                            </Card>
+                                        </Link>
                                     ))}
                                 </div>
                             </div>
@@ -194,4 +202,3 @@ export default function ProductReviewsPage() {
         </>
     );
 }
-
