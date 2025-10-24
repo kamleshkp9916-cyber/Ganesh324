@@ -970,7 +970,8 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                             </Button>
                                         )}
                                     </div>
-                                    <div className="space-y-4 pt-4">
+                                    
+                                     <div className="space-y-4 pt-4">
                                         <div className="flex items-center justify-between">
                                             <h4 className="font-semibold text-base">Delivery Information</h4>
                                             {user && userData?.addresses && userData.addresses.length > 0 && (
@@ -1041,6 +1042,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                             </div>
                                         </div>
                                     </div>
+                                    <Separator className="my-6" />
                                     <Card>
                                         <CardHeader>
                                             <CardTitle className="flex items-center justify-between text-base">
