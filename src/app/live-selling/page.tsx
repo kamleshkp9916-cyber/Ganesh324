@@ -130,7 +130,7 @@ const liveSellers = [
     { id: 'artisanalley-uid', name: 'ArtisanAlley', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://picsum.photos/seed/artisan-stream/300/450', category: 'Handmade', viewers: 450, buyers: 8, rating: 5.0, reviews: 6, hint: 'pottery making', productId: 'prod_7', hasAuction: true },
     { id: 'petpalace-uid', name: 'PetPalace', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://picsum.photos/seed/pet-stream/300/450', category: 'Pet Supplies', viewers: 1800, buyers: 50, rating: 4.8, reviews: 30, hint: 'playing with puppy', productId: 'prod_8', hasAuction: false },
     { id: 'booknook-uid', name: 'BookNook', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://picsum.photos/seed/book-stream/300/450', category: 'Books', viewers: 620, buyers: 12, rating: 4.9, reviews: 10, hint: 'reading book cozy', productId: 'prod_9', hasAuction: false },
-    { id: 'gamerguild-uid', name: 'GamerGuild', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://picsum.photos/seed/gaming-stream/300/450', category: 'Gaming', viewers: 4200, buyers: 102, rating: 4.9, reviews: 80, hint: 'esports competition', productId: 'prod_10' },
+    { id: 'gamerguild-uid', name: 'GamerGuild', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://picsum.photos/seed/gaming-stream/300/450', category: 'Gaming', viewers: 4200, buyers: 102, rating: 4.9, reviews: 80, hint: 'esports competition', productId: 'prod_10', hasAuction: true },
 ];
 
 const reportReasons = [
@@ -239,7 +239,7 @@ const CategoryGrid = () => {
         };
 
         return sortedCategories.map((category, index) => {
-            const data = categoryDataMap[category] || { product: category.toUpperCase(), image: `https://picsum.photos/seed/${category.toLowerCase()}/800/800`, hint: category.toLowerCase() };
+            const data = categoryDataMap[category] || { product: category.toUpperCase(), image: `https://picsum.photos/seed/${'${category.toLowerCase()}'}/800/800`, hint: category.toLowerCase() };
             return {
                 category,
                 ...data,
@@ -522,7 +522,7 @@ export default function LiveSellingPage() {
   };
 
   const handleShare = (postId: number) => {
-    const link = `${window.location.origin}/post/${postId}`;
+    const link = `${'${window.location.origin}'}/post/${postId}`;
     navigator.clipboard.writeText(link);
     toast({
         title: "Link Copied!",
@@ -884,7 +884,61 @@ export default function LiveSellingPage() {
                         </div>
                         
                          <section className="container mx-auto px-4 sm:px-6 lg:px-8 mt-8">
-                             <div className="bg-muted/30 rounded-lg p-4 sm:p-6 lg:p-8">
+                            <section className="container mx-auto px-4 sm:px-6 lg:px-8">
+                                <h2 className="text-3xl font-bold text-center mb-6">Top Live Streams</h2>
+                                {isMobile ? (
+                                    <Carousel opts={{ align: 'start' }} className="w-full">
+                                        <CarouselContent className="-ml-2">
+                                            {topLiveStreams.map((seller: any) => (
+                                                <CarouselItem key={seller.id} className="basis-3/4 sm:basis-1/2 pl-2">
+                                                    <Link href={`/stream/${seller.id}`} className="group block">
+                                                        <div className="relative rounded-lg overflow-hidden aspect-video bg-muted w-full flex-shrink-0">
+                                                            <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
+                                                            <div className="absolute top-2 right-2 z-10"><Badge variant="secondary" className="bg-black/50 text-white"><Users className="w-3 h-3 mr-1.5" />{seller.viewers.toLocaleString()}</Badge></div>
+                                                            <Image src={seller.thumbnailUrl} alt={`Live stream from ${seller.name}`} fill sizes="75vw" className="object-cover w-full h-full transition-transform group-hover:scale-105" />
+                                                        </div>
+                                                        <div className="flex items-start gap-2 mt-2">
+                                                            <Avatar className="w-8 h-8">
+                                                                <AvatarImage src={seller.avatarUrl} alt={seller.name} />
+                                                                <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
+                                                            </Avatar>
+                                                            <div className="flex-1 overflow-hidden">
+                                                                <p className="font-semibold text-sm leading-tight group-hover:underline truncate">{seller.title || seller.name}</p>
+                                                                <p className="text-xs text-muted-foreground">{seller.name}</p>
+                                                            </div>
+                                                        </div>
+                                                    </Link>
+                                                </CarouselItem>
+                                            ))}
+                                        </CarouselContent>
+                                        <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2" />
+                                        <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2" />
+                                    </Carousel>
+                                ) : (
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                                        {topLiveStreams.slice(0, 6).map((seller: any) => (
+                                            <Link href={`/stream/${seller.id}`} key={seller.id} className="group block">
+                                                <div className="relative rounded-lg overflow-hidden aspect-video bg-muted w-full flex-shrink-0">
+                                                    <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
+                                                    <div className="absolute top-2 right-2 z-10"><Badge variant="secondary" className="bg-black/50 text-white"><Users className="w-3 h-3 mr-1.5" />{seller.viewers.toLocaleString()}</Badge></div>
+                                                    <Image src={seller.thumbnailUrl} alt={`Live stream from ${seller.name}`} fill sizes="33vw" className="object-cover w-full h-full transition-transform group-hover:scale-105" />
+                                                </div>
+                                                <div className="flex items-start gap-2 mt-2">
+                                                    <Avatar className="w-8 h-8">
+                                                        <AvatarImage src={seller.avatarUrl} alt={seller.name} />
+                                                        <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
+                                                    </Avatar>
+                                                    <div className="flex-1 overflow-hidden">
+                                                        <p className="font-semibold text-sm leading-tight group-hover:underline truncate">{seller.title || seller.name}</p>
+                                                        <p className="text-xs text-muted-foreground">{seller.name}</p>
+                                                    </div>
+                                                </div>
+                                            </Link>
+                                        ))}
+                                    </div>
+                                )}
+                            </section>
+                             <div className="bg-muted/30 rounded-lg p-4 sm:p-6 lg:p-8 mt-8">
                                 <h2 className="text-3xl font-bold text-center mb-6">Shop by Category</h2>
                                 <CategoryGrid />
                               </div>
@@ -956,7 +1010,7 @@ export default function LiveSellingPage() {
                                                 <div className="flex-1">
                                                     <p className="font-semibold text-xs group-hover:underline truncate">{seller.title || seller.name}</p>
                                                     <p className="text-xs text-muted-foreground">{seller.category}</p>
-                                                    <p className="text-xs text-primary font-semibold mt-0.5">#{seller.category.toLowerCase()}</p>
+                                                    <p className="text-xs text-primary font-semibold mt-0.5">#{'${seller.category.toLowerCase()}'}</p>
                                                 </div>
                                             </div>
                                         </Link>
