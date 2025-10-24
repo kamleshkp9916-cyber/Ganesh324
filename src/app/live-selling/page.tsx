@@ -331,6 +331,32 @@ export default function LiveSellingPage() {
   const isMobile = useIsMobile();
   const [openProductSheet, setOpenProductSheet] = useState<string | null>(null);
 
+  const renderProductCard = (product: any) => (
+    <Link href={`/product/${product.key}`} key={product.key} className="group block">
+        <Card className="w-full overflow-hidden h-full flex flex-col">
+            <div className="relative aspect-square bg-muted">
+                <Image
+                    src={product.images[0]}
+                    alt={product.name}
+                    fill
+                    sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 25vw"
+                    className="object-cover transition-transform group-hover:scale-105"
+                    data-ai-hint={product.hint}
+                />
+            </div>
+            <div className="p-3 flex-grow flex flex-col">
+                <h4 className="font-semibold truncate text-sm flex-grow">{product.name}</h4>
+                <p className="font-bold text-foreground mt-1">{product.price}</p>
+                <div className="flex items-center gap-1 text-xs text-amber-400 mt-1">
+                    <Star className="w-4 h-4 fill-current" />
+                    <span>4.8</span>
+                    <span className="text-muted-foreground">(1.2k reviews)</span>
+                </div>
+            </div>
+        </Card>
+    </Link>
+  );
+
   const liveStreamFilterButtons = useMemo(() => {
     const categories = new Set(allSellers.map(s => s.category));
     return ['All', ...Array.from(categories)];
@@ -528,32 +554,16 @@ export default function LiveSellingPage() {
       return Object.values(productDetails).filter(p => productToSeller(p.key)?.id === sellerId);
   }
 
-  const renderProductCard = (product: any) => (
-    <Link href={`/product/${product.key}`} key={product.key} className="group block">
-        <Card className="w-full overflow-hidden h-full flex flex-col">
-            <div className="relative aspect-square bg-muted">
-                <Image
-                    src={product.images[0]}
-                    alt={product.name}
-                    fill
-                    sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 25vw"
-                    className="object-cover transition-transform group-hover:scale-105"
-                    data-ai-hint={product.hint}
-                />
-            </div>
-            <div className="p-3 flex-grow flex flex-col">
-                <h4 className="font-semibold truncate text-sm flex-grow">{product.name}</h4>
-                <p className="font-bold text-foreground mt-1">{product.price}</p>
-                <div className="flex items-center gap-1 text-xs text-amber-400 mt-1">
-                    <Star className="w-4 h-4 fill-current" />
-                    <span>4.8</span>
-                    <span className="text-muted-foreground">(1.2k reviews)</span>
-                </div>
-            </div>
-        </Card>
-    </Link>
-);
-
+  const handleAddToCart = (product: any) => {
+    handleAuthAction(() => {
+        addToCart({ ...product, quantity: 1 });
+        setCartCount(getCart().reduce((sum, item) => sum + item.quantity, 0));
+        toast({
+            title: "Added to Cart!",
+            description: `${product.name} has been added to your cart.`
+        });
+    });
+  };
 
   return (
     <>
@@ -782,14 +792,15 @@ export default function LiveSellingPage() {
                 {isSearchOpen ? (
                     <ProductSearchWithStreams />
                 ) : (
-                <TabsContent value="all" className="mt-0">
-                    <div className="space-y-8 mt-0">
-                        <div className="container mx-auto px-4 sm:px-6 lg:px-8 pt-8">
-                            <PromotionalCarousel />
-                        </div>
-                        
-                         <section className="container mx-auto px-4 sm:px-6 lg:px-8">
-                            <h2 className="text-3xl font-bold text-center mb-6">Top Live Streams</h2>
+                  <>
+                    <TabsContent value="all" className="mt-0">
+                        <div className="space-y-8 mt-0">
+                            <div className="container mx-auto px-4 sm:px-6 lg:px-8 pt-8">
+                                <PromotionalCarousel />
+                            </div>
+                            
+                            <section className="container mx-auto px-4 sm:px-6 lg:px-8">
+                                <h2 className="text-3xl font-bold text-center mb-6">Top Live Streams</h2>
                                 <Carousel opts={{ align: 'start' }} className="w-full">
                                     <CarouselContent className="-ml-2 md:-ml-4">
                                         {topLiveStreams.map((seller: any) => (
@@ -805,7 +816,7 @@ export default function LiveSellingPage() {
                                                             <Image src={seller.thumbnailUrl} alt={`Live stream from ${seller.name}`} fill sizes="(max-width: 640px) 75vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw" className="object-cover w-full h-full transition-transform group-hover:scale-105" />
                                                         </div>
                                                     </Link>
-                                                     <div className="flex items-start gap-3 mt-2">
+                                                    <div className="flex items-start gap-3 mt-2">
                                                         <Link href={`/seller/profile?userId=${seller.id}`}>
                                                             <Avatar className="w-10 h-10">
                                                                 <AvatarImage src={seller.avatarUrl} alt={seller.name} />
@@ -813,11 +824,11 @@ export default function LiveSellingPage() {
                                                             </Avatar>
                                                         </Link>
                                                         <div className="flex-1 overflow-hidden">
-                                                             <div className="flex items-center justify-between">
+                                                            <div className="flex items-center justify-between">
                                                                 <Link href={`/stream/${seller.id}`} className="font-semibold text-sm leading-tight group-hover:underline truncate">{seller.title || seller.name}</Link>
                                                                 <Sheet onOpenChange={(isOpen) => setOpenProductSheet(isOpen ? seller.id : null)}>
                                                                     <SheetTrigger asChild>
-                                                                        <Button variant="ghost" size="icon" className="h-7 w-7 flex-shrink-0 text-muted-foreground hover:text-primary">
+                                                                        <Button variant="ghost" size="icon" className="h-7 w-7 flex-shrink-0 -mr-2 text-muted-foreground hover:text-primary">
                                                                             <ShoppingBag className="h-4 w-4" />
                                                                         </Button>
                                                                     </SheetTrigger>
@@ -848,7 +859,7 @@ export default function LiveSellingPage() {
                                                                                                 </Link>
                                                                                             </div>
                                                                                             <CardFooter className="p-2">
-                                                                                                <Button size="sm" className="w-full text-xs h-8" onClick={() => toast({title: "Added to Cart"})}>
+                                                                                                <Button size="sm" className="w-full text-xs h-8" onClick={() => handleAddToCart(product)}>
                                                                                                     <ShoppingCart className="mr-1 h-3 w-3" /> Cart
                                                                                                 </Button>
                                                                                             </CardFooter>
@@ -873,30 +884,112 @@ export default function LiveSellingPage() {
                                     <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2 hidden lg:flex" />
                                     <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2 hidden lg:flex" />
                                 </Carousel>
-                        </section>
-                             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+                            </section>
+                            <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                                 <div className="bg-card rounded-lg p-4 sm:p-6 lg:p-8">
-                                <h2 className="text-3xl font-bold text-center mb-6">Shop by Category</h2>
-                                <CategoryGrid />
-                              </div>
+                                    <h2 className="text-3xl font-bold text-center mb-6">Shop by Category</h2>
+                                    <CategoryGrid />
+                                </div>
                             </div>
-                        
-                         <div className="container mx-auto px-4 sm:px-6 lg:px-8 mt-8">
-                           <Card>
-                                <CardHeader>
-                                    <CardTitle className="flex items-center gap-2">
-                                        <Sparkles className="text-primary" /> Top Picks for You
-                                    </CardTitle>
-                                    <CardDescription>Our top 10 most viewed products.</CardDescription>
-                                </CardHeader>
-                                <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                    {popularProducts.map(renderProductCard)}
-                                </CardContent>
-                            </Card>
+                            
+                            <div className="container mx-auto px-4 sm:px-6 lg:px-8 mt-8">
+                            <Card>
+                                    <CardHeader>
+                                        <CardTitle className="flex items-center gap-2">
+                                            <Sparkles className="text-primary" /> Top Picks for You
+                                        </CardTitle>
+                                        <CardDescription>Our top 10 most viewed products.</CardDescription>
+                                    </CardHeader>
+                                    <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                        {popularProducts.map(renderProductCard)}
+                                    </CardContent>
+                                </Card>
+                            </div>
+                            
                         </div>
-                        
-                    </div>
-                </TabsContent>
+                    </TabsContent>
+                    <TabsContent value="live" className="mt-0">
+                         <div className="container mx-auto px-4 sm:px-6 lg:px-8 pt-8">
+                             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                                {topLiveStreams.map((seller: any) => (
+                                    <div key={seller.id} className="group block">
+                                        <Link href={`/stream/${seller.id}`}>
+                                            <div className="relative rounded-lg overflow-hidden aspect-video bg-muted w-full flex-shrink-0">
+                                                <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
+                                                <div className="absolute top-2 right-2 z-10"><Badge variant="secondary" className="bg-background/60 backdrop-blur-sm gap-1.5">
+                                                    <Users className="h-3 w-3"/>
+                                                    {seller.viewers.toLocaleString()}
+                                                </Badge></div>
+                                                <Image src={seller.thumbnailUrl} alt={`Live stream from ${seller.name}`} fill sizes="(max-width: 640px) 75vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw" className="object-cover w-full h-full transition-transform group-hover:scale-105" />
+                                            </div>
+                                        </Link>
+                                        <div className="flex items-start gap-3 mt-2">
+                                            <Link href={`/seller/profile?userId=${seller.id}`}>
+                                                <Avatar className="w-10 h-10">
+                                                    <AvatarImage src={seller.avatarUrl} alt={seller.name} />
+                                                    <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
+                                                </Avatar>
+                                            </Link>
+                                            <div className="flex-1 overflow-hidden">
+                                                <div className="flex items-center justify-between">
+                                                    <Link href={`/stream/${seller.id}`} className="font-semibold text-sm leading-tight group-hover:underline truncate">{seller.title || seller.name}</Link>
+                                                    <Sheet onOpenChange={(isOpen) => setOpenProductSheet(isOpen ? seller.id : null)}>
+                                                        <SheetTrigger asChild>
+                                                            <Button variant="ghost" size="icon" className="h-7 w-7 flex-shrink-0 text-muted-foreground hover:text-primary">
+                                                                <ShoppingBag className="h-4 w-4" />
+                                                            </Button>
+                                                        </SheetTrigger>
+                                                        <SheetContent side={isMobile ? "bottom" : "right"} className={cn(isMobile ? "h-[80vh] flex flex-col p-0" : "w-96 p-0")}>
+                                                            <SheetHeader className="p-4 border-b">
+                                                                <SheetTitle>Products in this Stream</SheetTitle>
+                                                            </SheetHeader>
+                                                            <ScrollArea className="flex-grow">
+                                                                <div className="p-4 grid grid-cols-2 gap-4">
+                                                                    {sellerProducts(seller.id).length > 0 ? (
+                                                                        sellerProducts(seller.id).map((product: any) => (
+                                                                            <Card key={product.id} className="w-full overflow-hidden h-full flex flex-col">
+                                                                                <Link href={`/product/${product.key}`} className="group block">
+                                                                                    <div className="relative aspect-square bg-muted">
+                                                                                        <Image
+                                                                                            src={product.images[0]?.preview || product.images[0]}
+                                                                                            alt={product.name}
+                                                                                            fill
+                                                                                            sizes="50vw"
+                                                                                            className="object-cover transition-transform group-hover:scale-105"
+                                                                                        />
+                                                                                    </div>
+                                                                                </Link>
+                                                                                <div className="p-2 flex-grow flex flex-col">
+                                                                                    <Link href={`/product/${product.key}`} className="group block">
+                                                                                        <h4 className="font-semibold truncate text-xs group-hover:underline">{product.name}</h4>
+                                                                                        <p className="font-bold text-sm">{product.price}</p>
+                                                                                    </Link>
+                                                                                </div>
+                                                                                <CardFooter className="p-2">
+                                                                                    <Button size="sm" className="w-full text-xs h-8" onClick={() => handleAddToCart(product)}>
+                                                                                        <ShoppingCart className="mr-1 h-3 w-3" /> Cart
+                                                                                    </Button>
+                                                                                </CardFooter>
+                                                                            </Card>
+                                                                        ))
+                                                                    ) : (
+                                                                        <p className="col-span-2 text-center text-muted-foreground py-10">No products to show.</p>
+                                                                    )}
+                                                                </div>
+                                                            </ScrollArea>
+                                                        </SheetContent>
+                                                    </Sheet>
+                                                </div>
+                                                <p className="text-xs text-muted-foreground truncate">{seller.description || "Check out the stream for more details!"}</p>
+                                                <p className="text-xs text-primary font-semibold mt-0.5">#{seller.category.toLowerCase().replace(/\s+/g, '')}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </TabsContent>
+                  </>
                 )}
             </div>
         </Tabs>
