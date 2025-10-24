@@ -894,11 +894,16 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                         <Button variant="secondary" size="icon" className="h-8 w-8 rounded-full" onClick={(e) => { e.stopPropagation(); handleShare(); }}>
                                             <Share2 className="h-4 w-4" />
                                         </Button>
-                                        <Button variant="secondary" size="icon" className="h-8 w-8 rounded-full" onClick={(e) => { e.stopPropagation(); handleAuthAction(() => setIsReportOpen(true)); }}>
-                                            <Flag className="h-4 w-4" />
-                                        </Button>
+                                        <Dialog open={isReportOpen} onOpenChange={setIsReportOpen}>
+                                            <DialogTrigger asChild>
+                                                <Button variant="secondary" size="icon" className="h-8 w-8 rounded-full" onClick={(e) => { e.stopPropagation(); handleAuthAction(() => setIsReportOpen(true)); }}>
+                                                    <Flag className="h-4 w-4" />
+                                                </Button>
+                                            </DialogTrigger>
+                                            <ReportDialog onSubmit={handleReportProduct} />
+                                        </Dialog>
                                         <FeedbackDialog>
-                                            <Button variant="secondary" size="icon" className="h-8 w-8 rounded-full lg:hidden">
+                                            <Button variant="secondary" size="icon" className="h-8 w-8 rounded-full">
                                                 <MessageSquare className="h-4 w-4" />
                                             </Button>
                                         </FeedbackDialog>
@@ -943,21 +948,21 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                                 {compareAtPrice && <p className="text-3xl font-bold text-destructive">{currentPrice}</p>}
                                                 {discountPercentage && <Badge variant="destructive">{discountPercentage}% OFF</Badge>}
                                             </div>
-                                             <div className="flex items-center gap-4 flex-wrap text-sm text-muted-foreground">
-                                                <div className="flex items-center gap-2">
-                                                        <div className="flex items-center gap-1 text-amber-400">
-                                                            <Star className="h-5 w-5 fill-current" />
-                                                            <span className="font-bold text-base text-foreground">{averageRating}</span>
-                                                        </div>
-                                                        <span>({reviews.length} reviews)</span>
-                                                </div>
-                                                <span className="text-muted-foreground/50 hidden sm:inline">|</span>
-                                                <div className="flex items-center gap-1"><Package className="w-4 h-4" /> {variantStock ?? product.stock} in stock</div>
-                                                <span className="text-muted-foreground/50 hidden sm:inline">|</span>
-                                                <div className="flex items-center gap-1"><Users className="w-4 h-4" /> {product.sold} sold</div>
-                                            </div>
                                         </div>
                                         <p className="text-sm text-muted-foreground mt-1">(inclusive of all taxes)</p>
+                                        <div className="flex items-center gap-4 flex-wrap text-sm text-muted-foreground">
+                                            <div className="flex items-center gap-2">
+                                                    <div className="flex items-center gap-1 text-amber-400">
+                                                        <Star className="h-5 w-5 fill-current" />
+                                                        <span className="font-bold text-base text-foreground">{averageRating}</span>
+                                                    </div>
+                                                    <span>({reviews.length} reviews)</span>
+                                            </div>
+                                            <span className="text-muted-foreground/50 hidden sm:inline">|</span>
+                                            <div className="flex items-center gap-1"><Package className="w-4 h-4" /> {variantStock ?? product.stock} in stock</div>
+                                            <span className="text-muted-foreground/50 hidden sm:inline">|</span>
+                                            <div className="flex items-center gap-1"><Users className="w-4 h-4" /> {product.sold} sold</div>
+                                        </div>
                                     </div>
                                     {availableColors.length > 0 && (
                                         <div className="space-y-2">
