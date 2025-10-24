@@ -881,7 +881,7 @@ export default function LiveSellingPage() {
                                     <CardDescription>Top picks from our sellers.</CardDescription>
                                 </CardHeader>
                                 <CardContent className="grid grid-cols-2 gap-2">
-                                    {popularProducts.slice(0, 10).map(renderProductCard)}
+                                    {popularProducts.slice(0, 4).map(renderProductCard)}
                                 </CardContent>
                             </Card>
                             <Card>
@@ -892,7 +892,7 @@ export default function LiveSellingPage() {
                                     <CardDescription>What's hot right now.</CardDescription>
                                 </CardHeader>
                                 <CardContent className="grid grid-cols-2 gap-2">
-                                     {trendingProducts.slice(0, 10).map(renderProductCard)}
+                                     {trendingProducts.slice(0, 4).map(renderProductCard)}
                                 </CardContent>
                             </Card>
                         </div>
