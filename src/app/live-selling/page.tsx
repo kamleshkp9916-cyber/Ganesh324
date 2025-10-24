@@ -314,7 +314,7 @@ export default function LiveSellingPage() {
   const [selectedReportReason, setSelectedReportReason] = useState("");
   const { toast } = useToast();
   const [replyTo, setReplyTo] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState("all");
+  const [activeTab, setActiveTab] = useState("live");
   const [suggestedUsers, setSuggestedUsers] = useState<UserData[]>([]);
   const [followingIds, setFollowingIds] = useState<string[]>([]);
   const [isAuthDialogOpen, setIsAuthDialogOpen] = useState(false);
@@ -588,7 +588,7 @@ export default function LiveSellingPage() {
                 </AlertDialogFooter>
             </AlertDialogContent>
         </AlertDialog>
-        <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab} className="w-full flex flex-col flex-grow">
+        <Tabs defaultValue="live" value={activeTab} onValueChange={setActiveTab} className="w-full flex flex-col flex-grow">
              <header className="sticky top-0 z-50 w-full border-b bg-background/80 backdrop-blur-sm">
                 <div className="flex items-center justify-between h-16 px-4 sm:px-6 lg:px-8">
                      <div className="flex items-center gap-1 sm:gap-2">
@@ -786,7 +786,6 @@ export default function LiveSellingPage() {
             <div className="sticky top-16 z-40 bg-background/80 backdrop-blur-sm">
                 <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex justify-center">
                     <TabsList className="bg-transparent p-0 h-auto">
-                        <TabsTrigger value="all" className="text-muted-foreground data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-4">All</TabsTrigger>
                         <TabsTrigger value="live" className="text-muted-foreground data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-4">Live</TabsTrigger>
                     </TabsList>
                 </div>
@@ -797,137 +796,6 @@ export default function LiveSellingPage() {
                     <ProductSearchWithStreams />
                 ) : (
                   <>
-                    <TabsContent value="all" className="mt-0">
-                        <div className="space-y-8 mt-0">
-                            <div className="container mx-auto px-4 sm:px-6 lg:px-8 pt-8">
-                                <PromotionalCarousel />
-                            </div>
-                             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-                                <div className="mb-4">
-                                    <h2 className="text-2xl font-bold flex items-center gap-2">
-                                        <Flame className="text-primary" /> Top Live Streams
-                                    </h2>
-                                </div>
-                                <Carousel
-                                    opts={{
-                                        align: "start",
-                                    }}
-                                    className="w-full"
-                                >
-                                    <CarouselContent className="-ml-4">
-                                        {isLoadingSellers
-                                            ? Array.from({ length: 4 }).map((_, i) => <CarouselItem key={i} className="md:basis-1/2 lg:basis-1/4 pl-4"><LiveSellerSkeleton key={i} /></CarouselItem>)
-                                            : topLiveStreams.map((seller) => (
-                                                <CarouselItem key={seller.id} className="md:basis-1/2 lg:basis-1/4 pl-4">
-                                                        <div key={seller.id} className="group block">
-                                                        <Link href={`/stream/${seller.id}`}>
-                                                            <div className="relative rounded-lg overflow-hidden aspect-video bg-muted w-full flex-shrink-0">
-                                                                <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
-                                                                <div className="absolute top-2 right-2 z-10"><Badge variant="secondary" className="bg-background/60 backdrop-blur-sm gap-1.5">
-                                                                    <Users className="h-3 w-3"/>
-                                                                    {seller.viewers.toLocaleString()}
-                                                                </Badge></div>
-                                                                <Image src={seller.thumbnailUrl} alt={`Live stream from ${seller.name}`} fill sizes="(max-width: 640px) 75vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw" className="object-cover w-full h-full transition-transform group-hover:scale-105" />
-                                                            </div>
-                                                        </Link>
-                                                        <div className="flex items-start gap-3 mt-2">
-                                                            <Link href={`/seller/profile?userId=${seller.id}`}>
-                                                                <Avatar className="w-10 h-10">
-                                                                    <AvatarImage src={seller.avatarUrl} alt={seller.name} />
-                                                                    <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
-                                                                </Avatar>
-                                                            </Link>
-                                                            <div className="flex-grow min-w-0">
-                                                                <Link href={`/stream/${seller.id}`} className="font-semibold text-sm leading-tight group-hover:underline truncate block">
-                                                                    {seller.title || seller.name}
-                                                                </Link>
-                                                                <p className="text-xs text-muted-foreground truncate">{seller.name}</p>
-                                                                <p className="text-xs text-primary font-semibold mt-0.5">#{seller.category.toLowerCase().replace(/\s+/g, '')}</p>
-                                                            </div>
-                                                             <Sheet onOpenChange={(isOpen) => setOpenProductSheet(isOpen ? seller.id : null)}>
-                                                                <SheetTrigger asChild>
-                                                                    <Button variant="ghost" size="icon" className="h-7 w-7 flex-shrink-0 text-muted-foreground hover:text-primary">
-                                                                        <ShoppingBag className="h-4 w-4" />
-                                                                    </Button>
-                                                                </SheetTrigger>
-                                                                <SheetContent side={isMobile ? "bottom" : "right"} className={cn(isMobile ? "h-[80vh] flex flex-col p-0" : "w-96 p-0")}>
-                                                                    {openProductSheet === seller.id && (
-                                                                        <SheetHeader className="p-4 border-b">
-                                                                            <SheetTitle>Products in this Stream</SheetTitle>
-                                                                        </SheetHeader>
-                                                                    )}
-                                                                    <ScrollArea className="flex-grow">
-                                                                        <div className="p-4 grid grid-cols-2 gap-4">
-                                                                            {sellerProducts(seller.id).length > 0 ? (
-                                                                                sellerProducts(seller.id).map((product: any) => (
-                                                                                    <Card key={product.id} className="w-full overflow-hidden h-full flex flex-col">
-                                                                                        <Link href={`/product/${product.key}`} className="group block">
-                                                                                            <div className="relative aspect-square bg-muted">
-                                                                                                <Image
-                                                                                                    src={product.images[0]?.preview || product.images[0]}
-                                                                                                    alt={product.name}
-                                                                                                    fill
-                                                                                                    sizes="50vw"
-                                                                                                    className="object-cover transition-transform group-hover:scale-105"
-                                                                                                />
-                                                                                            </div>
-                                                                                        </Link>
-                                                                                        <div className="p-2 flex-grow flex flex-col">
-                                                                                            <Link href={`/product/${product.key}`} className="group block">
-                                                                                                <h4 className="font-semibold truncate text-xs group-hover:underline">{product.name}</h4>
-                                                                                                <p className="font-bold text-sm">{product.price}</p>
-                                                                                            </Link>
-                                                                                        </div>
-                                                                                        <CardFooter className="p-2">
-                                                                                            <Button size="sm" className="w-full text-xs h-8" onClick={() => handleAddToCart(product)}>
-                                                                                                <ShoppingCart className="mr-1 h-3 w-3" /> Cart
-                                                                                            </Button>
-                                                                                        </CardFooter>
-                                                                                    </Card>
-                                                                                ))
-                                                                            ) : (
-                                                                                <p className="col-span-full text-center text-muted-foreground py-10">No products to show.</p>
-                                                                            )}
-                                                                        </div>
-                                                                    </ScrollArea>
-                                                                </SheetContent>
-                                                            </Sheet>
-                                                        </div>
-                                                    </div>
-                                                </CarouselItem>
-                                            ))}
-                                    </CarouselContent>
-                                    <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2" />
-                                    <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2" />
-                                </Carousel>
-                            </div>
-                             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-                                <Card className="bg-card/50 rounded-lg border-none">
-                                     <CardHeader>
-                                        <CardTitle className="text-3xl font-bold text-center">Shop by Category</CardTitle>
-                                    </CardHeader>
-                                    <CardContent>
-                                        <CategoryGrid />
-                                    </CardContent>
-                                </Card>
-                            </div>
-                            
-                            <div className="container mx-auto px-4 sm:px-6 lg:px-8 mt-8">
-                            <Card>
-                                    <CardHeader>
-                                        <CardTitle className="flex items-center gap-2">
-                                            <Sparkles className="text-primary" /> Top Picks for You
-                                        </CardTitle>
-                                        <CardDescription>Our top 10 most viewed products.</CardDescription>
-                                    </CardHeader>
-                                    <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                        {popularProducts.map(renderProductCard)}
-                                    </CardContent>
-                                </Card>
-                            </div>
-                            
-                        </div>
-                    </TabsContent>
                     <TabsContent value="live" className="mt-0">
                         <div className="container mx-auto px-4 sm:px-6 lg:px-8 pt-8 space-y-8">
                             <PromotionalCarousel />
@@ -1127,5 +995,3 @@ export default function LiveSellingPage() {
     </>
   );
 }
-
-    
