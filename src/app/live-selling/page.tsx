@@ -289,12 +289,12 @@ export default function LiveSellingPage() {
   const popularProducts = useMemo(() => {
     return Object.values(productDetails)
       .sort((a, b) => (b.sold || 0) - (a.sold || 0))
-      .slice(0, 10);
+      .slice(0, 4);
   }, []);
 
     const trendingProducts = useMemo(() => {
         // For demo, we'll just take a different slice of the same sorted data
-        return Object.values(productDetails).sort((a, b) => (b.sold || 0) - (a.sold || 0)).slice(5, 9);
+        return Object.values(productDetails).sort((a, b) => (b.sold || 0) - (a.sold || 0)).slice(4, 8);
     }, []);
 
   const mostReachedPosts = useMemo(() => {
@@ -528,11 +528,11 @@ export default function LiveSellingPage() {
                 />
             </div>
             <div className="p-1.5 flex-grow flex flex-col">
-                <h4 className="font-semibold truncate text-[11px] leading-tight flex-grow">{product.name}</h4>
-                <p className="font-bold text-xs mt-0.5">{product.price}</p>
-                 <div className="flex items-center gap-2 text-[10px] text-muted-foreground mt-0.5">
-                    <div className="flex items-center gap-0.5"><Package className="w-2.5 h-2.5" /> {product.stock}</div>
-                    <div className="flex items-center gap-0.5"><Users className="w-2.5 h-2.5" /> {product.sold}</div>
+                <h4 className="font-semibold truncate text-xs leading-tight flex-grow">{product.name}</h4>
+                <p className="font-bold text-sm mt-0.5">{product.price}</p>
+                 <div className="flex items-center justify-between text-xs text-muted-foreground mt-1">
+                    <div className="flex items-center gap-1"><Star className="w-3 h-3 text-amber-400 fill-amber-400" /> 4.8</div>
+                    <div className="flex items-center gap-1"><Package className="w-3 h-3" /> {product.stock}</div>
                 </div>
             </div>
         </Card>
@@ -761,7 +761,7 @@ export default function LiveSellingPage() {
             <div className="sticky top-16 z-40 bg-background/80 backdrop-blur-sm">
                 <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex justify-center">
                     <TabsList className="bg-transparent p-0 h-auto">
-                        <TabsTrigger value="all" className="text-muted-foreground data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-4">All</TabsTrigger>
+                        <TabsTrigger value="all" className="text-muted-foreground data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-4">All</TabsTrigger>
                         <TabsTrigger value="live" className="text-muted-foreground data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-4">Live</TabsTrigger>
                     </TabsList>
                 </div>
