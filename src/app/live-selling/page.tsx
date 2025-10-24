@@ -537,14 +537,14 @@ export default function LiveSellingPage() {
                 />
             </div>
             <div className="p-2 flex-grow flex flex-col">
-                <h4 className="font-semibold truncate text-xs flex-grow">{product.name}</h4>
-                <p className="font-bold text-sm mt-1">{product.price}</p>
-                <div className="flex items-center gap-1 text-xs text-amber-400 mt-1">
+                <h4 className="font-semibold truncate text-[11px] flex-grow">{product.name}</h4>
+                <p className="font-bold text-xs mt-1">{product.price}</p>
+                <div className="flex items-center gap-1 text-[10px] text-amber-400 mt-1">
                     <Star className="w-3 h-3 fill-current" />
                     <span>4.8</span>
-                    <span className="text-muted-foreground text-[10px]">({product.reviews || '1.2k'})</span>
+                    <span className="text-muted-foreground">({product.reviews || '1.2k'})</span>
                 </div>
-                 <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
+                 <div className="flex items-center gap-2 text-[10px] text-muted-foreground mt-1">
                     <div className="flex items-center gap-1"><Package className="w-2.5 h-2.5" /> {product.stock} left</div>
                     <div className="flex items-center gap-1"><Users className="w-2.5 h-2.5" /> {product.sold} sold</div>
                 </div>
@@ -552,6 +552,11 @@ export default function LiveSellingPage() {
         </Card>
     </Link>
   );
+  
+  const mostPopularStreams = useMemo(() => {
+    return [...allSellers].sort((a,b) => b.viewers - a.viewers).slice(0, 3);
+  }, [allSellers]);
+
 
   return (
     <>
@@ -818,45 +823,58 @@ export default function LiveSellingPage() {
                         </section>
                         
                          <section className="container mx-auto px-4 sm:px-6 lg:px-8">
-                             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                {mostPopularStreams.length > 0 && (
                                 <div className="lg:col-span-1">
-                                    <Card className="overflow-hidden bg-muted/30 border-border/50 h-full">
-                                        <div className="relative aspect-video">
-                                            <Image src="https://images.unsplash.com/photo-1555529771-835f59fc5efe?w=1000&h=1000&fit=crop" alt="Flash Sale" fill className="object-cover" data-ai-hint="woman fashion sale" />
-                                            <div className="absolute top-4 left-4 z-10 flex items-center gap-2">
-                                                <Badge variant="destructive" className="gap-1.5"><div className="h-2 w-2 rounded-full bg-white animate-pulse" />LIVE</Badge>
-                                                <Badge variant="secondary" className="bg-background/60 backdrop-blur-sm gap-1.5"><Users className="h-3 w-3"/>2.3k watching</Badge>
+                                    <Card className="overflow-hidden bg-muted/30 border-border/50 h-full group">
+                                        <Link href={`/stream/${mostPopularStreams[0].id}`}>
+                                            <div className="relative aspect-video">
+                                                <Image src="https://images.unsplash.com/photo-1555529771-835f59fc5efe?w=1000&h=1000&fit=crop" alt="Top Stream" fill className="object-cover group-hover:scale-105 transition-transform" data-ai-hint="woman fashion sale" />
+                                                <div className="absolute inset-0 bg-black/40" />
+                                                <div className="absolute top-4 left-4 z-10 flex items-center gap-2">
+                                                    <Badge variant="destructive" className="gap-1.5"><div className="h-2 w-2 rounded-full bg-white animate-pulse" />#1 MOST POPULAR</Badge>
+                                                    <Badge variant="secondary" className="bg-background/60 backdrop-blur-sm gap-1.5"><Users className="h-3 w-3"/>{mostPopularStreams[0].viewers.toLocaleString()} watching</Badge>
+                                                </div>
                                             </div>
-                                        </div>
+                                        </Link>
                                         <div className="p-6">
-                                            <p className="text-sm font-semibold text-primary">Live Shopping</p>
-                                            <h3 className="text-2xl font-bold mt-1">Flash Sale Stream</h3>
-                                            <p className="text-muted-foreground mt-2">Shop in real-time as our host showcases picks. Limited quantities drop during the stream.</p>
+                                            <p className="text-sm font-semibold text-primary">{mostPopularStreams[0].category}</p>
+                                            <h3 className="text-2xl font-bold mt-1">{mostPopularStreams[0].name}'s Live Shopping</h3>
+                                            <p className="text-muted-foreground mt-2">Join the #1 most-watched stream on StreamCart right now!</p>
                                             <Button asChild className="mt-4">
-                                                <Link href="#">Shop The Sale <ArrowRight className="ml-2 h-4 w-4" /></Link>
+                                                <Link href={`/stream/${mostPopularStreams[0].id}`}>Join Stream <ArrowRight className="ml-2 h-4 w-4" /></Link>
                                             </Button>
                                         </div>
                                     </Card>
                                 </div>
+                                )}
                                 <div className="lg:col-span-1 grid grid-rows-2 gap-6">
-                                     <Card className="overflow-hidden relative flex items-end text-white">
-                                        <Image src="https://images.unsplash.com/photo-1506152983158-b4a74a01c721?w=800&h=400&fit=crop" alt="New Season" fill className="object-cover"/>
-                                        <div className="absolute inset-0 bg-black/40"></div>
-                                        <div className="relative p-6">
-                                            <h3 className="text-2xl font-bold">New Season, New Style</h3>
-                                            <p>Explore the latest collections.</p>
-                                            <Button variant="secondary" asChild className="mt-2"><Link href="#">Explore Now</Link></Button>
-                                        </div>
+                                    {mostPopularStreams.length > 1 && (
+                                    <Card className="overflow-hidden relative flex items-end text-white group">
+                                         <Link href={`/stream/${mostPopularStreams[1].id}`} className='w-full h-full'>
+                                            <Image src="https://images.unsplash.com/photo-1506152983158-b4a74a01c721?w=800&h=400&fit=crop" alt="Second most popular stream" fill className="object-cover group-hover:scale-105 transition-transform"/>
+                                            <div className="absolute inset-0 bg-black/40"></div>
+                                            <div className="relative p-6">
+                                                <Badge variant="outline" className="bg-black/50 border-white/30 mb-2">#2 Most Popular</Badge>
+                                                <h3 className="text-2xl font-bold">{mostPopularStreams[1].name}</h3>
+                                                <p>{mostPopularStreams[1].viewers.toLocaleString()} watching</p>
+                                            </div>
+                                        </Link>
                                     </Card>
-                                    <Card className="overflow-hidden relative flex items-end text-white">
-                                        <Image src="https://images.unsplash.com/photo-1511556820780-d912e42b4980?w=800&h=400&fit=crop" alt="Top Deals" fill className="object-cover"/>
-                                         <div className="absolute inset-0 bg-black/40"></div>
-                                        <div className="relative p-6">
-                                            <h3 className="text-2xl font-bold">Top Deals</h3>
-                                            <p>Unbeatable prices on your favorite brands.</p>
-                                            <Button variant="secondary" asChild className="mt-2"><Link href="#">View Deals</Link></Button>
-                                        </div>
+                                    )}
+                                    {mostPopularStreams.length > 2 && (
+                                    <Card className="overflow-hidden relative flex items-end text-white group">
+                                         <Link href={`/stream/${mostPopularStreams[2].id}`} className='w-full h-full'>
+                                            <Image src="https://images.unsplash.com/photo-1511556820780-d912e42b4980?w=800&h=400&fit=crop" alt="Third most popular stream" fill className="object-cover group-hover:scale-105 transition-transform"/>
+                                            <div className="absolute inset-0 bg-black/40"></div>
+                                            <div className="relative p-6">
+                                                <Badge variant="outline" className="bg-black/50 border-white/30 mb-2">#3 Most Popular</Badge>
+                                                <h3 className="text-2xl font-bold">{mostPopularStreams[2].name}</h3>
+                                                <p>{mostPopularStreams[2].viewers.toLocaleString()} watching</p>
+                                            </div>
+                                        </Link>
                                     </Card>
+                                    )}
                                 </div>
                             </div>
                         </section>
@@ -1016,5 +1034,3 @@ export default function LiveSellingPage() {
     </>
   );
 }
-
-    
