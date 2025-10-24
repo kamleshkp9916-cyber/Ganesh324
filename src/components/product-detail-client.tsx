@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
@@ -575,7 +574,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                 }];
                 saveCart(buyNowCart);
                 localStorage.setItem('buyNow', 'true');
-                router.push('/payment');
+                router.push('/cart');
             }
         });
     };
@@ -836,6 +835,27 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                                                 <Video className="h-3 w-3 mr-1"/> From Stream
                                                             </Badge>
                                                         )}
+                                                        <div className="absolute top-2 right-2 z-20 flex flex-col gap-2">
+                                                            <Button variant="secondary" size="icon" className="h-8 w-8 rounded-full" onClick={(e) => { e.stopPropagation(); handleWishlistToggle(); }}>
+                                                                <Heart className={cn("h-4 w-4", wishlisted ? "fill-red-500 text-red-500" : "text-muted-foreground")} />
+                                                            </Button>
+                                                            <Button variant="secondary" size="icon" className="h-8 w-8 rounded-full" onClick={(e) => { e.stopPropagation(); handleShare(); }}>
+                                                                <Share2 className="h-4 w-4" />
+                                                            </Button>
+                                                            <Dialog open={isReportOpen} onOpenChange={setIsReportOpen}>
+                                                                <DialogTrigger asChild>
+                                                                    <Button variant="secondary" size="icon" className="h-8 w-8 rounded-full" onClick={(e) => { e.stopPropagation(); handleAuthAction(() => setIsReportOpen(true)); }}>
+                                                                        <Flag className="h-4 w-4" />
+                                                                    </Button>
+                                                                </DialogTrigger>
+                                                                <ReportDialog onSubmit={handleReportProduct} />
+                                                            </Dialog>
+                                                             <FeedbackDialog>
+                                                                <Button variant="secondary" size="icon" className="h-8 w-8 rounded-full">
+                                                                    <MessageSquare className="h-4 w-4" />
+                                                                </Button>
+                                                            </FeedbackDialog>
+                                                        </div>
                                                     </div>
                                                 </DialogTrigger>
                                                 
@@ -887,27 +907,6 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                             </div>
                                         </DialogContent>
                                     </Dialog>
-                                    <div className="absolute top-2 right-2 z-20 flex flex-col gap-2">
-                                        <Button variant="secondary" size="icon" className="h-8 w-8 rounded-full" onClick={(e) => { e.stopPropagation(); handleWishlistToggle(); }}>
-                                            <Heart className={cn("h-4 w-4", wishlisted ? "fill-red-500 text-red-500" : "text-muted-foreground")} />
-                                        </Button>
-                                        <Button variant="secondary" size="icon" className="h-8 w-8 rounded-full" onClick={(e) => { e.stopPropagation(); handleShare(); }}>
-                                            <Share2 className="h-4 w-4" />
-                                        </Button>
-                                         <Dialog open={isReportOpen} onOpenChange={setIsReportOpen}>
-                                            <DialogTrigger asChild>
-                                                <Button variant="secondary" size="icon" className="h-8 w-8 rounded-full" onClick={(e) => { e.stopPropagation(); handleAuthAction(() => setIsReportOpen(true)); }}>
-                                                    <Flag className="h-4 w-4" />
-                                                </Button>
-                                            </DialogTrigger>
-                                            <ReportDialog onSubmit={handleReportProduct} />
-                                        </Dialog>
-                                        <FeedbackDialog>
-                                            <Button variant="secondary" size="icon" className="h-8 w-8 rounded-full lg:hidden">
-                                                <MessageSquare className="h-4 w-4" />
-                                            </Button>
-                                        </FeedbackDialog>
-                                    </div>
                                     <Button size="lg" className="w-full rounded-full bg-black/50 text-white backdrop-blur-sm flex items-center gap-1.5 mt-4" onClick={handleSimilarClick} disabled={isScanning}>
                                         {isScanning ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
                                         <span>Find Similar Products</span>
@@ -1077,20 +1076,27 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                         )}
                                         </Card>
                                         <Card className='p-4 space-y-4'>
-                                        <div className="flex items-start gap-3">
-                                            <RotateCcw className="h-5 w-5 text-muted-foreground mt-0.5 flex-shrink-0" />
-                                            <div>
-                                                <p className="font-semibold">7-Day Return Policy</p>
-                                                <p className="text-xs text-muted-foreground">Return this item within 7 days of delivery for a refund.</p>
+                                            <div className="flex items-start gap-3">
+                                                <RotateCcw className="h-5 w-5 text-muted-foreground mt-0.5 flex-shrink-0" />
+                                                <div>
+                                                    <p className="font-semibold">7-Day Return Policy</p>
+                                                    <p className="text-xs text-muted-foreground">Return this item within 7 days of delivery for a refund.</p>
+                                                </div>
                                             </div>
-                                        </div>
-                                        <div className="flex items-start gap-3">
-                                            <ShieldCheck className="h-5 w-5 text-muted-foreground mt-0.5 flex-shrink-0" />
-                                            <div>
-                                                <p className="font-semibold">100% Genuine</p>
-                                                <p className="text-xs text-muted-foreground">All products are sourced directly from brands and verified sellers.</p>
+                                            <div className="flex items-start gap-3">
+                                                <Banknote className="h-5 w-5 text-muted-foreground mt-0.5 flex-shrink-0" />
+                                                <div>
+                                                    <p className="font-semibold">Online Payment Only</p>
+                                                    <p className="text-xs text-muted-foreground">Currently, we are only accepting online payments. COD is not available.</p>
+                                                </div>
                                             </div>
-                                        </div>
+                                            <div className="flex items-start gap-3">
+                                                <ShieldCheck className="h-5 w-5 text-muted-foreground mt-0.5 flex-shrink-0" />
+                                                <div>
+                                                    <p className="font-semibold">100% Genuine</p>
+                                                    <p className="text-xs text-muted-foreground">All products are sourced directly from brands and verified sellers.</p>
+                                                </div>
+                                            </div>
                                         </Card>
                                     </div>
                                 </div>
