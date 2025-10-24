@@ -243,7 +243,7 @@ const CategoryGrid = () => {
         };
 
         return sortedCategories.map((category, index) => {
-            const data = categoryDataMap[category] || { product: category.toUpperCase(), image: `https://picsum.photos/seed/${category.toLowerCase()}/800/800`, hint: category.toLowerCase() };
+            const data = categoryDataMap[category] || { product: category.toUpperCase(), image: `https://picsum.photos/seed/${'${category.toLowerCase()}'}/800/800`, hint: category.toLowerCase() };
             return {
                 category,
                 ...data,
@@ -358,7 +358,7 @@ export default function LiveSellingPage() {
   };
 
   const renderProductCard = (product: any) => (
-    <Link href={`/product/${product.key}`} key={product.key} className="group block">
+    <Link href={`/product/${'${product.key}'}`} key={product.key} className="group block">
         <Card className="w-full overflow-hidden h-full flex flex-col">
             <div className="relative aspect-square bg-muted">
                 <Image
@@ -537,7 +537,7 @@ export default function LiveSellingPage() {
 
     const db = getFirestoreDb();
     const postRef = doc(db, 'posts', postId);
-    const likeRef = doc(db, `posts/${postId}/likes`, user!.uid);
+    const likeRef = doc(db, `posts/${'${postId}'}/likes`, user!.uid);
 
     try {
         await runTransaction(db, async (transaction) => {
@@ -562,7 +562,7 @@ export default function LiveSellingPage() {
     }
 };
 
-  const getCategoryUrl = (categoryName: string) => `/${categoryName.toLowerCase().replace(/\s+/g, '-')}`;
+  const getCategoryUrl = (categoryName: string) => `/${'${categoryName.toLowerCase().replace(/\s+/g, '-')}'}`;
 
   const popularProducts = useMemo(() => {
     return Object.values(productDetails)
@@ -811,18 +811,18 @@ export default function LiveSellingPage() {
                                         {topLiveStreams.map((seller: any) => (
                                             <CarouselItem key={seller.id} className="basis-3/4 sm:basis-1/2 md:basis-1/3 lg:basis-1/4 pl-2 md:pl-4">
                                                 <div className="group block">
-                                                    <Link href={`/stream/${seller.id}`}>
+                                                    <Link href={`/stream/${'${seller.id}'}`}>
                                                         <div className="relative rounded-lg overflow-hidden aspect-video bg-muted w-full flex-shrink-0">
                                                             <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
                                                             <div className="absolute top-2 right-2 z-10"><Badge variant="secondary" className="bg-background/60 backdrop-blur-sm gap-1.5">
                                                                 <Users className="h-3 w-3"/>
                                                                 {seller.viewers.toLocaleString()}
                                                             </Badge></div>
-                                                            <Image src={seller.thumbnailUrl} alt={`Live stream from ${seller.name}`} fill sizes="(max-width: 640px) 75vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw" className="object-cover w-full h-full transition-transform group-hover:scale-105" />
+                                                            <Image src={seller.thumbnailUrl} alt={`Live stream from ${'${seller.name}'}`} fill sizes="(max-width: 640px) 75vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw" className="object-cover w-full h-full transition-transform group-hover:scale-105" />
                                                         </div>
                                                     </Link>
                                                     <div className="flex items-start gap-3 mt-2">
-                                                        <Link href={`/seller/profile?userId=${seller.id}`}>
+                                                        <Link href={`/seller/profile?userId=${'${seller.id}'}`}>
                                                             <Avatar className="w-10 h-10">
                                                                 <AvatarImage src={seller.avatarUrl} alt={seller.name} />
                                                                 <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
@@ -830,7 +830,7 @@ export default function LiveSellingPage() {
                                                         </Link>
                                                          <div className="flex-1 overflow-hidden">
                                                             <div className="flex items-center justify-between gap-2">
-                                                                <Link href={`/stream/${seller.id}`} className="font-semibold text-sm leading-tight group-hover:underline truncate">{seller.title || seller.name}</Link>
+                                                                <Link href={`/stream/${'${seller.id}'}`} className="font-semibold text-sm leading-tight group-hover:underline truncate">{seller.title || seller.name}</Link>
                                                                 <Sheet onOpenChange={(isOpen) => setOpenProductSheet(isOpen ? seller.id : null)}>
                                                                     <SheetTrigger asChild>
                                                                         <Button variant="ghost" size="icon" className="h-7 w-7 flex-shrink-0 -mr-2 text-muted-foreground hover:text-primary">
@@ -846,7 +846,7 @@ export default function LiveSellingPage() {
                                                                                 {sellerProducts(seller.id).length > 0 ? (
                                                                                     sellerProducts(seller.id).map((product: any) => (
                                                                                          <Card key={product.id} className="w-full overflow-hidden h-full flex flex-col">
-                                                                                            <Link href={`/product/${product.key}`} className="group block">
+                                                                                            <Link href={`/product/${'${product.key}'}`} className="group block">
                                                                                                 <div className="relative aspect-square bg-muted">
                                                                                                     <Image
                                                                                                         src={product.images[0]?.preview || product.images[0]}
@@ -858,7 +858,7 @@ export default function LiveSellingPage() {
                                                                                                 </div>
                                                                                             </Link>
                                                                                             <div className="p-2 flex-grow flex flex-col">
-                                                                                                <Link href={`/product/${product.key}`} className="group block">
+                                                                                                <Link href={`/product/${'${product.key}'}`} className="group block">
                                                                                                     <h4 className="font-semibold truncate text-xs group-hover:underline">{product.name}</h4>
                                                                                                     <p className="font-bold text-sm">{product.price}</p>
                                                                                                 </Link>
@@ -930,18 +930,18 @@ export default function LiveSellingPage() {
                                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                                         {topLiveStreams.map((seller: any) => (
                                             <div key={seller.id} className="group block">
-                                                <Link href={`/stream/${seller.id}`}>
+                                                <Link href={`/stream/${'${seller.id}'}`}>
                                                     <div className="relative rounded-lg overflow-hidden aspect-video bg-muted w-full flex-shrink-0">
                                                         <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
                                                         <div className="absolute top-2 right-2 z-10"><Badge variant="secondary" className="bg-background/60 backdrop-blur-sm gap-1.5">
                                                             <Users className="h-3 w-3"/>
                                                             {seller.viewers.toLocaleString()}
                                                         </Badge></div>
-                                                        <Image src={seller.thumbnailUrl} alt={`Live stream from ${seller.name}`} fill sizes="(max-width: 640px) 75vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw" className="object-cover w-full h-full transition-transform group-hover:scale-105" />
+                                                        <Image src={seller.thumbnailUrl} alt={`Live stream from ${'${seller.name}'}`} fill sizes="(max-width: 640px) 75vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw" className="object-cover w-full h-full transition-transform group-hover:scale-105" />
                                                     </div>
                                                 </Link>
                                                 <div className="flex items-start gap-3 mt-2">
-                                                    <Link href={`/seller/profile?userId=${seller.id}`}>
+                                                    <Link href={`/seller/profile?userId=${'${seller.id}'}`}>
                                                         <Avatar className="w-10 h-10">
                                                             <AvatarImage src={seller.avatarUrl} alt={seller.name} />
                                                             <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
@@ -949,7 +949,7 @@ export default function LiveSellingPage() {
                                                     </Link>
                                                     <div className="flex-1 overflow-hidden">
                                                         <div className="flex items-center justify-between gap-2">
-                                                            <Link href={`/stream/${seller.id}`} className="font-semibold text-sm leading-tight group-hover:underline truncate">{seller.title || seller.name}</Link>
+                                                            <Link href={`/stream/${'${seller.id}'}`} className="font-semibold text-sm leading-tight group-hover:underline truncate">{seller.title || seller.name}</Link>
                                                             <Sheet onOpenChange={(isOpen) => setOpenProductSheet(isOpen ? seller.id : null)}>
                                                                 <SheetTrigger asChild>
                                                                     <Button variant="ghost" size="icon" className="h-7 w-7 flex-shrink-0 -mr-2 text-muted-foreground hover:text-primary">
@@ -965,7 +965,7 @@ export default function LiveSellingPage() {
                                                                             {sellerProducts(seller.id).length > 0 ? (
                                                                                 sellerProducts(seller.id).map((product: any) => (
                                                                                     <Card key={product.id} className="w-full overflow-hidden h-full flex flex-col">
-                                                                                        <Link href={`/product/${product.key}`} className="group block">
+                                                                                        <Link href={`/product/${'${product.key}'}`} className="group block">
                                                                                             <div className="relative aspect-square bg-muted">
                                                                                                 <Image
                                                                                                     src={product.images[0]?.preview || product.images[0]}
@@ -977,7 +977,7 @@ export default function LiveSellingPage() {
                                                                                             </div>
                                                                                         </Link>
                                                                                         <div className="p-2 flex-grow flex flex-col">
-                                                                                            <Link href={`/product/${product.key}`} className="group block">
+                                                                                            <Link href={`/product/${'${product.key}'}`} className="group block">
                                                                                                 <h4 className="font-semibold truncate text-xs group-hover:underline">{product.name}</h4>
                                                                                                 <p className="font-bold text-sm">{product.price}</p>
                                                                                             </Link>
@@ -1018,6 +1018,10 @@ export default function LiveSellingPage() {
                                                         selectedBrowseCategory === category.name && !selectedSubCategory && "text-primary"
                                                     )}
                                                     onClick={() => {
+                                                        if (selectedBrowseCategory === category.name) {
+                                                            // If it's already selected, do nothing to prevent closing
+                                                            return;
+                                                        }
                                                         setSelectedBrowseCategory(category.name);
                                                         setSelectedSubCategory(null);
                                                     }}
@@ -1051,32 +1055,30 @@ export default function LiveSellingPage() {
                                                 const mainCategoryMatch = s.category === selectedBrowseCategory;
                                                 if (!selectedSubCategory) return mainCategoryMatch;
                                                 
-                                                // This is a mock filter as we don't have subcategory data on streams
-                                                // In a real app, the stream object would have a subcategory field
                                                 const productForStream = Object.values(productDetails).find(p => p.key === s.productId);
                                                 return mainCategoryMatch && productForStream?.subcategory === selectedSubCategory;
 
                                             }).map((seller: any) => (
                                                 <div key={seller.id} className="group block">
-                                                <Link href={`/stream/${seller.id}`}>
+                                                <Link href={`/stream/${'${seller.id}'}`}>
                                                     <div className="relative rounded-lg overflow-hidden aspect-video bg-muted w-full flex-shrink-0">
                                                         <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
                                                         <div className="absolute top-2 right-2 z-10"><Badge variant="secondary" className="bg-background/60 backdrop-blur-sm gap-1.5">
                                                             <Users className="h-3 w-3"/>
                                                             {seller.viewers.toLocaleString()}
                                                         </Badge></div>
-                                                        <Image src={seller.thumbnailUrl} alt={`Live stream from ${seller.name}`} fill sizes="(max-width: 640px) 75vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw" className="object-cover w-full h-full transition-transform group-hover:scale-105" />
+                                                        <Image src={seller.thumbnailUrl} alt={`Live stream from ${'${seller.name}'}`} fill sizes="(max-width: 640px) 75vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw" className="object-cover w-full h-full transition-transform group-hover:scale-105" />
                                                     </div>
                                                 </Link>
                                                 <div className="flex items-start gap-3 mt-2">
-                                                    <Link href={`/seller/profile?userId=${seller.id}`}>
+                                                    <Link href={`/seller/profile?userId=${'${seller.id}'}`}>
                                                         <Avatar className="w-10 h-10">
                                                             <AvatarImage src={seller.avatarUrl} alt={seller.name} />
                                                             <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
                                                         </Avatar>
                                                     </Link>
                                                     <div className="flex-1 overflow-hidden">
-                                                        <Link href={`/stream/${seller.id}`} className="font-semibold text-sm leading-tight group-hover:underline truncate">{seller.title || seller.name}</Link>
+                                                        <Link href={`/stream/${'${seller.id}'}`} className="font-semibold text-sm leading-tight group-hover:underline truncate">{seller.title || seller.name}</Link>
                                                         <p className="text-xs text-muted-foreground truncate">{seller.description || "Check out the stream for more details!"}</p>
                                                         <p className="text-xs text-primary font-semibold mt-0.5">#{seller.category.toLowerCase().replace(/\s+/g, '')}</p>
                                                     </div>
@@ -1105,4 +1107,3 @@ export default function LiveSellingPage() {
     </>
   );
 }
-
