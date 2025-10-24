@@ -213,7 +213,7 @@ const CategoryGrid = () => {
         }, {});
 
         const sortedCategories = Object.entries(categoryCounts)
-            .sort(([, countA], [, countB]) => countB - a)
+            .sort(([, countA], [, countB]) => countB - countA)
             .slice(0, 7)
             .map(([category]) => category);
         
@@ -885,7 +885,7 @@ export default function LiveSellingPage() {
                                     <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2 hidden lg:flex" />
                                 </Carousel>
                             </section>
-                             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+                            <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                                 <div className="bg-card rounded-lg p-4 sm:p-6 lg:p-8 border">
                                     <h2 className="text-3xl font-bold text-center mb-6">Shop by Category</h2>
                                     <CategoryGrid />
@@ -909,7 +909,7 @@ export default function LiveSellingPage() {
                         </div>
                     </TabsContent>
                     <TabsContent value="live" className="mt-0">
-                         <div className="container mx-auto px-4 sm:px-6 lg:px-8 pt-8">
+                         <div className="container mx-auto px-4 sm:px-6 lg:px-8 pt-8 space-y-8">
                              <PromotionalCarousel />
                              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                                 {topLiveStreams.map((seller: any) => (
