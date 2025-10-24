@@ -121,6 +121,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { useLocalStorage } from '@/hooks/use-local-storage';
 import { CATEGORY_BANNERS_KEY, CategoryBanners } from '@/app/admin/settings/page';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
 
 const liveSellers = [
@@ -242,7 +243,7 @@ const CategoryGrid = () => {
         };
 
         return sortedCategories.map((category, index) => {
-            const data = categoryDataMap[category] || { product: category.toUpperCase(), image: `https://picsum.photos/seed/${category.toLowerCase()}/800/800`, hint: category.toLowerCase() };
+            const data = categoryDataMap[category] || { product: category.toUpperCase(), image: `https://picsum.photos/seed/${'${category.toLowerCase()}'}/800/800`, hint: category.toLowerCase() };
             return {
                 category,
                 ...data,
@@ -331,7 +332,7 @@ export default function LiveSellingPage() {
   const [cartCount, setCartCount] = useState(0);
   const [activeProductFilter, setActiveProductFilter] = useState('All');
   const isMobile = useIsMobile();
-  const [openProductSheet, setOpenProductSheet] = useState<string | null>(null);
+  
   const [selectedBrowseCategory, setSelectedBrowseCategory] = useState<string | null>(null);
   const [selectedSubCategory, setSelectedSubCategory] = useState<string | null>(null);
 
@@ -536,7 +537,7 @@ export default function LiveSellingPage() {
 
     const db = getFirestoreDb();
     const postRef = doc(db, 'posts', postId);
-    const likeRef = doc(db, `posts/${postId}/likes`, user!.uid);
+    const likeRef = doc(db, `posts/${'${postId}'}/likes`, user!.uid);
 
     try {
         await runTransaction(db, async (transaction) => {
@@ -561,7 +562,7 @@ export default function LiveSellingPage() {
     }
 };
 
-  const getCategoryUrl = (categoryName: string) => `/${categoryName.toLowerCase().replace(/\s+/g, '-')}`;
+  const getCategoryUrl = (categoryName: string) => `/${'${categoryName.toLowerCase().replace(/\s+/g, \'\-\')}'}`;
 
   const popularProducts = useMemo(() => {
     return Object.values(productDetails)
@@ -798,49 +799,52 @@ export default function LiveSellingPage() {
                             <TabsContent value="recommended" className="mt-4">
                                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                                     {topLiveStreams.map((seller: any) => (
-                                        <div key={seller.id} className="group block">
-                                            <Link href={`/stream/${seller.id}`}>
-                                                <div className="relative rounded-lg overflow-hidden aspect-video bg-muted w-full flex-shrink-0">
-                                                    <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
-                                                    <div className="absolute top-2 right-2 z-10"><Badge variant="secondary" className="bg-background/60 backdrop-blur-sm gap-1.5">
-                                                        <Users className="h-3 w-3"/>
-                                                        {seller.viewers.toLocaleString()}
-                                                    </Badge></div>
-                                                    <Image src={seller.thumbnailUrl} alt={`Live stream from ${seller.name}`} fill sizes="(max-width: 640px) 75vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw" className="object-cover w-full h-full transition-transform group-hover:scale-105" />
-                                                </div>
-                                            </Link>
-                                            <div className="flex items-start gap-3 mt-2">
-                                                <Link href={`/seller/profile?userId=${seller.id}`}>
-                                                    <Avatar className="w-10 h-10">
-                                                        <AvatarImage src={seller.avatarUrl} alt={seller.name} />
-                                                        <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
-                                                    </Avatar>
+                                       <Collapsible key={seller.id} asChild>
+                                            <div className="group block">
+                                                <Link href={`/stream/${'${seller.id}'}`}>
+                                                    <div className="relative rounded-lg overflow-hidden aspect-video bg-muted w-full flex-shrink-0">
+                                                        <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
+                                                        <div className="absolute top-2 right-2 z-10"><Badge variant="secondary" className="bg-background/60 backdrop-blur-sm gap-1.5">
+                                                            <Users className="h-3 w-3"/>
+                                                            {seller.viewers.toLocaleString()}
+                                                        </Badge></div>
+                                                        <Image src={seller.thumbnailUrl} alt={`Live stream from ${seller.name}`} fill sizes="(max-width: 640px) 75vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw" className="object-cover w-full h-full transition-transform group-hover:scale-105" />
+                                                    </div>
                                                 </Link>
-                                                    <div className="flex-grow min-w-0">
-                                                    <Link href={`/stream/${seller.id}`} className="font-semibold text-sm leading-tight group-hover:underline truncate block">
-                                                        {seller.title || seller.name}
+                                                <div className="flex items-start gap-3 mt-2">
+                                                    <Link href={`/seller/profile?userId=${'${seller.id}'}`}>
+                                                        <Avatar className="w-10 h-10">
+                                                            <AvatarImage src={seller.avatarUrl} alt={seller.name} />
+                                                            <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
+                                                        </Avatar>
                                                     </Link>
-                                                    <p className="text-xs text-muted-foreground truncate">{seller.name}</p>
-                                                    <p className="text-xs text-primary font-semibold mt-0.5">#{seller.category.toLowerCase().replace(/\s+/g, '')}</p>
-                                                </div>
-                                                <Sheet onOpenChange={(isOpen) => setOpenProductSheet(isOpen ? seller.id : null)}>
-                                                    <SheetTrigger asChild>
+                                                        <div className="flex-grow min-w-0">
+                                                        <Link href={`/stream/${'${seller.id}'}`} className="font-semibold text-sm leading-tight group-hover:underline truncate block">
+                                                            {seller.title || seller.name}
+                                                        </Link>
+                                                        <p className="text-xs text-muted-foreground truncate">{seller.name}</p>
+                                                        <p className="text-xs text-primary font-semibold mt-0.5">#{'${seller.category.toLowerCase().replace(/\s+/g, \'\')}'}</p>
+                                                    </div>
+                                                     <CollapsibleTrigger asChild>
                                                         <Button variant="ghost" size="icon" className="h-7 w-7 flex-shrink-0 -mr-2 text-muted-foreground hover:text-primary">
                                                             <ShoppingBag className="h-4 w-4" />
                                                         </Button>
-                                                    </SheetTrigger>
-                                                    <SheetContent side={isMobile ? "bottom" : "right"} className={cn(isMobile ? "h-[80vh] flex flex-col p-0" : "w-96 p-0")}>
-                                                        {openProductSheet === seller.id && (
-                                                            <SheetHeader className="p-4 border-b">
-                                                                <SheetTitle>Products in this Stream</SheetTitle>
-                                                            </SheetHeader>
-                                                        )}
-                                                        <ScrollArea className="flex-grow">
-                                                            <div className="p-4 grid grid-cols-2 gap-4">
-                                                                {sellerProducts(seller.id).length > 0 ? (
-                                                                    sellerProducts(seller.id).map((product: any) => (
-                                                                        <Card key={product.id} className="w-full overflow-hidden h-full flex flex-col">
-                                                                            <Link href={`/product/${product.key}`} className="group block">
+                                                     </CollapsibleTrigger>
+                                                </div>
+                                                <CollapsibleContent>
+                                                    <div className="mt-2">
+                                                        <Carousel
+                                                            opts={{
+                                                                align: "start",
+                                                                loop: false,
+                                                            }}
+                                                            className="w-full"
+                                                        >
+                                                            <CarouselContent className="-ml-2">
+                                                                {sellerProducts(seller.id).map((product, index) => (
+                                                                    <CarouselItem key={index} className="basis-1/2 sm:basis-1/3 md:basis-1/2 pl-2">
+                                                                        <Card className="w-full overflow-hidden h-full flex flex-col">
+                                                                            <Link href={`/product/${'${product.key}'}`} className="group block">
                                                                                 <div className="relative aspect-square bg-muted">
                                                                                     <Image
                                                                                         src={product.images[0]?.preview || product.images[0]}
@@ -852,27 +856,23 @@ export default function LiveSellingPage() {
                                                                                 </div>
                                                                             </Link>
                                                                             <div className="p-2 flex-grow flex flex-col">
-                                                                                <Link href={`/product/${product.key}`} className="group block">
+                                                                                <Link href={`/product/${'${product.key}'}`} className="group block">
                                                                                     <h4 className="font-semibold truncate text-xs group-hover:underline">{product.name}</h4>
                                                                                     <p className="font-bold text-sm">{product.price}</p>
                                                                                 </Link>
                                                                             </div>
                                                                             <CardFooter className="p-2">
-                                                                                <Button size="sm" className="w-full text-xs h-8" onClick={() => handleAddToCart(product)}>
-                                                                                    <ShoppingCart className="mr-1 h-3 w-3" /> Cart
-                                                                                </Button>
+                                                                                 <Button size="sm" className="w-full text-xs h-8" onClick={(e) => { e.stopPropagation(); handleAddToCart(product); }}><ShoppingCart className="mr-1 h-3 w-3" /> Cart</Button>
                                                                             </CardFooter>
                                                                         </Card>
-                                                                    ))
-                                                                ) : (
-                                                                    <p className="col-span-full text-center text-muted-foreground py-10">No products to show.</p>
-                                                                )}
-                                                            </div>
-                                                        </ScrollArea>
-                                                    </SheetContent>
-                                                </Sheet>
+                                                                    </CarouselItem>
+                                                                ))}
+                                                            </CarouselContent>
+                                                        </Carousel>
+                                                    </div>
+                                                </CollapsibleContent>
                                             </div>
-                                        </div>
+                                        </Collapsible>
                                     ))}
                                 </div>
                             </TabsContent>
@@ -881,12 +881,8 @@ export default function LiveSellingPage() {
                                     <aside className="sticky top-32">
                                         <h3 className="font-semibold mb-2">Categories</h3>
                                         <Accordion type="single" className="w-full" value={selectedBrowseCategory || ""} onValueChange={(value) => {
-                                            if (selectedBrowseCategory === value) {
-                                                // This is now handled by onClick on the trigger
-                                            } else {
-                                                setSelectedBrowseCategory(value);
-                                                setSelectedSubCategory(null);
-                                            }
+                                            setSelectedBrowseCategory(value);
+                                            setSelectedSubCategory(null);
                                         }}>
                                             {categories.map((category) => (
                                             <AccordionItem value={category.name} key={category.name}>
@@ -896,9 +892,6 @@ export default function LiveSellingPage() {
                                                         selectedBrowseCategory === category.name && !selectedSubCategory && "text-primary"
                                                     )}
                                                     onClick={(e) => {
-                                                        if (selectedBrowseCategory === category.name && !selectedSubCategory) {
-                                                            // e.preventDefault(); 
-                                                        }
                                                         setSelectedBrowseCategory(category.name);
                                                         setSelectedSubCategory(null);
                                                     }}
@@ -938,7 +931,7 @@ export default function LiveSellingPage() {
 
                                         }).map((seller: any) => (
                                             <div key={seller.id} className="group block">
-                                            <Link href={`/stream/${seller.id}`}>
+                                            <Link href={`/stream/${'${seller.id}'}`}>
                                                 <div className="relative rounded-lg overflow-hidden aspect-video bg-muted w-full flex-shrink-0">
                                                     <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
                                                     <div className="absolute top-2 right-2 z-10"><Badge variant="secondary" className="bg-background/60 backdrop-blur-sm gap-1.5">
@@ -949,16 +942,16 @@ export default function LiveSellingPage() {
                                                 </div>
                                             </Link>
                                             <div className="flex items-start gap-3 mt-2">
-                                                <Link href={`/seller/profile?userId=${seller.id}`}>
+                                                <Link href={`/seller/profile?userId=${'${seller.id}'}`}>
                                                     <Avatar className="w-10 h-10">
                                                         <AvatarImage src={seller.avatarUrl} alt={seller.name} />
                                                         <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
                                                     </Avatar>
                                                 </Link>
                                                 <div className="flex-1 overflow-hidden">
-                                                    <Link href={`/stream/${seller.id}`} className="font-semibold text-sm leading-tight group-hover:underline truncate block">{seller.title || seller.name}</Link>
+                                                    <Link href={`/stream/${'${seller.id}'}`} className="font-semibold text-sm leading-tight group-hover:underline truncate block">{seller.title || seller.name}</Link>
                                                     <p className="text-xs text-muted-foreground truncate">{seller.name}</p>
-                                                    <p className="text-xs text-primary font-semibold mt-0.5">#{seller.category.toLowerCase().replace(/\s+/g, '')}</p>
+                                                    <p className="text-xs text-primary font-semibold mt-0.5">#{'${seller.category.toLowerCase().replace(/\s+/g, \'\')}'}</p>
                                                 </div>
                                             </div>
                                         </div>
