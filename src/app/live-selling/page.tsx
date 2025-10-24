@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import Link from 'next/link';
@@ -239,7 +240,7 @@ const CategoryGrid = () => {
         };
 
         return sortedCategories.map((category, index) => {
-            const data = categoryDataMap[category] || { product: category.toUpperCase(), image: `https://picsum.photos/seed/${'${category.toLowerCase()}'}/800/800`, hint: category.toLowerCase() };
+            const data = categoryDataMap[category] || { product: category.toUpperCase(), image: `https://picsum.photos/seed/${category.toLowerCase()}/800/800`, hint: category.toLowerCase() };
             return {
                 category,
                 ...data,
@@ -328,7 +329,7 @@ export default function LiveSellingPage() {
   const [cartCount, setCartCount] = useState(0);
   const [activeProductFilter, setActiveProductFilter] = useState('All');
   const isMobile = useIsMobile();
-
+  const [openProductSheet, setOpenProductSheet] = useState<string | null>(null);
 
   const liveStreamFilterButtons = useMemo(() => {
     const categories = new Set(allSellers.map(s => s.category));
@@ -522,7 +523,7 @@ export default function LiveSellingPage() {
   };
 
   const handleShare = (postId: number) => {
-    const link = `${'${window.location.origin}'}/post/${postId}`;
+    const link = `${window.location.origin}/post/${postId}`;
     navigator.clipboard.writeText(link);
     toast({
         title: "Link Copied!",
@@ -883,66 +884,62 @@ export default function LiveSellingPage() {
                             <PromotionalCarousel />
                         </div>
                         
-                         <section className="container mx-auto px-4 sm:px-6 lg:px-8 mt-8">
-                            <section className="container mx-auto px-4 sm:px-6 lg:px-8">
-                                <h2 className="text-3xl font-bold text-center mb-6">Top Live Streams</h2>
-                                {isMobile ? (
-                                    <Carousel opts={{ align: 'start' }} className="w-full">
-                                        <CarouselContent className="-ml-2">
-                                            {topLiveStreams.map((seller: any) => (
-                                                <CarouselItem key={seller.id} className="basis-3/4 sm:basis-1/2 pl-2">
-                                                    <Link href={`/stream/${seller.id}`} className="group block">
+                         <section className="container mx-auto px-4 sm:px-6 lg:px-8">
+                            <h2 className="text-3xl font-bold text-center mb-6">Top Live Streams</h2>
+                                <Carousel opts={{ align: 'start' }} className="w-full">
+                                    <CarouselContent className="-ml-2 md:-ml-4">
+                                        {topLiveStreams.map((seller: any) => (
+                                            <CarouselItem key={seller.id} className="basis-3/4 sm:basis-1/2 md:basis-1/3 lg:basis-1/4 pl-2 md:pl-4">
+                                                <div className="group block">
+                                                    <Link href={`/stream/${seller.id}`}>
                                                         <div className="relative rounded-lg overflow-hidden aspect-video bg-muted w-full flex-shrink-0">
                                                             <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
                                                             <div className="absolute top-2 right-2 z-10"><Badge variant="secondary" className="bg-black/50 text-white"><Users className="w-3 h-3 mr-1.5" />{seller.viewers.toLocaleString()}</Badge></div>
-                                                            <Image src={seller.thumbnailUrl} alt={`Live stream from ${seller.name}`} fill sizes="75vw" className="object-cover w-full h-full transition-transform group-hover:scale-105" />
+                                                            <Image src={seller.thumbnailUrl} alt={`Live stream from ${seller.name}`} fill sizes="(max-width: 640px) 75vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw" className="object-cover w-full h-full transition-transform group-hover:scale-105" />
                                                         </div>
-                                                        <div className="flex items-start gap-2 mt-2">
+                                                    </Link>
+                                                    <div className="flex items-start gap-2 mt-2">
+                                                        <Link href={`/seller/profile?userId=${seller.id}`}>
                                                             <Avatar className="w-8 h-8">
                                                                 <AvatarImage src={seller.avatarUrl} alt={seller.name} />
                                                                 <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
                                                             </Avatar>
-                                                            <div className="flex-1 overflow-hidden">
-                                                                <p className="font-semibold text-sm leading-tight group-hover:underline truncate">{seller.title || seller.name}</p>
-                                                                <p className="text-xs text-muted-foreground">{seller.name}</p>
+                                                        </Link>
+                                                        <div className="flex-1 overflow-hidden">
+                                                            <div className="flex items-center gap-2">
+                                                                <Link href={`/stream/${seller.id}`} className="font-semibold text-sm leading-tight group-hover:underline truncate">{seller.title || seller.name}</Link>
+                                                                <Sheet>
+                                                                    <SheetTrigger asChild>
+                                                                        <Button variant="ghost" size="icon" className="h-6 w-6 flex-shrink-0">
+                                                                            <ShoppingBag className="h-4 w-4 text-muted-foreground" />
+                                                                        </Button>
+                                                                    </SheetTrigger>
+                                                                    <SheetContent>
+                                                                        <SheetHeader>
+                                                                            <SheetTitle>Products in this stream</SheetTitle>
+                                                                        </SheetHeader>
+                                                                        <div className="py-4">
+                                                                             <p>Products for {seller.name} will be shown here.</p>
+                                                                        </div>
+                                                                    </SheetContent>
+                                                                </Sheet>
                                                             </div>
+                                                            <p className="text-xs text-muted-foreground">{seller.name}</p>
+                                                            <p className="text-xs text-primary font-semibold mt-0.5">#{seller.category.toLowerCase().replace(/\s+/g, '')}</p>
                                                         </div>
-                                                    </Link>
-                                                </CarouselItem>
-                                            ))}
-                                        </CarouselContent>
-                                        <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2" />
-                                        <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2" />
-                                    </Carousel>
-                                ) : (
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                                        {topLiveStreams.slice(0, 6).map((seller: any) => (
-                                            <Link href={`/stream/${seller.id}`} key={seller.id} className="group block">
-                                                <div className="relative rounded-lg overflow-hidden aspect-video bg-muted w-full flex-shrink-0">
-                                                    <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
-                                                    <div className="absolute top-2 right-2 z-10"><Badge variant="secondary" className="bg-black/50 text-white"><Users className="w-3 h-3 mr-1.5" />{seller.viewers.toLocaleString()}</Badge></div>
-                                                    <Image src={seller.thumbnailUrl} alt={`Live stream from ${seller.name}`} fill sizes="33vw" className="object-cover w-full h-full transition-transform group-hover:scale-105" />
-                                                </div>
-                                                <div className="flex items-start gap-2 mt-2">
-                                                    <Avatar className="w-8 h-8">
-                                                        <AvatarImage src={seller.avatarUrl} alt={seller.name} />
-                                                        <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
-                                                    </Avatar>
-                                                    <div className="flex-1 overflow-hidden">
-                                                        <p className="font-semibold text-sm leading-tight group-hover:underline truncate">{seller.title || seller.name}</p>
-                                                        <p className="text-xs text-muted-foreground">{seller.name}</p>
                                                     </div>
                                                 </div>
-                                            </Link>
+                                            </CarouselItem>
                                         ))}
-                                    </div>
-                                )}
-                            </section>
-                             <div className="bg-muted/30 rounded-lg p-4 sm:p-6 lg:p-8 mt-8">
+                                    </CarouselContent>
+                                    <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2 hidden lg:flex" />
+                                    <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2 hidden lg:flex" />
+                                </Carousel>
+                        </section>
+                             <div className="bg-muted/30 rounded-lg p-4 sm:p-6 lg:p-8">
                                 <h2 className="text-3xl font-bold text-center mb-6">Shop by Category</h2>
                                 <CategoryGrid />
                               </div>
-                        </section>
                         
                          <div className="container mx-auto px-4 sm:px-6 lg:px-8 mt-8">
                            <Card>
@@ -1010,7 +1007,7 @@ export default function LiveSellingPage() {
                                                 <div className="flex-1">
                                                     <p className="font-semibold text-xs group-hover:underline truncate">{seller.title || seller.name}</p>
                                                     <p className="text-xs text-muted-foreground">{seller.category}</p>
-                                                    <p className="text-xs text-primary font-semibold mt-0.5">#{'${seller.category.toLowerCase()}'}</p>
+                                                    <p className="text-xs text-primary font-semibold mt-0.5">#{seller.category.toLowerCase()}</p>
                                                 </div>
                                             </div>
                                         </Link>
@@ -1033,3 +1030,4 @@ export default function LiveSellingPage() {
     </>
   );
 }
+

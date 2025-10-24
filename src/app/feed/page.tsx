@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import Link from 'next/link';
@@ -107,7 +106,7 @@ import { GoLiveDialog } from '@/components/go-live-dialog';
 import { collection, query, orderBy, onSnapshot, Timestamp, deleteDoc, doc, updateDoc, increment, addDoc, serverTimestamp, where, getDocs, runTransaction, limit, Unsubscribe } from "firebase/firestore";
 import { getFirestoreDb, getFirebaseStorage } from '@/lib/firebase';
 import { format, formatDistanceToNow, formatDistanceToNowStrict, isThisWeek, isThisYear } from 'date-fns';
-import { ref as storageRef, deleteObject, uploadString, getDownloadURL } from 'firebase/storage';
+import { ref as storageRef, deleteObject } from 'firebase/storage';
 import { isFollowing, toggleFollow, UserData, getUserByDisplayName, getFollowing, getOrCreateConversation } from '@/lib/follow-data';
 import { productDetails } from '@/lib/product-data';
 import { PromotionalCarousel } from '@/components/promotional-carousel';
@@ -264,9 +263,9 @@ const FeedPost = ({
             if (part.startsWith('#')) {
                 const tag = part.substring(1);
                 return (
-                    <button key={index} className="text-primary hover:underline" onClick={() => onHashtagClick(tag)}>
+                    <span key={index} className="text-primary hover:underline cursor-pointer" onClick={() => onHashtagClick(tag)}>
                        <Highlight text={part} highlight={highlightTerm} />
-                    </button>
+                    </span>
                 );
             }
             return <Highlight key={index} text={part} highlight={highlightTerm} />;
@@ -1329,7 +1328,6 @@ export default function FeedPage() {
     
 
     
-
 
 
 
