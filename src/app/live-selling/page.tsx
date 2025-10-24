@@ -533,15 +533,15 @@ export default function LiveSellingPage() {
                     data-ai-hint={product.hint}
                 />
             </div>
-            <div className="p-3 flex-grow flex flex-col">
-                <h4 className="font-semibold truncate text-sm flex-grow">{product.name}</h4>
-                <p className="font-bold text-foreground mt-1">{product.price}</p>
+            <div className="p-2 flex-grow flex flex-col">
+                <h4 className="font-semibold truncate text-xs flex-grow">{product.name}</h4>
+                <p className="font-bold text-sm mt-1">{product.price}</p>
                 <div className="flex items-center gap-1 text-xs text-amber-400 mt-1">
-                    <Star className="w-4 h-4 fill-current" />
+                    <Star className="w-3 h-3 fill-current" />
                     <span>4.8</span>
-                    <span className="text-muted-foreground">({product.reviews || '1.2k'})</span>
+                    <span className="text-muted-foreground text-[10px]">({product.reviews || '1.2k'})</span>
                 </div>
-                <div className="flex items-center gap-4 text-xs text-muted-foreground mt-1">
+                <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
                     <div className="flex items-center gap-1"><Package className="w-3 h-3" /> {product.stock} left</div>
                     <div className="flex items-center gap-1"><Users className="w-3 h-3" /> {product.sold} sold</div>
                 </div>
