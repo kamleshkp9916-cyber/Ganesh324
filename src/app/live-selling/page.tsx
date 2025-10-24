@@ -210,7 +210,7 @@ const CategoryGrid = () => {
 
         const sortedCategories = Object.entries(categoryCounts)
             .sort(([, countA], [, countB]) => countB - countA)
-            .slice(0, 6)
+            .slice(0, 7)
             .map(([category]) => category);
         
         const defaultLayout = [
@@ -219,6 +219,7 @@ const CategoryGrid = () => {
             { gridClass: '', bgColor: 'bg-yellow-100 dark:bg-yellow-900/50' },
             { gridClass: '', bgColor: 'bg-rose-100 dark:bg-rose-900/50' },
             { gridClass: '', bgColor: 'bg-green-100 dark:bg-green-900/50' },
+            { gridClass: '', bgColor: 'bg-indigo-100 dark:bg-indigo-900/50' },
             { gridClass: 'md:col-span-2', bgColor: 'bg-red-100 dark:bg-red-900/50' },
         ];
         
@@ -627,8 +628,8 @@ export default function LiveSellingPage() {
                     <span className="text-muted-foreground">({product.reviews || '1.2k'})</span>
                 </div>
                  <div className="flex items-center justify-between text-xs text-muted-foreground mt-1">
-                    <div className="flex items-center gap-1"><Package className="w-3 h-3" /> {product.stock}</div>
-                    <div className="flex items-center gap-1"><Users className="w-3 h-3" /> {product.sold}</div>
+                    <div className="flex items-center gap-1"><Package className="w-3 h-3" /> {product.stock} left</div>
+                    <div className="flex items-center gap-1"><Users className="w-3 h-3" /> {product.sold} sold</div>
                 </div>
             </div>
         </Card>
