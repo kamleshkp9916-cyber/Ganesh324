@@ -68,7 +68,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card"
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/hooks/use-auth';
 import { useAuthActions } from '@/lib/auth';
@@ -823,7 +823,7 @@ export default function LiveSellingPage() {
                         </section>
                         
                         <section className="container mx-auto px-4 sm:px-6 lg:px-8">
-                             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                                 {mostPopularStreams.length > 0 && (
                                 <div className="lg:col-span-1">
                                     <Card className="overflow-hidden bg-muted/30 border-border/50 h-full group">
@@ -1034,5 +1034,3 @@ export default function LiveSellingPage() {
     </>
   );
 }
-
-    
