@@ -1019,7 +1019,14 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                     </div>
                                     <Separator className="my-4" />
                                     <div className="space-y-4 text-sm">
-                                        <h4 className="font-semibold text-base">Delivery Information</h4>
+                                        <div className="flex justify-between items-center">
+                                            <h4 className="font-semibold text-base">Delivery Information</h4>
+                                            {user && userData?.addresses && userData.addresses.length > 0 && (
+                                                <Button variant="link" className="p-0 h-auto text-xs" onClick={() => handleAuthAction(() => setIsAddressDialogOpen(true))}>
+                                                    <Edit className="mr-1 h-3 w-3" /> Change
+                                                </Button>
+                                            )}
+                                        </div>
                                         {user && userData?.addresses && userData.addresses.length > 0 ? (
                                             <>
                                                 <div className="flex items-start gap-3 text-sm">
@@ -1027,7 +1034,6 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                                     <div>
                                                         <p>Deliver to <span className="font-bold text-foreground">{userData.addresses[0].name} - {userData.addresses[0].pincode}</span></p>
                                                         <p className="text-xs text-muted-foreground">{userData.addresses[0].village}, {userData.addresses[0].city}</p>
-                                                        <Button variant="link" className="p-0 h-auto text-xs" onClick={() => handleAuthAction(() => setIsAddressDialogOpen(true))}>Change Address</Button>
                                                     </div>
                                                 </div>
                                                  <p className="text-muted-foreground font-semibold !mt-2">Delivery by {estimatedDeliveryDate}</p>
@@ -1109,9 +1115,9 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                     </CardHeader>
                                     <CardContent className="space-y-4">
                                         {reviewImages.length > 0 && (
-                                            <div className="flex gap-2">
+                                             <div className="flex gap-2">
                                                 {reviewImages.slice(0, 3).map((img, index) => (
-                                                     <Dialog key={index}>
+                                                    <Dialog key={index}>
                                                         <DialogTrigger asChild>
                                                             <div className="relative w-20 h-20 rounded-md overflow-hidden cursor-pointer">
                                                                 <Image src={img} alt={`Review image ${index + 1}`} layout="fill" className="object-cover" />
@@ -1125,14 +1131,14 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                                     </Dialog>
                                                 ))}
                                                 {reviewImages.length > 3 && (
-                                                     <Dialog>
+                                                    <Dialog>
                                                         <DialogTrigger asChild>
                                                             <div className="relative w-20 h-20 rounded-md overflow-hidden bg-muted cursor-pointer flex items-center justify-center">
                                                                 <Image src={reviewImages[3]} alt="More review images" layout="fill" className="object-cover opacity-50" />
                                                                 <span className="absolute text-white font-bold text-lg">+{reviewImages.length - 3}</span>
                                                             </div>
                                                         </DialogTrigger>
-                                                         <DialogContent className="max-w-4xl p-0">
+                                                        <DialogContent className="max-w-4xl p-0">
                                                             <Carousel className="w-full">
                                                                 <CarouselContent>
                                                                     {reviewImages.map((img, index) => (
@@ -1153,7 +1159,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                         )}
                                         {reviews.length > 0 ? (
                                             <div className="space-y-4">
-                                                {reviews.slice(0, 3).map((review) => (
+                                                {reviews.slice(0,3).map((review) => (
                                                     <div key={review.id} className="flex gap-4 border-t pt-4 first:border-t-0 first:pt-0">
                                                         <Avatar className="mt-1">
                                                             <AvatarImage src={review.avatar} alt={review.author} />
