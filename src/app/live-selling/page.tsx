@@ -131,8 +131,6 @@ const liveSellers = [
     { id: 'petpalace-uid', name: 'PetPalace', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://picsum.photos/seed/pet-stream/300/450', category: 'Pet Supplies', viewers: 1800, buyers: 50, rating: 4.8, reviews: 30, hint: 'playing with puppy', productId: 'prod_8', hasAuction: false },
     { id: 'booknook-uid', name: 'BookNook', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://picsum.photos/seed/book-stream/300/450', category: 'Books', viewers: 620, buyers: 12, rating: 4.9, reviews: 10, hint: 'reading book cozy', productId: 'prod_9', hasAuction: false },
     { id: 'gamerguild-uid', name: 'GamerGuild', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://picsum.photos/seed/gaming-stream/300/450', category: 'Gaming', viewers: 4200, buyers: 102, rating: 4.9, reviews: 80, hint: 'esports competition', productId: 'prod_10' },
-    { id: 'plantparadise-uid', name: 'PlantParadise', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://picsum.photos/seed/plant-stream/300/450', category: 'Home Goods', viewers: 780, buyers: 20, rating: 4.8, reviews: 15, hint: 'indoor plants', productId: 'prod_26' },
-    { id: 'traveltribe-uid', name: 'TravelTribe', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://picsum.photos/seed/travel-stream/300/450', category: 'Accessories', viewers: 1100, buyers: 18, rating: 4.7, reviews: 11, hint: 'travel gear', productId: 'prod_5' },
 ];
 
 const reportReasons = [
