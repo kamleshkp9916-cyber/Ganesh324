@@ -19,7 +19,7 @@ import { Product, getReviews, Review, addReview, updateReview, deleteReview } fr
 import { productDetails } from '@/lib/product-data';
 import { ReviewDialog } from '@/components/delivery-info-client';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import { Badge } from '@/components/ui/badge';
 
@@ -207,9 +207,9 @@ export default function ProductReviewsPage() {
                                                     )}
                                                 </div>
                                                  {review.imageUrl && (
-                                                    <div className="w-full sm:w-28 h-28 relative flex-shrink-0 rounded-md overflow-hidden">
-                                                        <Image src={review.imageUrl} alt="Review attachment" layout="fill" className="object-cover" />
-                                                    </div>
+                                                    <Link href={`/product/${review.productId}?image=${review.imageUrl}`} className="w-full sm:w-28 h-28 relative flex-shrink-0 rounded-md overflow-hidden group">
+                                                        <Image src={review.imageUrl} alt="Review attachment" layout="fill" className="object-cover group-hover:scale-105 transition-transform" />
+                                                    </Link>
                                                 )}
                                             </CardContent>
                                         </Card>
