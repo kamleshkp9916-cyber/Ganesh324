@@ -19,7 +19,9 @@ import { Product, getReviews, Review, addReview, updateReview, deleteReview } fr
 import { productDetails } from '@/lib/product-data';
 import { ReviewDialog } from '@/components/delivery-info-client';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { Dialog } from '@/components/ui/dialog';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
+import { Badge } from '@/components/ui/badge';
 
 
 const mockReviews = [
@@ -82,6 +84,14 @@ export default function ProductReviewsPage() {
         fetchReviews();
     };
 
+    const averageRating = useMemo(() => {
+        if (reviews.length === 0) return '0.0';
+        const total = reviews.reduce((acc, review) => acc + review.rating, 0);
+        return (total / reviews.length).toFixed(1);
+    }, [reviews]);
+    
+    const reviewImages = useMemo(() => reviews.map(r => r.imageUrl).filter(Boolean) as string[], [reviews]);
+
     if (!product) {
         return (
              <div className="min-h-screen bg-background text-foreground flex flex-col items-center justify-center">
@@ -98,7 +108,12 @@ export default function ProductReviewsPage() {
                     <Button variant="ghost" size="icon" onClick={() => router.back()}>
                         <ArrowLeft className="h-6 w-6" />
                     </Button>
-                    <h1 className="text-xl font-bold truncate">Ratings & Reviews</h1>
+                     <CardTitle className="flex items-center gap-2">Ratings & Reviews 
+                        <Badge variant="outline" className="flex items-center gap-1">
+                            <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
+                            {averageRating}
+                        </Badge>
+                    </CardTitle>
                     <div className="w-10"></div>
                 </header>
                 <main className="flex-grow">
@@ -121,62 +136,83 @@ export default function ProductReviewsPage() {
                                 </Link>
 
                                 <div className="space-y-4">
+                                    {reviewImages.length > 0 && (
+                                        <Dialog>
+                                            <DialogTrigger asChild>
+                                                <Button variant="outline" className="w-full">View All {reviewImages.length} Customer Photos</Button>
+                                            </DialogTrigger>
+                                            <DialogContent className="max-w-4xl p-0">
+                                                <Carousel className="w-full">
+                                                    <CarouselContent>
+                                                        {reviewImages.map((img, index) => (
+                                                            <CarouselItem key={index}>
+                                                                <div className="aspect-video relative">
+                                                                    <Image src={img} alt={`Review image slide ${index + 1}`} layout="fill" className="object-contain" />
+                                                                </div>
+                                                            </CarouselItem>
+                                                        ))}
+                                                    </CarouselContent>
+                                                    <CarouselPrevious />
+                                                    <CarouselNext />
+                                                </Carousel>
+                                            </DialogContent>
+                                        </Dialog>
+                                    )}
+
                                     {reviews.map(review => (
-                                        <Link href={`/product/${productId}`} key={review.id} className="block">
-                                            <Card className="hover:shadow-md transition-shadow">
-                                                <CardContent className="p-4 flex justify-between items-start gap-4">
-                                                    <div className="flex-grow">
-                                                        <div className="flex items-start justify-between">
-                                                            <div className="flex items-center gap-3">
-                                                                <Avatar className="h-8 w-8">
-                                                                    <AvatarImage src={review.avatar} alt={review.author} />
-                                                                    <AvatarFallback>{review.author.charAt(0)}</AvatarFallback>
-                                                                </Avatar>
-                                                                <div>
-                                                                    <h5 className="font-semibold text-sm">{review.author}</h5>
-                                                                    <div className="flex items-center gap-1 mt-1">
-                                                                        {[...Array(5)].map((_, i) => (
-                                                                            <Star key={i} className={cn("h-4 w-4", i < review.rating ? 'text-yellow-400 fill-yellow-400' : 'text-muted-foreground')} />
-                                                                        ))}
-                                                                    </div>
+                                        <Card key={review.id} className="overflow-hidden">
+                                            <CardContent className="p-4 flex flex-col sm:flex-row gap-4">
+                                                 <div className="flex-grow">
+                                                    <div className="flex items-start justify-between">
+                                                        <div className="flex items-center gap-3">
+                                                            <Avatar className="h-8 w-8">
+                                                                <AvatarImage src={review.avatar} alt={review.author} />
+                                                                <AvatarFallback>{review.author.charAt(0)}</AvatarFallback>
+                                                            </Avatar>
+                                                            <div>
+                                                                <h5 className="font-semibold text-sm">{review.author}</h5>
+                                                                <div className="flex items-center gap-1 mt-1">
+                                                                    {[...Array(5)].map((_, i) => (
+                                                                        <Star key={i} className={cn("h-4 w-4", i < review.rating ? 'text-yellow-400 fill-yellow-400' : 'text-muted-foreground')} />
+                                                                    ))}
                                                                 </div>
                                                             </div>
-                                                            <p className="text-xs text-muted-foreground flex-shrink-0 ml-2">{formatDistanceToNow(new Date(review.date), { addSuffix: true })}</p>
                                                         </div>
-                                                        <p className="text-sm text-muted-foreground mt-2 line-clamp-3">{review.text}</p>
-                                                         {user?.uid === review.userId && (
-                                                            <div className="flex items-center gap-2 mt-2">
-                                                                <Button variant="ghost" size="sm" className="h-auto px-2 py-1 text-xs" onClick={(e) => { e.preventDefault(); handleEditReview(review); }}>
-                                                                    <Edit className="mr-1 h-3 w-3" /> Edit
-                                                                </Button>
-                                                                <AlertDialog>
-                                                                    <AlertDialogTrigger asChild>
-                                                                        <Button variant="ghost" size="sm" className="h-auto px-2 py-1 text-xs text-destructive hover:text-destructive" onClick={(e) => e.preventDefault()}>
-                                                                            <Trash2 className="mr-1 h-3 w-3" /> Delete
-                                                                        </Button>
-                                                                    </AlertDialogTrigger>
-                                                                    <AlertDialogContent>
-                                                                        <AlertDialogHeader>
-                                                                            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                                                                            <AlertDialogDescription>This will permanently delete your review.</AlertDialogDescription>
-                                                                        </AlertDialogHeader>
-                                                                        <AlertDialogFooter>
-                                                                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                                                            <AlertDialogAction onClick={() => handleDeleteReview(review.id)}>Delete</AlertDialogAction>
-                                                                        </AlertDialogFooter>
-                                                                    </AlertDialogContent>
-                                                                </AlertDialog>
-                                                            </div>
-                                                        )}
+                                                        <p className="text-xs text-muted-foreground flex-shrink-0 ml-2">{formatDistanceToNow(new Date(review.date), { addSuffix: true })}</p>
                                                     </div>
-                                                     {review.imageUrl && (
-                                                        <div className="w-24 h-24 relative flex-shrink-0">
-                                                            <Image src={review.imageUrl} alt="Review attachment" layout="fill" className="rounded-md object-cover" />
+                                                    <p className="text-sm text-muted-foreground mt-2">{review.text}</p>
+                                                    {user?.uid === review.userId && (
+                                                        <div className="flex items-center gap-2 mt-2">
+                                                            <Button variant="ghost" size="sm" className="h-auto px-2 py-1 text-xs" onClick={(e) => { e.preventDefault(); handleEditReview(review); }}>
+                                                                <Edit className="mr-1 h-3 w-3" /> Edit
+                                                            </Button>
+                                                            <AlertDialog>
+                                                                <AlertDialogTrigger asChild>
+                                                                    <Button variant="ghost" size="sm" className="h-auto px-2 py-1 text-xs text-destructive hover:text-destructive" onClick={(e) => e.preventDefault()}>
+                                                                        <Trash2 className="mr-1 h-3 w-3" /> Delete
+                                                                    </Button>
+                                                                </AlertDialogTrigger>
+                                                                <AlertDialogContent>
+                                                                    <AlertDialogHeader>
+                                                                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                                                        <AlertDialogDescription>This will permanently delete your review.</AlertDialogDescription>
+                                                                    </AlertDialogHeader>
+                                                                    <AlertDialogFooter>
+                                                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                                        <AlertDialogAction onClick={() => handleDeleteReview(review.id)}>Delete</AlertDialogAction>
+                                                                    </AlertDialogFooter>
+                                                                </AlertDialogContent>
+                                                            </AlertDialog>
                                                         </div>
                                                     )}
-                                                </CardContent>
-                                            </Card>
-                                        </Link>
+                                                </div>
+                                                 {review.imageUrl && (
+                                                    <div className="w-full sm:w-28 h-28 relative flex-shrink-0 rounded-md overflow-hidden">
+                                                        <Image src={review.imageUrl} alt="Review attachment" layout="fill" className="object-cover" />
+                                                    </div>
+                                                )}
+                                            </CardContent>
+                                        </Card>
                                     ))}
                                 </div>
                             </div>
