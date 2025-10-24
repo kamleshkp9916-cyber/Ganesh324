@@ -4,13 +4,13 @@
 import { useRouter, useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, HelpCircle, Send } from 'lucide-react';
-import { productDetails } from '@/lib/product-data';
+import { productDetails, productToSellerMapping } from '@/lib/product-data';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useAuth } from '@/hooks/use-auth';
@@ -19,11 +19,11 @@ import { formatDistanceToNow } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
 
 const mockQandA = [
-    { id: 1, question: "Does this camera come with a roll of film?", questioner: "Alice", answer: "Yes, it comes with one 24-exposure roll of color film to get you started!", answerer: "GadgetGuru", timestamp: new Date(Date.now() - 2 * 60 * 1000) },
-    { id: 2, question: "Is the battery for the light meter included?", questioner: "Bob", answer: "It is! We include a fresh battery so you can start shooting right away.", answerer: "GadgetGuru", timestamp: new Date(Date.now() - 5 * 60 * 1000) },
-    { id: 3, question: "What is the warranty on this?", questioner: "Charlie", answer: "We offer a 6-month warranty on all our refurbished vintage cameras.", answerer: "GadgetGuru", timestamp: new Date(Date.now() - 10 * 60 * 1000) },
+    { id: 1, question: "Does this camera come with a roll of film?", questioner: "Alice", answer: "Yes, it comes with one 24-exposure roll of color film to get you started!", answerer: "Seller", timestamp: new Date(Date.now() - 2 * 60 * 1000) },
+    { id: 2, question: "Is the battery for the light meter included?", questioner: "Bob", answer: "It is! We include a fresh battery so you can start shooting right away.", answerer: "Seller", timestamp: new Date(Date.now() - 5 * 60 * 1000) },
+    { id: 3, question: "What is the warranty on this?", questioner: "Charlie", answer: "We offer a 6-month warranty on all our refurbished vintage cameras.", answerer: "Seller", timestamp: new Date(Date.now() - 10 * 60 * 1000) },
     { id: 4, question: "Can you ship this to the UK?", questioner: "Diana", answer: null, answerer: null, timestamp: new Date(Date.now() - 30 * 60 * 1000) },
-    { id: 5, question: "Is the camera strap original?", questioner: "Eve", answer: "This one comes with a new, high-quality leather strap, not the original.", answerer: "GadgetGuru", timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000) },
+    { id: 5, question: "Is the camera strap original?", questioner: "Eve", answer: "This one comes with a new, high-quality leather strap, not the original.", answerer: "Seller", timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000) },
 ];
 
 export default function ProductQnaPage() {
@@ -36,6 +36,14 @@ export default function ProductQnaPage() {
     const [qnaList, setQnaList] = useState(mockQandA);
 
     const product = productDetails[productId as keyof typeof productDetails];
+    const seller = productToSellerMapping[productId as keyof typeof productToSellerMapping];
+
+    const processedQna = useMemo(() => {
+        return qnaList.map(qa => ({
+            ...qa,
+            answerer: seller ? seller.name : qa.answerer,
+        }));
+    }, [qnaList, seller]);
 
     const handleAskQuestion = () => {
         if (!user) {
@@ -105,7 +113,7 @@ export default function ProductQnaPage() {
                                 <h2 className="text-2xl font-bold mb-2">All Questions</h2>
                                 <p className="text-muted-foreground mb-6">Find answers to what other customers are asking.</p>
                                 <div className="space-y-6">
-                                    {qnaList.map(qa => (
+                                    {processedQna.map(qa => (
                                         <div key={qa.id} className="border-b pb-6 last:border-b-0">
                                             <div className="flex items-start gap-3">
                                                 <Avatar className="h-8 w-8">
@@ -122,7 +130,7 @@ export default function ProductQnaPage() {
                                             {qa.answer ? (
                                                 <div className="flex items-start gap-3 mt-3 pl-8">
                                                      <Avatar className="h-8 w-8">
-                                                         <AvatarImage src={`https://placehold.co/40x40.png?text=${qa.answerer?.charAt(0)}`} />
+                                                         <AvatarImage src={seller?.avatarUrl || `https://placehold.co/40x40.png?text=${qa.answerer?.charAt(0)}`} />
                                                         <AvatarFallback>{qa.answerer?.charAt(0)}</AvatarFallback>
                                                     </Avatar>
                                                     <div>
@@ -137,11 +145,11 @@ export default function ProductQnaPage() {
                                             ) : (
                                                 <div className="flex items-start gap-3 mt-3 pl-8">
                                                     <Avatar className="h-8 w-8">
-                                                        <AvatarImage src={`https://placehold.co/40x40.png?text=S`} />
+                                                        <AvatarImage src={seller?.avatarUrl || `https://placehold.co/40x40.png?text=S`} />
                                                         <AvatarFallback>S</AvatarFallback>
                                                     </Avatar>
                                                     <div>
-                                                        <p className="font-semibold text-sm text-yellow-400">Seller</p>
+                                                        <p className="font-semibold text-sm text-yellow-400">{seller?.name || 'Seller'}</p>
                                                         <p className="text-sm text-muted-foreground italic">Pending answer from seller...</p>
                                                     </div>
                                                 </div>
@@ -181,3 +189,4 @@ export default function ProductQnaPage() {
             </div>
         </div>
     );
+}
