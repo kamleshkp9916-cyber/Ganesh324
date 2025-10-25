@@ -123,6 +123,7 @@ import { useLocalStorage } from '@/hooks/use-local-storage';
 import { CATEGORY_BANNERS_KEY, CategoryBanners } from '@/app/admin/settings/page';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { ProductShelfContent } from '@/components/product-shelf-content';
 
 
 const liveSellers = [
@@ -271,7 +272,7 @@ const CategoryGrid = () => {
 function LiveSellerSkeleton({key}: {key: React.Key}) {
     return (
         <div key={key} className="group relative rounded-lg overflow-hidden shadow-lg">
-            <Skeleton className="w-full aspect-video" />
+            <Skeleton className="w-full aspect-[3/4]" />
             <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/80 to-transparent">
                 <div className="flex items-center gap-2">
                     <Skeleton className="h-8 w-8 rounded-full" />
@@ -300,7 +301,7 @@ function FeedPostSkeleton() {
             <div className="px-4 pb-4 space-y-3">
                 <Skeleton className="h-4 w-full" />
                 <Skeleton className="h-4 w-3/4" />
-                <Skeleton className="w-full aspect-video rounded-lg" />
+                <Skeleton className="w-full aspect-[3/4] rounded-lg" />
             </div>
         </Card>
     );
@@ -837,7 +838,7 @@ export default function LiveSellingPage() {
                                                     </div>
                                                 </Link>
                                                 <div className="flex items-center gap-1.5 mt-auto flex-shrink-0 pt-2 w-full justify-start pb-2">
-                                                    {productsToShow.slice(0, 5).map((p, i) => (
+                                                    {productsToShow.map((p, i) => (
                                                         <Link href={`/product/${p.key}`} key={p.key} className="block" onClick={(e) => e.stopPropagation()}>
                                                             <div className="w-10 h-10 bg-muted rounded-md border overflow-hidden hover:ring-2 hover:ring-primary">
                                                                 <Image src={p.images[0]?.preview || p.images[0]} alt={p.name} width={40} height={40} className="object-cover" />
