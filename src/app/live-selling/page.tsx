@@ -847,7 +847,7 @@ export default function LiveSellingPage() {
                                                                 +{remainingCount}
                                                             </button>
                                                         </SheetTrigger>
-                                                        <SheetContent side="bottom" className="h-[60vh] flex flex-col p-0">
+                                                        <SheetContent side="bottom" className="h-full flex flex-col p-0">
                                                              <ProductShelfContent 
                                                                 sellerProducts={sellerProducts}
                                                                 handleAddToCart={handleAddToCart}
