@@ -216,7 +216,7 @@ const CategoryGrid = () => {
         }, {});
 
         const sortedCategories = Object.entries(categoryCounts)
-            .sort(([, countA], [, countB]) => countB - countA)
+            .sort(([, countA], [, countB]) => countB - a)
             .slice(0, 7)
             .map(([category]) => category);
         
@@ -569,6 +569,22 @@ export default function LiveSellingPage() {
       .sort((a, b) => (b.sold || 0) - (a.sold || 0))
       .slice(0, 4);
   }, []);
+  
+    const trendingCategories = useMemo(() => {
+        const categoryCounts: Record<string, number> = {};
+        allSellers.forEach(seller => {
+            categoryCounts[seller.category] = (categoryCounts[seller.category] || 0) + 1;
+        });
+
+        const sortedCategories = Object.keys(categoryCounts)
+            .sort((a, b) => categoryCounts[b] - categoryCounts[a])
+            .slice(0, 4); // Limit to top 4 for example
+
+        return sortedCategories.map(category => ({
+            name: category,
+            streams: allSellers.filter(s => s.category === category).slice(0, 8)
+        }));
+    }, [allSellers]);
 
   return (
     <>
@@ -796,92 +812,97 @@ export default function LiveSellingPage() {
                                 <TabsTrigger value="browse">Browse</TabsTrigger>
                                 <TabsTrigger value="following">Following</TabsTrigger>
                             </TabsList>
-                            <TabsContent value="recommended" className="mt-4">
-                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                                    {topLiveStreams.map((seller: any) => (
-                                       <Collapsible key={seller.id} asChild>
-                                            <div className="group block">
-                                                <Link href={`/stream/${'${seller.id}'}`}>
-                                                    <div className="relative rounded-lg overflow-hidden aspect-video bg-muted w-full flex-shrink-0">
-                                                        <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
-                                                        <div className="absolute top-2 right-2 z-10"><Badge variant="secondary" className="bg-background/60 backdrop-blur-sm gap-1.5">
-                                                            <Users className="h-3 w-3"/>
-                                                            {seller.viewers.toLocaleString()}
-                                                        </Badge></div>
-                                                        <Image src={seller.thumbnailUrl} alt={`Live stream from ${seller.name}`} fill sizes="(max-width: 640px) 75vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw" className="object-cover w-full h-full transition-transform group-hover:scale-105" />
-                                                    </div>
-                                                </Link>
-                                                <div className="flex items-start gap-3 mt-2">
-                                                    <Link href={`/seller/profile?userId=${'${seller.id}'}`}>
-                                                        <Avatar className="w-10 h-10">
-                                                            <AvatarImage src={seller.avatarUrl} alt={seller.name} />
-                                                            <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
-                                                        </Avatar>
-                                                    </Link>
-                                                        <div className="flex-grow min-w-0">
-                                                        <Link href={`/stream/${'${seller.id}'}`} className="font-semibold text-sm leading-tight group-hover:underline truncate block">
-                                                            {seller.title || seller.name}
+                             <TabsContent value="recommended" className="mt-4">
+                                {trendingCategories.map(category => (
+                                    <div key={category.name} className="mb-8">
+                                        <h2 className="text-2xl font-bold mb-4">{category.name}</h2>
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                                            {category.streams.map((seller: any) => (
+                                                <Collapsible key={seller.id} asChild>
+                                                    <div className="group block">
+                                                        <Link href={`/stream/${seller.id}`}>
+                                                            <div className="relative rounded-lg overflow-hidden aspect-video bg-muted w-full flex-shrink-0">
+                                                                <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
+                                                                <div className="absolute top-2 right-2 z-10"><Badge variant="secondary" className="bg-background/60 backdrop-blur-sm gap-1.5">
+                                                                    <Users className="h-3 w-3"/>
+                                                                    {seller.viewers.toLocaleString()}
+                                                                </Badge></div>
+                                                                <Image src={seller.thumbnailUrl} alt={`Live stream from ${seller.name}`} fill sizes="(max-width: 640px) 75vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw" className="object-cover w-full h-full transition-transform group-hover:scale-105" />
+                                                            </div>
                                                         </Link>
-                                                        <p className="text-xs text-muted-foreground truncate">{seller.name}</p>
-                                                        <p className="text-xs text-primary font-semibold mt-0.5">#{'${seller.category.toLowerCase().replace(/\s+/g, \'\')}'}</p>
+                                                        <div className="flex items-start gap-3 mt-2">
+                                                            <Link href={`/seller/profile?userId=${seller.id}`}>
+                                                                <Avatar className="w-10 h-10">
+                                                                    <AvatarImage src={seller.avatarUrl} alt={seller.name} />
+                                                                    <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
+                                                                </Avatar>
+                                                            </Link>
+                                                                <div className="flex-grow min-w-0">
+                                                                <Link href={`/stream/${seller.id}`} className="font-semibold text-sm leading-tight group-hover:underline truncate block">
+                                                                    {seller.title || seller.name}
+                                                                </Link>
+                                                                <p className="text-xs text-muted-foreground truncate">{seller.name}</p>
+                                                                <p className="text-xs text-primary font-semibold mt-0.5">#{seller.category.toLowerCase().replace(/\s+/g, '')}</p>
+                                                            </div>
+                                                             <CollapsibleTrigger asChild>
+                                                                <Button variant="ghost" size="icon" className="h-7 w-7 flex-shrink-0 -mr-2 text-muted-foreground hover:text-primary">
+                                                                    <ShoppingBag className="h-4 w-4" />
+                                                                </Button>
+                                                             </CollapsibleTrigger>
+                                                        </div>
+                                                        <CollapsibleContent>
+                                                            <div className="mt-2">
+                                                                <Carousel
+                                                                    opts={{
+                                                                        align: "start",
+                                                                        loop: false,
+                                                                    }}
+                                                                    className="w-full"
+                                                                >
+                                                                    <CarouselContent className="-ml-2">
+                                                                        {sellerProducts(seller.id).map((product, index) => (
+                                                                            <CarouselItem key={index} className="basis-1/2 sm:basis-1/3 md:basis-1/2 pl-2">
+                                                                                <Card className="w-full overflow-hidden h-full flex flex-col">
+                                                                                    <Link href={`/product/${product.key}`} className="group block">
+                                                                                        <div className="relative aspect-square bg-muted">
+                                                                                            <Image
+                                                                                                src={product.images[0]?.preview || product.images[0]}
+                                                                                                alt={product.name}
+                                                                                                fill
+                                                                                                sizes="50vw"
+                                                                                                className="object-cover transition-transform group-hover:scale-105"
+                                                                                            />
+                                                                                        </div>
+                                                                                    </Link>
+                                                                                    <div className="p-2 flex-grow flex flex-col">
+                                                                                        <Link href={`/product/${product.key}`} className="group block">
+                                                                                            <h4 className="font-semibold truncate text-xs group-hover:underline">{product.name}</h4>
+                                                                                            <p className="font-bold text-sm">{product.price}</p>
+                                                                                        </Link>
+                                                                                    </div>
+                                                                                    <CardFooter className="p-2">
+                                                                                         <Button size="sm" className="w-full text-xs h-8" onClick={(e) => { e.stopPropagation(); handleAddToCart(product); }}><ShoppingCart className="mr-1 h-3 w-3" /> Cart</Button>
+                                                                                    </CardFooter>
+                                                                                </Card>
+                                                                            </CarouselItem>
+                                                                        ))}
+                                                                    </CarouselContent>
+                                                                </Carousel>
+                                                            </div>
+                                                        </CollapsibleContent>
                                                     </div>
-                                                     <CollapsibleTrigger asChild>
-                                                        <Button variant="ghost" size="icon" className="h-7 w-7 flex-shrink-0 -mr-2 text-muted-foreground hover:text-primary">
-                                                            <ShoppingBag className="h-4 w-4" />
-                                                        </Button>
-                                                     </CollapsibleTrigger>
-                                                </div>
-                                                <CollapsibleContent>
-                                                    <div className="mt-2">
-                                                        <Carousel
-                                                            opts={{
-                                                                align: "start",
-                                                                loop: false,
-                                                            }}
-                                                            className="w-full"
-                                                        >
-                                                            <CarouselContent className="-ml-2">
-                                                                {sellerProducts(seller.id).map((product, index) => (
-                                                                    <CarouselItem key={index} className="basis-1/2 sm:basis-1/3 md:basis-1/2 pl-2">
-                                                                        <Card className="w-full overflow-hidden h-full flex flex-col">
-                                                                            <Link href={`/product/${'${product.key}'}`} className="group block">
-                                                                                <div className="relative aspect-square bg-muted">
-                                                                                    <Image
-                                                                                        src={product.images[0]?.preview || product.images[0]}
-                                                                                        alt={product.name}
-                                                                                        fill
-                                                                                        sizes="50vw"
-                                                                                        className="object-cover transition-transform group-hover:scale-105"
-                                                                                    />
-                                                                                </div>
-                                                                            </Link>
-                                                                            <div className="p-2 flex-grow flex flex-col">
-                                                                                <Link href={`/product/${'${product.key}'}`} className="group block">
-                                                                                    <h4 className="font-semibold truncate text-xs group-hover:underline">{product.name}</h4>
-                                                                                    <p className="font-bold text-sm">{product.price}</p>
-                                                                                </Link>
-                                                                            </div>
-                                                                            <CardFooter className="p-2">
-                                                                                 <Button size="sm" className="w-full text-xs h-8" onClick={(e) => { e.stopPropagation(); handleAddToCart(product); }}><ShoppingCart className="mr-1 h-3 w-3" /> Cart</Button>
-                                                                            </CardFooter>
-                                                                        </Card>
-                                                                    </CarouselItem>
-                                                                ))}
-                                                            </CarouselContent>
-                                                        </Carousel>
-                                                    </div>
-                                                </CollapsibleContent>
-                                            </div>
-                                        </Collapsible>
-                                    ))}
-                                </div>
+                                                </Collapsible>
+                                            ))}
+                                        </div>
+                                    </div>
+                                ))}
                             </TabsContent>
                             <TabsContent value="browse" className="mt-4">
                                 <div className="grid grid-cols-[240px_1fr] gap-8 items-start">
                                     <aside className="sticky top-32">
                                         <h3 className="font-semibold mb-2">Categories</h3>
-                                        <Accordion type="single" className="w-full" value={selectedBrowseCategory || ""} onValueChange={(value) => {
-                                            setSelectedBrowseCategory(value);
+                                        <Accordion type="multiple" className="w-full" value={selectedBrowseCategory ? [selectedBrowseCategory] : []} onValueChange={(value) => {
+                                            setSelectedBrowseCategory(value[0] || null);
                                             setSelectedSubCategory(null);
                                         }}>
                                             {categories.map((category) => (
@@ -891,10 +912,6 @@ export default function LiveSellingPage() {
                                                         "text-sm font-semibold hover:no-underline",
                                                         selectedBrowseCategory === category.name && !selectedSubCategory && "text-primary"
                                                     )}
-                                                    onClick={(e) => {
-                                                        setSelectedBrowseCategory(category.name);
-                                                        setSelectedSubCategory(null);
-                                                    }}
                                                 >
                                                 {category.name}
                                                 </AccordionTrigger>
@@ -931,7 +948,7 @@ export default function LiveSellingPage() {
 
                                         }).map((seller: any) => (
                                             <div key={seller.id} className="group block">
-                                            <Link href={`/stream/${'${seller.id}'}`}>
+                                            <Link href={`/stream/${seller.id}`}>
                                                 <div className="relative rounded-lg overflow-hidden aspect-video bg-muted w-full flex-shrink-0">
                                                     <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
                                                     <div className="absolute top-2 right-2 z-10"><Badge variant="secondary" className="bg-background/60 backdrop-blur-sm gap-1.5">
@@ -942,16 +959,16 @@ export default function LiveSellingPage() {
                                                 </div>
                                             </Link>
                                             <div className="flex items-start gap-3 mt-2">
-                                                <Link href={`/seller/profile?userId=${'${seller.id}'}`}>
+                                                <Link href={`/seller/profile?userId=${seller.id}`}>
                                                     <Avatar className="w-10 h-10">
                                                         <AvatarImage src={seller.avatarUrl} alt={seller.name} />
                                                         <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
                                                     </Avatar>
                                                 </Link>
                                                 <div className="flex-1 overflow-hidden">
-                                                    <Link href={`/stream/${'${seller.id}'}`} className="font-semibold text-sm leading-tight group-hover:underline truncate block">{seller.title || seller.name}</Link>
+                                                    <Link href={`/stream/${seller.id}`} className="font-semibold text-sm leading-tight group-hover:underline truncate block">{seller.title || seller.name}</Link>
                                                     <p className="text-xs text-muted-foreground truncate">{seller.name}</p>
-                                                    <p className="text-xs text-primary font-semibold mt-0.5">#{'${seller.category.toLowerCase().replace(/\s+/g, \'\')}'}</p>
+                                                    <p className="text-xs text-primary font-semibold mt-0.5">#{seller.category.toLowerCase().replace(/\s+/g, '')}</p>
                                                 </div>
                                             </div>
                                         </div>
