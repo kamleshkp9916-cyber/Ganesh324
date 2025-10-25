@@ -841,22 +841,19 @@ export default function LiveSellingPage() {
                                                     </Link>
                                                 ))}
                                                 {remainingCount > 0 && (
-                                                     <Sheet>
+                                                     <Sheet onOpenChange={(open) => setIsProductOverlayOpen(open)}>
                                                         <SheetTrigger asChild>
                                                             <button className="w-10 h-10 bg-muted rounded-md border flex items-center justify-center text-xs font-semibold text-muted-foreground hover:bg-secondary">
                                                                 +{remainingCount}
                                                             </button>
                                                         </SheetTrigger>
-                                                        <SheetContent side="bottom" className="h-[80vh] flex flex-col p-0">
+                                                        <SheetContent side="bottom" className="h-[60vh] flex flex-col p-0">
                                                              <ProductShelfContent 
                                                                 sellerProducts={sellerProducts}
                                                                 handleAddToCart={handleAddToCart}
                                                                 handleBuyNow={handleBuyNow}
                                                                 isMobile={true}
-                                                                onClose={() => {
-                                                                    const closeButton = document.querySelector('[data-radix-collection-item] > button');
-                                                                    if (closeButton instanceof HTMLElement) closeButton.click();
-                                                                }}
+                                                                onClose={() => setIsProductOverlayOpen(false)}
                                                                 toast={toast}
                                                             />
                                                         </SheetContent>
