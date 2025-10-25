@@ -834,7 +834,7 @@ export default function LiveSellingPage() {
                                                     </div>
                                                 </Link>
                                                  <div className="flex items-center gap-1.5 mt-auto flex-shrink-0 pt-2 w-full justify-between">
-                                                    {getProductsForSeller(seller.id).slice(0, 4).map((p, index) => {
+                                                    {getProductsForSeller(seller.id).slice(0, 4).map((p, index, arr) => {
                                                         const remaining = getProductsForSeller(seller.id).length - 4;
                                                         if (index === 3 && remaining > 0) {
                                                             return (
@@ -843,7 +843,6 @@ export default function LiveSellingPage() {
                                                                 </button>
                                                             )
                                                         }
-                                                        if (index > 4) return null;
                                                         return (
                                                             <Link href={`/product/${p.key}`} key={p.key} className="block" onClick={(e) => e.stopPropagation()}>
                                                                 <div className="w-10 h-10 bg-muted rounded-md border overflow-hidden hover:ring-2 hover:ring-primary">
