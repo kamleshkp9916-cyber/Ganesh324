@@ -215,10 +215,10 @@ const CategoryGrid = () => {
             return acc;
         }, {});
 
-        const sortedCategories = Object.entries(categoryCounts)
-            .sort(([, countA], [, countB]) => countB - countA)
+        const sortedCategories = Object.keys(categoryCounts)
+            .sort((a, b) => categoryCounts[b] - categoryCounts[a])
             .slice(0, 7)
-            .map(([category]) => category);
+            .map((category) => category);
         
         const defaultLayout = [
             { gridClass: 'md:row-span-2 md:col-span-2', bgColor: 'bg-gray-100 dark:bg-gray-800' },
@@ -349,7 +349,7 @@ export default function LiveSellingPage() {
         setCartCount(getCart().reduce((sum, item) => sum + item.quantity, 0));
         toast({
             title: "Added to Cart!",
-            description: `${'${product.name}'} has been added to your shopping cart.`
+            description: `'${product.name}' has been added to your shopping cart.`
         });
     });
   };
@@ -833,7 +833,7 @@ export default function LiveSellingPage() {
                                                         </div>
                                                     </div>
                                                 </Link>
-                                                <div className="flex items-center gap-1.5 mt-auto flex-shrink-0 pt-2">
+                                                 <div className="flex items-center gap-1.5 mt-auto flex-shrink-0 pt-2 w-full justify-between">
                                                     {getProductsForSeller(seller.id).slice(0, 4).map((p, index) => {
                                                         const remaining = getProductsForSeller(seller.id).length - 4;
                                                         if (index === 3 && remaining > 0) {
@@ -843,7 +843,7 @@ export default function LiveSellingPage() {
                                                                 </button>
                                                             )
                                                         }
-                                                        if (index > 3) return null;
+                                                        if (index > 4) return null;
                                                         return (
                                                             <Link href={`/product/${p.key}`} key={p.key} className="block" onClick={(e) => e.stopPropagation()}>
                                                                 <div className="w-10 h-10 bg-muted rounded-md border overflow-hidden hover:ring-2 hover:ring-primary">
@@ -921,7 +921,7 @@ export default function LiveSellingPage() {
                     </Button>
                 </div>
                 <ScrollArea className="flex-grow">
-                    <div className="p-4 grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-2 sm:gap-3">
+                     <div className="p-4 grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-2 sm:gap-3">
                         {overlayProducts.map(product => (
                             <Link href={`/product/${product.key}`} key={product.id} className="group block" onClick={() => setIsProductOverlayOpen(false)}>
                                 <Card className="w-full group overflow-hidden h-full flex flex-col">
