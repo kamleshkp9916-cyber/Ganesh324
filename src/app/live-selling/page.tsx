@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import Link from 'next/link';
@@ -816,7 +817,7 @@ export default function LiveSellingPage() {
                                         return (
                                         <Card key={seller.id} className="group flex flex-col space-y-2 overflow-hidden border-none shadow-none bg-transparent">
                                             <Link href={`/stream/${seller.id}`} className="block">
-                                                <div className="relative rounded-lg overflow-hidden aspect-video bg-muted w-full">
+                                                <div className="relative rounded-lg overflow-hidden aspect-[3/4] bg-muted w-full">
                                                     <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
                                                     <div className="absolute top-2 right-2 z-10"><Badge variant="secondary" className="bg-black/50 text-white"><Users className="w-3 h-3 mr-1"/>{seller.viewers.toLocaleString()}</Badge></div>
                                                     <Image src={seller.thumbnailUrl} alt={`Live stream from ${seller.name}`} fill sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw" className="object-cover w-full h-full transition-transform group-hover:scale-105" />
@@ -831,23 +832,21 @@ export default function LiveSellingPage() {
                                                         </Avatar>
                                                         <div className="flex-1 overflow-hidden">
                                                             <p className="font-semibold text-sm leading-tight group-hover:underline truncate">{seller.title || seller.name}</p>
-                                                            <p className="text-xs mt-0.5">
-                                                                <span className="text-muted-foreground">{seller.subcategory}</span> <span className="text-primary font-semibold">#{seller.category.toLowerCase().replace(/\s+/g, '')}</span>
-                                                            </p>
+                                                            <p className="text-xs text-primary font-semibold mt-0.5">#{seller.category.toLowerCase().replace(/\s+/g, '')}</p>
                                                         </div>
                                                     </div>
                                                 </Link>
                                                 <div className="flex items-center gap-1.5 mt-auto flex-shrink-0 pt-2 w-full justify-start pb-2">
-                                                    {productsToShow.map((p, i) => (
+                                                    {productsToShow.slice(0, 4).map((p, i) => (
                                                         <Link href={`/product/${p.key}`} key={p.key} className="block" onClick={(e) => e.stopPropagation()}>
                                                             <div className="w-10 h-10 bg-muted rounded-md border overflow-hidden hover:ring-2 hover:ring-primary">
                                                                 <Image src={p.images[0]?.preview || p.images[0]} alt={p.name} width={40} height={40} className="object-cover" />
                                                             </div>
                                                         </Link>
                                                     ))}
-                                                    {hasMoreProducts && (
+                                                    {sellerProducts.length > 4 && (
                                                         <button className="w-10 h-10 bg-muted rounded-md border flex items-center justify-center text-xs font-semibold text-muted-foreground hover:bg-secondary" onClick={(e) => handleShowMoreProducts(e, seller)}>
-                                                            +{remainingCount}
+                                                            +{sellerProducts.length - 4}
                                                         </button>
                                                     )}
                                                 </div>
@@ -907,7 +906,7 @@ export default function LiveSellingPage() {
                 animate={{ y: 0 }}
                 exit={{ y: '100%' }}
                 transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-                className="fixed bottom-0 left-0 right-0 h-[60%] bg-background/80 backdrop-blur-md z-50 flex flex-col"
+                className="fixed inset-0 bg-background z-50 flex flex-col"
             >
                 <div className="p-4 border-b flex items-center justify-between flex-shrink-0">
                     <div>
