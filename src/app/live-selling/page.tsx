@@ -134,7 +134,7 @@ const liveSellers = [
     { id: 'artisanalley-uid', name: 'ArtisanAlley', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://picsum.photos/seed/artisan-stream/300/450', category: 'Handmade', viewers: 450, buyers: 8, rating: 5.0, reviews: 6, hint: 'pottery making', productId: 'prod_7', hasAuction: true, title: 'Live Pottery: Creating a Ceramic Piece' },
     { id: 'petpalace-uid', name: 'PetPalace', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://picsum.photos/seed/pet-stream/300/450', category: 'Pet Supplies', viewers: 1800, buyers: 50, rating: 4.8, reviews: 30, hint: 'playing with puppy', productId: 'prod_8', hasAuction: false, title: 'Q&A: All About Dog Nutrition' },
     { id: 'booknook-uid', name: 'BookNook', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://picsum.photos/seed/book-stream/300/450', category: 'Books', viewers: 620, buyers: 12, rating: 4.9, reviews: 10, hint: 'reading book cozy', productId: 'prod_9', hasAuction: false, title: 'Live Reading: New Fantasy Novel' },
-    { id: 'gamerguild-uid', name: 'GamerGuild', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://picsum.photos/seed/gaming-stream/300/450', category: 'Gaming', viewers: 4200, buyers: 102, rating: 4.9, reviews: 80, hint: 'esports competition', productId: 'prod_10', hasAuction: true },
+    { id: 'gamerguild-uid', name: 'GamerGuild', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://picsum.photos/seed/gaming-stream/300/450', category: 'Gaming', viewers: 4200, buyers: 102, rating: 4.9, reviews: 80, hint: 'esports competition', productId: 'prod_10', hasAuction: true, title: 'Weekly Esports Tournament Finals' },
 ];
 
 const reportReasons = [
@@ -548,7 +548,7 @@ export default function LiveSellingPage() {
     }
 };
 
-  const getCategoryUrl = (categoryName: string) => `/${categoryName.toLowerCase().replace(/\s+/g, '-')}`;
+  const getCategoryUrl = (categoryName: string) => `/${categoryName.toLowerCase().replace(/\\s+/g, '-')}`;
 
   const popularProducts = useMemo(() => {
     return Object.values(productDetails)
@@ -825,7 +825,7 @@ export default function LiveSellingPage() {
                                 </div>
                             </TabsContent>
                              <TabsContent value="browse" className="mt-4">
-                                <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-7 xl:grid-cols-8 gap-4">
+                                <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-7 xl:grid-cols-8 gap-4">
                                     {allSubcategories.map((sub, index) => (
                                         <Link href="#" key={index} className="group block space-y-2">
                                             <Card className="overflow-hidden">
@@ -842,7 +842,7 @@ export default function LiveSellingPage() {
                                             <div>
                                                 <p className="font-semibold text-sm truncate group-hover:text-primary">{sub.name}</p>
                                                 <p className="text-xs text-muted-foreground">{sub.viewers.toLocaleString()} watching</p>
-                                                 <div className="flex flex-wrap gap-x-2 mt-1">
+                                                <div className="flex flex-wrap gap-x-2 mt-1">
                                                     <Badge variant="secondary" className="text-xs">{sub.categoryName}</Badge>
                                                 </div>
                                             </div>
