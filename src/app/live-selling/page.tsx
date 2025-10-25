@@ -243,7 +243,7 @@ const CategoryGrid = () => {
         };
 
         return sortedCategories.map((category, index) => {
-            const data = categoryDataMap[category] || { product: category.toUpperCase(), image: `https://picsum.photos/seed/${'${category.toLowerCase()}'}/800/800`, hint: category.toLowerCase() };
+            const data = categoryDataMap[category] || { product: category.toUpperCase(), image: `https://picsum.photos/seed/${category.toLowerCase()}/800/800`, hint: category.toLowerCase() };
             return {
                 category,
                 ...data,
@@ -368,7 +368,7 @@ export default function LiveSellingPage() {
         category.subcategories.map(subcategory => ({
             ...subcategory,
             categoryName: category.name,
-            imageUrl: `https://picsum.photos/seed/${subcategory.name.toLowerCase().replace(' ', '-')}/300/400`,
+            imageUrl: `https://picsum.photos/seed/${subcategory.name.toLowerCase().replace(/ /g, '-')}/300/400`,
             tags: [subcategory.name.split(' ')[0]],
             viewers: Math.floor(Math.random() * 50000) + 1000
         }))
@@ -810,7 +810,7 @@ export default function LiveSellingPage() {
                                         return (
                                         <Card key={seller.id} className="group flex flex-col space-y-2 overflow-hidden border-none shadow-none bg-transparent">
                                             <Link href={`/stream/${seller.id}`} className="block">
-                                                <div className="relative rounded-lg overflow-hidden aspect-[3/4] bg-muted w-full">
+                                                <div className="relative rounded-lg overflow-hidden aspect-video bg-muted w-full">
                                                     <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
                                                     <div className="absolute top-2 right-2 z-10"><Badge variant="secondary" className="bg-black/50 text-white"><Users className="w-3 h-3 mr-1"/>{seller.viewers.toLocaleString()}</Badge></div>
                                                     <Image src={seller.thumbnailUrl} alt={`Live stream from ${'${seller.name}'}`} fill sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw" className="object-cover w-full h-full transition-transform group-hover:scale-105" />
@@ -833,7 +833,7 @@ export default function LiveSellingPage() {
                                             </div>
                                              <div className="flex items-center gap-1.5 mt-auto flex-shrink-0">
                                                 {getProductsForSeller(seller.id).slice(0, 3).map(p => (
-                                                <Link href={`/product/${p.key}`} key={p.key} className="block">
+                                                <Link href={`/product/${p.key}`} key={p.key} className="block" onClick={(e) => e.stopPropagation()}>
                                                     <div className="w-10 h-10 bg-muted rounded-md border overflow-hidden">
                                                         <Image src={p.images[0]} alt={p.name} width={40} height={40} className="object-cover" />
                                                     </div>
@@ -853,7 +853,7 @@ export default function LiveSellingPage() {
                              <TabsContent value="browse" className="mt-4">
                                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
                                     {allSubcategories.map((sub, index) => (
-                                        <Link href={`/${'${sub.categoryName.toLowerCase()}'}/${sub.name.toLowerCase().replace(/\s+/g, '-').replace(/&/g, '%26')}`} key={index} className="group block space-y-2">
+                                        <Link href={`/${'${sub.categoryName.toLowerCase()}'}/${sub.name.toLowerCase().replace(/ /g, '-').replace(/&/g, '%26')}`} key={index} className="group block space-y-2">
                                             <Card className="overflow-hidden">
                                                 <div className="aspect-[3/4] bg-muted relative">
                                                     <Image
