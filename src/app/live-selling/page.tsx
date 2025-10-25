@@ -809,8 +809,9 @@ export default function LiveSellingPage() {
                                  <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
                                     {topLiveStreams.map((seller) => {
                                         const sellerProducts = getProductsForSeller(seller.id);
-                                        const productsToShow = sellerProducts.slice(0, 4);
-                                        const remainingCount = sellerProducts.length - productsToShow.length;
+                                        const productsToShow = sellerProducts.slice(0, 3);
+                                        const fourthProduct = sellerProducts.length >= 4 ? sellerProducts[3] : null;
+                                        const remainingCount = sellerProducts.length - 4;
 
                                         return (
                                         <Card key={seller.id} className="group flex flex-col space-y-2 overflow-hidden border-none shadow-none bg-transparent">
@@ -838,22 +839,25 @@ export default function LiveSellingPage() {
                                                     </div>
                                                 </Link>
                                                  <div className="flex items-center gap-1.5 mt-auto flex-shrink-0 pt-2 w-full justify-start">
-                                                    {productsToShow.map((p, index) => {
-                                                        if (index === 3 && remainingCount > 0) {
-                                                            return (
-                                                                <button key="more" className="w-10 h-10 bg-muted rounded-md border flex items-center justify-center text-xs font-semibold text-muted-foreground hover:bg-secondary" onClick={(e) => handleShowMoreProducts(e, seller)}>
-                                                                    +{remainingCount}
-                                                                </button>
-                                                            )
-                                                        }
-                                                        return (
-                                                            <Link href={`/product/${p.key}`} key={p.key} className="block" onClick={(e) => e.stopPropagation()}>
-                                                                <div className="w-10 h-10 bg-muted rounded-md border overflow-hidden hover:ring-2 hover:ring-primary">
-                                                                    <Image src={p.images[0]} alt={p.name} width={40} height={40} className="object-cover" />
-                                                                </div>
-                                                            </Link>
-                                                        );
-                                                    })}
+                                                    {productsToShow.map((p) => (
+                                                        <Link href={`/product/${p.key}`} key={p.key} className="block" onClick={(e) => e.stopPropagation()}>
+                                                            <div className="w-10 h-10 bg-muted rounded-md border overflow-hidden hover:ring-2 hover:ring-primary">
+                                                                <Image src={p.images[0]} alt={p.name} width={40} height={40} className="object-cover" />
+                                                            </div>
+                                                        </Link>
+                                                    ))}
+                                                     {fourthProduct && (
+                                                        <Link href={`/product/${fourthProduct.key}`} className="block" onClick={(e) => e.stopPropagation()}>
+                                                            <div className="w-10 h-10 bg-muted rounded-md border overflow-hidden hover:ring-2 hover:ring-primary">
+                                                                <Image src={fourthProduct.images[0]} alt={fourthProduct.name} width={40} height={40} className="object-cover" />
+                                                            </div>
+                                                        </Link>
+                                                    )}
+                                                    {remainingCount > 0 && (
+                                                        <button className="w-10 h-10 bg-muted rounded-md border flex items-center justify-center text-xs font-semibold text-muted-foreground hover:bg-secondary" onClick={(e) => handleShowMoreProducts(e, seller)}>
+                                                            +{remainingCount}
+                                                        </button>
+                                                    )}
                                                 </div>
                                             </div>
                                         </Card>
