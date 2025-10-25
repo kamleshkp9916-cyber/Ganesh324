@@ -838,8 +838,8 @@ export default function LiveSellingPage() {
                                                         </div>
                                                     </div>
                                                 </Link>
-                                                <div className="flex items-center gap-1.5 mt-auto flex-shrink-0 pt-2 w-full justify-start">
-                                                     {productsToShow.map((p) => (
+                                                <div className="flex items-center gap-1.5 mt-auto flex-shrink-0 pt-2 w-full justify-start pb-2">
+                                                    {productsToShow.slice(0, 5).map((p) => (
                                                         <Link href={`/product/${p.key}`} key={p.key} className="block" onClick={(e) => e.stopPropagation()}>
                                                             <div className="w-10 h-10 bg-muted rounded-md border overflow-hidden hover:ring-2 hover:ring-primary">
                                                                 <Image src={p.images[0]?.preview || p.images[0]} alt={p.name} width={40} height={40} className="object-cover" />
@@ -908,7 +908,7 @@ export default function LiveSellingPage() {
                 animate={{ y: 0 }}
                 exit={{ y: '100%' }}
                 transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-                className="fixed bottom-0 left-0 right-0 h-[30%] bg-background/80 backdrop-blur-md z-50 flex flex-col"
+                className="fixed bottom-0 left-0 right-0 h-[40%] bg-background/80 backdrop-blur-md z-50 flex flex-col"
             >
                 <div className="p-4 border-b flex items-center justify-between flex-shrink-0">
                     <div>
@@ -920,7 +920,7 @@ export default function LiveSellingPage() {
                     </Button>
                 </div>
                 <ScrollArea className="flex-grow">
-                     <div className="p-4 grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-2 sm:gap-3">
+                     <div className="p-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
                         {overlayProducts.map(product => (
                             <Link href={`/product/${product.key}`} key={product.id} className="group block" onClick={() => setIsProductOverlayOpen(false)}>
                                 <Card className="w-full group overflow-hidden h-full flex flex-col">
