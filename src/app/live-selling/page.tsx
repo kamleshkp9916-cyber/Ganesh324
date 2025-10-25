@@ -809,9 +809,9 @@ export default function LiveSellingPage() {
                                  <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
                                     {topLiveStreams.map((seller) => {
                                         const sellerProducts = getProductsForSeller(seller.id);
-                                        const productsToShow = sellerProducts.slice(0, 5);
-                                        const hasMoreProducts = sellerProducts.length > 5;
-                                        const remainingCount = sellerProducts.length - 5;
+                                        const productsToShow = sellerProducts.slice(0, 6);
+                                        const hasMoreProducts = sellerProducts.length > 6;
+                                        const remainingCount = sellerProducts.length - 6;
 
                                         return (
                                         <Card key={seller.id} className="group flex flex-col space-y-2 overflow-hidden border-none shadow-none bg-transparent">
@@ -822,7 +822,7 @@ export default function LiveSellingPage() {
                                                     <Image src={seller.thumbnailUrl} alt={`Live stream from ${seller.name}`} fill sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw" className="object-cover w-full h-full transition-transform group-hover:scale-105" />
                                                 </div>
                                             </Link>
-                                            <div className="flex-grow flex flex-col">
+                                            <div className="flex-grow flex flex-col pb-2">
                                                 <Link href={`/stream/${seller.id}`} className="block">
                                                     <div className="flex items-start gap-2">
                                                         <Avatar className="w-8 h-8">
@@ -839,7 +839,7 @@ export default function LiveSellingPage() {
                                                     </div>
                                                 </Link>
                                                 <div className="flex items-center gap-1.5 mt-auto flex-shrink-0 pt-2 w-full justify-start">
-                                                    {productsToShow.map((p) => (
+                                                     {productsToShow.map((p) => (
                                                         <Link href={`/product/${p.key}`} key={p.key} className="block" onClick={(e) => e.stopPropagation()}>
                                                             <div className="w-10 h-10 bg-muted rounded-md border overflow-hidden hover:ring-2 hover:ring-primary">
                                                                 <Image src={p.images[0]?.preview || p.images[0]} alt={p.name} width={40} height={40} className="object-cover" />
@@ -920,7 +920,7 @@ export default function LiveSellingPage() {
                     </Button>
                 </div>
                 <ScrollArea className="flex-grow">
-                     <div className="p-4 grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-2 sm:gap-3">
+                     <div className="p-4 grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-2 sm:gap-3">
                         {overlayProducts.map(product => (
                             <Link href={`/product/${product.key}`} key={product.id} className="group block" onClick={() => setIsProductOverlayOpen(false)}>
                                 <Card className="w-full group overflow-hidden h-full flex flex-col">
