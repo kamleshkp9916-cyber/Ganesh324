@@ -216,7 +216,7 @@ const CategoryGrid = () => {
         }, {});
 
         const sortedCategories = Object.entries(categoryCounts)
-            .sort(([, countA], [, countB]) => countB - a[countA])
+            .sort(([, countA], [, countB]) => countB - countA)
             .slice(0, 7)
             .map(([category]) => category);
         
@@ -570,7 +570,7 @@ export default function LiveSellingPage() {
         });
 
         const sortedCategories = Object.keys(categoryCounts)
-            .sort((a, b) => categoryCounts[b] - a[countA])
+            .sort((a, b) => categoryCounts[b] - categoryCounts[a])
             .slice(0, 4); // Limit to top 4 for example
 
         return sortedCategories.map(category => ({
@@ -833,12 +833,12 @@ export default function LiveSellingPage() {
                                                         </div>
                                                     </div>
                                                 </Link>
-                                                <div className="flex items-center gap-1.5 mt-auto pt-2 flex-shrink-0">
+                                                <div className="flex items-center gap-1.5 mt-auto flex-shrink-0 pt-2">
                                                     {getProductsForSeller(seller.id).slice(0, 4).map((p, index) => {
                                                         const remaining = getProductsForSeller(seller.id).length - 4;
                                                         if (index === 3 && remaining > 0) {
                                                             return (
-                                                                 <button key="more" className="w-10 h-10 bg-muted rounded-md border flex items-center justify-center text-xs font-semibold text-muted-foreground hover:bg-secondary" onClick={(e) => handleShowMoreProducts(e, seller)}>
+                                                                <button key="more" className="w-10 h-10 bg-muted rounded-md border flex items-center justify-center text-xs font-semibold text-muted-foreground hover:bg-secondary" onClick={(e) => handleShowMoreProducts(e, seller)}>
                                                                     +{remaining + 1}
                                                                 </button>
                                                             )
