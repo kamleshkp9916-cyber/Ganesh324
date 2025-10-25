@@ -110,7 +110,7 @@ import { getFirestoreDb, getFirebaseStorage } from '@/lib/firebase';
 import { format, formatDistanceToNow } from 'date-fns';
 import { ref as storageRef, deleteObject } from 'firebase/storage';
 import { isFollowing, toggleFollow, UserData, getUserByDisplayName } from '@/lib/follow-data';
-import { productDetails } from '@/lib/product-data';
+import { productDetails, productToSellerMapping } from '@/lib/product-data';
 import { PromotionalCarousel } from '@/components/promotional-carousel';
 import { categories } from '@/lib/categories';
 import { Separator } from '@/components/ui/separator';
@@ -243,7 +243,7 @@ const CategoryGrid = () => {
         };
 
         return sortedCategories.map((category, index) => {
-            const data = categoryDataMap[category] || { product: category.toUpperCase(), image: `https://picsum.photos/seed/${'${category.toLowerCase()}'}/800/800`, hint: category.toLowerCase() };
+            const data = categoryDataMap[category] || { product: category.toUpperCase(), image: `https://picsum.photos/seed/${category.toLowerCase()}/800/800`, hint: category.toLowerCase() };
             return {
                 category,
                 ...data,
@@ -336,16 +336,10 @@ export default function LiveSellingPage() {
   const [selectedBrowseCategory, setSelectedBrowseCategory] = useState<string | null>(null);
   const [selectedSubCategory, setSelectedSubCategory] = useState<string | null>(null);
 
-  const productToSeller = (productId: string) => {
-    const sellerInfo = Object.values(liveSellers).find(s => s.productId === productId);
-    return sellerInfo || null;
+  const getProductsForSeller = (sellerId: string): any[] => {
+    return Object.values(productDetails).filter(p => productToSellerMapping[p.key]?.uid === sellerId);
   }
   
-  const sellerProducts = (sellerId: string) => {
-      if (!sellerId) return [];
-      return Object.values(productDetails).filter(p => productToSeller(p.key)?.id === sellerId);
-  }
-
   const handleAddToCart = (product: any) => {
     handleAuthAction(() => {
         addToCart({ ...product, quantity: 1 });
@@ -800,14 +794,16 @@ export default function LiveSellingPage() {
                             </TabsList>
                             <TabsContent value="recommended" className="mt-4">
                                  <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-                                    {topLiveStreams.map((seller) => (
-                                        <Link href={`/stream/${seller.id}`} key={seller.id} className="group block">
+                                    {topLiveStreams.map((seller) => {
+                                        const sellerProducts = getProductsForSeller(seller.id);
+                                        return (
+                                        <Link href={`/stream/${seller.id}`} key={seller.id} className="group block space-y-2">
                                             <div className="relative rounded-lg overflow-hidden aspect-video bg-muted w-full">
                                                 <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
                                                 <div className="absolute top-2 right-2 z-10"><Badge variant="secondary" className="bg-black/50 text-white"><Users className="w-3 h-3 mr-1"/>{seller.viewers.toLocaleString()}</Badge></div>
                                                 <Image src={seller.thumbnailUrl} alt={`Live stream from ${'${seller.name}'}`} fill sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw" className="object-cover w-full h-full transition-transform group-hover:scale-105" />
                                             </div>
-                                            <div className="flex items-start gap-2 mt-2">
+                                            <div className="flex items-start gap-2">
                                                 <Avatar className="w-8 h-8">
                                                     <AvatarImage src={seller.avatarUrl} alt={seller.name} />
                                                     <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
@@ -815,15 +811,32 @@ export default function LiveSellingPage() {
                                                 <div className="flex-1 overflow-hidden">
                                                     <p className="font-semibold text-sm leading-tight group-hover:underline truncate">{seller.title || seller.name}</p>
                                                     <p className="text-xs text-muted-foreground">{seller.name}</p>
-                                                    <p className="text-xs text-muted-foreground mt-0.5">{seller.subcategory} <span className="text-primary font-semibold">#{seller.category.toLowerCase().replace(/\s+/g, '')}</span></p>
+                                                    <p className="text-xs text-muted-foreground mt-0.5">
+                                                        {seller.subcategory} <span className="text-primary font-semibold">#{seller.category.toLowerCase().replace(/\s+/g, '')}</span>
+                                                    </p>
                                                 </div>
                                             </div>
+                                             {sellerProducts.length > 0 && (
+                                                <div className="flex items-center gap-1.5 mt-1">
+                                                    {sellerProducts.slice(0, 3).map(p => (
+                                                        <div key={p.key} className="w-10 h-10 bg-muted rounded-md border overflow-hidden">
+                                                            <Image src={p.images[0]} alt={p.name} width={40} height={40} className="object-cover" />
+                                                        </div>
+                                                    ))}
+                                                    {sellerProducts.length > 3 && (
+                                                        <div className="w-10 h-10 bg-muted rounded-md border flex items-center justify-center text-xs font-semibold text-muted-foreground">
+                                                            +{sellerProducts.length - 3}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            )}
                                         </Link>
-                                    ))}
+                                        )
+                                    })}
                                 </div>
                             </TabsContent>
                              <TabsContent value="browse" className="mt-4">
-                                <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-8 lg:grid-cols-8 xl:grid-cols-12 gap-4">
+                                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-x-4 gap-y-6">
                                     {allSubcategories.map((sub, index) => (
                                         <Link href={`/${sub.categoryName.toLowerCase()}/${sub.name.toLowerCase().replace(/\s+/g, '-')}`} key={index} className="group block space-y-2">
                                             <Card className="overflow-hidden">
@@ -832,17 +845,13 @@ export default function LiveSellingPage() {
                                                         src={sub.imageUrl}
                                                         alt={sub.name}
                                                         fill
-                                                        sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
+                                                        sizes="(max-width: 640px) 33vw, (max-width: 1024px) 25vw, 10vw"
                                                         className="object-cover group-hover:scale-105 transition-transform"
                                                     />
                                                 </div>
                                             </Card>
                                             <div>
                                                 <p className="font-semibold text-sm truncate group-hover:text-primary">{sub.name}</p>
-                                                <p className="text-xs text-muted-foreground">{sub.viewers.toLocaleString()} watching</p>
-                                                <div className="flex flex-wrap gap-x-2 mt-1">
-                                                     <Badge variant="secondary" className="text-xs">{sub.categoryName}</Badge>
-                                                </div>
                                             </div>
                                         </Link>
                                     ))}
