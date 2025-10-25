@@ -135,7 +135,7 @@ export function SimilarProductsOverlay({
                             <div className="flex-1 overflow-hidden">
                                 <p className="font-semibold text-sm leading-tight group-hover:underline truncate">{s.title || s.name}</p>
                                 <p className="text-xs text-muted-foreground">{s.name}</p>
-                                <p className="text-xs text-primary font-semibold mt-0.5">#{s.category.toLowerCase().replace(/\s+/g, '')}</p>
+                                <p className="text-xs text-primary font-semibold mt-0.5">{s.category}</p>
                             </div>
                         </div>
                     </Link>

@@ -1784,20 +1784,18 @@ const ChatPanel = ({
                 />
                 <Popover>
                     <PopoverTrigger asChild>
-                         <Button variant="ghost" size="icon" type="button" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full text-muted-foreground hover:text-foreground">
-                            <Smile className="h-5 w-5" />
+                         <Button variant="ghost" size="icon" type="button" className="absolute right-1 top-1.5 h-8 w-8 rounded-full">
+                            <Smile className="h-5 w-5 text-muted-foreground" />
                         </Button>
                     </PopoverTrigger>
                      <PopoverContent className="w-80 h-64 mb-2">
-                        <ScrollArea className="h-full">
-                            <div className="grid grid-cols-8 gap-1">
-                                {emojis.map((emoji, index) => (
-                                    <Button key={index} variant="ghost" size="icon" onClick={() => addEmoji(emoji)}>
-                                        {emoji}
-                                    </Button>
-                                ))}
-                            </div>
-                        </ScrollArea>
+                       <div className="grid grid-cols-8 gap-1 h-full overflow-y-auto no-scrollbar">
+                            {emojis.map((emoji, index) => (
+                                <Button key={index} variant="ghost" size="icon" onClick={() => addEmoji(emoji)}>
+                                    {emoji}
+                                </Button>
+                            ))}
+                       </div>
                      </PopoverContent>
                 </Popover>
              </div>
