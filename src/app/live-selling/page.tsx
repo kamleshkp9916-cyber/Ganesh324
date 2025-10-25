@@ -841,7 +841,7 @@ export default function LiveSellingPage() {
                                                     </Link>
                                                 ))}
                                                 {remainingCount > 0 && (
-                                                     <Sheet onOpenChange={(open) => setIsProductOverlayOpen(open)}>
+                                                     <Sheet>
                                                         <SheetTrigger asChild>
                                                             <button className="w-10 h-10 bg-muted rounded-md border flex items-center justify-center text-xs font-semibold text-muted-foreground hover:bg-secondary">
                                                                 +{remainingCount}
@@ -853,7 +853,10 @@ export default function LiveSellingPage() {
                                                                 handleAddToCart={handleAddToCart}
                                                                 handleBuyNow={handleBuyNow}
                                                                 isMobile={true}
-                                                                onClose={() => setIsProductOverlayOpen(false)}
+                                                                onClose={() => {
+                                                                    const a = document.querySelector('[data-state="closed"]');
+                                                                    if (a) (a as HTMLElement).click();
+                                                                }}
                                                                 toast={toast}
                                                             />
                                                         </SheetContent>
