@@ -800,7 +800,9 @@ export default function LiveSellingPage() {
                             </TabsList>
                             <TabsContent value="recommended" className="mt-4">
                                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                                    {topLiveStreams.map((seller) => (
+                                    {topLiveStreams.map((seller) => {
+                                        const product = productDetails[seller.productId as keyof typeof productDetails];
+                                        return (
                                         <Collapsible key={seller.id} asChild>
                                             <div className="group block">
                                                 <Link href={`/stream/${seller.id}`}>
@@ -825,7 +827,10 @@ export default function LiveSellingPage() {
                                                             {seller.title || seller.name}
                                                         </Link>
                                                         <p className="text-xs text-muted-foreground truncate">{seller.name}</p>
-                                                        <p className="text-xs text-primary font-semibold mt-0.5">#{seller.category.toLowerCase().replace(/\s+/g, '')}</p>
+                                                        <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5">
+                                                            {product?.subcategory && <span className="font-medium text-foreground">{product.subcategory}</span>}
+                                                            <p className="text-primary font-semibold">#{seller.category.toLowerCase().replace(/\s+/g, '')}</p>
+                                                        </div>
                                                     </div>
                                                      <CollapsibleTrigger asChild>
                                                         <Button variant="ghost" size="icon" className="h-7 w-7 flex-shrink-0 -mr-2 text-muted-foreground hover:text-primary">
@@ -875,7 +880,7 @@ export default function LiveSellingPage() {
                                                 </CollapsibleContent>
                                             </div>
                                         </Collapsible>
-                                    ))}
+                                    )})}
                                 </div>
                             </TabsContent>
                              <TabsContent value="browse" className="mt-4">
@@ -896,7 +901,7 @@ export default function LiveSellingPage() {
                                             <div>
                                                 <p className="font-semibold text-sm truncate group-hover:text-primary">{sub.name}</p>
                                                 <p className="text-xs text-muted-foreground">{sub.viewers.toLocaleString()} watching</p>
-                                                <div className="flex flex-wrap gap-1 mt-1">
+                                                <div className="flex flex-wrap gap-x-2 mt-1">
                                                     <Badge variant="secondary" className="text-xs">#{sub.categoryName.toLowerCase()}</Badge>
                                                     <Badge variant="secondary" className="text-xs">#{sub.tags[0].toLowerCase()}</Badge>
                                                 </div>
