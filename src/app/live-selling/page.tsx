@@ -809,9 +809,9 @@ export default function LiveSellingPage() {
                                  <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
                                     {topLiveStreams.map((seller) => {
                                         const sellerProducts = getProductsForSeller(seller.id);
-                                        const productsToShow = sellerProducts.slice(0, 6);
-                                        const hasMoreProducts = sellerProducts.length > 6;
-                                        const remainingCount = sellerProducts.length - 6;
+                                        const productsToShow = sellerProducts.slice(0, 5);
+                                        const hasMoreProducts = sellerProducts.length > 5;
+                                        const remainingCount = sellerProducts.length - 5;
 
                                         return (
                                         <Card key={seller.id} className="group flex flex-col space-y-2 overflow-hidden border-none shadow-none bg-transparent">
@@ -831,7 +831,6 @@ export default function LiveSellingPage() {
                                                         </Avatar>
                                                         <div className="flex-1 overflow-hidden">
                                                             <p className="font-semibold text-sm leading-tight group-hover:underline truncate">{seller.title || seller.name}</p>
-                                                            <p className="text-xs text-muted-foreground">{seller.name}</p>
                                                             <p className="text-xs mt-0.5">
                                                                 <span className="text-muted-foreground">{seller.subcategory}</span> <span className="text-primary font-semibold">#{seller.category.toLowerCase().replace(/\s+/g, '')}</span>
                                                             </p>
@@ -839,7 +838,7 @@ export default function LiveSellingPage() {
                                                     </div>
                                                 </Link>
                                                 <div className="flex items-center gap-1.5 mt-auto flex-shrink-0 pt-2 w-full justify-start pb-2">
-                                                    {productsToShow.slice(0, 5).map((p) => (
+                                                    {productsToShow.map((p) => (
                                                         <Link href={`/product/${p.key}`} key={p.key} className="block" onClick={(e) => e.stopPropagation()}>
                                                             <div className="w-10 h-10 bg-muted rounded-md border overflow-hidden hover:ring-2 hover:ring-primary">
                                                                 <Image src={p.images[0]?.preview || p.images[0]} alt={p.name} width={40} height={40} className="object-cover" />
