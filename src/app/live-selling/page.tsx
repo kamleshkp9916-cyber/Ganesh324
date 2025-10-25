@@ -816,7 +816,7 @@ export default function LiveSellingPage() {
                                         return (
                                         <Card key={seller.id} className="group flex flex-col space-y-2 overflow-hidden border-none shadow-none bg-transparent">
                                             <Link href={`/stream/${seller.id}`} className="block">
-                                                <div className="relative rounded-lg overflow-hidden aspect-[3/4] bg-muted w-full">
+                                                <div className="relative rounded-lg overflow-hidden aspect-video bg-muted w-full">
                                                     <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
                                                     <div className="absolute top-2 right-2 z-10"><Badge variant="secondary" className="bg-black/50 text-white"><Users className="w-3 h-3 mr-1"/>{seller.viewers.toLocaleString()}</Badge></div>
                                                     <Image src={seller.thumbnailUrl} alt={`Live stream from ${seller.name}`} fill sizes="(max-width: 640px) 100vw, 33vw" className="object-cover w-full h-full transition-transform group-hover:scale-105" />
@@ -828,7 +828,7 @@ export default function LiveSellingPage() {
                                                     </Avatar>
                                                     <div className="flex-1 overflow-hidden">
                                                         <p className="font-semibold text-sm leading-tight group-hover:underline truncate">{seller.title || seller.name}</p>
-                                                        <p className="text-xs text-primary font-semibold mt-0.5">{seller.category}</p>
+                                                        <p className="text-xs text-muted-foreground">{seller.category}</p>
                                                     </div>
                                                 </div>
                                             </Link>
