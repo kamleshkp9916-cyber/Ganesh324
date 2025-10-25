@@ -809,9 +809,9 @@ export default function LiveSellingPage() {
                                  <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
                                     {topLiveStreams.map((seller) => {
                                         const sellerProducts = getProductsForSeller(seller.id);
-                                        const productsToShow = sellerProducts.slice(0, 3);
-                                        const fourthProduct = sellerProducts.length >= 4 ? sellerProducts[3] : null;
-                                        const remainingCount = sellerProducts.length - 4;
+                                        const productsToShow = sellerProducts.slice(0, 5);
+                                        const hasMoreProducts = sellerProducts.length > 5;
+                                        const remainingCount = sellerProducts.length - 5;
 
                                         return (
                                         <Card key={seller.id} className="group flex flex-col space-y-2 overflow-hidden border-none shadow-none bg-transparent">
@@ -838,22 +838,15 @@ export default function LiveSellingPage() {
                                                         </div>
                                                     </div>
                                                 </Link>
-                                                 <div className="flex items-center gap-1.5 mt-auto flex-shrink-0 pt-2 w-full justify-start">
+                                                <div className="flex items-center gap-1.5 mt-auto flex-shrink-0 pt-2 w-full justify-start">
                                                     {productsToShow.map((p) => (
                                                         <Link href={`/product/${p.key}`} key={p.key} className="block" onClick={(e) => e.stopPropagation()}>
                                                             <div className="w-10 h-10 bg-muted rounded-md border overflow-hidden hover:ring-2 hover:ring-primary">
-                                                                <Image src={p.images[0]} alt={p.name} width={40} height={40} className="object-cover" />
+                                                                <Image src={p.images[0]?.preview || p.images[0]} alt={p.name} width={40} height={40} className="object-cover" />
                                                             </div>
                                                         </Link>
                                                     ))}
-                                                     {fourthProduct && (
-                                                        <Link href={`/product/${fourthProduct.key}`} className="block" onClick={(e) => e.stopPropagation()}>
-                                                            <div className="w-10 h-10 bg-muted rounded-md border overflow-hidden hover:ring-2 hover:ring-primary">
-                                                                <Image src={fourthProduct.images[0]} alt={fourthProduct.name} width={40} height={40} className="object-cover" />
-                                                            </div>
-                                                        </Link>
-                                                    )}
-                                                    {remainingCount > 0 && (
+                                                    {hasMoreProducts && (
                                                         <button className="w-10 h-10 bg-muted rounded-md border flex items-center justify-center text-xs font-semibold text-muted-foreground hover:bg-secondary" onClick={(e) => handleShowMoreProducts(e, seller)}>
                                                             +{remainingCount}
                                                         </button>
@@ -933,7 +926,7 @@ export default function LiveSellingPage() {
                                 <Card className="w-full group overflow-hidden h-full flex flex-col">
                                     <div className="aspect-square bg-muted rounded-t-lg overflow-hidden relative">
                                         <Image
-                                            src={product.images?.[0] || "https://placehold.co/200x200.png"}
+                                            src={product.images?.[0]?.preview || product.images?.[0] || "https://placehold.co/200x200.png"}
                                             alt={product.name}
                                             fill
                                             className="object-cover w-full h-full group-hover:scale-105 transition-transform"
@@ -941,7 +934,7 @@ export default function LiveSellingPage() {
                                     </div>
                                     <div className="p-2">
                                         <h4 className="font-semibold truncate text-xs">{product.name}</h4>
-                                        <p className="font-bold text-foreground text-sm">{product.price}</p>
+                                        <p className="font-bold text-foreground text-sm">{product.price.toLocaleString()}</p>
                                     </div>
                                 </Card>
                             </Link>
