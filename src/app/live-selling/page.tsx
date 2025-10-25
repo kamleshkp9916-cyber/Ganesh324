@@ -828,7 +828,7 @@ export default function LiveSellingPage() {
                                                     </Avatar>
                                                     <div className="flex-1 overflow-hidden">
                                                         <p className="font-semibold text-sm leading-tight group-hover:underline truncate">{seller.title || seller.name}</p>
-                                                        <p className="text-xs text-muted-foreground">{seller.category}</p>
+                                                        <p className="text-xs text-primary font-semibold mt-0.5">{seller.category}</p>
                                                     </div>
                                                 </div>
                                             </Link>
@@ -847,7 +847,7 @@ export default function LiveSellingPage() {
                                                                 +{remainingCount}
                                                             </button>
                                                         </SheetTrigger>
-                                                        <SheetContent side="bottom" className="h-full flex flex-col p-0" onClick={(e) => e.stopPropagation()}>
+                                                        <SheetContent side="bottom" className="h-[80vh] flex flex-col p-0">
                                                              <ProductShelfContent 
                                                                 sellerProducts={sellerProducts}
                                                                 handleAddToCart={handleAddToCart}
