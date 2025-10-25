@@ -124,9 +124,10 @@ import { useInView } from "react-intersection-observer";
 import { useMiniPlayer } from "@/context/MiniPlayerContext";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { useIsMobile } from "@/hooks/use-is-mobile";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { format, formatDistanceToNow, isThisWeek, isThisYear, parseISO, parse } from 'date-fns';
+import { ProductShelfContent } from '@/components/product-shelf-content';
 
 
 const emojis = [
@@ -307,72 +308,6 @@ const RatingDialog = ({ onRate, sellerName, initialRating }: { onRate: (rating: 
                 <Button onClick={() => onRate(rating)} disabled={rating === 0}>Submit Rating</Button>
             </DialogFooter>
         </DialogContent>
-    );
-};
-
-const ProductShelfContent = ({ sellerProducts, handleAddToCart, handleBuyNow, isMobile, onClose, toast }: { sellerProducts: any[], handleAddToCart: (product: any) => void, handleBuyNow: (product: any) => void, isMobile: boolean, onClose: () => void, toast: any }) => {
-    return (
-        <>
-            {isMobile && (
-                <SheetHeader className="p-4 border-b">
-                    <SheetTitle>Products in this Stream</SheetTitle>
-                </SheetHeader>
-            )}
-             <ScrollArea className={cn("h-full", isMobile && "no-scrollbar")}>
-                <div className={cn("p-4", isMobile ? "grid grid-cols-2 gap-4" : "flex gap-4")}>
-                    {sellerProducts.length > 0 ? (
-                        sellerProducts.map((product: any, index: number) => (
-                            <Card key={index} className="w-full overflow-hidden h-full flex flex-col flex-shrink-0 first:ml-0.5 last:mr-0.5" style={{width: isMobile ? 'auto': '160px'}}>
-                                <Link href={`/product/${product.key}`} className="group block">
-                                    <div className="relative aspect-square bg-muted">
-                                        <Image
-                                            src={product.images[0]?.preview || product.images[0]}
-                                            alt={product.name}
-                                            fill
-                                            sizes="50vw"
-                                            className="object-cover transition-transform group-hover:scale-105"
-                                        />
-                                        <div className="absolute bottom-2 right-2">
-                                            <Button size="icon" className="h-8 w-8 rounded-full bg-black/50 text-white backdrop-blur-sm">
-                                                <Sparkles className="h-4 w-4" />
-                                            </Button>
-                                        </div>
-                                        {product.stock === 0 && (
-                                            <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                                                <Badge variant="destructive">Out of Stock</Badge>
-                                            </div>
-                                        )}
-                                    </div>
-                                </Link>
-                                <div className="p-2 flex-grow flex flex-col">
-                                    <Link href={`/product/${product.key}`} className="group block">
-                                        <h4 className="font-semibold truncate text-xs group-hover:underline">{product.name}</h4>
-                                        <p className="font-bold text-sm">{product.price}</p>
-                                    </Link>
-                                    <div className="flex items-center justify-between text-xs text-muted-foreground mt-2">
-                                        <div className="flex items-center gap-1 cursor-pointer hover:text-primary"><Package className="h-3 w-3" /> {product.stock} left</div>
-                                        <div className="flex items-center gap-1 cursor-pointer hover:text-primary"><Users className="h-3 w-3" /> {product.sold} sold</div>
-                                        <div className="flex items-center gap-1 cursor-pointer hover:text-primary"><Star className="h-3 w-3" /> {product.reviews}</div>
-                                    </div>
-                                </div>
-                                <CardFooter className="p-2 grid grid-cols-1 gap-2">
-                                    {product.stock > 0 ? (
-                                        <>
-                                            <Button variant="outline" size="sm" className="w-full text-xs h-8" onClick={() => { handleAddToCart(product); onClose(); }}><ShoppingCart className="mr-1 h-3 w-3" /> Cart</Button>
-                                            <Button size="sm" className="w-full text-xs h-8" onClick={() => { handleBuyNow(product); onClose(); }}>Buy Now</Button>
-                                        </>
-                                    ) : (
-                                        <Button size="sm" className="w-full text-xs h-8" onClick={() => { toast({ title: "We'll let you know!", description: `You will be notified when ${product.name} is back in stock.`}); onClose(); }}>Notify Me</Button>
-                                    )}
-                                </CardFooter>
-                            </Card>
-                        ))
-                    ) : (
-                        <div className="col-span-full text-center text-muted-foreground py-10 w-full">No products to show.</div>
-                    )}
-                </div>
-            </ScrollArea>
-        </>
     );
 };
 
@@ -1187,7 +1122,7 @@ const StreamPage = () => {
         return (
             <div className="flex flex-col h-screen items-center justify-center bg-background">
                 <div className="w-full max-w-4xl">
-                    <Skeleton className="w-full aspect-video" />
+                    <Skeleton className="w-full aspect-[3/4]" />
                     <div className="p-4 space-y-3">
                         <Skeleton className="h-8 w-3/4" />
                         <Skeleton className="h-6 w-1/2" />
@@ -1294,7 +1229,7 @@ return (
     </header>
     <div className="flex-1 grid grid-cols-[1fr,384px] overflow-hidden">
         <main className="flex-1 overflow-y-auto no-scrollbar" ref={props.mainScrollRef} onScroll={props.handleMainScroll}>
-            <div className="w-full aspect-video bg-black relative" ref={props.playerRef}>
+            <div className="w-full aspect-[3/4] bg-black relative" ref={props.playerRef}>
                 <video ref={props.videoRef} src={props.streamData.streamUrl || "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"} className="w-full h-full object-cover" loop />
                  <div className="absolute top-3 left-3 z-10 flex items-center gap-2">
                     <Badge variant={props.isPastStream ? 'outline' : 'destructive'} className={cn(props.isPastStream && 'bg-black/50 text-white border-white/30', "gap-1.5")}>
@@ -1413,7 +1348,7 @@ const MobileLayout = React.memo(({ handlers, chatMessages, walletBalance, isPast
                 </div>
             </header>
 
-            <div className="w-full aspect-video bg-black relative flex-shrink-0" ref={props.playerRef}>
+            <div className="w-full aspect-[3/4] bg-black relative flex-shrink-0" ref={props.playerRef}>
                 <video ref={props.videoRef} src={props.streamData.streamUrl || "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"} className="w-full h-full object-cover" loop onClick={handlePlayPause}/>
                  <div className="absolute top-3 left-3 z-10 flex items-center gap-2">
                     <Badge variant={isPastStream ? 'outline' : 'destructive'} className={cn(isPastStream && 'bg-black/50 text-white border-white/30', "gap-1.5")}>
@@ -1878,5 +1813,3 @@ const ChatPanel = ({
 };
 
 export default StreamPage;
-
-    
