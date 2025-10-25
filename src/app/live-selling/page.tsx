@@ -117,7 +117,7 @@ import { Separator } from '@/components/ui/separator';
 import { ProductSearchWithStreams } from '@/components/ProductSearchWithStreams';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
-import { useIsMobile } from '@/hooks/use-mobile';
+import { useIsMobile } from '@/hooks/use-is-mobile';
 import { useLocalStorage } from '@/hooks/use-local-storage';
 import { CATEGORY_BANNERS_KEY, CategoryBanners } from '@/app/admin/settings/page';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
@@ -216,7 +216,7 @@ const CategoryGrid = () => {
         }, {});
 
         const sortedCategories = Object.entries(categoryCounts)
-            .sort(([, countA], [, countB]) => countB - countA)
+            .sort(([, countA], [, countB]) => countB - a[countA])
             .slice(0, 7)
             .map(([category]) => category);
         
@@ -368,7 +368,7 @@ export default function LiveSellingPage() {
         category.subcategories.map(subcategory => ({
             ...subcategory,
             categoryName: category.name,
-            imageUrl: `https://picsum.photos/seed/${subcategory.name.toLowerCase().replace(/ /g, '-')}/300/400`,
+            imageUrl: `https://picsum.photos/seed/${subcategory.name.toLowerCase().replace(/ /g, '-').replace(/&/g, '%26')}/300/400`,
             tags: [subcategory.name.split(' ')[0]],
             viewers: Math.floor(Math.random() * 50000) + 1000
         }))
@@ -401,6 +401,7 @@ export default function LiveSellingPage() {
                     avatarUrl: liveStreamData.seller.photoURL || 'https://placehold.co/40x40.png',
                     thumbnailUrl: liveStreamData.product?.image?.preview || 'https://picsum.photos/seed/new-stream/300/450',
                     category: liveStreamData.product?.category || 'General',
+                    subcategory: liveStreamData.product?.subcategory || '',
                     viewers: Math.floor(Math.random() * 5000),
                     buyers: Math.floor(Math.random() * 100),
                     rating: 4.5,
@@ -569,7 +570,7 @@ export default function LiveSellingPage() {
         });
 
         const sortedCategories = Object.keys(categoryCounts)
-            .sort((a, b) => categoryCounts[b] - categoryCounts[a])
+            .sort((a, b) => categoryCounts[b] - a[countA])
             .slice(0, 4); // Limit to top 4 for example
 
         return sortedCategories.map(category => ({
@@ -815,8 +816,6 @@ export default function LiveSellingPage() {
                                                     <div className="absolute top-2 right-2 z-10"><Badge variant="secondary" className="bg-black/50 text-white"><Users className="w-3 h-3 mr-1"/>{seller.viewers.toLocaleString()}</Badge></div>
                                                     <Image src={seller.thumbnailUrl} alt={`Live stream from ${'${seller.name}'}`} fill sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw" className="object-cover w-full h-full transition-transform group-hover:scale-105" />
                                                 </div>
-                                            </Link>
-                                            <div className="flex-grow flex flex-col">
                                                 <div className="flex items-start gap-2 mt-2">
                                                     <Avatar className="w-8 h-8">
                                                         <AvatarImage src={seller.avatarUrl} alt={seller.name} />
@@ -825,25 +824,27 @@ export default function LiveSellingPage() {
                                                     <div className="flex-1 overflow-hidden">
                                                         <p className="font-semibold text-sm leading-tight group-hover:underline truncate">{seller.title || seller.name}</p>
                                                         <p className="text-xs text-muted-foreground">{seller.name}</p>
-                                                        <p className="text-xs mt-0.5">
+                                                         <p className="text-xs mt-0.5">
                                                             <span className="text-muted-foreground">{seller.subcategory}</span> <span className="text-primary font-semibold">#{seller.category.toLowerCase().replace(/\s+/g, '')}</span>
                                                         </p>
                                                     </div>
                                                 </div>
-                                            </div>
-                                             <div className="flex items-center gap-1.5 mt-auto flex-shrink-0">
-                                                {getProductsForSeller(seller.id).slice(0, 3).map(p => (
-                                                <Link href={`/product/${p.key}`} key={p.key} className="block" onClick={(e) => e.stopPropagation()}>
-                                                    <div className="w-10 h-10 bg-muted rounded-md border overflow-hidden">
-                                                        <Image src={p.images[0]} alt={p.name} width={40} height={40} className="object-cover" />
-                                                    </div>
-                                                </Link>
-                                                ))}
-                                                {getProductsForSeller(seller.id).length > 3 && (
-                                                <button onClick={(e) => handleShowMoreProducts(e, seller)} className="w-10 h-10 bg-muted rounded-md border flex items-center justify-center text-xs font-semibold text-muted-foreground hover:bg-secondary">
-                                                    +{getProductsForSeller(seller.id).length - 3}
-                                                </button>
-                                                )}
+                                            </Link>
+                                             <div className="mt-auto flex-shrink-0 pt-2">
+                                                <div className="flex items-center gap-1.5">
+                                                    {getProductsForSeller(seller.id).slice(0, 3).map(p => (
+                                                    <Link href={`/product/${p.key}`} key={p.key} className="block" onClick={(e) => e.stopPropagation()}>
+                                                        <div className="w-10 h-10 bg-muted rounded-md border overflow-hidden hover:ring-2 hover:ring-primary">
+                                                            <Image src={p.images[0]} alt={p.name} width={40} height={40} className="object-cover" />
+                                                        </div>
+                                                    </Link>
+                                                    ))}
+                                                    {getProductsForSeller(seller.id).length > 3 && (
+                                                    <button onClick={(e) => handleShowMoreProducts(e, seller)} className="w-10 h-10 bg-muted rounded-md border flex items-center justify-center text-xs font-semibold text-muted-foreground hover:bg-secondary">
+                                                        +{getProductsForSeller(seller.id).length - 3}
+                                                    </button>
+                                                    )}
+                                                </div>
                                             </div>
                                         </Card>
                                         )
@@ -853,7 +854,7 @@ export default function LiveSellingPage() {
                              <TabsContent value="browse" className="mt-4">
                                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
                                     {allSubcategories.map((sub, index) => (
-                                        <Link href={`/${'${sub.categoryName.toLowerCase()}'}/${sub.name.toLowerCase().replace(/ /g, '-').replace(/&/g, '%26')}`} key={index} className="group block space-y-2">
+                                        <Link href={`/${sub.categoryName.toLowerCase()}/${sub.name.toLowerCase().replace(/ /g, '-').replace(/&/g, '%26')}`} key={index} className="group block space-y-2">
                                             <Card className="overflow-hidden">
                                                 <div className="aspect-[3/4] bg-muted relative">
                                                     <Image
@@ -912,7 +913,7 @@ export default function LiveSellingPage() {
                     </Button>
                 </div>
                 <ScrollArea className="flex-grow">
-                    <div className="p-4 grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-8 xl:grid-cols-10 gap-2 sm:gap-3">
+                    <div className="p-4 grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-2 sm:gap-3">
                         {overlayProducts.map(product => (
                             <Link href={`/product/${product.key}`} key={product.id} className="group block" onClick={() => setIsProductOverlayOpen(false)}>
                                 <Card className="w-full group overflow-hidden h-full flex flex-col">
