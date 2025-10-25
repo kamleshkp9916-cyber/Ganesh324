@@ -243,7 +243,7 @@ const CategoryGrid = () => {
         };
 
         return sortedCategories.map((category, index) => {
-            const data = categoryDataMap[category] || { product: category.toUpperCase(), image: `https://picsum.photos/seed/${category.toLowerCase()}/800/800`, hint: category.toLowerCase() };
+            const data = categoryDataMap[category] || { product: category.toUpperCase(), image: `https://picsum.photos/seed/${'${category.toLowerCase()}'}/800/800`, hint: category.toLowerCase() };
             return {
                 category,
                 ...data,
@@ -523,7 +523,7 @@ export default function LiveSellingPage() {
 
     const db = getFirestoreDb();
     const postRef = doc(db, 'posts', postId);
-    const likeRef = doc(db, `posts/${postId}/likes`, user!.uid);
+    const likeRef = doc(db, `posts/${'${postId}'}/likes`, user!.uid);
 
     try {
         await runTransaction(db, async (transaction) => {
@@ -805,7 +805,7 @@ export default function LiveSellingPage() {
                                             <div className="relative rounded-lg overflow-hidden aspect-video bg-muted w-full">
                                                 <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
                                                 <div className="absolute top-2 right-2 z-10"><Badge variant="secondary" className="bg-black/50 text-white"><Users className="w-3 h-3 mr-1"/>{seller.viewers.toLocaleString()}</Badge></div>
-                                                <Image src={seller.thumbnailUrl} alt={`Live stream from ${seller.name}`} fill sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw" className="object-cover w-full h-full transition-transform group-hover:scale-105" />
+                                                <Image src={seller.thumbnailUrl} alt={`Live stream from ${'${seller.name}'}`} fill sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw" className="object-cover w-full h-full transition-transform group-hover:scale-105" />
                                             </div>
                                             <div className="flex items-start gap-2 mt-2">
                                                 <Avatar className="w-8 h-8">
@@ -815,7 +815,7 @@ export default function LiveSellingPage() {
                                                 <div className="flex-1 overflow-hidden">
                                                     <p className="font-semibold text-sm leading-tight group-hover:underline truncate">{seller.title || seller.name}</p>
                                                     <p className="text-xs text-muted-foreground">{seller.name}</p>
-                                                    <p className="text-xs text-primary font-semibold mt-0.5">{seller.subcategory} <span className="text-muted-foreground font-normal">#{seller.category.toLowerCase().replace(/\s+/g, '')}</span></p>
+                                                    <p className="text-xs text-muted-foreground mt-0.5">{seller.subcategory} <span className="text-primary font-semibold">#{seller.category.toLowerCase().replace(/\s+/g, '')}</span></p>
                                                 </div>
                                             </div>
                                         </Link>
@@ -823,7 +823,7 @@ export default function LiveSellingPage() {
                                 </div>
                             </TabsContent>
                              <TabsContent value="browse" className="mt-4">
-                                <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-4">
+                                <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-8 lg:grid-cols-8 xl:grid-cols-12 gap-4">
                                     {allSubcategories.map((sub, index) => (
                                         <Link href={`/${sub.categoryName.toLowerCase()}/${sub.name.toLowerCase().replace(/\s+/g, '-')}`} key={index} className="group block space-y-2">
                                             <Card className="overflow-hidden">
@@ -841,7 +841,7 @@ export default function LiveSellingPage() {
                                                 <p className="font-semibold text-sm truncate group-hover:text-primary">{sub.name}</p>
                                                 <p className="text-xs text-muted-foreground">{sub.viewers.toLocaleString()} watching</p>
                                                 <div className="flex flex-wrap gap-x-2 mt-1">
-                                                    <Badge variant="secondary" className="text-xs">{sub.categoryName}</Badge>
+                                                     <Badge variant="secondary" className="text-xs">{sub.categoryName}</Badge>
                                                 </div>
                                             </div>
                                         </Link>
