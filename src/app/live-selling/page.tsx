@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import Link from 'next/link';
@@ -808,16 +807,16 @@ export default function LiveSellingPage() {
                                 <TabsTrigger value="following">Following</TabsTrigger>
                             </TabsList>
                             <TabsContent value="recommended" className="mt-4">
-                                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6">
+                                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                                     {topLiveStreams.map((seller) => {
                                         const sellerProducts = getProductsForSeller(seller.id);
                                         const productsToShow = sellerProducts.slice(0, 6);
-                                        const remainingCount = sellerProducts.length > 6 ? sellerProducts.length - 5 : 0;
+                                        const remainingCount = sellerProducts.length > 5 ? sellerProducts.length - 5 : 0;
                                         
                                         return (
                                         <Card key={seller.id} className="group flex flex-col space-y-2 overflow-hidden border-none shadow-none bg-transparent">
                                             <Link href={`/stream/${seller.id}`} className="block">
-                                                <div className="relative rounded-lg overflow-hidden aspect-video bg-muted w-full">
+                                                <div className="relative rounded-lg overflow-hidden aspect-[16/9] bg-muted w-full">
                                                     <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
                                                     <div className="absolute top-2 right-2 z-10"><Badge variant="secondary" className="bg-black/50 text-white"><Users className="w-3 h-3 mr-1"/>{seller.viewers.toLocaleString()}</Badge></div>
                                                     <Image src={seller.thumbnailUrl} alt={`Live stream from ${seller.name}`} fill sizes="(max-width: 640px) 100vw, 33vw" className="object-cover w-full h-full transition-transform group-hover:scale-105" />
@@ -848,7 +847,7 @@ export default function LiveSellingPage() {
                                                                 +{remainingCount}
                                                             </button>
                                                         </SheetTrigger>
-                                                        <SheetContent side="bottom" className="h-full max-h-[85vh] flex flex-col p-0" onClick={(e) => e.stopPropagation()}>
+                                                        <SheetContent side="bottom" className="h-[60vh] flex flex-col p-0" onClick={(e) => e.stopPropagation()}>
                                                              <ProductShelfContent 
                                                                 sellerProducts={sellerProducts}
                                                                 handleAddToCart={handleAddToCart}
@@ -958,4 +957,3 @@ export default function LiveSellingPage() {
     </>
   );
 }
-
