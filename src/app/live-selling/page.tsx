@@ -243,7 +243,7 @@ const CategoryGrid = () => {
         };
 
         return sortedCategories.map((category, index) => {
-            const data = categoryDataMap[category] || { product: category.toUpperCase(), image: `https://picsum.photos/seed/${'${category.toLowerCase()}'}/800/800`, hint: category.toLowerCase() };
+            const data = categoryDataMap[category] || { product: category.toUpperCase(), image: `https://picsum.photos/seed/${category.toLowerCase()}/800/800`, hint: category.toLowerCase() };
             return {
                 category,
                 ...data,
@@ -530,7 +530,7 @@ export default function LiveSellingPage() {
 
     const db = getFirestoreDb();
     const postRef = doc(db, 'posts', postId);
-    const likeRef = doc(db, `posts/${'${postId}'}/likes`, user!.uid);
+    const likeRef = doc(db, `posts/${postId}/likes`, user!.uid);
 
     try {
         await runTransaction(db, async (transaction) => {
@@ -555,7 +555,7 @@ export default function LiveSellingPage() {
     }
 };
 
-  const getCategoryUrl = (categoryName: string) => `/${'${categoryName.toLowerCase().replace(/\\s+/g, '-')}'}`;
+  const getCategoryUrl = (categoryName: string) => `/${categoryName.toLowerCase().replace(/\s+/g, '-')}`;
 
   const popularProducts = useMemo(() => {
     return Object.values(productDetails)
@@ -810,15 +810,15 @@ export default function LiveSellingPage() {
                                     {topLiveStreams.map((seller) => {
                                         return (
                                         <Card key={seller.id} className="group flex flex-col space-y-2 overflow-hidden border-none shadow-none bg-transparent">
-                                            <Link href={`/stream/${'${seller.id}'}`} className="block">
+                                            <Link href={`/stream/${seller.id}`} className="block">
                                                 <div className="relative rounded-lg overflow-hidden aspect-video bg-muted w-full">
                                                     <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
                                                     <div className="absolute top-2 right-2 z-10"><Badge variant="secondary" className="bg-black/50 text-white"><Users className="w-3 h-3 mr-1"/>{seller.viewers.toLocaleString()}</Badge></div>
-                                                    <Image src={seller.thumbnailUrl} alt={`Live stream from ${'${seller.name}'}`} fill sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw" className="object-cover w-full h-full transition-transform group-hover:scale-105" />
+                                                    <Image src={seller.thumbnailUrl} alt={`Live stream from ${seller.name}`} fill sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw" className="object-cover w-full h-full transition-transform group-hover:scale-105" />
                                                 </div>
                                             </Link>
                                             <div className="flex-grow flex flex-col">
-                                                <Link href={`/stream/${'${seller.id}'}`} className="block">
+                                                <Link href={`/stream/${seller.id}`} className="block">
                                                     <div className="flex items-start gap-2">
                                                         <Avatar className="w-8 h-8">
                                                             <AvatarImage src={seller.avatarUrl} alt={seller.name} />
@@ -833,9 +833,9 @@ export default function LiveSellingPage() {
                                                         </div>
                                                     </div>
                                                 </Link>
-                                                 <div className="flex items-center gap-1.5 mt-auto flex-shrink-0 pt-2 w-full justify-between">
+                                                 <div className="flex items-center gap-1.5 mt-auto flex-shrink-0 pt-2 w-full justify-start">
                                                     {getProductsForSeller(seller.id).slice(0, 4).map((p, index, arr) => {
-                                                        const remaining = getProductsForSeller(seller.id).length - 4;
+                                                        const remaining = getProductsForSeller(seller.id).length - arr.length;
                                                         if (index === 3 && remaining > 0) {
                                                             return (
                                                                 <button key="more" className="w-10 h-10 bg-muted rounded-md border flex items-center justify-center text-xs font-semibold text-muted-foreground hover:bg-secondary" onClick={(e) => handleShowMoreProducts(e, seller)}>
