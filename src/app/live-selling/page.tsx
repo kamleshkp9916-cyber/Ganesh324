@@ -243,7 +243,7 @@ const CategoryGrid = () => {
         };
 
         return sortedCategories.map((category, index) => {
-            const data = categoryDataMap[category] || { product: category.toUpperCase(), image: `https://picsum.photos/seed/${'${category.toLowerCase()}'}/800/800`, hint: category.toLowerCase() };
+            const data = categoryDataMap[category] || { product: category.toUpperCase(), image: `https://picsum.photos/seed/${category.toLowerCase()}/800/800`, hint: category.toLowerCase() };
             return {
                 category,
                 ...data,
@@ -354,9 +354,10 @@ export default function LiveSellingPage() {
     });
   };
 
-  const handleShowMoreProducts = (e: React.MouseEvent, products: any[], seller: any) => {
+  const handleShowMoreProducts = (e: React.MouseEvent, seller: any) => {
     e.preventDefault();
     e.stopPropagation();
+    const products = getProductsForSeller(seller.id);
     setOverlayProducts(products);
     setOverlaySeller(seller);
     setIsProductOverlayOpen(true);
@@ -806,7 +807,6 @@ export default function LiveSellingPage() {
                             <TabsContent value="recommended" className="mt-4">
                                  <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
                                     {topLiveStreams.map((seller) => {
-                                        const sellerProducts = getProductsForSeller(seller.id);
                                         return (
                                         <Card key={seller.id} className="group flex flex-col space-y-2 overflow-hidden border-none shadow-none bg-transparent">
                                             <Link href={`/stream/${seller.id}`} className="block">
@@ -815,6 +815,8 @@ export default function LiveSellingPage() {
                                                     <div className="absolute top-2 right-2 z-10"><Badge variant="secondary" className="bg-black/50 text-white"><Users className="w-3 h-3 mr-1"/>{seller.viewers.toLocaleString()}</Badge></div>
                                                     <Image src={seller.thumbnailUrl} alt={`Live stream from ${'${seller.name}'}`} fill sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw" className="object-cover w-full h-full transition-transform group-hover:scale-105" />
                                                 </div>
+                                            </Link>
+                                            <div className="flex-grow flex flex-col">
                                                 <div className="flex items-start gap-2 mt-2">
                                                     <Avatar className="w-8 h-8">
                                                         <AvatarImage src={seller.avatarUrl} alt={seller.name} />
@@ -828,18 +830,18 @@ export default function LiveSellingPage() {
                                                         </p>
                                                     </div>
                                                 </div>
-                                            </Link>
+                                            </div>
                                             <div className="flex items-center gap-1.5 mt-auto flex-shrink-0">
-                                                {sellerProducts.slice(0, 3).map(p => (
+                                                {getProductsForSeller(seller.id).slice(0, 3).map(p => (
                                                 <Link key={p.key} href={`/product/${p.key}`} className="block">
                                                     <div className="w-10 h-10 bg-muted rounded-md border overflow-hidden">
                                                         <Image src={p.images[0]} alt={p.name} width={40} height={40} className="object-cover" />
                                                     </div>
                                                 </Link>
                                                 ))}
-                                                {sellerProducts.length > 3 && (
-                                                <button onClick={(e) => handleShowMoreProducts(e, sellerProducts, seller)} className="w-10 h-10 bg-muted rounded-md border flex items-center justify-center text-xs font-semibold text-muted-foreground hover:bg-secondary">
-                                                    +{sellerProducts.length - 3}
+                                                {getProductsForSeller(seller.id).length > 3 && (
+                                                <button onClick={(e) => handleShowMoreProducts(e, seller)} className="w-10 h-10 bg-muted rounded-md border flex items-center justify-center text-xs font-semibold text-muted-foreground hover:bg-secondary">
+                                                    +{getProductsForSeller(seller.id).length - 3}
                                                 </button>
                                                 )}
                                             </div>
@@ -910,7 +912,7 @@ export default function LiveSellingPage() {
                     </Button>
                 </div>
                 <ScrollArea className="flex-grow">
-                    <div className="p-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                    <div className="p-4 grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 gap-2 sm:gap-3">
                         {overlayProducts.map(product => (
                             <Link href={`/product/${product.key}`} key={product.id} className="group block" onClick={() => setIsProductOverlayOpen(false)}>
                                 <Card className="w-full group overflow-hidden h-full flex flex-col">
@@ -922,9 +924,9 @@ export default function LiveSellingPage() {
                                             className="object-cover w-full h-full group-hover:scale-105 transition-transform"
                                         />
                                     </div>
-                                    <div className="p-3">
-                                        <h4 className="font-semibold truncate text-sm">{product.name}</h4>
-                                        <p className="font-bold text-foreground">{product.price}</p>
+                                    <div className="p-2">
+                                        <h4 className="font-semibold truncate text-xs">{product.name}</h4>
+                                        <p className="font-bold text-foreground text-sm">{product.price}</p>
                                     </div>
                                 </Card>
                             </Link>
