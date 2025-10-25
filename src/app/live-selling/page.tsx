@@ -134,7 +134,7 @@ const liveSellers = [
     { id: 'artisanalley-uid', name: 'ArtisanAlley', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://picsum.photos/seed/artisan-stream/300/450', category: 'Home', subcategory: 'Home Decor', viewers: 450, buyers: 8, rating: 5.0, reviews: 6, hint: 'pottery making', productId: 'prod_7', hasAuction: true, title: 'Live Pottery: Creating a Ceramic Piece' },
     { id: 'petpalace-uid', name: 'PetPalace', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://picsum.photos/seed/pet-stream/300/450', category: 'Home', subcategory: 'Pet Supplies', viewers: 1800, buyers: 50, rating: 4.8, reviews: 30, hint: 'playing with puppy', productId: 'prod_8', hasAuction: false, title: 'Q&A: All About Dog Nutrition' },
     { id: 'booknook-uid', name: 'BookNook', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://picsum.photos/seed/book-stream/300/450', category: 'Trending', subcategory: 'Books', viewers: 620, buyers: 12, rating: 4.9, reviews: 10, hint: 'reading book cozy', productId: 'prod_9', hasAuction: false, title: 'Live Reading: New Fantasy Novel' },
-    { id: 'gamerguild-uid', name: 'GamerGuild', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://picsum.photos/seed/gaming-stream/300/450', category: 'Electronics', subcategory: 'Video Games', viewers: 4200, buyers: 102, rating: 4.9, reviews: 80, hint: 'esports competition', productId: 'prod_10', hasAuction: true, title: 'Weekly Esports Tournament Finals' },
+    { id: 'gamerguild-uid', name: 'GamerGuild', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://picsum.photos/seed/gaming-stream/300/450', category: 'Electronics', subcategory: 'Video Games', viewers: 4200, buyers: 102, rating: 4.9, reviews: 80, hint: 'esports competition', productId: 'prod_10', hasAuction: true },
 ];
 
 const reportReasons = [
@@ -335,6 +335,9 @@ export default function LiveSellingPage() {
   
   const [selectedBrowseCategory, setSelectedBrowseCategory] = useState<string | null>(null);
   const [selectedSubCategory, setSelectedSubCategory] = useState<string | null>(null);
+  const [isProductOverlayOpen, setIsProductOverlayOpen] = useState(false);
+  const [overlayProducts, setOverlayProducts] = useState<any[]>([]);
+  const [overlaySeller, setOverlaySeller] = useState<any | null>(null);
 
   const getProductsForSeller = (sellerId: string): any[] => {
     return Object.values(productDetails).filter(p => productToSellerMapping[p.key]?.uid === sellerId);
@@ -349,6 +352,14 @@ export default function LiveSellingPage() {
             description: `${product.name} has been added to your shopping cart.`
         });
     });
+  };
+
+  const handleShowMoreProducts = (e: React.MouseEvent, products: any[], seller: any) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setOverlayProducts(products);
+    setOverlaySeller(seller);
+    setIsProductOverlayOpen(true);
   };
 
   const allSubcategories = useMemo(() => {
@@ -798,7 +809,7 @@ export default function LiveSellingPage() {
                                         const sellerProducts = getProductsForSeller(seller.id);
                                         return (
                                         <Link href={`/stream/${seller.id}`} key={seller.id} className="group flex flex-col space-y-2">
-                                            <div className="relative rounded-lg overflow-hidden aspect-[16/9] bg-muted w-full">
+                                            <div className="relative rounded-lg overflow-hidden aspect-video bg-muted w-full">
                                                 <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
                                                 <div className="absolute top-2 right-2 z-10"><Badge variant="secondary" className="bg-black/50 text-white"><Users className="w-3 h-3 mr-1"/>{seller.viewers.toLocaleString()}</Badge></div>
                                                 <Image src={seller.thumbnailUrl} alt={`Live stream from ${seller.name}`} fill sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw" className="object-cover w-full h-full transition-transform group-hover:scale-105" />
@@ -811,8 +822,8 @@ export default function LiveSellingPage() {
                                                 <div className="flex-1 overflow-hidden">
                                                     <p className="font-semibold text-sm leading-tight group-hover:underline truncate">{seller.title || seller.name}</p>
                                                     <p className="text-xs text-muted-foreground">{seller.name}</p>
-                                                    <p className="text-xs text-muted-foreground mt-0.5">
-                                                        {seller.subcategory} <span className="text-primary font-semibold">#{seller.category.toLowerCase().replace(/\s+/g, '')}</span>
+                                                    <p className="text-xs mt-0.5">
+                                                      <span className="text-muted-foreground">{seller.subcategory}</span> <span className="text-primary font-semibold">#{seller.category.toLowerCase().replace(/\s+/g, '')}</span>
                                                     </p>
                                                 </div>
                                             </div>
@@ -823,9 +834,9 @@ export default function LiveSellingPage() {
                                                 </div>
                                                 ))}
                                                 {sellerProducts.length > 3 && (
-                                                <Link href={`/stream/${seller.id}`} className="w-10 h-10 bg-muted rounded-md border flex items-center justify-center text-xs font-semibold text-muted-foreground hover:bg-secondary">
+                                                <button onClick={(e) => handleShowMoreProducts(e, sellerProducts, seller)} className="w-10 h-10 bg-muted rounded-md border flex items-center justify-center text-xs font-semibold text-muted-foreground hover:bg-secondary">
                                                     +{sellerProducts.length - 3}
-                                                </Link>
+                                                </button>
                                                 )}
                                             </div>
                                         </Link>
@@ -834,7 +845,7 @@ export default function LiveSellingPage() {
                                 </div>
                             </TabsContent>
                              <TabsContent value="browse" className="mt-4">
-                                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-x-4 gap-y-6">
+                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
                                     {allSubcategories.map((sub, index) => (
                                         <Link href={`/${sub.categoryName.toLowerCase()}/${sub.name.toLowerCase().replace(/\s+/g, '-')}`} key={index} className="group block space-y-2">
                                             <Card className="overflow-hidden">
@@ -843,13 +854,20 @@ export default function LiveSellingPage() {
                                                         src={sub.imageUrl}
                                                         alt={sub.name}
                                                         fill
-                                                        sizes="(max-width: 640px) 33vw, (max-width: 1024px) 25vw, 10vw"
+                                                        sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 16vw"
                                                         className="object-cover group-hover:scale-105 transition-transform"
                                                     />
                                                 </div>
                                             </Card>
                                             <div>
                                                 <p className="font-semibold text-sm truncate group-hover:text-primary">{sub.name}</p>
+                                                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                                  <div className="flex items-center gap-1">
+                                                    <Users className="w-3 h-3" />
+                                                    {sub.viewers.toLocaleString()} watching
+                                                  </div>
+                                                  <Badge variant="outline">{sub.categoryName}</Badge>
+                                                </div>
                                             </div>
                                         </Link>
                                     ))}
@@ -869,6 +887,49 @@ export default function LiveSellingPage() {
           <Footer />
         </div>
       </div>
+      <AnimatePresence>
+        {isProductOverlayOpen && (
+            <motion.div
+                initial={{ y: '100%' }}
+                animate={{ y: 0 }}
+                exit={{ y: '100%' }}
+                transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                className="fixed inset-0 bg-background/80 backdrop-blur-md z-50 flex flex-col"
+            >
+                <div className="p-4 border-b flex items-center justify-between flex-shrink-0">
+                    <div>
+                        <h2 className="text-lg font-bold">Products by {overlaySeller?.name}</h2>
+                        <p className="text-sm text-muted-foreground">{overlayProducts.length} items</p>
+                    </div>
+                    <Button variant="ghost" size="icon" onClick={() => setIsProductOverlayOpen(false)}>
+                        <X className="h-5 w-5" />
+                    </Button>
+                </div>
+                <ScrollArea className="flex-grow">
+                    <div className="p-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                        {overlayProducts.map(product => (
+                            <Link href={`/product/${product.key}`} key={product.id} className="group block" onClick={() => setIsProductOverlayOpen(false)}>
+                                <Card className="w-full group overflow-hidden h-full flex flex-col">
+                                    <div className="aspect-square bg-muted rounded-t-lg overflow-hidden relative">
+                                        <Image
+                                            src={product.images?.[0] || "https://placehold.co/200x200.png"}
+                                            alt={product.name}
+                                            fill
+                                            className="object-cover w-full h-full group-hover:scale-105 transition-transform"
+                                        />
+                                    </div>
+                                    <div className="p-3">
+                                        <h4 className="font-semibold truncate text-sm">{product.name}</h4>
+                                        <p className="font-bold text-foreground">{product.price}</p>
+                                    </div>
+                                </Card>
+                            </Link>
+                        ))}
+                    </div>
+                </ScrollArea>
+            </motion.div>
+        )}
+      </AnimatePresence>
     </>
   );
 }
