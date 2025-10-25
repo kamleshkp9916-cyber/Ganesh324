@@ -808,6 +808,10 @@ export default function LiveSellingPage() {
                             <TabsContent value="recommended" className="mt-4">
                                  <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
                                     {topLiveStreams.map((seller) => {
+                                        const sellerProducts = getProductsForSeller(seller.id);
+                                        const productsToShow = sellerProducts.slice(0, 4);
+                                        const remainingCount = sellerProducts.length - productsToShow.length;
+
                                         return (
                                         <Card key={seller.id} className="group flex flex-col space-y-2 overflow-hidden border-none shadow-none bg-transparent">
                                             <Link href={`/stream/${seller.id}`} className="block">
@@ -834,12 +838,11 @@ export default function LiveSellingPage() {
                                                     </div>
                                                 </Link>
                                                  <div className="flex items-center gap-1.5 mt-auto flex-shrink-0 pt-2 w-full justify-start">
-                                                    {getProductsForSeller(seller.id).slice(0, 4).map((p, index, arr) => {
-                                                        const remaining = getProductsForSeller(seller.id).length - arr.length;
-                                                        if (index === 3 && remaining > 0) {
+                                                    {productsToShow.map((p, index) => {
+                                                        if (index === 3 && remainingCount > 0) {
                                                             return (
                                                                 <button key="more" className="w-10 h-10 bg-muted rounded-md border flex items-center justify-center text-xs font-semibold text-muted-foreground hover:bg-secondary" onClick={(e) => handleShowMoreProducts(e, seller)}>
-                                                                    +{remaining + 1}
+                                                                    +{remainingCount}
                                                                 </button>
                                                             )
                                                         }
