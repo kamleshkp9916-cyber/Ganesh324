@@ -837,17 +837,31 @@ export default function LiveSellingPage() {
                                                     </div>
                                                 </Link>
                                                 <div className="flex items-center gap-1.5 mt-auto flex-shrink-0 pt-2 w-full justify-start pb-2">
-                                                    {productsToShow.slice(0, 4).map((p, i) => (
+                                                    {productsToShow.slice(0, 5).map((p, i) => (
                                                         <Link href={`/product/${p.key}`} key={p.key} className="block" onClick={(e) => e.stopPropagation()}>
                                                             <div className="w-10 h-10 bg-muted rounded-md border overflow-hidden hover:ring-2 hover:ring-primary">
                                                                 <Image src={p.images[0]?.preview || p.images[0]} alt={p.name} width={40} height={40} className="object-cover" />
                                                             </div>
                                                         </Link>
                                                     ))}
-                                                    {sellerProducts.length > 4 && (
-                                                        <button className="w-10 h-10 bg-muted rounded-md border flex items-center justify-center text-xs font-semibold text-muted-foreground hover:bg-secondary" onClick={(e) => handleShowMoreProducts(e, seller)}>
-                                                            +{sellerProducts.length - 4}
-                                                        </button>
+                                                    {hasMoreProducts && (
+                                                        <Sheet>
+                                                            <SheetTrigger asChild>
+                                                                <button className="w-10 h-10 bg-muted rounded-md border flex items-center justify-center text-xs font-semibold text-muted-foreground hover:bg-secondary">
+                                                                    +{remainingCount}
+                                                                </button>
+                                                            </SheetTrigger>
+                                                            <SheetContent side="bottom" className="h-[60vh] flex flex-col p-0">
+                                                                <ProductShelfContent 
+                                                                    sellerProducts={sellerProducts}
+                                                                    handleAddToCart={handleAddToCart}
+                                                                    handleBuyNow={handleBuyNow}
+                                                                    isMobile={true}
+                                                                    onClose={() => {}}
+                                                                    toast={toast}
+                                                                />
+                                                            </SheetContent>
+                                                        </Sheet>
                                                     )}
                                                 </div>
                                             </div>
