@@ -115,7 +115,7 @@ import { PromotionalCarousel } from '@/components/promotional-carousel';
 import { categories } from '@/lib/categories';
 import { Separator } from '@/components/ui/separator';
 import { ProductSearchWithStreams } from '@/components/ProductSearchWithStreams';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useLocalStorage } from '@/hooks/use-local-storage';
@@ -134,7 +134,7 @@ const liveSellers = [
     { id: 'artisanalley-uid', name: 'ArtisanAlley', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://picsum.photos/seed/artisan-stream/300/450', category: 'Home', subcategory: 'Home Decor', viewers: 450, buyers: 8, rating: 5.0, reviews: 6, hint: 'pottery making', productId: 'prod_7', hasAuction: true, title: 'Live Pottery: Creating a Ceramic Piece' },
     { id: 'petpalace-uid', name: 'PetPalace', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://picsum.photos/seed/pet-stream/300/450', category: 'Home', subcategory: 'Pet Supplies', viewers: 1800, buyers: 50, rating: 4.8, reviews: 30, hint: 'playing with puppy', productId: 'prod_8', hasAuction: false, title: 'Q&A: All About Dog Nutrition' },
     { id: 'booknook-uid', name: 'BookNook', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://picsum.photos/seed/book-stream/300/450', category: 'Trending', subcategory: 'Books', viewers: 620, buyers: 12, rating: 4.9, reviews: 10, hint: 'reading book cozy', productId: 'prod_9', hasAuction: false, title: 'Live Reading: New Fantasy Novel' },
-    { id: 'gamerguild-uid', name: 'GamerGuild', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://picsum.photos/seed/gaming-stream/300/450', category: 'Electronics', subcategory: 'Video Games', viewers: 4200, buyers: 102, rating: 4.9, reviews: 80, hint: 'esports competition', productId: 'prod_10', hasAuction: true },
+    { id: 'gamerguild-uid', name: 'GamerGuild', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://picsum.photos/seed/gaming-stream/300/450', category: 'Electronics', subcategory: 'Video Games', viewers: 4200, buyers: 102, rating: 4.9, reviews: 80, hint: 'esports competition', productId: 'prod_10', hasAuction: true, title: 'Weekly Esports Tournament Finals' },
 ];
 
 const reportReasons = [
@@ -270,7 +270,7 @@ const CategoryGrid = () => {
 function LiveSellerSkeleton({key}: {key: React.Key}) {
     return (
         <div key={key} className="group relative rounded-lg overflow-hidden shadow-lg">
-            <Skeleton className="w-full aspect-[2/3]" />
+            <Skeleton className="w-full aspect-[16/9]" />
             <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/80 to-transparent">
                 <div className="flex items-center gap-2">
                     <Skeleton className="h-8 w-8 rounded-full" />
@@ -798,10 +798,10 @@ export default function LiveSellingPage() {
                                         const sellerProducts = getProductsForSeller(seller.id);
                                         return (
                                         <Link href={`/stream/${seller.id}`} key={seller.id} className="group flex flex-col space-y-2">
-                                            <div className="relative rounded-lg overflow-hidden aspect-video bg-muted w-full">
+                                            <div className="relative rounded-lg overflow-hidden aspect-[16/9] bg-muted w-full">
                                                 <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
                                                 <div className="absolute top-2 right-2 z-10"><Badge variant="secondary" className="bg-black/50 text-white"><Users className="w-3 h-3 mr-1"/>{seller.viewers.toLocaleString()}</Badge></div>
-                                                <Image src={seller.thumbnailUrl} alt={`Live stream from ${'${seller.name}'}`} fill sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw" className="object-cover w-full h-full transition-transform group-hover:scale-105" />
+                                                <Image src={seller.thumbnailUrl} alt={`Live stream from ${seller.name}`} fill sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw" className="object-cover w-full h-full transition-transform group-hover:scale-105" />
                                             </div>
                                             <div className="flex items-start gap-2 flex-grow">
                                                 <Avatar className="w-8 h-8">
@@ -816,20 +816,18 @@ export default function LiveSellingPage() {
                                                     </p>
                                                 </div>
                                             </div>
-                                             {sellerProducts.length > 0 && (
-                                                <div className="flex items-center gap-1.5 mt-auto flex-shrink-0">
-                                                    {sellerProducts.slice(0, 3).map(p => (
-                                                        <div key={p.key} className="w-10 h-10 bg-muted rounded-md border overflow-hidden">
-                                                            <Image src={p.images[0]} alt={p.name} width={40} height={40} className="object-cover" />
-                                                        </div>
-                                                    ))}
-                                                    {sellerProducts.length > 3 && (
-                                                        <div className="w-10 h-10 bg-muted rounded-md border flex items-center justify-center text-xs font-semibold text-muted-foreground">
-                                                            +{sellerProducts.length - 3}
-                                                        </div>
-                                                    )}
+                                            <div className="flex items-center gap-1.5 mt-auto flex-shrink-0">
+                                                {sellerProducts.slice(0, 3).map(p => (
+                                                <div key={p.key} className="w-10 h-10 bg-muted rounded-md border overflow-hidden">
+                                                    <Image src={p.images[0]} alt={p.name} width={40} height={40} className="object-cover" />
                                                 </div>
-                                            )}
+                                                ))}
+                                                {sellerProducts.length > 3 && (
+                                                <Link href={`/stream/${seller.id}`} className="w-10 h-10 bg-muted rounded-md border flex items-center justify-center text-xs font-semibold text-muted-foreground hover:bg-secondary">
+                                                    +{sellerProducts.length - 3}
+                                                </Link>
+                                                )}
+                                            </div>
                                         </Link>
                                         )
                                     })}
