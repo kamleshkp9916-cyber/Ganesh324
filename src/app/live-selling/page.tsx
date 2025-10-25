@@ -117,7 +117,7 @@ import { Separator } from '@/components/ui/separator';
 import { ProductSearchWithStreams } from '@/components/ProductSearchWithStreams';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
-import { useIsMobile } from '@/hooks/use-is-mobile';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { useLocalStorage } from '@/hooks/use-local-storage';
 import { CATEGORY_BANNERS_KEY, CategoryBanners } from '@/app/admin/settings/page';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
@@ -243,7 +243,7 @@ const CategoryGrid = () => {
         };
 
         return sortedCategories.map((category, index) => {
-            const data = categoryDataMap[category] || { product: category.toUpperCase(), image: `https://picsum.photos/seed/${category.toLowerCase()}/800/800`, hint: category.toLowerCase() };
+            const data = categoryDataMap[category] || { product: category.toUpperCase(), image: `https://picsum.photos/seed/${'${category.toLowerCase()}'}/800/800`, hint: category.toLowerCase() };
             return {
                 category,
                 ...data,
@@ -349,7 +349,7 @@ export default function LiveSellingPage() {
         setCartCount(getCart().reduce((sum, item) => sum + item.quantity, 0));
         toast({
             title: "Added to Cart!",
-            description: `${product.name} has been added to your shopping cart.`
+            description: `${'${product.name}'} has been added to your shopping cart.`
         });
     });
   };
@@ -810,40 +810,48 @@ export default function LiveSellingPage() {
                                     {topLiveStreams.map((seller) => {
                                         return (
                                         <Card key={seller.id} className="group flex flex-col space-y-2 overflow-hidden border-none shadow-none bg-transparent">
-                                            <Link href={`/stream/${seller.id}`} className="block">
+                                            <Link href={`/stream/${'${seller.id}'}`} className="block">
                                                 <div className="relative rounded-lg overflow-hidden aspect-video bg-muted w-full">
                                                     <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
                                                     <div className="absolute top-2 right-2 z-10"><Badge variant="secondary" className="bg-black/50 text-white"><Users className="w-3 h-3 mr-1"/>{seller.viewers.toLocaleString()}</Badge></div>
                                                     <Image src={seller.thumbnailUrl} alt={`Live stream from ${'${seller.name}'}`} fill sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw" className="object-cover w-full h-full transition-transform group-hover:scale-105" />
                                                 </div>
-                                                <div className="flex items-start gap-2 mt-2">
-                                                    <Avatar className="w-8 h-8">
-                                                        <AvatarImage src={seller.avatarUrl} alt={seller.name} />
-                                                        <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
-                                                    </Avatar>
-                                                    <div className="flex-1 overflow-hidden">
-                                                        <p className="font-semibold text-sm leading-tight group-hover:underline truncate">{seller.title || seller.name}</p>
-                                                        <p className="text-xs text-muted-foreground">{seller.name}</p>
-                                                         <p className="text-xs mt-0.5">
-                                                            <span className="text-muted-foreground">{seller.subcategory}</span> <span className="text-primary font-semibold">#{seller.category.toLowerCase().replace(/\s+/g, '')}</span>
-                                                        </p>
-                                                    </div>
-                                                </div>
                                             </Link>
-                                             <div className="mt-auto flex-shrink-0 pt-2">
-                                                <div className="flex items-center gap-1.5">
-                                                    {getProductsForSeller(seller.id).slice(0, 3).map(p => (
-                                                    <Link href={`/product/${p.key}`} key={p.key} className="block" onClick={(e) => e.stopPropagation()}>
-                                                        <div className="w-10 h-10 bg-muted rounded-md border overflow-hidden hover:ring-2 hover:ring-primary">
-                                                            <Image src={p.images[0]} alt={p.name} width={40} height={40} className="object-cover" />
+                                            <div className="flex-grow flex flex-col">
+                                                <Link href={`/stream/${'${seller.id}'}`} className="block">
+                                                    <div className="flex items-start gap-2">
+                                                        <Avatar className="w-8 h-8">
+                                                            <AvatarImage src={seller.avatarUrl} alt={seller.name} />
+                                                            <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
+                                                        </Avatar>
+                                                        <div className="flex-1 overflow-hidden">
+                                                            <p className="font-semibold text-sm leading-tight group-hover:underline truncate">{seller.title || seller.name}</p>
+                                                            <p className="text-xs text-muted-foreground">{seller.name}</p>
+                                                            <p className="text-xs mt-0.5">
+                                                                <span className="text-muted-foreground">{seller.subcategory}</span> <span className="text-primary font-semibold">#{seller.category.toLowerCase().replace(/\s+/g, '')}</span>
+                                                            </p>
                                                         </div>
-                                                    </Link>
-                                                    ))}
-                                                    {getProductsForSeller(seller.id).length > 3 && (
-                                                    <button onClick={(e) => handleShowMoreProducts(e, seller)} className="w-10 h-10 bg-muted rounded-md border flex items-center justify-center text-xs font-semibold text-muted-foreground hover:bg-secondary">
-                                                        +{getProductsForSeller(seller.id).length - 3}
-                                                    </button>
-                                                    )}
+                                                    </div>
+                                                </Link>
+                                                <div className="flex items-center gap-1.5 mt-auto pt-2 flex-shrink-0">
+                                                    {getProductsForSeller(seller.id).slice(0, 4).map((p, index) => {
+                                                        const remaining = getProductsForSeller(seller.id).length - 4;
+                                                        if (index === 3 && remaining > 0) {
+                                                            return (
+                                                                 <button key="more" className="w-10 h-10 bg-muted rounded-md border flex items-center justify-center text-xs font-semibold text-muted-foreground hover:bg-secondary" onClick={(e) => handleShowMoreProducts(e, seller)}>
+                                                                    +{remaining + 1}
+                                                                </button>
+                                                            )
+                                                        }
+                                                        if (index > 3) return null;
+                                                        return (
+                                                            <Link href={`/product/${p.key}`} key={p.key} className="block" onClick={(e) => e.stopPropagation()}>
+                                                                <div className="w-10 h-10 bg-muted rounded-md border overflow-hidden hover:ring-2 hover:ring-primary">
+                                                                    <Image src={p.images[0]} alt={p.name} width={40} height={40} className="object-cover" />
+                                                                </div>
+                                                            </Link>
+                                                        );
+                                                    })}
                                                 </div>
                                             </div>
                                         </Card>
