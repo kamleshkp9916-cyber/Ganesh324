@@ -243,7 +243,7 @@ const CategoryGrid = () => {
         };
 
         return sortedCategories.map((category, index) => {
-            const data = categoryDataMap[category] || { product: category.toUpperCase(), image: `https://picsum.photos/seed/${category.toLowerCase()}/800/800`, hint: category.toLowerCase() };
+            const data = categoryDataMap[category] || { product: category.toUpperCase(), image: `https://picsum.photos/seed/${'${category.toLowerCase()}'}/800/800`, hint: category.toLowerCase() };
             return {
                 category,
                 ...data,
@@ -810,7 +810,7 @@ export default function LiveSellingPage() {
                                         return (
                                         <Card key={seller.id} className="group flex flex-col space-y-2 overflow-hidden border-none shadow-none bg-transparent">
                                             <Link href={`/stream/${seller.id}`} className="block">
-                                                <div className="relative rounded-lg overflow-hidden aspect-video bg-muted w-full">
+                                                <div className="relative rounded-lg overflow-hidden aspect-[3/4] bg-muted w-full">
                                                     <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
                                                     <div className="absolute top-2 right-2 z-10"><Badge variant="secondary" className="bg-black/50 text-white"><Users className="w-3 h-3 mr-1"/>{seller.viewers.toLocaleString()}</Badge></div>
                                                     <Image src={seller.thumbnailUrl} alt={`Live stream from ${'${seller.name}'}`} fill sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw" className="object-cover w-full h-full transition-transform group-hover:scale-105" />
@@ -831,9 +831,9 @@ export default function LiveSellingPage() {
                                                     </div>
                                                 </div>
                                             </div>
-                                            <div className="flex items-center gap-1.5 mt-auto flex-shrink-0">
+                                             <div className="flex items-center gap-1.5 mt-auto flex-shrink-0">
                                                 {getProductsForSeller(seller.id).slice(0, 3).map(p => (
-                                                <Link key={p.key} href={`/product/${p.key}`} className="block">
+                                                <Link href={`/product/${p.key}`} key={p.key} className="block">
                                                     <div className="w-10 h-10 bg-muted rounded-md border overflow-hidden">
                                                         <Image src={p.images[0]} alt={p.name} width={40} height={40} className="object-cover" />
                                                     </div>
@@ -853,7 +853,7 @@ export default function LiveSellingPage() {
                              <TabsContent value="browse" className="mt-4">
                                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
                                     {allSubcategories.map((sub, index) => (
-                                        <Link href={`/${'${sub.categoryName.toLowerCase()}'}/${'${sub.name.toLowerCase().replace(/\s+/g, '-')}'}`} key={index} className="group block space-y-2">
+                                        <Link href={`/${'${sub.categoryName.toLowerCase()}'}/${sub.name.toLowerCase().replace(/\s+/g, '-').replace(/&/g, '%26')}`} key={index} className="group block space-y-2">
                                             <Card className="overflow-hidden">
                                                 <div className="aspect-[3/4] bg-muted relative">
                                                     <Image
@@ -900,7 +900,7 @@ export default function LiveSellingPage() {
                 animate={{ y: 0 }}
                 exit={{ y: '100%' }}
                 transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-                className="fixed inset-0 bg-background/80 backdrop-blur-md z-50 flex flex-col"
+                className="fixed bottom-0 left-0 right-0 h-[30%] bg-background/80 backdrop-blur-md z-50 flex flex-col"
             >
                 <div className="p-4 border-b flex items-center justify-between flex-shrink-0">
                     <div>
@@ -912,7 +912,7 @@ export default function LiveSellingPage() {
                     </Button>
                 </div>
                 <ScrollArea className="flex-grow">
-                    <div className="p-4 grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 gap-2 sm:gap-3">
+                    <div className="p-4 grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-8 xl:grid-cols-10 gap-2 sm:gap-3">
                         {overlayProducts.map(product => (
                             <Link href={`/product/${product.key}`} key={product.id} className="group block" onClick={() => setIsProductOverlayOpen(false)}>
                                 <Card className="w-full group overflow-hidden h-full flex flex-col">
