@@ -363,7 +363,7 @@ export default function LiveSellingPage() {
             ...subcategory,
             categoryName: category.name,
             imageUrl: `https://picsum.photos/seed/${subcategory.name.toLowerCase().replace(' ', '-')}/300/400`,
-            tags: [category.name],
+            tags: [subcategory.name.split(' ')[0]],
             viewers: Math.floor(Math.random() * 50000) + 1000
         }))
     );
@@ -799,89 +799,84 @@ export default function LiveSellingPage() {
                                 <TabsTrigger value="following">Following</TabsTrigger>
                             </TabsList>
                             <TabsContent value="recommended" className="mt-4">
-                                {trendingCategories.map(category => (
-                                    <div key={category.name} className="mb-8">
-                                        <h2 className="text-2xl font-bold mb-4">{category.name}</h2>
-                                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                                            {category.streams.map((seller: any) => (
-                                                <Collapsible key={seller.id} asChild>
-                                                    <div className="group block">
-                                                        <Link href={`/stream/${seller.id}`}>
-                                                            <div className="relative rounded-lg overflow-hidden aspect-video bg-muted w-full flex-shrink-0">
-                                                                <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
-                                                                <div className="absolute top-2 right-2 z-10"><Badge variant="secondary" className="bg-background/60 backdrop-blur-sm gap-1.5">
-                                                                    <Users className="h-3 w-3"/>
-                                                                    {seller.viewers.toLocaleString()}
-                                                                </Badge></div>
-                                                                <Image src={seller.thumbnailUrl} alt={`Live stream from ${seller.name}`} fill sizes="(max-width: 640px) 75vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw" className="object-cover w-full h-full transition-transform group-hover:scale-105" />
-                                                            </div>
-                                                        </Link>
-                                                        <div className="flex items-start gap-3 mt-2">
-                                                            <Link href={`/seller/profile?userId=${seller.id}`}>
-                                                                <Avatar className="w-10 h-10">
-                                                                    <AvatarImage src={seller.avatarUrl} alt={seller.name} />
-                                                                    <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
-                                                                </Avatar>
-                                                            </Link>
-                                                                <div className="flex-grow min-w-0">
-                                                                <Link href={`/stream/${seller.id}`} className="font-semibold text-sm leading-tight group-hover:underline truncate block">
-                                                                    {seller.title || seller.name}
-                                                                </Link>
-                                                                <p className="text-xs text-muted-foreground truncate">{seller.name}</p>
-                                                                <p className="text-xs text-primary font-semibold mt-0.5">#{seller.category.toLowerCase().replace(/\s+/g, '')}</p>
-                                                            </div>
-                                                             <CollapsibleTrigger asChild>
-                                                                <Button variant="ghost" size="icon" className="h-7 w-7 flex-shrink-0 -mr-2 text-muted-foreground hover:text-primary">
-                                                                    <ShoppingBag className="h-4 w-4" />
-                                                                </Button>
-                                                             </CollapsibleTrigger>
-                                                        </div>
-                                                        <CollapsibleContent>
-                                                            <div className="mt-2">
-                                                                <Carousel
-                                                                    opts={{
-                                                                        align: "start",
-                                                                        loop: false,
-                                                                    }}
-                                                                    className="w-full"
-                                                                >
-                                                                    <CarouselContent className="-ml-2">
-                                                                        {sellerProducts(seller.id).map((product, index) => (
-                                                                            <CarouselItem key={index} className="basis-1/2 sm:basis-1/3 md:basis-1/2 pl-2">
-                                                                                <Card className="w-full overflow-hidden h-full flex flex-col">
-                                                                                    <Link href={`/product/${product.key}`} className="group block">
-                                                                                        <div className="relative aspect-square bg-muted">
-                                                                                            <Image
-                                                                                                src={product.images[0]?.preview || product.images[0]}
-                                                                                                alt={product.name}
-                                                                                                fill
-                                                                                                sizes="50vw"
-                                                                                                className="object-cover transition-transform group-hover:scale-105"
-                                                                                            />
-                                                                                        </div>
-                                                                                    </Link>
-                                                                                    <div className="p-2 flex-grow flex flex-col">
-                                                                                        <Link href={`/product/${product.key}`} className="group block">
-                                                                                            <h4 className="font-semibold truncate text-xs group-hover:underline">{product.name}</h4>
-                                                                                            <p className="font-bold text-sm">{product.price}</p>
-                                                                                        </Link>
-                                                                                    </div>
-                                                                                    <CardFooter className="p-2">
-                                                                                         <Button size="sm" className="w-full text-xs h-8" onClick={(e) => { e.stopPropagation(); handleAddToCart(product); }}><ShoppingCart className="mr-1 h-3 w-3" /> Cart</Button>
-                                                                                    </CardFooter>
-                                                                                </Card>
-                                                                            </CarouselItem>
-                                                                        ))}
-                                                                    </CarouselContent>
-                                                                </Carousel>
-                                                            </div>
-                                                        </CollapsibleContent>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                                    {topLiveStreams.map((seller) => (
+                                        <Collapsible key={seller.id} asChild>
+                                            <div className="group block">
+                                                <Link href={`/stream/${seller.id}`}>
+                                                    <div className="relative rounded-lg overflow-hidden aspect-video bg-muted w-full flex-shrink-0">
+                                                        <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
+                                                        <div className="absolute top-2 right-2 z-10"><Badge variant="secondary" className="bg-background/60 backdrop-blur-sm gap-1.5">
+                                                            <Users className="h-3 w-3"/>
+                                                            {seller.viewers.toLocaleString()}
+                                                        </Badge></div>
+                                                        <Image src={seller.thumbnailUrl} alt={`Live stream from ${seller.name}`} fill sizes="(max-width: 640px) 75vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw" className="object-cover w-full h-full transition-transform group-hover:scale-105" />
                                                     </div>
-                                                </Collapsible>
-                                            ))}
-                                        </div>
-                                    </div>
-                                ))}
+                                                </Link>
+                                                <div className="flex items-start gap-3 mt-2">
+                                                    <Link href={`/seller/profile?userId=${seller.id}`}>
+                                                        <Avatar className="w-10 h-10">
+                                                            <AvatarImage src={seller.avatarUrl} alt={seller.name} />
+                                                            <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
+                                                        </Avatar>
+                                                    </Link>
+                                                        <div className="flex-grow min-w-0">
+                                                        <Link href={`/stream/${seller.id}`} className="font-semibold text-sm leading-tight group-hover:underline truncate block">
+                                                            {seller.title || seller.name}
+                                                        </Link>
+                                                        <p className="text-xs text-muted-foreground truncate">{seller.name}</p>
+                                                        <p className="text-xs text-primary font-semibold mt-0.5">#{seller.category.toLowerCase().replace(/\s+/g, '')}</p>
+                                                    </div>
+                                                     <CollapsibleTrigger asChild>
+                                                        <Button variant="ghost" size="icon" className="h-7 w-7 flex-shrink-0 -mr-2 text-muted-foreground hover:text-primary">
+                                                            <ShoppingBag className="h-4 w-4" />
+                                                        </Button>
+                                                     </CollapsibleTrigger>
+                                                </div>
+                                                <CollapsibleContent>
+                                                    <div className="mt-2">
+                                                        <Carousel
+                                                            opts={{
+                                                                align: "start",
+                                                                loop: false,
+                                                            }}
+                                                            className="w-full"
+                                                        >
+                                                            <CarouselContent className="-ml-2">
+                                                                {sellerProducts(seller.id).map((product, index) => (
+                                                                    <CarouselItem key={index} className="basis-1/2 sm:basis-1/3 md:basis-1/2 pl-2">
+                                                                        <Card className="w-full overflow-hidden h-full flex flex-col">
+                                                                            <Link href={`/product/${(product as any).key}`} className="group block">
+                                                                                <div className="relative aspect-square bg-muted">
+                                                                                    <Image
+                                                                                        src={(product as any).images[0]?.preview || (product as any).images[0]}
+                                                                                        alt={product.name}
+                                                                                        fill
+                                                                                        sizes="50vw"
+                                                                                        className="object-cover transition-transform group-hover:scale-105"
+                                                                                    />
+                                                                                </div>
+                                                                            </Link>
+                                                                            <div className="p-2 flex-grow flex flex-col">
+                                                                                <Link href={`/product/${(product as any).key}`} className="group block">
+                                                                                    <h4 className="font-semibold truncate text-xs group-hover:underline">{product.name}</h4>
+                                                                                    <p className="font-bold text-sm">{product.price}</p>
+                                                                                </Link>
+                                                                            </div>
+                                                                            <CardFooter className="p-2">
+                                                                                 <Button size="sm" className="w-full text-xs h-8" onClick={(e) => { e.stopPropagation(); handleAddToCart(product); }}><ShoppingCart className="mr-1 h-3 w-3" /> Cart</Button>
+                                                                            </CardFooter>
+                                                                        </Card>
+                                                                    </CarouselItem>
+                                                                ))}
+                                                            </CarouselContent>
+                                                        </Carousel>
+                                                    </div>
+                                                </CollapsibleContent>
+                                            </div>
+                                        </Collapsible>
+                                    ))}
+                                </div>
                             </TabsContent>
                              <TabsContent value="browse" className="mt-4">
                                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
@@ -902,9 +897,8 @@ export default function LiveSellingPage() {
                                                 <p className="font-semibold text-sm truncate group-hover:text-primary">{sub.name}</p>
                                                 <p className="text-xs text-muted-foreground">{sub.viewers.toLocaleString()} watching</p>
                                                 <div className="flex flex-wrap gap-1 mt-1">
-                                                    {sub.tags.map(tag => (
-                                                        <Badge key={tag} variant="secondary" className="text-xs">{tag}</Badge>
-                                                    ))}
+                                                    <Badge variant="secondary" className="text-xs">#{sub.categoryName.toLowerCase()}</Badge>
+                                                    <Badge variant="secondary" className="text-xs">#{sub.tags[0].toLowerCase()}</Badge>
                                                 </div>
                                             </div>
                                         </Link>
@@ -928,6 +922,3 @@ export default function LiveSellingPage() {
     </>
   );
 }
-
-
-    
