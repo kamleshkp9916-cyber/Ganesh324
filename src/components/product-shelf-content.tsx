@@ -9,7 +9,7 @@ import Image from 'next/image';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import { cn } from '@/lib/utils';
-import { Sparkles, ShoppingBag, Package, Users, Star } from 'lucide-react';
+import { Sparkles, ShoppingCart, Package, Users, Star, ShoppingBag } from 'lucide-react';
 
 export const ProductShelfContent = ({ sellerProducts, handleAddToCart, handleBuyNow, isMobile, onClose, toast }: { sellerProducts: any[], handleAddToCart: (product: any) => void, handleBuyNow: (product: any) => void, isMobile: boolean, onClose: () => void, toast: any }) => {
     return (

@@ -112,7 +112,6 @@ import { FeedbackDialog } from "@/components/feedback-dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { categories } from "@/lib/categories";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { Logo } from "@/components/logo";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { Label } from "@/components/ui/label";
 import { WithdrawForm } from "@/components/settings-forms";
@@ -124,7 +123,7 @@ import { useInView } from "react-intersection-observer";
 import { useMiniPlayer } from "@/context/MiniPlayerContext";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useIsMobile } from "@/hooks/use-is-mobile";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { format, formatDistanceToNow, isThisWeek, isThisYear, parseISO, parse } from 'date-fns';
 import { ProductShelfContent } from '@/components/product-shelf-content';
@@ -327,7 +326,7 @@ const ProductShelf = ({ sellerProducts, handleAddToCart, handleBuyNow, toast }: 
                         </div>
                     </Button>
                 </SheetTrigger>
-                <SheetContent side="bottom" className="h-[80vh] flex flex-col p-0">
+                <SheetContent side="bottom" className="h-[60vh] flex flex-col p-0">
                     <ProductShelfContent 
                         sellerProducts={sellerProducts}
                         handleAddToCart={handleAddToCart}
@@ -398,7 +397,7 @@ const ProductShelf = ({ sellerProducts, handleAddToCart, handleBuyNow, toast }: 
                                 <CardFooter className="p-2 grid grid-cols-1 gap-2">
                                     {product.stock > 0 ? (
                                         <>
-                                            <Button variant="outline" size="sm" className="w-full text-xs h-8" onClick={() => { handleAddToCart(product); }}><ShoppingCart className="mr-1 h-3 w-3" /> Cart</Button>
+                                            <Button variant="outline" size="sm" className="w-full text-xs h-8" onClick={() => { handleAddToCart(product); }}><ShoppingBag className="mr-1 h-3 w-3" /> Cart</Button>
                                             <Button size="sm" className="w-full text-xs h-8" onClick={() => { handleBuyNow(product); }}>Buy Now</Button>
                                         </>
                                     ) : (
@@ -1163,10 +1162,10 @@ const StreamPage = () => {
                         <LoadingSpinner />
                     </div>
                  ) : isMobile ? (
-                     <MobileLayout {...{ router, videoRef, playerRef, handlePlayPause, handleShare, handleMinimize, handleToggleFullscreen, isPaused, seller, sellerData, streamData, handleFollowToggle, isFollowingState, sellerProducts, handlers, relatedStreams, isChatOpen, setIsChatOpen, chatMessages, pinnedMessages, onClose: () => setIsChatOpen(false), handleAddToCart, handleBuyNow, mobileView, setMobileView, isMuted, setIsMuted, handleGoLive, handleSeek, isLive, formatTime, currentTime, duration, buffered, handleProgressClick, progressContainerRef, activeQuality, setActiveQuality, product, user, walletBalance, setIsSuperChatOpen, isSuperChatOpen, isPastStream, isRatingDialogOpen, setIsRatingDialogOpen, handleRateStream, userRating }} />
+                     <MobileLayout {...{ router, videoRef, playerRef, handlePlayPause, handleShare, handleMinimize, handleToggleFullscreen, isPaused, seller, sellerData, streamData, handleFollowToggle, isFollowingState, sellerProducts, handlers, relatedStreams, isChatOpen, setIsChatOpen, chatMessages, pinnedMessages, onClose: () => setIsChatOpen(false), handleAddToCart, handleBuyNow, mobileView, setMobileView, isMuted, setIsMuted, handleGoLive, handleSeek, isLive, formatTime, currentTime, duration, buffered, handleProgressClick, progressContainerRef, activeQuality, setActiveQuality, product, user, walletBalance, setIsSuperChatOpen, isSuperChatOpen, isPastStream, isRatingDialogOpen, setIsRatingDialogOpen, handleRateStream, userRating, toast }} />
                  ) : (
                     <DesktopLayout 
-                        {...{ router, videoRef, playerRef, handlePlayPause, handleShare, handleMinimize, handleToggleFullscreen, isPaused, seller, sellerData, streamData, handleFollowToggle, isFollowingState, sellerProducts, handlers, relatedStreams, isChatOpen, setIsChatOpen, chatMessages, pinnedMessages, onClose: () => setIsChatOpen(false), handleAddToCart, handleBuyNow, mobileView, setMobileView, isMuted, setIsMuted, handleGoLive, handleSeek, isLive, formatTime, currentTime, duration, buffered, handleProgressClick, progressContainerRef, mainScrollRef, handleMainScroll, showGoToTop, scrollToTop, activeQuality, setActiveQuality, product, user, cartCount, walletBalance, setIsSuperChatOpen, isSuperChatOpen, inlineAuctionCardRefs, isPastStream, isRatingDialogOpen, setIsRatingDialogOpen, handleRateStream, userRating }}
+                        {...{ router, videoRef, playerRef, handlePlayPause, handleShare, handleMinimize, handleToggleFullscreen, isPaused, seller, sellerData, streamData, handleFollowToggle, isFollowingState, sellerProducts, handlers, relatedStreams, isChatOpen, setIsChatOpen, chatMessages, pinnedMessages, onClose: () => setIsChatOpen(false), handleAddToCart, handleBuyNow, mobileView, setMobileView, isMuted, setIsMuted, handleGoLive, handleSeek, isLive, formatTime, currentTime, duration, buffered, handleProgressClick, progressContainerRef, mainScrollRef, handleMainScroll, showGoToTop, scrollToTop, activeQuality, setActiveQuality, product, user, cartCount, walletBalance, setIsSuperChatOpen, isSuperChatOpen, inlineAuctionCardRefs, isPastStream, isRatingDialogOpen, setIsRatingDialogOpen, handleRateStream, userRating, toast }}
                     />
                  )}
             </div>
@@ -1355,7 +1354,7 @@ const MobileLayout = React.memo(({ handlers, chatMessages, walletBalance, isPast
                         {!isPastStream && <div className="h-2 w-2 rounded-full bg-white animate-pulse" />}
                         {isPastStream ? 'RECORDED' : 'LIVE'}
                     </Badge>
-                    <Badge variant="secondary" className="bg-black/50 text-white gap-1.5"><Users className="w-3 h-3"/> {props.streamData.viewerCount.toLocaleString()}</Badge>
+                    <Badge variant="secondary" className="bg-black/50 text-white gap-1.5"><Users className="w-3 w-3"/> {props.streamData.viewerCount.toLocaleString()}</Badge>
                 </div>
                  <div className="absolute inset-0 bg-black/10 flex items-center justify-center gap-4">
                      <Button variant="ghost" size="icon" className="text-white w-12 h-12" onClick={() => handleSeek('backward')}><Rewind className="w-6 h-6 fill-white"/></Button>
