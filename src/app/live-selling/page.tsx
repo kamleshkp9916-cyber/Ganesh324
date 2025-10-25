@@ -216,7 +216,7 @@ const CategoryGrid = () => {
         }, {});
 
         const sortedCategories = Object.entries(categoryCounts)
-            .sort(([, countA], [, countB]) => countB - a)
+            .sort(([, countA], [, countB]) => countB - countA)
             .slice(0, 7)
             .map(([category]) => category);
         
@@ -315,7 +315,7 @@ export default function LiveSellingPage() {
   const [selectedReportReason, setSelectedReportReason] = useState("");
   const { toast } = useToast();
   const [replyTo, setReplyTo] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState("live");
+  const [activeTab, setActiveTab] = useState("recommended");
   const [suggestedUsers, setSuggestedUsers] = useState<UserData[]>([]);
   const [followingIds, setFollowingIds] = useState<string[]>([]);
   const [isAuthDialogOpen, setIsAuthDialogOpen] = useState(false);
@@ -357,31 +357,17 @@ export default function LiveSellingPage() {
     });
   };
 
-  const renderProductCard = (product: any) => (
-    <Link href={`/product/${product.key}`} key={product.key} className="group block">
-        <Card className="w-full overflow-hidden h-full flex flex-col">
-            <div className="relative aspect-square bg-muted">
-                <Image
-                    src={product.images[0]}
-                    alt={product.name}
-                    fill
-                    sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 25vw"
-                    className="object-cover transition-transform group-hover:scale-105"
-                    data-ai-hint={product.hint}
-                />
-            </div>
-            <div className="p-3 flex-grow flex flex-col">
-                <h4 className="font-semibold truncate text-sm flex-grow">{product.name}</h4>
-                <p className="font-bold text-foreground mt-1">{product.price}</p>
-                <div className="flex items-center gap-1 text-xs text-amber-400 mt-1">
-                    <Star className="w-4 h-4 fill-current" />
-                    <span>4.8</span>
-                    <span className="text-muted-foreground">(1.2k reviews)</span>
-                </div>
-            </div>
-        </Card>
-    </Link>
-  );
+  const allSubcategories = useMemo(() => {
+    return categories.flatMap(category => 
+        category.subcategories.map(subcategory => ({
+            ...subcategory,
+            categoryName: category.name,
+            imageUrl: `https://picsum.photos/seed/${subcategory.name.toLowerCase().replace(' ', '-')}/300/400`,
+            tags: [category.name],
+            viewers: Math.floor(Math.random() * 50000) + 1000
+        }))
+    );
+  }, []);
 
   const liveStreamFilterButtons = useMemo(() => {
     const categories = new Set(allSellers.map(s => s.category));
@@ -812,7 +798,7 @@ export default function LiveSellingPage() {
                                 <TabsTrigger value="browse">Browse</TabsTrigger>
                                 <TabsTrigger value="following">Following</TabsTrigger>
                             </TabsList>
-                             <TabsContent value="recommended" className="mt-4">
+                            <TabsContent value="recommended" className="mt-4">
                                 {trendingCategories.map(category => (
                                     <div key={category.name} className="mb-8">
                                         <h2 className="text-2xl font-bold mb-4">{category.name}</h2>
@@ -897,83 +883,32 @@ export default function LiveSellingPage() {
                                     </div>
                                 ))}
                             </TabsContent>
-                            <TabsContent value="browse" className="mt-4">
-                                <div className="grid grid-cols-[240px_1fr] gap-8 items-start">
-                                    <aside className="sticky top-32">
-                                        <h3 className="font-semibold mb-2">Categories</h3>
-                                        <Accordion type="multiple" className="w-full" value={selectedBrowseCategory ? [selectedBrowseCategory] : []} onValueChange={(value) => {
-                                            setSelectedBrowseCategory(value[0] || null);
-                                            setSelectedSubCategory(null);
-                                        }}>
-                                            {categories.map((category) => (
-                                            <AccordionItem value={category.name} key={category.name}>
-                                                <AccordionTrigger
-                                                    className={cn(
-                                                        "text-sm font-semibold hover:no-underline",
-                                                        selectedBrowseCategory === category.name && !selectedSubCategory && "text-primary"
-                                                    )}
-                                                >
-                                                {category.name}
-                                                </AccordionTrigger>
-                                                <AccordionContent>
-                                                <div className="flex flex-col space-y-1 pl-4">
-                                                    {category.subcategories.map(sub => (
-                                                    <Button
-                                                        key={sub.name}
-                                                        variant="ghost"
-                                                        className={cn("h-auto justify-start text-sm py-1.5 text-muted-foreground", selectedSubCategory === sub.name && "text-primary font-semibold")}
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            setSelectedBrowseCategory(category.name);
-                                                            setSelectedSubCategory(sub.name);
-                                                        }}
-                                                    >
-                                                        {sub.name}
-                                                    </Button>
+                             <TabsContent value="browse" className="mt-4">
+                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+                                    {allSubcategories.map((sub, index) => (
+                                        <Link href="#" key={index} className="group block space-y-2">
+                                            <Card className="overflow-hidden">
+                                                <div className="aspect-[3/4] bg-muted relative">
+                                                    <Image
+                                                        src={sub.imageUrl}
+                                                        alt={sub.name}
+                                                        fill
+                                                        sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, (max-width: 1280px) 25vw, 20vw"
+                                                        className="object-cover group-hover:scale-105 transition-transform"
+                                                    />
+                                                </div>
+                                            </Card>
+                                            <div>
+                                                <p className="font-semibold text-sm truncate group-hover:text-primary">{sub.name}</p>
+                                                <p className="text-xs text-muted-foreground">{sub.viewers.toLocaleString()} watching</p>
+                                                <div className="flex flex-wrap gap-1 mt-1">
+                                                    {sub.tags.map(tag => (
+                                                        <Badge key={tag} variant="secondary" className="text-xs">{tag}</Badge>
                                                     ))}
                                                 </div>
-                                                </AccordionContent>
-                                            </AccordionItem>
-                                            ))}
-                                        </Accordion>
-                                    </aside>
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                                        {topLiveStreams.filter(s => {
-                                            if (!selectedBrowseCategory) return true;
-                                            const mainCategoryMatch = s.category === selectedBrowseCategory;
-                                            if (!selectedSubCategory) return mainCategoryMatch;
-                                            
-                                            const productForStream = Object.values(productDetails).find(p => p.key === s.productId);
-                                            return mainCategoryMatch && productForStream?.subcategory === selectedSubCategory;
-
-                                        }).map((seller: any) => (
-                                            <div key={seller.id} className="group block">
-                                            <Link href={`/stream/${seller.id}`}>
-                                                <div className="relative rounded-lg overflow-hidden aspect-video bg-muted w-full flex-shrink-0">
-                                                    <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
-                                                    <div className="absolute top-2 right-2 z-10"><Badge variant="secondary" className="bg-background/60 backdrop-blur-sm gap-1.5">
-                                                        <Users className="h-3 w-3"/>
-                                                        {seller.viewers.toLocaleString()}
-                                                    </Badge></div>
-                                                    <Image src={seller.thumbnailUrl} alt={`Live stream from ${seller.name}`} fill sizes="(max-width: 640px) 75vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw" className="object-cover w-full h-full transition-transform group-hover:scale-105" />
-                                                </div>
-                                            </Link>
-                                            <div className="flex items-start gap-3 mt-2">
-                                                <Link href={`/seller/profile?userId=${seller.id}`}>
-                                                    <Avatar className="w-10 h-10">
-                                                        <AvatarImage src={seller.avatarUrl} alt={seller.name} />
-                                                        <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
-                                                    </Avatar>
-                                                </Link>
-                                                <div className="flex-1 overflow-hidden">
-                                                    <Link href={`/stream/${seller.id}`} className="font-semibold text-sm leading-tight group-hover:underline truncate block">{seller.title || seller.name}</Link>
-                                                    <p className="text-xs text-muted-foreground truncate">{seller.name}</p>
-                                                    <p className="text-xs text-primary font-semibold mt-0.5">#{seller.category.toLowerCase().replace(/\s+/g, '')}</p>
-                                                </div>
                                             </div>
-                                        </div>
-                                        ))}
-                                    </div>
+                                        </Link>
+                                    ))}
                                 </div>
                             </TabsContent>
                             <TabsContent value="following">
@@ -993,3 +928,6 @@ export default function LiveSellingPage() {
     </>
   );
 }
+
+
+    
