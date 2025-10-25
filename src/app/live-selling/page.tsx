@@ -806,7 +806,7 @@ export default function LiveSellingPage() {
                                 <TabsTrigger value="following">Following</TabsTrigger>
                             </TabsList>
                             <TabsContent value="recommended" className="mt-4">
-                                 <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
                                     {topLiveStreams.map((seller) => {
                                         const sellerProducts = getProductsForSeller(seller.id);
                                         const productsToShow = sellerProducts.slice(0, 5);
@@ -838,7 +838,7 @@ export default function LiveSellingPage() {
                                                     </div>
                                                 </Link>
                                                 <div className="flex items-center gap-1.5 mt-auto flex-shrink-0 pt-2 w-full justify-start pb-2">
-                                                    {productsToShow.map((p) => (
+                                                    {productsToShow.map((p, i) => (
                                                         <Link href={`/product/${p.key}`} key={p.key} className="block" onClick={(e) => e.stopPropagation()}>
                                                             <div className="w-10 h-10 bg-muted rounded-md border overflow-hidden hover:ring-2 hover:ring-primary">
                                                                 <Image src={p.images[0]?.preview || p.images[0]} alt={p.name} width={40} height={40} className="object-cover" />
@@ -907,7 +907,7 @@ export default function LiveSellingPage() {
                 animate={{ y: 0 }}
                 exit={{ y: '100%' }}
                 transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-                className="fixed bottom-0 left-0 right-0 h-[40%] bg-background/80 backdrop-blur-md z-50 flex flex-col"
+                className="fixed bottom-0 left-0 right-0 h-[60%] bg-background/80 backdrop-blur-md z-50 flex flex-col"
             >
                 <div className="p-4 border-b flex items-center justify-between flex-shrink-0">
                     <div>
