@@ -20,7 +20,7 @@ export const ProductShelfContent = ({ sellerProducts, handleAddToCart, handleBuy
                 </SheetHeader>
             )}
              <ScrollArea className={cn("h-full", isMobile && "no-scrollbar")}>
-                <div className={cn("p-4", isMobile ? "grid grid-cols-2 sm:grid-cols-3 gap-4" : "flex gap-4")}>
+                <div className={cn("p-4", isMobile ? "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4" : "flex gap-4")}>
                     {sellerProducts.length > 0 ? (
                         sellerProducts.map((product: any, index: number) => (
                             <Card key={index} className="w-full overflow-hidden h-full flex flex-col flex-shrink-0 first:ml-0.5 last:mr-0.5" style={{width: isMobile ? 'auto': '160px'}}>
