@@ -244,7 +244,7 @@ const CategoryGrid = () => {
         };
 
         return sortedCategories.map((category, index) => {
-            const data = categoryDataMap[category] || { product: category.toUpperCase(), image: `https://picsum.photos/seed/${category.toLowerCase()}/800/800`, hint: category.toLowerCase() };
+            const data = categoryDataMap[category] || { product: category.toUpperCase(), image: `https://picsum.photos/seed/${'${category.toLowerCase()}'}/800/800`, hint: category.toLowerCase() };
             return {
                 category,
                 ...data,
@@ -271,7 +271,7 @@ const CategoryGrid = () => {
 function LiveSellerSkeleton({key}: {key: React.Key}) {
     return (
         <div key={key} className="group relative rounded-lg overflow-hidden shadow-lg">
-            <Skeleton className="w-full aspect-[3/4]" />
+            <Skeleton className="w-full aspect-video" />
             <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/80 to-transparent">
                 <div className="flex items-center gap-2">
                     <Skeleton className="h-8 w-8 rounded-full" />
@@ -300,7 +300,7 @@ function FeedPostSkeleton() {
             <div className="px-4 pb-4 space-y-3">
                 <Skeleton className="h-4 w-full" />
                 <Skeleton className="h-4 w-3/4" />
-                <Skeleton className="w-full aspect-[3/4] rounded-lg" />
+                <Skeleton className="w-full aspect-video rounded-lg" />
             </div>
         </Card>
     );
@@ -350,7 +350,7 @@ export default function LiveSellingPage() {
         setCartCount(getCart().reduce((sum, item) => sum + item.quantity, 0));
         toast({
             title: "Added to Cart!",
-            description: `'${product.name}' has been added to your shopping cart.`
+            description: `'${'${product.name}'}' has been added to your shopping cart.`
         });
     });
   };
@@ -369,7 +369,7 @@ export default function LiveSellingPage() {
         category.subcategories.map(subcategory => ({
             ...subcategory,
             categoryName: category.name,
-            imageUrl: `https://picsum.photos/seed/${subcategory.name.toLowerCase().replace(/ /g, '-').replace(/&/g, '%26')}/300/400`,
+            imageUrl: `https://picsum.photos/seed/${'${subcategory.name.toLowerCase().replace(/ /g, \'-\').replace(/&/g, \'%26\')}'}/300/400`,
             tags: [subcategory.name.split(' ')[0]],
             viewers: Math.floor(Math.random() * 50000) + 1000
         }))
@@ -531,7 +531,7 @@ export default function LiveSellingPage() {
 
     const db = getFirestoreDb();
     const postRef = doc(db, 'posts', postId);
-    const likeRef = doc(db, `posts/${postId}/likes`, user!.uid);
+    const likeRef = doc(db, `posts/${'${postId}'}/likes`, user!.uid);
 
     try {
         await runTransaction(db, async (transaction) => {
@@ -556,7 +556,7 @@ export default function LiveSellingPage() {
     }
 };
 
-  const getCategoryUrl = (categoryName: string) => `/${categoryName.toLowerCase().replace(/\s+/g, '-')}`;
+  const getCategoryUrl = (categoryName: string) => `/${'${categoryName.toLowerCase().replace(/\s+/g, \'-\')}'}`;
 
   const popularProducts = useMemo(() => {
     return Object.values(productDetails)
@@ -815,11 +815,11 @@ export default function LiveSellingPage() {
                                         
                                         return (
                                         <Card key={seller.id} className="group flex flex-col space-y-2 overflow-hidden border-none shadow-none bg-transparent">
-                                            <Link href={`/stream/${seller.id}`} className="block">
+                                            <Link href={`/stream/${'${seller.id}'}`} className="block">
                                                 <div className="relative rounded-lg overflow-hidden aspect-video bg-muted w-full">
-                                                    <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
+                                                    <div className="absolute top-3 left-3 z-10"><Badge variant="destructive">LIVE</Badge></div>
                                                     <div className="absolute top-2 right-2 z-10"><Badge variant="secondary" className="bg-black/50 text-white"><Users className="w-3 h-3 mr-1"/>{seller.viewers.toLocaleString()}</Badge></div>
-                                                    <Image src={seller.thumbnailUrl} alt={`Live stream from ${seller.name}`} fill sizes="(max-width: 640px) 100vw, 33vw" className="object-cover w-full h-full transition-transform group-hover:scale-105" />
+                                                    <Image src={seller.thumbnailUrl} alt={`Live stream from ${'${seller.name}'}`} fill sizes="(max-width: 640px) 100vw, 33vw" className="object-cover w-full h-full transition-transform group-hover:scale-105" />
                                                 </div>
                                                 <div className="flex items-start gap-2 mt-2">
                                                     <Avatar className="w-8 h-8">
@@ -828,13 +828,14 @@ export default function LiveSellingPage() {
                                                     </Avatar>
                                                     <div className="flex-1 overflow-hidden">
                                                         <p className="font-semibold text-sm leading-tight group-hover:underline truncate">{seller.title || seller.name}</p>
-                                                        <p className="text-xs text-muted-foreground">{seller.category}</p>
+                                                        <p className="text-xs text-muted-foreground">{seller.name}</p>
+                                                        <p className="text-xs text-primary font-semibold mt-0.5">{seller.category}</p>
                                                     </div>
                                                 </div>
                                             </Link>
                                             <div className="flex items-center gap-1.5 mt-auto flex-shrink-0 pt-2 w-full justify-start pb-2">
                                                 {productsToShow.slice(0, remainingCount > 0 ? 5 : 6).map((p, i) => (
-                                                    <Link href={`/product/${p.key}`} key={p.key} className="block" onClick={(e) => e.stopPropagation()}>
+                                                    <Link href={`/product/${'${p.key}'}`} key={p.key} className="block" onClick={(e) => e.stopPropagation()}>
                                                         <div className="w-10 h-10 bg-muted rounded-md border overflow-hidden hover:ring-2 hover:ring-primary">
                                                             <Image src={p.images[0]?.preview || p.images[0]} alt={p.name} width={40} height={40} className="object-cover w-full h-full" />
                                                         </div>
@@ -871,9 +872,9 @@ export default function LiveSellingPage() {
                              <TabsContent value="browse" className="mt-4">
                                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
                                     {allSubcategories.map((sub, index) => (
-                                        <Link href={`/${sub.categoryName.toLowerCase()}/${sub.name.toLowerCase().replace(/ /g, '-').replace(/&/g, '%26')}`} key={index} className="group block space-y-2">
+                                        <Link href={`/${'${sub.categoryName.toLowerCase()}'}/${'${sub.name.toLowerCase().replace(/ /g, \'-\').replace(/&/g, \'%26\')}'}`} key={index} className="group block space-y-2">
                                             <Card className="overflow-hidden">
-                                                <div className="aspect-[3/4] bg-muted relative">
+                                                <div className="aspect-video bg-muted relative">
                                                     <Image
                                                         src={sub.imageUrl}
                                                         alt={sub.name}
@@ -932,7 +933,7 @@ export default function LiveSellingPage() {
                 <ScrollArea className="flex-grow">
                      <div className="p-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
                         {overlayProducts.map(product => (
-                            <Link href={`/product/${product.key}`} key={product.id} className="group block" onClick={() => setIsProductOverlayOpen(false)}>
+                            <Link href={`/product/${'${product.key}'}`} key={product.id} className="group block" onClick={() => setIsProductOverlayOpen(false)}>
                                 <Card className="w-full group overflow-hidden h-full flex flex-col">
                                     <div className="aspect-square bg-muted rounded-t-lg overflow-hidden relative">
                                         <Image
@@ -957,3 +958,5 @@ export default function LiveSellingPage() {
     </>
   );
 }
+
+    
