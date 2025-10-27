@@ -325,6 +325,7 @@ export default function LiveSellingPage() {
   const [cartCount, setCartCount] = useState(0);
   const [activeProductFilter, setActiveProductFilter] = useState('All');
   const isMobile = useIsMobile();
+  const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
   
   const [selectedBrowseCategory, setSelectedBrowseCategory] = useState<string | null>(null);
   const [selectedSubCategory, setSelectedSubCategory] = useState<string | null>(null);
@@ -612,17 +613,30 @@ export default function LiveSellingPage() {
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                     <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction onClick={() => router.push('/signup')}>Create Account</AlertDialogAction>
-                    <AlertDialogAction onClick={() => router.push('/')}>Login</AlertDialogAction>
+                    <AlertDialogAction asChild><Link href="/signup">Create Account</Link></AlertDialogAction>
+                    <AlertDialogAction asChild><Link href="/">Login</Link></AlertDialogAction>
                 </AlertDialogFooter>
             </AlertDialogContent>
         </AlertDialog>
         <header className="sticky top-0 z-50 w-full border-b bg-background/80 backdrop-blur-sm">
             <div className="flex items-center justify-between h-16 px-4 sm:px-6 lg:px-8">
                     <div className="flex items-center gap-1 sm:gap-2">
-                        <Link href="/live-selling" className="flex items-center gap-2">
-                            <span className="font-bold text-lg hidden sm:inline-block">StreamCart</span>
-                        </Link>
+                        <AnimatePresence>
+                            {isMobileSearchOpen ? (
+                                 <motion.div 
+                                    initial={{ opacity: 0, width: 0 }}
+                                    animate={{ opacity: 1, width: '100%' }}
+                                    exit={{ opacity: 0, width: 0 }}
+                                    className="flex-grow"
+                                >
+                                    <ProductSearchWithStreams />
+                                </motion.div>
+                            ) : (
+                                <Link href="/live-selling" className="flex items-center gap-2">
+                                    <span className="font-bold text-lg hidden sm:inline-block">StreamCart</span>
+                                </Link>
+                            )}
+                        </AnimatePresence>
                 </div>
 
                 <div className="hidden sm:flex flex-1 justify-center px-8">
@@ -632,8 +646,8 @@ export default function LiveSellingPage() {
                 </div>
                 
                 <div className="flex items-center gap-1 sm:gap-2">
-                    <Button variant="ghost" size="icon" className="sm:hidden">
-                        <Search className="h-5 w-5"/>
+                    <Button variant="ghost" size="icon" className="sm:hidden" onClick={() => setIsMobileSearchOpen(prev => !prev)}>
+                        {isMobileSearchOpen ? <X className="h-5 w-5"/> : <Search className="h-5 w-5"/>}
                     </Button>
 
                         <Link href="/listed-products" passHref>
