@@ -168,9 +168,9 @@ export default function SubCategoryStreamPage() {
         let streams = mockStreams.filter(stream => {
             if (!stream.category) return false;
             const streamCategorySlug = stream.category.toLowerCase().replace(/\s+/g, '-');
-            const streamSubCategorySlug = (stream as any).subcategory?.toLowerCase().replace(/\s+/g, '-').replace(/&/g, '%26');
             
             if (subCategorySlug) {
+                const streamSubCategorySlug = (stream as any).subcategory?.toLowerCase().replace(/\s+/g, '-').replace(/&/g, '%26');
                 return streamCategorySlug === categorySlug && streamSubCategorySlug === subCategorySlug;
             }
             return streamCategorySlug === categorySlug;
@@ -500,5 +500,3 @@ export default function SubCategoryStreamPage() {
         </div>
     );
 }
-
-    
