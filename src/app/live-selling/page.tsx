@@ -584,19 +584,20 @@ export default function LiveSellingPage() {
     }, [allSellers]);
 
     const followedStreamsByCategory = useMemo(() => {
-        // Mocking followed categories. In a real app, this would come from user data.
         const followedCategoryNames = ['Fashion', 'Electronics'];
         const grouped: { [key: string]: any[] } = {};
 
-        followedCategoryNames.forEach(categoryName => {
-            const streams = liveSellers.filter(s => s.category === categoryName);
-            if (streams.length > 0) {
-                grouped[categoryName] = streams;
+        const streamsToGroup = allSellers.filter(s => followedCategoryNames.includes(s.category));
+
+        streamsToGroup.forEach(stream => {
+            if (!grouped[stream.category]) {
+                grouped[stream.category] = [];
             }
+            grouped[stream.category].push(stream);
         });
 
         return grouped;
-    }, []);
+    }, [allSellers]);
 
 
   return (
@@ -1015,3 +1016,5 @@ export default function LiveSellingPage() {
     </>
   );
 }
+
+    
