@@ -125,7 +125,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { ProductShelfContent } from '@/components/product-shelf-content';
 import { useInView } from 'react-intersection-observer';
-import { SubcategoryCard } from '../SubcategoryCard';
+import { SubcategoryCard } from '@/components/SubcategoryCard';
 
 
 const liveSellers = [
@@ -1026,5 +1026,3 @@ export default function LiveSellingPage() {
     </>
   );
 }
-
-    
