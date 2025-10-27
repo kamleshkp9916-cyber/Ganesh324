@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import Link from 'next/link';
@@ -584,19 +585,18 @@ export default function LiveSellingPage() {
     }, [allSellers]);
 
     const followedStreamsByCategory = useMemo(() => {
-        const followedCategoryNames = ['Fashion', 'Electronics'];
-        const grouped: { [key: string]: any[] } = {};
+      const followedCategoryNames = ['Fashion', 'Electronics']; // Mocked for now
+      const grouped: { [key: string]: any[] } = {};
 
-        const streamsToGroup = allSellers.filter(s => followedCategoryNames.includes(s.category));
+      const streamsToGroup = allSellers.filter(s => followedCategoryNames.includes(s.category));
 
-        streamsToGroup.forEach(stream => {
-            if (!grouped[stream.category]) {
-                grouped[stream.category] = [];
-            }
-            grouped[stream.category].push(stream);
-        });
-
-        return grouped;
+      streamsToGroup.forEach(stream => {
+          if (!grouped[stream.category]) {
+              grouped[stream.category] = [];
+          }
+          grouped[stream.category].push(stream);
+      });
+      return grouped;
     }, [allSellers]);
 
 
@@ -607,7 +607,6 @@ export default function LiveSellingPage() {
             <AlertDialogContent>
                 <AlertDialogHeader>
                     <AlertDialogTitle>Authentication Required</AlertDialogTitle>
-
                     <AlertDialogDescription>
                         You need to be logged in to perform this action. Please log in or create an account to continue.
                     </AlertDialogDescription>
@@ -1016,5 +1015,3 @@ export default function LiveSellingPage() {
     </>
   );
 }
-
-    
