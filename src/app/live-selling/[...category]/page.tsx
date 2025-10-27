@@ -4,7 +4,7 @@
 import { useRouter, useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, UserPlus, Rss } from 'lucide-react';
-import { liveSellers } from '@/lib/product-data';
+import { mockStreams as liveSellers } from '@/lib/product-data';
 import Link from 'next/link';
 import { Card } from '@/components/ui/card';
 import Image from 'next/image';
@@ -35,7 +35,7 @@ export default function SubCategoryStreamPage() {
         
     const filteredStreams = liveSellers.filter(stream => {
         const streamCategorySlug = stream.category.toLowerCase().replace(/\s+/g, '-');
-        const streamSubCategorySlug = stream.subcategory?.toLowerCase().replace(/\s+/g, '-').replace(/&/g, '%26');
+        const streamSubCategorySlug = (stream as any).subcategory?.toLowerCase().replace(/\s+/g, '-').replace(/&/g, '%26');
         
         if (subCategorySlug) {
             return streamCategorySlug === categorySlug && streamSubCategorySlug === subCategorySlug;
@@ -79,7 +79,7 @@ export default function SubCategoryStreamPage() {
                                     <div className="p-3 flex-grow">
                                         <div className="flex items-start gap-3">
                                             <div className="flex-1 overflow-hidden">
-                                                <p className="font-semibold text-sm leading-tight truncate group-hover:underline">{seller.title}</p>
+                                                <p className="font-semibold text-sm leading-tight truncate group-hover:underline">{(seller as any).title}</p>
                                                 <p className="text-xs text-muted-foreground">{seller.name}</p>
                                             </div>
                                         </div>
@@ -98,4 +98,3 @@ export default function SubCategoryStreamPage() {
         </div>
     );
 }
-
