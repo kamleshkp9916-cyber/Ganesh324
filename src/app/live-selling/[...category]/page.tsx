@@ -3,7 +3,42 @@
 
 import { useRouter, useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, UserPlus, Heart, Users, Search, ChevronDown, Bell, MoreHorizontal, Sun, Moon, Laptop, LogOut, Settings, LifeBuoy, Shield, FileText, LayoutDashboard, Package, Wallet, RadioTower, Tv, Flame, TrendingUp, Tags, List, User, Sparkles, Filter, Video, X, ShoppingBag, Rss, UserCheck } from 'lucide-react';
+import {
+  ArrowLeft,
+  UserPlus,
+  Heart,
+  Users,
+  Search,
+  ChevronDown,
+  Bell,
+  MoreHorizontal,
+  Sun,
+  Moon,
+  Laptop,
+  LogOut,
+  Settings,
+  LifeBuoy,
+  Shield,
+  FileText,
+  LayoutDashboard,
+  Package,
+  Wallet,
+  RadioTower,
+  Tv,
+  Flame,
+  TrendingUp,
+  Tags,
+  List,
+  User,
+  Sparkles,
+  Filter,
+  Video,
+  X,
+  ShoppingBag,
+  Rss,
+  UserCheck,
+  ShoppingCart,
+} from 'lucide-react';
 import { mockStreams, productDetails, productToSellerMapping } from '@/lib/product-data';
 import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/card';
@@ -345,9 +380,6 @@ export default function SubCategoryStreamPage() {
                 
                 <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-4">
                     <Tabs defaultValue="livestreams" className="w-full md:w-auto">
-                        <TabsList>
-                            <TabsTrigger value="livestreams">Livestreams</TabsTrigger>
-                        </TabsList>
                     </Tabs>
                      <div className="flex w-full md:w-auto items-center justify-between md:justify-end gap-2">
                          <div className="relative flex-grow md:flex-grow-0">
@@ -467,8 +499,6 @@ export default function SubCategoryStreamPage() {
             </main>
         </div>
     );
-
-    
 }
 
     
