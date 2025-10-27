@@ -3,7 +3,7 @@
 
 import { useRouter, useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, UserPlus, Rss, Heart, Users, Search, ChevronDown, Bell, ShoppingCart, User, MoreHorizontal, ShoppingBag, Video } from 'lucide-react';
+import { ArrowLeft, UserPlus, Rss, Heart, Users, Search, ChevronDown, Bell, ShoppingBag, User, MoreHorizontal } from 'lucide-react';
 import { mockStreams as liveSellers } from '@/lib/product-data';
 import Link from 'next/link';
 import { Card } from '@/components/ui/card';
@@ -298,57 +298,80 @@ export default function SubCategoryStreamPage() {
                     </div>
                 </div>
 
-                <Tabs defaultValue="livestreams" className="w-full">
-                    <TabsList>
-                        <TabsTrigger value="livestreams">Livestreams</TabsTrigger>
-                        <TabsTrigger value="clips">Clips</TabsTrigger>
-                    </TabsList>
-                    <TabsContent value="livestreams" className="mt-6">
-                        {filteredStreams.length > 0 ? (
-                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-10">
-                                {filteredStreams.map((seller) => (
-                                    <Link href={`/stream/${seller.id}`} key={seller.id} className="group">
-                                        <Card className="overflow-hidden h-full flex flex-col bg-card shadow-none border-none">
-                                            <div className="relative aspect-[3/4] bg-muted rounded-2xl overflow-hidden">
-                                                <Image src={seller.thumbnailUrl} alt={`Live stream from ${seller.name}`} fill sizes="(max-width: 640px) 100vw, 33vw" className="object-cover w-full h-full transition-transform group-hover:scale-105" />
-                                                <div className="absolute top-3 left-3 z-10"><Badge variant="destructive" className="gap-1.5"><div className="h-2 w-2 rounded-full bg-white animate-pulse" />LIVE</Badge></div>
-                                                <div className="absolute bottom-2 left-2 right-2 z-10">
-                                                    <div className="flex items-center justify-between text-white text-xs font-semibold bg-black/40 p-1.5 px-2 rounded-full backdrop-blur-sm">
-                                                        <div className="flex items-center gap-1"><Users className="w-3 h-3"/>{seller.viewers.toLocaleString()}</div>
-                                                        <div className="flex items-center gap-1"><Heart className="w-3 h-3 fill-white"/>{Math.round(seller.viewers / 20)}</div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div className="pt-3">
-                                                <div className="flex items-start gap-3">
-                                                     <Avatar className="h-8 w-8">
-                                                        <AvatarImage src={seller.avatarUrl} alt={seller.name} />
-                                                        <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
-                                                    </Avatar>
-                                                    <div className="flex-1 overflow-hidden">
-                                                        <p className="font-semibold text-sm leading-tight truncate group-hover:text-primary transition-colors">{(seller as any).title || 'Live Stream'}</p>
-                                                        <p className="text-xs text-muted-foreground">{seller.name}</p>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </Card>
-                                    </Link>
-                                ))}
-                            </div>
-                        ) : (
-                            <div className="text-center py-20 text-muted-foreground">
-                                <h3 className="text-xl font-semibold">No Live Streams</h3>
-                                <p>There are no active streams in this category right now.</p>
-                            </div>
-                        )}
-                    </TabsContent>
-                     <TabsContent value="clips">
-                        <div className="text-center py-20 text-muted-foreground">
-                            <h3 className="text-xl font-semibold">No Clips Found</h3>
-                            <p>There are no clips available for this category yet.</p>
+                <div>
+                    <div className="flex items-center justify-between gap-4 mb-4">
+                        <div className="flex-1">
+                            {/* Placeholder for potential search bar */}
                         </div>
-                     </TabsContent>
-                </Tabs>
+                        <div className="flex items-center gap-2">
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button variant="outline" size="sm" className="h-9">
+                                        Filter by: <span className="font-semibold ml-1">Languages</span>
+                                        <ChevronDown className="ml-2 h-4 w-4"/>
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                    <DropdownMenuRadioItem value="any">Any</DropdownMenuRadioItem>
+                                    <DropdownMenuRadioItem value="english">English</DropdownMenuRadioItem>
+                                    <DropdownMenuRadioItem value="hindi">Hindi</DropdownMenuRadioItem>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                             <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button variant="outline" size="sm" className="h-9">
+                                        Sort by: <span className="font-semibold ml-1 capitalize">{sortOption.replace("-", " ")}</span>
+                                         <ChevronDown className="ml-2 h-4 w-4"/>
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                    <DropdownMenuRadioGroup value={sortOption} onValueChange={setSortOption}>
+                                        <DropdownMenuRadioItem value="viewers-desc">Viewers (High to Low)</DropdownMenuRadioItem>
+                                        <DropdownMenuRadioItem value="viewers-asc">Viewers (Low to High)</DropdownMenuRadioItem>
+                                        <DropdownMenuRadioItem value="newest">Newest</DropdownMenuRadioItem>
+                                    </DropdownMenuRadioGroup>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                        </div>
+                    </div>
+                    {filteredStreams.length > 0 ? (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-10">
+                            {filteredStreams.map((seller) => (
+                                <Link href={`/stream/${seller.id}`} key={seller.id} className="group">
+                                    <Card className="overflow-hidden h-full flex flex-col bg-card shadow-none border-none">
+                                        <div className="relative aspect-[3/4] bg-muted rounded-2xl overflow-hidden">
+                                            <Image src={seller.thumbnailUrl} alt={`Live stream from ${seller.name}`} fill sizes="(max-width: 640px) 100vw, 33vw" className="object-cover w-full h-full transition-transform group-hover:scale-105" />
+                                            <div className="absolute top-3 left-3 z-10"><Badge variant="destructive" className="gap-1.5"><div className="h-2 w-2 rounded-full bg-white animate-pulse" />LIVE</Badge></div>
+                                            <div className="absolute bottom-2 left-2 right-2 z-10">
+                                                <div className="flex items-center justify-between text-white text-xs font-semibold bg-black/40 p-1.5 px-2 rounded-full backdrop-blur-sm">
+                                                    <div className="flex items-center gap-1"><Users className="w-3 h-3"/>{seller.viewers.toLocaleString()}</div>
+                                                    <div className="flex items-center gap-1"><Heart className="w-3 h-3 fill-white"/>{Math.round(seller.viewers / 20)}</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className="pt-3">
+                                            <div className="flex items-start gap-3">
+                                                    <Avatar className="h-8 w-8">
+                                                    <AvatarImage src={seller.avatarUrl} alt={seller.name} />
+                                                    <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
+                                                </Avatar>
+                                                <div className="flex-1 overflow-hidden">
+                                                    <p className="font-semibold text-sm leading-tight truncate group-hover:text-primary transition-colors">{(seller as any).title || 'Live Stream'}</p>
+                                                    <p className="text-xs text-muted-foreground">{seller.name}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </Card>
+                                </Link>
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="text-center py-20 text-muted-foreground">
+                            <h3 className="text-xl font-semibold">No Live Streams</h3>
+                            <p>There are no active streams in this category right now.</p>
+                        </div>
+                    )}
+                </div>
             </main>
         </div>
     );
