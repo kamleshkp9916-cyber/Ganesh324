@@ -100,6 +100,7 @@ type Order = {
 
 type Product = {
     id: string;
+    key: string;
     name: string;
     price: number;
     category: string;
@@ -112,7 +113,7 @@ const mockOrders: Order[] = [
     {
         orderId: "#MOCK123",
         userId: "mockUser",
-        products: [{ name: "Mock Product 1", key: "mock_1" }],
+        products: [{ name: "Mock Product 1", key: "mock_1", productId: "mock_1" }],
         address: { name: "Mock User", village: "123 Mockingbird Lane", city: "Faketown", state: "CA", pincode: "90210", phone: "1234567890" },
         total: 1999.00,
         orderDate: "2024-08-01T10:00:00.000Z",
@@ -125,7 +126,7 @@ const mockOrders: Order[] = [
     {
         orderId: "#MOCK456",
         userId: "mockUser",
-        products: [{ name: "Mock Product 2", key: "mock_2" }],
+        products: [{ name: "Mock Product 2", key: "mock_2", productId: "mock_2" }],
         address: { name: "Mock User", village: "123 Mockingbird Lane", city: "Faketown", state: "CA", pincode: "90210", phone: "1234567890" },
         total: 450.50,
         orderDate: "2024-07-25T15:30:00.000Z",
@@ -138,8 +139,8 @@ const mockOrders: Order[] = [
 ];
 
 const mockProducts: Product[] = [
-    { id: 'mock_1', name: 'Mock Seller Product A', price: 1999.00, category: 'Electronics', images: [{ preview: 'https://placehold.co/100x100.png' }] },
-    { id: 'mock_2', name: 'Mock Seller Product B', price: 450.50, category: 'Fashion', images: [{ preview: 'https://placehold.co/100x100.png' }] },
+    { id: 'mock_1', key: 'mock_1', name: 'Mock Seller Product A', price: 1999.00, category: 'Electronics', images: [{ preview: 'https://placehold.co/100x100.png' }] },
+    { id: 'mock_2', key: 'mock_2', name: 'Mock Seller Product B', price: 450.50, category: 'Fashion', images: [{ preview: 'https://placehold.co/100x100.png' }] },
 ];
 
 
@@ -337,7 +338,9 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
                                 {userProducts.length > 0 ? (
                                     userProducts.map(product => (
                                         <TableRow key={product.id}>
-                                            <TableCell className="font-medium">{product.name}</TableCell>
+                                            <TableCell className="font-medium">
+                                                <Link href={`/product/${product.key}`} className="hover:underline">{product.name}</Link>
+                                            </TableCell>
                                             <TableCell>{product.category}</TableCell>
                                             <TableCell className="text-right">₹{product.price.toLocaleString()}</TableCell>
                                         </TableRow>
@@ -525,3 +528,5 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
     </Dialog>
   );
 };
+
+    

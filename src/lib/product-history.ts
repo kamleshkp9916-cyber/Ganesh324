@@ -1,5 +1,4 @@
 
-
 "use client";
 
 export interface Product {
@@ -82,7 +81,7 @@ export const addRecentlyViewed = (product: Product) => {
     let items = getRecentlyViewed() as ViewedProduct[];
     
     // Remove existing entry if it's already there to move it to the top
-    items = items.filter(p => p.id !== product.id);
+    items = items.filter(p => p.key !== product.key);
 
     const newItem: ViewedProduct = { ...product, viewedAt: Date.now() };
     const newItems = [newItem, ...items];
@@ -165,3 +164,5 @@ export const updateCartQuantity = (productId: number, quantity: number, size?: s
     localStorage.setItem(CART_KEY, JSON.stringify(items));
     window.dispatchEvent(new Event('storage'));
 };
+
+    
