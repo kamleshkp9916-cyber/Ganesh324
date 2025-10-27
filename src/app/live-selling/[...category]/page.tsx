@@ -3,7 +3,7 @@
 
 import { useRouter, useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, UserPlus, Rss, Heart, Users, Search, ChevronDown, Bell, ShoppingBag, User, MoreHorizontal } from 'lucide-react';
+import { ArrowLeft, UserPlus, Rss, Heart, Users, Search, ChevronDown, Bell, MoreHorizontal, ShoppingCart, Sun, Moon, Laptop, LogOut, Settings, LifeBuoy, Shield, FileText, LayoutDashboard, Package, Wallet, RadioTower, Tv, Flame, TrendingUp, Tags, List } from 'lucide-react';
 import { mockStreams as liveSellers } from '@/lib/product-data';
 import Link from 'next/link';
 import { Card } from '@/components/ui/card';
@@ -32,12 +32,12 @@ import { useAuth } from '@/hooks/use-auth';
 import { useAuthActions } from '@/lib/auth';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useTheme } from 'next-themes';
-import { Moon, Sun, Laptop, LogOut, Settings, LifeBuoy, Shield, FileText, LayoutDashboard, Package, Wallet } from 'lucide-react';
 import { GoLiveDialog } from '@/components/go-live-dialog';
 import { Dialog, DialogTrigger } from '@/components/ui/dialog';
-import { RadioTower } from 'lucide-react';
 import { getCart } from '@/lib/product-history';
 import { cn } from '@/lib/utils';
+import { useIsMobile } from '@/hooks/use-mobile';
+
 
 export default function SubCategoryStreamPage() {
     const router = useRouter();
@@ -49,6 +49,7 @@ export default function SubCategoryStreamPage() {
     const [searchTerm, setSearchTerm] = useState('');
     const [isSearchOpen, setIsSearchOpen] = useState(false);
     const [cartCount, setCartCount] = React.useState(0);
+    const isMobile = useIsMobile();
 
     let { category: categoryPath } = params;
 
@@ -85,26 +86,27 @@ export default function SubCategoryStreamPage() {
         .join(' ');
         
     const filteredStreams = useMemo(() => {
-      if (!liveSellers) return [];
-      let streams = liveSellers.filter(stream => {
-          if (!stream.category) return false;
-          const streamCategorySlug = stream.category.toLowerCase().replace(/\s+/g, '-');
-          const streamSubCategorySlug = (stream as any).subcategory?.toLowerCase().replace(/\s+/g, '-').replace(/&/g, '%26');
-          
-          if (subCategorySlug) {
-              return streamCategorySlug === categorySlug && streamSubCategorySlug === subCategorySlug;
-          }
-          return streamCategorySlug === categorySlug;
-      });
+        if (!liveSellers) return [];
+        let streams = liveSellers.filter(stream => {
+            if (!stream.category) return false;
+            const streamCategorySlug = stream.category.toLowerCase().replace(/\s+/g, '-');
+            const streamSubCategorySlug = (stream as any).subcategory?.toLowerCase().replace(/\s+/g, '-').replace(/&/g, '%26');
+            
+            if (subCategorySlug) {
+                return streamCategorySlug === categorySlug && streamSubCategorySlug === subCategorySlug;
+            }
+            return streamCategorySlug === categorySlug;
+        });
 
-      if (searchTerm) {
-          streams = streams.filter(stream => 
-              (stream.title && stream.title.toLowerCase().includes(searchTerm.toLowerCase())) ||
-              (stream.name && stream.name.toLowerCase().includes(searchTerm.toLowerCase()))
-          );
-      }
+        if (searchTerm) {
+            streams = streams.filter(stream => 
+                (stream.title && stream.title.toLowerCase().includes(searchTerm.toLowerCase())) ||
+                (stream.name && stream.name.toLowerCase().includes(searchTerm.toLowerCase()))
+            );
+        }
+        
+        return streams.sort((a, b) => b.viewers - a.viewers);
 
-      return streams;
     }, [categorySlug, subCategorySlug, searchTerm]);
 
     const totalViewers = filteredStreams.reduce((acc, stream) => acc + stream.viewers, 0);
@@ -117,7 +119,7 @@ export default function SubCategoryStreamPage() {
                         <Button variant="ghost" size="icon" onClick={() => router.back()}>
                             <ArrowLeft className="h-6 w-6" />
                         </Button>
-                        <Link href="/live-selling" className="flex items-center gap-2">
+                         <Link href="/live-selling" className="flex items-center gap-2">
                             <span className="font-bold text-lg hidden sm:inline-block">StreamCart</span>
                         </Link>
                     </div>
@@ -283,57 +285,53 @@ export default function SubCategoryStreamPage() {
             </header>
 
             <main className="container mx-auto py-6">
-                 <div className="flex flex-col items-center text-center gap-2 mb-8">
-                    <h1 className="text-4xl font-bold tracking-tight">{pageTitle}</h1>
-                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                        <span><strong className="text-foreground">{(totalViewers / 1000).toFixed(1)}K</strong> watching</span>
-                        <span className="h-4 border-l"></span>
-                        <span><strong className="text-foreground">222.5K</strong> followers</span>
+                 <div className="text-center mb-8">
+                    <div className="inline-flex items-center gap-2 text-sm text-muted-foreground bg-secondary px-3 py-1 rounded-full mb-3">
+                        <Tv className="h-4 w-4"/>
+                        <span>Live Streams</span>
                     </div>
-                     <div className="flex items-center gap-2">
-                        <Button variant="outline" className="mt-2">
-                            <UserPlus className="mr-2 h-4 w-4" />
-                            Follow
-                        </Button>
+                    <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">{pageTitle}</h1>
+                </div>
+                
+                <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-4">
+                     <div className="flex items-center gap-4 text-sm text-muted-foreground w-full md:w-auto justify-center">
+                        <div className="flex items-center gap-1.5"><Flame className="h-4 w-4 text-primary" /> <strong className="text-foreground">{(totalViewers / 1000).toFixed(1)}K</strong> watching</div>
+                        <Separator orientation="vertical" className="h-4" />
+                        <div className="flex items-center gap-1.5"><TrendingUp className="h-4 w-4 text-primary" /> <strong className="text-foreground">222.5K</strong> followers</div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="outline" size="sm" className="h-9">
+                                    Filter by: <span className="font-semibold ml-1">Languages</span>
+                                    <ChevronDown className="ml-2 h-4 w-4"/>
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                                <DropdownMenuRadioItem value="any">Any</DropdownMenuRadioItem>
+                                <DropdownMenuRadioItem value="english">English</DropdownMenuRadioItem>
+                                <DropdownMenuRadioItem value="hindi">Hindi</DropdownMenuRadioItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                         <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="outline" size="sm" className="h-9">
+                                    Sort by: <span className="font-semibold ml-1 capitalize">{sortOption.replace("-", " ")}</span>
+                                     <ChevronDown className="ml-2 h-4 w-4"/>
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                                <DropdownMenuRadioGroup value={sortOption} onValueChange={setSortOption}>
+                                    <DropdownMenuRadioItem value="viewers-desc">Viewers (High to Low)</DropdownMenuRadioItem>
+                                    <DropdownMenuRadioItem value="viewers-asc">Viewers (Low to High)</DropdownMenuRadioItem>
+                                    <DropdownMenuRadioItem value="newest">Newest</DropdownMenuRadioItem>
+                                </DropdownMenuRadioGroup>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
                     </div>
                 </div>
 
                 <div>
-                    <div className="flex items-center justify-between gap-4 mb-4">
-                        <div className="flex-1">
-                            {/* Placeholder for potential search bar */}
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                    <Button variant="outline" size="sm" className="h-9">
-                                        Filter by: <span className="font-semibold ml-1">Languages</span>
-                                        <ChevronDown className="ml-2 h-4 w-4"/>
-                                    </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                    <DropdownMenuRadioItem value="any">Any</DropdownMenuRadioItem>
-                                    <DropdownMenuRadioItem value="english">English</DropdownMenuRadioItem>
-                                    <DropdownMenuRadioItem value="hindi">Hindi</DropdownMenuRadioItem>
-                                </DropdownMenuContent>
-                            </DropdownMenu>
-                             <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                    <Button variant="outline" size="sm" className="h-9">
-                                        Sort by: <span className="font-semibold ml-1 capitalize">{sortOption.replace("-", " ")}</span>
-                                         <ChevronDown className="ml-2 h-4 w-4"/>
-                                    </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                    <DropdownMenuRadioGroup value={sortOption} onValueChange={setSortOption}>
-                                        <DropdownMenuRadioItem value="viewers-desc">Viewers (High to Low)</DropdownMenuRadioItem>
-                                        <DropdownMenuRadioItem value="viewers-asc">Viewers (Low to High)</DropdownMenuRadioItem>
-                                        <DropdownMenuRadioItem value="newest">Newest</DropdownMenuRadioItem>
-                                    </DropdownMenuRadioGroup>
-                                </DropdownMenuContent>
-                            </DropdownMenu>
-                        </div>
-                    </div>
                     {filteredStreams.length > 0 ? (
                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-10">
                             {filteredStreams.map((seller) => (
@@ -376,3 +374,5 @@ export default function SubCategoryStreamPage() {
         </div>
     );
 }
+
+    
