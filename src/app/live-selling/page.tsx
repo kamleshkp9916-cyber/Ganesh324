@@ -815,7 +815,7 @@ export default function LiveSellingPage() {
                                         
                                         return (
                                         <Card key={seller.id} className="group flex flex-col space-y-2 overflow-hidden border-none shadow-none bg-transparent">
-                                            <Link href={`/stream/${'${seller.id}'}`} className="block">
+                                            <Link href={`/stream/${seller.id}`} className="block">
                                                 <div className="relative rounded-lg overflow-hidden aspect-video bg-muted w-full">
                                                     <div className="absolute top-3 left-3 z-10"><Badge variant="destructive" className="live-pulse-beam">LIVE</Badge></div>
                                                     <div className="absolute top-2 right-2 z-10"><Badge variant="secondary" className="bg-black/50 text-white"><Users className="w-3 h-3 mr-1"/>{seller.viewers.toLocaleString()}</Badge></div>
