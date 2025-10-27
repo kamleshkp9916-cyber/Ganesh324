@@ -158,22 +158,28 @@ export default function SubCategoryStreamPage() {
 
         const filterStreams = (streams: any[], term: string) => {
             if (!term) return streams;
+            const lowercasedTerm = term.toLowerCase();
             return streams.filter(stream => 
-                (stream.title && stream.title.toLowerCase().includes(term.toLowerCase())) ||
-                (stream.name && stream.name.toLowerCase().includes(term.toLowerCase()))
+                (stream.title && stream.title.toLowerCase().includes(lowercasedTerm)) ||
+                (stream.name && stream.name.toLowerCase().includes(lowercasedTerm)) ||
+                (stream.subcategory && stream.subcategory.toLowerCase().includes(lowercasedTerm))
             );
         };
         
-        let streams = mockStreams.filter(stream => {
-            if (!stream.category) return false;
-            const streamCategorySlug = stream.category.toLowerCase().replace(/\s+/g, '-');
-            
-            if (subCategorySlug) {
-                const streamSubCategorySlug = (stream as any).subcategory?.toLowerCase().replace(/\s+/g, '-').replace(/&/g, '%26');
-                return streamCategorySlug === categorySlug && streamSubCategorySlug === subCategorySlug;
-            }
-            return streamCategorySlug === categorySlug;
-        });
+        let streams;
+        if (subCategorySlug) {
+            streams = mockStreams.filter(stream => {
+                 const streamSubCategorySlug = (stream as any).subcategory?.toLowerCase().replace(/\s+/g, '-').replace(/&/g, '%26');
+                 return streamSubCategorySlug === subCategorySlug;
+            });
+        } else if (categorySlug) {
+             streams = mockStreams.filter(stream => {
+                const streamCategorySlug = stream.category.toLowerCase().replace(/\s+/g, '-');
+                return streamCategorySlug === categorySlug;
+            });
+        } else {
+            streams = mockStreams;
+        }
 
         const sorted = streams.sort((a, b) => b.viewers - a.viewers);
         
@@ -360,7 +366,12 @@ export default function SubCategoryStreamPage() {
                  <div className="flex flex-col items-center justify-center text-center mb-8">
                      <div className="flex items-center text-sm text-muted-foreground mb-2">
                         <Link href={`/live-selling/${categorySlug}`} className="hover:text-primary">{parentCategoryTitle}</Link>
-                        {subCategorySlug && <ChevronRight className="h-4 w-4" />}
+                        {subCategorySlug && (
+                            <>
+                                <ChevronRight className="h-4 w-4" />
+                                <span>{pageTitle}</span>
+                            </>
+                        )}
                     </div>
                     <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">{pageTitle}</h1>
                     <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
@@ -502,4 +513,3 @@ export default function SubCategoryStreamPage() {
     );
 }
 
-    
