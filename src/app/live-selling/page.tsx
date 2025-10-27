@@ -596,7 +596,7 @@ export default function LiveSellingPage() {
 
     const followedStreamsByCategory = useMemo(() => {
         // Mocking followed categories. In a real app, this would come from user data.
-        const followedCategoryNames = ['Fashion', 'Electronics']; 
+        const followedCategoryNames = ['Fashion', 'Electronics'];
         const grouped: { [key: string]: any[] } = {};
 
         followedCategoryNames.forEach(categoryName => {
@@ -920,55 +920,55 @@ export default function LiveSellingPage() {
                                     ))}
                                 </div>
                             </TabsContent>
-                            <TabsContent value="following">
+                             <TabsContent value="following">
                                 <div className="space-y-6">
-                                {Object.keys(followedStreamsByCategory).length > 0 ? (
-                                    Object.entries(followedStreamsByCategory).map(([category, streams]) => (
-                                    <section key={category}>
-                                        <div className="flex items-center justify-between mb-4">
-                                            <h3 className="text-xl font-bold">{category}</h3>
+                                    {Object.keys(followedStreamsByCategory).length > 0 ? (
+                                        Object.entries(followedStreamsByCategory).map(([category, streams]) => (
+                                            <section key={category}>
+                                                <div className="flex items-center justify-between mb-4">
+                                                    <h3 className="text-xl font-bold">{category}</h3>
+                                                    <Button asChild variant="link">
+                                                        <Link href={`/live-selling/${category.toLowerCase()}`}>View All</Link>
+                                                    </Button>
+                                                </div>
+                                                <Carousel opts={{ align: 'start' }} className="w-full">
+                                                    <CarouselContent className="-ml-4">
+                                                        {(streams as any[]).map((stream: any) => (
+                                                            <CarouselItem key={stream.id} className="md:basis-1/2 lg:basis-1/3 xl:basis-1/4 pl-4">
+                                                                 <Link href={`/stream/${stream.id}`} className="group block">
+                                                                    <div className="relative rounded-lg overflow-hidden aspect-video bg-muted w-full">
+                                                                        <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
+                                                                        <div className="absolute top-2 right-2 z-10"><Badge variant="secondary" className="bg-black/50 text-white"><Users className="w-3 h-3 mr-1"/>{stream.viewers.toLocaleString()}</Badge></div>
+                                                                        <Image src={stream.thumbnailUrl} alt={stream.title} fill sizes="(max-width: 768px) 50vw, 33vw" className="object-cover w-full h-full transition-transform group-hover:scale-105" />
+                                                                    </div>
+                                                                    <div className="flex items-start gap-3 mt-2">
+                                                                        <Avatar>
+                                                                            <AvatarImage src={stream.avatarUrl} />
+                                                                            <AvatarFallback>{stream.name.charAt(0)}</AvatarFallback>
+                                                                        </Avatar>
+                                                                        <div>
+                                                                            <p className="font-semibold text-sm group-hover:underline truncate">{stream.title}</p>
+                                                                            <p className="text-xs text-muted-foreground">{stream.name}</p>
+                                                                        </div>
+                                                                    </div>
+                                                                </Link>
+                                                            </CarouselItem>
+                                                        ))}
+                                                    </CarouselContent>
+                                                    <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2 hidden md:flex" />
+                                                    <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2 hidden md:flex" />
+                                                </Carousel>
+                                            </section>
+                                        ))
+                                    ) : (
+                                        <div className="text-center py-20 text-muted-foreground">
+                                            <h3 className="text-xl font-semibold">Nothing to see here</h3>
+                                            <p>Streams from sellers you follow will appear here.</p>
                                             <Button asChild variant="link">
-                                                <Link href={`/live-selling/${category.toLowerCase()}`}>View All</Link>
+                                                <Link href="/top-seller">Find creators to follow</Link>
                                             </Button>
                                         </div>
-                                        <Carousel opts={{ align: 'start' }} className="w-full">
-                                            <CarouselContent className="-ml-4">
-                                                {streams.map((stream: any) => (
-                                                    <CarouselItem key={stream.id} className="md:basis-1/2 lg:basis-1/3 xl:basis-1/4 pl-4">
-                                                         <Link href={`/stream/${stream.id}`} className="group block">
-                                                            <div className="relative rounded-lg overflow-hidden aspect-video bg-muted w-full">
-                                                                <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
-                                                                <div className="absolute top-2 right-2 z-10"><Badge variant="secondary" className="bg-black/50 text-white"><Users className="w-3 h-3 mr-1"/>{stream.viewers.toLocaleString()}</Badge></div>
-                                                                <Image src={stream.thumbnailUrl} alt={stream.title} fill sizes="(max-width: 768px) 50vw, 33vw" className="object-cover w-full h-full transition-transform group-hover:scale-105" />
-                                                            </div>
-                                                            <div className="flex items-start gap-3 mt-2">
-                                                                <Avatar>
-                                                                    <AvatarImage src={stream.avatarUrl} />
-                                                                    <AvatarFallback>{stream.name.charAt(0)}</AvatarFallback>
-                                                                </Avatar>
-                                                                <div>
-                                                                    <p className="font-semibold text-sm group-hover:underline truncate">{stream.title}</p>
-                                                                    <p className="text-xs text-muted-foreground">{stream.name}</p>
-                                                                </div>
-                                                            </div>
-                                                        </Link>
-                                                    </CarouselItem>
-                                                ))}
-                                            </CarouselContent>
-                                            <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2 hidden md:flex" />
-                                            <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2 hidden md:flex" />
-                                        </Carousel>
-                                    </section>
-                                    ))
-                                ) : (
-                                    <div className="text-center py-20 text-muted-foreground">
-                                        <h3 className="text-xl font-semibold">Nothing to see here</h3>
-                                        <p>Streams from sellers you follow will appear here.</p>
-                                        <Button asChild variant="link">
-                                            <Link href="/top-seller">Find creators to follow</Link>
-                                        </Button>
-                                    </div>
-                                )}
+                                    )}
                                 </div>
                             </TabsContent>
                         </Tabs>
@@ -1026,3 +1026,5 @@ export default function LiveSellingPage() {
     </>
   );
 }
+
+    
