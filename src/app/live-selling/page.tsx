@@ -906,27 +906,65 @@ export default function LiveSellingPage() {
                                     </div>
                                     <Carousel opts={{ align: 'start' }} className="w-full">
                                     <CarouselContent className="-ml-4">
-                                        {(streams as any[]).map((stream: any) => (
-                                        <CarouselItem key={stream.id} className="md:basis-1/2 lg:basis-1/3 xl:basis-1/4 pl-4">
-                                            <Link href={`/stream/${stream.id}`} className="group block">
-                                            <div className="relative rounded-lg overflow-hidden aspect-video bg-muted w-full">
-                                                <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
-                                                <div className="absolute top-2 right-2 z-10"><Badge variant="secondary" className="bg-black/50 text-white"><Users className="w-3 h-3 mr-1"/>{stream.viewers.toLocaleString()}</Badge></div>
-                                                <Image src={stream.thumbnailUrl} alt={stream.title} fill sizes="(max-width: 768px) 50vw, 33vw" className="object-cover w-full h-full transition-transform group-hover:scale-105" />
-                                            </div>
-                                            <div className="flex items-start gap-3 mt-2">
-                                                <Avatar>
-                                                <AvatarImage src={stream.avatarUrl} />
-                                                <AvatarFallback>{stream.name.charAt(0)}</AvatarFallback>
-                                                </Avatar>
-                                                <div>
-                                                <p className="font-semibold text-sm group-hover:underline truncate">{stream.title}</p>
-                                                <p className="text-xs text-muted-foreground">{stream.name}</p>
+                                        {(streams as any[]).map((stream: any) => {
+                                            const sellerProducts = getProductsForSeller(stream.id);
+                                            const productsToShow = sellerProducts.slice(0, 6);
+                                            const remainingCount = sellerProducts.length > 5 ? sellerProducts.length - 5 : 0;
+                                            return (
+                                            <CarouselItem key={stream.id} className="basis-full sm:basis-1/2 lg:basis-1/3 xl:basis-1/4 pl-4">
+                                                <Card className="group flex flex-col space-y-2 overflow-hidden border-none shadow-none bg-transparent h-full">
+                                                <Link href={`/stream/${stream.id}`} className="block">
+                                                    <div className="relative rounded-lg overflow-hidden aspect-video bg-muted w-full">
+                                                        <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
+                                                        <div className="absolute top-2 right-2 z-10"><Badge variant="secondary" className="bg-black/50 text-white"><Users className="w-3 h-3 mr-1"/>{stream.viewers.toLocaleString()}</Badge></div>
+                                                        <Image src={stream.thumbnailUrl} alt={stream.title} fill sizes="(max-width: 768px) 50vw, 33vw" className="object-cover w-full h-full transition-transform group-hover:scale-105" />
+                                                    </div>
+                                                    <div className="flex items-start gap-3 mt-2">
+                                                        <Avatar>
+                                                        <AvatarImage src={stream.avatarUrl} />
+                                                        <AvatarFallback>{stream.name.charAt(0)}</AvatarFallback>
+                                                        </Avatar>
+                                                        <div>
+                                                        <p className="font-semibold text-sm group-hover:underline truncate">{stream.title}</p>
+                                                        <p className="text-xs text-muted-foreground">{stream.name}</p>
+                                                        </div>
+                                                    </div>
+                                                </Link>
+                                                <div className="flex items-center gap-1.5 mt-auto flex-shrink-0 pt-2 w-full justify-start pb-2">
+                                                    {productsToShow.slice(0, remainingCount > 0 ? 5 : 6).map((p:any) => (
+                                                        <Link href={`/product/${p.key}`} key={p.key} className="block" onClick={(e) => e.stopPropagation()}>
+                                                            <div className="w-10 h-10 bg-muted rounded-md border overflow-hidden hover:ring-2 hover:ring-primary">
+                                                                <Image src={p.images[0]?.preview || p.images[0]} alt={p.name} width={40} height={40} className="object-cover w-full h-full" />
+                                                            </div>
+                                                        </Link>
+                                                    ))}
+                                                    {remainingCount > 0 && (
+                                                        <Sheet>
+                                                            <SheetTrigger asChild>
+                                                                <button className="w-10 h-10 bg-muted rounded-md border flex items-center justify-center text-xs font-semibold text-muted-foreground hover:bg-secondary">
+                                                                    +{remainingCount}
+                                                                </button>
+                                                            </SheetTrigger>
+                                                            <SheetContent side="bottom" className="h-[60vh] flex flex-col p-0">
+                                                                <ProductShelfContent
+                                                                    sellerProducts={sellerProducts}
+                                                                    handleAddToCart={handleAddToCart}
+                                                                    handleBuyNow={handleBuyNow}
+                                                                    isMobile={true}
+                                                                    onClose={() => {
+                                                                        const a = document.querySelector('[data-state="closed"]');
+                                                                        if (a) (a as HTMLElement).click();
+                                                                    }}
+                                                                    toast={toast}
+                                                                />
+                                                            </SheetContent>
+                                                        </Sheet>
+                                                    )}
                                                 </div>
-                                            </div>
-                                            </Link>
-                                        </CarouselItem>
-                                        ))}
+                                                </Card>
+                                            </CarouselItem>
+                                            )
+                                        })}
                                     </CarouselContent>
                                     <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2 hidden md:flex" />
                                     <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2 hidden md:flex" />
