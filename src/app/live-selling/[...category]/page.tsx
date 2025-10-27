@@ -306,39 +306,61 @@ export default function SubCategoryStreamPage() {
                 <div className="flex flex-col items-center justify-center text-center mb-8">
                     <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">{pageTitle}</h1>
                     <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
-                        <div className="flex items-center gap-1.5"><Users className="h-4 w-4" /> <strong className="text-foreground">{(totalViewers / 1000).toFixed(1)}K</strong> viewers</div>
+                        <div className="flex items-center gap-1.5"><Users className="h-4 w-4" /> <strong className="text-foreground">{(totalViewers / 1000).toFixed(1)}K</strong> watching</div>
                         <span className="text-muted-foreground/50">|</span>
                         <div className="flex items-center gap-1.5"><Heart className="h-4 w-4" /> <strong className="text-foreground">22.5K</strong> followers</div>
                     </div>
-                    <div className="mt-4">
+                    <div className="mt-4 flex gap-2">
                         <Button variant="outline" size="sm" className="rounded-full">
+                            IRL
+                        </Button>
+                        <Button variant="outline" size="sm" className="rounded-full">
+                            Casual
+                        </Button>
+                         <Button variant="secondary" size="sm" className="rounded-full">
                             <UserPlus className="mr-2 h-4 w-4" /> Follow
                         </Button>
                     </div>
                 </div>
                 
-                 <div className="flex items-center justify-center gap-2 mb-6">
-                    <Tabs defaultValue="livestreams" className="w-auto">
+                <div className="flex items-center justify-between gap-2 mb-6">
+                     <Tabs defaultValue="livestreams" className="w-auto">
                         <TabsList>
                             <TabsTrigger value="livestreams">Livestreams</TabsTrigger>
                         </TabsList>
                     </Tabs>
-                </div>
-                
-                <div className="flex items-center justify-end gap-2 mb-4">
-                     <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button variant="outline" size="sm" className="h-9">
-                                <Filter className="mr-2 h-4 w-4" />
-                                Filter by: <span className="font-semibold ml-1">Languages</span>
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                            <DropdownMenuRadioItem value="any">Any</DropdownMenuRadioItem>
-                            <DropdownMenuRadioItem value="english">English</DropdownMenuRadioItem>
-                            <DropdownMenuRadioItem value="hindi">Hindi</DropdownMenuRadioItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
+                     <div className="flex items-center gap-2">
+                         <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="outline" size="sm" className="h-9">
+                                    <Filter className="mr-2 h-4 w-4" />
+                                    Filter by: <span className="font-semibold ml-1">Languages</span>
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                                <DropdownMenuRadioItem value="any">Any</DropdownMenuRadioItem>
+                                <DropdownMenuRadioItem value="english">English</DropdownMenuRadioItem>
+                                <DropdownMenuRadioItem value="hindi">Hindi</DropdownMenuRadioItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                         <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="outline" size="sm" className="h-9">
+                                    Sort by: <span className="font-semibold ml-1 capitalize">{sortOption.replace('-', ' ')}</span>
+                                    <ChevronDown className="ml-1 h-4 w-4" />
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                                <DropdownMenuLabel>Sort Streams By</DropdownMenuLabel>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuRadioGroup value={sortOption} onValueChange={setSortOption}>
+                                    <DropdownMenuRadioItem value="viewers-desc">Most Viewers</DropdownMenuRadioItem>
+                                    <DropdownMenuRadioItem value="viewers-asc">Fewest Viewers</DropdownMenuRadioItem>
+                                    <DropdownMenuRadioItem value="newest">Recently Started</DropdownMenuRadioItem>
+                                </DropdownMenuRadioGroup>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    </div>
                 </div>
 
                 <div>
@@ -347,7 +369,7 @@ export default function SubCategoryStreamPage() {
                             {displayedStreams.map((seller) => (
                                 <Link href={`/stream/${seller.id}`} key={seller.id} className="group">
                                     <Card className="overflow-hidden h-full flex flex-col bg-card shadow-none border-none">
-                                        <div className="relative aspect-[3/4] bg-muted rounded-2xl overflow-hidden">
+                                        <div className="relative aspect-video bg-muted rounded-2xl overflow-hidden">
                                             <Image src={seller.thumbnailUrl} alt={`Live stream from ${seller.name}`} fill sizes="(max-width: 640px) 100vw, 33vw" className="object-cover w-full h-full transition-transform group-hover:scale-105" />
                                             <div className="absolute top-3 left-3 z-10"><Badge variant="destructive" className="gap-1.5"><div className="h-2 w-2 rounded-full bg-white animate-pulse" />LIVE</Badge></div>
                                             <div className="absolute bottom-2 left-2 right-2 z-10">
