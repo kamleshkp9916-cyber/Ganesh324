@@ -3,7 +3,7 @@
 
 import { useRouter, useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, UserPlus, Rss, Heart, Users, Search, ChevronDown, Bell, ShoppingCart, User, MoreHorizontal, ShoppingBag } from 'lucide-react';
+import { ArrowLeft, UserPlus, Rss, Heart, Users, Search, ChevronDown, Bell, ShoppingCart, User, MoreHorizontal, ShoppingBag, Video } from 'lucide-react';
 import { mockStreams as liveSellers } from '@/lib/product-data';
 import Link from 'next/link';
 import { Card } from '@/components/ui/card';
@@ -85,6 +85,7 @@ export default function SubCategoryStreamPage() {
         .join(' ');
         
     const filteredStreams = useMemo(() => {
+      if (!liveSellers) return [];
       let streams = liveSellers.filter(stream => {
           if (!stream.category) return false;
           const streamCategorySlug = stream.category.toLowerCase().replace(/\s+/g, '-');
@@ -282,29 +283,19 @@ export default function SubCategoryStreamPage() {
             </header>
 
             <main className="container mx-auto py-6">
-                <div className="flex items-start gap-6 mb-6">
-                     <Image
-                        src="https://placehold.co/150x200.png"
-                        alt={pageTitle}
-                        width={150}
-                        height={200}
-                        className="rounded-lg hidden md:block"
-                     />
-                     <div className="flex-grow pt-2">
-                        <h1 className="text-4xl font-bold mb-2">{pageTitle}</h1>
-                        <div className="flex items-center gap-4 text-sm text-muted-foreground mb-3">
-                            <span><strong className="text-foreground">{(totalViewers / 1000).toFixed(1)}K</strong> watching</span>
-                            <span><strong className="text-foreground">222.5K</strong> followers</span>
-                        </div>
-                         <div className="flex items-center gap-2 mb-4">
-                             <Badge variant="secondary">IRL</Badge>
-                             <Badge variant="secondary">Casual</Badge>
-                         </div>
-                        <Button variant="outline">
-                            <Heart className="mr-2 h-4 w-4" />
+                 <div className="flex flex-col items-center text-center gap-2 mb-8">
+                    <h1 className="text-4xl font-bold tracking-tight">{pageTitle}</h1>
+                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                        <span><strong className="text-foreground">{(totalViewers / 1000).toFixed(1)}K</strong> watching</span>
+                        <span className="h-4 border-l"></span>
+                        <span><strong className="text-foreground">222.5K</strong> followers</span>
+                    </div>
+                     <div className="flex items-center gap-2">
+                        <Button variant="outline" className="mt-2">
+                            <UserPlus className="mr-2 h-4 w-4" />
                             Follow
                         </Button>
-                     </div>
+                    </div>
                 </div>
 
                 <Tabs defaultValue="livestreams" className="w-full">
@@ -313,56 +304,27 @@ export default function SubCategoryStreamPage() {
                         <TabsTrigger value="clips">Clips</TabsTrigger>
                     </TabsList>
                     <TabsContent value="livestreams" className="mt-6">
-                        <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-4">
-                            <div className="relative w-full md:w-auto md:flex-grow max-w-xs">
-                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                                <Input placeholder="Search tags" className="pl-10" />
-                            </div>
-                             <div className="flex items-center gap-4">
-                                <DropdownMenu>
-                                    <DropdownMenuTrigger asChild>
-                                        <Button variant="outline" className="gap-1.5">
-                                            Filter by: <span className="font-semibold">Languages</span>
-                                            <ChevronDown className="h-4 w-4" />
-                                        </Button>
-                                    </DropdownMenuTrigger>
-                                    <DropdownMenuContent className="w-56">
-                                        <DropdownMenuRadioGroup value={"english"} onValueChange={() => {}}>
-                                            <DropdownMenuRadioItem value="english">English</DropdownMenuRadioItem>
-                                            <DropdownMenuRadioItem value="hindi">Hindi</DropdownMenuRadioItem>
-                                        </DropdownMenuRadioGroup>
-                                    </DropdownMenuContent>
-                                </DropdownMenu>
-                                <DropdownMenu>
-                                    <DropdownMenuTrigger asChild>
-                                        <Button variant="outline" className="gap-1.5">
-                                            Sort by: <span className="font-semibold capitalize">{sortOption.replace('-', ' ')}</span>
-                                            <ChevronDown className="h-4 w-4" />
-                                        </Button>
-                                    </DropdownMenuTrigger>
-                                    <DropdownMenuContent className="w-56">
-                                        <DropdownMenuRadioGroup value={sortOption} onValueChange={setSortOption}>
-                                            <DropdownMenuRadioItem value="viewers-desc">Viewers (High to Low)</DropdownMenuRadioItem>
-                                            <DropdownMenuRadioItem value="viewers-asc">Viewers (Low to High)</DropdownMenuRadioItem>
-                                            <DropdownMenuRadioItem value="recent">Recently Started</DropdownMenuRadioItem>
-                                        </DropdownMenuRadioGroup>
-                                    </DropdownMenuContent>
-                                </DropdownMenu>
-                            </div>
-                        </div>
-
                         {filteredStreams.length > 0 ? (
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-10">
                                 {filteredStreams.map((seller) => (
                                     <Link href={`/stream/${seller.id}`} key={seller.id} className="group">
-                                        <Card className="overflow-hidden h-full flex flex-col bg-card shadow-lg hover:shadow-primary/20 transition-shadow">
-                                            <div className="relative aspect-video bg-muted">
+                                        <Card className="overflow-hidden h-full flex flex-col bg-card shadow-none border-none">
+                                            <div className="relative aspect-[3/4] bg-muted rounded-2xl overflow-hidden">
                                                 <Image src={seller.thumbnailUrl} alt={`Live stream from ${seller.name}`} fill sizes="(max-width: 640px) 100vw, 33vw" className="object-cover w-full h-full transition-transform group-hover:scale-105" />
-                                                <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
-                                                <div className="absolute top-2 right-2 z-10"><Badge variant="secondary" className="bg-black/50 text-white"><Users className="w-3 h-3 mr-1"/>{seller.viewers.toLocaleString()}</Badge></div>
+                                                <div className="absolute top-3 left-3 z-10"><Badge variant="destructive" className="gap-1.5"><div className="h-2 w-2 rounded-full bg-white animate-pulse" />LIVE</Badge></div>
+                                                <div className="absolute bottom-2 left-2 right-2 z-10">
+                                                    <div className="flex items-center justify-between text-white text-xs font-semibold bg-black/40 p-1.5 px-2 rounded-full backdrop-blur-sm">
+                                                        <div className="flex items-center gap-1"><Users className="w-3 h-3"/>{seller.viewers.toLocaleString()}</div>
+                                                        <div className="flex items-center gap-1"><Heart className="w-3 h-3 fill-white"/>{Math.round(seller.viewers / 20)}</div>
+                                                    </div>
+                                                </div>
                                             </div>
-                                            <div className="p-3 flex-grow">
+                                            <div className="pt-3">
                                                 <div className="flex items-start gap-3">
+                                                     <Avatar className="h-8 w-8">
+                                                        <AvatarImage src={seller.avatarUrl} alt={seller.name} />
+                                                        <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
+                                                    </Avatar>
                                                     <div className="flex-1 overflow-hidden">
                                                         <p className="font-semibold text-sm leading-tight truncate group-hover:text-primary transition-colors">{(seller as any).title || 'Live Stream'}</p>
                                                         <p className="text-xs text-muted-foreground">{seller.name}</p>
