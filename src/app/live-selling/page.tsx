@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import Link from 'next/link';
@@ -584,7 +585,7 @@ export default function LiveSellingPage() {
     }, [allSellers]);
     
     const followedStreamsByCategory = useMemo(() => {
-      const followedCategoryNames = ['Fashion', 'Electronics'];
+      const followedCategoryNames = ['Fashion', 'Electronics']; // Mocked for now
       const grouped: { [key: string]: any[] } = {};
   
       allSellers.forEach(stream => {
@@ -913,24 +914,26 @@ export default function LiveSellingPage() {
                                             return (
                                             <CarouselItem key={stream.id} className="basis-full sm:basis-1/2 lg:basis-1/3 xl:basis-1/4 pl-4">
                                                 <Card className="group flex flex-col space-y-2 overflow-hidden border-none shadow-none bg-transparent h-full">
-                                                <Link href={`/stream/${stream.id}`} className="block">
-                                                    <div className="relative rounded-lg overflow-hidden aspect-video bg-muted w-full">
-                                                        <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
-                                                        <div className="absolute top-2 right-2 z-10"><Badge variant="secondary" className="bg-black/50 text-white"><Users className="w-3 h-3 mr-1"/>{stream.viewers.toLocaleString()}</Badge></div>
-                                                        <Image src={stream.thumbnailUrl} alt={stream.title} fill sizes="(max-width: 768px) 50vw, 33vw" className="object-cover w-full h-full transition-transform group-hover:scale-105" />
+                                                    <div className="flex flex-col flex-grow">
+                                                        <Link href={`/stream/${stream.id}`} className="block">
+                                                            <div className="relative rounded-lg overflow-hidden aspect-video bg-muted w-full">
+                                                                <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
+                                                                <div className="absolute top-2 right-2 z-10"><Badge variant="secondary" className="bg-black/50 text-white"><Users className="w-3 h-3 mr-1"/>{stream.viewers.toLocaleString()}</Badge></div>
+                                                                <Image src={stream.thumbnailUrl} alt={stream.title} fill sizes="(max-width: 768px) 50vw, 33vw" className="object-cover w-full h-full transition-transform group-hover:scale-105" />
+                                                            </div>
+                                                            <div className="flex items-start gap-3 mt-2">
+                                                                <Avatar>
+                                                                <AvatarImage src={stream.avatarUrl} />
+                                                                <AvatarFallback>{stream.name.charAt(0)}</AvatarFallback>
+                                                                </Avatar>
+                                                                <div>
+                                                                <p className="font-semibold text-sm group-hover:underline truncate">{stream.title}</p>
+                                                                <p className="text-xs text-muted-foreground">{stream.name}</p>
+                                                                </div>
+                                                            </div>
+                                                        </Link>
                                                     </div>
-                                                    <div className="flex items-start gap-3 mt-2">
-                                                        <Avatar>
-                                                        <AvatarImage src={stream.avatarUrl} />
-                                                        <AvatarFallback>{stream.name.charAt(0)}</AvatarFallback>
-                                                        </Avatar>
-                                                        <div>
-                                                        <p className="font-semibold text-sm group-hover:underline truncate">{stream.title}</p>
-                                                        <p className="text-xs text-muted-foreground">{stream.name}</p>
-                                                        </div>
-                                                    </div>
-                                                </Link>
-                                                <div className="flex items-center gap-1.5 mt-auto flex-shrink-0 pt-2 w-full justify-start pb-2">
+                                                    <div className="flex items-center gap-1.5 mt-auto flex-shrink-0 pt-2 w-full justify-start pb-2">
                                                     {productsToShow.slice(0, remainingCount > 0 ? 5 : 6).map((p:any) => (
                                                         <Link href={`/product/${p.key}`} key={p.key} className="block" onClick={(e) => e.stopPropagation()}>
                                                             <div className="w-10 h-10 bg-muted rounded-md border overflow-hidden hover:ring-2 hover:ring-primary">
