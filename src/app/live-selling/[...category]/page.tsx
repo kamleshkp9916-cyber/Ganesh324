@@ -3,7 +3,7 @@
 
 import { useRouter, useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, UserPlus, Heart, Users, Search, ChevronDown, Bell, MoreHorizontal, ShoppingBag, Sun, Moon, Laptop, LogOut, Settings, LifeBuoy, Shield, FileText, LayoutDashboard, Package, Wallet, RadioTower, Tv, Flame, TrendingUp, Tags, List, User, Sparkles, Filter, Video, X, ShoppingCart, Rss } from 'lucide-react';
+import { ArrowLeft, UserPlus, Heart, Users, Search, ChevronDown, Bell, MoreHorizontal, Sun, Moon, Laptop, LogOut, Settings, LifeBuoy, Shield, FileText, LayoutDashboard, Package, Wallet, RadioTower, Tv, Flame, TrendingUp, Tags, List, User, Sparkles, Filter, Video, X, ShoppingCart, ShoppingBag, Rss, UserCheck } from 'lucide-react';
 import { mockStreams, productDetails, productToSellerMapping } from '@/lib/product-data';
 import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/card';
@@ -54,8 +54,13 @@ export default function SubCategoryStreamPage() {
     const [cartCount, setCartCount] = React.useState(0);
     const isMobile = useIsMobile();
     const { toast } = useToast();
+    const [isFollowing, setIsFollowing] = useState(false);
 
     let { category: categoryPath } = params;
+
+    const handleFollowToggle = () => {
+        setIsFollowing(prev => !prev);
+    };
 
     const getProductsForSeller = (sellerId: string): any[] => {
         return Object.values(productDetails).filter(p => productToSellerMapping[p.key as keyof typeof productToSellerMapping]?.uid === sellerId);
@@ -331,14 +336,15 @@ export default function SubCategoryStreamPage() {
                         <div className="flex items-center gap-1.5"><Heart className="h-4 w-4" /> <strong className="text-foreground">22.5K</strong> followers</div>
                     </div>
                     <div className="mt-4 flex gap-2">
-                         <Button variant="secondary" size="sm" className="rounded-full">
-                            <UserPlus className="mr-2 h-4 w-4" /> Follow
+                        <Button variant={isFollowing ? "outline" : "secondary"} size="sm" className="rounded-full" onClick={handleFollowToggle}>
+                            {isFollowing ? <UserCheck className="mr-2 h-4 w-4" /> : <UserPlus className="mr-2 h-4 w-4" />}
+                            {isFollowing ? "Following" : "Follow"}
                         </Button>
                     </div>
                 </div>
                 
                 <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-4">
-                     <Tabs defaultValue="livestreams" className="w-full md:w-auto">
+                    <Tabs defaultValue="livestreams" className="w-full md:w-auto">
                         <TabsList>
                             <TabsTrigger value="livestreams">Livestreams</TabsTrigger>
                         </TabsList>
