@@ -123,6 +123,7 @@ import { CATEGORY_BANNERS_KEY, CategoryBanners } from '@/app/admin/settings/page
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { ProductShelfContent } from '@/components/product-shelf-content';
+import { useInView } from 'react-intersection-observer';
 
 
 const liveSellers = [
@@ -150,6 +151,56 @@ const mockNotifications = [
     { id: 2, title: 'Flash Sale Alert!', description: 'GadgetGuru is having a 50% off flash sale now!', time: '1h ago', read: false, href: '/seller/profile?userId=GadgetGuru' },
     { id: 3, title: 'New message from HomeHaven', description: '"Yes, the blue vases are back in stock!"', time: '4h ago', read: true, href: '/message' },
 ];
+
+const SubcategoryCard = ({ sub }: { sub: any }) => {
+    const { ref, inView } = useInView({
+        triggerOnce: true,
+        rootMargin: '200px 0px',
+    });
+    const [isLoaded, setIsLoaded] = useState(false);
+
+    useEffect(() => {
+        if (inView) {
+            // Simulate a network delay for loading the image
+            const timer = setTimeout(() => setIsLoaded(true), Math.random() * 1000);
+            return () => clearTimeout(timer);
+        }
+    }, [inView]);
+
+    return (
+        <Link 
+            ref={ref} 
+            href={`/live-selling/${sub.categoryName.toLowerCase()}/${sub.name.toLowerCase().replace(/ /g, '-').replace(/&/g, '%26')}`} 
+            className="group block space-y-2"
+        >
+            <Card className="overflow-hidden">
+                <div className="aspect-video bg-muted relative">
+                    {!isLoaded && <Skeleton className="w-full h-full" />}
+                    {isLoaded && (
+                        <Image
+                            src={sub.imageUrl}
+                            alt={sub.name}
+                            fill
+                            sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 16vw"
+                            className="object-cover group-hover:scale-105 transition-transform"
+                        />
+                    )}
+                </div>
+            </Card>
+            <div>
+                <p className="font-semibold text-sm truncate group-hover:text-primary">{sub.name}</p>
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <div className="flex items-center gap-1">
+                        <Users className="w-3 h-3" />
+                        {sub.viewers.toLocaleString()} watching
+                    </div>
+                    <Badge variant="outline">{sub.categoryName}</Badge>
+                </div>
+            </div>
+        </Link>
+    );
+};
+
 
 const AnimatedCategoryCard = ({
   item,
@@ -897,29 +948,7 @@ export default function LiveSellingPage() {
                              <TabsContent value="browse" className="mt-4">
                                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
                                     {filteredBrowseSubcategories.map((sub, index) => (
-                                        <Link href={`/live-selling/${sub.categoryName.toLowerCase()}/${sub.name.toLowerCase().replace(/ /g, '-').replace(/&/g, '%26')}`} key={index} className="group block space-y-2">
-                                            <Card className="overflow-hidden">
-                                                <div className="aspect-video bg-muted relative">
-                                                    <Image
-                                                        src={sub.imageUrl}
-                                                        alt={sub.name}
-                                                        fill
-                                                        sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 16vw"
-                                                        className="object-cover group-hover:scale-105 transition-transform"
-                                                    />
-                                                </div>
-                                            </Card>
-                                            <div>
-                                                <p className="font-semibold text-sm truncate group-hover:text-primary">{sub.name}</p>
-                                                <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                                                  <div className="flex items-center gap-1">
-                                                    <Users className="w-3 h-3" />
-                                                    {sub.viewers.toLocaleString()} watching
-                                                  </div>
-                                                  <Badge variant="outline">{sub.categoryName}</Badge>
-                                                </div>
-                                            </div>
-                                        </Link>
+                                        <SubcategoryCard key={index} sub={sub} />
                                     ))}
                                 </div>
                             </TabsContent>
