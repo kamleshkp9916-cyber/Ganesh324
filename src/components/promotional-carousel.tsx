@@ -65,11 +65,11 @@ export function PromotionalCarousel() {
                     className="object-cover"
                   />
                   <div className="absolute inset-0 bg-black/30 flex flex-col items-center justify-center text-center p-4">
-                     <h2 className="text-4xl font-bold text-white shadow-lg">{slide.title}</h2>
-                     <p className="text-lg text-white/90 mt-2 shadow-lg max-w-lg">{slide.description}</p>
-                     <Button asChild className="mt-6">
-                        <Link href="#">Shop Now</Link>
-                     </Button>
+                     <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white shadow-lg">{slide.title}</h2>
+                     <p className="text-sm sm:text-base md:text-lg text-white/90 mt-2 shadow-lg max-w-lg">{slide.description}</p>
+                      <Button asChild className="mt-4 sm:mt-6 h-9 px-4 text-xs sm:h-10 sm:px-6 sm:text-sm">
+                         <Link href="#">Shop Now</Link>
+                      </Button>
                   </div>
                 </CardContent>
               </Card>
@@ -82,5 +82,3 @@ export function PromotionalCarousel() {
     </div>
   );
 }
-
-    
