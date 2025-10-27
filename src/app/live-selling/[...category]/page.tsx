@@ -3,7 +3,7 @@
 
 import { useRouter, useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, UserPlus, Heart, Users, Search, ChevronDown, Bell, MoreHorizontal, Sun, Moon, Laptop, LogOut, Settings, LifeBuoy, Shield, FileText, LayoutDashboard, Package, Wallet, RadioTower, Tv, Flame, TrendingUp, Tags, List, User, Sparkles, Filter, Video, X, ShoppingCart, ShoppingBag, Rss, UserCheck } from 'lucide-react';
+import { ArrowLeft, UserPlus, Heart, Users, Search, ChevronDown, Bell, MoreHorizontal, Sun, Moon, Laptop, LogOut, Settings, LifeBuoy, Shield, FileText, LayoutDashboard, Package, Wallet, RadioTower, Tv, Flame, TrendingUp, Tags, List, User, Sparkles, Filter, Video, X, ShoppingBag, Rss, UserCheck } from 'lucide-react';
 import { mockStreams, productDetails, productToSellerMapping } from '@/lib/product-data';
 import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/card';
@@ -260,21 +260,21 @@ export default function SubCategoryStreamPage() {
                                     <Heart className="mr-2 h-4 w-4" />
                                     <span>My Wishlist</span>
                                 </DropdownMenuItem>
-                                <DropdownMenuItem onSelect={() => router.push('/cart')}>
+                                    <DropdownMenuItem onSelect={() => router.push('/cart')}>
                                     <ShoppingCart className="mr-2 h-4 w-4" />
                                     <span>My Cart</span>
-                                    {cartCount > 0 && <Badge variant="destructive" className="ml-auto">{cartCount}</Badge>}
+                                        {cartCount > 0 && <Badge variant="destructive" className="ml-auto">{cartCount}</Badge>}
                                 </DropdownMenuItem>
                                 <DropdownMenuItem onSelect={() => router.push('/wallet')}>
                                     <Wallet className="mr-2 h-4 w-4" />
                                     <span>My Wallet</span>
                                 </DropdownMenuItem>
                                 <DropdownMenuSeparator />
-                                <DropdownMenuItem onSelect={() => router.push('/setting')}>
+                                    <DropdownMenuItem onSelect={() => router.push('/setting')}>
                                     <Settings className="mr-2 h-4 w-4" />
                                     <span>Settings</span>
                                 </DropdownMenuItem>
-                                <DropdownMenuItem onSelect={() => router.push('/help')}>
+                                    <DropdownMenuItem onSelect={() => router.push('/help')}>
                                     <LifeBuoy className="mr-2 h-4 w-4" />
                                     <span>Help & Support</span>
                                 </DropdownMenuItem>
@@ -304,7 +304,7 @@ export default function SubCategoryStreamPage() {
                                 </DropdownMenuItem>
                             </DropdownMenuContent>
                         ) : (
-                            <DropdownMenuContent align="end">
+                                <DropdownMenuContent align="end">
                                 <DropdownMenuItem onSelect={() => router.push('/')}>
                                     <User className="mr-2 h-4 w-4" />
                                     <span>Login or Sign Up</span>
@@ -350,6 +350,15 @@ export default function SubCategoryStreamPage() {
                         </TabsList>
                     </Tabs>
                      <div className="flex w-full md:w-auto items-center justify-between md:justify-end gap-2">
+                         <div className="relative flex-grow md:flex-grow-0">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                            <Input
+                                placeholder="Search in this category..."
+                                className="pl-9 h-9"
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                            />
+                        </div>
                          <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                                 <Button variant="outline" size="sm" className="h-9">
