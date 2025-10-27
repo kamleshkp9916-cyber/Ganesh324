@@ -3,7 +3,7 @@
 
 import { useRouter, useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, UserPlus, Rss, Heart, Users, Search, ChevronDown, Bell, ShoppingCart, User, MoreHorizontal } from 'lucide-react';
+import { ArrowLeft, UserPlus, Rss, Heart, Users, Search, ChevronDown, Bell, ShoppingCart, User, MoreHorizontal, ShoppingBag } from 'lucide-react';
 import { mockStreams as liveSellers } from '@/lib/product-data';
 import Link from 'next/link';
 import { Card } from '@/components/ui/card';
