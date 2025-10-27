@@ -325,6 +325,7 @@ export default function LiveSellingPage() {
   const [isMounted, setIsMounted] = useState(false);
   const createPostFormRef = useRef<HTMLDivElement>(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [browseSearchTerm, setBrowseSearchTerm] = useState('');
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [allSellers, setAllSellers] = useState(liveSellers);
   const [notifications, setNotifications] = useState(mockNotifications);
@@ -375,6 +376,16 @@ export default function LiveSellingPage() {
         }))
     );
   }, []);
+
+  const filteredBrowseSubcategories = useMemo(() => {
+    if (!browseSearchTerm) return allSubcategories;
+    const lowercasedTerm = browseSearchTerm.toLowerCase();
+    return allSubcategories.filter(sub => 
+        sub.name.toLowerCase().includes(lowercasedTerm) || 
+        sub.categoryName.toLowerCase().includes(lowercasedTerm)
+    );
+  }, [browseSearchTerm, allSubcategories]);
+
 
   const liveStreamFilterButtons = useMemo(() => {
     const categories = new Set(allSellers.map(s => s.category));
@@ -801,11 +812,22 @@ export default function LiveSellingPage() {
                     <div className="container mx-auto px-4 sm:px-6 lg:px-8 pt-8 space-y-8">
                         <PromotionalCarousel />
                         <Tabs defaultValue="recommended" className="w-full">
-                            <TabsList>
-                                <TabsTrigger value="recommended">Recommended</TabsTrigger>
-                                <TabsTrigger value="browse">Browse</TabsTrigger>
-                                <TabsTrigger value="following">Following</TabsTrigger>
-                            </TabsList>
+                            <div className="flex items-center justify-between mb-4 flex-wrap gap-4">
+                                <TabsList>
+                                    <TabsTrigger value="recommended">Recommended</TabsTrigger>
+                                    <TabsTrigger value="browse">Browse</TabsTrigger>
+                                    <TabsTrigger value="following">Following</TabsTrigger>
+                                </TabsList>
+                                 <div className="relative w-full sm:w-64">
+                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                    <Input 
+                                        placeholder="Search categories..."
+                                        className="pl-10 h-9"
+                                        value={browseSearchTerm}
+                                        onChange={(e) => setBrowseSearchTerm(e.target.value)}
+                                    />
+                                </div>
+                            </div>
                             <TabsContent value="recommended" className="mt-4">
                                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                                     {topLiveStreams.map((seller) => {
@@ -871,7 +893,7 @@ export default function LiveSellingPage() {
                             </TabsContent>
                              <TabsContent value="browse" className="mt-4">
                                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                                    {allSubcategories.map((sub, index) => (
+                                    {filteredBrowseSubcategories.map((sub, index) => (
                                         <Link href={`/live-selling/${sub.categoryName.toLowerCase()}/${sub.name.toLowerCase().replace(/ /g, '-').replace(/&/g, '%26')}`} key={index} className="group block space-y-2">
                                             <Card className="overflow-hidden">
                                                 <div className="aspect-video bg-muted relative">
