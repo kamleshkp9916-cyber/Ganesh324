@@ -45,7 +45,7 @@ import { LoadingSpinner } from "@/components/ui/loading-spinner"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { cn } from "@/lib/utils"
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useAuthActions } from "@/lib/auth"
 import { useDebounce } from "@/hooks/use-debounce";
@@ -130,7 +130,7 @@ const ProductTable = ({ products }: { products: Product[] }) => (
             {products.length > 0 ? products.map(product => (
               <TableRow key={product.id}>
                 <TableCell className="hidden sm:table-cell">
-                  <Link href={`/product/${product.id}`}>
+                  <Link href={`/product/${product.key}`}>
                     {product.images && product.images.length > 0 ? (
                       <Image
                         alt={product.name}
@@ -147,7 +147,7 @@ const ProductTable = ({ products }: { products: Product[] }) => (
                   </Link>
                 </TableCell>
                 <TableCell className="font-medium">
-                  <Link href={`/product/${product.id}`} className="hover:underline">
+                  <Link href={`/product/${product.key}`} className="hover:underline">
                     {product.name}
                   </Link>
                    <p className="text-xs text-muted-foreground font-mono">{product.key}</p>
