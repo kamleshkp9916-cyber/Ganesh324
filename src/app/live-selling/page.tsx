@@ -111,7 +111,7 @@ import { getFirestoreDb, getFirebaseStorage } from '@/lib/firebase';
 import { format, formatDistanceToNow } from 'date-fns';
 import { ref as storageRef, deleteObject } from 'firebase/storage';
 import { isFollowing, toggleFollow, UserData, getUserByDisplayName } from '@/lib/follow-data';
-import { productDetails, productToSellerMapping } from '@/lib/product-data';
+import { productDetails, productToSellerMapping, mockStreams } from '@/lib/product-data';
 import { PromotionalCarousel } from '@/components/promotional-carousel';
 import { categories } from '@/lib/categories';
 import { Separator } from '@/components/ui/separator';
@@ -128,18 +128,7 @@ import { useInView } from 'react-intersection-observer';
 import { SubcategoryCard } from '@/components/SubcategoryCard';
 
 
-const liveSellers = [
-    { id: 'fashionfinds-uid', name: 'FashionFinds', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://picsum.photos/seed/fashion-stream/300/450', category: 'Women', subcategory: 'Dresses', viewers: 1200, buyers: 25, rating: 4.8, reviews: 12, hint: 'woman posing stylish outfit', productId: 'prod_1', hasAuction: true, title: 'Unveiling New Vintage Collection' },
-    { id: 'gadgetguru-uid', name: 'GadgetGuru', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://picsum.photos/seed/tech-stream/300/450', category: 'Electronics', subcategory: 'Smartphones & Accessories', viewers: 2500, buyers: 42, rating: 4.9, reviews: 28, hint: 'unboxing new phone', productId: 'prod_2', hasAuction: false, title: 'Live Unboxing: The Latest Smartphone' },
-    { id: 'homehaven-uid', name: 'HomeHaven', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://picsum.photos/seed/home-stream/300/450', category: 'Home', subcategory: 'Home Decor', viewers: 850, buyers: 15, rating: 4.7, reviews: 9, hint: 'modern living room decor', productId: 'prod_3', hasAuction: false, title: 'Cozy Living Room Styling Tips' },
-    { id: 'beautybox-uid', name: 'BeautyBox', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://picsum.photos/seed/beauty-stream/300/450', category: 'Women', subcategory: 'Makeup', viewers: 3100, buyers: 78, rating: 4.9, reviews: 55, hint: 'makeup tutorial', productId: 'prod_4', hasAuction: true, title: 'Get Ready With Me: Summer Glow' },
-    { id: 'kitchenwiz-uid', name: 'KitchenWiz', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://picsum.photos/seed/kitchen-stream/300/450', category: 'Home', subcategory: 'Kitchen', viewers: 975, buyers: 0, rating: 0, reviews: 0, hint: 'cooking demonstration', productId: 'prod_5', hasAuction: false, title: '5 Easy Meal Prep Ideas' },
-    { id: 'fitflow-uid', name: 'FitFlow', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://picsum.photos/seed/fitness-stream/300/450', category: 'Men', subcategory: 'Activewear', viewers: 1500, buyers: 33, rating: 4.6, reviews: 18, hint: 'yoga session', productId: 'prod_6', hasAuction: false, title: 'Morning Yoga Flow Session' },
-    { id: 'artisanalley-uid', name: 'ArtisanAlley', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://picsum.photos/seed/artisan-stream/300/450', category: 'Home', subcategory: 'Home Decor', viewers: 450, buyers: 8, rating: 5.0, reviews: 6, hint: 'pottery making', productId: 'prod_7', hasAuction: true, title: 'Live Pottery: Creating a Ceramic Piece' },
-    { id: 'petpalace-uid', name: 'PetPalace', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://picsum.photos/seed/pet-stream/300/450', category: 'Home', subcategory: 'Pet Supplies', viewers: 1800, buyers: 50, rating: 4.8, reviews: 30, hint: 'playing with puppy', productId: 'prod_8', hasAuction: false, title: 'Q&A: All About Dog Nutrition' },
-    { id: 'booknook-uid', name: 'BookNook', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://picsum.photos/seed/book-stream/300/450', category: 'Trending', subcategory: 'Books', viewers: 620, buyers: 12, rating: 4.9, reviews: 10, hint: 'reading book cozy', productId: 'prod_9', hasAuction: false, title: 'Live Reading: New Fantasy Novel' },
-    { id: 'gamerguild-uid', name: 'GamerGuild', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://picsum.photos/seed/gaming-stream/300/450', category: 'Electronics', subcategory: 'Video Games', viewers: 4200, buyers: 102, rating: 4.9, reviews: 80, hint: 'esports competition', productId: 'prod_10', hasAuction: true, title: "Weekly Esports Tournament Finals" },
-];
+const liveSellers = mockStreams;
 
 const reportReasons = [
     { id: "spam", label: "It's spam" },
@@ -600,14 +589,14 @@ export default function LiveSellingPage() {
         const grouped: { [key: string]: any[] } = {};
 
         followedCategoryNames.forEach(categoryName => {
-            const streams = allSellers.filter(s => s.category === categoryName);
+            const streams = liveSellers.filter(s => s.category === categoryName);
             if (streams.length > 0) {
                 grouped[categoryName] = streams;
             }
         });
 
         return grouped;
-    }, [allSellers]);
+    }, []);
 
 
   return (
@@ -1026,5 +1015,3 @@ export default function LiveSellingPage() {
     </>
   );
 }
-
-    
