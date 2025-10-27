@@ -45,7 +45,6 @@ import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/card';
 import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
-import { Star } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Input } from '@/components/ui/input';
@@ -377,6 +376,8 @@ export default function SubCategoryStreamPage() {
                     </div>
                 </div>
                 
+                <Separator className="my-8" />
+                
                 <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-4">
                      <div className="relative flex-grow w-full md:flex-grow-0">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -500,3 +501,5 @@ export default function SubCategoryStreamPage() {
         </div>
     );
 }
+
+    
