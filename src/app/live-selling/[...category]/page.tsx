@@ -84,16 +84,27 @@ export default function SubCategoryStreamPage() {
         .map(word => word.charAt(0).toUpperCase() + word.slice(1))
         .join(' ');
         
-    const filteredStreams = liveSellers.filter(stream => {
-        if (!stream.category) return false;
-        const streamCategorySlug = stream.category.toLowerCase().replace(/\s+/g, '-');
-        const streamSubCategorySlug = (stream as any).subcategory?.toLowerCase().replace(/\s+/g, '-').replace(/&/g, '%26');
-        
-        if (subCategorySlug) {
-            return streamCategorySlug === categorySlug && streamSubCategorySlug === subCategorySlug;
-        }
-        return streamCategorySlug === categorySlug;
-    });
+    const filteredStreams = useMemo(() => {
+      let streams = liveSellers.filter(stream => {
+          if (!stream.category) return false;
+          const streamCategorySlug = stream.category.toLowerCase().replace(/\s+/g, '-');
+          const streamSubCategorySlug = (stream as any).subcategory?.toLowerCase().replace(/\s+/g, '-').replace(/&/g, '%26');
+          
+          if (subCategorySlug) {
+              return streamCategorySlug === categorySlug && streamSubCategorySlug === subCategorySlug;
+          }
+          return streamCategorySlug === categorySlug;
+      });
+
+      if (searchTerm) {
+          streams = streams.filter(stream => 
+              (stream.title && stream.title.toLowerCase().includes(searchTerm.toLowerCase())) ||
+              (stream.name && stream.name.toLowerCase().includes(searchTerm.toLowerCase()))
+          );
+      }
+
+      return streams;
+    }, [categorySlug, subCategorySlug, searchTerm]);
 
     const totalViewers = filteredStreams.reduce((acc, stream) => acc + stream.viewers, 0);
 
