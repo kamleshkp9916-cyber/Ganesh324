@@ -3,7 +3,7 @@
 
 import { useRouter, useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, UserPlus, Heart, Users, Search, ChevronDown, Bell, MoreHorizontal, ShoppingBag, Sun, Moon, Laptop, LogOut, Settings, LifeBuoy, Shield, FileText, LayoutDashboard, Package, Wallet, RadioTower, Tv, Flame, TrendingUp, Tags, List, User, Sparkles, Filter, Video, X } from 'lucide-react';
+import { ArrowLeft, UserPlus, Heart, Users, Search, ChevronDown, Bell, MoreHorizontal, ShoppingBag, Sun, Moon, Laptop, LogOut, Settings, LifeBuoy, Shield, FileText, LayoutDashboard, Package, Wallet, RadioTower, Tv, Flame, TrendingUp, Tags, List, User, Sparkles, Filter, Video, X, ShoppingCart, Rss } from 'lucide-react';
 import { mockStreams, productDetails, productToSellerMapping } from '@/lib/product-data';
 import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/card';
@@ -304,7 +304,7 @@ export default function SubCategoryStreamPage() {
                                     <User className="mr-2 h-4 w-4" />
                                     <span>Login or Sign Up</span>
                                 </DropdownMenuItem>
-                            </DropdownMenuContent>
+                                </DropdownMenuContent>
                         )}
                         </DropdownMenu>
                         
