@@ -3,7 +3,7 @@
 
 import { useRouter, useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, UserPlus, Rss, Heart, Users, Search, ChevronDown, Bell, MoreHorizontal, ShoppingCart, Sun, Moon, Laptop, LogOut, Settings, LifeBuoy, Shield, FileText, LayoutDashboard, Package, Wallet, RadioTower, Tv, Flame, TrendingUp, Tags, List, ShoppingBag, User } from 'lucide-react';
+import { ArrowLeft, UserPlus, Rss, Heart, Users, Search, ChevronDown, Bell, MoreHorizontal, ShoppingCart, Sun, Moon, Laptop, LogOut, Settings, LifeBuoy, Shield, FileText, LayoutDashboard, Package, Wallet, RadioTower, Tv, Flame, TrendingUp, Tags, List, ShoppingBag, User, Sparkles, Filter } from 'lucide-react';
 import { mockStreams as liveSellers } from '@/lib/product-data';
 import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/card';
@@ -85,8 +85,18 @@ export default function SubCategoryStreamPage() {
         .map(word => word.charAt(0).toUpperCase() + word.slice(1))
         .join(' ');
         
-    const filteredStreams = useMemo(() => {
-        if (!liveSellers) return [];
+    const { displayedStreams, isFallback } = useMemo(() => {
+        if (!liveSellers) return { displayedStreams: [], isFallback: false };
+
+        const filterStreams = (streams: any[], term: string) => {
+            if (!term) return streams;
+            return streams.filter(stream => 
+                (stream.title && stream.title.toLowerCase().includes(term.toLowerCase())) ||
+                (stream.name && stream.name.toLowerCase().includes(term.toLowerCase()))
+            );
+        };
+        
+        // Primary filtering for the specific subcategory
         let streams = liveSellers.filter(stream => {
             if (!stream.category) return false;
             const streamCategorySlug = stream.category.toLowerCase().replace(/\s+/g, '-');
@@ -98,22 +108,30 @@ export default function SubCategoryStreamPage() {
             return streamCategorySlug === categorySlug;
         });
 
-        if (searchTerm) {
-            streams = streams.filter(stream => 
-                (stream.title && stream.title.toLowerCase().includes(searchTerm.toLowerCase())) ||
-                (stream.name && stream.name.toLowerCase().includes(searchTerm.toLowerCase()))
-            );
+        // If no streams for the subcategory, fall back to the parent category
+        let fallback = false;
+        if (streams.length === 0) {
+            fallback = true;
+            streams = liveSellers.filter(stream => {
+                if (!stream.category) return false;
+                return stream.category.toLowerCase().replace(/\s+/g, '-') === categorySlug;
+            });
         }
+
+        const sorted = streams.sort((a, b) => b.viewers - a.viewers);
         
-        return streams.sort((a, b) => b.viewers - a.viewers);
+        return { 
+            displayedStreams: filterStreams(sorted, searchTerm), 
+            isFallback: fallback 
+        };
 
     }, [categorySlug, subCategorySlug, searchTerm]);
 
-    const totalViewers = filteredStreams.reduce((acc, stream) => acc + stream.viewers, 0);
+    const totalViewers = displayedStreams.reduce((acc, stream) => acc + stream.viewers, 0);
 
     return (
         <div className="min-h-screen bg-background text-foreground flex flex-col">
-            <header className="sticky top-0 z-50 w-full border-b bg-background/80 backdrop-blur-sm">
+           <header className="sticky top-0 z-50 w-full border-b bg-background/80 backdrop-blur-sm">
                 <div className="flex items-center justify-between h-16 px-4 sm:px-6 lg:px-8">
                     <div className="flex items-center gap-1 sm:gap-2">
                         <Button variant="ghost" size="icon" onClick={() => router.back()}>
@@ -285,52 +303,48 @@ export default function SubCategoryStreamPage() {
             </header>
 
             <main className="container mx-auto py-6">
-                 <div className="text-center mb-8">
+                <div className="flex flex-col items-center justify-center text-center mb-8">
                     <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">{pageTitle}</h1>
+                    <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
+                        <div className="flex items-center gap-1.5"><Users className="h-4 w-4" /> <strong className="text-foreground">{(totalViewers / 1000).toFixed(1)}K</strong> viewers</div>
+                        <span className="text-muted-foreground/50">|</span>
+                        <div className="flex items-center gap-1.5"><Heart className="h-4 w-4" /> <strong className="text-foreground">22.5K</strong> followers</div>
+                    </div>
+                    <div className="mt-4">
+                        <Button variant="outline" size="sm" className="rounded-full">
+                            <UserPlus className="mr-2 h-4 w-4" /> Follow
+                        </Button>
+                    </div>
                 </div>
                 
-                <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-4">
-                     <div className="flex items-center gap-4 text-sm text-muted-foreground w-full md:w-auto justify-center">
-                        <div className="flex items-center gap-1.5"><Flame className="h-4 w-4 text-primary" /> <strong className="text-foreground">{(totalViewers / 1000).toFixed(1)}K</strong> watching</div>
-                        <Separator orientation="vertical" className="h-4" />
-                        <div className="flex items-center gap-1.5"><TrendingUp className="h-4 w-4 text-primary" /> <strong className="text-foreground">222.5K</strong> followers</div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <Button variant="outline" size="sm" className="h-9">
-                                    Filter by: <span className="font-semibold ml-1">Languages</span>
-                                    <ChevronDown className="ml-2 h-4 w-4"/>
-                                </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                                <DropdownMenuRadioItem value="any">Any</DropdownMenuRadioItem>
-                                <DropdownMenuRadioItem value="english">English</DropdownMenuRadioItem>
-                                <DropdownMenuRadioItem value="hindi">Hindi</DropdownMenuRadioItem>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
-                         <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <Button variant="outline" size="sm" className="h-9">
-                                    Sort by: <span className="font-semibold ml-1 capitalize">{sortOption.replace("-", " ")}</span>
-                                     <ChevronDown className="ml-2 h-4 w-4"/>
-                                </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                                <DropdownMenuRadioGroup value={sortOption} onValueChange={setSortOption}>
-                                    <DropdownMenuRadioItem value="viewers-desc">Viewers (High to Low)</DropdownMenuRadioItem>
-                                    <DropdownMenuRadioItem value="viewers-asc">Viewers (Low to High)</DropdownMenuRadioItem>
-                                    <DropdownMenuRadioItem value="newest">Newest</DropdownMenuRadioItem>
-                                </DropdownMenuRadioGroup>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
-                    </div>
+                 <div className="flex items-center justify-center gap-2 mb-6">
+                    <Tabs defaultValue="livestreams" className="w-auto">
+                        <TabsList>
+                            <TabsTrigger value="livestreams">Livestreams</TabsTrigger>
+                        </TabsList>
+                    </Tabs>
+                </div>
+                
+                <div className="flex items-center justify-end gap-2 mb-4">
+                     <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="outline" size="sm" className="h-9">
+                                <Filter className="mr-2 h-4 w-4" />
+                                Filter by: <span className="font-semibold ml-1">Languages</span>
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                            <DropdownMenuRadioItem value="any">Any</DropdownMenuRadioItem>
+                            <DropdownMenuRadioItem value="english">English</DropdownMenuRadioItem>
+                            <DropdownMenuRadioItem value="hindi">Hindi</DropdownMenuRadioItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
                 </div>
 
                 <div>
-                    {filteredStreams.length > 0 ? (
+                    {displayedStreams.length > 0 ? (
                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-10">
-                            {filteredStreams.map((seller) => (
+                            {displayedStreams.map((seller) => (
                                 <Link href={`/stream/${seller.id}`} key={seller.id} className="group">
                                     <Card className="overflow-hidden h-full flex flex-col bg-card shadow-none border-none">
                                         <div className="relative aspect-[3/4] bg-muted rounded-2xl overflow-hidden">
@@ -360,7 +374,7 @@ export default function SubCategoryStreamPage() {
                             ))}
                         </div>
                     ) : (
-                        <div className="text-center py-20 text-muted-foreground">
+                         <div className="text-center py-20 text-muted-foreground">
                             <h3 className="text-xl font-semibold">No Live Streams</h3>
                             <p>There are no active streams in this category right now.</p>
                         </div>
@@ -370,4 +384,3 @@ export default function SubCategoryStreamPage() {
         </div>
     );
 }
-
