@@ -148,7 +148,7 @@ export default function SubCategoryStreamPage() {
     
     const pageTitle = (subCategorySlug || categorySlug)
         .replace(/-/g, ' ')
-        .replace(/&/g, '%26')
+        .replace(/%26/g, '&')
         .split(' ')
         .map(word => word.charAt(0).toUpperCase() + word.slice(1))
         .join(' ');
@@ -512,4 +512,3 @@ export default function SubCategoryStreamPage() {
         </div>
     );
 }
-
