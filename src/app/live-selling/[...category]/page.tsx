@@ -3,7 +3,7 @@
 
 import { useRouter, useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, UserPlus, Rss, Heart, Users, Search, ChevronDown, Bell, MoreHorizontal, ShoppingCart, Sun, Moon, Laptop, LogOut, Settings, LifeBuoy, Shield, FileText, LayoutDashboard, Package, Wallet, RadioTower, Tv, Flame, TrendingUp, Tags, List, ShoppingBag, User, Sparkles, Filter, Video, X } from 'lucide-react';
+import { ArrowLeft, UserPlus, Heart, Users, Search, ChevronDown, Bell, MoreHorizontal, ShoppingBag, Sun, Moon, Laptop, LogOut, Settings, LifeBuoy, Shield, FileText, LayoutDashboard, Package, Wallet, RadioTower, Tv, Flame, TrendingUp, Tags, List, User, Sparkles, Filter, Video, X } from 'lucide-react';
 import { mockStreams, productDetails, productToSellerMapping } from '@/lib/product-data';
 import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/card';
@@ -390,7 +390,7 @@ export default function SubCategoryStreamPage() {
                                         <div className="relative aspect-video bg-muted rounded-lg overflow-hidden">
                                             <Image src={seller.thumbnailUrl} alt={`Live stream from ${seller.name}`} fill sizes="(max-width: 640px) 100vw, 33vw" className="object-cover w-full h-full transition-transform group-hover:scale-105" />
                                             <div className="absolute top-3 left-3 z-10"><Badge variant="destructive" className="gap-1.5"><div className="h-2 w-2 rounded-full bg-white animate-pulse" />LIVE</Badge></div>
-                                            <div className="absolute bottom-2 left-2 z-10">
+                                            <div className="absolute top-2 right-2 z-10">
                                                 <Badge variant="secondary" className="bg-black/40 text-white font-semibold backdrop-blur-sm">
                                                     <Users className="w-3 h-3 mr-1"/>{seller.viewers.toLocaleString()}
                                                 </Badge>
