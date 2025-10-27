@@ -3,10 +3,10 @@
 
 import { useRouter, useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, UserPlus, Rss, Heart, Users, Search, ChevronDown, Bell, MoreHorizontal, ShoppingCart, Sun, Moon, Laptop, LogOut, Settings, LifeBuoy, Shield, FileText, LayoutDashboard, Package, Wallet, RadioTower, Tv, Flame, TrendingUp, Tags, List } from 'lucide-react';
+import { ArrowLeft, UserPlus, Rss, Heart, Users, Search, ChevronDown, Bell, MoreHorizontal, ShoppingCart, Sun, Moon, Laptop, LogOut, Settings, LifeBuoy, Shield, FileText, LayoutDashboard, Package, Wallet, RadioTower, Tv, Flame, TrendingUp, Tags, List, ShoppingBag, User } from 'lucide-react';
 import { mockStreams as liveSellers } from '@/lib/product-data';
 import Link from 'next/link';
-import { Card } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
 import { Star } from 'lucide-react';
@@ -286,10 +286,6 @@ export default function SubCategoryStreamPage() {
 
             <main className="container mx-auto py-6">
                  <div className="text-center mb-8">
-                    <div className="inline-flex items-center gap-2 text-sm text-muted-foreground bg-secondary px-3 py-1 rounded-full mb-3">
-                        <Tv className="h-4 w-4"/>
-                        <span>Live Streams</span>
-                    </div>
                     <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">{pageTitle}</h1>
                 </div>
                 
@@ -375,4 +371,3 @@ export default function SubCategoryStreamPage() {
     );
 }
 
-    
