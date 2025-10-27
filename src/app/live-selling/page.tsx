@@ -318,7 +318,6 @@ export default function LiveSellingPage() {
   const createPostFormRef = useRef<HTMLDivElement>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [browseSearchTerm, setBrowseSearchTerm] = useState('');
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [allSellers, setAllSellers] = useState(liveSellers);
   const [notifications, setNotifications] = useState(mockNotifications);
   const unreadCount = useMemo(() => notifications.filter(n => !n.read).length, [notifications]);
@@ -627,25 +626,13 @@ export default function LiveSellingPage() {
                 </div>
 
                 <div className="hidden sm:flex flex-1 justify-center px-8">
-                        <div className={cn(
-                        "relative w-full max-w-sm lg:max-w-md transition-all duration-300"
-                        )}>
-                        <div className="relative">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground peer-focus:text-foreground"/>
-                            <Input 
-                                placeholder="Search..." 
-                                className="rounded-full bg-muted h-10 pl-10 peer transition-all duration-300"
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                onFocus={() => setIsSearchOpen(true)}
-                                onBlur={() => setIsSearchOpen(false)}
-                            />
-                        </div>
+                    <div className="w-full max-w-lg">
+                        <ProductSearchWithStreams />
                     </div>
                 </div>
                 
                 <div className="flex items-center gap-1 sm:gap-2">
-                    <Button variant="ghost" size="icon" className="sm:hidden" onClick={() => setIsSearchOpen(prev => !prev)}>
+                    <Button variant="ghost" size="icon" className="sm:hidden">
                         <Search className="h-5 w-5"/>
                     </Button>
 
@@ -796,173 +783,156 @@ export default function LiveSellingPage() {
                     )}
                 </div>
             </div>
-                {isSearchOpen && (
-                <div className="absolute top-16 left-0 w-full p-4 bg-background border-b sm:hidden">
-                    <div className="relative">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                        <Input 
-                            placeholder="Search..." 
-                            className="rounded-full bg-muted h-10 pl-10"
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                        />
-                    </div>
-                </div>
-                )}
         </header>
         
         <div className="flex-grow">
-            {isSearchOpen ? (
-                <ProductSearchWithStreams />
-            ) : (
-                <div className="mt-0">
-                    <div className="container mx-auto px-4 sm:px-6 lg:px-8 pt-8 space-y-8">
-                        <PromotionalCarousel />
-                        <Tabs defaultValue="recommended" className="w-full">
-                            <div className="flex items-center justify-between mb-4 flex-wrap gap-4">
-                                <TabsList>
-                                    <TabsTrigger value="recommended">Recommended</TabsTrigger>
-                                    <TabsTrigger value="browse">Browse</TabsTrigger>
-                                    <TabsTrigger value="following">Following</TabsTrigger>
-                                </TabsList>
-                                <div className="relative w-full sm:w-64">
-                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                    <Input 
-                                        placeholder="Search categories..."
-                                        className="pl-10 h-9"
-                                        value={browseSearchTerm}
-                                        onChange={(e) => setBrowseSearchTerm(e.target.value)}
-                                    />
-                                </div>
+            <div className="mt-0">
+                <div className="container mx-auto px-4 sm:px-6 lg:px-8 pt-8 space-y-8">
+                    <PromotionalCarousel />
+                    <Tabs defaultValue="recommended" className="w-full">
+                        <div className="flex items-center justify-between mb-4 flex-wrap gap-4">
+                            <TabsList>
+                                <TabsTrigger value="recommended">Recommended</TabsTrigger>
+                                <TabsTrigger value="browse">Browse</TabsTrigger>
+                                <TabsTrigger value="following">Following</TabsTrigger>
+                            </TabsList>
+                            <div className="relative w-full sm:w-64">
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                <Input 
+                                    placeholder="Search categories..."
+                                    className="pl-10 h-9"
+                                    value={browseSearchTerm}
+                                    onChange={(e) => setBrowseSearchTerm(e.target.value)}
+                                />
                             </div>
-                            <TabsContent value="recommended" className="mt-4">
-                                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                                    {topLiveStreams.map((seller) => {
-                                        const sellerProducts = getProductsForSeller(seller.id);
-                                        const productsToShow = sellerProducts.slice(0, 6);
-                                        const remainingCount = sellerProducts.length > 5 ? sellerProducts.length - 5 : 0;
-                                        
-                                        return (
-                                        <Card key={seller.id} className="group flex flex-col space-y-2 overflow-hidden border-none shadow-none bg-transparent">
-                                            <Link href={`/stream/${seller.id}`} className="block">
-                                                <div className="relative rounded-lg overflow-hidden aspect-video bg-muted w-full">
-                                                    <div className="absolute top-3 left-3 z-10"><Badge variant="destructive" className="live-pulse-beam">LIVE</Badge></div>
-                                                    <div className="absolute top-2 right-2 z-10"><Badge variant="secondary" className="bg-black/50 text-white"><Users className="w-3 h-3 mr-1"/>{seller.viewers.toLocaleString()}</Badge></div>
-                                                    <Image src={seller.thumbnailUrl} alt={`Live stream from ${seller.name}`} fill sizes="(max-width: 640px) 100vw, 33vw" className="object-cover w-full h-full transition-transform group-hover:scale-105" />
-                                                </div>
-                                                <div className="flex items-start gap-2 mt-2">
-                                                    <Avatar className="w-8 h-8">
-                                                        <AvatarImage src={seller.avatarUrl} alt={seller.name} />
-                                                        <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
-                                                    </Avatar>
-                                                    <div className="flex-1 overflow-hidden">
-                                                        <p className="font-semibold text-sm leading-tight group-hover:underline truncate">{seller.title || seller.name}</p>
-                                                        <p className="text-xs text-muted-foreground">{seller.name}</p>
-                                                        <div className="flex items-center gap-2 flex-wrap mt-0.5">
-                                                            <p className="text-xs text-primary font-semibold">{seller.category}</p>
-                                                            {seller.subcategory && <Badge variant="outline" className="text-xs">{seller.subcategory}</Badge>}
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </Link>
-                                            <div className="flex items-center gap-1.5 mt-auto flex-shrink-0 pt-2 w-full justify-start pb-2 pl-2">
-                                                {productsToShow.slice(0, remainingCount > 0 ? 5 : 6).map((p, i) => (
-                                                    <Link href={`/product/${p.key}`} key={p.key} className="block" onClick={(e) => e.stopPropagation()}>
-                                                        <div className="w-10 h-10 bg-muted rounded-md border overflow-hidden hover:ring-2 hover:ring-primary">
-                                                            <Image src={p.images[0]?.preview || p.images[0]} alt={p.name} width={40} height={40} className="object-cover w-full h-full" />
-                                                        </div>
-                                                    </Link>
-                                                ))}
-                                                {remainingCount > 0 && (
-                                                     <Sheet>
-                                                        <SheetTrigger asChild>
-                                                            <button className="w-10 h-10 bg-muted rounded-md border flex items-center justify-center text-xs font-semibold text-muted-foreground hover:bg-secondary">
-                                                                +{remainingCount}
-                                                            </button>
-                                                        </SheetTrigger>
-                                                        <SheetContent side="bottom" className="h-[60vh] flex flex-col p-0">
-                                                             <ProductShelfContent 
-                                                                sellerProducts={sellerProducts}
-                                                                handleAddToCart={handleAddToCart}
-                                                                handleBuyNow={handleBuyNow}
-                                                                isMobile={true}
-                                                                onClose={() => {
-                                                                    const a = document.querySelector('[data-state="closed"]');
-                                                                    if (a) (a as HTMLElement).click();
-                                                                }}
-                                                                toast={toast}
-                                                            />
-                                                        </SheetContent>
-                                                    </Sheet>
-                                                )}
+                        </div>
+                        <TabsContent value="recommended" className="mt-4">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                                {topLiveStreams.map((seller) => {
+                                    const sellerProducts = getProductsForSeller(seller.id);
+                                    const productsToShow = sellerProducts.slice(0, 6);
+                                    const remainingCount = sellerProducts.length > 5 ? sellerProducts.length - 5 : 0;
+                                    
+                                    return (
+                                    <Card key={seller.id} className="group flex flex-col space-y-2 overflow-hidden border-none shadow-none bg-transparent">
+                                        <Link href={`/stream/${seller.id}`} className="block">
+                                            <div className="relative rounded-lg overflow-hidden aspect-video bg-muted w-full">
+                                                <div className="absolute top-3 left-3 z-10"><Badge variant="destructive" className="live-pulse-beam">LIVE</Badge></div>
+                                                <div className="absolute top-2 right-2 z-10"><Badge variant="secondary" className="bg-black/50 text-white"><Users className="w-3 h-3 mr-1"/>{seller.viewers.toLocaleString()}</Badge></div>
+                                                <Image src={seller.thumbnailUrl} alt={`Live stream from ${seller.name}`} fill sizes="(max-width: 640px) 100vw, 33vw" className="object-cover w-full h-full transition-transform group-hover:scale-105" />
                                             </div>
-                                        </Card>
-                                        )
-                                    })}
-                                </div>
-                            </TabsContent>
-                             <TabsContent value="browse" className="mt-4">
-                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                                    {filteredBrowseSubcategories.map((sub, index) => (
-                                        <SubcategoryCard key={index} sub={sub} />
-                                    ))}
-                                </div>
-                            </TabsContent>
-                            <TabsContent value="following">
-                                <div className="space-y-6">
-                                {Object.keys(followedStreamsByCategory).length > 0 ? (
-                                    Object.entries(followedStreamsByCategory).map(([category, streams]) => (
-                                    <section key={category}>
-                                        <div className="flex items-center justify-between mb-4">
-                                        <h3 className="text-xl font-bold">{category}</h3>
-                                        <Button asChild variant="link">
-                                            <Link href={`/live-selling/${category.toLowerCase()}`}>View All</Link>
-                                        </Button>
-                                        </div>
-                                        <Carousel opts={{ align: 'start' }} className="w-full">
-                                        <CarouselContent className="-ml-4">
-                                            {(streams as any[]).map((stream: any) => (
-                                            <CarouselItem key={stream.id} className="md:basis-1/2 lg:basis-1/3 xl:basis-1/4 pl-4">
-                                                <Link href={`/stream/${stream.id}`} className="group block">
-                                                <div className="relative rounded-lg overflow-hidden aspect-video bg-muted w-full">
-                                                    <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
-                                                    <div className="absolute top-2 right-2 z-10"><Badge variant="secondary" className="bg-black/50 text-white"><Users className="w-3 h-3 mr-1"/>{stream.viewers.toLocaleString()}</Badge></div>
-                                                    <Image src={stream.thumbnailUrl} alt={stream.title} fill sizes="(max-width: 768px) 50vw, 33vw" className="object-cover w-full h-full transition-transform group-hover:scale-105" />
-                                                </div>
-                                                <div className="flex items-start gap-3 mt-2">
-                                                    <Avatar>
-                                                    <AvatarImage src={stream.avatarUrl} />
-                                                    <AvatarFallback>{stream.name.charAt(0)}</AvatarFallback>
-                                                    </Avatar>
-                                                    <div>
-                                                    <p className="font-semibold text-sm group-hover:underline truncate">{stream.title}</p>
-                                                    <p className="text-xs text-muted-foreground">{stream.name}</p>
+                                            <div className="flex items-start gap-2 mt-2">
+                                                <Avatar className="w-8 h-8">
+                                                    <AvatarImage src={seller.avatarUrl} alt={seller.name} />
+                                                    <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
+                                                </Avatar>
+                                                <div className="flex-1 overflow-hidden">
+                                                    <p className="font-semibold text-sm leading-tight group-hover:underline truncate">{seller.title || seller.name}</p>
+                                                    <p className="text-xs text-muted-foreground">{seller.name}</p>
+                                                    <div className="flex items-center gap-2 flex-wrap mt-0.5">
+                                                        <p className="text-xs text-primary font-semibold">{seller.category}</p>
+                                                        {seller.subcategory && <Badge variant="outline" className="text-xs">{seller.subcategory}</Badge>}
                                                     </div>
                                                 </div>
+                                            </div>
+                                        </Link>
+                                        <div className="flex items-center gap-1.5 mt-auto flex-shrink-0 pt-2 w-full justify-start pb-2 pl-2">
+                                            {productsToShow.slice(0, remainingCount > 0 ? 5 : 6).map((p, i) => (
+                                                <Link href={`/product/${p.key}`} key={p.key} className="block" onClick={(e) => e.stopPropagation()}>
+                                                    <div className="w-10 h-10 bg-muted rounded-md border overflow-hidden hover:ring-2 hover:ring-primary">
+                                                        <Image src={p.images[0]?.preview || p.images[0]} alt={p.name} width={40} height={40} className="object-cover w-full h-full" />
+                                                    </div>
                                                 </Link>
-                                            </CarouselItem>
                                             ))}
-                                        </CarouselContent>
-                                        <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2 hidden md:flex" />
-                                        <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2 hidden md:flex" />
-                                        </Carousel>
-                                    </section>
-                                    ))
-                                ) : (
-                                    <div className="text-center py-20 text-muted-foreground">
-                                    <h3 className="text-xl font-semibold">Nothing to see here</h3>
-                                    <p>Streams from sellers you follow will appear here.</p>
+                                            {remainingCount > 0 && (
+                                                    <Sheet>
+                                                    <SheetTrigger asChild>
+                                                        <button className="w-10 h-10 bg-muted rounded-md border flex items-center justify-center text-xs font-semibold text-muted-foreground hover:bg-secondary">
+                                                            +{remainingCount}
+                                                        </button>
+                                                    </SheetTrigger>
+                                                    <SheetContent side="bottom" className="h-[60vh] flex flex-col p-0">
+                                                            <ProductShelfContent 
+                                                            sellerProducts={sellerProducts}
+                                                            handleAddToCart={handleAddToCart}
+                                                            handleBuyNow={handleBuyNow}
+                                                            isMobile={true}
+                                                            onClose={() => {
+                                                                const a = document.querySelector('[data-state="closed"]');
+                                                                if (a) (a as HTMLElement).click();
+                                                            }}
+                                                            toast={toast}
+                                                        />
+                                                    </SheetContent>
+                                                </Sheet>
+                                            )}
+                                        </div>
+                                    </Card>
+                                    )
+                                })}
+                            </div>
+                        </TabsContent>
+                            <TabsContent value="browse" className="mt-4">
+                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                                {filteredBrowseSubcategories.map((sub, index) => (
+                                    <SubcategoryCard key={index} sub={sub} />
+                                ))}
+                            </div>
+                        </TabsContent>
+                        <TabsContent value="following">
+                            <div className="space-y-6">
+                            {Object.keys(followedStreamsByCategory).length > 0 ? (
+                                Object.entries(followedStreamsByCategory).map(([category, streams]) => (
+                                <section key={category}>
+                                    <div className="flex items-center justify-between mb-4">
+                                    <h3 className="text-xl font-bold">{category}</h3>
                                     <Button asChild variant="link">
-                                        <Link href="/top-seller">Find creators to follow</Link>
+                                        <Link href={`/live-selling/${category.toLowerCase()}`}>View All</Link>
                                     </Button>
                                     </div>
-                                )}
+                                    <Carousel opts={{ align: 'start' }} className="w-full">
+                                    <CarouselContent className="-ml-4">
+                                        {(streams as any[]).map((stream: any) => (
+                                        <CarouselItem key={stream.id} className="md:basis-1/2 lg:basis-1/3 xl:basis-1/4 pl-4">
+                                            <Link href={`/stream/${stream.id}`} className="group block">
+                                            <div className="relative rounded-lg overflow-hidden aspect-video bg-muted w-full">
+                                                <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
+                                                <div className="absolute top-2 right-2 z-10"><Badge variant="secondary" className="bg-black/50 text-white"><Users className="w-3 h-3 mr-1"/>{stream.viewers.toLocaleString()}</Badge></div>
+                                                <Image src={stream.thumbnailUrl} alt={stream.title} fill sizes="(max-width: 768px) 50vw, 33vw" className="object-cover w-full h-full transition-transform group-hover:scale-105" />
+                                            </div>
+                                            <div className="flex items-start gap-3 mt-2">
+                                                <Avatar>
+                                                <AvatarImage src={stream.avatarUrl} />
+                                                <AvatarFallback>{stream.name.charAt(0)}</AvatarFallback>
+                                                </Avatar>
+                                                <div>
+                                                <p className="font-semibold text-sm group-hover:underline truncate">{stream.title}</p>
+                                                <p className="text-xs text-muted-foreground">{stream.name}</p>
+                                                </div>
+                                            </div>
+                                            </Link>
+                                        </CarouselItem>
+                                        ))}
+                                    </CarouselContent>
+                                    <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2 hidden md:flex" />
+                                    <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2 hidden md:flex" />
+                                    </Carousel>
+                                </section>
+                                ))
+                            ) : (
+                                <div className="text-center py-20 text-muted-foreground">
+                                <h3 className="text-xl font-semibold">Nothing to see here</h3>
+                                <p>Streams from sellers you follow will appear here.</p>
+                                <Button asChild variant="link">
+                                    <Link href="/top-seller">Find creators to follow</Link>
+                                </Button>
                                 </div>
-                            </TabsContent>
-                        </Tabs>
-                    </div>
+                            )}
+                            </div>
+                        </TabsContent>
+                    </Tabs>
                 </div>
-            )}
+            </div>
         </div>
         <div className="mt-12">
           <Footer />
@@ -1014,5 +984,3 @@ export default function LiveSellingPage() {
     </>
   );
 }
-
-    
