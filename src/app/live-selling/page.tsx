@@ -596,7 +596,7 @@ export default function LiveSellingPage() {
 
     const followedStreamsByCategory = useMemo(() => {
         // Mocking followed categories. In a real app, this would come from user data.
-        const followedCategoryNames = ['Fashion', 'Electronics'];
+        const followedCategoryNames = ['Fashion', 'Electronics']; 
         const grouped: { [key: string]: any[] } = {};
 
         followedCategoryNames.forEach(categoryName => {
