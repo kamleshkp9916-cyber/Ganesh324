@@ -61,6 +61,7 @@ import {
   ShieldCheck,
   RotateCcw,
   Banknote,
+  UserCheck,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
@@ -124,10 +125,11 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { ProductShelfContent } from '@/components/product-shelf-content';
 import { useInView } from 'react-intersection-observer';
+import { SubcategoryCard } from '../SubcategoryCard';
 
 
 const liveSellers = [
-    { id: 'fashionfinds-uid', name: 'FashionFinds', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://picsum.photos/seed/fashion-stream/300/450', category: 'Fashion', subcategory: 'Dresses', viewers: 1200, buyers: 25, rating: 4.8, reviews: 12, hint: 'woman posing stylish outfit', productId: 'prod_1', hasAuction: true, title: 'Unveiling New Vintage Collection' },
+    { id: 'fashionfinds-uid', name: 'FashionFinds', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://picsum.photos/seed/fashion-stream/300/450', category: 'Women', subcategory: 'Dresses', viewers: 1200, buyers: 25, rating: 4.8, reviews: 12, hint: 'woman posing stylish outfit', productId: 'prod_1', hasAuction: true, title: 'Unveiling New Vintage Collection' },
     { id: 'gadgetguru-uid', name: 'GadgetGuru', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://picsum.photos/seed/tech-stream/300/450', category: 'Electronics', subcategory: 'Smartphones & Accessories', viewers: 2500, buyers: 42, rating: 4.9, reviews: 28, hint: 'unboxing new phone', productId: 'prod_2', hasAuction: false, title: 'Live Unboxing: The Latest Smartphone' },
     { id: 'homehaven-uid', name: 'HomeHaven', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://picsum.photos/seed/home-stream/300/450', category: 'Home', subcategory: 'Home Decor', viewers: 850, buyers: 15, rating: 4.7, reviews: 9, hint: 'modern living room decor', productId: 'prod_3', hasAuction: false, title: 'Cozy Living Room Styling Tips' },
     { id: 'beautybox-uid', name: 'BeautyBox', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://picsum.photos/seed/beauty-stream/300/450', category: 'Women', subcategory: 'Makeup', viewers: 3100, buyers: 78, rating: 4.9, reviews: 55, hint: 'makeup tutorial', productId: 'prod_4', hasAuction: true, title: 'Get Ready With Me: Summer Glow' },
@@ -151,56 +153,6 @@ const mockNotifications = [
     { id: 2, title: 'Flash Sale Alert!', description: 'GadgetGuru is having a 50% off flash sale now!', time: '1h ago', read: false, href: '/seller/profile?userId=GadgetGuru' },
     { id: 3, title: 'New message from HomeHaven', description: '"Yes, the blue vases are back in stock!"', time: '4h ago', read: true, href: '/message' },
 ];
-
-const SubcategoryCard = ({ sub }: { sub: any }) => {
-    const { ref, inView } = useInView({
-        triggerOnce: true,
-        rootMargin: '200px 0px',
-    });
-    const [isLoaded, setIsLoaded] = useState(false);
-
-    useEffect(() => {
-        if (inView) {
-            // Simulate a network delay for loading the image
-            const timer = setTimeout(() => setIsLoaded(true), Math.random() * 1000);
-            return () => clearTimeout(timer);
-        }
-    }, [inView]);
-
-    return (
-        <Link 
-            ref={ref} 
-            href={`/live-selling/${sub.categoryName.toLowerCase()}/${sub.name.toLowerCase().replace(/ /g, '-').replace(/&/g, '%26')}`} 
-            className="group block space-y-2"
-        >
-            <Card className="overflow-hidden">
-                <div className="aspect-video bg-muted relative">
-                    {!isLoaded && <Skeleton className="w-full h-full" />}
-                    {isLoaded && (
-                        <Image
-                            src={sub.imageUrl}
-                            alt={sub.name}
-                            fill
-                            sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 16vw"
-                            className="object-cover group-hover:scale-105 transition-transform"
-                        />
-                    )}
-                </div>
-            </Card>
-            <div>
-                <p className="font-semibold text-sm truncate group-hover:text-primary">{sub.name}</p>
-                <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                    <div className="flex items-center gap-1">
-                        <Users className="w-3 h-3" />
-                        {sub.viewers.toLocaleString()} watching
-                    </div>
-                    <Badge variant="outline">{sub.categoryName}</Badge>
-                </div>
-            </div>
-        </Link>
-    );
-};
-
 
 const AnimatedCategoryCard = ({
   item,
@@ -393,7 +345,7 @@ export default function LiveSellingPage() {
   const [overlaySeller, setOverlaySeller] = useState<any | null>(null);
 
   const getProductsForSeller = (sellerId: string): any[] => {
-    return Object.values(productDetails).filter(p => productToSellerMapping[p.key]?.uid === sellerId);
+    return Object.values(productDetails).filter(p => productToSellerMapping[p.key as keyof typeof productToSellerMapping]?.uid === sellerId);
   }
   
   const handleAddToCart = (product: any) => {
@@ -642,6 +594,22 @@ export default function LiveSellingPage() {
         }));
     }, [allSellers]);
 
+    const followedStreamsByCategory = useMemo(() => {
+        // Mocking followed categories. In a real app, this would come from user data.
+        const followedCategoryNames = ['Fashion', 'Electronics'];
+        const grouped: { [key: string]: any[] } = {};
+
+        followedCategoryNames.forEach(categoryName => {
+            const streams = allSellers.filter(s => s.category === categoryName);
+            if (streams.length > 0) {
+                grouped[categoryName] = streams;
+            }
+        });
+
+        return grouped;
+    }, [allSellers]);
+
+
   return (
     <>
       <div className="flex min-h-screen flex-col bg-background text-foreground">
@@ -869,7 +837,7 @@ export default function LiveSellingPage() {
                                     <TabsTrigger value="browse">Browse</TabsTrigger>
                                     <TabsTrigger value="following">Following</TabsTrigger>
                                 </TabsList>
-                                 <div className="relative w-full sm:w-64">
+                                <div className="relative w-full sm:w-64">
                                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                                     <Input 
                                         placeholder="Search categories..."
@@ -953,8 +921,54 @@ export default function LiveSellingPage() {
                                 </div>
                             </TabsContent>
                             <TabsContent value="following">
-                                <div className="text-center py-20 text-muted-foreground">
-                                    <p>Following content coming soon.</p>
+                                <div className="space-y-6">
+                                {Object.keys(followedStreamsByCategory).length > 0 ? (
+                                    Object.entries(followedStreamsByCategory).map(([category, streams]) => (
+                                    <section key={category}>
+                                        <div className="flex items-center justify-between mb-4">
+                                            <h3 className="text-xl font-bold">{category}</h3>
+                                            <Button asChild variant="link">
+                                                <Link href={`/live-selling/${category.toLowerCase()}`}>View All</Link>
+                                            </Button>
+                                        </div>
+                                        <Carousel opts={{ align: 'start' }} className="w-full">
+                                            <CarouselContent className="-ml-4">
+                                                {streams.map((stream: any) => (
+                                                    <CarouselItem key={stream.id} className="md:basis-1/2 lg:basis-1/3 xl:basis-1/4 pl-4">
+                                                         <Link href={`/stream/${stream.id}`} className="group block">
+                                                            <div className="relative rounded-lg overflow-hidden aspect-video bg-muted w-full">
+                                                                <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
+                                                                <div className="absolute top-2 right-2 z-10"><Badge variant="secondary" className="bg-black/50 text-white"><Users className="w-3 h-3 mr-1"/>{stream.viewers.toLocaleString()}</Badge></div>
+                                                                <Image src={stream.thumbnailUrl} alt={stream.title} fill sizes="(max-width: 768px) 50vw, 33vw" className="object-cover w-full h-full transition-transform group-hover:scale-105" />
+                                                            </div>
+                                                            <div className="flex items-start gap-3 mt-2">
+                                                                <Avatar>
+                                                                    <AvatarImage src={stream.avatarUrl} />
+                                                                    <AvatarFallback>{stream.name.charAt(0)}</AvatarFallback>
+                                                                </Avatar>
+                                                                <div>
+                                                                    <p className="font-semibold text-sm group-hover:underline truncate">{stream.title}</p>
+                                                                    <p className="text-xs text-muted-foreground">{stream.name}</p>
+                                                                </div>
+                                                            </div>
+                                                        </Link>
+                                                    </CarouselItem>
+                                                ))}
+                                            </CarouselContent>
+                                            <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2 hidden md:flex" />
+                                            <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2 hidden md:flex" />
+                                        </Carousel>
+                                    </section>
+                                    ))
+                                ) : (
+                                    <div className="text-center py-20 text-muted-foreground">
+                                        <h3 className="text-xl font-semibold">Nothing to see here</h3>
+                                        <p>Streams from sellers you follow will appear here.</p>
+                                        <Button asChild variant="link">
+                                            <Link href="/top-seller">Find creators to follow</Link>
+                                        </Button>
+                                    </div>
+                                )}
                                 </div>
                             </TabsContent>
                         </Tabs>
@@ -1012,3 +1026,5 @@ export default function LiveSellingPage() {
     </>
   );
 }
+
+    
