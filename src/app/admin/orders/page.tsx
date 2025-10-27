@@ -1,5 +1,4 @@
 
-
 "use client"
 
 import {
@@ -134,7 +133,7 @@ const mockOrders: Order[] = [
     {
         orderId: "#MOCK5903",
         userId: "mockUser3",
-        products: [{ name: "Jessica Rodriguez", key: 'prod_5' }],
+        products: [{ name: "Coffee Maker", key: 'prod_5' }],
         address: { name: "Jessica Rodriguez", village: "222 Ocean View", city: "Chennai", state: "TN", pincode: "600090", phone: "9876543214" },
         total: 4500.00,
         orderDate: "2024-07-21T11:00:00.000Z",
@@ -416,3 +415,5 @@ export default function AdminOrdersPage() {
     </div>
   );
 }
+
+    
