@@ -460,7 +460,10 @@ export default function SubCategoryStreamPage() {
                                             <div className="flex-1 overflow-hidden">
                                                 <p className="font-semibold text-sm leading-tight group-hover:underline truncate">{seller.title || seller.name}</p>
                                                 <p className="text-xs text-muted-foreground">{seller.name}</p>
-                                                <p className="text-xs text-primary font-semibold mt-0.5">{seller.category}</p>
+                                                <div className="flex items-center gap-2 flex-wrap mt-0.5">
+                                                    <p className="text-xs text-primary font-semibold">{seller.category}</p>
+                                                    {seller.subcategory && <Badge variant="outline" className="text-xs">{seller.subcategory}</Badge>}
+                                                </div>
                                             </div>
                                         </div>
                                     </Link>
