@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import Link from 'next/link';
@@ -628,8 +627,7 @@ export default function LiveSellingPage() {
 
                 <div className="hidden sm:flex flex-1 justify-center px-8">
                         <div className={cn(
-                        "relative w-full max-w-sm lg:max-w-md transition-all duration-300",
-                        isSearchOpen ? "w-full" : "w-auto"
+                        "relative w-full max-w-sm lg:max-w-md transition-all duration-300"
                         )}>
                         <div className="relative">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground peer-focus:text-foreground"/>
@@ -1015,3 +1013,5 @@ export default function LiveSellingPage() {
     </>
   );
 }
+
+    
