@@ -38,6 +38,7 @@ import {
   Rss,
   UserCheck,
   ShoppingCart,
+  ChevronRight,
 } from 'lucide-react';
 import { mockStreams, productDetails, productToSellerMapping } from '@/lib/product-data';
 import Link from 'next/link';
@@ -139,6 +140,12 @@ export default function SubCategoryStreamPage() {
     const pathSegments = Array.isArray(categoryPath) ? categoryPath : [categoryPath];
     const categorySlug = pathSegments[0] || '';
     const subCategorySlug = pathSegments[1] || null;
+
+    const parentCategoryTitle = categorySlug
+        .replace(/-/g, ' ')
+        .split(' ')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ');
     
     const pageTitle = (subCategorySlug || categorySlug)
         .replace(/-/g, ' ')
@@ -291,7 +298,7 @@ export default function SubCategoryStreamPage() {
                                     <Package className="mr-2 h-4 w-4" />
                                     <span>My Orders</span>
                                 </DropdownMenuItem>
-                                <DropdownMenuItem onSelect={() => router.push('/wishlist')}>
+                                    <DropdownMenuItem onSelect={() => router.push('/wishlist')}>
                                     <Heart className="mr-2 h-4 w-4" />
                                     <span>My Wishlist</span>
                                 </DropdownMenuItem>
@@ -364,6 +371,10 @@ export default function SubCategoryStreamPage() {
 
             <main className="container mx-auto py-6">
                  <div className="flex flex-col items-center justify-center text-center mb-8">
+                     <div className="flex items-center text-sm text-muted-foreground mb-2">
+                        <Link href={`/live-selling/${categorySlug}`} className="hover:text-primary">{parentCategoryTitle}</Link>
+                        {subCategorySlug && <ChevronRight className="h-4 w-4" />}
+                    </div>
                     <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">{pageTitle}</h1>
                     <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
                         <div className="flex items-center gap-1.5"><Users className="h-4 w-4" /> <strong className="text-foreground">{(totalViewers / 1000).toFixed(1)}K</strong> watching</div>
@@ -379,18 +390,16 @@ export default function SubCategoryStreamPage() {
                 </div>
                 
                 <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-4">
-                    <Tabs defaultValue="livestreams" className="w-full md:w-auto">
-                    </Tabs>
+                     <div className="relative flex-grow w-full md:flex-grow-0">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input
+                            placeholder="Search in this category..."
+                            className="pl-9 h-9 w-full md:w-64"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                        />
+                    </div>
                      <div className="flex w-full md:w-auto items-center justify-between md:justify-end gap-2">
-                         <div className="relative flex-grow md:flex-grow-0">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                            <Input
-                                placeholder="Search in this category..."
-                                className="pl-9 h-9"
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                            />
-                        </div>
                          <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                                 <Button variant="outline" size="sm" className="h-9">
@@ -500,5 +509,3 @@ export default function SubCategoryStreamPage() {
         </div>
     );
 }
-
-    
