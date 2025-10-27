@@ -34,6 +34,7 @@ export default function SubCategoryStreamPage() {
         .join(' ');
         
     const filteredStreams = liveSellers.filter(stream => {
+        if (!stream.category) return false;
         const streamCategorySlug = stream.category.toLowerCase().replace(/\s+/g, '-');
         const streamSubCategorySlug = (stream as any).subcategory?.toLowerCase().replace(/\s+/g, '-').replace(/&/g, '%26');
         
