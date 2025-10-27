@@ -50,6 +50,11 @@ export default function MensClothingPage() {
   const banner1 = banners?.Men?.banner1;
   const banner2 = banners?.Men?.banner2;
 
+  const getSubCategoryPath = (name: string) => {
+    const subCategorySlug = name.toLowerCase().replace(/\s+/g, '-').replace(/&/g, '%26');
+    return `/men/${subCategorySlug}`;
+  };
+
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
        <header className="border-b sticky top-0 bg-background/95 z-50">
@@ -122,7 +127,7 @@ export default function MensClothingPage() {
                                 <h3 className="text-3xl font-bold">{banner1.title}</h3>
                                 <p className="text-xl">{banner1.description}</p>
                                 <Button asChild variant="link" className="mt-4 px-0">
-                                    <Link href="#">Shop Now</Link>
+                                    <Link href="/sale">Shop Now</Link>
                                 </Button>
                             </div>
                             <div className="md:w-1/2 h-64 md:h-auto md:aspect-square relative">
@@ -158,7 +163,7 @@ export default function MensClothingPage() {
                                 <h3 className="text-4xl font-bold my-2">{banner2.title}</h3>
                                 <p className="max-w-md">{banner2.description}</p>
                                 <Button asChild variant="link" className="mt-4 text-white">
-                                    <Link href="#">Shop The Collection</Link>
+                                    <Link href={getSubCategoryPath("Activewear")}>Shop The Collection</Link>
                                 </Button>
                             </CardContent>
                         </>
@@ -172,7 +177,7 @@ export default function MensClothingPage() {
                 <h2 className="text-xl font-semibold mb-4 text-center">Shop by category</h2>
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
                     {categories.map(category => (
-                        <Link href="#" key={category.name} className="group block text-center">
+                        <Link href={getSubCategoryPath(category.name)} key={category.name} className="group block text-center">
                             <div className="aspect-square bg-muted rounded-lg overflow-hidden mb-2">
                                 <Image 
                                     src={category.image}
@@ -194,5 +199,3 @@ export default function MensClothingPage() {
     </div>
   );
 }
-
-    
