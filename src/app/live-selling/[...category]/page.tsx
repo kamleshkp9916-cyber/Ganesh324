@@ -3,8 +3,8 @@
 
 import { useRouter, useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, UserPlus, Rss, Heart, Users, Search, ChevronDown, Bell, MoreHorizontal, ShoppingCart, Sun, Moon, Laptop, LogOut, Settings, LifeBuoy, Shield, FileText, LayoutDashboard, Package, Wallet, RadioTower, Tv, Flame, TrendingUp, Tags, List, ShoppingBag, User, Sparkles, Filter } from 'lucide-react';
-import { mockStreams as liveSellers } from '@/lib/product-data';
+import { ArrowLeft, UserPlus, Rss, Heart, Users, Search, ChevronDown, Bell, MoreHorizontal, ShoppingCart, Sun, Moon, Laptop, LogOut, Settings, LifeBuoy, Shield, FileText, LayoutDashboard, Package, Wallet, RadioTower, Tv, Flame, TrendingUp, Tags, List, ShoppingBag, User, Sparkles, Filter, Video, X } from 'lucide-react';
+import { mockStreams } from '@/lib/product-data';
 import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/card';
 import Image from 'next/image';
@@ -27,16 +27,20 @@ import {
   DropdownMenuPortal,
   DropdownMenuSubContent,
 } from "@/components/ui/dropdown-menu"
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import { useAuthActions } from '@/lib/auth';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useTheme } from 'next-themes';
 import { GoLiveDialog } from '@/components/go-live-dialog';
 import { Dialog, DialogTrigger } from '@/components/ui/dialog';
-import { getCart } from '@/lib/product-history';
+import { getCart, addToCart, saveCart } from '@/lib/product-history';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { productDetails, productToSellerMapping } from '@/lib/product-data';
+import { Sheet, SheetContent } from '@/components/ui/sheet';
+import { ProductShelfContent } from '@/components/product-shelf-content';
+import { useToast } from '@/hooks/use-toast';
 
 
 export default function SubCategoryStreamPage() {
@@ -50,8 +54,27 @@ export default function SubCategoryStreamPage() {
     const [isSearchOpen, setIsSearchOpen] = useState(false);
     const [cartCount, setCartCount] = React.useState(0);
     const isMobile = useIsMobile();
+    const { toast } = useToast();
 
     let { category: categoryPath } = params;
+
+    const getProductsForSeller = (sellerId: string): any[] => {
+        return Object.values(productDetails).filter(p => productToSellerMapping[p.key as keyof typeof productToSellerMapping]?.uid === sellerId);
+    }
+    
+    const handleAddToCart = (product: any) => {
+        addToCart({ ...product, quantity: 1 });
+        toast({
+            title: "Added to Cart!",
+            description: `${product.name} has been added to your cart.`
+        });
+    };
+    
+    const handleBuyNow = (product: any) => {
+        saveCart([{ ...product, quantity: 1 }]);
+        localStorage.setItem('buyNow', 'true');
+        router.push('/cart');
+    };
 
     React.useEffect(() => {
         const updateCartCount = () => {
@@ -86,7 +109,7 @@ export default function SubCategoryStreamPage() {
         .join(' ');
         
     const { displayedStreams, isFallback } = useMemo(() => {
-        if (!liveSellers) return { displayedStreams: [], isFallback: false };
+        if (!mockStreams) return { displayedStreams: [], isFallback: false };
 
         const filterStreams = (streams: any[], term: string) => {
             if (!term) return streams;
@@ -96,8 +119,7 @@ export default function SubCategoryStreamPage() {
             );
         };
         
-        // Primary filtering for the specific subcategory
-        let streams = liveSellers.filter(stream => {
+        let streams = mockStreams.filter(stream => {
             if (!stream.category) return false;
             const streamCategorySlug = stream.category.toLowerCase().replace(/\s+/g, '-');
             const streamSubCategorySlug = (stream as any).subcategory?.toLowerCase().replace(/\s+/g, '-').replace(/&/g, '%26');
@@ -108,11 +130,10 @@ export default function SubCategoryStreamPage() {
             return streamCategorySlug === categorySlug;
         });
 
-        // If no streams for the subcategory, fall back to the parent category
         let fallback = false;
         if (streams.length === 0) {
             fallback = true;
-            streams = liveSellers.filter(stream => {
+            streams = mockStreams.filter(stream => {
                 if (!stream.category) return false;
                 return stream.category.toLowerCase().replace(/\s+/g, '-') === categorySlug;
             });
@@ -303,7 +324,7 @@ export default function SubCategoryStreamPage() {
             </header>
 
             <main className="container mx-auto py-6">
-                <div className="flex flex-col items-center justify-center text-center mb-8">
+                 <div className="flex flex-col items-center justify-center text-center mb-8">
                     <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">{pageTitle}</h1>
                     <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
                         <div className="flex items-center gap-1.5"><Users className="h-4 w-4" /> <strong className="text-foreground">{(totalViewers / 1000).toFixed(1)}K</strong> watching</div>
@@ -311,25 +332,19 @@ export default function SubCategoryStreamPage() {
                         <div className="flex items-center gap-1.5"><Heart className="h-4 w-4" /> <strong className="text-foreground">22.5K</strong> followers</div>
                     </div>
                     <div className="mt-4 flex gap-2">
-                        <Button variant="outline" size="sm" className="rounded-full">
-                            IRL
-                        </Button>
-                        <Button variant="outline" size="sm" className="rounded-full">
-                            Casual
-                        </Button>
                          <Button variant="secondary" size="sm" className="rounded-full">
                             <UserPlus className="mr-2 h-4 w-4" /> Follow
                         </Button>
                     </div>
                 </div>
                 
-                <div className="flex items-center justify-between gap-2 mb-6">
-                     <Tabs defaultValue="livestreams" className="w-auto">
+                <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-4">
+                     <Tabs defaultValue="livestreams" className="w-full md:w-auto">
                         <TabsList>
                             <TabsTrigger value="livestreams">Livestreams</TabsTrigger>
                         </TabsList>
                     </Tabs>
-                     <div className="flex items-center gap-2">
+                     <div className="flex w-full md:w-auto items-center justify-between md:justify-end gap-2">
                          <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                                 <Button variant="outline" size="sm" className="h-9">
@@ -366,10 +381,14 @@ export default function SubCategoryStreamPage() {
                 <div>
                     {displayedStreams.length > 0 ? (
                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-10">
-                            {displayedStreams.map((seller) => (
-                                <Link href={`/stream/${seller.id}`} key={seller.id} className="group">
-                                    <Card className="overflow-hidden h-full flex flex-col bg-card shadow-none border-none">
-                                        <div className="relative aspect-video bg-muted rounded-2xl overflow-hidden">
+                            {displayedStreams.map((seller) => {
+                                const sellerProducts = getProductsForSeller(seller.id);
+                                const productsToShow = sellerProducts.slice(0, 6);
+                                const remainingCount = sellerProducts.length > 5 ? sellerProducts.length - 5 : 0;
+                                return (
+                                <Card key={seller.id} className="group flex flex-col space-y-2 overflow-hidden border-none shadow-none bg-transparent">
+                                    <Link href={`/stream/${seller.id}`} className="block">
+                                        <div className="relative aspect-video bg-muted rounded-lg overflow-hidden">
                                             <Image src={seller.thumbnailUrl} alt={`Live stream from ${seller.name}`} fill sizes="(max-width: 640px) 100vw, 33vw" className="object-cover w-full h-full transition-transform group-hover:scale-105" />
                                             <div className="absolute top-3 left-3 z-10"><Badge variant="destructive" className="gap-1.5"><div className="h-2 w-2 rounded-full bg-white animate-pulse" />LIVE</Badge></div>
                                             <div className="absolute bottom-2 left-2 right-2 z-10">
@@ -379,21 +398,51 @@ export default function SubCategoryStreamPage() {
                                                 </div>
                                             </div>
                                         </div>
-                                        <div className="pt-3">
-                                            <div className="flex items-start gap-3">
-                                                    <Avatar className="h-8 w-8">
-                                                    <AvatarImage src={seller.avatarUrl} alt={seller.name} />
-                                                    <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
-                                                </Avatar>
-                                                <div className="flex-1 overflow-hidden">
-                                                    <p className="font-semibold text-sm leading-tight truncate group-hover:text-primary transition-colors">{(seller as any).title || 'Live Stream'}</p>
-                                                    <p className="text-xs text-muted-foreground">{seller.name}</p>
-                                                </div>
+                                        <div className="flex items-start gap-2 mt-2">
+                                                <Avatar className="w-8 h-8">
+                                                <AvatarImage src={seller.avatarUrl} alt={seller.name} />
+                                                <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
+                                            </Avatar>
+                                            <div className="flex-1 overflow-hidden">
+                                                <p className="font-semibold text-sm leading-tight group-hover:underline truncate">{seller.title || seller.name}</p>
+                                                <p className="text-xs text-muted-foreground">{seller.name}</p>
+                                                <p className="text-xs text-primary font-semibold mt-0.5">{seller.category}</p>
                                             </div>
                                         </div>
-                                    </Card>
-                                </Link>
-                            ))}
+                                    </Link>
+                                    <div className="flex items-center gap-1.5 mt-auto flex-shrink-0 pt-2 w-full justify-start pb-2 pl-2">
+                                        {productsToShow.slice(0, remainingCount > 0 ? 5 : 6).map((p: any, i: number) => (
+                                            <Link href={`/product/${p.key}`} key={p.key} className="block" onClick={(e) => e.stopPropagation()}>
+                                                <div className="w-10 h-10 bg-muted rounded-md border overflow-hidden hover:ring-2 hover:ring-primary">
+                                                    <Image src={p.images[0]?.preview || p.images[0]} alt={p.name} width={40} height={40} className="object-cover w-full h-full" />
+                                                </div>
+                                            </Link>
+                                        ))}
+                                        {remainingCount > 0 && (
+                                             <Sheet>
+                                                <SheetTrigger asChild>
+                                                    <button className="w-10 h-10 bg-muted rounded-md border flex items-center justify-center text-xs font-semibold text-muted-foreground hover:bg-secondary">
+                                                        +{remainingCount}
+                                                    </button>
+                                                </SheetTrigger>
+                                                <SheetContent side="bottom" className="h-[60vh] flex flex-col p-0">
+                                                     <ProductShelfContent 
+                                                        sellerProducts={sellerProducts}
+                                                        handleAddToCart={handleAddToCart}
+                                                        handleBuyNow={handleBuyNow}
+                                                        isMobile={true}
+                                                        onClose={() => {
+                                                            const a = document.querySelector('[data-state="closed"]');
+                                                            if (a) (a as HTMLElement).click();
+                                                        }}
+                                                        toast={toast}
+                                                    />
+                                                </SheetContent>
+                                            </Sheet>
+                                        )}
+                                    </div>
+                                </Card>
+                            )})}
                         </div>
                     ) : (
                          <div className="text-center py-20 text-muted-foreground">
@@ -405,4 +454,5 @@ export default function SubCategoryStreamPage() {
             </main>
         </div>
     );
-}
+
+    
