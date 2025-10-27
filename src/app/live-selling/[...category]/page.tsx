@@ -154,8 +154,8 @@ export default function SubCategoryStreamPage() {
         .map(word => word.charAt(0).toUpperCase() + word.slice(1))
         .join(' ');
         
-    const { displayedStreams, isFallback } = useMemo(() => {
-        if (!mockStreams) return { displayedStreams: [], isFallback: false };
+    const displayedStreams = useMemo(() => {
+        if (!mockStreams) return [];
 
         const filterStreams = (streams: any[], term: string) => {
             if (!term) return streams;
@@ -176,21 +176,9 @@ export default function SubCategoryStreamPage() {
             return streamCategorySlug === categorySlug;
         });
 
-        let fallback = false;
-        if (streams.length === 0) {
-            fallback = true;
-            streams = mockStreams.filter(stream => {
-                if (!stream.category) return false;
-                return stream.category.toLowerCase().replace(/\s+/g, '-') === categorySlug;
-            });
-        }
-
         const sorted = streams.sort((a, b) => b.viewers - a.viewers);
         
-        return { 
-            displayedStreams: filterStreams(sorted, searchTerm), 
-            isFallback: fallback 
-        };
+        return filterStreams(sorted, searchTerm); 
 
     }, [categorySlug, subCategorySlug, searchTerm]);
 
@@ -512,3 +500,5 @@ export default function SubCategoryStreamPage() {
         </div>
     );
 }
+
+    
