@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import {
@@ -809,9 +810,29 @@ const ChatPanel = ({
         <div className="flex flex-col h-full bg-background">
             <header className="p-3 flex items-center justify-between border-b shrink-0">
                 <h3 className="font-bold text-base">Live Chat</h3>
-                <Button variant="ghost" size="icon" className="lg:hidden" onClick={onClose}>
-                    <X className="h-5 w-5" />
-                </Button>
+                <div className="flex items-center">
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                                <MoreVertical className="h-4 w-4" />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                            <DropdownMenuItem onSelect={handlers.onReportStream}><Flag className="mr-2 h-4 w-4" /> Report Stream</DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                             <FeedbackDialog>
+                                <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                                    <MessageCircle className="mr-2 h-4 w-4" />
+                                    <span>Feedback</span>
+                                </DropdownMenuItem>
+                            </FeedbackDialog>
+                            <DropdownMenuItem><LifeBuoy className="mr-2 h-4 w-4" /> Help & Support</DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                    <Button variant="ghost" size="icon" className="lg:hidden" onClick={onClose}>
+                        <X className="h-5 w-5" />
+                    </Button>
+                </div>
             </header>
             <ScrollArea ref={chatContainerRef} className="flex-grow">
                 <div className="p-2 space-y-1">
