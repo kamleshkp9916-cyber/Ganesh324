@@ -66,7 +66,7 @@ export default function ListedProductsPage() {
   }, []);
 
   const getCategoryPath = (categoryName: string, subcategoryName?: string) => {
-    const basePath = `/${categoryName.toLowerCase().replace(/\s+/g, '-')}`;
+    const basePath = `/live-selling/${categoryName.toLowerCase().replace(/\s+/g, '-')}`;
     if (subcategoryName) {
         return `${basePath}/${subcategoryName.toLowerCase().replace(/\s+/g, '-').replace(/&/g, '%26')}`;
     }
@@ -224,14 +224,42 @@ export default function ListedProductsPage() {
         </header>
 
       <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-10 flex-grow">
-         
          {showSearchResults ? renderSearchResults() : (
            <div className="space-y-16">
               <PromotionalCarousel />
               
                 <section>
-                    <h2 className="text-3xl font-bold text-center mb-6">Trending Now</h2>
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                    <div className="text-center mb-8">
+                        <h2 className="text-3xl font-bold tracking-tight">Shop By Category</h2>
+                        <p className="text-muted-foreground mt-1">Explore our curated collections.</p>
+                    </div>
+                     <div className="grid grid-cols-2 md:grid-cols-4 md:auto-rows-[250px] gap-4">
+                        {collageCategories.map((item) => (
+                            <Link href={item.href} key={item.name} className={cn("group relative rounded-lg overflow-hidden", item.gridClass)}>
+                                <Image
+                                    src={item.imageUrl}
+                                    alt={item.name}
+                                    fill
+                                    sizes="(max-width: 768px) 50vw, (max-width: 1200px) 25vw, 20vw"
+                                    className="object-cover w-full h-full transition-transform group-hover:scale-105"
+                                    data-ai-hint={item.hint}
+                                />
+                                <div className="absolute inset-0 bg-black/40 group-hover:bg-black/50 transition-colors" />
+                                <div className="absolute inset-0 p-4 flex flex-col justify-end">
+                                    <h3 className="text-xl font-bold text-white">{item.name}</h3>
+                                    <Button variant="secondary" size="sm" className="mt-2 w-fit">Shop Now</Button>
+                                </div>
+                            </Link>
+                        ))}
+                    </div>
+                </section>
+              
+                <section>
+                    <div className="text-center mb-8">
+                        <h2 className="text-3xl font-bold tracking-tight">Trending Now</h2>
+                        <p className="text-muted-foreground mt-1">See what everyone's buying.</p>
+                    </div>
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
                         {trendingProducts.slice(0, 5).map(product => (
                             <Link href={`/product/${product.key}`} key={product.key} className="group block">
                                 <Card className="w-full overflow-hidden h-full flex flex-col">
@@ -247,38 +275,6 @@ export default function ListedProductsPage() {
                         ))}
                     </div>
                 </section>
-                
-                <section>
-                    <h2 className="text-3xl font-bold text-center mb-6">Shop by Brand</h2>
-                    <div className="flex flex-wrap items-center justify-center gap-4">
-                        {brandLogos.map(brand => (
-                            <div key={brand.name} className="p-2 border rounded-md hover:shadow-md transition-shadow">
-                                <Image src={brand.logo} alt={brand.name} width={120} height={60} className="object-contain" />
-                            </div>
-                        ))}
-                    </div>
-                </section>
-
-                <section>
-                    <Card className="bg-primary/5 border-primary/20">
-                        <CardContent className="p-8 grid md:grid-cols-2 gap-8 items-center">
-                            <div className="space-y-4">
-                                <Badge variant="secondary">Seller Spotlight</Badge>
-                                <h3 className="text-3xl font-bold">Meet GadgetGuru</h3>
-                                <p className="text-muted-foreground">"I'm passionate about bringing you the best and latest in technology. From unboxings to in-depth reviews, my streams are all about helping you make the right choice for your tech needs. Join my community of enthusiasts!"</p>
-                                <Button asChild>
-                                    <Link href="/seller/profile?userId=gadgetguru-uid">
-                                        View Profile <ArrowRight className="ml-2 h-4 w-4" />
-                                    </Link>
-                                </Button>
-                            </div>
-                             <div className="relative aspect-square rounded-lg overflow-hidden">
-                                <Image src="https://images.unsplash.com/photo-1550009158-94ae76552485?w=800&h=800&fit=crop" alt="GadgetGuru" fill className="object-cover" />
-                            </div>
-                        </CardContent>
-                    </Card>
-                </section>
-
            </div>
          )}
       </main>
@@ -311,3 +307,5 @@ const ListItem = React.forwardRef<
   )
 })
 ListItem.displayName = "ListItem"
+
+    
