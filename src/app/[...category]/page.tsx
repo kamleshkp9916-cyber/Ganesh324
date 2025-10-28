@@ -226,14 +226,11 @@ export default function CategoryPage() {
                                         <Link href={`/product/${product.key}`} key={product.key} className="group block">
                                             <Card className="w-full overflow-hidden h-full flex flex-col">
                                                 <div className="relative aspect-[10/9] bg-muted">
-                                                    {hasDiscount && (
-                                                        <Badge variant="destructive" className="absolute top-2 left-2 z-10">{product.discountPercentage}% OFF</Badge>
-                                                    )}
                                                     {isNew && (
-                                                        <Badge className={cn("absolute z-10", hasDiscount ? "top-10 left-2" : "top-2 left-2")}>NEW</Badge>
+                                                        <Badge className="absolute top-2 left-2 z-10">NEW</Badge>
                                                     )}
                                                     {product.isFromStream && (
-                                                        <Badge variant="purple" className={cn("absolute z-10", isNew || hasDiscount ? "top-10 left-2" : "top-2 left-2")}>
+                                                        <Badge variant="purple" className={cn("absolute z-10", isNew ? "top-10 left-2" : "top-2 left-2")}>
                                                             <Video className="h-3 w-3 mr-1"/> From Stream
                                                         </Badge>
                                                     )}
@@ -250,6 +247,10 @@ export default function CategoryPage() {
                                                             <div className="scan-animation"></div>
                                                         </div>
                                                     )}
+                                                     <div className="absolute bottom-2 left-2 flex items-center gap-1 text-xs text-white bg-black/50 px-1.5 py-0.5 rounded-full backdrop-blur-sm">
+                                                        <Star className="w-3 h-3 text-amber-300 fill-amber-300" />
+                                                        <span className="font-bold">4.8</span>
+                                                    </div>
                                                     <div className="absolute bottom-2 right-2">
                                                         <Button size="icon" className="h-8 w-8 rounded-full bg-black/50 text-white backdrop-blur-sm" onClick={(e) => handleSimilarClick(e, product)} disabled={isScanning}>
                                                             {isScanning ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
@@ -264,14 +265,13 @@ export default function CategoryPage() {
                                                                 ₹{discountedPrice.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                                             </p>
                                                             {hasDiscount && (
-                                                                <p className="text-xs text-muted-foreground line-through">
-                                                                    ₹{originalPrice.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                                                                </p>
+                                                                <>
+                                                                    <p className="text-xs text-muted-foreground line-through">
+                                                                        ₹{originalPrice.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                                                    </p>
+                                                                    <Badge variant="destructive" className="text-xs">{product.discountPercentage}% OFF</Badge>
+                                                                </>
                                                             )}
-                                                        </div>
-                                                        <div className="flex items-center gap-1 text-xs text-amber-400">
-                                                            <Star className="w-4 h-4 fill-current" />
-                                                            <span>4.8</span>
                                                         </div>
                                                     </div>
                                                     <div className="flex items-center gap-4 text-xs text-muted-foreground mt-2">
