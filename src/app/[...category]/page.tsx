@@ -259,8 +259,8 @@ export default function CategoryPage() {
                                                 </div>
                                                 <CardContent className="p-3 flex-grow flex flex-col">
                                                     <h4 className="font-semibold truncate text-sm flex-grow">{product.name}</h4>
-                                                     <div className="flex items-center gap-2 mt-1">
-                                                        <p className={cn("font-bold text-foreground text-sm", hasDiscount && "text-destructive")}>
+                                                     <div className="flex items-center gap-x-2 gap-y-1 mt-1">
+                                                        <p className="font-bold text-sm text-foreground">
                                                             ₹{discountedPrice.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                                         </p>
                                                         {hasDiscount && (
