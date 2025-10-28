@@ -51,7 +51,7 @@ const ProductCardSkeleton = () => (
 
 export default function CategoryPage() {
     const router = useRouter();
-    const params = useParams() as { category: string | string[] };
+    const params = useParams();
     const [sortOption, setSortOption] = useState("relevance");
     const [searchResults, setSearchResults] = useState<any[]>([]);
     const [showSearchResults, setShowSearchResults] = useState(false);
@@ -217,15 +217,23 @@ export default function CategoryPage() {
                                 {visibleProducts.map((product: any) => {
                                     const isNew = product.createdAt && differenceInDays(new Date(), new Date(product.createdAt)) <= 7;
                                     const isScanning = scanningProductId === product.key;
+
+                                    const originalPrice = parseFloat(product.price.replace(/[^0-9.-]+/g,""));
+                                    const hasDiscount = product.discountPercentage && product.discountPercentage > 0;
+                                    const discountedPrice = hasDiscount ? originalPrice * (1 - product.discountPercentage / 100) : originalPrice;
+
                                     return (
                                         <Link href={`/product/${product.key}`} key={product.key} className="group block">
                                             <Card className="w-full overflow-hidden h-full flex flex-col">
                                                 <div className="relative aspect-[10/9] bg-muted">
+                                                    {hasDiscount && (
+                                                        <Badge variant="destructive" className="absolute top-2 left-2 z-10">{product.discountPercentage}% OFF</Badge>
+                                                    )}
                                                     {isNew && (
-                                                        <Badge className="absolute top-2 left-2 z-10">NEW</Badge>
+                                                        <Badge className={cn("absolute z-10", hasDiscount ? "top-10 left-2" : "top-2 left-2")}>NEW</Badge>
                                                     )}
                                                     {product.isFromStream && (
-                                                        <Badge variant="purple" className={cn("absolute z-10", isNew ? "top-10 left-2" : "top-2 left-2")}>
+                                                        <Badge variant="purple" className={cn("absolute z-10", isNew || hasDiscount ? "top-10 left-2" : "top-2 left-2")}>
                                                             <Video className="h-3 w-3 mr-1"/> From Stream
                                                         </Badge>
                                                     )}
@@ -251,7 +259,16 @@ export default function CategoryPage() {
                                                 <CardContent className="p-3 flex-grow flex flex-col">
                                                     <h4 className="font-semibold truncate text-sm flex-grow">{product.name}</h4>
                                                     <div className="flex items-center justify-between mt-1">
-                                                        <p className="font-bold text-foreground">{product.price}</p>
+                                                        <div className="flex items-baseline gap-2">
+                                                            <p className={cn("font-bold text-foreground", hasDiscount && "text-destructive")}>
+                                                                ₹{discountedPrice.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                                            </p>
+                                                            {hasDiscount && (
+                                                                <p className="text-xs text-muted-foreground line-through">
+                                                                    ₹{originalPrice.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                                                </p>
+                                                            )}
+                                                        </div>
                                                         <div className="flex items-center gap-1 text-xs text-amber-400">
                                                             <Star className="w-4 h-4 fill-current" />
                                                             <span>4.8</span>
