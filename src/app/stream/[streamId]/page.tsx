@@ -100,7 +100,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { useAuth } from '@/hooks/use-auth';
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { toggleFollow, getUserData, UserData, isFollowing } from '@/lib/follow-data';
+import { toggleFollow, getUserData, UserData, isFollowing as isFollowingBackend } from '@/lib/follow-data';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
@@ -569,7 +569,7 @@ const StreamInfo = ({ seller, sellerData, streamData, handleFollowToggle, isFoll
     );
 };
 
-const RelatedContent = ({ relatedStreams }: { relatedStreams: any[] }) => {
+const RelatedContent = ({ relatedStreams, onAddToCart, onBuyNow, toast, getProductsForSeller }: { relatedStreams: any[], onAddToCart: (product: any) => void; onBuyNow: (product: any) => void; toast: any, getProductsForSeller: (sellerId: string) => any[] }) => {
     if (!relatedStreams || relatedStreams.length === 0) {
         return null;
     }
@@ -582,27 +582,71 @@ const RelatedContent = ({ relatedStreams }: { relatedStreams: any[] }) => {
             <Link href="/live-selling">More</Link>
         </Button>
         </div>
-         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4">
-            {relatedStreams.slice(0,4).map((s: any) => (
-                 <Link href={`/stream/${s.id}`} key={s.id} className="group flex flex-col">
-                    <div className="relative rounded-lg overflow-hidden aspect-video bg-muted w-full flex-shrink-0">
-                        <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
-                        <div className="absolute top-2 right-2 z-10"><Badge variant="secondary" className="bg-black/50 text-white"><Users className="w-3 h-3 mr-1.5" />{s.viewers.toLocaleString()}</Badge></div>
-                         <Image src={s.thumbnailUrl} alt={`Live stream from ${s.name}`} fill sizes="(max-width: 640px) 100vw, 50vw" className="object-cover transition-transform group-hover:scale-105" />
-                    </div>
-                    <div className="flex items-start gap-2 mt-2">
-                        <Avatar className="w-7 h-7">
-                            <AvatarImage src={s.avatarUrl} alt={s.name} />
-                            <AvatarFallback>{s.name.charAt(0)}</AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1 overflow-hidden">
-                             <p className="font-semibold text-xs group-hover:underline truncate">{s.name}</p>
-                            <p className="text-xs text-muted-foreground">{s.category}</p>
-                            <p className="text-xs text-primary font-semibold mt-0.5">#{s.category.toLowerCase().replace(/\s+/g, '')}</p>
+         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-x-4 gap-y-6">
+            {relatedStreams.slice(0,4).map((s: any) => {
+                 const sellerProducts = getProductsForSeller(s.id);
+                 const productsToShow = sellerProducts.slice(0, 6);
+                 const remainingCount = sellerProducts.length > 5 ? sellerProducts.length - 5 : 0;
+                 return (
+                 <Card key={s.id} className="group flex flex-col space-y-2 overflow-hidden border-none shadow-none bg-transparent">
+                    <Link href={`/stream/${s.id}`} className="block">
+                        <div className="relative aspect-video bg-muted rounded-lg overflow-hidden">
+                            <Image src={s.thumbnailUrl} alt={`Live stream from ${s.name}`} fill sizes="(max-width: 640px) 100vw, 33vw" className="object-cover w-full h-full transition-transform group-hover:scale-105" />
+                            <div className="absolute top-3 left-3 z-10"><Badge variant="destructive" className="gap-1.5"><div className="h-2 w-2 rounded-full bg-white animate-pulse" />LIVE</Badge></div>
+                            <div className="absolute top-2 right-2 z-10">
+                                <Badge variant="secondary" className="bg-black/40 text-white font-semibold backdrop-blur-sm">
+                                    <Users className="w-3 h-3 mr-1"/>{s.viewers.toLocaleString()}
+                                </Badge>
+                            </div>
                         </div>
+                        <div className="flex items-start gap-2 mt-2">
+                                <Avatar className="w-8 h-8">
+                                <AvatarImage src={s.avatarUrl} alt={s.name} />
+                                <AvatarFallback>{s.name.charAt(0)}</AvatarFallback>
+                            </Avatar>
+                            <div className="flex-1 overflow-hidden">
+                                <p className="font-semibold text-sm leading-tight group-hover:underline truncate">{s.title || s.name}</p>
+                                <p className="text-xs text-muted-foreground">{s.name}</p>
+                                <div className="flex items-center gap-2 flex-wrap mt-0.5">
+                                    <p className="text-xs text-primary font-semibold">{s.category}</p>
+                                    {s.subcategory && <Badge variant="outline" className="text-xs">{s.subcategory}</Badge>}
+                                </div>
+                            </div>
+                        </div>
+                    </Link>
+                    <div className="flex items-center gap-1.5 mt-auto flex-shrink-0 pt-2 w-full justify-start pb-2 pl-2">
+                        {productsToShow.slice(0, remainingCount > 0 ? 5 : 6).map((p: any, i: number) => (
+                            <Link href={`/product/${p.key}`} key={p.key} className="block" onClick={(e) => e.stopPropagation()}>
+                                <div className="w-10 h-10 bg-muted rounded-md border overflow-hidden hover:ring-2 hover:ring-primary">
+                                    <Image src={p.images[0]?.preview || p.images[0]} alt={p.name} width={40} height={40} className="object-cover w-full h-full" />
+                                </div>
+                            </Link>
+                        ))}
+                        {remainingCount > 0 && (
+                                <Sheet>
+                                <SheetTrigger asChild>
+                                    <button className="w-10 h-10 bg-muted rounded-md border flex items-center justify-center text-xs font-semibold text-muted-foreground hover:bg-secondary">
+                                        +{remainingCount}
+                                    </button>
+                                </SheetTrigger>
+                                <SheetContent side="bottom" className="h-[60vh] flex flex-col p-0">
+                                        <ProductShelfContent 
+                                        sellerProducts={sellerProducts}
+                                        handleAddToCart={onAddToCart}
+                                        handleBuyNow={onBuyNow}
+                                        isMobile={true}
+                                        onClose={() => {
+                                            const a = document.querySelector('[data-state="closed"]');
+                                            if (a) (a as HTMLElement).click();
+                                        }}
+                                        toast={toast}
+                                    />
+                                </SheetContent>
+                            </Sheet>
+                        )}
                     </div>
-                </Link>
-            ))}
+                </Card>
+            )})}
         </div>
     </div>
     )
@@ -1151,7 +1195,7 @@ const MobileLayout = React.memo(({ handlers, chatMessages, walletBalance, isPast
                 </div>
             </header>
 
-            <div className="w-full aspect-video bg-black relative flex-shrink-0" ref={props.playerRef}>
+            <div className="w-full aspect-[9/16] bg-black relative flex-shrink-0" ref={props.playerRef}>
                 <video ref={props.videoRef} src={props.streamData.streamUrl || "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"} className="w-full h-full object-cover" loop onClick={handlePlayPause}/>
                  <div className="absolute top-3 left-3 z-10 flex items-center gap-2">
                     <Badge variant={isPastStream ? 'outline' : 'destructive'} className={cn(isPastStream && 'bg-black/50 text-white border-white/30', "gap-1.5")}>
@@ -1221,7 +1265,7 @@ const MobileLayout = React.memo(({ handlers, chatMessages, walletBalance, isPast
                      <ScrollArea className="h-full no-scrollbar">
                         <div className="p-4 space-y-6">
                              <MemoizedStreamInfo {...props}/>
-                            <MemoizedRelatedContent {...props} />
+                            <MemoizedRelatedContent {...props} getProductsForSeller={props.getProductsForSeller} />
                         </div>
                     </ScrollArea>
                 ) : (
@@ -1345,7 +1389,7 @@ const StreamPage = () => {
                 if (data) {
                     setSellerData(data);
                     if (user && data) {
-                        setIsFollowingState(await isFollowing(user.uid, data.uid));
+                        setIsFollowingState(await isFollowingBackend(user.uid, data.uid));
                     }
                 }
             }
@@ -1439,15 +1483,12 @@ const StreamPage = () => {
         ref.current?.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
+    const getProductsForSeller = (sellerId: string): any[] => {
+        return Object.values(productDetails).filter(p => productToSellerMapping[p.key as keyof typeof productToSellerMapping]?.uid === sellerId);
+    }
     const sellerProducts = useMemo(() => {
         if (!seller) return [];
-        return Object.values(productDetails)
-            .filter(p => productToSellerMapping[p.key as keyof typeof productToSellerMapping]?.name === seller.name)
-            .map(p => ({
-                ...p,
-                reviews: Math.floor(Math.random() * 200),
-                sold: Math.floor(Math.random() * 1000)
-            }));
+        return getProductsForSeller(seller.id);
     }, [seller]);
     
     useEffect(() => {
@@ -1764,7 +1805,7 @@ const StreamPage = () => {
         return (
             <div className="flex flex-col h-screen items-center justify-center bg-background">
                 <div className="w-full max-w-4xl">
-                    <Skeleton className="w-full aspect-[3/4]" />
+                    <Skeleton className="w-full aspect-[9/16] md:aspect-video" />
                     <div className="p-4 space-y-3">
                         <Skeleton className="h-8 w-3/4" />
                         <Skeleton className="h-6 w-1/2" />
@@ -1805,10 +1846,10 @@ const StreamPage = () => {
                         <LoadingSpinner />
                     </div>
                  ) : isMobile ? (
-                     <MobileLayout {...{ router, videoRef, playerRef, handlePlayPause, handleShare, handleMinimize, handleToggleFullscreen, isPaused, seller, sellerData, streamData, handleFollowToggle, isFollowingState, sellerProducts, handlers, relatedStreams, isChatOpen, setIsChatOpen, chatMessages, pinnedMessages, onClose: () => setIsChatOpen(false), handleAddToCart, handleBuyNow, mobileView, setMobileView, isMuted, setIsMuted, handleGoLive, handleSeek, isLive, formatTime, currentTime, duration, buffered, handleProgressClick, progressContainerRef, activeQuality, setActiveQuality, product, user, walletBalance, setIsSuperChatOpen, isSuperChatOpen, isPastStream, isRatingDialogOpen, setIsRatingDialogOpen, handleRateStream, userRating, toast }} />
+                     <MobileLayout {...{ router, videoRef, playerRef, handlePlayPause, handleShare, handleMinimize, handleToggleFullscreen, isPaused, seller, sellerData, streamData, handleFollowToggle, isFollowingState, sellerProducts, handlers, relatedStreams, isChatOpen, setIsChatOpen, chatMessages, pinnedMessages, onClose: () => setIsChatOpen(false), handleAddToCart, handleBuyNow, mobileView, setMobileView, isMuted, setIsMuted, handleGoLive, handleSeek, isLive, formatTime, currentTime, duration, buffered, handleProgressClick, progressContainerRef, activeQuality, setActiveQuality, product, user, walletBalance, setIsSuperChatOpen, isSuperChatOpen, isPastStream, isRatingDialogOpen, setIsRatingDialogOpen, handleRateStream, userRating, toast, getProductsForSeller }} />
                  ) : (
                     <DesktopLayout 
-                        {...{ router, videoRef, playerRef, handlePlayPause, handleShare, handleMinimize, handleToggleFullscreen, isPaused, seller, sellerData, streamData, handleFollowToggle, isFollowingState, sellerProducts, handlers, relatedStreams, isChatOpen, setIsChatOpen, chatMessages, pinnedMessages, onClose: () => setIsChatOpen(false), handleAddToCart, handleBuyNow, mobileView, setMobileView, isMuted, setIsMuted, handleGoLive, handleSeek, isLive, formatTime, currentTime, duration, buffered, handleProgressClick, progressContainerRef, mainScrollRef, handleMainScroll, showGoToTop, scrollToTop, activeQuality, setActiveQuality, product, user, cartCount, walletBalance, setIsSuperChatOpen, isSuperChatOpen, inlineAuctionCardRefs, isPastStream, isRatingDialogOpen, setIsRatingDialogOpen, handleRateStream, userRating, toast }}
+                        {...{ router, videoRef, playerRef, handlePlayPause, handleShare, handleMinimize, handleToggleFullscreen, isPaused, seller, sellerData, streamData, handleFollowToggle, isFollowingState, sellerProducts, handlers, relatedStreams, isChatOpen, setIsChatOpen, chatMessages, pinnedMessages, onClose: () => setIsChatOpen(false), handleAddToCart, handleBuyNow, mobileView, setMobileView, isMuted, setIsMuted, handleGoLive, handleSeek, isLive, formatTime, currentTime, duration, buffered, handleProgressClick, progressContainerRef, mainScrollRef, handleMainScroll, showGoToTop, scrollToTop, activeQuality, setActiveQuality, product, user, cartCount, walletBalance, setIsSuperChatOpen, isSuperChatOpen, inlineAuctionCardRefs, isPastStream, isRatingDialogOpen, setIsRatingDialogOpen, handleRateStream, userRating, toast, getProductsForSeller }}
                     />
                  )}
             </div>
@@ -1817,5 +1858,3 @@ const StreamPage = () => {
 };
 
 export default StreamPage;
-
-    
