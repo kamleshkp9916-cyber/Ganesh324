@@ -534,7 +534,7 @@ const StreamInfo = ({ seller, sellerData, streamData, handleFollowToggle, isFoll
     );
 };
 
-const RelatedContent = ({ relatedStreams, onAddToCart, onBuyNow, toast, getProductsForSeller }: { relatedStreams: any[], onAddToCart: (product: any) => void; onBuyNow: (product: any) => void; toast: any, getProductsForSeller: (sellerId: string) => any[] }) => {
+const RelatedContent = ({ relatedStreams, onAddToCart, onBuyNow, toast, getProductsForSeller, handleAddToCart, handleBuyNow }: { relatedStreams: any[], onAddToCart: (product: any) => void; onBuyNow: (product: any) => void; toast: any, getProductsForSeller: (sellerId: string) => any[] }) => {
     if (!relatedStreams || relatedStreams.length === 0) {
         return null;
     }
@@ -576,7 +576,7 @@ const RelatedContent = ({ relatedStreams, onAddToCart, onBuyNow, toast, getProdu
                             </div>
                         </div>
                     </Link>
-                    <div className="flex items-center gap-1.5 mt-auto flex-shrink-0 pt-2 w-full justify-start pb-2 pl-2">
+                      <div className="flex items-center gap-1.5 mt-auto flex-shrink-0 pt-2 w-full justify-start pb-2 pl-2">
                         {productsToShow.map((p: any) => (
                             <Link href={`/product/${p.key}`} key={p.key} className="block" onClick={(e) => e.stopPropagation()}>
                                 <div className="w-10 h-10 bg-muted rounded-md border overflow-hidden hover:ring-2 hover:ring-primary">
@@ -954,7 +954,7 @@ const ChatPanel = ({
 const MemoizedStreamInfo = React.memo(StreamInfo);
 const MemoizedRelatedContent = React.memo(RelatedContent);
 
-const DesktopLayout = React.memo(({ user, handlers, chatMessages, cartCount, walletBalance, isSuperChatOpen, setIsSuperChatOpen, handleAddToCart, handleBuyNow, ...props }: any) => {
+const DesktopLayout = React.memo(({ user, handlers, handleAddToCart, handleBuyNow, chatMessages, cartCount, walletBalance, isSuperChatOpen, setIsSuperChatOpen, ...props }: any) => {
 return (
 <div className="flex flex-col h-screen overflow-hidden">
     <header className="p-3 flex items-center justify-between z-40 h-16 shrink-0 w-full">
@@ -1093,7 +1093,7 @@ return (
 )});
 DesktopLayout.displayName = "DesktopLayout";
 
-const MobileLayout = React.memo(({ handlers, chatMessages, walletBalance, isPastStream, isSuperChatOpen, setIsSuperChatOpen, handleAddToCart, handleBuyNow, ...props }: any) => {
+const MobileLayout = React.memo(({ handlers, handleAddToCart, handleBuyNow, chatMessages, walletBalance, isPastStream, isSuperChatOpen, setIsSuperChatOpen, ...props }: any) => {
     const { isMuted, setIsMuted, handleGoLive, isLive, formatTime, currentTime, duration, handleShare, handleToggleFullscreen, progressContainerRef, handleProgressClick, isPaused, handlePlayPause, handleSeek, handleMinimize, activeQuality, setActiveQuality } = props;
     return (
         <div className="flex flex-col h-dvh overflow-hidden relative">
@@ -1791,4 +1791,5 @@ export default StreamPage;
 
     
     
+
 
