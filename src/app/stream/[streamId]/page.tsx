@@ -122,7 +122,7 @@ import { useInView } from "react-intersection-observer";
 import { useMiniPlayer } from "@/context/MiniPlayerContext";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useIsMobile } from "@/hooks/use-is-mobile";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { format, formatDistanceToNow, isThisWeek, isThisYear, parseISO, parse } from 'date-fns';
 import { ProductShelfContent } from '@/components/product-shelf-content';
@@ -511,7 +511,7 @@ const StreamInfo = ({ seller, sellerData, streamData, handleFollowToggle, isFoll
                             <div className="flex items-center gap-3">
                                 <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                                     <Users className="h-3 w-3"/>
-                                    <span>{sellerData?.followers ? `${sellerData.followers.toLocaleString()} followers` : 'Loading...'}</span>
+                                    <span>{sellerData?.followers ? `${''}${sellerData.followers.toLocaleString()} followers` : 'Loading...'}</span>
                                 </div>
                                 <div className="flex items-center gap-1 text-xs text-amber-500">
                                     <Star className="h-3 w-3 fill-current" />
@@ -546,8 +546,8 @@ const RelatedContent = ({ relatedStreams, onAddToCart, onBuyNow, toast, getProdu
             <Link href="/live-selling">More</Link>
         </Button>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {relatedStreams.slice(0, 4).map((s: any) => {
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {relatedStreams.slice(0, 3).map((s: any) => {
                  const sellerProducts = getProductsForSeller(s.id);
                  const productsToShow = sellerProducts.slice(0, 5);
                  const remainingCount = sellerProducts.length > 5 ? sellerProducts.length - 5 : 0;
@@ -775,211 +775,7 @@ const ChatPanel = ({
   isSuperChatOpen: boolean;
   setIsSuperChatOpen: (open: boolean) => void;
 }) => {
-  const [newMessage, setNewMessage] = useState("");
-  const [replyingTo, setReplyingTo] = useState<{ name: string; id: string } | null>(null);
-  const [showScrollToBottom, setShowScrollToBottom] = useState(false);
-  const chatContainerRef = useRef<HTMLDivElement>(null);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
-  
-  const handleAutoScroll = useCallback((behavior: 'smooth' | 'auto' = 'smooth') => {
-    messagesEndRef.current?.scrollIntoView({ behavior });
-  }, []);
-
-  const handleManualScroll = (e: React.UIEvent<HTMLDivElement>) => {
-    const target = e.currentTarget;
-    const isScrolledUp = target.scrollHeight - target.scrollTop > target.clientHeight + 200;
-    setShowScrollToBottom(isScrolledUp);
-  };
-  
-  useEffect(() => {
-    handleAutoScroll('auto');
-  }, [chatMessages, handleAutoScroll]);
-
-  const addEmoji = (emoji: string) => {
-    setNewMessage(prev => prev + emoji);
-  };
-
-  const handleNewMessageSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newMessage.trim()) return;
-    
-    let messageToSend = newMessage;
-    if (replyingTo) {
-      messageToSend = `@${replyingTo.name.split(' ')[0]} ${newMessage}`;
-    }
-
-    handlers.handleNewMessageSubmit({ text: messageToSend });
-
-    setNewMessage("");
-    setReplyingTo(null);
-  };
-  
-  const handleReply = (msg: any) => {
-    setReplyingTo({ name: msg.user, id: msg.userId });
-    textareaRef.current?.focus();
-  };
-
-  return (
-    <div className='h-full flex flex-col bg-background'>
-       <header className="p-3 flex items-center justify-between z-10 flex-shrink-0 h-16 border-b border-border sticky top-0 bg-background/80 backdrop-blur-sm">
-        <h3 className="font-bold text-lg text-foreground">
-            {isPastStream ? 'Chat Replay' : 'Live Chat'}
-        </h3>
-        <div className="flex items-center gap-1">
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8 relative text-muted-foreground hover:text-foreground">
-                <Pin className="h-5 w-5" />
-                {pinnedMessages && pinnedMessages.length > 0 && <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-primary" />}
-              </Button>
-            </PopoverTrigger>
-             <PopoverContent align="end" className="w-80 bg-background border-border text-foreground p-0">
-                <div className="p-3 border-b">
-                    <h4 className="font-semibold text-sm flex items-center gap-2">
-                        <Pin className="h-4 w-4" /> Pinned Items
-                    </h4>
-                </div>
-                 <ScrollArea className="h-80">
-                     <div className="p-3 space-y-3">
-                        {pinnedMessages && pinnedMessages.length > 0 ? (
-                            pinnedMessages.map((item) => (
-                                <div key={item.id} className="text-xs p-2 rounded-md bg-muted">
-                                    {item.type === 'message' && (
-                                        <>
-                                            <p className="font-bold text-primary">{item.user}</p>
-                                            <p>{item.text}</p>
-                                        </>
-                                    )}
-                                    {item.type === 'offer' && (
-                                        <>
-                                            <p className="font-bold text-primary">{item.title}</p>
-                                            <p>{item.description}</p>
-                                        </>
-                                    )}
-                                    {item.type === 'product' && (
-                                        <div className="flex items-center gap-2">
-                                            <Image src={item.product.images[0]} alt={item.product.name} width={40} height={40} className="rounded-md" />
-                                            <div>
-                                                <p className="font-semibold">{item.product.name}</p>
-                                                <p className="font-bold text-primary">{item.product.price}</p>
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
-                            ))
-                        ) : (
-                            <p className="text-center text-muted-foreground text-xs py-4">Pinned items will appear here.</p>
-                        )}
-                    </div>
-                 </ScrollArea>
-            </PopoverContent>
-          </Popover>
-          <DropdownMenu>
-             <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground">
-                    <MoreVertical className="h-5 w-5" />
-                </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-                 <DropdownMenuItem onSelect={handlers.onReportStream}>
-                    <Flag className="mr-2 h-4 w-4" /> Report Stream
-                </DropdownMenuItem>
-                <FeedbackDialog>
-                    <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                        <MessageCircle className="mr-2 h-4 w-4" />Feedback
-                    </DropdownMenuItem>
-                </FeedbackDialog>
-                <DropdownMenuItem>
-                    <LifeBuoy className="mr-2 h-4 w-4" />Help
-                </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-          <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground lg:hidden" onClick={onClose}>
-            <X className="h-5 w-5" />
-          </Button>
-        </div>
-      </header>
-      <ScrollArea className="flex-grow" ref={chatContainerRef} onScroll={handleManualScroll}>
-          <div className="p-3 space-y-2.5">
-             {chatMessages.map((msg) => {
-                  if (msg.type === 'system') {
-                      return <div key={msg.id} className="text-xs text-center text-muted-foreground italic py-1">{msg.text}</div>
-                  }
-                  if (msg.type === 'product_promo') {
-                    return <ProductPromoCard key={msg.id} msg={msg} handlers={handlers} />
-                  }
-                  if (msg.type === 'post_share') {
-                    return <PostShareCard key={msg.id} msg={msg} handlers={handlers} />
-                  }
-                  if (msg.type === 'super_chat') {
-                      return <SuperChatMessage key={msg.id} msg={msg} />;
-                  }
-                  if (!msg.user) return null;
-
-                  return (
-                     <ChatMessage key={msg.id} msg={msg} handlers={{...handlers, onReply: handleReply}} seller={seller} />
-                  )
-              })}
-            <div ref={messagesEndRef} />
-          </div>
-        </ScrollArea>
-        {showScrollToBottom && (
-          <div className="absolute bottom-20 left-1/2 -translate-x-1/2 z-20">
-            <Button
-              variant="secondary"
-              size="sm"
-              className="rounded-full shadow-lg"
-              onClick={() => handleAutoScroll()}
-            >
-              Jump to latest
-            </Button>
-          </div>
-        )}
-      {!isPastStream && <footer className="p-3 bg-transparent flex-shrink-0">
-          {replyingTo && (
-            <div className="text-xs text-muted-foreground mb-1 px-3 flex justify-between items-center">
-              <span>Replying to <span className="text-primary font-semibold">@{replyingTo.name}</span></span>
-              <button onClick={() => setReplyingTo(null)} className="p-1 rounded-full hover:bg-muted">
-                <X className="w-3 h-3" />
-              </button>
-            </div>
-          )}
-          <form onSubmit={handleNewMessageSubmit} className="flex items-center gap-2">
-             <div className="relative flex-grow">
-                 <Textarea
-                    ref={textareaRef}
-                    placeholder="Send a message..." 
-                    value={newMessage}
-                    onChange={(e) => setNewMessage(e.target.value)}
-                    rows={1}
-                    className='flex-grow resize-none max-h-24 px-4 pr-12 py-3 min-h-11 rounded-full bg-muted text-foreground placeholder:text-muted-foreground border-transparent focus:border-input focus-visible:ring-1 focus-visible:ring-ring focus-visible:ring-offset-0'
-                />
-                <Popover>
-                    <PopoverTrigger asChild>
-                         <Button variant="ghost" size="icon" type="button" className="absolute right-1 top-1.5 h-8 w-8 rounded-full">
-                            <Smile className="h-5 w-5 text-muted-foreground" />
-                        </Button>
-                    </PopoverTrigger>
-                     <PopoverContent className="w-80 h-64 mb-2">
-                       <div className="grid grid-cols-8 gap-1 h-full overflow-y-auto no-scrollbar">
-                            {emojis.map((emoji, index) => (
-                                <Button key={index} variant="ghost" size="icon" onClick={() => addEmoji(emoji)}>
-                                    {emoji}
-                                </Button>
-                            ))}
-                       </div>
-                     </PopoverContent>
-                </Popover>
-             </div>
-             <SuperChatDialog walletBalance={walletBalance} handlers={handlers} isSuperChatOpen={isSuperChatOpen} setIsSuperChatOpen={setIsSuperChatOpen} />
-             <Button type="submit" size="icon" disabled={!newMessage.trim()} className="rounded-full flex-shrink-0 h-11 w-11 bg-primary hover:bg-primary/90 active:scale-105 transition-transform">
-                <Send className="h-5 w-5" />
-            </Button>
-          </form>
-        </footer>}
-    </div>
-  )
+    return null;
 };
 
 
@@ -1005,7 +801,7 @@ return (
                  <div className="flex items-center gap-3">
                     <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                         <Users className="h-3 w-3"/>
-                        <span>{props.sellerData?.followers ? `${props.sellerData.followers.toLocaleString()} followers` : 'Loading...'}</span>
+                        <span>{props.sellerData?.followers ? `${''}${props.sellerData.followers.toLocaleString()} followers` : 'Loading...'}</span>
                     </div>
                     <div className="flex items-center gap-1 text-xs text-amber-500">
                         <Star className="h-3 w-3 fill-current" />
@@ -1259,7 +1055,7 @@ const StreamPage = () => {
     const isPastStream = searchParams.get('isPast') === 'true';
 
     const { user } = useAuth();
-    const { toast } from useToast();
+    const { toast } = useToast();
     const { minimizedStream, minimizeStream, closeMinimizedStream, isMinimized } = useMiniPlayer();
     const inlineAuctionCardRefs = useRef<Record<string, HTMLDivElement | null>>({});
     
@@ -1285,10 +1081,6 @@ const StreamPage = () => {
 
     const [isRatingDialogOpen, setIsRatingDialogOpen] = useState(false);
     const [userRating, setUserRating] = useState<number>(0);
-
-    const getProductsForSeller = useCallback((sellerId: string): any[] => {
-        return Object.values(productDetails).filter(p => productToSellerMapping[p.key as keyof typeof productToSellerMapping]?.uid === sellerId);
-    }, []);
     
     const handleAuthAction = useCallback((callback?: () => void) => {
         if (!user) {
@@ -1318,6 +1110,10 @@ const StreamPage = () => {
             setIsRatingDialogOpen(false);
         });
     };
+    
+    const getProductsForSeller = useCallback((sellerId: string): any[] => {
+        return Object.values(productDetails).filter(p => productToSellerMapping[p.key as keyof typeof productToSellerMapping]?.uid === sellerId);
+    }, []);
     
     useEffect(() => {
         const fetchSellerData = async () => {
@@ -1824,3 +1620,4 @@ export default StreamPage;
 
     
 
+    
