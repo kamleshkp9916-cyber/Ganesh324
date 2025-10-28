@@ -25,6 +25,8 @@ import ProductSearch from '@/components/ProductSearch';
 import { cn } from '@/lib/utils';
 import { SimilarProductsOverlay } from '@/components/similar-products-overlay';
 
+const PRODUCTS_PER_PAGE = 10;
+
 export default function CategoryPage() {
     const router = useRouter();
     const params = useParams();
@@ -32,7 +34,8 @@ export default function CategoryPage() {
     const [searchResults, setSearchResults] = useState<any[]>([]);
     const [showSearchResults, setShowSearchResults] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
-    
+    const [visibleProductsCount, setVisibleProductsCount] = useState(PRODUCTS_PER_PAGE);
+
     // State for similar products functionality
     const [scanningProductId, setScanningProductId] = useState<string | null>(null);
     const [showSimilarOverlay, setShowSimilarOverlay] = useState(false);
@@ -91,6 +94,7 @@ export default function CategoryPage() {
         setSearchResults(results);
         setSearchQuery(query);
         setShowSearchResults(results.length > 0 || query.length > 0);
+        setVisibleProductsCount(PRODUCTS_PER_PAGE); // Reset pagination on new search
     }, []);
     
     const handleSimilarClick = (e: React.MouseEvent, product: any) => {
@@ -111,6 +115,13 @@ export default function CategoryPage() {
                 setIsLoadingSimilar(false);
             }, 1000);
         }, 1500);
+    };
+
+    const visibleProducts = sortedProducts.slice(0, visibleProductsCount);
+    const hasMoreProducts = visibleProductsCount < sortedProducts.length;
+
+    const loadMoreProducts = () => {
+        setVisibleProductsCount(prevCount => prevCount + PRODUCTS_PER_PAGE);
     };
 
     return (
@@ -153,60 +164,67 @@ export default function CategoryPage() {
                             </DropdownMenu>
                         </div>
                     </div>
-                    {sortedProducts.length > 0 ? (
-                        <div className="p-4 md:p-6 grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-                            {sortedProducts.map((product: any) => {
-                                const isNew = product.createdAt && differenceInDays(new Date(), new Date(product.createdAt)) <= 7;
-                                const isScanning = scanningProductId === product.key;
-                                return (
-                                    <Link href={`/product/${product.key}`} key={product.key} className="group block">
-                                        <Card className="w-full overflow-hidden h-full flex flex-col">
-                                            <div className="relative aspect-square bg-muted">
-                                                {isNew && (
-                                                    <Badge className="absolute top-2 left-2 z-10">NEW</Badge>
-                                                )}
-                                                {product.isFromStream && (
-                                                    <Badge variant="purple" className={cn("absolute z-10", isNew ? "top-10 left-2" : "top-2 left-2")}>
-                                                        <Video className="h-3 w-3 mr-1"/> From Stream
-                                                    </Badge>
-                                                )}
-                                                <Image
-                                                    src={product.images[0]}
-                                                    alt={product.name}
-                                                    fill
-                                                    sizes="(max-width: 640px) 50vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, (max-width: 1280px) 25vw, 20vw"
-                                                    className="object-cover transition-transform group-hover:scale-105"
-                                                    data-ai-hint={product.hint}
-                                                />
-                                                {isScanning && (
-                                                    <div className="absolute inset-0 bg-black/30 overflow-hidden">
-                                                        <div className="scan-animation"></div>
+                    {visibleProducts.length > 0 ? (
+                        <>
+                            <div className="p-4 md:p-6 grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                                {visibleProducts.map((product: any) => {
+                                    const isNew = product.createdAt && differenceInDays(new Date(), new Date(product.createdAt)) <= 7;
+                                    const isScanning = scanningProductId === product.key;
+                                    return (
+                                        <Link href={`/product/${product.key}`} key={product.key} className="group block">
+                                            <Card className="w-full overflow-hidden h-full flex flex-col">
+                                                <div className="relative aspect-square bg-muted">
+                                                    {isNew && (
+                                                        <Badge className="absolute top-2 left-2 z-10">NEW</Badge>
+                                                    )}
+                                                    {product.isFromStream && (
+                                                        <Badge variant="purple" className={cn("absolute z-10", isNew ? "top-10 left-2" : "top-2 left-2")}>
+                                                            <Video className="h-3 w-3 mr-1"/> From Stream
+                                                        </Badge>
+                                                    )}
+                                                    <Image
+                                                        src={product.images[0]}
+                                                        alt={product.name}
+                                                        fill
+                                                        sizes="(max-width: 640px) 50vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, (max-width: 1280px) 25vw, 20vw"
+                                                        className="object-cover transition-transform group-hover:scale-105"
+                                                        data-ai-hint={product.hint}
+                                                    />
+                                                    {isScanning && (
+                                                        <div className="absolute inset-0 bg-black/30 overflow-hidden">
+                                                            <div className="scan-animation"></div>
+                                                        </div>
+                                                    )}
+                                                    <div className="absolute bottom-2 right-2">
+                                                        <Button size="icon" className="h-8 w-8 rounded-full bg-black/50 text-white backdrop-blur-sm" onClick={(e) => handleSimilarClick(e, product)} disabled={isScanning}>
+                                                            {isScanning ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+                                                        </Button>
                                                     </div>
-                                                )}
-                                                <div className="absolute bottom-2 right-2">
-                                                    <Button size="icon" className="h-8 w-8 rounded-full bg-black/50 text-white backdrop-blur-sm" onClick={(e) => handleSimilarClick(e, product)} disabled={isScanning}>
-                                                         {isScanning ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-                                                    </Button>
                                                 </div>
-                                            </div>
-                                            <div className="p-3 flex-grow flex flex-col">
-                                                <h4 className="font-semibold truncate text-sm flex-grow">{product.name}</h4>
-                                                <p className="font-bold text-foreground mt-1">{product.price}</p>
-                                                <div className="flex items-center gap-1 text-xs text-amber-400 mt-1">
-                                                    <Star className="w-4 h-4 fill-current" />
-                                                    <span>4.8</span>
-                                                    <span className="text-muted-foreground">(1.2k reviews)</span>
+                                                <div className="p-3 flex-grow flex flex-col">
+                                                    <h4 className="font-semibold truncate text-sm flex-grow">{product.name}</h4>
+                                                    <p className="font-bold text-foreground mt-1">{product.price}</p>
+                                                    <div className="flex items-center gap-1 text-xs text-amber-400 mt-1">
+                                                        <Star className="w-4 h-4 fill-current" />
+                                                        <span>4.8</span>
+                                                        <span className="text-muted-foreground">(1.2k reviews)</span>
+                                                    </div>
+                                                    <div className="flex items-center gap-4 text-xs text-muted-foreground mt-1">
+                                                        <div className="flex items-center gap-1"><Package className="w-3 h-3" /> {product.stock} left</div>
+                                                        <div className="flex items-center gap-1"><Users className="w-3 h-3" /> {product.sold} sold</div>
+                                                    </div>
                                                 </div>
-                                                <div className="flex items-center gap-4 text-xs text-muted-foreground mt-1">
-                                                    <div className="flex items-center gap-1"><Package className="w-3 h-3" /> {product.stock} left</div>
-                                                    <div className="flex items-center gap-1"><Users className="w-3 h-3" /> {product.sold} sold</div>
-                                                </div>
-                                            </div>
-                                        </Card>
-                                    </Link>
-                                )
-                            })}
-                        </div>
+                                            </Card>
+                                        </Link>
+                                    )
+                                })}
+                            </div>
+                            {hasMoreProducts && (
+                                <div className="text-center mt-8">
+                                    <Button onClick={loadMoreProducts}>Load More</Button>
+                                </div>
+                            )}
+                        </>
                     ) : (
                         <div className="text-center py-20 text-muted-foreground">
                             <h2 className="text-2xl font-bold">{searchQuery ? `No results for "${searchQuery}"` : "No Products Found"}</h2>
