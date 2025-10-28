@@ -40,6 +40,7 @@ import { useLocalStorage } from '@/hooks/use-local-storage';
 import { COUPONS_KEY, Coupon } from '@/app/admin/settings/page';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from './ui/carousel';
 import { RadioGroup, RadioGroupItem } from './ui/radio-group';
+import { ProductShelfContent } from './product-shelf-content';
 
 
 const CountdownTimer = ({ expiryDate, onExpire }: { expiryDate: string | Date, onExpire: () => void }) => {
@@ -1140,7 +1141,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                     <h2 className="text-xl font-bold">Highlights</h2>
                                      {product.highlightsImage && (
                                         <div className="w-full aspect-video bg-muted rounded-lg overflow-hidden relative">
-                                            <Image src={product.highlightsImage} alt={`$${product.name} highlights`} layout="fill" className="object-contain" />
+                                            <Image src={product.highlightsImage} alt={`${''}${product.name} highlights`} layout="fill" className="object-contain" />
                                         </div>
                                     )}
                                     <ul className="space-y-3 text-sm">
@@ -1271,26 +1272,48 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                  <div className="mt-4">
                                     <h2 className="text-2xl font-bold mb-4">Related Product Streams</h2>
                                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                                        {relatedStreams.map((stream: any) => (
-                                             <Link href={`/stream/${stream.id}`} key={stream.id} className="group block">
-                                                <div className="relative rounded-lg overflow-hidden aspect-video bg-muted w-full flex-shrink-0">
-                                                    <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
-                                                    <div className="absolute top-2 right-2 z-10"><Badge variant="secondary" className="bg-black/50 text-white"><Users className="w-3 h-3 mr-1"/>{stream.viewers.toLocaleString()}</Badge></div>
-                                                     <Image src={stream.thumbnailUrl} alt={`Live stream from ${stream.name}`} fill sizes="33vw" className="object-cover w-full h-full group-hover:scale-105" />
-                                                </div>
-                                                <div className="flex items-start gap-2 mt-2">
-                                                    <Avatar className="w-8 h-8">
-                                                        <AvatarImage src={stream.avatarUrl} alt={stream.name} />
-                                                        <AvatarFallback>{stream.name.charAt(0)}</AvatarFallback>
-                                                    </Avatar>
-                                                    <div className="flex-1 overflow-hidden">
-                                                        <p className="font-semibold text-sm leading-tight group-hover:underline truncate">{stream.title || stream.name}</p>
-                                                        <p className="text-xs text-muted-foreground">{stream.name}</p>
-                                                         <p className="text-xs text-primary font-semibold mt-0.5">#{stream.category.toLowerCase().replace(/\s+/g, '')}</p>
+                                        {relatedStreams.map((stream: any) => {
+                                            const sellerProducts = getProductsForSeller(stream.id);
+                                            const productsToShow = sellerProducts.slice(0, 3);
+                                            return (
+                                                <Card key={stream.id} className="group flex flex-col space-y-2 overflow-hidden border-none shadow-none bg-transparent">
+                                                    <Link href={`/stream/${stream.id}`} className="block">
+                                                        <div className="relative aspect-[16/9] bg-muted rounded-lg overflow-hidden">
+                                                            <Image src={stream.thumbnailUrl} alt={`Live stream from ${stream.name}`} fill sizes="(max-width: 640px) 100vw, 33vw" className="object-cover w-full h-full transition-transform group-hover:scale-105" />
+                                                            <div className="absolute top-3 left-3 z-10"><Badge variant="destructive" className="gap-1.5"><div className="h-2 w-2 rounded-full bg-white animate-pulse" />LIVE</Badge></div>
+                                                            <div className="absolute top-2 right-2 z-10">
+                                                                <Badge variant="secondary" className="bg-black/40 text-white font-semibold backdrop-blur-sm">
+                                                                    <Users className="w-3 h-3 mr-1"/>{stream.viewers.toLocaleString()}
+                                                                </Badge>
+                                                            </div>
+                                                        </div>
+                                                        <div className="flex items-start gap-2 mt-2">
+                                                                <Avatar className="w-8 h-8">
+                                                                <AvatarImage src={stream.avatarUrl} alt={stream.name} />
+                                                                <AvatarFallback>{stream.name.charAt(0)}</AvatarFallback>
+                                                            </Avatar>
+                                                            <div className="flex-1 overflow-hidden">
+                                                                <p className="font-semibold text-sm leading-tight group-hover:underline truncate">{stream.title || stream.name}</p>
+                                                                <p className="text-xs text-muted-foreground">{stream.name}</p>
+                                                                <div className="flex items-center gap-2 flex-wrap mt-0.5">
+                                                                    <p className="text-xs text-primary font-semibold">{stream.category}</p>
+                                                                    {stream.subcategory && <Badge variant="outline" className="text-xs">{stream.subcategory}</Badge>}
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </Link>
+                                                    <div className="flex items-center gap-1.5 mt-auto flex-shrink-0 pt-2 w-full justify-start pb-2 pl-2">
+                                                        {productsToShow.map((p: any, i: number) => (
+                                                            <Link href={`/product/${p.key}`} key={p.key} className="block" onClick={(e) => e.stopPropagation()}>
+                                                                <div className="w-10 h-10 bg-muted rounded-md border overflow-hidden hover:ring-2 hover:ring-primary">
+                                                                    <Image src={p.images[0]?.preview || p.images[0]} alt={p.name} width={40} height={40} className="object-cover w-full h-full" />
+                                                                </div>
+                                                            </Link>
+                                                        ))}
                                                     </div>
-                                                </div>
-                                            </Link>
-                                        ))}
+                                                </Card>
+                                            )
+                                        })}
                                     </div>
                                 </div>
                                 <Card className="mt-6">
