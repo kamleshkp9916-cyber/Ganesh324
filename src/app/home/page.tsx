@@ -114,7 +114,7 @@ export default function HomePage() {
                   <h2 className="text-xl font-semibold mb-4 text-center">Shop by Room</h2>
                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
                       {categories.map(category => (
-                          <Link href={`/live-selling/home/${category.name.toLowerCase().replace(/\s/g, '-').replace(/&/g, '%26')}`} key={category.name} className="group block text-center">
+                          <Link href={`/home/${category.name.toLowerCase().replace(/\s/g, '-').replace(/&/g, '%26')}`} key={category.name} className="group block text-center">
                               <div className="aspect-square bg-muted rounded-lg overflow-hidden mb-2">
                                   <Image 
                                       src={category.image}

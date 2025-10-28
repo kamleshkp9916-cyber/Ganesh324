@@ -33,7 +33,7 @@ export function ElectronicsSidebar() {
                                 {section.links.map(link => {
                                      const subCategorySlug = link.toLowerCase().replace(/\s+/g, '-').replace(/&/g, '%26');
                                     return (
-                                        <Link key={link} href={`/live-selling/electronics/${subCategorySlug}`} className="text-sm text-muted-foreground hover:text-foreground">
+                                        <Link key={link} href={`/electronics/${subCategorySlug}`} className="text-sm text-muted-foreground hover:text-foreground">
                                             {link}
                                         </Link>
                                     )

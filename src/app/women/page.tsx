@@ -47,7 +47,7 @@ export default function WomensClothingPage() {
 
   const getSubCategoryPath = (name: string) => {
     const subCategorySlug = name.toLowerCase().replace(/\s+/g, '-').replace(/&/g, '%26');
-    return `/live-selling/women/${subCategorySlug}`;
+    return `/women/${subCategorySlug}`;
   };
 
   return (
