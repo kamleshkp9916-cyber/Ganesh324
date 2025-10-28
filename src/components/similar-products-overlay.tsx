@@ -20,6 +20,12 @@ import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { Skeleton } from './ui/skeleton';
 import { productDetails, productToSellerMapping } from '@/lib/product-data';
+import { Sheet, SheetContent, SheetTrigger } from './ui/sheet';
+import { ProductShelfContent } from './product-shelf-content';
+import { useToast } from '@/hooks/use-toast';
+import { addToCart } from '@/lib/product-history';
+import { useRouter } from 'next/navigation';
+import { saveCart } from '@/lib/product-history';
 
 interface SimilarProductsOverlayProps {
   isOpen: boolean;
@@ -46,11 +52,28 @@ export function SimilarProductsOverlay({
   relatedStreams,
   isLoading,
 }: SimilarProductsOverlayProps) {
+  const { toast } = useToast();
+  const router = useRouter();
+
   if (!isOpen) return null;
   
   const getProductsForSeller = (sellerId: string): any[] => {
     return Object.values(productDetails).filter(p => productToSellerMapping[p.key as keyof typeof productToSellerMapping]?.uid === sellerId);
   }
+
+  const handleAddToCart = (product: any) => {
+    addToCart({ ...product, quantity: 1 });
+    toast({
+        title: "Added to Cart!",
+        description: `${product.name} has been added to your cart.`
+    });
+  };
+
+  const handleBuyNow = (product: any) => {
+    saveCart([{ ...product, quantity: 1 }]);
+    localStorage.setItem('buyNow', 'true');
+    router.push('/cart');
+  };
 
   return (
     <div 
@@ -126,7 +149,8 @@ export function SimilarProductsOverlay({
               <CarouselContent className="-ml-2">
                 {relatedStreams.map((s) => {
                   const sellerProducts = getProductsForSeller(s.id);
-                  const productsToShow = sellerProducts.slice(0, 3);
+                  const productsToShow = sellerProducts.slice(0, 5);
+                  const remainingCount = sellerProducts.length > 5 ? sellerProducts.length - 5 : 0;
                   return (
                   <CarouselItem key={s.id} className="basis-3/4 sm:basis-1/2 md:basis-1/2 lg:basis-1/3 xl:basis-1/4 pl-2">
                     <Card className="group flex flex-col space-y-2 overflow-hidden border-none shadow-none bg-transparent">
@@ -149,13 +173,35 @@ export function SimilarProductsOverlay({
                           </div>
                       </Link>
                       <div className="flex items-center gap-1.5 mt-auto flex-shrink-0 pt-2 w-full justify-start pb-2 pl-2">
-                        {productsToShow.map((p: any, i: number) => (
+                        {productsToShow.map((p: any) => (
                             <Link href={`/product/${p.key}`} key={p.key} className="block" onClick={(e) => e.stopPropagation()}>
                                 <div className="w-10 h-10 bg-muted rounded-md border overflow-hidden hover:ring-2 hover:ring-primary">
                                     <Image src={p.images[0]?.preview || p.images[0]} alt={p.name} width={40} height={40} className="object-cover w-full h-full" />
                                 </div>
                             </Link>
                         ))}
+                        {remainingCount > 0 && (
+                            <Sheet>
+                                <SheetTrigger asChild>
+                                    <button className="w-10 h-10 bg-muted rounded-md border flex items-center justify-center text-xs font-semibold text-muted-foreground hover:bg-secondary">
+                                        +{remainingCount}
+                                    </button>
+                                </SheetTrigger>
+                                <SheetContent side="bottom" className="h-[60vh] flex flex-col p-0">
+                                    <ProductShelfContent 
+                                        sellerProducts={sellerProducts}
+                                        handleAddToCart={handleAddToCart}
+                                        handleBuyNow={handleBuyNow}
+                                        isMobile={true}
+                                        onClose={() => {
+                                            const a = document.querySelector('[data-state="closed"]');
+                                            if (a) (a as HTMLElement).click();
+                                        }}
+                                        toast={toast}
+                                    />
+                                </SheetContent>
+                            </Sheet>
+                        )}
                       </div>
                     </Card>
                   </CarouselItem>
