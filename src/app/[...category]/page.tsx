@@ -259,20 +259,18 @@ export default function CategoryPage() {
                                                 </div>
                                                 <CardContent className="p-3 flex-grow flex flex-col">
                                                     <h4 className="font-semibold truncate text-sm flex-grow">{product.name}</h4>
-                                                    <div className="flex items-center justify-between mt-1">
-                                                        <div className="flex items-baseline gap-2">
-                                                            <p className={cn("font-bold text-foreground", hasDiscount && "text-destructive")}>
-                                                                ₹{discountedPrice.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                                                            </p>
-                                                            {hasDiscount && (
-                                                                <>
-                                                                    <p className="text-xs text-muted-foreground line-through">
-                                                                        ₹{originalPrice.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                                                                    </p>
-                                                                    <Badge variant="destructive" className="text-xs">{product.discountPercentage}% OFF</Badge>
-                                                                </>
-                                                            )}
-                                                        </div>
+                                                    <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1 mt-1">
+                                                        <p className={cn("font-bold text-foreground", hasDiscount && "text-destructive")}>
+                                                            ₹{discountedPrice.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                                        </p>
+                                                        {hasDiscount && (
+                                                            <>
+                                                                <p className="text-xs text-muted-foreground line-through">
+                                                                    ₹{originalPrice.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                                                </p>
+                                                                <Badge variant="destructive" className="text-xs">{product.discountPercentage}% OFF</Badge>
+                                                            </>
+                                                        )}
                                                     </div>
                                                     <div className="flex items-center gap-4 text-xs text-muted-foreground mt-2">
                                                         <div className="flex items-center gap-1"><Package className="w-3 h-3" /> {product.stock} left</div>
