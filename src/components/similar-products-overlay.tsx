@@ -158,17 +158,16 @@ export function SimilarProductsOverlay({
                           <div className="relative rounded-lg overflow-hidden aspect-video bg-muted w-full flex-shrink-0">
                               <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
                               <div className="absolute top-2 right-2 z-10"><Badge variant="secondary" className="bg-black/50 text-white"><Users className="w-3 h-3 mr-1"/>{s.viewers.toLocaleString()}</Badge></div>
-                              <Image src={s.thumbnailUrl} alt={`Live stream from ${s.name}`} fill sizes="33vw" className="object-cover transition-transform group-hover:scale-105" />
+                              <Image src={s.thumbnailUrl} alt={`Live stream from ${s.name}`} fill sizes="33vw" className="object-cover w-full h-full transition-transform group-hover:scale-105" />
                           </div>
-                          <div className="flex items-start gap-2 mt-2">
-                              <Avatar className="w-8 h-8">
-                                  <AvatarImage src={s.avatarUrl} alt={s.name} />
+                          <div className="flex items-start gap-3 mt-2">
+                              <Avatar>
+                                  <AvatarImage src={s.avatarUrl} />
                                   <AvatarFallback>{s.name.charAt(0)}</AvatarFallback>
                               </Avatar>
-                              <div className="flex-1 overflow-hidden">
-                                  <p className="font-semibold text-sm leading-tight group-hover:underline truncate">{s.title || s.name}</p>
+                              <div>
+                                  <p className="font-semibold text-sm group-hover:underline truncate">{s.title}</p>
                                   <p className="text-xs text-muted-foreground">{s.name}</p>
-                                  <p className="text-xs text-primary font-semibold mt-0.5">{s.category}</p>
                               </div>
                           </div>
                       </Link>
@@ -188,7 +187,7 @@ export function SimilarProductsOverlay({
                                     </button>
                                 </SheetTrigger>
                                 <SheetContent side="bottom" className="h-[60vh] flex flex-col p-0">
-                                    <ProductShelfContent 
+                                    <ProductShelfContent
                                         sellerProducts={sellerProducts}
                                         handleAddToCart={handleAddToCart}
                                         handleBuyNow={handleBuyNow}

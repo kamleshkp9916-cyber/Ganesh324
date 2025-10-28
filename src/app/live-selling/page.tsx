@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import Link from 'next/link';
@@ -825,7 +824,7 @@ export default function LiveSellingPage() {
                                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                                 {topLiveStreams.map((seller) => {
                                     const sellerProducts = getProductsForSeller(seller.id);
-                                    const productsToShow = sellerProducts.slice(0, 6);
+                                    const productsToShow = sellerProducts.slice(0, 5);
                                     const remainingCount = sellerProducts.length > 5 ? sellerProducts.length - 5 : 0;
                                     
                                     return (
@@ -852,7 +851,7 @@ export default function LiveSellingPage() {
                                             </div>
                                         </Link>
                                         <div className="flex items-center gap-1.5 mt-auto flex-shrink-0 pt-2 w-full justify-start pb-2 pl-2">
-                                            {productsToShow.slice(0, remainingCount > 0 ? 5 : 6).map((p, i) => (
+                                            {productsToShow.map((p, i) => (
                                                 <Link href={`/product/${p.key}`} key={p.key} className="block" onClick={(e) => e.stopPropagation()}>
                                                     <div className="w-10 h-10 bg-muted rounded-md border overflow-hidden hover:ring-2 hover:ring-primary">
                                                         <Image src={p.images[0]?.preview || p.images[0]} alt={p.name} width={40} height={40} className="object-cover w-full h-full" />
@@ -860,14 +859,14 @@ export default function LiveSellingPage() {
                                                 </Link>
                                             ))}
                                             {remainingCount > 0 && (
-                                                    <Sheet>
+                                                <Sheet>
                                                     <SheetTrigger asChild>
                                                         <button className="w-10 h-10 bg-muted rounded-md border flex items-center justify-center text-xs font-semibold text-muted-foreground hover:bg-secondary">
                                                             +{remainingCount}
                                                         </button>
                                                     </SheetTrigger>
                                                     <SheetContent side="bottom" className="h-[60vh] flex flex-col p-0">
-                                                            <ProductShelfContent 
+                                                        <ProductShelfContent 
                                                             sellerProducts={sellerProducts}
                                                             handleAddToCart={handleAddToCart}
                                                             handleBuyNow={handleBuyNow}
@@ -909,7 +908,7 @@ export default function LiveSellingPage() {
                                     <CarouselContent className="-ml-4">
                                         {(streams as any[]).map((stream: any) => {
                                             const sellerProducts = getProductsForSeller(stream.id);
-                                            const productsToShow = sellerProducts.slice(0, 6);
+                                            const productsToShow = sellerProducts.slice(0, 5);
                                             const remainingCount = sellerProducts.length > 5 ? sellerProducts.length - 5 : 0;
                                             return (
                                             <CarouselItem key={stream.id} className="basis-full sm:basis-1/2 lg:basis-1/3 xl:basis-1/4 pl-4">
@@ -934,36 +933,36 @@ export default function LiveSellingPage() {
                                                         </Link>
                                                     </div>
                                                     <div className="flex items-center gap-1.5 mt-auto flex-shrink-0 pt-2 w-full justify-start pb-2">
-                                                    {productsToShow.slice(0, remainingCount > 0 ? 5 : 6).map((p:any) => (
-                                                        <Link href={`/product/${p.key}`} key={p.key} className="block" onClick={(e) => e.stopPropagation()}>
-                                                            <div className="w-10 h-10 bg-muted rounded-md border overflow-hidden hover:ring-2 hover:ring-primary">
-                                                                <Image src={p.images[0]?.preview || p.images[0]} alt={p.name} width={40} height={40} className="object-cover w-full h-full" />
-                                                            </div>
-                                                        </Link>
-                                                    ))}
-                                                    {remainingCount > 0 && (
-                                                        <Sheet>
-                                                            <SheetTrigger asChild>
-                                                                <button className="w-10 h-10 bg-muted rounded-md border flex items-center justify-center text-xs font-semibold text-muted-foreground hover:bg-secondary">
-                                                                    +{remainingCount}
-                                                                </button>
-                                                            </SheetTrigger>
-                                                            <SheetContent side="bottom" className="h-[60vh] flex flex-col p-0">
-                                                                <ProductShelfContent
-                                                                    sellerProducts={sellerProducts}
-                                                                    handleAddToCart={handleAddToCart}
-                                                                    handleBuyNow={handleBuyNow}
-                                                                    isMobile={true}
-                                                                    onClose={() => {
-                                                                        const a = document.querySelector('[data-state="closed"]');
-                                                                        if (a) (a as HTMLElement).click();
-                                                                    }}
-                                                                    toast={toast}
-                                                                />
-                                                            </SheetContent>
-                                                        </Sheet>
-                                                    )}
-                                                </div>
+                                                        {productsToShow.map((p:any) => (
+                                                            <Link href={`/product/${p.key}`} key={p.key} className="block" onClick={(e) => e.stopPropagation()}>
+                                                                <div className="w-10 h-10 bg-muted rounded-md border overflow-hidden hover:ring-2 hover:ring-primary">
+                                                                    <Image src={p.images[0]?.preview || p.images[0]} alt={p.name} width={40} height={40} className="object-cover w-full h-full" />
+                                                                </div>
+                                                            </Link>
+                                                        ))}
+                                                        {remainingCount > 0 && (
+                                                            <Sheet>
+                                                                <SheetTrigger asChild>
+                                                                    <button className="w-10 h-10 bg-muted rounded-md border flex items-center justify-center text-xs font-semibold text-muted-foreground hover:bg-secondary">
+                                                                        +{remainingCount}
+                                                                    </button>
+                                                                </SheetTrigger>
+                                                                <SheetContent side="bottom" className="h-[60vh] flex flex-col p-0">
+                                                                    <ProductShelfContent
+                                                                        sellerProducts={sellerProducts}
+                                                                        handleAddToCart={handleAddToCart}
+                                                                        handleBuyNow={handleBuyNow}
+                                                                        isMobile={true}
+                                                                        onClose={() => {
+                                                                            const a = document.querySelector('[data-state="closed"]');
+                                                                            if (a) (a as HTMLElement).click();
+                                                                        }}
+                                                                        toast={toast}
+                                                                    />
+                                                                </SheetContent>
+                                                            </Sheet>
+                                                        )}
+                                                    </div>
                                                 </Card>
                                             </CarouselItem>
                                             )
