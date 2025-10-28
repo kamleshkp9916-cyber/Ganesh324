@@ -821,7 +821,7 @@ export default function LiveSellingPage() {
                             </div>
                         </div>
                         <TabsContent value="recommended" className="mt-4">
-                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6">
                                 {topLiveStreams.map((seller) => {
                                     const sellerProducts = getProductsForSeller(seller.id);
                                     const productsToShow = sellerProducts.slice(0, 5);
@@ -1038,3 +1038,5 @@ export default function LiveSellingPage() {
     </>
   );
 }
+
+    
