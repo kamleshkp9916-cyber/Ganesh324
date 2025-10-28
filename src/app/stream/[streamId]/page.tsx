@@ -155,8 +155,8 @@ const liveSellers = [
 ];
 
 const mockAdminOffers = [
-    { icon: <Ticket className="h-5 w-5 text-primary" />, title: "Special Price", description: "Get this for ₹11,000 using the code VINTAGE10" },
-    { icon: <Banknote className="h-5 w-5 text-primary" />, title: "Bank Offer", description: "10% Instant Discount on HDFC Bank Credit Card" },
+    { icon: <Ticket className="h-5 w-5 text-primary" />, title: "Special Price", description: "Get this for ₹11,000 using the code VINTAGE10", code: 'VINTAGE10' },
+    { icon: <Banknote className="h-5 w-5 text-primary" />, title: "Bank Offer", description: "10% Instant Discount on HDFC Bank Credit Card", code: null },
 ];
 
 
@@ -771,13 +771,13 @@ const ChatPanel = ({
     isSuperChatOpen: boolean;
     setIsSuperChatOpen: (open: boolean) => void;
 }) => {
-    const chatContainerRef = useRef<HTMLDivElement>(null);
     const { user } = useAuth();
     const [newMessage, setNewMessage] = useState('');
     const [replyingTo, setReplyingTo] = useState<any | null>(null);
-
+    const scrollAreaRef = useRef<HTMLDivElement>(null);
+    
     useEffect(() => {
-        const scrollArea = chatContainerRef.current;
+        const scrollArea = scrollAreaRef.current;
         if (scrollArea) {
             const viewport = scrollArea.querySelector('div[data-radix-scroll-area-viewport]');
             if (viewport) {
@@ -872,10 +872,10 @@ const ChatPanel = ({
                     </Button>
                 </div>
             </header>
-            <ScrollArea ref={chatContainerRef} className="flex-grow">
+            <ScrollArea className="flex-grow" ref={scrollAreaRef}>
                 <div className="p-2 space-y-1">
                     {pinnedMessages.map((msg, index) => {
-                        if (msg.type !== 'offer') return null; // Only show non-offer pins inline
+                        if (msg.type !== 'offer') return null;
                         return (
                             <div key={`pin-${msg.id || index}`} className="p-3 rounded-lg bg-secondary border border-primary/20 flex gap-3 text-sm animate-in fade-in-0 slide-in-from-bottom-2">
                                 <Pin className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
@@ -954,7 +954,7 @@ const ChatPanel = ({
 const MemoizedStreamInfo = React.memo(StreamInfo);
 const MemoizedRelatedContent = React.memo(RelatedContent);
 
-const DesktopLayout = React.memo(({ user, handlers, chatMessages, cartCount, walletBalance, isSuperChatOpen, setIsSuperChatOpen, ...props }: any) => {
+const DesktopLayout = React.memo(({ user, handlers, chatMessages, cartCount, walletBalance, isSuperChatOpen, setIsSuperChatOpen, handleAddToCart, handleBuyNow, ...props }: any) => {
 return (
 <div className="flex flex-col h-screen overflow-hidden">
     <header className="p-3 flex items-center justify-between z-40 h-16 shrink-0 w-full">
@@ -1093,7 +1093,7 @@ return (
 )});
 DesktopLayout.displayName = "DesktopLayout";
 
-const MobileLayout = React.memo(({ handlers, chatMessages, walletBalance, isPastStream, isSuperChatOpen, setIsSuperChatOpen, ...props }: any) => {
+const MobileLayout = React.memo(({ handlers, chatMessages, walletBalance, isPastStream, isSuperChatOpen, setIsSuperChatOpen, handleAddToCart, handleBuyNow, ...props }: any) => {
     const { isMuted, setIsMuted, handleGoLive, isLive, formatTime, currentTime, duration, handleShare, handleToggleFullscreen, progressContainerRef, handleProgressClick, isPaused, handlePlayPause, handleSeek, handleMinimize, activeQuality, setActiveQuality } = props;
     return (
         <div className="flex flex-col h-dvh overflow-hidden relative">
