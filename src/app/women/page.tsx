@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { useRouter } from 'next/navigation';
@@ -85,8 +84,8 @@ export default function WomensClothingPage() {
             </div>
         </header>
 
-      <main className="container mx-auto px-4 sm:px-6 lg:px-8 flex-grow overflow-hidden">
-        <div className="flex items-center justify-between my-4 lg:hidden">
+      <main className="container mx-auto px-4 sm:px-6 lg:px-8 flex-grow flex flex-col overflow-hidden">
+        <div className="flex items-center justify-between my-4 lg:hidden flex-shrink-0">
              <Button variant="ghost" size="icon" onClick={() => router.back()}>
               <ArrowLeft className="h-6 w-6" />
             </Button>
@@ -103,99 +102,95 @@ export default function WomensClothingPage() {
             </Sheet>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 h-full">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 flex-grow overflow-hidden">
           {/* Left Column: Sidebar (Desktop) */}
-          <aside className="hidden lg:block lg:col-span-1 h-full">
-            <ScrollArea className="h-full pr-6 -mr-6">
-                <div className="sticky top-[80px]">
-                    <WomensSidebar />
-                </div>
-            </ScrollArea>
+          <aside className="hidden lg:block lg:col-span-1 h-full overflow-y-auto">
+             <div className="sticky top-0 pt-6">
+                <WomensSidebar />
+            </div>
           </aside>
 
           {/* Right Column: Main Content */}
-           <div className="lg:col-span-3 h-full">
-               <ScrollArea className="h-full">
-                    <div className="space-y-10 pb-10">
-                        <div className="hidden lg:block pt-6">
-                            <h1 className="text-4xl font-bold">Women</h1>
-                        </div>
+           <div className="lg:col-span-3 h-full overflow-y-auto">
+               <div className="space-y-10 pb-10">
+                    <div className="hidden lg:block pt-6">
+                        <h1 className="text-4xl font-bold">Women</h1>
+                    </div>
 
-                        <section>
-                            <Card className="overflow-hidden bg-gray-100 dark:bg-gray-900 border-none">
-                                {isMounted && banner1 ? (
-                                    <CardContent className="p-0 flex flex-col md:flex-row items-center">
-                                        <div className="md:w-1/2 p-8 text-center md:text-left">
-                                            <h3 className="text-3xl font-bold">{banner1.title}</h3>
-                                            <p className="text-xl">{banner1.description}</p>
-                                            <Button asChild variant="link" className="mt-4 px-0">
-                                                <Link href="/sale">Shop Now</Link>
-                                            </Button>
-                                        </div>
-                                        <div className="md:w-1/2 h-64 md:h-auto md:aspect-square relative">
-                                            <Image 
-                                                src={banner1.imageUrl}
-                                                alt={banner1.title}
-                                                fill
-                                                className="object-cover"
-                                                data-ai-hint="woman fashion"
-                                            />
-                                        </div>
-                                    </CardContent>
-                                ) : (
-                                    <Skeleton className="w-full h-80" />
-                                )}
-                            </Card>
-                        </section>
-                        
-                        <section>
-                            <Card className="overflow-hidden relative text-white">
-                                {isMounted && banner2 ? (
-                                    <>
-                                        <div className="absolute inset-0 bg-black/40 z-10" />
+                    <section>
+                        <Card className="overflow-hidden bg-gray-100 dark:bg-gray-900 border-none">
+                            {isMounted && banner1 ? (
+                                <CardContent className="p-0 flex flex-col md:flex-row items-center">
+                                    <div className="md:w-1/2 p-8 text-center md:text-left">
+                                        <h3 className="text-3xl font-bold">{banner1.title}</h3>
+                                        <p className="text-xl">{banner1.description}</p>
+                                        <Button asChild variant="link" className="mt-4 px-0">
+                                            <Link href="/sale">Shop Now</Link>
+                                        </Button>
+                                    </div>
+                                    <div className="md:w-1/2 h-64 md:h-auto md:aspect-square relative">
                                         <Image 
-                                            src={banner2.imageUrl}
-                                            alt={banner2.title}
+                                            src={banner1.imageUrl}
+                                            alt={banner1.title}
                                             fill
                                             className="object-cover"
-                                            data-ai-hint="woman relaxing"
+                                            data-ai-hint="woman fashion"
                                         />
-                                        <CardContent className="relative z-20 p-8 md:p-12 flex flex-col items-center justify-center text-center h-80">
-                                            <h3 className="text-4xl font-bold">{banner2.title}</h3>
-                                            <p className="max-w-md mt-2">{banner2.description}</p>
-                                            <Button asChild variant="link" className="mt-4 text-white">
-                                                <Link href={getSubCategoryPath("Pajamas & Robes")}>Shop The Collection</Link>
-                                            </Button>
-                                        </CardContent>
-                                    </>
-                                ) : (
-                                    <Skeleton className="w-full h-80" />
-                                )}
-                            </Card>
-                        </section>
-                        
-                        <section>
-                            <h2 className="text-xl font-semibold mb-4 text-center">Shop by category</h2>
-                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                                {categories.map(category => (
-                                    <Link href={getSubCategoryPath(category.name)} key={category.name} className="group block text-center">
-                                        <div className="aspect-square bg-muted rounded-lg overflow-hidden mb-2">
-                                            <Image 
-                                                src={category.image}
-                                                alt={category.name}
-                                                width={200}
-                                                height={200}
-                                                className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                                                data-ai-hint={category.hint}
-                                            />
-                                        </div>
-                                        <p className="text-sm font-medium group-hover:underline">{category.name}</p>
-                                    </Link>
-                                ))}
-                            </div>
-                        </section>
-                    </div>
-                </ScrollArea>
+                                    </div>
+                                </CardContent>
+                            ) : (
+                                <Skeleton className="w-full h-80" />
+                            )}
+                        </Card>
+                    </section>
+                    
+                    <section>
+                        <Card className="overflow-hidden relative text-white">
+                            {isMounted && banner2 ? (
+                                <>
+                                    <div className="absolute inset-0 bg-black/40 z-10" />
+                                    <Image 
+                                        src={banner2.imageUrl}
+                                        alt={banner2.title}
+                                        fill
+                                        className="object-cover"
+                                        data-ai-hint="woman relaxing"
+                                    />
+                                    <CardContent className="relative z-20 p-8 md:p-12 flex flex-col items-center justify-center text-center h-80">
+                                        <h3 className="text-4xl font-bold">{banner2.title}</h3>
+                                        <p className="max-w-md mt-2">{banner2.description}</p>
+                                        <Button asChild variant="link" className="mt-4 text-white">
+                                            <Link href={getSubCategoryPath("Pajamas & Robes")}>Shop The Collection</Link>
+                                        </Button>
+                                    </CardContent>
+                                </>
+                            ) : (
+                                <Skeleton className="w-full h-80" />
+                            )}
+                        </Card>
+                    </section>
+                    
+                    <section>
+                        <h2 className="text-xl font-semibold mb-4 text-center">Shop by category</h2>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                            {categories.map(category => (
+                                <Link href={getSubCategoryPath(category.name)} key={category.name} className="group block text-center">
+                                    <div className="aspect-square bg-muted rounded-lg overflow-hidden mb-2">
+                                        <Image 
+                                            src={category.image}
+                                            alt={category.name}
+                                            width={200}
+                                            height={200}
+                                            className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                                            data-ai-hint={category.hint}
+                                        />
+                                    </div>
+                                    <p className="text-sm font-medium group-hover:underline">{category.name}</p>
+                                </Link>
+                            ))}
+                        </div>
+                    </section>
+                </div>
            </div>
         </div>
       </main>
