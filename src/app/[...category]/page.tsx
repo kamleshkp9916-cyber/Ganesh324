@@ -179,9 +179,7 @@ export default function CategoryPage() {
         <>
             <div className="min-h-screen bg-background text-foreground flex flex-col">
                 <header className="p-4 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-sm z-30 border-b">
-                    <Button variant="ghost" size="icon" onClick={() => router.back()}>
-                        <ArrowLeft className="h-6 w-6" />
-                    </Button>
+                    <div className="w-10"></div>
                     <h1 className="text-xl font-bold truncate">{pageTitle}</h1>
                      {user ? (
                         <Link href="/cart">
