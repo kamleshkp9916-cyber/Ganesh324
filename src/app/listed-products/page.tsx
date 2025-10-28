@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/navigation-menu"
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { Menu, ShoppingBag, User, X, ChevronRight, ArrowLeft, Search, List } from "lucide-react";
+import { Menu, ShoppingBag, User, X, ChevronRight, ArrowLeft, Search, List, Star, Package, Users } from "lucide-react";
 import { useLocalStorage } from "@/hooks/use-local-storage";
 import { HUB_BANNER_KEY, HubBanner, HUB_FEATURED_PRODUCTS_KEY, FeaturedProduct } from '@/app/admin/settings/page';
 import { useState, useEffect, useCallback } from "react";
@@ -39,9 +39,9 @@ const defaultHubBanner: HubBanner = {
 };
 
 const defaultFeaturedProducts: FeaturedProduct[] = [
-  { imageUrl: 'https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?w=500&h=500&fit=crop', name: 'Stylish Trousers', model: 'Women' },
-  { imageUrl: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=500&h=500&fit=crop', name: 'Running Shoes', model: 'Electronics' },
-  { imageUrl: 'https://images.unsplash.com/photo-1603252109303-2751441dd157?w=500&h=500&fit=crop', name: 'Classic White Shirt', model: 'Men' },
+  { imageUrl: 'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=500&h=500&fit=crop', name: 'Latest Styles', model: 'Women' },
+  { imageUrl: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500&h=500&fit=crop', name: 'Top Gadgets', model: 'Electronics' },
+  { imageUrl: 'https://images.unsplash.com/photo-1618354691373-d851c5c3a990?w=500&h=500&fit=crop', name: 'Sharp Looks', model: 'Men' },
 ];
 
 const collageCategories = [
@@ -100,7 +100,7 @@ export default function ListedProductsPage() {
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
           {searchResults.map((p) => (
             <Link href={`/product/${p.key}`} key={p.id} className="group block">
-              <Card className="w-full group overflow-hidden">
+              <Card className="w-full group overflow-hidden h-full flex flex-col">
                 <div className="aspect-square bg-muted rounded-t-lg overflow-hidden relative">
                   <Image
                     src={p.images?.[0] || "https://placehold.co/200x200.png"}
@@ -109,9 +109,18 @@ export default function ListedProductsPage() {
                     className="object-cover w-full h-full group-hover:scale-105 transition-transform"
                   />
                 </div>
-                <div className="p-3">
-                  <h4 className="font-semibold truncate text-sm">{p.name}</h4>
-                  <p className="font-bold text-foreground">{p.price}</p>
+                <div className="p-3 flex-grow flex flex-col">
+                    <h4 className="font-semibold truncate text-sm flex-grow">{p.name}</h4>
+                    <p className="font-bold text-foreground mt-1">{p.price}</p>
+                    <div className="flex items-center gap-1 text-xs text-amber-400 mt-1">
+                        <Star className="w-4 h-4 fill-current" />
+                        <span>4.8</span>
+                        <span className="text-muted-foreground">(1.2k reviews)</span>
+                    </div>
+                    <div className="flex items-center gap-4 text-xs text-muted-foreground mt-1">
+                        <div className="flex items-center gap-1"><Package className="w-3 h-3" /> {p.stock} left</div>
+                        <div className="flex items-center gap-1"><Users className="w-3 h-3" /> {p.sold} sold</div>
+                    </div>
                 </div>
               </Card>
             </Link>
@@ -321,3 +330,5 @@ const ListItem = React.forwardRef<
   )
 })
 ListItem.displayName = "ListItem"
+
+    
