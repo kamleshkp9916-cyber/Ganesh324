@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { useRouter } from 'next/navigation';
@@ -29,7 +28,6 @@ const categories = [
     { name: "Shoes", image: "https://images.unsplash.com/photo-1551107696-a4b0c5a0d9a2?w=400&h=500&fit=crop", hint: "men's shoes" },
     { name: "Accessories", image: "https://images.unsplash.com/photo-1615102581648-6346305a4132?w=400&h=500&fit=crop", hint: "men's watch" },
     { name: "Big & Tall", image: "https://images.unsplash.com/photo-1607346256330-58d35961a1a7?w=400&h=500&fit=crop", hint: "tall man" },
-    { name: "Sale & Clearance", image: "https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=400&h=500&fit=crop", hint: "sale sign" },
 ];
 
 const defaultBanners: CategoryBanners = {
