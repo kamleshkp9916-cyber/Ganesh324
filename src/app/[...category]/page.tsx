@@ -3,7 +3,7 @@
 
 import { useRouter, useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, ShoppingCart, Star, Search, ChevronDown, Users, Package, Sparkles, Video, Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ArrowLeft, ShoppingCart, Star, Search, ChevronDown, Users, Package, Sparkles, Video, Loader2, ChevronLeft, ChevronRight, Home } from 'lucide-react';
 import { productDetails } from '@/lib/product-data';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -82,12 +82,24 @@ export default function CategoryPage() {
     }
     
     const pathSegments = Array.isArray(categoryPath) ? categoryPath : [categoryPath];
+
+    const breadcrumbs = useMemo(() => {
+        const crumbs = [{ name: 'Home', href: '/listed-products' }];
+        let currentPath = '';
+        pathSegments.forEach((segment) => {
+            currentPath += `/${segment}`;
+            crumbs.push({
+                name: segment.replace(/-/g, ' ').replace(/%26/g, '&').split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' '),
+                href: currentPath
+            });
+        });
+        return crumbs;
+    }, [pathSegments]);
+    
     const categorySlug = pathSegments[0] || '';
     const subCategorySlug = pathSegments.length > 1 ? pathSegments[pathSegments.length - 1] : null;
     
-    const lastSegment = pathSegments[pathSegments.length - 1] || '';
-
-    const pageTitle = lastSegment
+    const pageTitle = pathSegments[pathSegments.length - 1]
         .replace(/-/g, ' ')
         .replace(/%26/g, '&')
         .split(' ')
@@ -171,16 +183,34 @@ export default function CategoryPage() {
                         <ArrowLeft className="h-6 w-6" />
                     </Button>
                     <h1 className="text-xl font-bold truncate">{pageTitle}</h1>
-                     {user && (
+                     {user ? (
                         <Link href="/cart">
                             <Button asChild variant="ghost" size="icon">
                                 <ShoppingCart className="h-6 w-6" />
                             </Button>
                         </Link>
-                    )}
+                    ) : <div className="w-10"></div> }
                 </header>
 
                 <main className="container mx-auto py-6 flex-grow">
+                    <div className="mb-4">
+                        <nav aria-label="Breadcrumb">
+                            <ol className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                                <li><Link href="/listed-products" className="hover:text-primary"><Home className="h-4 w-4" /></Link></li>
+                                {breadcrumbs.slice(1).map((crumb, index) => (
+                                    <React.Fragment key={index}>
+                                        <li><ChevronRight className="h-4 w-4" /></li>
+                                        <li>
+                                            <Link href={crumb.href} className={cn("hover:text-primary", index === breadcrumbs.length - 2 ? "font-semibold text-foreground" : "")}>
+                                                {crumb.name}
+                                            </Link>
+                                        </li>
+                                    </React.Fragment>
+                                ))}
+                            </ol>
+                        </nav>
+                    </div>
+
                     <div className="p-4 border-b flex flex-col sm:flex-row items-center gap-4 sticky top-[65px] bg-background/80 backdrop-blur-sm z-20 -mx-4 sm:mx-0">
                         <div className="relative flex-1 w-full">
                             <ProductSearch onSearchComplete={onSearchComplete} />
