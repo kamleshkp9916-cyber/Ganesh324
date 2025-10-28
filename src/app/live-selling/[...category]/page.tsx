@@ -438,7 +438,7 @@ export default function SubCategoryStreamPage() {
                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-10">
                             {displayedStreams.map((seller) => {
                                 const sellerProducts = getProductsForSeller(seller.id);
-                                const productsToShow = sellerProducts.slice(0, 6);
+                                const productsToShow = sellerProducts.slice(0, 5);
                                 const remainingCount = sellerProducts.length > 5 ? sellerProducts.length - 5 : 0;
                                 return (
                                 <Card key={seller.id} className="group flex flex-col space-y-2 overflow-hidden border-none shadow-none bg-transparent">
@@ -468,7 +468,7 @@ export default function SubCategoryStreamPage() {
                                         </div>
                                     </Link>
                                     <div className="flex items-center gap-1.5 mt-auto flex-shrink-0 pt-2 w-full justify-start pb-2 pl-2">
-                                        {productsToShow.slice(0, remainingCount > 0 ? 5 : 6).map((p: any, i: number) => (
+                                        {productsToShow.map((p: any, i: number) => (
                                             <Link href={`/product/${p.key}`} key={p.key} className="block" onClick={(e) => e.stopPropagation()}>
                                                 <div className="w-10 h-10 bg-muted rounded-md border overflow-hidden hover:ring-2 hover:ring-primary">
                                                     <Image src={p.images[0]?.preview || p.images[0]} alt={p.name} width={40} height={40} className="object-cover w-full h-full" />

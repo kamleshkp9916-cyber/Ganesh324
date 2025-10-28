@@ -202,10 +202,10 @@ export function ProductDetailClient({ productId }: { productId: string }) {
 
     const product = useMemo(() => productDetails[productId as keyof typeof productDetails] || null, [productId]);
     
-    const getProductsForSeller = (sellerId: string): any[] => {
+    const getProductsForSeller = useCallback((sellerId: string): any[] => {
         return Object.values(productDetails).filter(p => productToSellerMapping[p.key as keyof typeof productToSellerMapping]?.uid === sellerId);
-    }
-    
+    }, []);
+
     const { compareAtPrice, discountPercentage } = useMemo(() => {
         if (!product || !currentPrice) return { compareAtPrice: null, discountPercentage: null };
 
@@ -1241,8 +1241,8 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                                         {relatedStreams.map((stream: any) => {
                                             const sellerProducts = getProductsForSeller(stream.id);
-                                            const productsToShow = sellerProducts.slice(0, 3);
-                                            const remainingCount = sellerProducts.length > 3 ? sellerProducts.length - 3 : 0;
+                                            const productsToShow = sellerProducts.slice(0, 5);
+                                            const remainingCount = sellerProducts.length > 5 ? sellerProducts.length - 5 : 0;
                                             return (
                                                 <Card key={stream.id} className="group flex flex-col space-y-2 overflow-hidden border-none shadow-none bg-transparent">
                                                     <Link href={`/stream/${stream.id}`} className="block">
@@ -1267,7 +1267,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                                             </div>
                                                         </div>
                                                     </Link>
-                                                    <div className="flex items-center gap-1.5 mt-auto flex-shrink-0 pt-2 w-full justify-start pb-2 pl-2">
+                                                     <div className="flex items-center gap-1.5 mt-auto flex-shrink-0 pt-2 w-full justify-start pb-2 pl-2">
                                                         {productsToShow.map((p: any) => (
                                                             <Link href={`/product/${p.key}`} key={p.key} className="block" onClick={(e) => e.stopPropagation()}>
                                                                 <div className="w-10 h-10 bg-muted rounded-md border overflow-hidden hover:ring-2 hover:ring-primary">
@@ -1283,7 +1283,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                                                     </button>
                                                                 </SheetTrigger>
                                                                 <SheetContent side="bottom" className="h-[60vh] flex flex-col p-0">
-                                                                    <ProductShelfContent 
+                                                                    <ProductShelfContent
                                                                         sellerProducts={sellerProducts}
                                                                         handleAddToCart={handleAddToCart}
                                                                         handleBuyNow={handleBuyNow}

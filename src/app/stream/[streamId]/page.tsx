@@ -82,7 +82,7 @@ import Image from 'next/image';
 import Link from "next/link";
 import { useRouter, useParams, useSearchParams } from "next/navigation";
 import React, { useEffect, useState, useRef, useMemo, useCallback } from "react";
-import { productDetails } from "@/lib/product-data";
+import { productDetails, productToSellerMapping } from '@/lib/product-data';
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { useToast } from "@/hooks/use-toast";
 import { addToCart, isProductInCart, getCart, saveCart } from '@/lib/product-history';
@@ -197,42 +197,6 @@ const reportReasons = [
 ];
 
 const qualityLevels = ["1080p", "720p", "480p", "360p", "144p"];
-
-const productToSellerMapping: { [key: string]: { name: string; avatarUrl: string; uid: string } } = {
-    'prod_1': { name: 'FashionFinds', avatarUrl: 'https://placehold.co/80x80.png', uid: 'fashionfinds-uid' },
-    'prod_2': { name: 'GadgetGuru', avatarUrl: 'https://placehold.co/80x80.png', uid: 'gadgetguru-uid' },
-    'prod_3': { name: 'HomeHaven', avatarUrl: 'https://placehold.co/80x80.png', uid: 'homehaven-uid' },
-    'prod_4': { name: 'BeautyBox', avatarUrl: 'https://placehold.co/80x80.png', uid: 'beautybox-uid' },
-    'prod_5': { name: 'KitchenWiz', avatarUrl: 'https://placehold.co/80x80.png', uid: 'kitchenwiz-uid' },
-    'prod_6': { name: 'FitFlow', avatarUrl: 'https://placehold.co/80x80.png', uid: 'fitflow-uid' },
-    'prod_7': { name: 'ArtisanAlley', avatarUrl: 'https://placehold.co/80x80.png', uid: 'artisanalley-uid' },
-    'prod_8': { name: 'PetPalace', avatarUrl: 'https://placehold.co/80x80.png', uid: 'petpalace-uid' },
-    'prod_9': { name: 'BookNook', avatarUrl: 'https://placehold.co/80x80.png', uid: 'booknook-uid' },
-    'prod_10': { name: 'GamerGuild', avatarUrl: 'https://placehold.co/80x80.png', uid: 'gamerguild-uid' },
-    'prod_11': { name: 'FashionFinds', avatarUrl: 'https://placehold.co/80x80.png', uid: 'fashionfinds-uid' },
-    'prod_12': { name: 'FashionFinds', avatarUrl: 'https://placehold.co/80x80.png', uid: 'fashionfinds-uid' },
-    'prod_13': { name: 'Modern Man', avatarUrl: 'https://placehold.co/80x80.png', uid: 'modernman-uid' },
-    'prod_14': { name: 'Casual Co.', avatarUrl: 'https://placehold.co/80x80.png', uid: 'casualco-uid' },
-    'prod_15': { name: 'BeautyBox', avatarUrl: 'https://placehold.co/80x80.png', uid: 'beautybox-uid' },
-    'prod_16': { name: 'BeautyBox', avatarUrl: 'https://placehold.co/80x80.png', uid: 'beautybox-uid' },
-    'prod_17': { name: 'BeautyBox', avatarUrl: 'https://placehold.co/80x80.png', uid: 'beautybox-uid' },
-    'prod_18': { name: 'BeautyBox', avatarUrl: 'https://placehold.co/80x80.png', uid: 'beautybox-uid' },
-    'prod_19': { name: 'QuickFlex', avatarUrl: 'https://placehold.co/80x80.png', uid: 'quickflex-uid' },
-    'prod_20': { name: 'GentleStep', avatarUrl: 'https://placehold.co/80x80.png', uid: 'gentlestep-uid' },
-    'prod_21': { name: 'SunShield', avatarUrl: 'https://placehold.co/80x80.png', uid: 'sunchaser-uid' },
-    'prod_22': { name: 'Aura Jewels', avatarUrl: 'https://placehold.co/80x80.png', uid: 'aurajewels-uid' },
-    'prod_23': { name: 'BreezyWear', avatarUrl: 'https://placehold.co/80x80.png', uid: 'breezywear-uid' },
-    'prod_24': { name: 'Elegance', avatarUrl: 'https://placehold.co/80x80.png', uid: 'elegance-uid' },
-    'prod_25': { name: 'KitchenPro', avatarUrl: 'https://placehold.co/80x80.png', uid: 'kitchenpro-uid' },
-    'prod_26': { name: 'CozyHome', avatarUrl: 'https://placehold.co/80x80.png', uid: 'cozyhome-uid' },
-    'prod_27': { name: 'AudioBlast', avatarUrl: 'https://placehold.co/80x80.png', uid: 'audioblast-uid' },
-    'prod_28': { name: 'LittleSprout', avatarUrl: 'https://placehold.co/80x80.png', uid: 'littlesprout-uid' },
-    'prod_29': { name: 'StretchyPants', avatarUrl: 'https://placehold.co/80x80.png', uid: 'stretchypants-uid' },
-    'prod_30': { name: 'Everyday', avatarUrl: 'https://placehold.co/80x80.png', uid: 'everyday-uid' },
-    'prod_31': { name: 'SunChaser', avatarUrl: 'https://placehold.co/80x80.png', uid: 'sunchaser-uid' },
-    'prod_32': { name: 'Elegance', avatarUrl: 'https://placehold.co/80x80.png', uid: 'elegance-uid' },
-    'prod_33': { name: 'SleekFit', avatarUrl: 'https://placehold.co/80x80.png', uid: 'sleekfit-uid' }
-};
 
 const ReportDialog = ({ onSubmit }: { onSubmit: (reason: string, details: string) => void }) => {
     const [reason, setReason] = useState("");
@@ -582,10 +546,10 @@ const RelatedContent = ({ relatedStreams, onAddToCart, onBuyNow, toast, getProdu
             <Link href="/live-selling">More</Link>
         </Button>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-4 gap-y-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {relatedStreams.slice(0, 4).map((s: any) => {
                  const sellerProducts = getProductsForSeller(s.id);
-                 const productsToShow = sellerProducts.slice(0, 6);
+                 const productsToShow = sellerProducts.slice(0, 5);
                  const remainingCount = sellerProducts.length > 5 ? sellerProducts.length - 5 : 0;
                  return (
                  <Card key={s.id} className="group flex flex-col space-y-2 overflow-hidden border-none shadow-none bg-transparent">
@@ -615,7 +579,7 @@ const RelatedContent = ({ relatedStreams, onAddToCart, onBuyNow, toast, getProdu
                         </div>
                     </Link>
                     <div className="flex items-center gap-1.5 mt-auto flex-shrink-0 pt-2 w-full justify-start pb-2 pl-2">
-                        {productsToShow.slice(0, remainingCount > 0 ? 5 : 6).map((p: any, i: number) => (
+                        {productsToShow.map((p: any) => (
                             <Link href={`/product/${p.key}`} key={p.key} className="block" onClick={(e) => e.stopPropagation()}>
                                 <div className="w-10 h-10 bg-muted rounded-md border overflow-hidden hover:ring-2 hover:ring-primary">
                                     <Image src={p.images[0]?.preview || p.images[0]} alt={p.name} width={40} height={40} className="object-cover w-full h-full" />
@@ -623,14 +587,14 @@ const RelatedContent = ({ relatedStreams, onAddToCart, onBuyNow, toast, getProdu
                             </Link>
                         ))}
                         {remainingCount > 0 && (
-                                <Sheet>
+                            <Sheet>
                                 <SheetTrigger asChild>
                                     <button className="w-10 h-10 bg-muted rounded-md border flex items-center justify-center text-xs font-semibold text-muted-foreground hover:bg-secondary">
                                         +{remainingCount}
                                     </button>
                                 </SheetTrigger>
                                 <SheetContent side="bottom" className="h-[60vh] flex flex-col p-0">
-                                        <ProductShelfContent 
+                                    <ProductShelfContent 
                                         sellerProducts={sellerProducts}
                                         handleAddToCart={onAddToCart}
                                         handleBuyNow={onBuyNow}
@@ -1485,9 +1449,6 @@ const StreamPage = () => {
         ref.current?.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
-    const getProductsForSeller = (sellerId: string): any[] => {
-        return Object.values(productDetails).filter(p => productToSellerMapping[p.key as keyof typeof productToSellerMapping]?.uid === sellerId);
-    }
     const sellerProducts = useMemo(() => {
         if (!seller) return [];
         return getProductsForSeller(seller.id);
