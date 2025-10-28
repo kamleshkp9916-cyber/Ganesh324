@@ -100,7 +100,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { useAuth } from '@/hooks/use-auth';
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { toggleFollow, getUserData, UserData, isFollowing as isFollowingBackend } from '@/lib/follow-data';
+import { toggleFollow, getUserData, UserData, isFollowing } from '@/lib/follow-data';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
@@ -219,7 +219,7 @@ const productToSellerMapping: { [key: string]: { name: string; avatarUrl: string
     'prod_18': { name: 'BeautyBox', avatarUrl: 'https://placehold.co/80x80.png', uid: 'beautybox-uid' },
     'prod_19': { name: 'QuickFlex', avatarUrl: 'https://placehold.co/80x80.png', uid: 'quickflex-uid' },
     'prod_20': { name: 'GentleStep', avatarUrl: 'https://placehold.co/80x80.png', uid: 'gentlestep-uid' },
-    'prod_21': { name: 'SunShield', avatarUrl: 'https://placehold.co/80x80.png', uid: 'sunshield-uid' },
+    'prod_21': { name: 'SunShield', avatarUrl: 'https://placehold.co/80x80.png', uid: 'sunchaser-uid' },
     'prod_22': { name: 'Aura Jewels', avatarUrl: 'https://placehold.co/80x80.png', uid: 'aurajewels-uid' },
     'prod_23': { name: 'BreezyWear', avatarUrl: 'https://placehold.co/80x80.png', uid: 'breezywear-uid' },
     'prod_24': { name: 'Elegance', avatarUrl: 'https://placehold.co/80x80.png', uid: 'elegance-uid' },
@@ -582,8 +582,8 @@ const RelatedContent = ({ relatedStreams, onAddToCart, onBuyNow, toast, getProdu
             <Link href="/live-selling">More</Link>
         </Button>
         </div>
-         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-x-4 gap-y-6">
-            {relatedStreams.slice(0,4).map((s: any) => {
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-4 gap-y-6">
+            {relatedStreams.slice(0, 4).map((s: any) => {
                  const sellerProducts = getProductsForSeller(s.id);
                  const productsToShow = sellerProducts.slice(0, 6);
                  const remainingCount = sellerProducts.length > 5 ? sellerProducts.length - 5 : 0;
@@ -861,7 +861,7 @@ const ChatPanel = ({
 
   return (
     <div className='h-full flex flex-col bg-background'>
-      <header className="p-3 flex items-center justify-between z-10 flex-shrink-0 h-16 border-b border-border sticky top-0 bg-background/80 backdrop-blur-sm">
+       <header className="p-3 flex items-center justify-between z-10 flex-shrink-0 h-16 border-b border-border sticky top-0 bg-background/80 backdrop-blur-sm">
         <h3 className="font-bold text-lg text-foreground">
             {isPastStream ? 'Chat Replay' : 'Live Chat'}
         </h3>
@@ -1195,7 +1195,7 @@ const MobileLayout = React.memo(({ handlers, chatMessages, walletBalance, isPast
                 </div>
             </header>
 
-            <div className="w-full aspect-[9/16] bg-black relative flex-shrink-0" ref={props.playerRef}>
+            <div className="w-full aspect-video bg-black relative flex-shrink-0" ref={props.playerRef}>
                 <video ref={props.videoRef} src={props.streamData.streamUrl || "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"} className="w-full h-full object-cover" loop onClick={handlePlayPause}/>
                  <div className="absolute top-3 left-3 z-10 flex items-center gap-2">
                     <Badge variant={isPastStream ? 'outline' : 'destructive'} className={cn(isPastStream && 'bg-black/50 text-white border-white/30', "gap-1.5")}>
@@ -1352,6 +1352,22 @@ const StreamPage = () => {
             setIsRatingDialogOpen(false);
         });
     };
+    
+    useEffect(() => {
+        const fetchSellerData = async () => {
+            if (streamId) {
+                const data = await getUserData(streamId);
+                if (data) {
+                    setSellerData(data);
+                    if (user && data) {
+                        setIsFollowingState(await isFollowing(user.uid, data.uid));
+                    }
+                }
+            }
+        };
+        fetchSellerData();
+    }, [streamId, user]);
+    
 
     useEffect(() => {
         if (seller) {
@@ -1381,21 +1397,6 @@ const StreamPage = () => {
             setChatMessages(initialMessages);
         }
     }, [seller]);
-
-    useEffect(() => {
-        const fetchSellerData = async () => {
-            if (streamId) {
-                const data = await getUserData(streamId);
-                if (data) {
-                    setSellerData(data);
-                    if (user && data) {
-                        setIsFollowingState(await isFollowingBackend(user.uid, data.uid));
-                    }
-                }
-            }
-        };
-        fetchSellerData();
-    }, [streamId, user]);
 
     const relatedStreams = useMemo(() => {
         if (!seller) return [];
@@ -1805,7 +1806,7 @@ const StreamPage = () => {
         return (
             <div className="flex flex-col h-screen items-center justify-center bg-background">
                 <div className="w-full max-w-4xl">
-                    <Skeleton className="w-full aspect-[9/16] md:aspect-video" />
+                    <Skeleton className="w-full aspect-video" />
                     <div className="p-4 space-y-3">
                         <Skeleton className="h-8 w-3/4" />
                         <Skeleton className="h-6 w-1/2" />
@@ -1820,10 +1821,10 @@ const StreamPage = () => {
             <AlertDialog open={isAuthDialogOpen} onOpenChange={setIsAuthDialogOpen}>
                 <AlertDialogContent>
                     <AlertDialogHeader>
-                        <AlertDialogTitle>Authentication Required</AlertDialogTitle>
-                        <AlertDialogDescription>
+                        <DialogTitle>Authentication Required</DialogTitle>
+                        <DialogDescription>
                             You need to be logged in to perform this action. Please log in or create an account to continue.
-                        </AlertDialogDescription>
+                        </DialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                         <AlertDialogCancel>Cancel</AlertDialogCancel>
@@ -1858,3 +1859,5 @@ const StreamPage = () => {
 };
 
 export default StreamPage;
+
+    
