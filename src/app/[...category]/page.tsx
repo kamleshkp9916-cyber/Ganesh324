@@ -3,7 +3,7 @@
 
 import { useRouter, useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, ShoppingCart, Star, Search, ChevronDown, Users, Package, Sparkles, Video, Loader2, ChevronLeft, ChevronRight, Home } from 'lucide-react';
+import { ArrowLeft, ShoppingCart, Star, Search, ChevronDown, Users, Package, Sparkles, Video, Loader2, ChevronLeft, ChevronRight, Home, Tv } from 'lucide-react';
 import { productDetails } from '@/lib/product-data';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -174,6 +174,9 @@ export default function CategoryPage() {
             window.scrollTo(0, 0);
         }
     };
+    
+    const liveStreamCategoryPath = `/live-selling/${pathSegments.join('/')}`;
+
 
     return (
         <>
@@ -191,7 +194,7 @@ export default function CategoryPage() {
                 </header>
 
                 <main className="container mx-auto py-6 flex-grow">
-                    <div className="mb-4">
+                     <div className="mb-4 flex justify-between items-center">
                         <nav aria-label="Breadcrumb">
                             <ol className="flex items-center gap-1.5 text-sm text-muted-foreground">
                                 <li><Link href="/listed-products" className="hover:text-primary"><Home className="h-4 w-4" /></Link></li>
@@ -207,6 +210,12 @@ export default function CategoryPage() {
                                 ))}
                             </ol>
                         </nav>
+                         <Button asChild variant="outline" size="sm">
+                            <Link href={liveStreamCategoryPath}>
+                                <Tv className="mr-2 h-4 w-4" />
+                                View Live
+                            </Link>
+                        </Button>
                     </div>
 
                     <div className="p-4 border-b flex flex-col sm:flex-row items-center gap-4 sticky top-[65px] bg-background/80 backdrop-blur-sm z-20 -mx-4 sm:mx-0">
@@ -287,7 +296,7 @@ export default function CategoryPage() {
                                                 </div>
                                                 <CardContent className="p-3 flex-grow flex flex-col">
                                                     <h4 className="font-semibold truncate text-sm flex-grow">{product.name}</h4>
-                                                     <div className="flex items-center gap-x-2 gap-y-1 mt-1">
+                                                     <div className="flex items-baseline gap-x-2 mt-1">
                                                         <p className="font-bold text-sm text-foreground">
                                                             ₹{discountedPrice.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                                         </p>
