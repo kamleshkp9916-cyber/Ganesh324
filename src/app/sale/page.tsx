@@ -35,8 +35,8 @@ export default function SalePage() {
   const banner2 = banners?.Sale?.banner2;
 
   return (
-    <div className="min-h-screen bg-background text-foreground flex flex-col">
-       <header className="border-b sticky top-0 bg-background/95 z-50">
+    <div className="min-h-screen bg-background text-foreground flex flex-col h-screen">
+       <header className="border-b sticky top-0 bg-background/95 z-50 flex-shrink-0">
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex items-center justify-between h-16">
                     <div className="flex items-center gap-4">
@@ -68,7 +68,7 @@ export default function SalePage() {
             </div>
         </header>
 
-      <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <main className="container mx-auto px-4 sm:px-6 lg:px-8 flex-grow flex flex-col overflow-hidden">
         <div className="text-center py-20 text-muted-foreground">
             <h1 className="text-4xl font-bold mb-4 text-red-600">Sale</h1>
             <p>Sale content coming soon.</p>
@@ -77,5 +77,3 @@ export default function SalePage() {
     </div>
   );
 }
-
-    

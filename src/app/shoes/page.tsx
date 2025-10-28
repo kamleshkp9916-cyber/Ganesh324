@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { useRouter } from 'next/navigation';
@@ -43,8 +42,8 @@ export default function ShoesPage() {
   const banner2 = banners?.Shoes?.banner2;
 
   return (
-    <div className="min-h-screen bg-background text-foreground flex flex-col">
-       <header className="border-b sticky top-0 bg-background/95 z-50">
+    <div className="min-h-screen bg-background text-foreground flex flex-col h-screen">
+       <header className="border-b sticky top-0 bg-background/95 z-50 flex-shrink-0">
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex items-center justify-between h-16">
                     <div className="flex items-center gap-4">
@@ -76,8 +75,8 @@ export default function ShoesPage() {
             </div>
         </header>
 
-      <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div className="flex items-center justify-between mb-4 lg:hidden">
+      <main className="container mx-auto px-4 sm:px-6 lg:px-8 flex-grow flex flex-col overflow-hidden">
+        <div className="flex items-center justify-between my-4 lg:hidden flex-shrink-0">
              <Button variant="ghost" size="icon" onClick={() => router.back()}>
               <ArrowLeft className="h-6 w-6" />
             </Button>
@@ -94,36 +93,40 @@ export default function ShoesPage() {
             </Sheet>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          <aside className="hidden lg:block lg:col-span-1">
-            <ShoesSidebar />
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 flex-grow overflow-hidden">
+          <aside className="hidden lg:block lg:col-span-1 h-full overflow-y-auto no-scrollbar">
+            <div className="sticky top-0 pt-6">
+              <ShoesSidebar />
+            </div>
           </aside>
 
-          <div className="lg:col-span-3 space-y-10">
-            <div className="hidden lg:block">
-                <h1 className="text-4xl font-bold">Shoes</h1>
-            </div>
+          <div className="lg:col-span-3 h-full overflow-y-auto no-scrollbar">
+            <div className="space-y-10 pb-10">
+              <div className="hidden lg:block pt-6">
+                  <h1 className="text-4xl font-bold">Shoes</h1>
+              </div>
 
-            <section>
-                <h2 className="text-xl font-semibold mb-4 text-center">Shop by Department</h2>
-                <div className="grid grid-cols-3 gap-4">
-                    {categories.map(category => (
-                        <Link href={`/live-selling/shoes/${category.name.toLowerCase().replace(/\s/g, '-').replace(/&/g, '%26')}`} key={category.name} className="group block text-center">
-                            <div className="aspect-[4/5] bg-muted rounded-lg overflow-hidden mb-2">
-                                <Image 
-                                    src={category.image}
-                                    alt={category.name}
-                                    width={400}
-                                    height={500}
-                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                                    data-ai-hint={category.hint}
-                                />
-                            </div>
-                            <p className="text-sm font-medium group-hover:underline">{category.name}</p>
-                        </Link>
-                    ))}
-                </div>
-            </section>
+              <section>
+                  <h2 className="text-xl font-semibold mb-4 text-center">Shop by Department</h2>
+                  <div className="grid grid-cols-3 gap-4">
+                      {categories.map(category => (
+                          <Link href={`/live-selling/shoes/${category.name.toLowerCase().replace(/\s/g, '-').replace(/&/g, '%26')}`} key={category.name} className="group block text-center">
+                              <div className="aspect-[4/5] bg-muted rounded-lg overflow-hidden mb-2">
+                                  <Image 
+                                      src={category.image}
+                                      alt={category.name}
+                                      width={400}
+                                      height={500}
+                                      className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                                      data-ai-hint={category.hint}
+                                  />
+                              </div>
+                              <p className="text-sm font-medium group-hover:underline">{category.name}</p>
+                          </Link>
+                      ))}
+                  </div>
+              </section>
+            </div>
           </div>
         </div>
       </main>
