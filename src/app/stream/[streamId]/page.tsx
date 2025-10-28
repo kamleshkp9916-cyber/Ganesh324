@@ -750,32 +750,144 @@ const ChatMessage = ({ msg, handlers, seller }: { msg: any, handlers: any, selle
 };
 
 const ChatPanel = ({
-  seller,
-  chatMessages,
-  pinnedMessages,
-  walletBalance,
-  handlers,
-  onClose,
-  isPastStream,
-  isSuperChatOpen,
-  setIsSuperChatOpen,
+    seller,
+    chatMessages,
+    pinnedMessages,
+    walletBalance,
+    handlers,
+    onClose,
+    isPastStream,
+    isSuperChatOpen,
+    setIsSuperChatOpen
 }: {
-  seller: any;
-  chatMessages: any[];
-  pinnedMessages: any[];
-  activeAuction: any;
-  auctionTime: number | null;
-  highestBid: number;
-  totalBids: number;
-  walletBalance: number;
-  handlers: any;
-  inlineAuctionCardRefs: React.MutableRefObject<Record<string, HTMLDivElement | null>>;
-  onClose: () => void;
-  isPastStream: boolean;
-  isSuperChatOpen: boolean;
-  setIsSuperChatOpen: (open: boolean) => void;
+    seller: any;
+    chatMessages: any[];
+    pinnedMessages: any[];
+    walletBalance?: number;
+    handlers: any;
+    onClose: () => void;
+    isPastStream: boolean;
+    isSuperChatOpen: boolean;
+    setIsSuperChatOpen: (open: boolean) => void;
 }) => {
-    return null;
+    const chatContainerRef = useRef<HTMLDivElement>(null);
+    const { user } = useAuth();
+    const [newMessage, setNewMessage] = useState('');
+    const [replyingTo, setReplyingTo] = useState<any | null>(null);
+
+    const handleReply = (msg: any) => {
+        setReplyingTo(msg);
+        setNewMessage(`@${msg.user} `);
+    };
+
+    const handleCancelReply = () => {
+        setReplyingTo(null);
+        if (newMessage.startsWith('@')) {
+            setNewMessage('');
+        }
+    };
+
+    const localHandlers = { ...handlers, onReply: handleReply };
+
+    const handleSendMessage = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (newMessage.trim()) {
+            handlers.handleNewMessageSubmit({
+                text: newMessage,
+                replyingTo: replyingTo ? replyingTo.authorName : undefined,
+            });
+            setNewMessage('');
+            setReplyingTo(null);
+        }
+    };
+
+    const addEmoji = (emoji: string) => {
+        setNewMessage(prev => prev + emoji);
+    };
+
+    return (
+        <div className="flex flex-col h-full bg-background">
+            <header className="p-3 flex items-center justify-between border-b shrink-0">
+                <h3 className="font-bold text-base">Live Chat</h3>
+                <Button variant="ghost" size="icon" className="lg:hidden" onClick={onClose}>
+                    <X className="h-5 w-5" />
+                </Button>
+            </header>
+            <ScrollArea ref={chatContainerRef} className="flex-grow">
+                <div className="p-2 space-y-1">
+                    {pinnedMessages.map((msg, index) => {
+                        return (
+                            <div key={`pin-${msg.id || index}`} className="p-3 rounded-lg bg-secondary border border-primary/20 flex gap-3 text-sm animate-in fade-in-0 slide-in-from-bottom-2">
+                                <Pin className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
+                                <div>
+                                    <p className="font-semibold text-primary">{msg.title}</p>
+                                    <p className="text-muted-foreground text-xs">{msg.description}</p>
+                                </div>
+                            </div>
+                        )
+                    })}
+                    {chatMessages.map((msg, index) => (
+                         msg.type === 'super_chat' ? <SuperChatMessage key={msg.id || index} msg={msg} /> :
+                         msg.type === 'post_share' ? <PostShareCard key={msg.id || index} msg={msg} handlers={localHandlers} /> :
+                         msg.type === 'product_promo' ? <ProductPromoCard key={msg.id || index} msg={msg} handlers={localHandlers} /> :
+                         msg.type === 'system' ? <div key={msg.id || index} className="text-center text-xs text-muted-foreground italic py-1">{msg.text}</div> :
+                         <ChatMessage key={msg.id || index} msg={msg} handlers={localHandlers} seller={seller} />
+                    ))}
+                </div>
+            </ScrollArea>
+            {!isPastStream && (
+                <footer className="p-2 border-t shrink-0">
+                    {replyingTo && (
+                        <div className="text-xs text-muted-foreground px-3 pt-1 pb-2 flex justify-between items-center">
+                            <span>Replying to @{replyingTo.user}</span>
+                            <button onClick={handleCancelReply}><X className="w-3 h-3" /></button>
+                        </div>
+                    )}
+                    <form onSubmit={handleSendMessage} className="flex items-center gap-2">
+                        <Avatar className="h-9 w-9">
+                            <AvatarImage src={user?.photoURL || undefined} />
+                            <AvatarFallback>{user?.displayName?.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                        <div className="relative flex-grow">
+                            <Textarea
+                                placeholder="Say something..."
+                                value={newMessage}
+                                onChange={(e) => setNewMessage(e.target.value)}
+                                rows={1}
+                                className="flex-grow resize-none pr-10 min-h-[40px] rounded-md"
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter' && !e.shiftKey) {
+                                        e.preventDefault();
+                                        handleSendMessage(e);
+                                    }
+                                }}
+                            />
+                            <Popover>
+                                <PopoverTrigger asChild>
+                                    <Button variant="ghost" size="icon" type="button" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 text-muted-foreground">
+                                        <Smile />
+                                    </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-80 h-64 p-0">
+                                    <div className="grid grid-cols-8 gap-1 h-full overflow-y-auto no-scrollbar p-2">
+                                        {emojis.map((emoji, index) => (
+                                            <Button key={index} variant="ghost" size="icon" onClick={() => addEmoji(emoji)}>
+                                                {emoji}
+                                            </Button>
+                                        ))}
+                                    </div>
+                                </PopoverContent>
+                            </Popover>
+                        </div>
+                         <SuperChatDialog walletBalance={walletBalance} handlers={handlers} isSuperChatOpen={isSuperChatOpen} setIsSuperChatOpen={setIsSuperChatOpen} />
+                        <Button type="submit" size="icon" disabled={!newMessage.trim()} className="rounded-full flex-shrink-0 h-11 w-11">
+                            <Send className="h-5 w-5" />
+                        </Button>
+                    </form>
+                </footer>
+            )}
+        </div>
+    );
 };
 
 
@@ -913,7 +1025,6 @@ return (
                 walletBalance={walletBalance}
                 isSuperChatOpen={isSuperChatOpen}
                 setIsSuperChatOpen={setIsSuperChatOpen}
-                inlineAuctionCardRefs={props.inlineAuctionCardRefs}
                 isPastStream={props.isPastStream}
             />
         </aside>
@@ -1617,7 +1728,5 @@ const StreamPage = () => {
 };
 
 export default StreamPage;
-
-    
 
     
