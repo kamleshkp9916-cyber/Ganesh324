@@ -584,19 +584,19 @@ export default function LiveSellingPage() {
     }, [allSellers]);
     
     const followedStreamsByCategory = useMemo(() => {
-      const followedCategoryNames = ['Fashion', 'Electronics']; // Mocked for now
-      const grouped: { [key: string]: any[] } = {};
-  
-      allSellers.forEach(stream => {
-        if (followedCategoryNames.includes(stream.category)) {
-          if (!grouped[stream.category]) {
-            grouped[stream.category] = [];
-          }
-          grouped[stream.category].push(stream);
-        }
-      });
-  
-      return grouped;
+        const followedSellerIds = ['fashionfinds-uid', 'gadgetguru-uid']; // Mocked for now
+        const grouped: { [key: string]: any[] } = {};
+
+        allSellers.forEach(stream => {
+            if (followedSellerIds.includes(stream.id)) {
+                if (!grouped[stream.category]) {
+                    grouped[stream.category] = [];
+                }
+                grouped[stream.category].push(stream);
+            }
+        });
+
+        return grouped;
     }, [allSellers]);
 
 
