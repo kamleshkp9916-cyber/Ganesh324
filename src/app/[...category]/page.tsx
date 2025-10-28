@@ -172,9 +172,11 @@ export default function CategoryPage() {
                     </Button>
                     <h1 className="text-xl font-bold truncate">{pageTitle}</h1>
                      {user && (
-                        <Button asChild variant="ghost" size="icon">
-                            <Link href="/cart"><ShoppingCart className="h-6 w-6" /></Link>
-                        </Button>
+                        <Link href="/cart">
+                            <Button asChild variant="ghost" size="icon">
+                                <ShoppingCart className="h-6 w-6" />
+                            </Button>
+                        </Link>
                     )}
                 </header>
 
@@ -248,13 +250,15 @@ export default function CategoryPage() {
                                                 </div>
                                                 <CardContent className="p-3 flex-grow flex flex-col">
                                                     <h4 className="font-semibold truncate text-sm flex-grow">{product.name}</h4>
-                                                    <p className="font-bold text-foreground mt-1">{product.price}</p>
-                                                    <div className="flex items-center gap-1 text-xs text-amber-400 mt-1">
-                                                        <Star className="w-4 h-4 fill-current" />
-                                                        <span>4.8</span>
-                                                        <span className="text-muted-foreground">(1.2k reviews)</span>
+                                                    <div className="flex items-center justify-between mt-1">
+                                                        <p className="font-bold text-foreground">{product.price}</p>
+                                                        <div className="flex items-center gap-1 text-xs text-amber-400">
+                                                            <Star className="w-4 h-4 fill-current" />
+                                                            <span>4.8</span>
+                                                        </div>
                                                     </div>
-                                                    <div className="flex items-center gap-4 text-xs text-muted-foreground mt-1">
+                                                    <p className="text-xs text-muted-foreground -mt-0.5">(1.2k reviews)</p>
+                                                    <div className="flex items-center gap-4 text-xs text-muted-foreground mt-2">
                                                         <div className="flex items-center gap-1"><Package className="w-3 h-3" /> {product.stock} left</div>
                                                         <div className="flex items-center gap-1"><Users className="w-3 h-3" /> {product.sold} sold</div>
                                                     </div>
