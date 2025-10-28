@@ -30,7 +30,7 @@ const PRODUCTS_PER_PAGE = 40;
 
 export default function CategoryPage() {
     const router = useRouter();
-    const params = useParams();
+    const params = useParams() as { category: string | string[] };
     const [sortOption, setSortOption] = useState("relevance");
     const [searchResults, setSearchResults] = useState<any[]>([]);
     const [showSearchResults, setShowSearchResults] = useState(false);
@@ -43,7 +43,7 @@ export default function CategoryPage() {
     const [isLoadingSimilar, setIsLoadingSimilar] = useState(false);
     const [similarProducts, setSimilarProducts] = useState<any[]>([]);
 
-    let { category: categoryPath } = params;
+    const { category: categoryPath } = params;
 
     if (!categoryPath) {
         return <div>Loading...</div>;
