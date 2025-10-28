@@ -66,7 +66,7 @@ export default function ListedProductsPage() {
   }, []);
 
   const getCategoryPath = (categoryName: string, subcategoryName?: string) => {
-    const basePath = `/live-selling/${categoryName.toLowerCase().replace(/\s+/g, '-')}`;
+    const basePath = `/${categoryName.toLowerCase().replace(/\s+/g, '-')}`;
     if (subcategoryName) {
         return `${basePath}/${subcategoryName.toLowerCase().replace(/\s+/g, '-').replace(/&/g, '%26')}`;
     }
@@ -229,7 +229,7 @@ export default function ListedProductsPage() {
               <PromotionalCarousel />
               
                 <section>
-                    <div className="text-center mb-8">
+                    <div className="text-left mb-8">
                         <h2 className="text-3xl font-bold tracking-tight">Shop By Category</h2>
                         <p className="text-muted-foreground mt-1">Explore our curated collections.</p>
                     </div>
@@ -308,4 +308,3 @@ const ListItem = React.forwardRef<
 })
 ListItem.displayName = "ListItem"
 
-    
