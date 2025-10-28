@@ -811,6 +811,34 @@ const ChatPanel = ({
             <header className="p-3 flex items-center justify-between border-b shrink-0">
                 <h3 className="font-bold text-base">Live Chat</h3>
                 <div className="flex items-center">
+                    <Popover>
+                        <PopoverTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-8 w-8 relative">
+                                <Pin className="h-4 w-4" />
+                                {pinnedMessages.length > 0 && <span className="absolute -top-0.5 -right-0.5 h-3 w-3 rounded-full bg-primary" />}
+                            </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-80 p-0">
+                            <div className="p-3 font-semibold text-sm border-b">Pinned Items</div>
+                            <ScrollArea className="h-64">
+                                <div className="p-2 space-y-1">
+                                    {pinnedMessages.length > 0 ? pinnedMessages.map((msg, index) => (
+                                        <div key={`pin-${msg.id || index}`} className="p-2 rounded-md bg-secondary/50 flex gap-3 text-sm">
+                                            {msg.type === 'offer' ? (
+                                                <div className="text-primary flex-shrink-0 mt-0.5">{msg.icon}</div>
+                                            ) : (
+                                                <Pin className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
+                                            )}
+                                            <div>
+                                                <p className="font-semibold text-primary">{msg.title}</p>
+                                                <p className="text-muted-foreground text-xs">{msg.description}</p>
+                                            </div>
+                                        </div>
+                                    )) : <p className="text-center text-xs text-muted-foreground p-4">No pinned items.</p>}
+                                </div>
+                            </ScrollArea>
+                        </PopoverContent>
+                    </Popover>
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                             <Button variant="ghost" size="icon" className="h-8 w-8">
@@ -837,6 +865,7 @@ const ChatPanel = ({
             <ScrollArea ref={chatContainerRef} className="flex-grow">
                 <div className="p-2 space-y-1">
                     {pinnedMessages.map((msg, index) => {
+                        if (msg.type !== 'offer') return null; // Only show non-offer pins inline
                         return (
                             <div key={`pin-${msg.id || index}`} className="p-3 rounded-lg bg-secondary border border-primary/20 flex gap-3 text-sm animate-in fade-in-0 slide-in-from-bottom-2">
                                 <Pin className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
