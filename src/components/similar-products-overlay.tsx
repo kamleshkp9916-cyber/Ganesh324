@@ -19,6 +19,7 @@ import { Badge } from './ui/badge';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { Skeleton } from './ui/skeleton';
+import { productDetails, productToSellerMapping } from '@/lib/product-data';
 
 interface SimilarProductsOverlayProps {
   isOpen: boolean;
@@ -46,6 +47,10 @@ export function SimilarProductsOverlay({
   isLoading,
 }: SimilarProductsOverlayProps) {
   if (!isOpen) return null;
+  
+  const getProductsForSeller = (sellerId: string): any[] => {
+    return Object.values(productDetails).filter(p => productToSellerMapping[p.key as keyof typeof productToSellerMapping]?.uid === sellerId);
+  }
 
   return (
     <div 
@@ -119,28 +124,42 @@ export function SimilarProductsOverlay({
           <TabsContent value="streams" className="mt-0">
             <Carousel opts={{ align: "start", loop: false }} className="w-full">
               <CarouselContent className="-ml-2">
-                {relatedStreams.map((s) => (
+                {relatedStreams.map((s) => {
+                  const sellerProducts = getProductsForSeller(s.id);
+                  const productsToShow = sellerProducts.slice(0, 3);
+                  return (
                   <CarouselItem key={s.id} className="basis-3/4 sm:basis-1/2 md:basis-1/2 lg:basis-1/3 xl:basis-1/4 pl-2">
-                     <Link href={`/stream/${s.id}`} key={s.id} className="group block">
-                        <div className="relative rounded-lg overflow-hidden aspect-video bg-muted w-full flex-shrink-0">
-                            <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
-                            <div className="absolute top-2 right-2 z-10"><Badge variant="secondary" className="bg-black/50 text-white"><Users className="w-3 h-3 mr-1"/>{s.viewers.toLocaleString()}</Badge></div>
-                             <Image src={s.thumbnailUrl} alt={`Live stream from ${s.name}`} fill sizes="33vw" className="object-cover transition-transform group-hover:scale-105" />
-                        </div>
-                        <div className="flex items-start gap-2 mt-2">
-                            <Avatar className="w-8 h-8">
-                                <AvatarImage src={s.avatarUrl} alt={s.name} />
-                                <AvatarFallback>{s.name.charAt(0)}</AvatarFallback>
-                            </Avatar>
-                            <div className="flex-1 overflow-hidden">
-                                <p className="font-semibold text-sm leading-tight group-hover:underline truncate">{s.title || s.name}</p>
-                                <p className="text-xs text-muted-foreground">{s.name}</p>
-                                <p className="text-xs text-primary font-semibold mt-0.5">{s.category}</p>
-                            </div>
-                        </div>
-                    </Link>
+                    <Card className="group flex flex-col space-y-2 overflow-hidden border-none shadow-none bg-transparent">
+                      <Link href={`/stream/${s.id}`} key={s.id} className="group block">
+                          <div className="relative rounded-lg overflow-hidden aspect-video bg-muted w-full flex-shrink-0">
+                              <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
+                              <div className="absolute top-2 right-2 z-10"><Badge variant="secondary" className="bg-black/50 text-white"><Users className="w-3 h-3 mr-1"/>{s.viewers.toLocaleString()}</Badge></div>
+                              <Image src={s.thumbnailUrl} alt={`Live stream from ${s.name}`} fill sizes="33vw" className="object-cover transition-transform group-hover:scale-105" />
+                          </div>
+                          <div className="flex items-start gap-2 mt-2">
+                              <Avatar className="w-8 h-8">
+                                  <AvatarImage src={s.avatarUrl} alt={s.name} />
+                                  <AvatarFallback>{s.name.charAt(0)}</AvatarFallback>
+                              </Avatar>
+                              <div className="flex-1 overflow-hidden">
+                                  <p className="font-semibold text-sm leading-tight group-hover:underline truncate">{s.title || s.name}</p>
+                                  <p className="text-xs text-muted-foreground">{s.name}</p>
+                                  <p className="text-xs text-primary font-semibold mt-0.5">{s.category}</p>
+                              </div>
+                          </div>
+                      </Link>
+                      <div className="flex items-center gap-1.5 mt-auto flex-shrink-0 pt-2 w-full justify-start pb-2 pl-2">
+                        {productsToShow.map((p: any, i: number) => (
+                            <Link href={`/product/${p.key}`} key={p.key} className="block" onClick={(e) => e.stopPropagation()}>
+                                <div className="w-10 h-10 bg-muted rounded-md border overflow-hidden hover:ring-2 hover:ring-primary">
+                                    <Image src={p.images[0]?.preview || p.images[0]} alt={p.name} width={40} height={40} className="object-cover w-full h-full" />
+                                </div>
+                            </Link>
+                        ))}
+                      </div>
+                    </Card>
                   </CarouselItem>
-                ))}
+                )})}
               </CarouselContent>
               <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2 hidden md:flex" />
               <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2 hidden md:flex" />
