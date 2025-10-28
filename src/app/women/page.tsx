@@ -104,14 +104,14 @@ export default function WomensClothingPage() {
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 flex-grow overflow-hidden">
           {/* Left Column: Sidebar (Desktop) */}
-          <aside className="hidden lg:block lg:col-span-1 h-full overflow-y-auto">
+          <aside className="hidden lg:block lg:col-span-1 h-full overflow-y-auto no-scrollbar">
              <div className="sticky top-0 pt-6">
                 <WomensSidebar />
             </div>
           </aside>
 
           {/* Right Column: Main Content */}
-           <div className="lg:col-span-3 h-full overflow-y-auto">
+           <div className="lg:col-span-3 h-full overflow-y-auto no-scrollbar">
                <div className="space-y-10 pb-10">
                     <div className="hidden lg:block pt-6">
                         <h1 className="text-4xl font-bold">Women</h1>
