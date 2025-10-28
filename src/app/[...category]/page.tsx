@@ -3,7 +3,7 @@
 
 import { useRouter, useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, ShoppingCart, Star, Search, ChevronDown, Users, Package, Sparkles, Video, Loader2 } from 'lucide-react';
+import { ArrowLeft, ShoppingCart, Star, Search, ChevronDown, Users, Package, Sparkles, Video, Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { productDetails } from '@/lib/product-data';
 import Link from 'next/link';
 import { Card } from '@/components/ui/card';
@@ -24,8 +24,9 @@ import { normalize, generateKeywords } from '@/lib/generateKeywords';
 import ProductSearch from '@/components/ProductSearch';
 import { cn } from '@/lib/utils';
 import { SimilarProductsOverlay } from '@/components/similar-products-overlay';
+import { Pagination, PaginationContent, PaginationItem, PaginationPrevious, PaginationNext, PaginationLink, PaginationEllipsis } from '@/components/ui/pagination';
 
-const PRODUCTS_PER_PAGE = 10;
+const PRODUCTS_PER_PAGE = 40;
 
 export default function CategoryPage() {
     const router = useRouter();
@@ -34,7 +35,7 @@ export default function CategoryPage() {
     const [searchResults, setSearchResults] = useState<any[]>([]);
     const [showSearchResults, setShowSearchResults] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
-    const [visibleProductsCount, setVisibleProductsCount] = useState(PRODUCTS_PER_PAGE);
+    const [currentPage, setCurrentPage] = useState(1);
 
     // State for similar products functionality
     const [scanningProductId, setScanningProductId] = useState<string | null>(null);
@@ -94,7 +95,7 @@ export default function CategoryPage() {
         setSearchResults(results);
         setSearchQuery(query);
         setShowSearchResults(results.length > 0 || query.length > 0);
-        setVisibleProductsCount(PRODUCTS_PER_PAGE); // Reset pagination on new search
+        setCurrentPage(1); // Reset pagination on new search
     }, []);
     
     const handleSimilarClick = (e: React.MouseEvent, product: any) => {
@@ -117,11 +118,17 @@ export default function CategoryPage() {
         }, 1500);
     };
 
-    const visibleProducts = sortedProducts.slice(0, visibleProductsCount);
-    const hasMoreProducts = visibleProductsCount < sortedProducts.length;
-
-    const loadMoreProducts = () => {
-        setVisibleProductsCount(prevCount => prevCount + PRODUCTS_PER_PAGE);
+    const totalPages = Math.ceil(sortedProducts.length / PRODUCTS_PER_PAGE);
+    const visibleProducts = sortedProducts.slice(
+        (currentPage - 1) * PRODUCTS_PER_PAGE,
+        currentPage * PRODUCTS_PER_PAGE
+    );
+    
+    const handlePageChange = (page: number) => {
+        if (page > 0 && page <= totalPages) {
+            setCurrentPage(page);
+            window.scrollTo(0, 0);
+        }
     };
 
     return (
@@ -219,10 +226,29 @@ export default function CategoryPage() {
                                     )
                                 })}
                             </div>
-                            {hasMoreProducts && (
-                                <div className="text-center mt-8">
-                                    <Button onClick={loadMoreProducts}>Load More</Button>
-                                </div>
+                            {totalPages > 1 && (
+                                <Pagination className="mt-8">
+                                    <PaginationContent>
+                                        <PaginationItem>
+                                             <Button variant="ghost" onClick={() => handlePageChange(1)} disabled={currentPage === 1}>
+                                                <ChevronLeft className="h-4 w-4" /><ChevronLeft className="h-4 w-4 -ml-2" /> Page 1
+                                            </Button>
+                                        </PaginationItem>
+                                        <PaginationItem>
+                                            <Button variant="outline" onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1}>
+                                                <ChevronLeft className="h-4 w-4 mr-1" /> Previous
+                                            </Button>
+                                        </PaginationItem>
+                                        <PaginationItem>
+                                            <span className="p-2 text-sm">Page {currentPage} of {totalPages}</span>
+                                        </PaginationItem>
+                                        <PaginationItem>
+                                            <Button variant="outline" onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages}>
+                                                Next <ChevronRight className="h-4 w-4 ml-1" />
+                                            </Button>
+                                        </PaginationItem>
+                                    </PaginationContent>
+                                </Pagination>
                             )}
                         </>
                     ) : (
