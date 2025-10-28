@@ -178,7 +178,6 @@ export function ProductDetailClient({ productId }: { productId: string }) {
     const [editingReview, setEditingReview] = useState<Review | undefined>(undefined);
     const [taggedPosts, setTaggedPosts] = useState<any[]>([]);
     const [recentlyViewedItems, setRecentlyViewedItems] = useState<Product[]>([]);
-    const [sellerProducts, setSellerProducts] = useState<any[]>([]);
     const [isQnaDialogOpen, setIsQnaDialogOpen] = useState(false);
     const [selectedSize, setSelectedSize] = useState<string | null>(null);
     const [selectedColor, setSelectedColor] = useState<string | null>(null);
@@ -1237,12 +1236,13 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                 </Card>
 
                                 <Separator />
-                                 <div className="mt-4">
+                                <div className="mt-4">
                                     <h2 className="text-2xl font-bold mb-4">Related Product Streams</h2>
-                                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                                         {relatedStreams.map((stream: any) => {
                                             const sellerProducts = getProductsForSeller(stream.id);
                                             const productsToShow = sellerProducts.slice(0, 3);
+                                            const remainingCount = sellerProducts.length > 3 ? sellerProducts.length - 3 : 0;
                                             return (
                                                 <Card key={stream.id} className="group flex flex-col space-y-2 overflow-hidden border-none shadow-none bg-transparent">
                                                     <Link href={`/stream/${stream.id}`} className="block">
@@ -1263,21 +1263,40 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                                             <div className="flex-1 overflow-hidden">
                                                                 <p className="font-semibold text-sm leading-tight group-hover:underline truncate">{stream.title || stream.name}</p>
                                                                 <p className="text-xs text-muted-foreground">{stream.name}</p>
-                                                                <div className="flex items-center gap-2 flex-wrap mt-0.5">
-                                                                    <p className="text-xs text-primary font-semibold">{stream.category}</p>
-                                                                    {stream.subcategory && <Badge variant="outline" className="text-xs">{stream.subcategory}</Badge>}
-                                                                </div>
+                                                                <p className="text-xs text-primary font-semibold mt-0.5">{stream.category}</p>
                                                             </div>
                                                         </div>
                                                     </Link>
                                                     <div className="flex items-center gap-1.5 mt-auto flex-shrink-0 pt-2 w-full justify-start pb-2 pl-2">
-                                                        {productsToShow.slice(0, 3).map((p: any, i: number) => (
+                                                        {productsToShow.map((p: any) => (
                                                             <Link href={`/product/${p.key}`} key={p.key} className="block" onClick={(e) => e.stopPropagation()}>
                                                                 <div className="w-10 h-10 bg-muted rounded-md border overflow-hidden hover:ring-2 hover:ring-primary">
                                                                     <Image src={p.images[0]?.preview || p.images[0]} alt={p.name} width={40} height={40} className="object-cover w-full h-full" />
                                                                 </div>
                                                             </Link>
                                                         ))}
+                                                        {remainingCount > 0 && (
+                                                            <Sheet>
+                                                                <SheetTrigger asChild>
+                                                                    <button className="w-10 h-10 bg-muted rounded-md border flex items-center justify-center text-xs font-semibold text-muted-foreground hover:bg-secondary">
+                                                                        +{remainingCount}
+                                                                    </button>
+                                                                </SheetTrigger>
+                                                                <SheetContent side="bottom" className="h-[60vh] flex flex-col p-0">
+                                                                    <ProductShelfContent 
+                                                                        sellerProducts={sellerProducts}
+                                                                        handleAddToCart={handleAddToCart}
+                                                                        handleBuyNow={handleBuyNow}
+                                                                        isMobile={true}
+                                                                        onClose={() => {
+                                                                            const a = document.querySelector('[data-state="closed"]');
+                                                                            if (a) (a as HTMLElement).click();
+                                                                        }}
+                                                                        toast={toast}
+                                                                    />
+                                                                </SheetContent>
+                                                            </Sheet>
+                                                        )}
                                                     </div>
                                                 </Card>
                                             )
@@ -1370,3 +1389,5 @@ export function ProductDetailClient({ productId }: { productId: string }) {
         </>
     );
 }
+
+    
