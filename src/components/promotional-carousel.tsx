@@ -66,7 +66,7 @@ export function PromotionalCarousel() {
                             sizes="(max-width: 768px) 100vw, 50vw"
                             className="object-cover"
                         />
-                         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-transparent to-background md:hidden" />
+                         <div className="absolute inset-0 bg-gradient-to-r from-background/0 via-background/20 to-background md:hidden" />
                     </div>
                   <div className="relative z-10 p-8 md:p-12 w-full md:w-1/2 flex flex-col items-center md:items-start text-center md:text-left">
                      <h2 className="text-2xl md:text-4xl font-bold text-foreground">{slide.title}</h2>
