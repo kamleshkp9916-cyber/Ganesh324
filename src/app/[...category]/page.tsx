@@ -26,7 +26,7 @@ import { cn } from '@/lib/utils';
 import { SimilarProductsOverlay } from '@/components/similar-products-overlay';
 import { Pagination, PaginationContent, PaginationItem, PaginationPrevious, PaginationNext, PaginationLink, PaginationEllipsis } from '@/components/ui/pagination';
 
-const PRODUCTS_PER_PAGE = 40;
+const PRODUCTS_PER_PAGE = 12;
 
 export default function CategoryPage() {
     const router = useRouter();
