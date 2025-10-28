@@ -122,7 +122,7 @@ import { useInView } from "react-intersection-observer";
 import { useMiniPlayer } from "@/context/MiniPlayerContext";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { useIsMobile } from "@/hooks/use-is-mobile";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { format, formatDistanceToNow, isThisWeek, isThisYear, parseISO, parse } from 'date-fns';
 import { ProductShelfContent } from '@/components/product-shelf-content';
@@ -571,10 +571,7 @@ const RelatedContent = ({ relatedStreams, onAddToCart, onBuyNow, toast, getProdu
                             <div className="flex-1 overflow-hidden">
                                 <p className="font-semibold text-sm leading-tight group-hover:underline truncate">{s.title || s.name}</p>
                                 <p className="text-xs text-muted-foreground">{s.name}</p>
-                                <div className="flex items-center gap-2 flex-wrap mt-0.5">
-                                    <p className="text-xs text-primary font-semibold">{s.category}</p>
-                                    {s.subcategory && <Badge variant="outline" className="text-xs">{s.subcategory}</Badge>}
-                                </div>
+                                <p className="text-xs text-primary font-semibold mt-0.5">{s.category}</p>
                             </div>
                         </div>
                     </Link>
@@ -594,7 +591,7 @@ const RelatedContent = ({ relatedStreams, onAddToCart, onBuyNow, toast, getProdu
                                     </button>
                                 </SheetTrigger>
                                 <SheetContent side="bottom" className="h-[60vh] flex flex-col p-0">
-                                    <ProductShelfContent 
+                                    <ProductShelfContent
                                         sellerProducts={sellerProducts}
                                         handleAddToCart={onAddToCart}
                                         handleBuyNow={onBuyNow}
@@ -1262,7 +1259,7 @@ const StreamPage = () => {
     const isPastStream = searchParams.get('isPast') === 'true';
 
     const { user } = useAuth();
-    const { toast } = useToast();
+    const { toast } from useToast();
     const { minimizedStream, minimizeStream, closeMinimizedStream, isMinimized } = useMiniPlayer();
     const inlineAuctionCardRefs = useRef<Record<string, HTMLDivElement | null>>({});
     
@@ -1288,6 +1285,10 @@ const StreamPage = () => {
 
     const [isRatingDialogOpen, setIsRatingDialogOpen] = useState(false);
     const [userRating, setUserRating] = useState<number>(0);
+
+    const getProductsForSeller = useCallback((sellerId: string): any[] => {
+        return Object.values(productDetails).filter(p => productToSellerMapping[p.key as keyof typeof productToSellerMapping]?.uid === sellerId);
+    }, []);
     
     const handleAuthAction = useCallback((callback?: () => void) => {
         if (!user) {
@@ -1452,7 +1453,7 @@ const StreamPage = () => {
     const sellerProducts = useMemo(() => {
         if (!seller) return [];
         return getProductsForSeller(seller.id);
-    }, [seller]);
+    }, [seller, getProductsForSeller]);
     
     useEffect(() => {
         if (seller) {
@@ -1822,3 +1823,4 @@ const StreamPage = () => {
 export default StreamPage;
 
     
+
