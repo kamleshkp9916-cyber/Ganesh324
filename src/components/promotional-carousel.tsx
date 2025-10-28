@@ -50,7 +50,7 @@ export function PromotionalCarousel() {
   if (!isMounted) {
       return (
           <div className="w-full mb-8">
-            <Skeleton className="aspect-[1.5/1] md:aspect-[2/1] w-full rounded-2xl" />
+            <Skeleton className="aspect-[2.5/1] w-full rounded-2xl" />
           </div>
       );
   }
@@ -60,25 +60,42 @@ export function PromotionalCarousel() {
   }
   
   return (
-    <Card className="overflow-hidden border-none shadow-lg bg-gray-900 text-white rounded-2xl">
+    <Card className="overflow-hidden border-none shadow-lg bg-black text-white rounded-2xl">
       <CardContent className="p-0 grid grid-cols-1 md:grid-cols-2 items-center">
-        <div className="relative p-6 md:p-8">
+        <div className="relative p-6 md:p-8 order-2 md:order-1">
+            <p className="text-sm font-medium text-gray-400 mb-2">New season essentials</p>
+            <h2 className="text-3xl md:text-4xl font-bold text-white">Discover products you'll love</h2>
+            <p className="text-base text-gray-300 mt-4 max-w-md">Curated picks, timeless design, and everyday prices. Start exploring our latest arrivals and best sellers.</p>
+            <div className="flex flex-wrap gap-4 mt-8">
+                <Button asChild className="h-11 px-6 text-base bg-white text-black hover:bg-gray-200">
+                    <Link href="/live-selling/trending/new-arrivals">Shop New Arrivals</Link>
+                </Button>
+                <Button asChild variant="outline" className="h-11 px-6 text-base bg-transparent text-white border-white hover:bg-white hover:text-black">
+                    <Link href="/listed-products">Browse Categories</Link>
+                </Button>
+            </div>
+            <div className="flex items-center gap-2 mt-8 text-sm text-gray-400">
+                <Zap className="h-4 w-4"/>
+                <span>Free shipping over $50 and 30-day returns</span>
+            </div>
+        </div>
+        <div className="relative aspect-[1/1] md:aspect-auto md:h-full order-1 md:order-2">
             <Carousel
                 setApi={setApi}
-                className="w-full"
+                className="w-full h-full"
                 plugins={[Autoplay({ delay: 5000, stopOnInteraction: true })]}
                 opts={{ loop: true }}
             >
-                <CarouselContent>
+                <CarouselContent className="h-full">
                     {activeSlides.map((slide, index) => (
                         <CarouselItem key={index}>
-                            <div className="relative aspect-square w-full">
+                            <div className="relative h-full w-full">
                                 <Image
                                     src={slide.imageUrl}
                                     alt={slide.title}
                                     fill
-                                    sizes="(max-width: 768px) 100vw, 50vw"
-                                    className="object-cover rounded-xl"
+                                    sizes="50vw"
+                                    className="object-cover"
                                     data-ai-hint="fashion model"
                                 />
                             </div>
@@ -86,34 +103,17 @@ export function PromotionalCarousel() {
                     ))}
                 </CarouselContent>
             </Carousel>
-             <div className="absolute bottom-10 left-0 right-0 flex items-center justify-center gap-2">
+             <div className="absolute bottom-4 left-0 right-0 flex items-center justify-center gap-2 z-10">
                 {activeSlides.map((_, i) => (
                     <button
                         key={i}
                         onClick={() => api?.scrollTo(i)}
                         className={cn(
-                            "h-1.5 w-1.5 rounded-full bg-white/50 transition-all",
-                            i === current ? "w-4 bg-white" : "hover:bg-white/75"
+                            "h-2 w-2 rounded-full bg-white/50 transition-all",
+                            i === current ? "w-6 bg-white" : "hover:bg-white/75"
                         )}
                     />
                 ))}
-            </div>
-        </div>
-        <div className="p-8 md:p-12 flex flex-col justify-center">
-            <p className="text-sm font-medium text-gray-400 mb-2">New season essentials</p>
-            <h2 className="text-3xl md:text-4xl font-bold text-white">Discover products you'll love</h2>
-            <p className="text-base text-gray-300 mt-4 max-w-md">Curated picks, timeless design, and everyday prices. Start exploring our latest arrivals and best sellers.</p>
-            <div className="flex flex-wrap gap-4 mt-8">
-                <Button asChild className="h-11 px-6 text-base bg-primary hover:bg-primary/90">
-                    <Link href="/live-selling/trending/new-arrivals">Shop New Arrivals</Link>
-                </Button>
-                <Button asChild variant="secondary" className="h-11 px-6 text-base bg-white/10 text-white hover:bg-white/20">
-                    <Link href="/listed-products">Browse Categories</Link>
-                </Button>
-            </div>
-            <div className="flex items-center gap-2 mt-8 text-sm text-gray-400">
-                <Zap className="h-4 w-4"/>
-                <span>Free shipping over $50 and 30-day returns</span>
             </div>
         </div>
       </CardContent>
