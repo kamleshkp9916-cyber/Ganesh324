@@ -257,7 +257,6 @@ export default function CategoryPage() {
                                                             <span>4.8</span>
                                                         </div>
                                                     </div>
-                                                    <p className="text-xs text-muted-foreground -mt-0.5">(1.2k reviews)</p>
                                                     <div className="flex items-center gap-4 text-xs text-muted-foreground mt-2">
                                                         <div className="flex items-center gap-1"><Package className="w-3 h-3" /> {product.stock} left</div>
                                                         <div className="flex items-center gap-1"><Users className="w-3 h-3" /> {product.sold} sold</div>
@@ -312,5 +311,3 @@ export default function CategoryPage() {
         </>
     );
 }
-
-    
