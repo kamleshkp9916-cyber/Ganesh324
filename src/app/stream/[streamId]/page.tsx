@@ -100,7 +100,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { useAuth } from '@/hooks/use-auth';
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { toggleFollow, getUserData, UserData, isFollowing } from '@/lib/follow-data';
+import { toggleFollow, getUserData, UserData, isFollowing as isFollowingBackend } from '@/lib/follow-data';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
@@ -614,7 +614,7 @@ const RelatedContent = ({ relatedStreams, onAddToCart, onBuyNow, toast, getProdu
                             </div>
                         </div>
                     </Link>
-                    <div className="flex items-center gap-1.5 mt-auto flex-shrink-0 pt-2 w-full justify-start pb-2 pl-2">
+                    <div className="flex items-center gap-1.5 mt-auto flex-shrink-0 pt-2 w-full justify-start pb-2">
                         {productsToShow.slice(0, remainingCount > 0 ? 5 : 6).map((p: any, i: number) => (
                             <Link href={`/product/${p.key}`} key={p.key} className="block" onClick={(e) => e.stopPropagation()}>
                                 <div className="w-10 h-10 bg-muted rounded-md border overflow-hidden hover:ring-2 hover:ring-primary">
@@ -1021,6 +1021,7 @@ const ChatPanel = ({
   );
 };
 
+
 const MemoizedStreamInfo = React.memo(StreamInfo);
 const MemoizedRelatedContent = React.memo(RelatedContent);
 
@@ -1360,7 +1361,7 @@ const StreamPage = () => {
                 if (data) {
                     setSellerData(data);
                     if (user && data) {
-                        setIsFollowingState(await isFollowing(user.uid, data.uid));
+                        setIsFollowingState(await isFollowingBackend(user.uid, data.uid));
                     }
                 }
             }
@@ -1859,5 +1860,3 @@ const StreamPage = () => {
 };
 
 export default StreamPage;
-
-    
