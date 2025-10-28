@@ -47,7 +47,7 @@ export default function CategoryPage() {
     
     const pathSegments = Array.isArray(categoryPath) ? categoryPath : [categoryPath];
     const categorySlug = pathSegments[0] || '';
-    const subCategorySlug = pathSegments[1] || null;
+    const subCategorySlug = pathSegments.length > 1 ? pathSegments[pathSegments.length - 1] : null;
     
     const lastSegment = pathSegments[pathSegments.length - 1] || '';
 
@@ -225,9 +225,3 @@ export default function CategoryPage() {
         </>
     );
 }
-    
-    
-
-    
-
-    
