@@ -33,7 +33,7 @@ const PRODUCTS_PER_PAGE = 30;
 
 const ProductCardSkeleton = () => (
     <Card className="w-full overflow-hidden h-full flex flex-col">
-        <Skeleton className="relative aspect-square bg-muted" />
+        <Skeleton className="relative aspect-[10/9] bg-muted" />
         <div className="p-3 flex-grow flex flex-col space-y-2">
             <Skeleton className="h-4 w-3/4" />
             <Skeleton className="h-5 w-1/2" />
@@ -218,7 +218,7 @@ export default function CategoryPage() {
                                     return (
                                         <Link href={`/product/${product.key}`} key={product.key} className="group block">
                                             <Card className="w-full overflow-hidden h-full flex flex-col">
-                                                <div className="relative aspect-square bg-muted">
+                                                <div className="relative aspect-[10/9] bg-muted">
                                                     {isNew && (
                                                         <Badge className="absolute top-2 left-2 z-10">NEW</Badge>
                                                     )}
@@ -308,3 +308,5 @@ export default function CategoryPage() {
         </>
     );
 }
+
+    
