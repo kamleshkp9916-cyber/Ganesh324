@@ -35,11 +35,14 @@ export function HomeSidebar() {
                         <AccordionTrigger className="text-base font-semibold">{section.title}</AccordionTrigger>
                         <AccordionContent>
                             <div className="flex flex-col space-y-2 pl-2">
-                                {section.links.map(link => (
-                                    <Link key={link} href="#" className="text-sm text-muted-foreground hover:text-foreground">
-                                        {link}
-                                    </Link>
-                                ))}
+                                {section.links.map(link => {
+                                    const subCategorySlug = link.toLowerCase().replace(/\s+/g, '-').replace(/&/g, '%26');
+                                    return (
+                                        <Link key={link} href={`/home/${subCategorySlug}`} className="text-sm text-muted-foreground hover:text-foreground">
+                                            {link}
+                                        </Link>
+                                    )
+                                })}
                             </div>
                         </AccordionContent>
                     </AccordionItem>

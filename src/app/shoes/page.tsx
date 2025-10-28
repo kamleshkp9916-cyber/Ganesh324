@@ -110,7 +110,7 @@ export default function ShoesPage() {
                   <h2 className="text-xl font-semibold mb-4 text-center">Shop by Department</h2>
                   <div className="grid grid-cols-3 gap-4">
                       {categories.map(category => (
-                          <Link href={`/live-selling/shoes/${category.name.toLowerCase().replace(/\s/g, '-').replace(/&/g, '%26')}`} key={category.name} className="group block text-center">
+                          <Link href={`/shoes/${category.name.toLowerCase().replace(/\s/g, '-').replace(/&/g, '%26')}`} key={category.name} className="group block text-center">
                               <div className="aspect-[4/5] bg-muted rounded-lg overflow-hidden mb-2">
                                   <Image 
                                       src={category.image}

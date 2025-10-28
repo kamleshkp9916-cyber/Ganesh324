@@ -51,7 +51,7 @@ export default function MensClothingPage() {
 
   const getSubCategoryPath = (name: string) => {
     const subCategorySlug = name.toLowerCase().replace(/\s+/g, '-').replace(/&/g, '%26');
-    return `/live-selling/men/${subCategorySlug}`;
+    return `/men/${subCategorySlug}`;
   };
 
   return (

@@ -39,7 +39,7 @@ export function MensSidebar() {
                                 {section.links.map(link => {
                                     const subCategorySlug = link.toLowerCase().replace(/\s+/g, '-').replace(/&/g, '%26');
                                     return (
-                                        <Link key={link} href={`/live-selling/men/${subCategorySlug}`} className="text-sm text-muted-foreground hover:text-foreground">
+                                        <Link key={link} href={`/men/${subCategorySlug}`} className="text-sm text-muted-foreground hover:text-foreground">
                                             {link}
                                         </Link>
                                     )
