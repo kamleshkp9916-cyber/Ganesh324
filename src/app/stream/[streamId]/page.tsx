@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import {
@@ -101,7 +100,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { useAuth } from '@/hooks/use-auth';
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { toggleFollow, getUserData, UserData } from '@/lib/follow-data';
+import { toggleFollow, getUserData, UserData, isFollowing } from '@/lib/follow-data';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
@@ -597,9 +596,7 @@ const RelatedContent = ({ relatedStreams }: { relatedStreams: any[] }) => {
                             <AvatarFallback>{s.name.charAt(0)}</AvatarFallback>
                         </Avatar>
                         <div className="flex-1 overflow-hidden">
-                            <div className="flex items-center gap-1.5">
-                                <p className="font-semibold text-xs group-hover:underline truncate">{s.name}</p>
-                            </div>
+                             <p className="font-semibold text-xs group-hover:underline truncate">{s.name}</p>
                             <p className="text-xs text-muted-foreground">{s.category}</p>
                             <p className="text-xs text-primary font-semibold mt-0.5">#{s.category.toLowerCase().replace(/\s+/g, '')}</p>
                         </div>
@@ -610,835 +607,6 @@ const RelatedContent = ({ relatedStreams }: { relatedStreams: any[] }) => {
     </div>
     )
 };
-
-const StreamPage = () => {
-    const router = useRouter();
-    const params = useParams();
-    const searchParams = useSearchParams();
-
-    const streamId = params.streamId as string;
-    const isPastStream = searchParams.get('isPast') === 'true';
-
-    const { user } = useAuth();
-    const { toast } = useToast();
-    const { minimizedStream, minimizeStream, closeMinimizedStream, isMinimized } = useMiniPlayer();
-    const inlineAuctionCardRefs = useRef<Record<string, HTMLDivElement | null>>({});
-    
-    const [isReportOpen, setIsReportOpen] = useState(false);
-    const [pinnedMessages, setPinnedMessages] = useState<any[]>(mockAdminOffers.map(o => ({...o, type: 'offer', id: o.title })));
-    const [isFollowingState, setIsFollowingState] = useState(false);
-    
-    const [cartCount, setCartCount] = useState(0);
-    const [walletBalance, setWalletBalance] = useState(42580.22);
-    const [sellerData, setSellerData] = useState<UserData | null>(null);
-    
-    const isMobile = useIsMobile();
-        
-    const seller = useMemo(() => liveSellers.find(s => s.id === streamId), [streamId]);
-
-    const product = useMemo(() => {
-        if (!seller) return null;
-        return productDetails[seller.productId as keyof typeof productDetails] || null;
-    }, [seller]);
-    
-    const [chatMessages, setChatMessages] = useState<any[]>([]);
-    const [isAuthDialogOpen, setIsAuthDialogOpen] = useState(false);
-
-    const [isRatingDialogOpen, setIsRatingDialogOpen] = useState(false);
-    const [userRating, setUserRating] = useState<number>(0);
-
-    const handleRateStream = (rating: number) => {
-        if (!user) return;
-        
-        setUserRating(rating);
-        toast({
-            title: `You rated this stream ${rating} stars!`,
-            description: "Thanks for your feedback."
-        });
-
-        const ratingMessage = {
-            id: `rating-${Date.now()}`,
-            type: 'system',
-            text: `${user.displayName} rated the stream ${'★'.repeat(rating)}${'☆'.repeat(5 - rating)}`,
-        };
-        
-        setChatMessages(prev => [...prev, ratingMessage]);
-
-        setIsRatingDialogOpen(false);
-    };
-
-    useEffect(() => {
-        if (seller) {
-            const mockPost = {
-                id: 33,
-                type: 'post_share',
-                sellerName: seller.name,
-                text: 'Behind the scenes of our new collection!',
-                product: productDetails['prod_5']
-            };
-    
-             const initialMessages = mockChatMessages.map(msg => {
-                if (msg.isSeller) {
-                    return { ...msg, user: seller.name };
-                }
-                return msg;
-            });
-
-             const existingPostShareIndex = initialMessages.findIndex(m => m.type === 'post_share');
-
-            if (existingPostShareIndex !== -1) {
-                // Update existing shared post
-                initialMessages[existingPostShareIndex] = { ...initialMessages[existingPostShareIndex], sellerName: seller.name };
-            } else {
-                 // Add a new one if it doesn't exist
-                 initialMessages.push({ ...mockPost, sellerName: seller.name });
-            }
-            
-            setChatMessages(initialMessages);
-        }
-    }, [seller]);
-
-    useEffect(() => {
-        if (streamId) {
-            getUserData(streamId).then(data => {
-                setSellerData(data);
-            });
-        }
-    }, [streamId]);
-
-    const relatedStreams = useMemo(() => {
-        if (!seller) return [];
-        let streams = liveSellers.filter(
-            s => s.category === seller.category && s.id !== streamId
-        );
-         if (streams.length > 50) {
-            return streams.slice(0, 51);
-        }
-        const fallbackStreams = liveSellers.filter(s => s.id !== streamId);
-        
-        let i = 0;
-        while(streams.length < 6 && i < fallbackStreams.length) {
-            if (!streams.some(s => s.id === fallbackStreams[i].id)) {
-                streams.push(fallbackStreams[i]);
-            }
-            i++;
-        }
-        return streams.slice(0,51);
-    }, [seller, streamId]);
-    
-    const mockStreamData = {
-        id: streamId,
-        title: "Live Shopping Event",
-        description: "Join us for exclusive deals and a first look at our new collection! #fashion #live Check this out: https://google.com",
-        status: "live",
-        startedAt: new Date(Date.now() - 5 * 60 * 1000),
-        viewerCount: seller?.viewers || 0,
-        streamUrl: "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"
-    };
-
-    const streamData = mockStreamData;
-    const videoRef = useRef<HTMLVideoElement>(null);
-    const playerRef = useRef<HTMLDivElement>(null);
-    const progressContainerRef = useRef<HTMLDivElement>(null);
-    
-    const [isPaused, setIsPaused] = useState(true);
-    const [isMuted, setIsMuted] = useState(true);
-    const [currentTime, setCurrentTime] = useState(0);
-    const [duration, setDuration] = useState(0);
-    const [buffered, setBuffered] = useState(0);
-    const [volume, setVolume] = useState(0.5);
-    const [playbackRate, setPlaybackRate] = useState(1);
-    const [skipInterval, setSkipInterval] = useState(10);
-    const [isFullscreen, setIsFullscreen] = useState(false);
-    const [isLive, setIsLive] = useState(isMobile ? true : false);
-    const mainScrollRef = useRef<HTMLDivElement>(null);
-    const [hydrated, setHydrated] = useState(false);
-    const [showGoToTop, setShowGoToTop] = useState(false);
-    const [isChatOpen, setIsChatOpen] = useState(false);
-    const [mobileView, setMobileView] = useState<'stream' | 'chat'>('stream');
-    const [activeQuality, setActiveQuality] = useState('Auto');
-    const [isSuperChatOpen, setIsSuperChatOpen] = useState(false);
-    
-    const handleAuthAction = useCallback((callback?: () => void) => {
-        if (!user) {
-            setIsAuthDialogOpen(true);
-            return false;
-        }
-        if (callback) callback();
-        return true;
-    }, [user]);
-
-    useEffect(() => {
-        setHydrated(true);
-        if (minimizedStream && minimizedStream.id !== streamId) {
-            closeMinimizedStream();
-        }
-    }, [minimizedStream, streamId, closeMinimizedStream]);
-    
-    useEffect(() => {
-        const updateCartCount = () => {
-            if (typeof window !== 'undefined') {
-                const items = getCart();
-                const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
-                setCartCount(totalItems);
-            }
-        };
-
-        updateCartCount();
-
-        window.addEventListener('storage', updateCartCount);
-        return () => window.removeEventListener('storage', updateCartCount);
-    }, []);
-
-    const handleMainScroll = (e: React.UIEvent<HTMLDivElement>) => {
-        const shouldShow = e.currentTarget.scrollTop > 200;
-        if (shouldShow !== showGoToTop) {
-            setShowGoToTop(shouldShow);
-        }
-    };
-
-    const scrollToTop = (ref: React.RefObject<HTMLDivElement>) => {
-        ref.current?.scrollTo({ top: 0, behavior: 'smooth' });
-    };
-
-    const sellerProducts = useMemo(() => {
-        if (!seller) return [];
-        return Object.values(productDetails)
-            .filter(p => productToSellerMapping[p.key]?.name === seller.name)
-            .map(p => ({
-                ...p,
-                reviews: Math.floor(Math.random() * 200),
-                sold: Math.floor(Math.random() * 1000)
-            }));
-    }, [seller]);
-    
-    useEffect(() => {
-        if (seller) {
-            let promotionInterval = 300000; // 5 minutes default
-    
-            if (typeof window !== 'undefined') {
-                try {
-                    const storedData = localStorage.getItem('liveStream');
-                    if (storedData) {
-                        const liveStreamData = JSON.parse(storedData);
-                        if (liveStreamData.seller.uid === seller.id && liveStreamData.promotionInterval) {
-                            promotionInterval = liveStreamData.promotionInterval * 1000;
-                        }
-                    }
-                } catch (error) {
-                    console.error("Error reading live stream data from local storage:", error);
-                }
-            }
-            
-             const interval = setInterval(() => {
-                const productsWithStock = Object.values(productDetails).filter(p => 
-                    productToSellerMapping[p.key]?.name === seller.name && p.stock > 0
-                );
-                
-                if (productsWithStock.length === 0) return;
-                
-                const randomIndex = Math.floor(Math.random() * productsWithStock.length);
-                const randomProduct = productsWithStock[randomIndex];
-                
-                if (randomProduct) {
-                     const promoMessage = {
-                        id: `promo-${Date.now()}`,
-                        type: 'product_promo',
-                        product: randomProduct,
-                    };
-                    setChatMessages(prev => [...prev, promoMessage]);
-                }
-    
-            }, promotionInterval);
-        
-            return () => clearInterval(interval);
-        }
-    }, [seller]);
-    
-
-    const formatTime = (timeInSeconds: number) => {
-        if (isNaN(timeInSeconds) || timeInSeconds < 0) return '00:00';
-        const date = new Date(0);
-        date.setSeconds(timeInSeconds);
-        const timeString = date.toISOString().substr(11, 8);
-        return timeString.startsWith('00:') ? timeString.substr(3) : timeString;
-    };
-    
-    const handlePlayPause = useCallback(() => {
-        const video = videoRef.current;
-        if (!video) return;
-
-        if (video.paused) {
-            video.play().catch(console.error);
-        } else {
-            video.pause();
-        }
-    }, []);
-
-    const handleSeek = useCallback((direction: 'forward' | 'backward') => {
-        const video = videoRef.current;
-        if (!video) return;
-        const newTime = direction === 'forward' ? video.currentTime + skipInterval : video.currentTime - skipInterval;
-        video.currentTime = Math.max(0, Math.min(duration, newTime));
-    }, [duration, skipInterval]);
-    
-    const handleGoLive = () => {
-        const video = videoRef.current;
-        if (video) {
-            video.currentTime = video.duration;
-        }
-    };
-    
-    const handleProgressClick = (e: React.MouseEvent<HTMLDivElement>) => {
-        const video = videoRef.current;
-        const progressContainer = progressContainerRef.current;
-        if (!video || !progressContainer) return;
-
-        const rect = progressContainer.getBoundingClientRect();
-        const clickX = e.clientX - rect.left;
-        const width = rect.width;
-        const percentage = clickX / width;
-        const newTime = duration * percentage;
-        
-        video.currentTime = newTime;
-    };
-    
-    useEffect(() => {
-        const video = videoRef.current;
-        if (isMinimized(streamId)) {
-            if(video) video.pause();
-            return;
-        };
-
-        if (video) {
-            const updateProgress = () => {
-                setCurrentTime(video.currentTime);
-                if (video.buffered.length > 0) {
-                    setBuffered(video.buffered.end(video.buffered.length - 1));
-                }
-                const isCurrentlyLive = (video.duration - video.currentTime) < 2 && !isPastStream;
-                if (isLive !== isCurrentlyLive) {
-                    setIsLive(isCurrentlyLive);
-                }
-                
-                if (isCurrentlyLive && video.playbackRate !== 1) {
-                    video.playbackRate = 1;
-                    setPlaybackRate(1);
-                }
-            };
-            const setVideoDuration = () => setDuration(video.duration);
-            const onPlay = () => setIsPaused(false);
-            const onPause = () => setIsPaused(true);
-
-            video.addEventListener("timeupdate", updateProgress);
-            video.addEventListener("progress", updateProgress);
-            video.addEventListener("loadedmetadata", setVideoDuration);
-            video.addEventListener("play", onPlay);
-            video.addEventListener("pause", onPause);
-
-            video.muted = isMuted;
-            video.play().catch(() => {
-                setIsPaused(true);
-            });
-
-            return () => {
-                video.removeEventListener("timeupdate", updateProgress);
-                video.removeEventListener("progress", updateProgress);
-                video.removeEventListener("loadedmetadata", setVideoDuration);
-                video.removeEventListener("play", onPlay);
-                video.removeEventListener("pause", onPause);
-            };
-        }
-    }, [isMuted, isMinimized, streamId, isLive, isMobile, isPastStream]);
-    
-    const handleToggleFullscreen = () => {
-        const elem = playerRef.current;
-        if (!elem) return;
-    
-        if (!document.fullscreenElement) {
-            elem.requestFullscreen().catch(err => {
-                alert(`Error attempting to enable full-screen mode: \`${err.message}\` (\`${err.name}\`)`);
-            });
-        } else {
-            document.exitFullscreen();
-        }
-    };
-
-    useEffect(() => {
-        const handleFullscreenChange = () => {
-            setIsFullscreen(!!document.fullscreenElement);
-        };
-    
-        document.addEventListener('fullscreenchange', handleFullscreenChange);
-    
-        return () => {
-            document.removeEventListener('fullscreenchange', handleFullscreenChange);
-        };
-    }, []);
-    
-    const handleReportMessage = useCallback((messageId: number) => {
-        toast({
-            title: "Message Reported",
-            description: "The message has been reported and will be reviewed by our moderation team.",
-        });
-    }, [toast]);
-    
-    const handleShare = () => {
-        navigator.clipboard.writeText(window.location.href);
-        toast({
-            title: "Stream Link Copied!",
-            description: "The link to this stream has been copied to your clipboard.",
-        });
-    };
-
-     const handleTogglePinMessage = useCallback((msgId: number) => {
-        const msg = chatMessages.find(m => m.id === msgId);
-        if (!msg) return;
-
-        const isProductPin = msg.type === 'product_pin';
-
-        let itemToPin:any = {};
-
-        if (isProductPin) {
-             itemToPin = { 
-                id: msg.id, 
-                type: 'product',
-                product: productDetails['prod_1']
-            };
-        } else {
-             itemToPin = { 
-                id: msg.id,
-                type: 'message',
-                user: msg.user,
-                text: msg.text
-            };
-        }
-        
-        setPinnedMessages(prev =>
-            prev.some(p => p.id === msgId)
-                ? prev.filter(p => p.id !== msgId)
-                : [itemToPin, ...prev]
-        );
-
-        toast({
-            title: pinnedMessages.some(p => p.id === msgId) ? "Message Unpinned" : "Message Pinned",
-            description: "The message has been updated in the pinned items."
-        });
-    }, [chatMessages, pinnedMessages, toast]);
-    
-    const handleFollowToggle = useCallback(() => {
-        handleAuthAction(() => setIsFollowingState(prev => !prev));
-    }, [handleAuthAction]);
-
-    const handleMinimize = () => {
-      if (streamData && seller) {
-        minimizeStream({
-          id: streamData.id,
-          streamUrl: streamData.streamUrl,
-          title: seller.name,
-        });
-        router.push('/live-selling');
-      }
-    };
-
-    const handleReply = useCallback((msg: any) => {
-        // This is now handled within ChatPanel's state
-    }, []);
-
-    const handleNewMessageSubmit = useCallback((data: { text: string, amount?: number, paymentMethod?: string }) => {
-        handleAuthAction(() => {
-            if (!user) return;
-            const { text, amount } = data;
-            const newMessage: any = {
-                id: Date.now(),
-                user: user?.displayName || "You",
-                userId: user.uid,
-                text: text,
-                avatar: user.photoURL || 'https://placehold.co/40x40.png',
-            };
-            if (amount) {
-                newMessage.type = 'super_chat';
-                newMessage.amount = amount;
-            }
-            setChatMessages(prev => [...prev, newMessage]);
-        });
-    }, [user, handleAuthAction]);
-
-    const handleDeleteMessage = useCallback((msgId: number) => {
-        setChatMessages(prev => prev.filter(m => m.id !== msgId));
-    }, []);
-    
-    const onReportStream = useCallback(() => {
-        handleAuthAction(() => setIsReportOpen(true));
-    }, [handleAuthAction]);
-    
-    const handleAddToCart = useCallback((product: any) => {
-        handleAuthAction(() => {
-            if (product) {
-              addToCart({ ...product, quantity: 1 });
-              toast({
-                title: "Added to Cart!",
-                description: `'${product.name}' has been added to your shopping cart.`,
-              });
-            }
-        });
-    }, [toast, handleAuthAction]);
-      
-    const handleBuyNow = useCallback((product: any) => {
-        handleAuthAction(() => {
-            if (product) {
-                router.push(`/cart?buyNow=true&productId=${product.key}`);
-            }
-        });
-    }, [router, handleAuthAction]);
-    
-    const handlers = useMemo(() => ({
-        onReply: handleReply,
-        onTogglePin: handleTogglePinMessage,
-        onReportMessage: handleReportMessage,
-        onDeleteMessage: handleDeleteMessage,
-        onReportStream,
-        onAddToCart: handleAddToCart,
-        onBuyNow: handleBuyNow,
-        toast,
-        seller,
-        handleNewMessageSubmit,
-        handleAuthAction,
-    }), [toast, handleReply, handleReportMessage, handleTogglePinMessage, handleDeleteMessage, seller, handleNewMessageSubmit, onReportStream, handleAddToCart, handleBuyNow, handleAuthAction]);
-    
-    if (isMinimized(streamId)) {
-        return (
-            <div className="flex h-screen items-center justify-center bg-background">
-                <div className="text-center text-foreground">
-                    <h1 className="text-2xl font-bold">Stream is minimized</h1>
-                    <p className="text-muted-foreground">This stream is currently playing in the mini-player.</p>
-                </div>
-            </div>
-        );
-    }
-
-    if (!hydrated) {
-        return (
-            <div className="flex flex-col h-screen items-center justify-center bg-background">
-                <div className="w-full max-w-4xl">
-                    <Skeleton className="w-full aspect-[3/4]" />
-                    <div className="p-4 space-y-3">
-                        <Skeleton className="h-8 w-3/4" />
-                        <Skeleton className="h-6 w-1/2" />
-                    </div>
-                </div>
-            </div>
-        );
-    }
-    
-    return (
-        <React.Fragment>
-            <AlertDialog open={isAuthDialogOpen} onOpenChange={setIsAuthDialogOpen}>
-                <AlertDialogContent>
-                    <AlertDialogHeader>
-                        <AlertDialogTitle>Authentication Required</AlertDialogTitle>
-                        <AlertDialogDescription>
-                            You need to be logged in to perform this action. Please log in or create an account to continue.
-                        </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction onClick={() => router.push(`/signup?redirect=/stream/${streamId}`)}>Create Account</AlertDialogAction>
-                        <AlertDialogAction onClick={() => router.push(`/?redirect=/stream/${streamId}`)}>Login</AlertDialogAction>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
-            <Dialog open={isReportOpen} onOpenChange={setIsReportOpen}>
-                <ReportDialog onSubmit={(reason, details) => {
-                    console.log("Report submitted", { reason, details });
-                    toast({ title: "Report Submitted", description: "Thank you for your feedback. Our team will review this stream." });
-                    setIsReportOpen(false);
-                }} />
-            </Dialog>
-
-             <div className={cn("bg-background text-foreground", isMobile ? 'flex flex-col h-dvh' : 'h-screen')}>
-                 {isMobile === undefined ? (
-                    <div className="flex h-screen items-center justify-center">
-                        <LoadingSpinner />
-                    </div>
-                 ) : isMobile ? (
-                     <MobileLayout {...{ router, videoRef, playerRef, handlePlayPause, handleShare, handleMinimize, handleToggleFullscreen, isPaused, seller, sellerData, streamData, handleFollowToggle, isFollowingState, sellerProducts, handlers, relatedStreams, isChatOpen, setIsChatOpen, chatMessages, pinnedMessages, onClose: () => setIsChatOpen(false), handleAddToCart, handleBuyNow, mobileView, setMobileView, isMuted, setIsMuted, handleGoLive, handleSeek, isLive, formatTime, currentTime, duration, buffered, handleProgressClick, progressContainerRef, activeQuality, setActiveQuality, product, user, walletBalance, setIsSuperChatOpen, isSuperChatOpen, isPastStream, isRatingDialogOpen, setIsRatingDialogOpen, handleRateStream, userRating, toast }} />
-                 ) : (
-                    <DesktopLayout 
-                        {...{ router, videoRef, playerRef, handlePlayPause, handleShare, handleMinimize, handleToggleFullscreen, isPaused, seller, sellerData, streamData, handleFollowToggle, isFollowingState, sellerProducts, handlers, relatedStreams, isChatOpen, setIsChatOpen, chatMessages, pinnedMessages, onClose: () => setIsChatOpen(false), handleAddToCart, handleBuyNow, mobileView, setMobileView, isMuted, setIsMuted, handleGoLive, handleSeek, isLive, formatTime, currentTime, duration, buffered, handleProgressClick, progressContainerRef, mainScrollRef, handleMainScroll, showGoToTop, scrollToTop, activeQuality, setActiveQuality, product, user, cartCount, walletBalance, setIsSuperChatOpen, isSuperChatOpen, inlineAuctionCardRefs, isPastStream, isRatingDialogOpen, setIsRatingDialogOpen, handleRateStream, userRating, toast }}
-                    />
-                 )}
-            </div>
-        </React.Fragment>
-    );
-};
-
-const MemoizedStreamInfo = React.memo(StreamInfo);
-const MemoizedRelatedContent = React.memo(RelatedContent);
-
-const DesktopLayout = React.memo(({ user, handlers, chatMessages, cartCount, walletBalance, isSuperChatOpen, setIsSuperChatOpen, ...props }: any) => {
-return (
-<div className="flex flex-col h-screen overflow-hidden">
-    <header className="p-3 flex items-center justify-between z-40 h-16 shrink-0 w-full">
-        <div className="flex items-center gap-2">
-            <Button variant="ghost" size="icon" onClick={() => props.router.back()}>
-                <ArrowLeft className="h-6 w-6" />
-            </Button>
-            {props.seller && (
-                <div className="flex items-center gap-2 overflow-hidden">
-                <Avatar className="h-8 w-8">
-                <AvatarImage src={props.seller.avatarUrl} />
-                <AvatarFallback>{props.seller.name.charAt(0)}</AvatarFallback>
-                </Avatar>
-                <div className="overflow-hidden">
-                <h1 className="text-sm font-bold truncate">{props.seller.name}</h1>
-                 <div className="flex items-center gap-3">
-                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                        <Users className="h-3 w-3"/>
-                        <span>{props.sellerData?.followers ? `${props.sellerData.followers.toLocaleString()} followers` : 'Loading...'}</span>
-                    </div>
-                    <div className="flex items-center gap-1 text-xs text-amber-500">
-                        <Star className="h-3 w-3 fill-current" />
-                        <span>{props.seller.rating}</span>
-                    </div>
-                </div>
-                </div>
-            </div>
-            )}
-        </div>
-        <div className="flex items-center gap-2">
-            {user ? (
-                <Button asChild variant="ghost">
-                    <Link href="/cart" className="relative">
-                        <ShoppingCart className="mr-2 h-4 w-4" />
-                        My Cart
-                        {cartCount > 0 && (
-                            <Badge variant="destructive" className="absolute -top-1 -right-2 h-5 w-5 p-0 flex items-center justify-center text-xs">
-                                {cartCount}
-                            </Badge>
-                        )}
-                    </Link>
-                </Button>
-            ) : (
-                <Button asChild>
-                    <Link href="/">Login / Sign Up</Link>
-                </Button>
-            )}
-        </div>
-    </header>
-    <div className="flex-1 grid grid-cols-[1fr,384px] overflow-hidden">
-        <main className="flex-1 overflow-y-auto no-scrollbar" ref={props.mainScrollRef} onScroll={props.handleMainScroll}>
-            <div className="w-full aspect-[3/4] bg-black relative" ref={props.playerRef}>
-                <video ref={props.videoRef} src={props.streamData.streamUrl || "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"} className="w-full h-full object-cover" loop />
-                 <div className="absolute top-3 left-3 z-10 flex items-center gap-2">
-                    <Badge variant={props.isPastStream ? 'outline' : 'destructive'} className={cn(props.isPastStream && 'bg-black/50 text-white border-white/30', "gap-1.5")}>
-                        {!props.isPastStream && <div className="h-2 w-2 rounded-full bg-white animate-pulse" />}
-                        {props.isPastStream ? 'RECORDED' : 'LIVE'}
-                    </Badge>
-                    <Badge variant="secondary" className="bg-black/50 text-white gap-1.5"><Users className="w-3 h-3"/> {props.streamData.viewerCount.toLocaleString()}</Badge>
-                </div>
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent flex flex-col justify-end p-4 text-white">
-                    <div className="w-full cursor-pointer py-1" ref={props.progressContainerRef} onClick={props.handleProgressClick}>
-                        <Progress value={(props.currentTime / props.duration) * 100} valueBuffer={(props.buffered / props.duration) * 100} isLive={props.isLive} className="h-2" />
-                    </div>
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2 sm:gap-4">
-                              <Button variant="ghost" size="icon" className="w-10 h-10" onClick={props.handlePlayPause}>
-                                  {props.isPaused ? <Play className="w-6 h-6 fill-current" /> : <Pause className="w-6 h-6 fill-current" />}
-                              </Button>
-                              <Button variant="ghost" size="icon" className="w-10 h-10" onClick={() => props.handleSeek('backward')}><Rewind className="w-5 h-5" /></Button>
-                              <Button variant="ghost" size="icon" className="w-10 h-10" onClick={() => props.handleSeek('forward')}><FastForward className="w-5 h-5" /></Button>
-                              {!props.isPastStream && <Button
-                                variant="destructive"
-                                className="gap-1.5 h-8 text-xs sm:text-sm"
-                                onClick={props.handleGoLive}
-                                disabled={props.isLive}
-                            >
-                                <div className={cn("h-2 w-2 rounded-full bg-white", !props.isLive && "animate-pulse")} />
-                                {props.isLive ? 'LIVE' : 'Go Live'}
-                            </Button>}
-                            <Button variant="ghost" size="icon" onClick={() => props.setIsMuted((prev: any) => !prev)}>
-                                {props.isMuted ? <VolumeX /> : <Volume2 />}
-                            </Button>
-                            <p className="text-sm font-mono">{props.formatTime(props.currentTime)} / {props.formatTime(props.duration)}</p>
-                        </div>
-                        <div className="flex items-center gap-1 sm:gap-2">
-                             <Popover>
-                                <PopoverTrigger asChild>
-                                    <Button variant="ghost" size="icon"><Settings /></Button>
-                                </PopoverTrigger>
-                                <PopoverContent className="w-48 p-0" align="end">
-                                    <div className="p-2">
-                                        <p className="text-sm font-semibold p-2">Quality</p>
-                                        <RadioGroup value={props.activeQuality} onValueChange={props.setActiveQuality}>
-                                            <Label className="flex items-center justify-between p-2 hover:bg-muted rounded-md cursor-pointer text-sm">
-                                                Auto <span className="text-xs text-muted-foreground">(Recommended)</span> <RadioGroupItem value="Auto" />
-                                            </Label>
-                                            {qualityLevels.map(level => (
-                                                 <Label key={level} className="flex items-center justify-between p-2 hover:bg-muted rounded-md cursor-pointer text-sm">
-                                                    {level} <RadioGroupItem value={level} />
-                                                 </Label>
-                                            ))}
-                                        </RadioGroup>
-                                    </div>
-                                </PopoverContent>
-                            </Popover>
-                            <Button variant="ghost" size="icon" onClick={props.handleShare}><Share2 /></Button>
-                            <Button variant="ghost" size="icon" onClick={props.handleMinimize}><PictureInPicture /></Button>
-                            <Button variant="ghost" size="icon" onClick={props.handleToggleFullscreen}><Maximize /></Button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div className="p-4 space-y-6">
-                <MemoizedStreamInfo {...props}/>
-                <MemoizedRelatedContent {...props} />
-            </div>
-        </main>
-
-        <aside className="relative h-full w-[384px] flex-shrink-0 flex flex-col overflow-hidden border-l">
-            <ChatPanel
-                seller={props.seller}
-                chatMessages={chatMessages}
-                pinnedMessages={props.pinnedMessages}
-                handlers={handlers}
-                onClose={() => {}}
-                walletBalance={walletBalance}
-                isSuperChatOpen={isSuperChatOpen}
-                setIsSuperChatOpen={setIsSuperChatOpen}
-                inlineAuctionCardRefs={props.inlineAuctionCardRefs}
-                isPastStream={props.isPastStream}
-            />
-        </aside>
-    </div>
-</div>
-)});
-DesktopLayout.displayName = "DesktopLayout";
-
-const MobileLayout = React.memo(({ handlers, chatMessages, walletBalance, isPastStream, isSuperChatOpen, setIsSuperChatOpen, ...props }: any) => {
-    const { isMuted, setIsMuted, handleGoLive, isLive, formatTime, currentTime, duration, handleShare, handleToggleFullscreen, progressContainerRef, handleProgressClick, isPaused, handlePlayPause, handleSeek, handleMinimize, activeQuality, setActiveQuality } = props;
-    return (
-        <div className="flex flex-col h-dvh overflow-hidden relative">
-            <header className="p-3 flex items-center justify-between sticky top-0 bg-transparent z-30 h-16 shrink-0 w-full">
-                <div className="flex items-center gap-2">
-                    <Button variant="ghost" size="icon" onClick={() => props.router.back()}>
-                        <ArrowLeft className="h-6 w-6" />
-                    </Button>
-                    {props.seller && (
-                    <div className="flex items-center gap-2 overflow-hidden">
-                        <Avatar className="h-8 w-8">
-                        <AvatarImage src={props.seller.avatarUrl} />
-                        <AvatarFallback>{props.seller.name.charAt(0)}</AvatarFallback>
-                        </Avatar>
-                        <div className="overflow-hidden">
-                        <h1 className="text-sm font-bold truncate">{props.seller.name}</h1>
-                        <p className="text-xs text-muted-foreground">{props.streamData.viewerCount.toLocaleString()} viewers</p>
-                        </div>
-                    </div>
-                    )}
-                </div>
-                 <div className="flex items-center gap-0.5">
-                    <Button asChild variant="ghost" size="icon">
-                        <Link href="/cart">
-                            <ShoppingCart className="h-5 w-5" />
-                        </Link>
-                    </Button>
-                </div>
-            </header>
-
-            <div className="w-full aspect-[3/4] bg-black relative flex-shrink-0" ref={props.playerRef}>
-                <video ref={props.videoRef} src={props.streamData.streamUrl || "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"} className="w-full h-full object-cover" loop onClick={handlePlayPause}/>
-                 <div className="absolute top-3 left-3 z-10 flex items-center gap-2">
-                    <Badge variant={isPastStream ? 'outline' : 'destructive'} className={cn(isPastStream && 'bg-black/50 text-white border-white/30', "gap-1.5")}>
-                        {!isPastStream && <div className="h-2 w-2 rounded-full bg-white animate-pulse" />}
-                        {isPastStream ? 'RECORDED' : 'LIVE'}
-                    </Badge>
-                    <Badge variant="secondary" className="bg-black/50 text-white gap-1.5"><Users className="w-3 w-3"/> {props.streamData.viewerCount.toLocaleString()}</Badge>
-                </div>
-                 <div className="absolute inset-0 bg-black/10 flex items-center justify-center gap-4">
-                     <Button variant="ghost" size="icon" className="text-white w-12 h-12" onClick={() => handleSeek('backward')}><Rewind className="w-6 h-6 fill-white"/></Button>
-                     <Button variant="ghost" size="icon" className="text-white w-16 h-16" onClick={handlePlayPause}>
-                         {isPaused ? <Play className="w-10 h-10 fill-white" /> : <Pause className="w-10 h-10 fill-white" />}
-                     </Button>
-                     <Button variant="ghost" size="icon" className="text-white w-12 h-12" onClick={() => handleSeek('forward')}><FastForward className="w-6 h-6 fill-white"/></Button>
-                </div>
-                 <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent flex flex-col justify-end p-2 text-white">
-                    <div className="w-full cursor-pointer py-1" ref={progressContainerRef} onClick={handleProgressClick}>
-                        <Progress value={(currentTime / duration) * 100} valueBuffer={props.buffered / duration * 100} isLive={isLive} className="h-1.5" />
-                    </div>
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-1">
-                             {!isPastStream && <Button
-                                variant="destructive"
-                                className="gap-1 h-7 px-2 text-xs"
-                                onClick={handleGoLive}
-                                disabled={isLive}
-                            >
-                                <div className={cn("h-1.5 w-1.5 rounded-full bg-white", !isLive && "animate-pulse")} />
-                                {isLive ? 'LIVE' : 'Go Live'}
-                            </Button>}
-                            <p className="text-xs font-mono">{formatTime(currentTime)} / {formatTime(duration)}</p>
-                        </div>
-                        <div className="flex items-center gap-0.5">
-                            <Button variant="ghost" size="icon" className="w-9 h-9" onClick={() => setIsMuted((prev: any) => !prev)}>
-                                {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
-                            </Button>
-                            <Popover>
-                                <PopoverTrigger asChild>
-                                    <Button variant="ghost" size="icon" className="w-9 h-9"><Settings className="w-5 h-5" /></Button>
-                                </PopoverTrigger>
-                                <PopoverContent className="w-48 p-0" align="end">
-                                    <div className="p-2">
-                                        <p className="text-sm font-semibold p-2">Quality</p>
-                                        <RadioGroup value={activeQuality} onValueChange={setActiveQuality}>
-                                            <Label className="flex items-center justify-between p-2 hover:bg-muted rounded-md cursor-pointer text-sm">
-                                                Auto <span className="text-xs text-muted-foreground">(Recommended)</span> <RadioGroupItem value="Auto" />
-                                            </Label>
-                                            {qualityLevels.map(level => (
-                                                 <Label key={level} className="flex items-center justify-between p-2 hover:bg-muted rounded-md cursor-pointer text-sm">
-                                                    {level} <RadioGroupItem value={level} />
-                                                 </Label>
-                                            ))}
-                                        </RadioGroup>
-                                    </div>
-                                </PopoverContent>
-                            </Popover>
-                            <Button variant="ghost" size="icon" className="w-9 h-9" onClick={handleShare}><Share2 className="w-5 h-5" /></Button>
-                            <Button variant="ghost" size="icon" className="w-9 h-9" onClick={handleMinimize}><PictureInPicture className="w-5 h-5"/></Button>
-                            <Button variant="ghost" size="icon" className="w-9 h-9" onClick={handleToggleFullscreen}><Maximize className="w-5 h-5"/></Button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <div className="flex-1 overflow-hidden relative">
-                {props.mobileView === 'stream' ? (
-                     <ScrollArea className="h-full no-scrollbar">
-                        <div className="p-4 space-y-6">
-                             <MemoizedStreamInfo {...props}/>
-                            <MemoizedRelatedContent {...props} />
-                        </div>
-                    </ScrollArea>
-                ) : (
-                    <div className="h-full flex flex-col bg-background">
-                        <ChatPanel {...{...props, handlers, chatMessages, walletBalance, setIsSuperChatOpen, isSuperChatOpen, inlineAuctionCardRefs: props.inlineAuctionCardRefs, isPastStream }} onClose={() => props.setMobileView('stream')} />
-                    </div>
-                )}
-            </div>
-
-            {props.mobileView === 'stream' && (
-                <div className="fixed bottom-4 left-4 z-20">
-                    <Button className="rounded-full shadow-lg h-12 px-6" onClick={() => props.setMobileView('chat')}>
-                        <MessageSquare className="mr-2 h-5 w-5"/>
-                        Show Chat
-                    </Button>
-                </div>
-            )}
-        </div>
-    );
-});
-MobileLayout.displayName = "MobileLayout";
 
 const SuperChatMessage = ({ msg }: { msg: any }) => (
     <div className="my-2 p-3 rounded-lg bg-gradient-to-r from-yellow-300 via-orange-400 to-red-500 text-black shadow-lg">
@@ -1645,7 +813,7 @@ const ChatPanel = ({
   const handleReply = (msg: any) => {
     setReplyingTo({ name: msg.user, id: msg.userId });
     textareaRef.current?.focus();
-  }
+  };
 
   return (
     <div className='h-full flex flex-col bg-background'>
@@ -1809,4 +977,845 @@ const ChatPanel = ({
   );
 };
 
+const MemoizedStreamInfo = React.memo(StreamInfo);
+const MemoizedRelatedContent = React.memo(RelatedContent);
+
+const DesktopLayout = React.memo(({ user, handlers, chatMessages, cartCount, walletBalance, isSuperChatOpen, setIsSuperChatOpen, ...props }: any) => {
+return (
+<div className="flex flex-col h-screen overflow-hidden">
+    <header className="p-3 flex items-center justify-between z-40 h-16 shrink-0 w-full">
+        <div className="flex items-center gap-2">
+            <Button variant="ghost" size="icon" onClick={() => props.router.back()}>
+                <ArrowLeft className="h-6 w-6" />
+            </Button>
+            {props.seller && (
+                <div className="flex items-center gap-2 overflow-hidden">
+                <Avatar className="h-8 w-8">
+                <AvatarImage src={props.seller.avatarUrl} />
+                <AvatarFallback>{props.seller.name.charAt(0)}</AvatarFallback>
+                </Avatar>
+                <div className="overflow-hidden">
+                <h1 className="text-sm font-bold truncate">{props.seller.name}</h1>
+                 <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                        <Users className="h-3 w-3"/>
+                        <span>{props.sellerData?.followers ? `${props.sellerData.followers.toLocaleString()} followers` : 'Loading...'}</span>
+                    </div>
+                    <div className="flex items-center gap-1 text-xs text-amber-500">
+                        <Star className="h-3 w-3 fill-current" />
+                        <span>{props.seller.rating}</span>
+                    </div>
+                </div>
+                </div>
+            </div>
+            )}
+        </div>
+        <div className="flex items-center gap-2">
+            {user ? (
+                <Button asChild variant="ghost">
+                    <Link href="/cart" className="relative">
+                        <ShoppingCart className="mr-2 h-4 w-4" />
+                        My Cart
+                        {cartCount > 0 && (
+                            <Badge variant="destructive" className="absolute -top-1 -right-2 h-5 w-5 p-0 flex items-center justify-center text-xs">
+                                {cartCount}
+                            </Badge>
+                        )}
+                    </Link>
+                </Button>
+            ) : (
+                <Button asChild>
+                    <Link href="/">Login / Sign Up</Link>
+                </Button>
+            )}
+        </div>
+    </header>
+    <div className="flex-1 grid grid-cols-[1fr,384px] overflow-hidden">
+        <main className="flex-1 overflow-y-auto no-scrollbar" ref={props.mainScrollRef} onScroll={props.handleMainScroll}>
+            <div className="w-full aspect-video bg-black relative" ref={props.playerRef}>
+                <video ref={props.videoRef} src={props.streamData.streamUrl || "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"} className="w-full h-full object-cover" loop />
+                 <div className="absolute top-3 left-3 z-10 flex items-center gap-2">
+                    <Badge variant={props.isPastStream ? 'outline' : 'destructive'} className={cn(props.isPastStream && 'bg-black/50 text-white border-white/30', "gap-1.5")}>
+                        {!props.isPastStream && <div className="h-2 w-2 rounded-full bg-white animate-pulse" />}
+                        {props.isPastStream ? 'RECORDED' : 'LIVE'}
+                    </Badge>
+                    <Badge variant="secondary" className="bg-black/50 text-white gap-1.5"><Users className="w-3 h-3"/> {props.streamData.viewerCount.toLocaleString()}</Badge>
+                </div>
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent flex flex-col justify-end p-4 text-white">
+                    <div className="w-full cursor-pointer py-1" ref={props.progressContainerRef} onClick={props.handleProgressClick}>
+                        <Progress value={(props.currentTime / props.duration) * 100} valueBuffer={(props.buffered / props.duration) * 100} isLive={props.isLive} className="h-2" />
+                    </div>
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2 sm:gap-4">
+                              <Button variant="ghost" size="icon" className="w-10 h-10" onClick={props.handlePlayPause}>
+                                  {props.isPaused ? <Play className="w-6 h-6 fill-current" /> : <Pause className="w-6 h-6 fill-current" />}
+                              </Button>
+                              <Button variant="ghost" size="icon" className="w-10 h-10" onClick={() => props.handleSeek('backward')}><Rewind className="w-5 h-5" /></Button>
+                              <Button variant="ghost" size="icon" className="w-10 h-10" onClick={() => props.handleSeek('forward')}><FastForward className="w-5 h-5" /></Button>
+                              {!props.isPastStream && <Button
+                                variant="destructive"
+                                className="gap-1.5 h-8 text-xs sm:text-sm"
+                                onClick={props.handleGoLive}
+                                disabled={props.isLive}
+                            >
+                                <div className={cn("h-2 w-2 rounded-full bg-white", !props.isLive && "animate-pulse")} />
+                                {props.isLive ? 'LIVE' : 'Go Live'}
+                            </Button>}
+                            <Button variant="ghost" size="icon" onClick={() => props.setIsMuted((prev: any) => !prev)}>
+                                {props.isMuted ? <VolumeX /> : <Volume2 />}
+                            </Button>
+                            <p className="text-sm font-mono">{props.formatTime(props.currentTime)} / {props.formatTime(props.duration)}</p>
+                        </div>
+                        <div className="flex items-center gap-1 sm:gap-2">
+                             <Popover>
+                                <PopoverTrigger asChild>
+                                    <Button variant="ghost" size="icon"><Settings /></Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-48 p-0" align="end">
+                                    <div className="p-2">
+                                        <p className="text-sm font-semibold p-2">Quality</p>
+                                        <RadioGroup value={props.activeQuality} onValueChange={props.setActiveQuality}>
+                                            <Label className="flex items-center justify-between p-2 hover:bg-muted rounded-md cursor-pointer text-sm">
+                                                Auto <span className="text-xs text-muted-foreground">(Recommended)</span> <RadioGroupItem value="Auto" />
+                                            </Label>
+                                            {qualityLevels.map(level => (
+                                                 <Label key={level} className="flex items-center justify-between p-2 hover:bg-muted rounded-md cursor-pointer text-sm">
+                                                    {level} <RadioGroupItem value={level} />
+                                                 </Label>
+                                            ))}
+                                        </RadioGroup>
+                                    </div>
+                                </PopoverContent>
+                            </Popover>
+                            <Button variant="ghost" size="icon" onClick={props.handleShare}><Share2 /></Button>
+                            <Button variant="ghost" size="icon" onClick={props.handleMinimize}><PictureInPicture /></Button>
+                            <Button variant="ghost" size="icon" onClick={props.handleToggleFullscreen}><Maximize /></Button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div className="p-4 space-y-6">
+                <MemoizedStreamInfo {...props}/>
+                <MemoizedRelatedContent {...props} />
+            </div>
+        </main>
+
+        <aside className="relative h-full w-[384px] flex-shrink-0 flex flex-col overflow-hidden border-l">
+            <ChatPanel
+                seller={props.seller}
+                chatMessages={chatMessages}
+                pinnedMessages={props.pinnedMessages}
+                handlers={handlers}
+                onClose={() => {}}
+                walletBalance={walletBalance}
+                isSuperChatOpen={isSuperChatOpen}
+                setIsSuperChatOpen={setIsSuperChatOpen}
+                inlineAuctionCardRefs={props.inlineAuctionCardRefs}
+                isPastStream={props.isPastStream}
+            />
+        </aside>
+    </div>
+</div>
+)});
+DesktopLayout.displayName = "DesktopLayout";
+
+const MobileLayout = React.memo(({ handlers, chatMessages, walletBalance, isPastStream, isSuperChatOpen, setIsSuperChatOpen, ...props }: any) => {
+    const { isMuted, setIsMuted, handleGoLive, isLive, formatTime, currentTime, duration, handleShare, handleToggleFullscreen, progressContainerRef, handleProgressClick, isPaused, handlePlayPause, handleSeek, handleMinimize, activeQuality, setActiveQuality } = props;
+    return (
+        <div className="flex flex-col h-dvh overflow-hidden relative">
+            <header className="p-3 flex items-center justify-between sticky top-0 bg-transparent z-30 h-16 shrink-0 w-full">
+                <div className="flex items-center gap-2">
+                    <Button variant="ghost" size="icon" onClick={() => props.router.back()}>
+                        <ArrowLeft className="h-6 w-6" />
+                    </Button>
+                    {props.seller && (
+                    <div className="flex items-center gap-2 overflow-hidden">
+                        <Avatar className="h-8 w-8">
+                        <AvatarImage src={props.seller.avatarUrl} />
+                        <AvatarFallback>{props.seller.name.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                        <div className="overflow-hidden">
+                        <h1 className="text-sm font-bold truncate">{props.seller.name}</h1>
+                        <p className="text-xs text-muted-foreground">{props.streamData.viewerCount.toLocaleString()} viewers</p>
+                        </div>
+                    </div>
+                    )}
+                </div>
+                 <div className="flex items-center gap-0.5">
+                    <Button asChild variant="ghost" size="icon">
+                        <Link href="/cart">
+                            <ShoppingCart className="h-5 w-5" />
+                        </Link>
+                    </Button>
+                </div>
+            </header>
+
+            <div className="w-full aspect-video bg-black relative flex-shrink-0" ref={props.playerRef}>
+                <video ref={props.videoRef} src={props.streamData.streamUrl || "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"} className="w-full h-full object-cover" loop onClick={handlePlayPause}/>
+                 <div className="absolute top-3 left-3 z-10 flex items-center gap-2">
+                    <Badge variant={isPastStream ? 'outline' : 'destructive'} className={cn(isPastStream && 'bg-black/50 text-white border-white/30', "gap-1.5")}>
+                        {!isPastStream && <div className="h-2 w-2 rounded-full bg-white animate-pulse" />}
+                        {isPastStream ? 'RECORDED' : 'LIVE'}
+                    </Badge>
+                    <Badge variant="secondary" className="bg-black/50 text-white gap-1.5"><Users className="w-3 h-3"/> {props.streamData.viewerCount.toLocaleString()}</Badge>
+                </div>
+                 <div className="absolute inset-0 bg-black/10 flex items-center justify-center gap-4">
+                     <Button variant="ghost" size="icon" className="text-white w-12 h-12" onClick={() => handleSeek('backward')}><Rewind className="w-6 h-6 fill-white"/></Button>
+                     <Button variant="ghost" size="icon" className="text-white w-16 h-16" onClick={handlePlayPause}>
+                         {isPaused ? <Play className="w-10 h-10 fill-white" /> : <Pause className="w-10 h-10 fill-white" />}
+                     </Button>
+                     <Button variant="ghost" size="icon" className="text-white w-12 h-12" onClick={() => handleSeek('forward')}><FastForward className="w-6 h-6 fill-white"/></Button>
+                </div>
+                 <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent flex flex-col justify-end p-2 text-white">
+                    <div className="w-full cursor-pointer py-1" ref={progressContainerRef} onClick={handleProgressClick}>
+                        <Progress value={(currentTime / duration) * 100} valueBuffer={props.buffered / duration * 100} isLive={isLive} className="h-1.5" />
+                    </div>
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-1">
+                             {!isPastStream && <Button
+                                variant="destructive"
+                                className="gap-1 h-7 px-2 text-xs"
+                                onClick={handleGoLive}
+                                disabled={isLive}
+                            >
+                                <div className={cn("h-1.5 w-1.5 rounded-full bg-white", !isLive && "animate-pulse")} />
+                                {isLive ? 'LIVE' : 'Go Live'}
+                            </Button>}
+                            <p className="text-xs font-mono">{formatTime(currentTime)} / {formatTime(duration)}</p>
+                        </div>
+                        <div className="flex items-center gap-0.5">
+                            <Button variant="ghost" size="icon" className="w-9 h-9" onClick={() => setIsMuted((prev: any) => !prev)}>
+                                {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
+                            </Button>
+                            <Popover>
+                                <PopoverTrigger asChild>
+                                    <Button variant="ghost" size="icon" className="w-9 h-9"><Settings className="w-5 h-5" /></Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-48 p-0" align="end">
+                                    <div className="p-2">
+                                        <p className="text-sm font-semibold p-2">Quality</p>
+                                        <RadioGroup value={activeQuality} onValueChange={setActiveQuality}>
+                                            <Label className="flex items-center justify-between p-2 hover:bg-muted rounded-md cursor-pointer text-sm">
+                                                Auto <span className="text-xs text-muted-foreground">(Recommended)</span> <RadioGroupItem value="Auto" />
+                                            </Label>
+                                            {qualityLevels.map(level => (
+                                                 <Label key={level} className="flex items-center justify-between p-2 hover:bg-muted rounded-md cursor-pointer text-sm">
+                                                    {level} <RadioGroupItem value={level} />
+                                                 </Label>
+                                            ))}
+                                        </RadioGroup>
+                                    </div>
+                                </PopoverContent>
+                            </Popover>
+                            <Button variant="ghost" size="icon" className="w-9 h-9" onClick={handleShare}><Share2 className="w-5 h-5" /></Button>
+                            <Button variant="ghost" size="icon" className="w-9 h-9" onClick={handleMinimize}><PictureInPicture className="w-5 h-5"/></Button>
+                            <Button variant="ghost" size="icon" className="w-9 h-9" onClick={handleToggleFullscreen}><Maximize className="w-5 h-5"/></Button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div className="flex-1 overflow-hidden relative">
+                {props.mobileView === 'stream' ? (
+                     <ScrollArea className="h-full no-scrollbar">
+                        <div className="p-4 space-y-6">
+                             <MemoizedStreamInfo {...props}/>
+                            <MemoizedRelatedContent {...props} />
+                        </div>
+                    </ScrollArea>
+                ) : (
+                    <div className="h-full flex flex-col bg-background">
+                        <ChatPanel {...{...props, handlers, chatMessages, walletBalance, setIsSuperChatOpen, isSuperChatOpen, inlineAuctionCardRefs: props.inlineAuctionCardRefs, isPastStream }} onClose={() => props.setMobileView('stream')} />
+                    </div>
+                )}
+            </div>
+
+            {props.mobileView === 'stream' && (
+                <div className="fixed bottom-4 left-4 z-20">
+                    <Button className="rounded-full shadow-lg h-12 px-6" onClick={() => props.setMobileView('chat')}>
+                        <MessageSquare className="mr-2 h-5 w-5"/>
+                        Show Chat
+                    </Button>
+                </div>
+            )}
+        </div>
+    );
+});
+MobileLayout.displayName = "MobileLayout";
+
+const StreamPage = () => {
+    const router = useRouter();
+    const params = useParams();
+    const searchParams = useSearchParams();
+
+    const streamId = params.streamId as string;
+    const isPastStream = searchParams.get('isPast') === 'true';
+
+    const { user } = useAuth();
+    const { toast } = useToast();
+    const { minimizedStream, minimizeStream, closeMinimizedStream, isMinimized } = useMiniPlayer();
+    const inlineAuctionCardRefs = useRef<Record<string, HTMLDivElement | null>>({});
+    
+    const [isReportOpen, setIsReportOpen] = useState(false);
+    const [pinnedMessages, setPinnedMessages] = useState<any[]>(mockAdminOffers.map(o => ({...o, type: 'offer', id: o.title })));
+    const [isFollowingState, setIsFollowingState] = useState(false);
+    
+    const [cartCount, setCartCount] = useState(0);
+    const [walletBalance, setWalletBalance] = useState(42580.22);
+    const [sellerData, setSellerData] = useState<UserData | null>(null);
+    
+    const isMobile = useIsMobile();
+        
+    const seller = useMemo(() => liveSellers.find(s => s.id === streamId), [streamId]);
+
+    const product = useMemo(() => {
+        if (!seller) return null;
+        return productDetails[seller.productId as keyof typeof productDetails] || null;
+    }, [seller]);
+    
+    const [chatMessages, setChatMessages] = useState<any[]>([]);
+    const [isAuthDialogOpen, setIsAuthDialogOpen] = useState(false);
+
+    const [isRatingDialogOpen, setIsRatingDialogOpen] = useState(false);
+    const [userRating, setUserRating] = useState<number>(0);
+    
+    const handleAuthAction = useCallback((callback?: () => void) => {
+        if (!user) {
+            setIsAuthDialogOpen(true);
+            return false;
+        }
+        if (callback) callback();
+        return true;
+    }, [user]);
+
+    const handleRateStream = (rating: number) => {
+        handleAuthAction(() => {
+            setUserRating(rating);
+            toast({
+                title: `You rated this stream ${rating} stars!`,
+                description: "Thanks for your feedback."
+            });
+
+            const ratingMessage = {
+                id: `rating-${Date.now()}`,
+                type: 'system',
+                text: `${user?.displayName} rated the stream ${'★'.repeat(rating)}${'☆'.repeat(5 - rating)}`,
+            };
+            
+            setChatMessages(prev => [...prev, ratingMessage]);
+
+            setIsRatingDialogOpen(false);
+        });
+    };
+
+    useEffect(() => {
+        if (seller) {
+            const mockPost = {
+                id: 33,
+                type: 'post_share',
+                sellerName: seller.name,
+                text: 'Behind the scenes of our new collection!',
+                product: productDetails['prod_5']
+            };
+    
+             const initialMessages = mockChatMessages.map(msg => {
+                if (msg.isSeller) {
+                    return { ...msg, user: seller.name };
+                }
+                return msg;
+            });
+
+             const existingPostShareIndex = initialMessages.findIndex(m => m.type === 'post_share');
+
+            if (existingPostShareIndex !== -1) {
+                initialMessages[existingPostShareIndex] = { ...initialMessages[existingPostShareIndex], sellerName: seller.name };
+            } else {
+                 initialMessages.push({ ...mockPost, sellerName: seller.name });
+            }
+            
+            setChatMessages(initialMessages);
+        }
+    }, [seller]);
+
+    useEffect(() => {
+        const fetchSellerData = async () => {
+            if (streamId) {
+                const data = await getUserData(streamId);
+                if (data) {
+                    setSellerData(data);
+                    if (user && data) {
+                        setIsFollowingState(await isFollowing(user.uid, data.uid));
+                    }
+                }
+            }
+        };
+        fetchSellerData();
+    }, [streamId, user]);
+
+    const relatedStreams = useMemo(() => {
+        if (!seller) return [];
+        let streams = liveSellers.filter(
+            s => s.category === seller.category && s.id !== streamId
+        );
+         if (streams.length > 50) {
+            return streams.slice(0, 51);
+        }
+        const fallbackStreams = liveSellers.filter(s => s.id !== streamId);
+        
+        let i = 0;
+        while(streams.length < 6 && i < fallbackStreams.length) {
+            if (!streams.some(s => s.id === fallbackStreams[i].id)) {
+                streams.push(fallbackStreams[i]);
+            }
+            i++;
+        }
+        return streams.slice(0,51);
+    }, [seller, streamId]);
+    
+    const mockStreamData = {
+        id: streamId,
+        title: "Live Shopping Event",
+        description: "Join us for exclusive deals and a first look at our new collection! #fashion #live Check this out: https://google.com",
+        status: "live",
+        startedAt: new Date(Date.now() - 5 * 60 * 1000),
+        viewerCount: seller?.viewers || 0,
+        streamUrl: "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"
+    };
+
+    const streamData = mockStreamData;
+    const videoRef = useRef<HTMLVideoElement>(null);
+    const playerRef = useRef<HTMLDivElement>(null);
+    const progressContainerRef = useRef<HTMLDivElement>(null);
+    
+    const [isPaused, setIsPaused] = useState(true);
+    const [isMuted, setIsMuted] = useState(true);
+    const [currentTime, setCurrentTime] = useState(0);
+    const [duration, setDuration] = useState(0);
+    const [buffered, setBuffered] = useState(0);
+    const [volume, setVolume] = useState(0.5);
+    const [playbackRate, setPlaybackRate] = useState(1);
+    const [skipInterval, setSkipInterval] = useState(10);
+    const [isFullscreen, setIsFullscreen] = useState(false);
+    const [isLive, setIsLive] = useState(isMobile ? true : false);
+    const mainScrollRef = useRef<HTMLDivElement>(null);
+    const [hydrated, setHydrated] = useState(false);
+    const [showGoToTop, setShowGoToTop] = useState(false);
+    const [isChatOpen, setIsChatOpen] = useState(false);
+    const [mobileView, setMobileView] = useState<'stream' | 'chat'>('stream');
+    const [activeQuality, setActiveQuality] = useState('Auto');
+    const [isSuperChatOpen, setIsSuperChatOpen] = useState(false);
+    
+    useEffect(() => {
+        setHydrated(true);
+        if (minimizedStream && minimizedStream.id !== streamId) {
+            closeMinimizedStream();
+        }
+    }, [minimizedStream, streamId, closeMinimizedStream]);
+    
+    useEffect(() => {
+        const updateCartCount = () => {
+            if (typeof window !== 'undefined') {
+                const items = getCart();
+                const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
+                setCartCount(totalItems);
+            }
+        };
+
+        updateCartCount();
+
+        window.addEventListener('storage', updateCartCount);
+        return () => window.removeEventListener('storage', updateCartCount);
+    }, []);
+
+    const handleMainScroll = (e: React.UIEvent<HTMLDivElement>) => {
+        const shouldShow = e.currentTarget.scrollTop > 200;
+        if (shouldShow !== showGoToTop) {
+            setShowGoToTop(shouldShow);
+        }
+    };
+
+    const scrollToTop = (ref: React.RefObject<HTMLDivElement>) => {
+        ref.current?.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    const sellerProducts = useMemo(() => {
+        if (!seller) return [];
+        return Object.values(productDetails)
+            .filter(p => productToSellerMapping[p.key as keyof typeof productToSellerMapping]?.name === seller.name)
+            .map(p => ({
+                ...p,
+                reviews: Math.floor(Math.random() * 200),
+                sold: Math.floor(Math.random() * 1000)
+            }));
+    }, [seller]);
+    
+    useEffect(() => {
+        if (seller) {
+            let promotionInterval = 300000; // 5 minutes default
+    
+            if (typeof window !== 'undefined') {
+                try {
+                    const storedData = localStorage.getItem('liveStream');
+                    if (storedData) {
+                        const liveStreamData = JSON.parse(storedData);
+                        if (liveStreamData.seller.uid === seller.id && liveStreamData.promotionInterval) {
+                            promotionInterval = liveStreamData.promotionInterval * 1000;
+                        }
+                    }
+                } catch (error) {
+                    console.error("Error reading live stream data from local storage:", error);
+                }
+            }
+            
+             const interval = setInterval(() => {
+                const productsWithStock = Object.values(productDetails).filter(p => 
+                    productToSellerMapping[p.key as keyof typeof productToSellerMapping]?.name === seller.name && p.stock > 0
+                );
+                
+                if (productsWithStock.length === 0) return;
+                
+                const randomIndex = Math.floor(Math.random() * productsWithStock.length);
+                const randomProduct = productsWithStock[randomIndex];
+                
+                if (randomProduct) {
+                     const promoMessage = {
+                        id: `promo-${Date.now()}`,
+                        type: 'product_promo',
+                        product: randomProduct,
+                    };
+                    setChatMessages(prev => [...prev, promoMessage]);
+                }
+    
+            }, promotionInterval);
+        
+            return () => clearInterval(interval);
+        }
+    }, [seller]);
+    
+
+    const formatTime = (timeInSeconds: number) => {
+        if (isNaN(timeInSeconds) || timeInSeconds < 0) return '00:00';
+        const date = new Date(0);
+        date.setSeconds(timeInSeconds);
+        const timeString = date.toISOString().substr(11, 8);
+        return timeString.startsWith('00:') ? timeString.substr(3) : timeString;
+    };
+    
+    const handlePlayPause = useCallback(() => {
+        const video = videoRef.current;
+        if (!video) return;
+
+        if (video.paused) {
+            video.play().catch(console.error);
+        } else {
+            video.pause();
+        }
+    }, []);
+
+    const handleSeek = useCallback((direction: 'forward' | 'backward') => {
+        const video = videoRef.current;
+        if (!video) return;
+        const newTime = direction === 'forward' ? video.currentTime + skipInterval : video.currentTime - skipInterval;
+        video.currentTime = Math.max(0, Math.min(duration, newTime));
+    }, [duration, skipInterval]);
+    
+    const handleGoLive = () => {
+        const video = videoRef.current;
+        if (video) {
+            video.currentTime = video.duration;
+        }
+    };
+    
+    const handleProgressClick = (e: React.MouseEvent<HTMLDivElement>) => {
+        const video = videoRef.current;
+        const progressContainer = progressContainerRef.current;
+        if (!video || !progressContainer) return;
+
+        const rect = progressContainer.getBoundingClientRect();
+        const clickX = e.clientX - rect.left;
+        const width = rect.width;
+        const percentage = clickX / width;
+        const newTime = duration * percentage;
+        
+        video.currentTime = newTime;
+    };
+    
+    useEffect(() => {
+        const video = videoRef.current;
+        if (isMinimized(streamId)) {
+            if(video) video.pause();
+            return;
+        };
+
+        if (video) {
+            const updateProgress = () => {
+                setCurrentTime(video.currentTime);
+                if (video.buffered.length > 0) {
+                    setBuffered(video.buffered.end(video.buffered.length - 1));
+                }
+                const isCurrentlyLive = (video.duration - video.currentTime) < 2 && !isPastStream;
+                if (isLive !== isCurrentlyLive) {
+                    setIsLive(isCurrentlyLive);
+                }
+                
+                if (isCurrentlyLive && video.playbackRate !== 1) {
+                    video.playbackRate = 1;
+                    setPlaybackRate(1);
+                }
+            };
+            const setVideoDuration = () => setDuration(video.duration);
+            const onPlay = () => setIsPaused(false);
+            const onPause = () => setIsPaused(true);
+
+            video.addEventListener("timeupdate", updateProgress);
+            video.addEventListener("progress", updateProgress);
+            video.addEventListener("loadedmetadata", setVideoDuration);
+            video.addEventListener("play", onPlay);
+            video.addEventListener("pause", onPause);
+
+            video.muted = isMuted;
+            video.play().catch(() => {
+                setIsPaused(true);
+            });
+
+            return () => {
+                video.removeEventListener("timeupdate", updateProgress);
+                video.removeEventListener("progress", updateProgress);
+                video.removeEventListener("loadedmetadata", setVideoDuration);
+                video.removeEventListener("play", onPlay);
+                video.removeEventListener("pause", onPause);
+            };
+        }
+    }, [isMuted, isMinimized, streamId, isLive, isMobile, isPastStream]);
+    
+    const handleToggleFullscreen = () => {
+        const elem = playerRef.current;
+        if (!elem) return;
+    
+        if (!document.fullscreenElement) {
+            elem.requestFullscreen().catch(err => {
+                alert(`Error attempting to enable full-screen mode: \`${err.message}\` (\`${err.name}\`)`);
+            });
+        } else {
+            document.exitFullscreen();
+        }
+    };
+
+    useEffect(() => {
+        const handleFullscreenChange = () => {
+            setIsFullscreen(!!document.fullscreenElement);
+        };
+    
+        document.addEventListener('fullscreenchange', handleFullscreenChange);
+    
+        return () => {
+            document.removeEventListener('fullscreenchange', handleFullscreenChange);
+        };
+    }, []);
+    
+    const handleReportMessage = useCallback((messageId: number) => {
+        toast({
+            title: "Message Reported",
+            description: "The message has been reported and will be reviewed by our moderation team.",
+        });
+    }, [toast]);
+    
+    const handleShare = () => {
+        navigator.clipboard.writeText(window.location.href);
+        toast({
+            title: "Stream Link Copied!",
+            description: "The link to this stream has been copied to your clipboard.",
+        });
+    };
+
+     const handleTogglePinMessage = useCallback((msgId: number) => {
+        const msg = chatMessages.find(m => m.id === msgId);
+        if (!msg) return;
+
+        const isProductPin = msg.type === 'product_pin';
+
+        let itemToPin:any = {};
+
+        if (isProductPin) {
+             itemToPin = { 
+                id: msg.id, 
+                type: 'product',
+                product: productDetails['prod_1']
+            };
+        } else {
+             itemToPin = { 
+                id: msg.id,
+                type: 'message',
+                user: msg.user,
+                text: msg.text
+            };
+        }
+        
+        setPinnedMessages(prev =>
+            prev.some(p => p.id === msgId)
+                ? prev.filter(p => p.id !== msgId)
+                : [itemToPin, ...prev]
+        );
+
+        toast({
+            title: pinnedMessages.some(p => p.id === msgId) ? "Message Unpinned" : "Message Pinned",
+            description: "The message has been updated in the pinned items."
+        });
+    }, [chatMessages, pinnedMessages, toast]);
+    
+    const handleFollowToggle = useCallback(() => {
+        handleAuthAction(async () => {
+            setIsFollowingState(prev => !prev);
+            if (user && seller) {
+                await toggleFollow(user.uid, seller.id);
+            }
+        });
+    }, [handleAuthAction, user, seller]);
+
+    const handleMinimize = () => {
+      if (streamData && seller) {
+        minimizeStream({
+          id: streamData.id,
+          streamUrl: streamData.streamUrl,
+          title: seller.name,
+        });
+        router.push('/live-selling');
+      }
+    };
+
+    const handleReply = useCallback((msg: any) => {
+        // This is now handled within ChatPanel's state
+    }, []);
+
+    const handleNewMessageSubmit = useCallback((data: { text: string, amount?: number, paymentMethod?: string }) => {
+        handleAuthAction(() => {
+            if (!user) return;
+            const { text, amount } = data;
+            const newMessage: any = {
+                id: Date.now(),
+                user: user?.displayName || "You",
+                userId: user.uid,
+                text: text,
+                avatar: user.photoURL || 'https://placehold.co/40x40.png',
+            };
+            if (amount) {
+                newMessage.type = 'super_chat';
+                newMessage.amount = amount;
+            }
+            setChatMessages(prev => [...prev, newMessage]);
+        });
+    }, [user, handleAuthAction]);
+
+    const handleDeleteMessage = useCallback((msgId: number) => {
+        setChatMessages(prev => prev.filter(m => m.id !== msgId));
+    }, []);
+    
+    const onReportStream = useCallback(() => {
+        handleAuthAction(() => setIsReportOpen(true));
+    }, [handleAuthAction]);
+    
+    const handleAddToCart = useCallback((product: any) => {
+        handleAuthAction(() => {
+            if (product) {
+              addToCart({ ...product, quantity: 1 });
+              toast({
+                title: "Added to Cart!",
+                description: `'${product.name}' has been added to your shopping cart.`,
+              });
+            }
+        });
+    }, [toast, handleAuthAction]);
+      
+    const handleBuyNow = useCallback((product: any) => {
+        handleAuthAction(() => {
+            if (product) {
+                router.push(`/cart?buyNow=true&productId=${product.key}`);
+            }
+        });
+    }, [router, handleAuthAction]);
+    
+    const handlers = useMemo(() => ({
+        onReply: handleReply,
+        onTogglePin: handleTogglePinMessage,
+        onReportMessage: handleReportMessage,
+        onDeleteMessage: handleDeleteMessage,
+        onReportStream,
+        onAddToCart: handleAddToCart,
+        onBuyNow: handleBuyNow,
+        toast,
+        seller,
+        handleNewMessageSubmit,
+        handleAuthAction,
+    }), [toast, handleReply, handleReportMessage, handleTogglePinMessage, handleDeleteMessage, seller, handleNewMessageSubmit, onReportStream, handleAddToCart, handleBuyNow, handleAuthAction]);
+    
+    if (isMinimized(streamId)) {
+        return (
+            <div className="flex h-screen items-center justify-center bg-background">
+                <div className="text-center text-foreground">
+                    <h1 className="text-2xl font-bold">Stream is minimized</h1>
+                    <p className="text-muted-foreground">This stream is currently playing in the mini-player.</p>
+                </div>
+            </div>
+        );
+    }
+
+    if (!hydrated) {
+        return (
+            <div className="flex flex-col h-screen items-center justify-center bg-background">
+                <div className="w-full max-w-4xl">
+                    <Skeleton className="w-full aspect-[3/4]" />
+                    <div className="p-4 space-y-3">
+                        <Skeleton className="h-8 w-3/4" />
+                        <Skeleton className="h-6 w-1/2" />
+                    </div>
+                </div>
+            </div>
+        );
+    }
+    
+    return (
+        <React.Fragment>
+            <AlertDialog open={isAuthDialogOpen} onOpenChange={setIsAuthDialogOpen}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Authentication Required</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            You need to be logged in to perform this action. Please log in or create an account to continue.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={() => router.push(`/signup?redirect=/stream/${streamId}`)}>Create Account</AlertDialogAction>
+                        <AlertDialogAction onClick={() => router.push(`/?redirect=/stream/${streamId}`)}>Login</AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+            <Dialog open={isReportOpen} onOpenChange={setIsReportOpen}>
+                <ReportDialog onSubmit={(reason, details) => {
+                    console.log("Report submitted", { reason, details });
+                    toast({ title: "Report Submitted", description: "Thank you for your feedback. Our team will review this stream." });
+                    setIsReportOpen(false);
+                }} />
+            </Dialog>
+
+             <div className={cn("bg-background text-foreground", isMobile ? 'flex flex-col h-dvh' : 'h-screen')}>
+                 {isMobile === undefined ? (
+                    <div className="flex h-screen items-center justify-center">
+                        <LoadingSpinner />
+                    </div>
+                 ) : isMobile ? (
+                     <MobileLayout {...{ router, videoRef, playerRef, handlePlayPause, handleShare, handleMinimize, handleToggleFullscreen, isPaused, seller, sellerData, streamData, handleFollowToggle, isFollowingState, sellerProducts, handlers, relatedStreams, isChatOpen, setIsChatOpen, chatMessages, pinnedMessages, onClose: () => setIsChatOpen(false), handleAddToCart, handleBuyNow, mobileView, setMobileView, isMuted, setIsMuted, handleGoLive, handleSeek, isLive, formatTime, currentTime, duration, buffered, handleProgressClick, progressContainerRef, activeQuality, setActiveQuality, product, user, walletBalance, setIsSuperChatOpen, isSuperChatOpen, isPastStream, isRatingDialogOpen, setIsRatingDialogOpen, handleRateStream, userRating, toast }} />
+                 ) : (
+                    <DesktopLayout 
+                        {...{ router, videoRef, playerRef, handlePlayPause, handleShare, handleMinimize, handleToggleFullscreen, isPaused, seller, sellerData, streamData, handleFollowToggle, isFollowingState, sellerProducts, handlers, relatedStreams, isChatOpen, setIsChatOpen, chatMessages, pinnedMessages, onClose: () => setIsChatOpen(false), handleAddToCart, handleBuyNow, mobileView, setMobileView, isMuted, setIsMuted, handleGoLive, handleSeek, isLive, formatTime, currentTime, duration, buffered, handleProgressClick, progressContainerRef, mainScrollRef, handleMainScroll, showGoToTop, scrollToTop, activeQuality, setActiveQuality, product, user, cartCount, walletBalance, setIsSuperChatOpen, isSuperChatOpen, inlineAuctionCardRefs, isPastStream, isRatingDialogOpen, setIsRatingDialogOpen, handleRateStream, userRating, toast }}
+                    />
+                 )}
+            </div>
+        </React.Fragment>
+    );
+};
+
 export default StreamPage;
+
+    
