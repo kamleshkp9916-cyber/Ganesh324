@@ -1239,7 +1239,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                 <Separator />
                                  <div className="mt-4">
                                     <h2 className="text-2xl font-bold mb-4">Related Product Streams</h2>
-                                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                                         {relatedStreams.map((stream: any) => {
                                             const sellerProducts = getProductsForSeller(stream.id);
                                             const productsToShow = sellerProducts.slice(0, 3);
@@ -1270,6 +1270,15 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                                             </div>
                                                         </div>
                                                     </Link>
+                                                    <div className="flex items-center gap-1.5 mt-auto flex-shrink-0 pt-2 w-full justify-start pb-2 pl-2">
+                                                        {productsToShow.slice(0, 3).map((p: any, i: number) => (
+                                                            <Link href={`/product/${p.key}`} key={p.key} className="block" onClick={(e) => e.stopPropagation()}>
+                                                                <div className="w-10 h-10 bg-muted rounded-md border overflow-hidden hover:ring-2 hover:ring-primary">
+                                                                    <Image src={p.images[0]?.preview || p.images[0]} alt={p.name} width={40} height={40} className="object-cover w-full h-full" />
+                                                                </div>
+                                                            </Link>
+                                                        ))}
+                                                    </div>
                                                 </Card>
                                             )
                                         })}
