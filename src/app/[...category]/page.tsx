@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft, ShoppingCart, Star, Search, ChevronDown, Users, Package, Sparkles, Video, Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { productDetails } from '@/lib/product-data';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import {
@@ -258,16 +259,16 @@ export default function CategoryPage() {
                                                 </div>
                                                 <CardContent className="p-3 flex-grow flex flex-col">
                                                     <h4 className="font-semibold truncate text-sm flex-grow">{product.name}</h4>
-                                                     <div className="flex items-baseline gap-x-2 mt-1">
-                                                        <p className={cn("font-bold text-foreground text-base", hasDiscount && "text-destructive")}>
+                                                     <div className="flex items-center gap-2 mt-1">
+                                                        <p className={cn("font-bold text-foreground text-sm", hasDiscount && "text-destructive")}>
                                                             ₹{discountedPrice.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                                         </p>
                                                         {hasDiscount && (
                                                             <>
-                                                                <p className="text-sm text-muted-foreground line-through">
+                                                                <p className="text-xs text-muted-foreground line-through">
                                                                     ₹{originalPrice.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                                                 </p>
-                                                                <Badge variant="destructive" className="text-[10px] px-1.5 py-0">({product.discountPercentage}% OFF)</Badge>
+                                                                <Badge variant="destructive" className="text-[10px] px-1 py-0">({product.discountPercentage}% OFF)</Badge>
                                                             </>
                                                         )}
                                                     </div>
