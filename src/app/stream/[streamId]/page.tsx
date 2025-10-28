@@ -594,8 +594,8 @@ const RelatedContent = ({ relatedStreams, onAddToCart, onBuyNow, toast, getProdu
                                 <SheetContent side="bottom" className="h-[60vh] flex flex-col p-0">
                                     <ProductShelfContent
                                         sellerProducts={sellerProducts}
-                                        handleAddToCart={onAddToCart}
-                                        handleBuyNow={onBuyNow}
+                                        handleAddToCart={handleAddToCart}
+                                        handleBuyNow={handleBuyNow}
                                         isMobile={true}
                                         onClose={() => {
                                             const a = document.querySelector('[data-state="closed"]');
@@ -776,6 +776,16 @@ const ChatPanel = ({
     const [newMessage, setNewMessage] = useState('');
     const [replyingTo, setReplyingTo] = useState<any | null>(null);
 
+    useEffect(() => {
+        const scrollArea = chatContainerRef.current;
+        if (scrollArea) {
+            const viewport = scrollArea.querySelector('div[data-radix-scroll-area-viewport]');
+            if (viewport) {
+                viewport.scrollTop = viewport.scrollHeight;
+            }
+        }
+    }, [chatMessages]);
+
     const handleReply = (msg: any) => {
         setReplyingTo(msg);
         setNewMessage(`@${msg.user} `);
@@ -818,7 +828,7 @@ const ChatPanel = ({
                                 {pinnedMessages.length > 0 && <span className="absolute -top-0.5 -right-0.5 h-3 w-3 rounded-full bg-primary" />}
                             </Button>
                         </PopoverTrigger>
-                        <PopoverContent className="w-80 p-0">
+                        <PopoverContent className="w-80 p-0" align="end">
                             <div className="p-3 font-semibold text-sm border-b">Pinned Items</div>
                             <ScrollArea className="h-64">
                                 <div className="p-2 space-y-1">
@@ -1769,7 +1779,7 @@ const StreamPage = () => {
                      <MobileLayout {...{ router, videoRef, playerRef, handlePlayPause, handleShare, handleMinimize, handleToggleFullscreen, isPaused, seller, sellerData, streamData, handleFollowToggle, isFollowingState, sellerProducts, handlers, relatedStreams, isChatOpen, setIsChatOpen, chatMessages, pinnedMessages, onClose: () => setIsChatOpen(false), handleAddToCart, handleBuyNow, mobileView, setMobileView, isMuted, setIsMuted, handleGoLive, handleSeek, isLive, formatTime, currentTime, duration, buffered, handleProgressClick, progressContainerRef, activeQuality, setActiveQuality, product, user, walletBalance, setIsSuperChatOpen, isSuperChatOpen, isPastStream, isRatingDialogOpen, setIsRatingDialogOpen, handleRateStream, userRating, toast, getProductsForSeller }} />
                  ) : (
                     <DesktopLayout 
-                        {...{ router, videoRef, playerRef, handlePlayPause, handleShare, handleMinimize, handleToggleFullscreen, isPaused, seller, sellerData, streamData, handleFollowToggle, isFollowingState, sellerProducts, handlers, relatedStreams, isChatOpen, setIsChatOpen, chatMessages, pinnedMessages, onClose: () => setIsChatOpen(false), handleAddToCart, handleBuyNow, mobileView, setMobileView, isMuted, setIsMuted, handleGoLive, handleSeek, isLive, formatTime, currentTime, duration, buffered, handleProgressClick, progressContainerRef, mainScrollRef, handleMainScroll, showGoToTop, scrollToTop, activeQuality, setActiveQuality, product, user, cartCount, walletBalance, setIsSuperChatOpen, isSuperChatOpen, inlineAuctionCardRefs, isPastStream, isRatingDialogOpen, setIsRatingDialogOpen, handleRateStream, userRating, toast, getProductsForSeller }}
+                        {...{ router, videoRef, playerRef, handlePlayPause, handleShare, handleMinimize, handleToggleFullscreen, isPaused, seller, sellerData, streamData, handleFollowToggle, isFollowingState, sellerProducts, handlers, relatedStreams, isChatOpen, setIsChatOpen, chatMessages, pinnedMessages, onClose: () => setIsChatOpen(false), handleAddToCart, handleBuyNow, mobileView, setMobileView, isMuted, setIsMuted, handleGoLive, handleSeek, isLive, formatTime, currentTime, duration, buffered, handleProgressClick, progressContainerRef, mainScrollRef, handleMainScroll, showGoToTop, scrollToTop, activeQuality, setActiveQuality, product, user, cartCount, walletBalance, setIsSuperChatOpen, isSuperChatOpen, inlineAuctionCardRefs: inlineAuctionCardRefs, isPastStream, isRatingDialogOpen, setIsRatingDialogOpen, handleRateStream, userRating, toast, getProductsForSeller }}
                     />
                  )}
             </div>
