@@ -100,7 +100,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { useAuth } from '@/hooks/use-auth';
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { toggleFollow, getUserData, UserData, isFollowing as isFollowingBackend } from '@/lib/follow-data';
+import { toggleFollow, getUserData, UserData, isFollowing } from '@/lib/follow-data';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
@@ -590,7 +590,7 @@ const RelatedContent = ({ relatedStreams, onAddToCart, onBuyNow, toast, getProdu
                  return (
                  <Card key={s.id} className="group flex flex-col space-y-2 overflow-hidden border-none shadow-none bg-transparent">
                     <Link href={`/stream/${s.id}`} className="block">
-                        <div className="relative aspect-video bg-muted rounded-lg overflow-hidden">
+                        <div className="relative aspect-[16/9] bg-muted rounded-lg overflow-hidden">
                             <Image src={s.thumbnailUrl} alt={`Live stream from ${s.name}`} fill sizes="(max-width: 640px) 100vw, 33vw" className="object-cover w-full h-full transition-transform group-hover:scale-105" />
                             <div className="absolute top-3 left-3 z-10"><Badge variant="destructive" className="gap-1.5"><div className="h-2 w-2 rounded-full bg-white animate-pulse" />LIVE</Badge></div>
                             <div className="absolute top-2 right-2 z-10">
@@ -614,7 +614,7 @@ const RelatedContent = ({ relatedStreams, onAddToCart, onBuyNow, toast, getProdu
                             </div>
                         </div>
                     </Link>
-                    <div className="flex items-center gap-1.5 mt-auto flex-shrink-0 pt-2 w-full justify-start pb-2">
+                    <div className="flex items-center gap-1.5 mt-auto flex-shrink-0 pt-2 w-full justify-start pb-2 pl-2">
                         {productsToShow.slice(0, remainingCount > 0 ? 5 : 6).map((p: any, i: number) => (
                             <Link href={`/product/${p.key}`} key={p.key} className="block" onClick={(e) => e.stopPropagation()}>
                                 <div className="w-10 h-10 bg-muted rounded-md border overflow-hidden hover:ring-2 hover:ring-primary">
@@ -1018,7 +1018,7 @@ const ChatPanel = ({
           </form>
         </footer>}
     </div>
-  );
+  )
 };
 
 
@@ -1361,7 +1361,7 @@ const StreamPage = () => {
                 if (data) {
                     setSellerData(data);
                     if (user && data) {
-                        setIsFollowingState(await isFollowingBackend(user.uid, data.uid));
+                        setIsFollowingState(await isFollowing(user.uid, data.uid));
                     }
                 }
             }
@@ -1841,8 +1841,7 @@ const StreamPage = () => {
                     setIsReportOpen(false);
                 }} />
             </Dialog>
-
-             <div className={cn("bg-background text-foreground", isMobile ? 'flex flex-col h-dvh' : 'h-screen')}>
+            <div className={cn("bg-background text-foreground", isMobile ? 'flex flex-col h-dvh' : 'h-screen')}>
                  {isMobile === undefined ? (
                     <div className="flex h-screen items-center justify-center">
                         <LoadingSpinner />
@@ -1860,3 +1859,5 @@ const StreamPage = () => {
 };
 
 export default StreamPage;
+
+    
