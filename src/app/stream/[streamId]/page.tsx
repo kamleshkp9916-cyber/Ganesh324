@@ -606,7 +606,7 @@ const RelatedContent = ({ relatedStreams, onAddToCart, onBuyNow, toast, getProdu
                                 </SheetContent>
                             </Sheet>
                         )}
-                    </div>
+                      </div>
                 </Card>
             )})}
         </div>
@@ -1071,7 +1071,7 @@ return (
 
             <div className="p-4 space-y-6">
                 <MemoizedStreamInfo {...props}/>
-                <MemoizedRelatedContent {...props} />
+                <MemoizedRelatedContent {...props} handleAddToCart={handleAddToCart} handleBuyNow={handleBuyNow} getProductsForSeller={props.getProductsForSeller} />
             </div>
         </main>
 
@@ -1194,7 +1194,7 @@ const MobileLayout = React.memo(({ handlers, chatMessages, walletBalance, isPast
                      <ScrollArea className="h-full no-scrollbar">
                         <div className="p-4 space-y-6">
                              <MemoizedStreamInfo {...props}/>
-                            <MemoizedRelatedContent {...props} getProductsForSeller={props.getProductsForSeller} />
+                            <MemoizedRelatedContent {...props} handleAddToCart={handleAddToCart} handleBuyNow={handleBuyNow} getProductsForSeller={props.getProductsForSeller} />
                         </div>
                     </ScrollArea>
                 ) : (
@@ -1789,4 +1789,5 @@ const StreamPage = () => {
 
 export default StreamPage;
 
+    
     
