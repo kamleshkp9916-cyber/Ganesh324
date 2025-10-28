@@ -4,7 +4,7 @@
 import { Facebook, Twitter, Linkedin, Mail, MapPin, Phone, Instagram } from 'lucide-react';
 import Link from 'next/link';
 import { Logo } from './logo';
-import { useAuth } from '@/hooks/use-auth.tsx';
+import { useAuth } from '@/hooks/use-auth';
 import React, { useState, useEffect } from 'react';
 import { useLocalStorage } from '@/hooks/use-local-storage';
 import { FOOTER_CONTENT_KEY, FooterContent } from '@/app/admin/settings/page';
@@ -30,6 +30,7 @@ export function Footer() {
   }, []);
 
   if (!isMounted) {
+      // You can return a skeleton loader here if you want.
       return null;
   }
 
@@ -57,7 +58,7 @@ export function Footer() {
             <h3 className="text-lg font-semibold text-foreground mb-4">Quick Links</h3>
             <ul className="space-y-2 text-sm">
                 <li><Link href="/live-selling" className="text-muted-foreground hover:text-primary">Live Shopping</Link></li>
-                {isMounted && user && (
+                {user && (
                     <>
                         <li><Link href="/orders" className="text-muted-foreground hover:text-primary">My Orders</Link></li>
                         <li><Link href="/profile" className="text-muted-foreground hover:text-primary">Profile</Link></li>
@@ -104,3 +105,5 @@ export function Footer() {
     </footer>
   );
 }
+
+    
