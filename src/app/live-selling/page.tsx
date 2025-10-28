@@ -893,7 +893,7 @@ export default function LiveSellingPage() {
                                 ))}
                             </div>
                         </TabsContent>
-                        <TabsContent value="following">
+                       <TabsContent value="following">
                             <div className="space-y-6">
                             {Object.keys(followedStreamsByCategory).length > 0 ? (
                                 Object.entries(followedStreamsByCategory).map(([category, streams]) => (
@@ -1038,5 +1038,3 @@ export default function LiveSellingPage() {
     </>
   );
 }
-
-    
