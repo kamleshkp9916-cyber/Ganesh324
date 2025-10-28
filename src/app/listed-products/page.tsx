@@ -38,17 +38,9 @@ const collageCategories = [
     { name: "Women", href: "/women", imageUrl: "https://images.unsplash.com/photo-1483985988355-763728e1935b?w=800&h=1200&fit=crop", hint: "woman shopping", gridClass: "md:row-span-2 md:col-span-2" },
     { name: "Men", href: "/men", imageUrl: "https://images.unsplash.com/photo-1618354691373-d851c5c3a990?w=800&h=1200&fit=crop", hint: "man wearing t-shirt", gridClass: "" },
     { name: "Electronics", href: "/electronics", imageUrl: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&h=800&fit=crop", hint: "headphones", gridClass: "" },
+    { name: "Home", href: "/home", imageUrl: "https://images.unsplash.com/photo-1556911220-e15b29be8cbf?w=800&h=800&fit=crop", hint: "kitchen", gridClass: "md:row-span-2 md:col-span-2" },
     { name: "Kids", href: "/kids", imageUrl: "https://images.unsplash.com/photo-1519340241574-289a2b421515?w=800&h=1200&fit=crop", hint: "girl wearing dress", gridClass: "" },
-    { name: "Home", href: "/home", imageUrl: "https://images.unsplash.com/photo-1556911220-e15b29be8cbf?w=800&h=800&fit=crop", hint: "kitchen", gridClass: "md:col-span-2" },
-];
-
-const brandLogos = [
-    { name: 'BrandA', logo: 'https://placehold.co/120x60.png?text=BrandA' },
-    { name: 'BrandB', logo: 'https://placehold.co/120x60.png?text=BrandB' },
-    { name: 'BrandC', logo: 'https://placehold.co/120x60.png?text=BrandC' },
-    { name: 'BrandD', logo: 'https://placehold.co/120x60.png?text=BrandD' },
-    { name: 'BrandE', logo: 'https://placehold.co/120x60.png?text=BrandE' },
-    { name: 'BrandF', logo: 'https://placehold.co/120x60.png?text=BrandF' },
+    { name: "Trending", href: "/trending", imageUrl: "https://images.unsplash.com/photo-1567401893414-76b7b1e5a7a5?w=800&h=800&fit=crop", hint: "fashion clothes rack", gridClass: "" },
 ];
 
 
@@ -253,28 +245,6 @@ export default function ListedProductsPage() {
                         ))}
                     </div>
                 </section>
-              
-                <section>
-                    <div className="text-center mb-8">
-                        <h2 className="text-3xl font-bold tracking-tight">Trending Now</h2>
-                        <p className="text-muted-foreground mt-1">See what everyone's buying.</p>
-                    </div>
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
-                        {trendingProducts.slice(0, 5).map(product => (
-                            <Link href={`/product/${product.key}`} key={product.key} className="group block">
-                                <Card className="w-full overflow-hidden h-full flex flex-col">
-                                    <div className="relative aspect-square bg-muted">
-                                        <Image src={product.images[0]} alt={product.name} fill sizes="20vw" className="object-cover group-hover:scale-105 transition-transform" />
-                                    </div>
-                                    <div className="p-3">
-                                        <h4 className="font-semibold text-sm truncate">{product.name}</h4>
-                                        <p className="font-bold">{product.price}</p>
-                                    </div>
-                                </Card>
-                            </Link>
-                        ))}
-                    </div>
-                </section>
            </div>
          )}
       </main>
@@ -307,4 +277,3 @@ const ListItem = React.forwardRef<
   )
 })
 ListItem.displayName = "ListItem"
-
