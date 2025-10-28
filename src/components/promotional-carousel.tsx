@@ -20,9 +20,9 @@ import { cn } from '@/lib/utils';
 import { Zap } from 'lucide-react';
 
 const defaultSlides: Slide[] = [
-  { id: 1, imageUrl: 'https://images.unsplash.com/photo-1558769132-cb1aea458c5e?w=800&h=800&fit=crop', title: "Discover products you'll love", description: "Curated picks, timeless design, and everyday prices. Start exploring our latest arrivals and best sellers." },
-  { id: 2, imageUrl: 'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=800&h=800&fit=crop', title: 'New Arrivals Are Here', description: 'Check out the latest fashion trends and must-have styles for the new season.' },
-  { id: 3, imageUrl: 'https://images.unsplash.com/photo-1525945367383-a90940981977?w=800&h=800&fit=crop', title: "Women's Fashion", description: 'Explore our curated collection of women\'s clothing and accessories.' },
+  { id: 1, imageUrl: 'https://images.unsplash.com/photo-1568252542512-9fe8fe9c87bb?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxmYXNoaW9uJTIwbW9kZWx8ZW58MHx8fHwxNzYxNTYyNzc5fDA&ixlib=rb-4.1.0&q=80&w=1080', title: "Discover products you'll love", description: "Curated picks, timeless design, and everyday prices. Start exploring our latest arrivals and best sellers." },
+  { id: 2, imageUrl: 'https://images.unsplash.com/photo-1562572159-4efc207f5aff?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxmYXNoaW9uJTIwbW9kZWx8ZW58MHx8fHwxNzYxNTYyNzc5fDA&ixlib=rb-4.1.0&q=80&w=1080', title: 'New Arrivals Are Here', description: 'Check out the latest fashion trends and must-have styles for the new season.' },
+  { id: 3, imageUrl: 'https://images.unsplash.com/photo-1627292441194-0280c19e74e4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxmYXNoaW9uJTIwbW9kZWx8ZW58MHx8fHwxNzYxNTYyNzc5fDA&ixlib=rb-4.1.0&q=80&w=1080', title: "Women's Fashion", description: 'Explore our curated collection of women\'s clothing and accessories.' },
 ];
 
 export function PromotionalCarousel() {
@@ -50,7 +50,7 @@ export function PromotionalCarousel() {
   if (!isMounted) {
       return (
           <div className="w-full mb-8">
-            <Skeleton className="aspect-[2.5/1] w-full rounded-2xl" />
+            <Skeleton className="aspect-[2/1] w-full rounded-2xl" />
           </div>
       );
   }
@@ -61,8 +61,8 @@ export function PromotionalCarousel() {
   
   return (
     <Card className="overflow-hidden border-none shadow-lg bg-black text-white rounded-2xl">
-      <CardContent className="p-0 grid grid-cols-1 md:grid-cols-2 items-center">
-        <div className="relative p-6 md:p-8 order-2 md:order-1">
+      <CardContent className="p-0 grid grid-cols-1 md:grid-cols-2 items-center h-[400px]">
+        <div className="relative p-6 md:p-8 order-2 md:order-1 h-full flex flex-col justify-center">
             <p className="text-sm font-medium text-gray-400 mb-2">New season essentials</p>
             <h2 className="text-3xl md:text-4xl font-bold text-white">Discover products you'll love</h2>
             <p className="text-base text-gray-300 mt-4 max-w-md">Curated picks, timeless design, and everyday prices. Start exploring our latest arrivals and best sellers.</p>
@@ -79,7 +79,7 @@ export function PromotionalCarousel() {
                 <span>Free shipping over $50 and 30-day returns</span>
             </div>
         </div>
-        <div className="relative aspect-[1/1] md:aspect-auto md:h-full order-1 md:order-2">
+        <div className="relative h-full order-1 md:order-2">
             <Carousel
                 setApi={setApi}
                 className="w-full h-full"
@@ -120,3 +120,5 @@ export function PromotionalCarousel() {
     </Card>
   );
 }
+
+    

@@ -31,6 +31,7 @@ import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { motion } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
+import { Footer } from "@/components/footer";
 
 const allCategories = categories;
 
@@ -248,6 +249,7 @@ export default function ListedProductsPage() {
            </div>
          )}
       </main>
+      <Footer />
     </div>
   );
 }
@@ -277,3 +279,5 @@ const ListItem = React.forwardRef<
   )
 })
 ListItem.displayName = "ListItem"
+
+    
