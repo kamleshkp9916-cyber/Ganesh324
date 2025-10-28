@@ -29,6 +29,7 @@ import { categories } from "@/lib/categories";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { productDetails } from "@/lib/product-data";
 import ProductSearch from "@/components/ProductSearch";
+import { PromotionalCarousel } from "@/components/promotional-carousel";
 
 const allCategories = categories;
 
@@ -55,27 +56,10 @@ const collageCategories = [
 export default function ListedProductsPage() {
   const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
-  const [hubBanner, setHubBanner] = useState<HubBanner>(defaultHubBanner);
-  const [featuredProducts, setFeaturedProducts] = useState<FeaturedProduct[]>(defaultFeaturedProducts);
-  const [isMounted, setIsMounted] = useState(false);
-  
-  const [storedHubBanner] = useLocalStorage<HubBanner>(HUB_BANNER_KEY, defaultHubBanner);
-  const [storedFeaturedProducts] = useLocalStorage<FeaturedProduct[]>(HUB_FEATURED_PRODUCTS_KEY, defaultFeaturedProducts);
 
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [showSearchResults, setShowSearchResults] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
-  
-  useEffect(() => {
-    if(isMounted) {
-        setHubBanner(storedHubBanner);
-        setFeaturedProducts(storedFeaturedProducts);
-    }
-  }, [isMounted, storedHubBanner, storedFeaturedProducts])
 
   const getCategoryPath = (categoryName: string, subcategoryName?: string) => {
     const basePath = `/${categoryName.toLowerCase().replace(/\s+/g, '-')}`;
@@ -238,30 +222,27 @@ export default function ListedProductsPage() {
       <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-10 flex-grow">
          
          {showSearchResults ? renderSearchResults() : (
-           <>
-            {isMounted && hubBanner ? (
-            <Card className="overflow-hidden border-none shadow-lg mb-10">
-            <CardContent className="p-0 relative">
-                <div className="aspect-[3/1] relative">
-                    <Image
-                    src={hubBanner.imageUrl}
-                    alt={hubBanner.title}
-                    fill
-                    sizes="100vw"
-                    className="object-cover"
-                    data-ai-hint="electronics sale gadgets"
-                    />
-                    <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center text-center p-4">
-                    <h2 className="text-4xl font-bold text-white shadow-lg">{hubBanner.title}</h2>
-                    <p className="text-lg text-white/90 mt-2 shadow-lg max-w-lg">{hubBanner.description}</p>
-                    </div>
-                </div>
-            </CardContent>
-            </Card>
-        ) : (
-            <Skeleton className="w-full aspect-[3/1] mb-10" />
-        )}
-        </>
+           <div className="space-y-10">
+              <PromotionalCarousel />
+
+              <div className="grid grid-cols-2 md:grid-cols-4 auto-rows-[250px] gap-4">
+                  {collageCategories.map((category) => (
+                      <Link href={category.href} key={category.name} className={cn("group relative rounded-lg overflow-hidden", category.colSpan, category.rowSpan)}>
+                          <Image
+                              src={category.imageUrl}
+                              alt={category.name}
+                              fill
+                              className="object-cover w-full h-full group-hover:scale-105 transition-transform"
+                              data-ai-hint={category.hint}
+                          />
+                          <div className="absolute inset-0 bg-black/30" />
+                          <div className="absolute inset-0 flex items-end p-4">
+                              <h3 className="text-xl font-bold text-white">{category.name}</h3>
+                          </div>
+                      </Link>
+                  ))}
+              </div>
+           </div>
          )}
       </main>
     </div>
