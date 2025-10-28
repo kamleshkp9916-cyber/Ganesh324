@@ -259,7 +259,7 @@ export default function ListedProductsPage() {
                 {featuredProducts && featuredProducts.length > 0 && (
                 <div className="grid grid-cols-1 sm:grid-cols-3 bg-card-foreground/5">
                     {featuredProducts.map((product, index) => (
-                    <Link href="#" key={index} className="group p-4 flex items-center gap-4 hover:bg-card-foreground/10 transition-colors">
+                    <Link href={getCategoryPath(product.model)} key={index} className="group p-4 flex items-center gap-4 hover:bg-card-foreground/10 transition-colors">
                         <div className="relative w-20 h-20 bg-muted rounded-md overflow-hidden flex-shrink-0">
                         <Image src={product.imageUrl} alt={product.name} fill sizes="80px" className="object-cover group-hover:scale-105 transition-transform" data-ai-hint={product.name.toLowerCase()} />
                         </div>
@@ -277,27 +277,6 @@ export default function ListedProductsPage() {
         ) : (
             <Skeleton className="w-full aspect-[3/1] mb-10" />
         )}
-
-        <section className="mb-12">
-            <h2 className="text-3xl font-bold text-center mb-6">Shop by Category</h2>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 auto-rows-[minmax(0,_300px)]">
-                {collageCategories.map((cat, index) => (
-                    <Link key={index} href={getCategoryPath(cat.name)} className={cn("group relative rounded-lg overflow-hidden shadow-lg", cat.colSpan, cat.rowSpan)}>
-                        <Image
-                            src={cat.imageUrl}
-                            alt={cat.name}
-                            fill
-                            sizes="(max-width: 768px) 50vw, 25vw"
-                            className="object-cover w-full h-full transition-transform duration-300 ease-in-out group-hover:scale-105"
-                            data-ai-hint={cat.hint}
-                        />
-                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-                            <h3 className="text-2xl font-bold text-white text-center p-2">{cat.name}</h3>
-                        </div>
-                    </Link>
-                ))}
-            </div>
-        </section>
         </>
          )}
       </main>
