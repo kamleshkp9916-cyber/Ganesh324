@@ -256,22 +256,6 @@ export default function ListedProductsPage() {
                     <p className="text-lg text-white/90 mt-2 shadow-lg max-w-lg">{hubBanner.description}</p>
                     </div>
                 </div>
-                {featuredProducts && featuredProducts.length > 0 && (
-                <div className="grid grid-cols-1 sm:grid-cols-3 bg-card-foreground/5">
-                    {featuredProducts.map((product, index) => (
-                    <Link href={getCategoryPath(product.model)} key={index} className="group p-4 flex items-center gap-4 hover:bg-card-foreground/10 transition-colors">
-                        <div className="relative w-20 h-20 bg-muted rounded-md overflow-hidden flex-shrink-0">
-                        <Image src={product.imageUrl} alt={product.name} fill sizes="80px" className="object-cover group-hover:scale-105 transition-transform" data-ai-hint={product.name.toLowerCase()} />
-                        </div>
-                        <div>
-                        <p className="font-semibold text-sm group-hover:underline">{product.name}</p>
-                        <p className="text-xs text-muted-foreground">{product.model}</p>
-                        </div>
-                        <ChevronRight className="h-5 w-5 text-muted-foreground ml-auto group-hover:translate-x-1 transition-transform" />
-                    </Link>
-                    ))}
-                </div>
-                )}
             </CardContent>
             </Card>
         ) : (
