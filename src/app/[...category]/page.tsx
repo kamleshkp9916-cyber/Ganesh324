@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useRouter, useParams } from 'next/navigation';
@@ -5,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft, ShoppingCart, Star, Search, ChevronDown, Users, Package, Sparkles, Video, Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { productDetails } from '@/lib/product-data';
 import Link from 'next/link';
-import { Card } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import Image from 'next/image';
 import { Input } from '@/components/ui/input';
 import {
@@ -15,7 +16,7 @@ import {
   DropdownMenuRadioItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { differenceInDays } from 'date-fns';
 import { useDebounce } from '@/hooks/use-debounce';
@@ -25,8 +26,27 @@ import { cn } from '@/lib/utils';
 import { SimilarProductsOverlay } from '@/components/similar-products-overlay';
 import { Pagination, PaginationContent, PaginationItem, PaginationPrevious, PaginationNext, PaginationLink, PaginationEllipsis } from '@/components/ui/pagination';
 import { Footer } from '@/components/footer';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const PRODUCTS_PER_PAGE = 30;
+
+const ProductCardSkeleton = () => (
+    <Card className="w-full overflow-hidden h-full flex flex-col">
+        <Skeleton className="relative aspect-square bg-muted" />
+        <div className="p-3 flex-grow flex flex-col space-y-2">
+            <Skeleton className="h-4 w-3/4" />
+            <Skeleton className="h-5 w-1/2" />
+            <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
+                <Skeleton className="h-4 w-16" />
+            </div>
+            <div className="flex items-center gap-4 text-xs text-muted-foreground mt-1">
+                <Skeleton className="h-3 w-12" />
+                <Skeleton className="h-3 w-12" />
+            </div>
+        </div>
+    </Card>
+);
+
 
 export default function CategoryPage() {
     const router = useRouter();
@@ -36,12 +56,22 @@ export default function CategoryPage() {
     const [showSearchResults, setShowSearchResults] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
+    const [isLoading, setIsLoading] = useState(true);
 
     // State for similar products functionality
     const [scanningProductId, setScanningProductId] = useState<string | null>(null);
     const [showSimilarOverlay, setShowSimilarOverlay] = useState(false);
     const [isLoadingSimilar, setIsLoadingSimilar] = useState(false);
     const [similarProducts, setSimilarProducts] = useState<any[]>([]);
+
+    useEffect(() => {
+        // Simulate loading
+        const timer = setTimeout(() => {
+            setIsLoading(false);
+        }, 500);
+        return () => clearTimeout(timer);
+    }, [params.category]); // Re-trigger loading on category change
+
 
     const { category: categoryPath } = params;
 
@@ -171,7 +201,13 @@ export default function CategoryPage() {
                             </DropdownMenu>
                         </div>
                     </div>
-                    {visibleProducts.length > 0 ? (
+                     {isLoading ? (
+                        <div className="p-4 md:p-6 grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                            {Array.from({ length: 10 }).map((_, index) => (
+                                <ProductCardSkeleton key={index} />
+                            ))}
+                        </div>
+                    ) : visibleProducts.length > 0 ? (
                         <>
                             <div className="p-4 md:p-6 grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
                                 {visibleProducts.map((product: any) => {
@@ -208,7 +244,7 @@ export default function CategoryPage() {
                                                         </Button>
                                                     </div>
                                                 </div>
-                                                <div className="p-3 flex-grow flex flex-col">
+                                                <CardContent className="p-3 flex-grow flex flex-col">
                                                     <h4 className="font-semibold truncate text-sm flex-grow">{product.name}</h4>
                                                     <p className="font-bold text-foreground mt-1">{product.price}</p>
                                                     <div className="flex items-center gap-1 text-xs text-amber-400 mt-1">
@@ -220,7 +256,7 @@ export default function CategoryPage() {
                                                         <div className="flex items-center gap-1"><Package className="w-3 h-3" /> {product.stock} left</div>
                                                         <div className="flex items-center gap-1"><Users className="w-3 h-3" /> {product.sold} sold</div>
                                                     </div>
-                                                </div>
+                                                </CardContent>
                                             </Card>
                                         </Link>
                                     )
@@ -270,3 +306,5 @@ export default function CategoryPage() {
         </>
     );
 }
+
+    
