@@ -30,6 +30,7 @@ import { PromotionalCarousel } from "@/components/promotional-carousel";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { motion } from "framer-motion";
+import { Badge } from "@/components/ui/badge";
 
 const allCategories = categories;
 
@@ -228,27 +229,6 @@ export default function ListedProductsPage() {
            <div className="space-y-16">
               <PromotionalCarousel />
               
-                <section>
-                    <h2 className="text-3xl font-bold text-center mb-6">Explore by Category</h2>
-                     <div className="grid grid-cols-2 md:grid-cols-4 auto-rows-[250px] gap-4">
-                        {collageCategories.map((category) => (
-                            <Link href={category.href} key={category.name} className={cn("group relative rounded-lg overflow-hidden", category.gridClass)}>
-                                <Image
-                                    src={category.imageUrl}
-                                    alt={category.name}
-                                    fill
-                                    className="object-cover w-full h-full group-hover:scale-105 transition-transform"
-                                    data-ai-hint={category.hint}
-                                />
-                                <div className="absolute inset-0 bg-black/30" />
-                                <div className="absolute inset-0 flex items-end p-4">
-                                    <h3 className="text-xl font-bold text-white">{category.name}</h3>
-                                </div>
-                            </Link>
-                        ))}
-                    </div>
-                </section>
-                
                 <section>
                     <h2 className="text-3xl font-bold text-center mb-6">Trending Now</h2>
                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
