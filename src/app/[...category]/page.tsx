@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useRouter, useParams } from 'next/navigation';
@@ -25,8 +24,9 @@ import ProductSearch from '@/components/ProductSearch';
 import { cn } from '@/lib/utils';
 import { SimilarProductsOverlay } from '@/components/similar-products-overlay';
 import { Pagination, PaginationContent, PaginationItem, PaginationPrevious, PaginationNext, PaginationLink, PaginationEllipsis } from '@/components/ui/pagination';
+import { Footer } from '@/components/footer';
 
-const PRODUCTS_PER_PAGE = 12;
+const PRODUCTS_PER_PAGE = 30;
 
 export default function CategoryPage() {
     const router = useRouter();
@@ -146,7 +146,7 @@ export default function CategoryPage() {
                     </div>
                 </header>
 
-                <main className="container mx-auto py-6">
+                <main className="container mx-auto py-6 flex-grow">
                     <div className="p-4 border-b flex flex-col sm:flex-row items-center gap-4 sticky top-[65px] bg-background/80 backdrop-blur-sm z-20 -mx-4 sm:mx-0">
                         <div className="relative flex-1 w-full">
                             <ProductSearch onSearchComplete={onSearchComplete} />
@@ -258,6 +258,7 @@ export default function CategoryPage() {
                         </div>
                     )}
                 </main>
+                <Footer />
             </div>
              {showSimilarOverlay && <SimilarProductsOverlay
                 isOpen={showSimilarOverlay}
