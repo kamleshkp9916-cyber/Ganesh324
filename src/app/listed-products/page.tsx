@@ -15,13 +15,10 @@ import {
 } from "@/components/ui/navigation-menu"
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { Menu, ShoppingBag, User, X, ChevronRight, ArrowLeft, Search, List, Star, Package, Users } from "lucide-react";
-import { useLocalStorage } from "@/hooks/use-local-storage";
-import { HUB_BANNER_KEY, HubBanner, HUB_FEATURED_PRODUCTS_KEY, FeaturedProduct } from '@/app/admin/settings/page';
-import { useState, useEffect, useCallback } from "react";
+import { Menu, ShoppingBag, User, X, ChevronRight, ArrowLeft, Search, List, Star, Package, Users, ArrowRight } from "lucide-react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import Image from 'next/image';
-import { Skeleton } from "@/components/ui/skeleton";
 import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -30,36 +27,42 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { productDetails } from "@/lib/product-data";
 import ProductSearch from "@/components/ProductSearch";
 import { PromotionalCarousel } from "@/components/promotional-carousel";
+import { Separator } from "@/components/ui/separator";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { motion } from "framer-motion";
 
 const allCategories = categories;
 
-const defaultHubBanner: HubBanner = {
-    title: "Mega Electronics Sale",
-    description: "Up to 40% off on all smartphones, laptops, and accessories. Limited time offer!",
-    imageUrl: "https://images.unsplash.com/photo-1525547719571-a2d4ac8945e2?w=1200&h=400&fit=crop"
-};
-
-const defaultFeaturedProducts: FeaturedProduct[] = [
-  { imageUrl: 'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=500&h=500&fit=crop', name: 'Latest Styles', model: 'Women' },
-  { imageUrl: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500&h=500&fit=crop', name: 'Top Gadgets', model: 'Electronics' },
-  { imageUrl: 'https://images.unsplash.com/photo-1618354691373-d851c5c3a990?w=500&h=500&fit=crop', name: 'Sharp Looks', model: 'Men' },
-];
-
 const collageCategories = [
-    { name: "Women", href: "/women", imageUrl: "https://images.unsplash.com/photo-1483985988355-763728e1935b?w=800&h=1200&fit=crop", hint: "woman shopping", colSpan: "col-span-2", rowSpan: "row-span-2" },
-    { name: "Men", href: "/men", imageUrl: "https://images.unsplash.com/photo-1618354691373-d851c5c3a990?w=800&h=1200&fit=crop", hint: "man wearing t-shirt", colSpan: "col-span-1", rowSpan: "row-span-1" },
-    { name: "Electronics", href: "/electronics", imageUrl: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&h=800&fit=crop", hint: "headphones", colSpan: "col-span-1", rowSpan: "row-span-1" },
-    { name: "Kids", href: "/kids", imageUrl: "https://images.unsplash.com/photo-1519340241574-289a2b421515?w=800&h=1200&fit=crop", hint: "girl wearing dress", colSpan: "col-span-1", rowSpan: "row-span-1" },
-    { name: "Home", href: "/home", imageUrl: "https://images.unsplash.com/photo-1556911220-e15b29be8cbf?w=800&h=800&fit=crop", hint: "kitchen", colSpan: "col-span-2", rowSpan: "row-span-1" },
+    { name: "Women", href: "/women", imageUrl: "https://images.unsplash.com/photo-1483985988355-763728e1935b?w=800&h=1200&fit=crop", hint: "woman shopping", gridClass: "md:row-span-2 md:col-span-2" },
+    { name: "Men", href: "/men", imageUrl: "https://images.unsplash.com/photo-1618354691373-d851c5c3a990?w=800&h=1200&fit=crop", hint: "man wearing t-shirt", gridClass: "" },
+    { name: "Electronics", href: "/electronics", imageUrl: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&h=800&fit=crop", hint: "headphones", gridClass: "" },
+    { name: "Kids", href: "/kids", imageUrl: "https://images.unsplash.com/photo-1519340241574-289a2b421515?w=800&h=1200&fit=crop", hint: "girl wearing dress", gridClass: "" },
+    { name: "Home", href: "/home", imageUrl: "https://images.unsplash.com/photo-1556911220-e15b29be8cbf?w=800&h=800&fit=crop", hint: "kitchen", gridClass: "md:col-span-2" },
 ];
+
+const brandLogos = [
+    { name: 'BrandA', logo: 'https://placehold.co/120x60.png?text=BrandA' },
+    { name: 'BrandB', logo: 'https://placehold.co/120x60.png?text=BrandB' },
+    { name: 'BrandC', logo: 'https://placehold.co/120x60.png?text=BrandC' },
+    { name: 'BrandD', logo: 'https://placehold.co/120x60.png?text=BrandD' },
+    { name: 'BrandE', logo: 'https://placehold.co/120x60.png?text=BrandE' },
+    { name: 'BrandF', logo: 'https://placehold.co/120x60.png?text=BrandF' },
+];
+
 
 export default function ListedProductsPage() {
   const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
-
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [showSearchResults, setShowSearchResults] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+
+  const trendingProducts = useMemo(() => {
+    return Object.values(productDetails)
+      .sort((a, b) => (b.sold || 0) - (a.sold || 0))
+      .slice(0, 10);
+  }, []);
 
   const getCategoryPath = (categoryName: string, subcategoryName?: string) => {
     const basePath = `/${categoryName.toLowerCase().replace(/\s+/g, '-')}`;
@@ -222,26 +225,80 @@ export default function ListedProductsPage() {
       <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-10 flex-grow">
          
          {showSearchResults ? renderSearchResults() : (
-           <div className="space-y-10">
+           <div className="space-y-16">
               <PromotionalCarousel />
+              
+                <section>
+                    <h2 className="text-3xl font-bold text-center mb-6">Explore by Category</h2>
+                     <div className="grid grid-cols-2 md:grid-cols-4 auto-rows-[250px] gap-4">
+                        {collageCategories.map((category) => (
+                            <Link href={category.href} key={category.name} className={cn("group relative rounded-lg overflow-hidden", category.gridClass)}>
+                                <Image
+                                    src={category.imageUrl}
+                                    alt={category.name}
+                                    fill
+                                    className="object-cover w-full h-full group-hover:scale-105 transition-transform"
+                                    data-ai-hint={category.hint}
+                                />
+                                <div className="absolute inset-0 bg-black/30" />
+                                <div className="absolute inset-0 flex items-end p-4">
+                                    <h3 className="text-xl font-bold text-white">{category.name}</h3>
+                                </div>
+                            </Link>
+                        ))}
+                    </div>
+                </section>
+                
+                <section>
+                    <h2 className="text-3xl font-bold text-center mb-6">Trending Now</h2>
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                        {trendingProducts.slice(0, 5).map(product => (
+                            <Link href={`/product/${product.key}`} key={product.key} className="group block">
+                                <Card className="w-full overflow-hidden h-full flex flex-col">
+                                    <div className="relative aspect-square bg-muted">
+                                        <Image src={product.images[0]} alt={product.name} fill sizes="20vw" className="object-cover group-hover:scale-105 transition-transform" />
+                                    </div>
+                                    <div className="p-3">
+                                        <h4 className="font-semibold text-sm truncate">{product.name}</h4>
+                                        <p className="font-bold">{product.price}</p>
+                                    </div>
+                                </Card>
+                            </Link>
+                        ))}
+                    </div>
+                </section>
+                
+                <section>
+                    <h2 className="text-3xl font-bold text-center mb-6">Shop by Brand</h2>
+                    <div className="flex flex-wrap items-center justify-center gap-4">
+                        {brandLogos.map(brand => (
+                            <div key={brand.name} className="p-2 border rounded-md hover:shadow-md transition-shadow">
+                                <Image src={brand.logo} alt={brand.name} width={120} height={60} className="object-contain" />
+                            </div>
+                        ))}
+                    </div>
+                </section>
 
-              <div className="grid grid-cols-2 md:grid-cols-4 auto-rows-[250px] gap-4">
-                  {collageCategories.map((category) => (
-                      <Link href={category.href} key={category.name} className={cn("group relative rounded-lg overflow-hidden", category.colSpan, category.rowSpan)}>
-                          <Image
-                              src={category.imageUrl}
-                              alt={category.name}
-                              fill
-                              className="object-cover w-full h-full group-hover:scale-105 transition-transform"
-                              data-ai-hint={category.hint}
-                          />
-                          <div className="absolute inset-0 bg-black/30" />
-                          <div className="absolute inset-0 flex items-end p-4">
-                              <h3 className="text-xl font-bold text-white">{category.name}</h3>
-                          </div>
-                      </Link>
-                  ))}
-              </div>
+                <section>
+                    <Card className="bg-primary/5 border-primary/20">
+                        <CardContent className="p-8 grid md:grid-cols-2 gap-8 items-center">
+                            <div className="space-y-4">
+                                <Badge variant="secondary">Seller Spotlight</Badge>
+                                <h3 className="text-3xl font-bold">Meet GadgetGuru</h3>
+                                <p className="text-muted-foreground">"I'm passionate about bringing you the best and latest in technology. From unboxings to in-depth reviews, my streams are all about helping you make the right choice for your tech needs. Join my community of enthusiasts!"</p>
+                                <Button asChild>
+                                    <Link href="/seller/profile?userId=gadgetguru-uid">
+                                        View Profile <ArrowRight className="ml-2 h-4 w-4" />
+                                    </Link>
+                                </Button>
+                            </div>
+                             <div className="relative aspect-square rounded-lg overflow-hidden">
+                                <Image src="https://images.unsplash.com/photo-1550009158-94ae76552485?w=800&h=800&fit=crop" alt="GadgetGuru" fill className="object-cover" />
+                            </div>
+                        </CardContent>
+                    </Card>
+                </section>
+
            </div>
          )}
       </main>
@@ -274,5 +331,3 @@ const ListItem = React.forwardRef<
   )
 })
 ListItem.displayName = "ListItem"
-
-    
