@@ -27,6 +27,7 @@ import { SimilarProductsOverlay } from '@/components/similar-products-overlay';
 import { Pagination, PaginationContent, PaginationItem, PaginationPrevious, PaginationNext, PaginationLink, PaginationEllipsis } from '@/components/ui/pagination';
 import { Footer } from '@/components/footer';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useAuth } from '@/hooks/use-auth';
 
 const PRODUCTS_PER_PAGE = 30;
 
@@ -57,6 +58,7 @@ export default function CategoryPage() {
     const [searchQuery, setSearchQuery] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
     const [isLoading, setIsLoading] = useState(true);
+    const { user } = useAuth();
 
     // State for similar products functionality
     const [scanningProductId, setScanningProductId] = useState<string | null>(null);
@@ -169,11 +171,11 @@ export default function CategoryPage() {
                         <ArrowLeft className="h-6 w-6" />
                     </Button>
                     <h1 className="text-xl font-bold truncate">{pageTitle}</h1>
-                    <div className="w-10">
+                     {user && (
                         <Button asChild variant="ghost" size="icon">
                             <Link href="/cart"><ShoppingCart className="h-6 w-6" /></Link>
                         </Button>
-                    </div>
+                    )}
                 </header>
 
                 <main className="container mx-auto py-6 flex-grow">
@@ -306,5 +308,3 @@ export default function CategoryPage() {
         </>
     );
 }
-
-    
