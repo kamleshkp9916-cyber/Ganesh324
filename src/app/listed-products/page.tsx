@@ -88,7 +88,7 @@ export default function ListedProductsPage() {
   const onSearchComplete = useCallback((results: any[], query: string) => {
     setSearchResults(results);
     setSearchQuery(query);
-    setShowSearchResults(true);
+    setShowSearchResults(!!query);
   }, []);
   
   const renderSearchResults = () => (
