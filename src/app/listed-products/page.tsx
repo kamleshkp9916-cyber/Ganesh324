@@ -39,9 +39,9 @@ const defaultHubBanner: HubBanner = {
 };
 
 const defaultFeaturedProducts: FeaturedProduct[] = [
-  { imageUrl: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=500&h=500&fit=crop', name: 'Latest Laptop', model: 'Model Pro X' },
-  { imageUrl: 'https://images.unsplash.com/photo-1580910051074-3eb694886505?w=500&h=500&fit=crop', name: 'Smartphone', model: 'SmartX 12' },
-  { imageUrl: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500&h=500&fit=crop', name: 'Headphones', model: 'AudioMax 3' },
+  { imageUrl: 'https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?w=500&h=500&fit=crop', name: 'Stylish Trousers', model: 'Women' },
+  { imageUrl: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=500&h=500&fit=crop', name: 'Running Shoes', model: 'Electronics' },
+  { imageUrl: 'https://images.unsplash.com/photo-1603252109303-2751441dd157?w=500&h=500&fit=crop', name: 'Classic White Shirt', model: 'Men' },
 ];
 
 const collageCategories = [
