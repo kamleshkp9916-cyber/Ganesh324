@@ -7,7 +7,6 @@ import { ArrowLeft, ShoppingCart, Star, Search, ChevronDown, Users, Package, Spa
 import { productDetails } from '@/lib/product-data';
 import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/card';
-import Image from 'next/image';
 import { Input } from '@/components/ui/input';
 import {
   DropdownMenu,
@@ -260,15 +259,15 @@ export default function CategoryPage() {
                                                 <CardContent className="p-3 flex-grow flex flex-col">
                                                     <h4 className="font-semibold truncate text-sm flex-grow">{product.name}</h4>
                                                      <div className="flex items-baseline gap-x-2 mt-1">
-                                                        <p className={cn("font-bold text-foreground text-sm", hasDiscount && "text-destructive text-base")}>
+                                                        <p className={cn("font-bold text-foreground text-base", hasDiscount && "text-destructive")}>
                                                             ₹{discountedPrice.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                                         </p>
                                                         {hasDiscount && (
                                                             <>
-                                                                <p className="text-xs text-muted-foreground line-through">
+                                                                <p className="text-sm text-muted-foreground line-through">
                                                                     ₹{originalPrice.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                                                 </p>
-                                                                <Badge variant="destructive" className="text-xs">{product.discountPercentage}% OFF</Badge>
+                                                                <Badge variant="destructive" className="text-[10px] px-1.5 py-0">({product.discountPercentage}% OFF)</Badge>
                                                             </>
                                                         )}
                                                     </div>
