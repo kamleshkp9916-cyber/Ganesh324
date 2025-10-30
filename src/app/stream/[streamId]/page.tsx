@@ -559,7 +559,7 @@ const RelatedContent = ({ relatedStreams, onAddToCart, onBuyNow, toast, getProdu
                             <Image src={s.thumbnailUrl} alt={`Live stream from ${s.name}`} fill sizes="(max-width: 640px) 100vw, 33vw" className="object-cover w-full h-full transition-transform group-hover:scale-105" />
                             <div className="absolute top-3 left-3 z-10"><Badge variant="destructive" className="gap-1.5"><div className="h-2 w-2 rounded-full bg-white animate-pulse" />LIVE</Badge></div>
                             <div className="absolute top-2 right-2 z-10">
-                                <Badge variant="secondary" className="bg-black/40 text-white font-semibold backdrop-blur-sm">
+                                <Badge variant="secondary" className="bg-black/50 text-white font-semibold backdrop-blur-sm">
                                     <Users className="w-3 h-3 mr-1"/>{s.viewers.toLocaleString()}
                                 </Badge>
                             </div>
@@ -867,7 +867,7 @@ const ChatPanel = ({
                             <DropdownMenuItem><LifeBuoy className="mr-2 h-4 w-4" /> Help & Support</DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>
-                    <Button variant="ghost" size="icon" className="lg:hidden" onClick={onClose}>
+                    <Button variant="ghost" size="icon" className="md:hidden" onClick={onClose}>
                         <X className="h-5 w-5" />
                     </Button>
                 </div>
@@ -1791,5 +1791,6 @@ export default StreamPage;
 
     
     
+
 
 
