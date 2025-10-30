@@ -16,6 +16,7 @@ import { Card, CardContent } from './ui/card';
 import { productDetails, mockStreams } from '@/lib/product-data';
 import { Separator } from './ui/separator';
 import { useRouter } from 'next/navigation';
+import { categories } from '@/lib/categories';
 
 export function ProductSearchWithStreams() {
   const [q, setQ] = useState('');
@@ -24,6 +25,7 @@ export function ProductSearchWithStreams() {
   
   const [productSuggestions, setProductSuggestions] = useState<any[]>([]);
   const [streamHints, setStreamHints] = useState<any[]>([]);
+  const [categoryStreamPath, setCategoryStreamPath] = useState<string | null>(null);
   
   const [popoverOpen, setPopoverOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -40,12 +42,32 @@ export function ProductSearchWithStreams() {
     if (!queryText || !queryText.trim()) {
       setProductSuggestions([]);
       setStreamHints([]);
+      setCategoryStreamPath(null);
       setLoading(false);
       setPopoverOpen(false);
       return;
     }
     setLoading(true);
     const tokens = tokenize(queryText);
+    const lowercasedQuery = queryText.toLowerCase();
+
+    // Check for category/subcategory match
+    let foundPath = null;
+    for (const category of categories) {
+        if (category.name.toLowerCase() === lowercasedQuery) {
+            foundPath = `/live-selling/${category.name.toLowerCase().replace(/\s+/g, '-')}`;
+            break;
+        }
+        for (const subcategory of category.subcategories) {
+            if (subcategory.name.toLowerCase() === lowercasedQuery) {
+                foundPath = `/live-selling/${category.name.toLowerCase().replace(/\s+/g, '-')}/${subcategory.name.toLowerCase().replace(/\s+/g, '-').replace(/&/g, '%26')}`;
+                break;
+            }
+        }
+        if (foundPath) break;
+    }
+    setCategoryStreamPath(foundPath);
+
 
     try {
       // This is a simplified search for demo purposes on local data
@@ -73,7 +95,7 @@ export function ProductSearchWithStreams() {
       setProductSuggestions(sortedProducts);
       setStreamHints(sortedStreams);
       
-      setPopoverOpen(sortedProducts.length > 0 || sortedStreams.length > 0);
+      setPopoverOpen(sortedProducts.length > 0 || sortedStreams.length > 0 || !!foundPath);
 
     } catch (e) {
       console.error('Search error', e);
@@ -86,7 +108,7 @@ export function ProductSearchWithStreams() {
     runSearch(debouncedQuery);
   }, [debouncedQuery, runSearch]);
 
-  const hasResults = productSuggestions.length > 0 || streamHints.length > 0;
+  const hasResults = productSuggestions.length > 0 || streamHints.length > 0 || categoryStreamPath;
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -116,23 +138,23 @@ export function ProductSearchWithStreams() {
         <PopoverContent className="w-[--radix-popover-trigger-width] mt-2 max-h-[70vh] overflow-y-auto p-4" onOpenAutoFocus={(e) => e.preventDefault()}>
             {hasResults ? (
                 <div className="space-y-4">
-                     {streamHints.length > 0 && (
+                     {categoryStreamPath && (
                         <div>
-                            <Link href={`/live-selling?search=${encodeURIComponent(q)}`} className="group flex items-center justify-between p-2 -m-2 rounded-lg hover:bg-secondary">
+                            <Link href={categoryStreamPath} className="group flex items-center justify-between p-2 -m-2 rounded-lg hover:bg-secondary">
                                 <div className="flex items-center gap-3">
                                     <div className="bg-primary/10 p-2 rounded-md">
                                         <Video className="w-5 h-5 text-primary"/>
                                     </div>
                                     <div>
                                         <h3 className="font-semibold">Streams for "{q}"</h3>
-                                        <p className="text-sm text-muted-foreground">Explore live streams related to your search.</p>
+                                        <p className="text-sm text-muted-foreground">Explore the "{q}" category live streams.</p>
                                     </div>
                                 </div>
                                 <ArrowRight className="h-5 w-5 text-muted-foreground group-hover:translate-x-1 transition-transform" />
                             </Link>
                         </div>
                     )}
-                    {(streamHints.length > 0 && productSuggestions.length > 0) && <Separator />}
+                    {(categoryStreamPath && productSuggestions.length > 0) && <Separator />}
                     {productSuggestions.length > 0 && (
                         <div>
                             <Link href={`/listed-products?search=${encodeURIComponent(q)}`} className="group flex items-center justify-between p-2 -m-2 rounded-lg hover:bg-secondary">
