@@ -65,7 +65,7 @@ export function SimilarProductsOverlay({
     addToCart({ ...product, quantity: 1 });
     toast({
         title: "Added to Cart!",
-        description: `${product.name} has been added to your cart.`
+        description: `${product.name} has been added to your shopping cart.`
     });
   };
 
@@ -121,7 +121,7 @@ export function SimilarProductsOverlay({
                                     className="object-cover transition-transform group-hover:scale-105"
                                 />
                                 <div className="absolute bottom-2 left-2 flex items-center gap-1 text-xs text-white bg-black/50 px-1.5 py-0.5 rounded-full backdrop-blur-sm">
-                                    <Star className="w-3 h-3 text-yellow-300 fill-yellow-300" />
+                                    <Star className="w-3 h-3 text-black fill-black" />
                                     <span className="font-bold">4.8</span>
                                 </div>
                             </div>
