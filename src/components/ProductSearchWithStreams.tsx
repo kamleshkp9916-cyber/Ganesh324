@@ -1,3 +1,4 @@
+
 "use client"
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
@@ -14,6 +15,7 @@ import { Badge } from './ui/badge';
 import { Card, CardContent } from './ui/card';
 import { productDetails, mockStreams } from '@/lib/product-data';
 import { Separator } from './ui/separator';
+import { useRouter } from 'next/navigation';
 
 export function ProductSearchWithStreams() {
   const [q, setQ] = useState('');
