@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import Link from 'next/link';
@@ -127,8 +128,6 @@ import { ProductShelfContent } from '@/components/product-shelf-content';
 import { useInView } from 'react-intersection-observer';
 import { SubcategoryCard } from '@/components/SubcategoryCard';
 
-
-const liveSellers = mockStreams;
 
 const reportReasons = [
     { id: "spam", label: "It's spam" },
@@ -318,7 +317,7 @@ export default function LiveSellingPage() {
   const createPostFormRef = useRef<HTMLDivElement>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [browseSearchTerm, setBrowseSearchTerm] = useState('');
-  const [allSellers, setAllSellers] = useState(liveSellers);
+  const [allSellers, setAllSellers] = useState(mockStreams);
   const [notifications, setNotifications] = useState(mockNotifications);
   const unreadCount = useMemo(() => notifications.filter(n => !n.read).length, [notifications]);
   const [activeLiveFilter, setActiveLiveFilter] = useState('All');
@@ -522,7 +521,7 @@ export default function LiveSellingPage() {
             seller.category.toLowerCase().includes(searchTerm.toLowerCase())
         );
     }
-    return sellers.sort((a, b) => b.viewers - a.viewers);
+    return sellers.filter(s => s.status === 'live').sort((a, b) => b.viewers - a.viewers);
   }, [allSellers, searchTerm]);
   
   const markAsRead = (id: number) => {

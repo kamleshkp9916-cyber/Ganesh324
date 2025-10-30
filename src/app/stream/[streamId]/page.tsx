@@ -763,7 +763,8 @@ const ChatPanel = ({
     onClose,
     isPastStream,
     isSuperChatOpen,
-    setIsSuperChatOpen
+    setIsSuperChatOpen,
+    isChatDisabled
 }: {
     seller: any;
     streamData: any;
@@ -775,6 +776,7 @@ const ChatPanel = ({
     isPastStream: boolean;
     isSuperChatOpen: boolean;
     setIsSuperChatOpen: (open: boolean) => void;
+    isChatDisabled: boolean;
 }) => {
     const { user } = useAuth();
     const [newMessage, setNewMessage] = useState('');
@@ -918,7 +920,7 @@ const ChatPanel = ({
                     )}
                      <div className="flex items-center gap-1.5 px-2 pb-2">
                         {suggestedEmojis.map(emoji => (
-                            <Button key={emoji} variant="ghost" size="icon" className="h-7 w-7 text-lg" onClick={() => addEmoji(emoji)}>
+                            <Button key={emoji} variant="ghost" size="icon" className="h-7 w-7 text-lg" onClick={() => addEmoji(emoji)} disabled={isChatDisabled}>
                                 {emoji}
                             </Button>
                         ))}
@@ -930,7 +932,7 @@ const ChatPanel = ({
                         </Avatar>
                         <div className="relative flex-grow">
                             <Textarea
-                                placeholder="Say something..."
+                                placeholder={isChatDisabled ? "Chat is closed" : "Say something..."}
                                 value={newMessage}
                                 onChange={(e) => setNewMessage(e.target.value)}
                                 rows={1}
@@ -941,10 +943,11 @@ const ChatPanel = ({
                                         handleSendMessage(e);
                                     }
                                 }}
+                                disabled={isChatDisabled}
                             />
                             <Popover>
                                 <PopoverTrigger asChild>
-                                    <Button variant="ghost" size="icon" type="button" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 text-muted-foreground">
+                                    <Button variant="ghost" size="icon" type="button" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 text-muted-foreground" disabled={isChatDisabled}>
                                         <Smile />
                                     </Button>
                                 </PopoverTrigger>
@@ -960,7 +963,7 @@ const ChatPanel = ({
                             </Popover>
                         </div>
                          <SuperChatDialog walletBalance={walletBalance} handlers={handlers} isSuperChatOpen={isSuperChatOpen} setIsSuperChatOpen={setIsSuperChatOpen} />
-                        <Button type="submit" size="icon" disabled={!newMessage.trim()} className="rounded-full flex-shrink-0 h-11 w-11">
+                        <Button type="submit" size="icon" disabled={!newMessage.trim() || isChatDisabled} className="rounded-full flex-shrink-0 h-11 w-11">
                             <Send className="h-5 w-5" />
                         </Button>
                     </form>
@@ -974,7 +977,7 @@ const ChatPanel = ({
 const MemoizedStreamInfo = React.memo(StreamInfo);
 const MemoizedRelatedContent = React.memo(RelatedContent);
 
-const DesktopLayout = React.memo(({ user, handlers, handleAddToCart, handleBuyNow, chatMessages, cartCount, walletBalance, isSuperChatOpen, setIsSuperChatOpen, pinnedMessages, ...props }: any) => {
+const DesktopLayout = React.memo(({ user, handlers, handleAddToCart, handleBuyNow, chatMessages, cartCount, walletBalance, isSuperChatOpen, setIsSuperChatOpen, pinnedMessages, isChatDisabled, ...props }: any) => {
 return (
 <div className="flex flex-col h-screen overflow-hidden">
     <header className="p-3 flex items-center justify-between z-40 h-16 shrink-0 w-full">
@@ -1029,9 +1032,9 @@ return (
             <div className="w-full aspect-video bg-black relative" ref={props.playerRef}>
                 <video ref={props.videoRef} src={props.streamData.streamUrl || "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"} className="w-full h-full object-cover" loop />
                  <div className="absolute top-3 left-3 z-10 flex items-center gap-2">
-                    <Badge variant={props.isPastStream ? 'outline' : 'destructive'} className={cn(props.isPastStream && 'bg-black/50 text-white border-white/30', "gap-1.5")}>
-                        {!props.isPastStream && <div className="h-2 w-2 rounded-full bg-white animate-pulse" />}
-                        {props.isPastStream ? 'RECORDED' : 'LIVE'}
+                    <Badge variant={props.isStreamEnded || props.isPastStream ? 'outline' : 'destructive'} className={cn((props.isStreamEnded || props.isPastStream) && 'bg-black/50 text-white border-white/30', "gap-1.5")}>
+                        {!(props.isStreamEnded || props.isPastStream) && <div className="h-2 w-2 rounded-full bg-white animate-pulse" />}
+                        {props.isStreamEnded ? 'ENDED' : props.isPastStream ? 'RECORDED' : 'LIVE'}
                     </Badge>
                     <Badge variant="secondary" className="bg-black/50 text-white gap-1.5"><Users className="w-3 h-3"/> {props.streamData.viewerCount.toLocaleString()}</Badge>
                 </div>
@@ -1105,6 +1108,7 @@ return (
                 isSuperChatOpen={isSuperChatOpen}
                 setIsSuperChatOpen={setIsSuperChatOpen}
                 isPastStream={props.isPastStream}
+                isChatDisabled={isChatDisabled}
             />
         </aside>
     </div>
@@ -1112,7 +1116,7 @@ return (
 )});
 DesktopLayout.displayName = "DesktopLayout";
 
-const MobileLayout = React.memo(({ user, handlers, handleAddToCart, handleBuyNow, chatMessages, walletBalance, isPastStream, isSuperChatOpen, setIsSuperChatOpen, pinnedMessages, ...props }: any) => {
+const MobileLayout = React.memo(({ user, handlers, handleAddToCart, handleBuyNow, chatMessages, walletBalance, isPastStream, isSuperChatOpen, setIsSuperChatOpen, pinnedMessages, isChatDisabled, ...props }: any) => {
     const { isMuted, setIsMuted, handleGoLive, isLive, formatTime, currentTime, duration, handleShare, handleToggleFullscreen, progressContainerRef, handleProgressClick, isPaused, handlePlayPause, handleSeek, handleMinimize, activeQuality, setActiveQuality } = props;
     return (
         <div className="flex flex-col h-dvh overflow-hidden relative">
@@ -1146,9 +1150,9 @@ const MobileLayout = React.memo(({ user, handlers, handleAddToCart, handleBuyNow
             <div className="w-full aspect-video bg-black relative flex-shrink-0" ref={props.playerRef}>
                 <video ref={props.videoRef} src={props.streamData.streamUrl || "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"} className="w-full h-full object-cover" loop onClick={handlePlayPause}/>
                  <div className="absolute top-3 left-3 z-10 flex items-center gap-2">
-                    <Badge variant={isPastStream ? 'outline' : 'destructive'} className={cn(isPastStream && 'bg-black/50 text-white border-white/30', "gap-1.5")}>
-                        {!isPastStream && <div className="h-2 w-2 rounded-full bg-white animate-pulse" />}
-                        {isPastStream ? 'RECORDED' : 'LIVE'}
+                    <Badge variant={props.isStreamEnded || isPastStream ? 'outline' : 'destructive'} className={cn((props.isStreamEnded || isPastStream) && 'bg-black/50 text-white border-white/30', "gap-1.5")}>
+                        {!(props.isStreamEnded || isPastStream) && <div className="h-2 w-2 rounded-full bg-white animate-pulse" />}
+                        {props.isStreamEnded ? 'ENDED' : isPastStream ? 'RECORDED' : 'LIVE'}
                     </Badge>
                     <Badge variant="secondary" className="bg-black/50 text-white gap-1.5"><Users className="w-3 h-3"/> {props.streamData.viewerCount.toLocaleString()}</Badge>
                 </div>
@@ -1216,7 +1220,7 @@ const MobileLayout = React.memo(({ user, handlers, handleAddToCart, handleBuyNow
                     </ScrollArea>
                 ) : (
                     <div className="h-full flex flex-col bg-background">
-                        <ChatPanel {...{...props, handlers, chatMessages, walletBalance, setIsSuperChatOpen, isSuperChatOpen, pinnedMessages, inlineAuctionCardRefs: props.inlineAuctionCardRefs, isPastStream }} onClose={() => props.setMobileView('stream')} />
+                        <ChatPanel {...{...props, handlers, chatMessages, walletBalance, setIsSuperChatOpen, isSuperChatOpen, pinnedMessages, inlineAuctionCardRefs: props.inlineAuctionCardRefs, isPastStream, isChatDisabled }} onClose={() => props.setMobileView('stream')} />
                     </div>
                 )}
             </div>
@@ -1269,6 +1273,9 @@ const StreamPage = () => {
 
     const [isRatingDialogOpen, setIsRatingDialogOpen] = useState(false);
     const [userRating, setUserRating] = useState<number>(0);
+    
+    const [isStreamEnded, setIsStreamEnded] = useState(false);
+    const [isChatDisabled, setIsChatDisabled] = useState(false);
     
     const handleAuthAction = useCallback((callback?: () => void) => {
         if (!user) {
@@ -1492,6 +1499,7 @@ const StreamPage = () => {
     };
     
     const handlePlayPause = useCallback(() => {
+        if (isStreamEnded) return;
         const video = videoRef.current;
         if (!video) return;
 
@@ -1500,7 +1508,7 @@ const StreamPage = () => {
         } else {
             video.pause();
         }
-    }, []);
+    }, [isStreamEnded]);
 
     const handleSeek = useCallback((direction: 'forward' | 'backward') => {
         const video = videoRef.current;
@@ -1538,6 +1546,17 @@ const StreamPage = () => {
         };
 
         if (video) {
+            const handleStreamEnd = () => {
+                if (!isPastStream) {
+                    setIsStreamEnded(true);
+                    video.pause();
+                    setChatMessages(prev => [...prev, { id: 'stream-end', type: 'system', text: 'The live stream has ended. Thank you for watching!' }]);
+                    setTimeout(() => {
+                        setIsChatDisabled(true);
+                    }, 5 * 60 * 1000); // 5 minutes
+                }
+            };
+            
             const updateProgress = () => {
                 setCurrentTime(video.currentTime);
                 if (video.buffered.length > 0) {
@@ -1557,6 +1576,7 @@ const StreamPage = () => {
             const onPlay = () => setIsPaused(false);
             const onPause = () => setIsPaused(true);
 
+            video.addEventListener("ended", handleStreamEnd);
             video.addEventListener("timeupdate", updateProgress);
             video.addEventListener("progress", updateProgress);
             video.addEventListener("loadedmetadata", setVideoDuration);
@@ -1564,11 +1584,16 @@ const StreamPage = () => {
             video.addEventListener("pause", onPause);
 
             video.muted = isMuted;
-            video.play().catch(() => {
-                setIsPaused(true);
-            });
+            if (!isStreamEnded) {
+                video.play().catch(() => {
+                    setIsPaused(true);
+                });
+            } else {
+                video.pause();
+            }
 
             return () => {
+                video.removeEventListener("ended", handleStreamEnd);
                 video.removeEventListener("timeupdate", updateProgress);
                 video.removeEventListener("progress", updateProgress);
                 video.removeEventListener("loadedmetadata", setVideoDuration);
@@ -1576,7 +1601,7 @@ const StreamPage = () => {
                 video.removeEventListener("pause", onPause);
             };
         }
-    }, [isMuted, isMinimized, streamId, isLive, isMobile, isPastStream]);
+    }, [isMuted, isMinimized, streamId, isLive, isMobile, isPastStream, isStreamEnded]);
     
     const handleToggleFullscreen = () => {
         const elem = playerRef.current;
@@ -1801,7 +1826,8 @@ const StreamPage = () => {
         mobileView,
         setMobileView,
         activeQuality,
-        setActiveQuality
+        setActiveQuality,
+        isStreamEnded,
     };
 
     return (
@@ -1834,10 +1860,10 @@ const StreamPage = () => {
                         <LoadingSpinner />
                     </div>
                  ) : isMobile ? (
-                     <MobileLayout {...{ user, handlers, handleAddToCart, handleBuyNow, chatMessages, walletBalance, isPastStream, isSuperChatOpen, setIsSuperChatOpen, pinnedMessages, ...props }} />
+                     <MobileLayout {...{ user, handlers, handleAddToCart, handleBuyNow, chatMessages, walletBalance, isPastStream, isSuperChatOpen, setIsSuperChatOpen, pinnedMessages, isChatDisabled, ...props }} />
                  ) : (
                     <DesktopLayout 
-                        {...{ user, handlers, handleAddToCart, handleBuyNow, chatMessages, cartCount, walletBalance, isSuperChatOpen, setIsSuperChatOpen, pinnedMessages, ...props }}
+                        {...{ user, handlers, handleAddToCart, handleBuyNow, chatMessages, cartCount, walletBalance, isSuperChatOpen, setIsSuperChatOpen, pinnedMessages, isChatDisabled, ...props }}
                     />
                  )}
             </div>
@@ -1849,6 +1875,7 @@ export default StreamPage;
 
     
     
+
 
 
 
