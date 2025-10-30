@@ -742,19 +742,6 @@ export default function LiveSellingPage() {
                                     <span>My Wallet</span>
                                 </DropdownMenuItem>
                                 <DropdownMenuSeparator />
-                                    <DropdownMenuItem onSelect={() => router.push('/setting')}>
-                                    <Settings className="mr-2 h-4 w-4" />
-                                    <span>Settings</span>
-                                </DropdownMenuItem>
-                                    <DropdownMenuItem onSelect={() => router.push('/help')}>
-                                    <LifeBuoy className="mr-2 h-4 w-4" />
-                                    <span>Help & Support</span>
-                                </DropdownMenuItem>
-                                <DropdownMenuItem onSelect={() => router.push('/privacy-and-security')}>
-                                    <Shield className="mr-2 h-4 w-4" />
-                                    <span>Privacy & Security</span>
-                                </DropdownMenuItem>
-                                <DropdownMenuSeparator />
                                 <DropdownMenuSub>
                                     <DropdownMenuSubTrigger>
                                         <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0 mr-2" />
