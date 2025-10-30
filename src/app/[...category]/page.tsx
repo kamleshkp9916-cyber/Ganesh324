@@ -182,7 +182,12 @@ export default function CategoryPage() {
         <>
             <div className="min-h-screen bg-background text-foreground flex flex-col">
                 <header className="p-4 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-sm z-30 border-b">
-                    <h1 className="text-xl font-bold truncate">{pageTitle}</h1>
+                    <div className="flex items-center gap-2">
+                        <Button variant="ghost" size="icon" onClick={() => router.back()}>
+                            <ArrowLeft className="h-6 w-6" />
+                        </Button>
+                        <h1 className="text-xl font-bold truncate">{pageTitle}</h1>
+                    </div>
                      {user ? (
                         <Link href="/cart">
                             <Button asChild variant="ghost" size="icon">
@@ -366,5 +371,7 @@ export default function CategoryPage() {
         </>
     );
 }
+
+    
 
     
