@@ -146,7 +146,7 @@ export function SimilarProductsOverlay({
           <TabsContent value="streams" className="mt-0">
             <Carousel opts={{ align: "start", loop: false }} className="w-full">
               <CarouselContent className="-ml-2">
-                {relatedStreams.map((s) => {
+                {relatedStreams.filter(s => s.status === 'live').map((s) => {
                   const sellerProducts = getProductsForSeller(s.id);
                   const productsToShow = sellerProducts.slice(0, 5);
                   const remainingCount = sellerProducts.length > 5 ? sellerProducts.length - 5 : 0;

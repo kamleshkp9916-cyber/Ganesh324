@@ -166,19 +166,18 @@ export default function SubCategoryStreamPage() {
             );
         };
         
-        let streams;
+        let streams = mockStreams.filter(s => s.status === 'live');
+
         if (subCategorySlug) {
-            streams = mockStreams.filter(stream => {
+            streams = streams.filter(stream => {
                  const streamSubCategorySlug = (stream as any).subcategory?.toLowerCase().replace(/\s+/g, '-').replace(/&/g, '%26');
                  return streamSubCategorySlug === subCategorySlug;
             });
         } else if (categorySlug) {
-             streams = mockStreams.filter(stream => {
+             streams = streams.filter(stream => {
                 const streamCategorySlug = stream.category.toLowerCase().replace(/\s+/g, '-');
                 return streamCategorySlug === categorySlug;
             });
-        } else {
-            streams = mockStreams;
         }
 
         const sorted = streams.sort((a, b) => b.viewers - a.viewers);
