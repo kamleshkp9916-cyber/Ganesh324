@@ -755,10 +755,10 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                       <TabsContent value="recent" className="mt-4">
                             {isLoadingContent ? <ProductSkeletonGrid /> : (
                               filteredRecentlyViewed.length > 0 ? (
-                                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                                    <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
                                       {filteredRecentlyViewed.map((item) => (
                                           <Link href={`/product/${item.key}`} key={item.id} className="group block">
-                                              <Card className="w-full group overflow-hidden">
+                                              <Card className="w-full group overflow-hidden h-full flex flex-col">
                                                   <div className="relative aspect-square bg-muted rounded-t-lg">
                                                       <Image 
                                                           src={item.imageUrl}
@@ -780,15 +780,19 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                                                           <Heart className="h-4 w-4" />
                                                       </Button>
                                                   </div>
-                                                  <div className="p-3">
-                                                      <h4 className="font-semibold truncate text-sm">{item.name}</h4>
-                                                      <p className="font-bold text-foreground">{item.price}</p>
-                                                      <div className="flex items-center gap-1 text-xs text-amber-400 mt-1">
-                                                          <Star className="w-4 h-4 fill-current" />
-                                                          <span>{averageRating}</span>
-                                                          <span className="text-muted-foreground">({mockReviews.length})</span>
-                                                      </div>
-                                                  </div>
+                                                  <div className="p-3 flex-grow flex flex-col">
+                                                        <h4 className="font-semibold truncate text-sm flex-grow">{item.name}</h4>
+                                                        <p className="font-bold text-foreground mt-1">{item.price}</p>
+                                                        <div className="flex items-center gap-1 text-xs text-amber-400 mt-1">
+                                                            <Star className="w-4 h-4 fill-current" />
+                                                            <span>{averageRating}</span>
+                                                            <span className="text-muted-foreground">({mockReviews.length})</span>
+                                                        </div>
+                                                         <div className="flex items-center gap-4 text-xs text-muted-foreground mt-1">
+                                                            <div className="flex items-center gap-1"><Package className="w-3 h-3" /> {productDetails[item.key as keyof typeof productDetails]?.stock || 0} left</div>
+                                                            <div className="flex items-center gap-1"><Users className="w-3 h-3" /> {productDetails[item.key as keyof typeof productDetails]?.sold || 0} sold</div>
+                                                        </div>
+                                                    </div>
                                               </Card>
                                           </Link>
                                       ))}
