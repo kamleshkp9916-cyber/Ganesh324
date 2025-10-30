@@ -215,8 +215,7 @@ export default function CategoryPage() {
                         </nav>
                          <Button asChild variant="outline" size="sm">
                             <Link href={liveStreamCategoryPath}>
-                                <Tv className="mr-2 h-4 w-4" />
-                                View Live
+                                <Tv className="mr-2 h-4 w-4" /> {pageTitle} Livestreams
                             </Link>
                         </Button>
                     </div>
@@ -366,5 +365,3 @@ export default function CategoryPage() {
         </>
     );
 }
-
-    
