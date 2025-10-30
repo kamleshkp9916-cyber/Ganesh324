@@ -195,12 +195,12 @@ export default function CategoryPage() {
                 <main className="container mx-auto py-6 flex-grow">
                      <div className="mb-4 flex justify-between items-center">
                         <nav aria-label="Breadcrumb">
-                            <ol className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                            <ol className="flex items-center gap-1.5 text-base text-muted-foreground">
                                 {breadcrumbs.map((crumb, index) => (
                                     <React.Fragment key={index}>
                                         {index > 0 && <li><ChevronRight className="h-4 w-4" /></li>}
                                         <li>
-                                            <Button asChild variant={index === breadcrumbs.length - 1 ? "secondary" : "ghost"} size="sm" className={cn(index === breadcrumbs.length - 1 && "font-semibold text-foreground")}>
+                                            <Button asChild variant={index === breadcrumbs.length - 1 ? "secondary" : "ghost"} size="sm" className={cn("text-base", index === breadcrumbs.length - 1 && "font-semibold text-foreground")}>
                                                 <Link href={crumb.href}>
                                                     {index === 0 && <Home className="h-4 w-4" />}
                                                     <span className={cn(index === 0 && "sr-only md:not-sr-only md:ml-2")}>{crumb.name}</span>
