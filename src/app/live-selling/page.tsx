@@ -578,7 +578,7 @@ export default function LiveSellingPage() {
 
         return sortedCategories.map(category => ({
             name: category,
-            streams: allSellers.filter(s => s.category === category).slice(0, 8)
+            streams: allSellers.filter(s => s.category === category && s.status === 'live').slice(0, 8)
         }));
     }, [allSellers]);
     
@@ -587,7 +587,7 @@ export default function LiveSellingPage() {
         const grouped: { [key: string]: any[] } = {};
 
         allSellers.forEach(stream => {
-            if (followedSellerIds.includes(stream.id)) {
+            if (followedSellerIds.includes(stream.id) && stream.status === 'live') {
                 if (!grouped[stream.category]) {
                     grouped[stream.category] = [];
                 }
