@@ -58,7 +58,6 @@ export default function ElectronicsPage() {
 
       <main className="container mx-auto px-4 sm:px-6 lg:px-8 flex-grow flex flex-col overflow-hidden">
         <div className="flex items-center justify-between my-4 lg:hidden flex-shrink-0">
-            <h1 className="text-2xl font-bold">Electronics</h1>
              <Sheet>
                 <SheetTrigger asChild>
                     <Button variant="outline" size="icon">
@@ -72,13 +71,15 @@ export default function ElectronicsPage() {
         </div>
 
         <div className="hidden lg:flex items-center justify-between my-4">
-            <nav aria-label="Breadcrumb">
-                <ol className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                    <li><Button asChild variant="ghost" size="sm"><Link href="/listed-products"><Home className="h-4 w-4" /><span className="sr-only md:not-sr-only md:ml-2">Home</span></Link></Button></li>
-                    <li><ChevronRight className="h-4 w-4" /></li>
-                    <li><Button asChild variant="secondary" size="sm" className="font-semibold text-foreground"><Link href="/electronics">Electronics</Link></Button></li>
-                </ol>
-            </nav>
+             <div className="flex items-center gap-2">
+                <nav aria-label="Breadcrumb">
+                    <ol className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                        <li><Button asChild variant="ghost" size="sm"><Link href="/listed-products"><Home className="h-4 w-4" /><span className="sr-only md:not-sr-only md:ml-2">Home</span></Link></Button></li>
+                        <li><ChevronRight className="h-4 w-4" /></li>
+                    </ol>
+                </nav>
+                <h1 className="text-2xl font-bold">Electronics</h1>
+            </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 flex-grow overflow-hidden">
