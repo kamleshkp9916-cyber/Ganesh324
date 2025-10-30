@@ -1763,6 +1763,47 @@ const StreamPage = () => {
         );
     }
     
+    const props = {
+        router,
+        seller,
+        sellerData,
+        streamData,
+        handleFollowToggle,
+        isFollowingState,
+        isRatingDialogOpen,
+        setIsRatingDialogOpen,
+        handleRateStream,
+        userRating,
+        sellerProducts,
+        toast,
+        relatedStreams,
+        getProductsForSeller,
+        isPaused,
+        handlePlayPause,
+        isMuted,
+        setIsMuted,
+        currentTime,
+        duration,
+        buffered,
+        isLive,
+        handleGoLive,
+        formatTime,
+        handleShare,
+        handleMinimize,
+        handleToggleFullscreen,
+        playerRef,
+        videoRef,
+        progressContainerRef,
+        handleProgressClick,
+        mainScrollRef,
+        handleMainScroll,
+        isPastStream,
+        mobileView,
+        setMobileView,
+        activeQuality,
+        setActiveQuality
+    };
+
     return (
         <React.Fragment>
             <AlertDialog open={isAuthDialogOpen} onOpenChange={setIsAuthDialogOpen}>
@@ -1808,6 +1849,7 @@ export default StreamPage;
 
     
     
+
 
 
 
