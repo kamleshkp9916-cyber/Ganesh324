@@ -19,9 +19,9 @@ const InquirySchema = z.object({
 
 export type Inquiry = z.infer<typeof InquirySchema>;
 
-export async function submitInquiry(inquiryData: Inquiry): Promise<{ id: string }> {
+export async function submitInquiry(inquiryData: Omit<Inquiry, 'createdAt'>): Promise<{ id: string }> {
   const db = getFirestore(getFirebaseAdminApp());
-  const validatedData = InquirySchema.parse(inquiryData);
+  const validatedData = InquirySchema.omit({ createdAt: true }).parse(inquiryData);
 
   const docRef = await addDoc(collection(db, 'inquiries'), {
     ...validatedData,
