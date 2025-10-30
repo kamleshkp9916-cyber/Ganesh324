@@ -335,6 +335,9 @@ const ProductShelf = ({ sellerProducts, handleAddToCart, handleBuyNow, toast }: 
                                             sizes="50vw"
                                             className="object-cover transition-transform group-hover:scale-105"
                                         />
+                                        <Button variant="ghost" size="icon" className="absolute top-1 right-1 h-8 w-8 rounded-full bg-black/30 text-white backdrop-blur-sm z-10 hover:bg-black/50 hover:text-red-500">
+                                            <Heart className="h-4 w-4" />
+                                        </Button>
                                         <div className="absolute bottom-2 right-2">
                                             <Button size="icon" className="h-8 w-8 rounded-full bg-black/50 text-white backdrop-blur-sm">
                                                 <Sparkles className="h-4 w-4" />
@@ -478,11 +481,13 @@ const StreamInfo = ({ seller, sellerData, streamData, handleFollowToggle, isFoll
                     <h2 className="font-bold text-lg">Topic</h2>
                      <div className="text-sm text-muted-foreground mt-1 space-y-4">
                         <div>{renderWithHashtagsAndLinks(streamData.description || "Welcome to the live stream!")}</div>
-                         <div className="flex items-center gap-2 text-xs">
+                         <div className="flex items-center gap-4 text-xs">
                              {streamData.startedAt && (
                                 <>
-                                    <Clock className="h-4 w-4" />
-                                    <span>Started {formatDistanceToNow(new Date(streamData.startedAt), { addSuffix: true })}</span>
+                                    <div className="flex items-center gap-2">
+                                        <Clock className="h-4 w-4" />
+                                        <span>Started {formatDistanceToNow(new Date(streamData.startedAt), { addSuffix: true })}</span>
+                                    </div>
                                 </>
                              )}
                             {!isPastStream && (
@@ -498,6 +503,8 @@ const StreamInfo = ({ seller, sellerData, streamData, handleFollowToggle, isFoll
                                     </Button>
                                 </DialogTrigger>
                             )}
+                             <Badge variant="outline">{seller.category}</Badge>
+                            {seller.subcategory && <Badge variant="outline">{seller.subcategory}</Badge>}
                         </div>
                     </div>
                 </div>
@@ -1796,6 +1803,7 @@ export default StreamPage;
 
     
     
+
 
 
 
