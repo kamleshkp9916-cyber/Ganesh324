@@ -47,29 +47,14 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col h-screen">
-       <header className="border-b sticky top-0 bg-background/95 z-50 flex-shrink-0">
-            <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="flex items-center justify-between h-16">
-                    <div className="flex items-center gap-4">
-                        
-                    </div>
-                    <div className="hidden lg:flex flex-1 max-w-lg mx-auto">
-                        <div className="relative w-full">
-                            <Input 
-                                placeholder="Search products, brands, and more"
-                                className="rounded-full pr-10"
-                            />
-                            <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                        </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <Button variant="ghost" size="icon">
-                            <ShoppingCart className="h-6 w-6" />
-                        </Button>
-                    </div>
-                </div>
-            </div>
-        </header>
+      <header className="p-4 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-sm z-30 border-b">
+        <h1 className="text-xl font-bold truncate">Home</h1>
+        <Link href="/cart">
+            <Button asChild variant="ghost" size="icon">
+                <ShoppingCart className="h-6 w-6" />
+            </Button>
+        </Link>
+      </header>
 
       <main className="container mx-auto px-4 sm:px-6 lg:px-8 flex-grow flex flex-col overflow-hidden">
         <div className="flex items-center justify-between my-4 lg:hidden flex-shrink-0">
