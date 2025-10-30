@@ -1035,8 +1035,6 @@ return (
                               <Button variant="ghost" size="icon" className="w-10 h-10" onClick={props.handlePlayPause}>
                                   {props.isPaused ? <Play className="w-6 h-6 fill-current" /> : <Pause className="w-6 h-6 fill-current" />}
                               </Button>
-                              <Button variant="ghost" size="icon" className="w-10 h-10" onClick={() => props.handleSeek('backward')}><Rewind className="w-5 h-5" /></Button>
-                              <Button variant="ghost" size="icon" className="w-10 h-10" onClick={() => props.handleSeek('forward')}><FastForward className="w-5 h-5" /></Button>
                               {!props.isPastStream && <Button
                                 variant="destructive"
                                 className="gap-1.5 h-8 text-xs sm:text-sm"
@@ -1054,7 +1052,7 @@ return (
                         <div className="flex items-center gap-1 sm:gap-2">
                              <Popover>
                                 <PopoverTrigger asChild>
-                                    <Button variant="ghost" size="icon"><Settings /></Button>
+                                    <Button variant="ghost" size="icon" disabled={!user}><Settings /></Button>
                                 </PopoverTrigger>
                                 <PopoverContent className="w-48 p-0" align="end">
                                     <div className="p-2">
@@ -1105,7 +1103,7 @@ return (
 )});
 DesktopLayout.displayName = "DesktopLayout";
 
-const MobileLayout = React.memo(({ handlers, handleAddToCart, handleBuyNow, chatMessages, walletBalance, isPastStream, isSuperChatOpen, setIsSuperChatOpen, ...props }: any) => {
+const MobileLayout = React.memo(({ user, handlers, handleAddToCart, handleBuyNow, chatMessages, walletBalance, isPastStream, isSuperChatOpen, setIsSuperChatOpen, ...props }: any) => {
     const { isMuted, setIsMuted, handleGoLive, isLive, formatTime, currentTime, duration, handleShare, handleToggleFullscreen, progressContainerRef, handleProgressClick, isPaused, handlePlayPause, handleSeek, handleMinimize, activeQuality, setActiveQuality } = props;
     return (
         <div className="flex flex-col h-dvh overflow-hidden relative">
@@ -1146,11 +1144,9 @@ const MobileLayout = React.memo(({ handlers, handleAddToCart, handleBuyNow, chat
                     <Badge variant="secondary" className="bg-black/50 text-white gap-1.5"><Users className="w-3 h-3"/> {props.streamData.viewerCount.toLocaleString()}</Badge>
                 </div>
                  <div className="absolute inset-0 bg-black/10 flex items-center justify-center gap-4">
-                     <Button variant="ghost" size="icon" className="text-white w-12 h-12" onClick={() => handleSeek('backward')}><Rewind className="w-6 h-6 fill-white"/></Button>
                      <Button variant="ghost" size="icon" className="text-white w-16 h-16" onClick={handlePlayPause}>
                          {isPaused ? <Play className="w-10 h-10 fill-white" /> : <Pause className="w-10 h-10 fill-white" />}
                      </Button>
-                     <Button variant="ghost" size="icon" className="text-white w-12 h-12" onClick={() => handleSeek('forward')}><FastForward className="w-6 h-6 fill-white"/></Button>
                 </div>
                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent flex flex-col justify-end p-2 text-white">
                     <div className="w-full cursor-pointer py-1" ref={progressContainerRef} onClick={handleProgressClick}>
@@ -1175,7 +1171,7 @@ const MobileLayout = React.memo(({ handlers, handleAddToCart, handleBuyNow, chat
                             </Button>
                             <Popover>
                                 <PopoverTrigger asChild>
-                                    <Button variant="ghost" size="icon" className="w-9 h-9"><Settings className="w-5 h-5" /></Button>
+                                    <Button variant="ghost" size="icon" className="w-9 h-9" disabled={!user}><Settings className="w-5 h-5" /></Button>
                                 </PopoverTrigger>
                                 <PopoverContent className="w-48 p-0" align="end">
                                     <div className="p-2">
@@ -1803,6 +1799,7 @@ export default StreamPage;
 
     
     
+
 
 
 
