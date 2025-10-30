@@ -3,10 +3,10 @@
 
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Heart, ShoppingCart, Star, Video, Package, Users } from 'lucide-react';
+import { ArrowLeft, Heart, ShoppingCart, Star, Video, Package, Users, Sparkles, Loader2 } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth.tsx';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
-import { Card } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import Image from 'next/image';
 import { useToast } from '@/hooks/use-toast';
 import { getWishlist, removeFromWishlist, Product } from '@/lib/product-history';
@@ -15,6 +15,9 @@ import Link from 'next/link';
 import { productDetails } from '@/lib/product-data';
 import { Badge } from '@/components/ui/badge';
 import { getUserReviews, Review } from '@/lib/review-data';
+import { differenceInHours } from 'date-fns';
+import { cn } from '@/lib/utils';
+
 
 function EmptyWishlist() {
     const router = useRouter();
@@ -93,58 +96,66 @@ export default function WishlistPage() {
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
                     {wishlistItems.map((product) => {
                         const details = productDetails[product.key as keyof typeof productDetails];
-                        const stock = details?.stock || 0;
-                        const sold = details?.sold || 0;
-                        const isFromStream = details?.isFromStream || false;
-                        const productReviews = reviews[product.key] || [];
-                        const averageRating = productReviews.length > 0
-                            ? (productReviews.reduce((acc, review) => acc + review.rating, 0) / productReviews.length).toFixed(1)
-                            : 'N/A';
+                        if (!details) return null;
+                        const isNew = details.createdAt && differenceInHours(new Date(), new Date(details.createdAt)) <= 24;
+
+                        const originalPrice = parseFloat(details.price.replace(/[^0-9.-]+/g,""));
+                        const hasDiscount = details.discountPercentage && details.discountPercentage > 0;
+                        const discountedPrice = hasDiscount ? originalPrice * (1 - details.discountPercentage / 100) : originalPrice;
 
                         return (
                              <Link href={`/product/${product.key}`} key={product.key} className="group block">
                                 <Card className="w-full overflow-hidden h-full flex flex-col">
                                     <div className="relative aspect-square bg-muted">
-                                        <Image 
-                                            src={product.imageUrl}
-                                            alt={product.name}
-                                            fill
-                                            sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
-                                            className="object-cover"
-                                            data-ai-hint={product.hint}
-                                        />
+                                        {isNew && (
+                                            <Badge className="absolute top-2 left-2 z-10">NEW</Badge>
+                                        )}
+                                        {details.isFromStream && (
+                                            <Badge variant="purple" className={cn("absolute z-10", isNew ? "top-10 left-2" : "top-2 left-2")}>
+                                                <Video className="h-3 w-3 mr-1"/> From Stream
+                                            </Badge>
+                                        )}
                                         <Button
                                             size="icon"
                                             variant="destructive"
-                                            className="absolute top-2 right-2 h-8 w-8 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                                            className="absolute top-2 right-2 h-8 w-8 rounded-full opacity-100 z-10"
                                             onClick={(e) => handleRemoveFromWishlist(e, product.id)}
                                         >
                                             <Heart className="h-4 w-4 fill-current" />
                                         </Button>
-                                        {isFromStream && stock > 0 && (
-                                            <Badge className="absolute top-2 left-2 z-10" variant="purple">
-                                                <Video className="h-3 w-3 mr-1"/> From Stream
-                                            </Badge>
-                                        )}
-                                        {stock === 0 && (
-                                            <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-                                                <Badge variant="destructive" className="text-sm">Out of Stock</Badge>
-                                            </div>
-                                        )}
+                                        <Image
+                                            src={product.imageUrl}
+                                            alt={product.name}
+                                            fill
+                                            sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
+                                            className="object-cover transition-transform group-hover:scale-105"
+                                            data-ai-hint={product.hint}
+                                        />
+                                         <div className="absolute bottom-2 left-2 flex items-center gap-1 text-xs text-white bg-black/50 px-1.5 py-0.5 rounded-full backdrop-blur-sm">
+                                            <Star className="w-3 h-3 text-yellow-300 fill-yellow-300" />
+                                            <span className="font-bold">4.8</span>
+                                        </div>
                                     </div>
-                                    <div className="p-3 flex-grow flex flex-col">
+                                    <CardContent className="p-3 flex-grow flex flex-col">
                                         <h4 className="font-semibold truncate text-sm flex-grow">{product.name}</h4>
-                                        <p className="font-bold text-foreground mt-1">{product.price}</p>
-                                        <div className="flex items-center gap-1 text-xs text-amber-400 mt-1">
-                                            <Star className="w-4 h-4 fill-current" />
-                                            <span>{averageRating}</span>
-                                            <span className="text-muted-foreground">({productReviews.length} reviews)</span>
+                                         <div className="flex items-baseline gap-x-2 mt-1">
+                                            <p className="font-bold text-sm text-foreground">
+                                                ₹{discountedPrice.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                            </p>
+                                            {hasDiscount && (
+                                                <>
+                                                    <p className="text-xs text-muted-foreground line-through">
+                                                        ₹{originalPrice.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                                    </p>
+                                                    <Badge variant="destructive" className="text-[10px] px-1 py-0">({details.discountPercentage}% OFF)</Badge>
+                                                </>
+                                            )}
                                         </div>
-                                         <div className="flex items-center gap-4 text-xs text-muted-foreground mt-1">
-                                            <div className="flex items-center gap-1"><Package className="w-3 h-3" /> {stock} left</div>
-                                            <div className="flex items-center gap-1"><Users className="w-3 h-3" /> {sold} sold</div>
+                                        <div className="flex items-center gap-4 text-xs text-muted-foreground mt-2">
+                                            <div className="flex items-center gap-1"><Package className="w-3 h-3" /> {details.stock} left</div>
+                                            <div className="flex items-center gap-1"><Users className="w-3 h-3" /> {details.sold} sold</div>
                                         </div>
-                                    </div>
+                                    </CardContent>
                                 </Card>
                             </Link>
                         )
@@ -156,5 +167,3 @@ export default function WishlistPage() {
     </div>
   );
 }
-
-    
