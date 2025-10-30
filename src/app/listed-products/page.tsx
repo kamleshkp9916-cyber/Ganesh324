@@ -120,73 +120,65 @@ export default function ListedProductsPage() {
     <div className="min-h-screen bg-background text-foreground flex flex-col">
        <header className="border-b sticky top-0 bg-background/95 z-50">
             <div className="flex items-center justify-between h-16 px-4 sm:px-6 lg:px-8">
-                     <div className="flex items-center gap-2">
-                        <Button variant="ghost" size="icon" className="-ml-2" onClick={() => {
-                            if (showSearchResults) {
-                                setShowSearchResults(false);
-                                setSearchQuery('');
-                                setSearchResults([]);
-                            } else {
-                                router.push('/live-selling')
-                            }
-                        }}>
-                          <ArrowLeft className="h-6 w-6" />
-                        </Button>
-                    </div>
+                <Button variant="ghost" size="icon" className="-ml-2" onClick={() => {
+                    if (showSearchResults) {
+                        setShowSearchResults(false);
+                        setSearchQuery('');
+                        setSearchResults([]);
+                    } else {
+                        router.push('/live-selling')
+                    }
+                }}>
+                  <ArrowLeft className="h-6 w-6" />
+                </Button>
 
-                    <div className="hidden lg:flex flex-1 justify-center px-8">
-                         <div className="w-full max-w-lg">
-                           <ProductSearch onSearchComplete={onSearchComplete} />
-                         </div>
-                    </div>
-                    
-                    <div className="flex items-center gap-2">
-                        <Button variant="ghost" size="icon">
-                            <Search className="h-6 w-6 lg:hidden" />
-                        </Button>
-                        <Button variant="ghost" size="icon">
-                            <User className="h-6 w-6" />
-                        </Button>
-                         <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
-                            <SheetTrigger asChild>
-                                <Button variant="ghost" size="icon" className="lg:hidden">
-                                    <Menu className="h-6 w-6" />
-                                </Button>
-                            </SheetTrigger>
-                            <SheetContent side="right" className="w-full max-w-sm p-0 flex flex-col">
-                                <SheetHeader className="flex justify-between items-center p-4 border-b">
-                                    <Link href="/live-selling" className="flex items-center gap-2">
-                                        <SheetTitle className="font-bold text-lg">StreamCart</SheetTitle>
-                                    </Link>
-                                </SheetHeader>
-                                <ScrollArea className="flex-grow">
-                                    <div className="p-4">
-                                        <Accordion type="multiple" className="w-full">
-                                            {allCategories.map(({name, subcategories}) => (
-                                                <AccordionItem value={name} key={name}>
-                                                    <AccordionTrigger className="text-base font-semibold">
-                                                        <Link href={getCategoryPath(name)} onClick={() => setMobileMenuOpen(false)}>
-                                                            {name}
-                                                        </Link>
-                                                    </AccordionTrigger>
-                                                    <AccordionContent>
-                                                        <div className="flex flex-col space-y-2 pl-4">
-                                                            {subcategories.map(sub => (
-                                                                <Link key={sub.name} href={getCategoryPath(name, sub.name)} className="text-sm text-muted-foreground hover:text-foreground py-1" onClick={() => setMobileMenuOpen(false)}>
-                                                                    {sub.name}
-                                                                </Link>
-                                                            ))}
-                                                        </div>
-                                                    </AccordionContent>
-                                                </AccordionItem>
-                                            ))}
-                                        </Accordion>
-                                    </div>
-                                </ScrollArea>
-                            </SheetContent>
-                        </Sheet>
-                    </div>
+                <div className="hidden lg:flex flex-1 justify-center px-8">
+                     <div className="w-full max-w-lg">
+                       <ProductSearch onSearchComplete={onSearchComplete} />
+                     </div>
                 </div>
+                
+                <div className="flex items-center gap-2">
+                     <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+                        <SheetTrigger asChild>
+                            <Button variant="ghost" size="icon" className="lg:hidden">
+                                <Menu className="h-6 w-6" />
+                            </Button>
+                        </SheetTrigger>
+                        <SheetContent side="right" className="w-full max-w-sm p-0 flex flex-col">
+                            <SheetHeader className="flex justify-between items-center p-4 border-b">
+                                <Link href="/live-selling" className="flex items-center gap-2">
+                                    <SheetTitle className="font-bold text-lg">StreamCart</SheetTitle>
+                                </Link>
+                            </SheetHeader>
+                            <ScrollArea className="flex-grow">
+                                <div className="p-4">
+                                    <Accordion type="multiple" className="w-full">
+                                        {allCategories.map(({name, subcategories}) => (
+                                            <AccordionItem value={name} key={name}>
+                                                <AccordionTrigger className="text-base font-semibold">
+                                                    <Link href={getCategoryPath(name)} onClick={() => setMobileMenuOpen(false)}>
+                                                        {name}
+                                                    </Link>
+                                                </AccordionTrigger>
+                                                <AccordionContent>
+                                                    <div className="flex flex-col space-y-2 pl-4">
+                                                        {subcategories.map(sub => (
+                                                            <Link key={sub.name} href={getCategoryPath(name, sub.name)} className="text-sm text-muted-foreground hover:text-foreground py-1" onClick={() => setMobileMenuOpen(false)}>
+                                                                {sub.name}
+                                                            </Link>
+                                                        ))}
+                                                    </div>
+                                                </AccordionContent>
+                                            </AccordionItem>
+                                        ))}
+                                    </Accordion>
+                                </div>
+                            </ScrollArea>
+                        </SheetContent>
+                    </Sheet>
+                </div>
+            </div>
              <nav className="hidden lg:flex items-center justify-center border-t bg-background">
                 <NavigationMenu>
                     <NavigationMenuList>
