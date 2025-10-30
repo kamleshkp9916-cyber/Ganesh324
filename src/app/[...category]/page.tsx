@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { Badge } from '@/components/ui/badge';
-import { differenceInDays } from 'date-fns';
+import { differenceInHours } from 'date-fns';
 import { useDebounce } from '@/hooks/use-debounce';
 import { normalize, generateKeywords } from '@/lib/generateKeywords';
 import ProductSearch from '@/components/ProductSearch';
@@ -85,7 +85,7 @@ export default function CategoryPage() {
 
     const breadcrumbs = useMemo(() => {
         const crumbs = [{ name: 'Home', href: '/listed-products' }];
-        let currentPath = '';
+        let currentPath = '/listed-products';
         pathSegments.forEach((segment) => {
             currentPath += `/${segment}`;
             crumbs.push({
@@ -196,18 +196,16 @@ export default function CategoryPage() {
                      <div className="mb-4 flex justify-between items-center">
                         <nav aria-label="Breadcrumb">
                             <ol className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                                <li>
-                                    <Link href="/listed-products" className="flex items-center gap-1.5 px-2 py-1 rounded-md hover:bg-secondary">
-                                        <Home className="h-4 w-4" /> Home
-                                    </Link>
-                                </li>
-                                {breadcrumbs.slice(1).map((crumb, index) => (
+                                {breadcrumbs.map((crumb, index) => (
                                     <React.Fragment key={index}>
-                                        <li><ChevronRight className="h-4 w-4" /></li>
+                                        {index > 0 && <li><ChevronRight className="h-4 w-4" /></li>}
                                         <li>
-                                            <Link href={crumb.href} className={cn("px-2 py-1 rounded-md hover:bg-secondary", index === breadcrumbs.length - 2 ? "font-semibold text-foreground bg-secondary" : "")}>
-                                                {crumb.name}
-                                            </Link>
+                                            <Button asChild variant={index === breadcrumbs.length - 1 ? "secondary" : "ghost"} size="sm" className={cn(index === breadcrumbs.length - 1 && "font-semibold text-foreground")}>
+                                                <Link href={crumb.href}>
+                                                    {index === 0 && <Home className="h-4 w-4" />}
+                                                    <span className={cn(index === 0 && "sr-only md:not-sr-only md:ml-2")}>{crumb.name}</span>
+                                                </Link>
+                                            </Button>
                                         </li>
                                     </React.Fragment>
                                 ))}
@@ -254,7 +252,7 @@ export default function CategoryPage() {
                         <>
                             <div className="p-4 md:p-6 grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
                                 {visibleProducts.map((product: any) => {
-                                    const isNew = product.createdAt && differenceInDays(new Date(), new Date(product.createdAt)) <= 7;
+                                    const isNew = product.createdAt && differenceInHours(new Date(), new Date(product.createdAt)) <= 24;
                                     const isScanning = scanningProductId === product.key;
 
                                     const originalPrice = parseFloat(product.price.replace(/[^0-9.-]+/g,""));
