@@ -63,12 +63,6 @@ export default function KidsPage() {
                     </div>
                     <div className="flex items-center gap-2">
                         <Button variant="ghost" size="icon">
-                            <Search className="h-6 w-6 lg:hidden" />
-                        </Button>
-                        <Button variant="ghost" size="icon">
-                            <User className="h-6 w-6" />
-                        </Button>
-                        <Button variant="ghost" size="icon">
                             <ShoppingCart className="h-6 w-6" />
                         </Button>
                     </div>
