@@ -3,7 +3,7 @@
 
 import { useRouter, useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, ShoppingCart, Star, Search, ChevronDown, Users, Package, Sparkles, Video, Loader2, ChevronLeft, ChevronRight, Home, Tv } from 'lucide-react';
+import { ArrowLeft, ShoppingCart, Star, Search, ChevronDown, Users, Package, Sparkles, Video, Loader2, ChevronLeft, ChevronRight, Home, Tv, Heart } from 'lucide-react';
 import { productDetails } from '@/lib/product-data';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -271,6 +271,9 @@ export default function CategoryPage() {
                                                             <Video className="h-3 w-3 mr-1"/> From Stream
                                                         </Badge>
                                                     )}
+                                                     <Button variant="ghost" size="icon" className="absolute top-1 right-1 h-8 w-8 rounded-full bg-black/30 text-white backdrop-blur-sm z-10 hover:bg-black/50 hover:text-red-500">
+                                                        <Heart className="h-4 w-4" />
+                                                    </Button>
                                                     <Image
                                                         src={product.images[0]}
                                                         alt={product.name}
