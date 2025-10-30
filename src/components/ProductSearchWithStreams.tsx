@@ -149,6 +149,16 @@ export function ProductSearchWithStreams() {
                             </Link>
                         </div>
                     )}
+                    {productSuggestions.length > 0 && <Separator />}
+                    {productSuggestions.slice(0, 5).map((p) => (
+                        <Link key={p.id} href={`/product/${p.key}`} className="flex items-center gap-4 p-2 -m-2 rounded-lg hover:bg-secondary">
+                            <Image src={p.images[0]} alt={p.name} width={48} height={48} className="w-12 h-12 object-cover rounded-md" />
+                            <div className="flex-grow">
+                                <p className="font-semibold text-sm">{p.name}</p>
+                                <p className="text-sm font-bold text-primary">{p.price}</p>
+                            </div>
+                        </Link>
+                    ))}
                 </div>
             ) : !loading && (
                 <div className="text-center py-8 text-muted-foreground">No results found for "{q}"</div>
