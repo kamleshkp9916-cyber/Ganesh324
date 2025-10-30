@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { useState, useEffect, useMemo } from 'react';
@@ -26,6 +25,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { EditAddressForm } from '@/components/edit-address-form';
 import { HelpChat } from '@/components/help-chat';
 import { FeedbackDialog } from '@/components/feedback-dialog';
+import { InputOTP, InputOTPGroup, InputOTPSlot, InputOTPSeparator } from '@/components/ui/input-otp';
 
 
 const defaultShippingSettings: ShippingSettings = {
@@ -98,6 +98,8 @@ export default function PaymentPage() {
   const [saveUpi, setSaveUpi] = useState(false);
   const [selectedUpi, setSelectedUpi] = useState(savedUpiIds[0] || '');
   const [cardDetails, setCardDetails] = useState({ number: '', expiry: '', cvv: '', name: '' });
+  const [showWalletOtp, setShowWalletOtp] = useState(false);
+  const [walletOtp, setWalletOtp] = useState('');
 
 
   const [address, setAddress] = useState(userData?.addresses?.[0] || null);
@@ -260,9 +262,27 @@ export default function PaymentPage() {
   }, [isProcessing, paymentMethod, newUpiId, selectedUpi, cardDetails]);
 
 
-  const handlePlaceOrder = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handlePlaceOrder = (e?: React.FormEvent) => {
+    if(e) e.preventDefault();
     if(isPayButtonDisabled) return;
+
+    if (paymentMethod === 'wallet' && !showWalletOtp) {
+        setShowWalletOtp(true);
+        return;
+    }
+
+    if(paymentMethod === 'wallet' && showWalletOtp) {
+        if (walletOtp !== '123456') { // Mock OTP check
+            toast({
+                variant: "destructive",
+                title: "Invalid OTP",
+                description: "The OTP entered is incorrect. Please try again.",
+            });
+            setWalletOtp('');
+            return;
+        }
+    }
+
 
     let paymentSuccess = true;
     
@@ -371,10 +391,30 @@ export default function PaymentPage() {
                             <span className="font-bold">₹{(42580.22 - total).toLocaleString('en-IN')}</span>
                         </div>
                     </div>
-                     <Button type="submit" size="lg" className="w-full" disabled={isPayButtonDisabled}>
-                        {isProcessing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                        Pay from Wallet
-                    </Button>
+                     {showWalletOtp ? (
+                        <div className="space-y-4 pt-2">
+                            <Label htmlFor="wallet-otp">Enter OTP sent to your registered mobile number.</Label>
+                            <InputOTP maxLength={6} value={walletOtp} onChange={setWalletOtp}>
+                                <InputOTPGroup>
+                                    <InputOTPSlot index={0} />
+                                    <InputOTPSlot index={1} />
+                                    <InputOTPSlot index={2} />
+                                    <InputOTPSeparator />
+                                    <InputOTPSlot index={3} />
+                                    <InputOTPSlot index={4} />
+                                    <InputOTPSlot index={5} />
+                                </InputOTPGroup>
+                            </InputOTP>
+                             <Button type="submit" size="lg" className="w-full" disabled={isProcessing || walletOtp.length !== 6}>
+                                {isProcessing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                                Confirm & Pay
+                            </Button>
+                        </div>
+                    ) : (
+                         <Button type="submit" size="lg" className="w-full" disabled={isProcessing}>
+                            Pay from Wallet
+                        </Button>
+                    )}
                  </form>
             );
         case 'upi':
@@ -506,7 +546,10 @@ export default function PaymentPage() {
                                  {paymentMethods.map(method => (
                                      <button
                                          key={method.id}
-                                         onClick={() => setPaymentMethod(method.id as PaymentMethod)}
+                                         onClick={() => {
+                                             setPaymentMethod(method.id as PaymentMethod);
+                                             setShowWalletOtp(false); // Reset OTP state when changing method
+                                         }}
                                          disabled={method.disabled}
                                          className={cn("w-full p-4 text-left font-semibold flex items-center gap-3 transition-colors disabled:opacity-50 disabled:cursor-not-allowed border-b last:border-b-0 md:border-b-0",
                                              paymentMethod === method.id ? 'bg-primary/10 text-primary' : 'hover:bg-muted/50'
@@ -671,3 +714,5 @@ export default function PaymentPage() {
     </>
   );
 }
+
+    
