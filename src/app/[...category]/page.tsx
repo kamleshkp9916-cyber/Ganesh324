@@ -181,7 +181,7 @@ export default function CategoryPage() {
     return (
         <>
             <div className="min-h-screen bg-background text-foreground flex flex-col">
-                <header className="p-4 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-sm z-30 border-b">
+                 <header className="p-4 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-sm z-30 border-b">
                     <h1 className="text-xl font-bold truncate">{pageTitle}</h1>
                      {user ? (
                         <Link href="/cart">
@@ -370,4 +370,3 @@ export default function CategoryPage() {
     
 
     
-
