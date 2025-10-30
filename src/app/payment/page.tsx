@@ -30,6 +30,7 @@ import { InputOTP, InputOTPGroup, InputOTPSlot, InputOTPSeparator } from '@/comp
 import { allOrderData, Order } from '@/lib/order-data';
 import { addTransaction } from '@/lib/transaction-history';
 import { updateUserData } from '@/lib/follow-data';
+import { format, addDays } from 'date-fns';
 
 
 const defaultShippingSettings: ShippingSettings = {
@@ -105,6 +106,7 @@ export default function PaymentPage() {
   const [cardDetails, setCardDetails] = useState({ number: '', expiry: '', cvv: '', name: '' });
   const [showWalletOtp, setShowWalletOtp] = useState(false);
   const [walletOtp, setWalletOtp] = useState('');
+  const [upiError, setUpiError] = useState('');
 
 
   const [address, setAddress] = useState(userData?.addresses?.[0] || null);
@@ -254,6 +256,10 @@ export default function PaymentPage() {
   const isPayButtonDisabled = useMemo(() => {
     if (isProcessing) return true;
     if (paymentMethod === 'upi') {
+        const upiRegex = /^[a-zA-Z0-9.\-_]{2,256}@[a-zA-Z]{2,64}$/;
+        if (newUpiId.trim() && !upiRegex.test(newUpiId.trim())) {
+            return true;
+        }
         return !newUpiId.trim() && !selectedUpi.trim();
     }
     if (paymentMethod === 'credit' || paymentMethod === 'debit') {
@@ -266,6 +272,16 @@ export default function PaymentPage() {
 
   const handlePlaceOrder = (e?: React.FormEvent) => {
     if(e) e.preventDefault();
+    setUpiError('');
+
+    if (paymentMethod === 'upi' && newUpiId.trim()) {
+        const upiRegex = /^[a-zA-Z0-9.\-_]{2,256}@[a-zA-Z]{2,64}$/;
+        if (!upiRegex.test(newUpiId.trim())) {
+            setUpiError('Invalid UPI ID format. It should be like "yourname@bank".');
+            return;
+        }
+    }
+
     if(isPayButtonDisabled) return;
 
     if (paymentMethod === 'wallet' && !showWalletOtp) {
@@ -282,7 +298,7 @@ export default function PaymentPage() {
     }
     
     // Simulate payment success/failure
-    const paymentSuccess = Math.random() > 0.2; // 80% success rate
+    const paymentSuccess = paymentMethod === 'upi' ? false : Math.random() > 0.2; // 80% success rate, force fail for UPI
     
     setIsProcessing(true);
     setTimeout(() => {
@@ -298,6 +314,9 @@ export default function PaymentPage() {
                 orderDate: new Date().toISOString(),
                 isReturnable: true,
                 timeline: [{ status: "Order Confirmed", date: format(new Date(), 'MMM dd, yyyy'), time: format(new Date(), 'p'), completed: true }],
+                paymentMethod: paymentMethod,
+                refundStatus: 'N/A',
+                transactionId: transactionId,
             };
             allOrderData[transactionId as keyof typeof allOrderData] = newOrder; // Add to mock data
             addTransaction({
@@ -447,7 +466,7 @@ export default function PaymentPage() {
                         </div>
                     </div>
                     {savedUpiIds.length > 0 && (
-                        <RadioGroup value={selectedUpi} onValueChange={(value) => { setSelectedUpi(value); setNewUpiId(''); }} className="space-y-2">
+                        <RadioGroup value={selectedUpi} onValueChange={(value) => { setSelectedUpi(value); setNewUpiId(''); setUpiError(''); }} className="space-y-2">
                             {savedUpiIds.map(id => (
                                 <Label key={id} htmlFor={id} className="flex items-center gap-3 p-3 border rounded-md has-[:checked]:border-primary has-[:checked]:bg-primary/10 cursor-pointer">
                                     <RadioGroupItem value={id} id={id} />
@@ -458,7 +477,8 @@ export default function PaymentPage() {
                     )}
                     <div className="space-y-1">
                         <Label htmlFor="upi-id">Or Enter New UPI ID</Label>
-                        <Input id="upi-id" placeholder="name@bank" value={newUpiId} onChange={e => { setNewUpiId(e.target.value); setSelectedUpi(''); }} />
+                        <Input id="upi-id" placeholder="name@bank" value={newUpiId} onChange={e => { setNewUpiId(e.target.value); setSelectedUpi(''); setUpiError('') }} />
+                        {upiError && <p className="text-xs text-destructive">{upiError}</p>}
                         {newUpiId && (
                             <div className="flex items-center space-x-2 pt-2">
                                 <Checkbox id="save-upi" checked={saveUpi} onCheckedChange={(checked) => setSaveUpi(Boolean(checked))} />
