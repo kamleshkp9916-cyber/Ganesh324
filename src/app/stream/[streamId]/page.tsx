@@ -757,7 +757,7 @@ const ChatPanel = ({
     seller,
     streamData,
     chatMessages,
-    pinnedMessages,
+    pinnedMessages = [],
     walletBalance,
     handlers,
     onClose,
@@ -768,7 +768,7 @@ const ChatPanel = ({
     seller: any;
     streamData: any;
     chatMessages: any[];
-    pinnedMessages: any[];
+    pinnedMessages?: any[];
     walletBalance?: number;
     handlers: any;
     onClose: () => void;
@@ -974,7 +974,7 @@ const ChatPanel = ({
 const MemoizedStreamInfo = React.memo(StreamInfo);
 const MemoizedRelatedContent = React.memo(RelatedContent);
 
-const DesktopLayout = React.memo(({ user, handlers, handleAddToCart, handleBuyNow, chatMessages, cartCount, walletBalance, isSuperChatOpen, setIsSuperChatOpen, ...props }: any) => {
+const DesktopLayout = React.memo(({ user, handlers, handleAddToCart, handleBuyNow, chatMessages, cartCount, walletBalance, isSuperChatOpen, setIsSuperChatOpen, pinnedMessages, ...props }: any) => {
 return (
 <div className="flex flex-col h-screen overflow-hidden">
     <header className="p-3 flex items-center justify-between z-40 h-16 shrink-0 w-full">
@@ -1098,7 +1098,7 @@ return (
                 seller={props.seller}
                 streamData={props.streamData}
                 chatMessages={chatMessages}
-                pinnedMessages={props.pinnedMessages}
+                pinnedMessages={pinnedMessages}
                 handlers={handlers}
                 onClose={() => {}}
                 walletBalance={walletBalance}
@@ -1112,7 +1112,7 @@ return (
 )});
 DesktopLayout.displayName = "DesktopLayout";
 
-const MobileLayout = React.memo(({ user, handlers, handleAddToCart, handleBuyNow, chatMessages, walletBalance, isPastStream, isSuperChatOpen, setIsSuperChatOpen, ...props }: any) => {
+const MobileLayout = React.memo(({ user, handlers, handleAddToCart, handleBuyNow, chatMessages, walletBalance, isPastStream, isSuperChatOpen, setIsSuperChatOpen, pinnedMessages, ...props }: any) => {
     const { isMuted, setIsMuted, handleGoLive, isLive, formatTime, currentTime, duration, handleShare, handleToggleFullscreen, progressContainerRef, handleProgressClick, isPaused, handlePlayPause, handleSeek, handleMinimize, activeQuality, setActiveQuality } = props;
     return (
         <div className="flex flex-col h-dvh overflow-hidden relative">
@@ -1216,7 +1216,7 @@ const MobileLayout = React.memo(({ user, handlers, handleAddToCart, handleBuyNow
                     </ScrollArea>
                 ) : (
                     <div className="h-full flex flex-col bg-background">
-                        <ChatPanel {...{...props, handlers, chatMessages, walletBalance, setIsSuperChatOpen, isSuperChatOpen, inlineAuctionCardRefs: props.inlineAuctionCardRefs, isPastStream }} onClose={() => props.setMobileView('stream')} />
+                        <ChatPanel {...{...props, handlers, chatMessages, walletBalance, setIsSuperChatOpen, isSuperChatOpen, pinnedMessages, inlineAuctionCardRefs: props.inlineAuctionCardRefs, isPastStream }} onClose={() => props.setMobileView('stream')} />
                     </div>
                 )}
             </div>
@@ -1834,10 +1834,10 @@ const StreamPage = () => {
                         <LoadingSpinner />
                     </div>
                  ) : isMobile ? (
-                     <MobileLayout {...{ user, handlers, handleAddToCart, handleBuyNow, chatMessages, walletBalance, isPastStream, isSuperChatOpen, setIsSuperChatOpen, ...props }} />
+                     <MobileLayout {...{ user, handlers, handleAddToCart, handleBuyNow, chatMessages, walletBalance, isPastStream, isSuperChatOpen, setIsSuperChatOpen, pinnedMessages, ...props }} />
                  ) : (
                     <DesktopLayout 
-                        {...{ user, handlers, handleAddToCart, handleBuyNow, chatMessages, cartCount, walletBalance, isSuperChatOpen, setIsSuperChatOpen, ...props }}
+                        {...{ user, handlers, handleAddToCart, handleBuyNow, chatMessages, cartCount, walletBalance, isSuperChatOpen, setIsSuperChatOpen, pinnedMessages, ...props }}
                     />
                  )}
             </div>
@@ -1849,6 +1849,7 @@ export default StreamPage;
 
     
     
+
 
 
 
