@@ -1,6 +1,18 @@
 
-export const categories = [
+export type Subcategory = {
+    name: string;
+    description: string;
+};
+
+export type Category = {
+    id: string;
+    name: string;
+    subcategories: Subcategory[];
+};
+
+export const defaultCategories: Category[] = [
     { 
+        id: 'women',
         name: "Women", 
         subcategories: [
             { name: "Tops", description: "Blouses, T-shirts, tanks, and more." },
@@ -9,12 +21,13 @@ export const categories = [
             { name: "Pants", description: "From casual chinos to professional trousers." },
             { name: "Jeans", description: "Find your perfect fit and wash." },
             { name: "Swim & Cover-Ups", description: "Get ready for the beach or pool." },
-            { name: "Bras & Underwear", description: "Comfortable and supportive essentials." },
+            { name: "Bras, Underwear & Lingerie", description: "Comfortable and supportive essentials." },
             { name: "Activewear", description: "Performance gear for your workouts." },
             { name: "Pajamas & Robes", description: "Cozy up in our comfortable sleepwear." }
         ] 
     },
     { 
+        id: 'men',
         name: "Men", 
         subcategories: [
             { name: "Shirts", description: "Casual, dress, and polo shirts." },
@@ -28,6 +41,7 @@ export const categories = [
         ] 
     },
     { 
+        id: 'kids',
         name: "Kids", 
         subcategories: [
             { name: "Girls' Clothing", description: "Dresses, tops, and sets for girls." },
@@ -38,6 +52,7 @@ export const categories = [
         ] 
     },
     { 
+        id: 'home',
         name: "Home", 
         subcategories: [
             { name: "Bedding", description: "Sheets, duvets, and comforters." },
@@ -49,6 +64,7 @@ export const categories = [
         ] 
     },
     { 
+        id: 'electronics',
         name: "Electronics", 
         subcategories: [
             { name: "Computers & Laptops", description: "The latest from top brands." },
@@ -60,6 +76,7 @@ export const categories = [
         ] 
     },
     { 
+        id: 'shoes',
         name: "Shoes", 
         subcategories: [
             { name: "Women's Shoes", description: "Heels, flats, boots, and sneakers." },
@@ -68,6 +85,7 @@ export const categories = [
         ] 
     },
     { 
+        id: 'handbags',
         name: "Handbags", 
         subcategories: [
             { name: "Totes", description: "Spacious and stylish tote bags." },
@@ -78,6 +96,7 @@ export const categories = [
         ] 
     },
     { 
+        id: 'trending',
         name: "Trending", 
         subcategories: [
             { name: "New Arrivals", description: "The latest additions to our store." },
@@ -86,6 +105,7 @@ export const categories = [
         ] 
     },
     { 
+        id: 'sale',
         name: "Sale", 
         subcategories: [
             { name: "Women's Sale", description: "Great deals on women's fashion." },
@@ -95,3 +115,5 @@ export const categories = [
         ] 
     },
 ];
+
+export const CATEGORIES_KEY = 'streamcart_categories';
