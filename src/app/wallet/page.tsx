@@ -40,9 +40,11 @@ const mockBankAccounts = [
     { id: 2, bankName: 'ICICI Bank', accountNumber: 'XXXX-XXXX-XX98-7654' },
 ];
 
-const AddFundsDialog = () => {
+const AddFundsDialog = ({ onDeposit }: { onDeposit: (amount: number, success: boolean) => void }) => {
     const [amount, setAmount] = useState<number | string>('');
     const [showQr, setShowQr] = useState(false);
+    const [isProcessing, setIsProcessing] = useState(false);
+    const { toast } = useToast();
 
     const handleProceed = () => {
         if (typeof amount === 'number' && amount > 0) {
@@ -50,10 +52,22 @@ const AddFundsDialog = () => {
         }
     };
     
+    const simulatePayment = () => {
+        setIsProcessing(true);
+        setTimeout(() => {
+            const success = Math.random() > 0.2; // 80% success rate
+            onDeposit(Number(amount), success);
+            setIsProcessing(false);
+            setShowQr(false);
+            setAmount('');
+            document.getElementById('closeAddFundsDialog')?.click();
+        }, 2000);
+    }
+
     const upiUrl = `upi://pay?pa=streamcart@mock&am=${amount}&tn=AddFunds`;
 
     return (
-        <DialogContent>
+         <DialogContent>
             <DialogHeader>
                 <DialogTitle>Add Funds to Wallet</DialogTitle>
                 {!showQr && <DialogDescription>Enter the amount you wish to add.</DialogDescription>}
@@ -84,7 +98,11 @@ const AddFundsDialog = () => {
                     <div className="bg-white p-4 rounded-lg">
                         <Image src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(upiUrl)}`} alt="UPI QR Code" width={200} height={200} />
                     </div>
-                    <p className="text-sm text-muted-foreground">Scan with any UPI app</p>
+                    <p className="text-sm text-muted-foreground">Scan with any UPI app or simulate payment.</p>
+                     <Button className="w-full" onClick={simulatePayment} disabled={isProcessing}>
+                        {isProcessing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                        Simulate Payment
+                    </Button>
                     <Button variant="ghost" onClick={() => setShowQr(false)} className="text-sm">
                         <ArrowLeft className="mr-2 h-4 w-4"/>
                         Change Amount
@@ -146,6 +164,37 @@ export default function WalletPage() {
     router.push('/');
     return null;
   }
+  
+  const handleDeposit = (amount: number, success: boolean) => {
+    const newTransaction: Transaction = {
+        id: Date.now(),
+        transactionId: `DEP-${Math.floor(100000 + Math.random() * 900000)}`,
+        type: 'Deposit',
+        description: 'Added via UPI',
+        date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+        time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+        amount: amount,
+        avatar: 'https://placehold.co/40x40.png?text=D',
+        status: success ? 'Completed' : 'Failed',
+    };
+    
+    addTransaction(newTransaction);
+    setTransactions(getTransactions());
+    
+    if (success) {
+        setBalance(prev => prev + amount);
+        toast({
+            title: "Deposit Successful!",
+            description: `₹${amount.toFixed(2)} has been added to your wallet.`,
+        });
+    } else {
+        toast({
+            variant: 'destructive',
+            title: 'Deposit Failed',
+            description: 'The transaction could not be completed. Please try again.',
+        });
+    }
+  };
 
   const handleWithdraw = (amount: number, bankAccountId: string) => {
      const selectedAccount = bankAccounts.find(acc => String(acc.id) === bankAccountId);
@@ -347,7 +396,8 @@ export default function WalletPage() {
                                     <span>Add Funds</span>
                                 </Button>
                             </DialogTrigger>
-                             <AddFundsDialog />
+                             <AddFundsDialog onDeposit={handleDeposit} />
+                             <DialogClose id="closeAddFundsDialog" className="hidden" />
                         </Dialog>
                          <Button className="w-full justify-center" variant="outline">
                             <BarChart2 className="h-5 w-5"/>
