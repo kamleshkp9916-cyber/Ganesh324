@@ -22,7 +22,7 @@ import Image from 'next/image';
 import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { categories } from "@/lib/categories";
+import { defaultCategories, CATEGORIES_KEY, Category } from "@/lib/categories";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { productDetails } from "@/lib/product-data";
 import ProductSearch from "@/components/ProductSearch";
@@ -32,8 +32,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { motion } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
 import { Footer } from "@/components/footer";
+import { useLocalStorage } from "@/hooks/use-local-storage";
 
-const allCategories = categories;
 
 const collageCategories = [
     { name: "Women", href: "/women", imageUrl: "https://images.unsplash.com/photo-1483985988355-763728e1935b?w=800&h=1200&fit=crop", hint: "woman shopping", gridClass: "md:row-span-2 md:col-span-2" },
@@ -51,6 +51,7 @@ export default function ListedProductsPage() {
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [showSearchResults, setShowSearchResults] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [allCategories] = useLocalStorage<Category[]>(CATEGORIES_KEY, defaultCategories);
 
   const trendingProducts = useMemo(() => {
     return Object.values(productDetails)
@@ -275,4 +276,5 @@ ListItem.displayName = "ListItem"
     
 
     
+
 
