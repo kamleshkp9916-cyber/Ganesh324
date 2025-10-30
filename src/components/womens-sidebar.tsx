@@ -30,7 +30,7 @@ const sidebarSections = [
 export function WomensSidebar() {
     return (
         <div className="w-full">
-            <h2 className="text-2xl font-bold mb-4 lg:hidden">Women</h2>
+            <h2 className="text-2xl font-bold mb-4">Women</h2>
             
             <Accordion type="multiple" defaultValue={["Women's Clothing"]} className="w-full">
                 {sidebarSections.map(section => (
