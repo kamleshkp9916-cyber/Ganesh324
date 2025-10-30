@@ -16,7 +16,7 @@ import { Card, CardContent } from './ui/card';
 import { productDetails, mockStreams } from '@/lib/product-data';
 import { Separator } from './ui/separator';
 import { useRouter } from 'next/navigation';
-import { categories } from '@/lib/categories';
+import { defaultCategories } from '@/lib/categories';
 
 export function ProductSearchWithStreams() {
   const [q, setQ] = useState('');
@@ -53,7 +53,7 @@ export function ProductSearchWithStreams() {
 
     // Check for category/subcategory match
     let foundPath = null;
-    for (const category of categories) {
+    for (const category of defaultCategories) {
         if (category.name.toLowerCase() === lowercasedQuery) {
             foundPath = `/live-selling/${category.name.toLowerCase().replace(/\s+/g, '-')}`;
             break;
