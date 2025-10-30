@@ -33,6 +33,7 @@ import {
   Check,
   X,
   Clock,
+  LayoutGrid,
 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
@@ -88,7 +89,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useLocalStorage } from "@/hooks/use-local-storage"
-import { categories } from "@/lib/categories";
+import { CATEGORIES_KEY, defaultCategories, Category, Subcategory } from "@/lib/categories";
 import { Checkbox } from "@/components/ui/checkbox"
 import { Separator } from "@/components/ui/separator"
 
@@ -244,6 +245,75 @@ const defaultFeaturedProducts: FeaturedProduct[] = [
   { imageUrl: 'https://images.unsplash.com/photo-1580910051074-3eb694886505?w=500&h=500&fit=crop', name: 'Smartphone', model: 'SmartX 12' },
   { imageUrl: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500&h=500&fit=crop', name: 'Headphones', model: 'AudioMax 3' },
 ];
+
+const categorySchema = z.object({
+  id: z.string().min(1, "ID is required."),
+  name: z.string().min(2, "Category name is required."),
+  subcategories: z.array(z.object({
+    name: z.string().min(2, "Subcategory name is required."),
+    description: z.string().min(5, "Description is required."),
+  })).optional()
+});
+
+const CategoryForm = ({ category, onSave, onCancel }: { category: Category | null, onSave: (data: Category) => void, onCancel: () => void }) => {
+    const form = useForm<z.infer<typeof categorySchema>>({
+        resolver: zodResolver(categorySchema),
+        defaultValues: category || { id: '', name: '', subcategories: [] }
+    });
+
+    const { fields, append, remove } = useForm({
+        control: form.control,
+        name: "subcategories",
+    });
+
+    const onSubmit = (values: z.infer<typeof categorySchema>) => {
+        onSave(values);
+        onCancel();
+    };
+
+    return (
+        <DialogContent className="max-w-xl">
+            <DialogHeader>
+                <DialogTitle>{category ? 'Edit' : 'Add New'} Category</DialogTitle>
+            </DialogHeader>
+            <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                    <FormField control={form.control} name="name" render={({ field }) => (
+                        <FormItem><FormLabel>Category Name</FormLabel><FormControl><Input placeholder="e.g., Men" {...field} /></FormControl><FormMessage /></FormItem>
+                    )} />
+                    <FormField control={form.control} name="id" render={({ field }) => (
+                        <FormItem><FormLabel>Category ID</FormLabel><FormControl><Input placeholder="e.g., men" {...field} /></FormControl><FormMessage /></FormItem>
+                    )} />
+                    
+                    <h4 className="font-semibold text-sm pt-2">Subcategories</h4>
+                    <div className="space-y-3 max-h-60 overflow-y-auto pr-2">
+                    {(fields as any[]).map((field, index) => (
+                        <div key={field.id} className="grid grid-cols-[1fr,1fr,auto] gap-2 items-start border p-3 rounded-lg">
+                            <FormField control={form.control} name={`subcategories.${index}.name`} render={({ field }) => (
+                                <FormItem><FormLabel className="text-xs">Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                            )} />
+                            <FormField control={form.control} name={`subcategories.${index}.description`} render={({ field }) => (
+                                <FormItem><FormLabel className="text-xs">Description</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                            )} />
+                             <Button type="button" variant="ghost" size="icon" onClick={() => remove(index)} className="text-destructive mt-5"><Trash2 className="h-4 w-4" /></Button>
+                        </div>
+                    ))}
+                    </div>
+
+                     <Button type="button" variant="outline" size="sm" onClick={() => append({ name: '', description: '' })}>
+                        <PlusCircle className="mr-2 h-4 w-4" /> Add Subcategory
+                    </Button>
+
+                    <DialogFooter>
+                        <Button type="button" variant="ghost" onClick={onCancel}>Cancel</Button>
+                        <Button type="submit">Save Category</Button>
+                    </DialogFooter>
+                </form>
+            </Form>
+        </DialogContent>
+    );
+};
+
 
 const CouponForm = ({ onSave, existingCoupon, closeDialog, allCategories }: { onSave: (coupon: Coupon) => void, existingCoupon?: Coupon, closeDialog: () => void, allCategories: string[] }) => {
     const [isLoading, setIsLoading] = useState(false);
@@ -659,7 +729,7 @@ export default function AdminSettingsPage() {
   
   const [contentList, setContentList] = useState(initialFlaggedContent);
   const [isMounted, setIsMounted] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState<string>(categories[0].name);
+  const [selectedCategory, setSelectedCategory] = useState<string>("Women");
 
   // useLocalStorage will be initialized with default values, and then updated in useEffect
   const [coupons, setCoupons] = useLocalStorage<Coupon[]>(COUPONS_KEY, []);
@@ -669,13 +739,16 @@ export default function AdminSettingsPage() {
   const [hubBanner, setHubBanner] = useLocalStorage<HubBanner>(HUB_BANNER_KEY, defaultHubBanner);
   const [featuredProducts, setFeaturedProducts] = useLocalStorage<FeaturedProduct[]>(HUB_FEATURED_PRODUCTS_KEY, []);
   const [shippingSettings, setShippingSettings] = useLocalStorage<ShippingSettings>(SHIPPING_SETTINGS_KEY, defaultShippingSettings);
+  const [categories, setCategories] = useLocalStorage<Category[]>(CATEGORIES_KEY, defaultCategories);
   
   const [isCouponFormOpen, setIsCouponFormOpen] = useState(false);
   const [editingCoupon, setEditingCoupon] = useState<Coupon | undefined>(undefined);
   const [isSlideFormOpen, setIsSlideFormOpen] = useState(false);
   const [editingSlide, setEditingSlide] = useState<Slide | undefined>(undefined);
+  const [editingCategory, setEditingCategory] = useState<Category | null>(null);
+  const [isCategoryFormOpen, setIsCategoryFormOpen] = useState(false);
 
-  const allCategories = useMemo(() => ['All', ...categories.map(c => c.name)], []);
+  const allCategories = useMemo(() => ['All', ...categories.map(c => c.name)], [categories]);
   const adminCoupons = useMemo(() => coupons.filter(c => c.sellerId === 'admin'), [coupons]);
   const sellerCoupons = useMemo(() => coupons.filter(c => c.sellerId !== 'admin'), [coupons]);
 
@@ -786,6 +859,25 @@ export default function AdminSettingsPage() {
         setShippingSettings(data);
         toast({ title: "Shipping Settings Saved!", description: `Delivery charge has been set to ₹${data.deliveryCharge.toFixed(2)}.` });
     };
+    
+    const handleSaveCategory = (data: Category) => {
+        setCategories(prev => {
+            const existingIndex = prev.findIndex(c => c.id === data.id);
+            if (existingIndex > -1) {
+                const updated = [...prev];
+                updated[existingIndex] = data;
+                return updated;
+            } else {
+                return [data, ...prev];
+            }
+        });
+        toast({ title: "Category Saved!", description: `Category "${data.name}" has been updated.` });
+    };
+    
+    const handleDeleteCategory = (categoryId: string) => {
+        setCategories(prev => prev.filter(c => c.id !== categoryId));
+        toast({ title: "Category Deleted", variant: "destructive" });
+    };
 
   const announcementForm = useForm<z.infer<typeof announcementSchema>>({
     resolver: zodResolver(announcementSchema),
@@ -861,6 +953,9 @@ export default function AdminSettingsPage() {
                 <SlideForm onSave={handleSaveSlide} existingSlide={editingSlide} closeDialog={() => setIsSlideFormOpen(false)} />
             </DialogContent>
         </Dialog>
+         <Dialog open={isCategoryFormOpen} onOpenChange={setIsCategoryFormOpen}>
+            <CategoryForm category={editingCategory} onSave={handleSaveCategory} onCancel={() => setIsCategoryFormOpen(false)} />
+        </Dialog>
         <div className="flex min-h-screen w-full flex-col bg-muted/40">
             <header className="sticky top-0 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6 z-40">
                 <nav className="hidden flex-col gap-6 text-lg font-medium md:flex md:flex-row md:items-center md:gap-5 md:text-sm lg:gap-6">
@@ -902,6 +997,48 @@ export default function AdminSettingsPage() {
                 </div>
             </header>
             <main className="grid flex-1 items-start gap-8 p-4 sm:px-6 md:p-8">
+                 <Card>
+                    <CardHeader>
+                        <CardTitle className="flex items-center justify-between">
+                            <span>Category Management</span>
+                            <Button size="sm" onClick={() => { setEditingCategory(null); setIsCategoryFormOpen(true); }}>
+                                <PlusCircle className="mr-2 h-4 w-4" /> Add Category
+                            </Button>
+                        </CardTitle>
+                        <CardDescription>Add, edit, or delete product categories and subcategories.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                         <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Category Name</TableHead>
+                                    <TableHead>Subcategories</TableHead>
+                                    <TableHead className="text-right">Actions</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {categories.map(category => (
+                                    <TableRow key={category.id}>
+                                        <TableCell className="font-semibold">{category.name}</TableCell>
+                                        <TableCell>
+                                            <div className="flex flex-wrap gap-1">
+                                                {category.subcategories?.map(sub => <Badge key={sub.name} variant="outline">{sub.name}</Badge>)}
+                                            </div>
+                                        </TableCell>
+                                        <TableCell className="text-right">
+                                            <Button variant="ghost" size="icon" onClick={() => { setEditingCategory(category); setIsCategoryFormOpen(true); }}>
+                                                <Edit className="h-4 w-4" />
+                                            </Button>
+                                             <Button variant="ghost" size="icon" className="text-destructive" onClick={() => handleDeleteCategory(category.id)}>
+                                                <Trash2 className="h-4 w-4" />
+                                            </Button>
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </CardContent>
+                </Card>
                  <Card>
                     <CardHeader>
                         <CardTitle>Live Shopping Page Promotions</CardTitle><CardDescription>Manage the promotional slides on the main live shopping page.</CardDescription>

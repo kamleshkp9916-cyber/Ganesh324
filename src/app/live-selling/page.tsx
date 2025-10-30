@@ -114,14 +114,13 @@ import { ref as storageRef, deleteObject } from 'firebase/storage';
 import { isFollowing, toggleFollow, UserData, getUserByDisplayName } from '@/lib/follow-data';
 import { productDetails, productToSellerMapping, mockStreams } from '@/lib/product-data';
 import { PromotionalCarousel } from '@/components/promotional-carousel';
-import { categories } from '@/lib/categories';
+import { CATEGORIES_KEY, defaultCategories, Category } from '@/lib/categories';
 import { Separator } from '@/components/ui/separator';
 import { ProductSearchWithStreams } from '@/components/ProductSearchWithStreams';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useLocalStorage } from '@/hooks/use-local-storage';
-import { CATEGORY_BANNERS_KEY, CategoryBanners } from '@/app/admin/settings/page';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { ProductShelfContent } from '@/components/product-shelf-content';
@@ -325,6 +324,7 @@ export default function LiveSellingPage() {
   const [activeProductFilter, setActiveProductFilter] = useState('All');
   const isMobile = useIsMobile();
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
+  const [categories, setCategories] = useLocalStorage<Category[]>(CATEGORIES_KEY, defaultCategories);
   
   const [selectedBrowseCategory, setSelectedBrowseCategory] = useState<string | null>(null);
   const [selectedSubCategory, setSelectedSubCategory] = useState<string | null>(null);
@@ -366,7 +366,7 @@ export default function LiveSellingPage() {
             viewers: Math.floor(Math.random() * 50000) + 1000
         }))
     );
-  }, []);
+  }, [categories]);
 
   const filteredBrowseSubcategories = useMemo(() => {
     if (!browseSearchTerm) return allSubcategories;
@@ -829,7 +829,7 @@ export default function LiveSellingPage() {
                         </div>
                         <TabsContent value="recommended" className="mt-4">
                                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6">
-                                {topLiveStreams.map((seller) => {
+                                {topLiveStreams.filter(s => s.status === 'live').map((seller) => {
                                     const sellerProducts = getProductsForSeller(seller.id);
                                     const productsToShow = sellerProducts.slice(0, 5);
                                     const remainingCount = sellerProducts.length > 5 ? sellerProducts.length - 5 : 0;
@@ -1045,3 +1045,4 @@ export default function LiveSellingPage() {
     </>
   );
 }
+
