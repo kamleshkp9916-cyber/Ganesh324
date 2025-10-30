@@ -1299,7 +1299,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                                                 </SheetContent>
                                                             </Sheet>
                                                         )}
-                                                    </div>
+                                                      </div>
                                                 </Card>
                                             )
                                         })}
