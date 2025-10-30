@@ -4,7 +4,7 @@
 import React from 'react';
 import { Button } from './ui/button';
 import { Card, CardContent } from './ui/card';
-import { X, Video, ShoppingBag, Star, Users, Package } from 'lucide-react';
+import { X, Video, ShoppingBag, Star, Users, Package, Heart } from 'lucide-react';
 import {
   Carousel,
   CarouselContent,
@@ -113,22 +113,21 @@ export function SimilarProductsOverlay({
                         <Link href={`/product/${p.key}`} className="group block">
                         <Card className="w-full group overflow-hidden h-full flex flex-col">
                             <div className="relative aspect-square bg-muted">
-                            <Image
-                                src={p.images[0]}
-                                alt={p.name}
-                                fill
-                                sizes="20vw"
-                                className="object-cover transition-transform group-hover:scale-105"
-                            />
+                                <Image
+                                    src={p.images[0]}
+                                    alt={p.name}
+                                    fill
+                                    sizes="20vw"
+                                    className="object-cover transition-transform group-hover:scale-105"
+                                />
+                                <div className="absolute bottom-2 left-2 flex items-center gap-1 text-xs text-white bg-black/50 px-1.5 py-0.5 rounded-full backdrop-blur-sm">
+                                    <Star className="w-3 h-3 text-yellow-300 fill-yellow-300" />
+                                    <span className="font-bold">4.8</span>
+                                </div>
                             </div>
                             <div className="p-2 flex-grow flex flex-col">
                             <h4 className="font-semibold truncate text-xs flex-grow">{p.name}</h4>
                             <p className="font-bold text-sm mt-1">{p.price}</p>
-                            <div className="flex items-center gap-1 text-xs text-amber-400 mt-1">
-                                <Star className="w-3 h-3 fill-current" />
-                                <span className="font-semibold text-foreground">4.8</span>
-                                <span className="text-muted-foreground">({p.reviews || '1.2k'})</span>
-                            </div>
                             <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
                                 <div className="flex items-center gap-1"><Package className="w-3 h-3" /> {p.stock} left</div>
                                 <div className="flex items-center gap-1"><Users className="w-3 h-3" /> {p.sold} sold</div>

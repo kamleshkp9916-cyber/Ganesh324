@@ -9,7 +9,7 @@ import Image from 'next/image';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import { cn } from '@/lib/utils';
-import { Sparkles, ShoppingCart, Package, Users, Star, ShoppingBag } from 'lucide-react';
+import { Sparkles, ShoppingCart, Package, Users, Star, ShoppingBag, Heart } from 'lucide-react';
 import { productDetails } from '@/lib/product-data';
 
 export const ProductShelfContent = ({ sellerProducts, handleAddToCart, handleBuyNow, isMobile, onClose, toast }: { sellerProducts: any[], handleAddToCart: (product: any) => void, handleBuyNow: (product: any) => void, isMobile: boolean, onClose: () => void, toast: any }) => {
@@ -42,6 +42,9 @@ export const ProductShelfContent = ({ sellerProducts, handleAddToCart, handleBuy
                                             sizes="50vw"
                                             className="object-cover transition-transform group-hover:scale-105"
                                         />
+                                        <Button variant="ghost" size="icon" className="absolute top-1 right-1 h-8 w-8 rounded-full bg-black/30 text-white backdrop-blur-sm z-10 hover:bg-black/50 hover:text-red-500">
+                                            <Heart className="h-4 w-4" />
+                                        </Button>
                                         <div className="absolute bottom-2 right-2">
                                             <Button size="icon" className="h-8 w-8 rounded-full bg-black/50 text-white backdrop-blur-sm">
                                                 <Sparkles className="h-4 w-4" />
