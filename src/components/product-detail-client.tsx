@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
@@ -970,9 +971,9 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                         </div>
                                     )}
                                 
-                                    <div className="flex flex-col gap-2 pt-2">
+                                     <div className="flex flex-col sm:flex-row gap-2 pt-4">
                                         {(variantStock !== undefined && variantStock > 0) ? (
-                                            <div className="flex flex-col gap-2">
+                                            <>
                                                 {inCart ? (
                                                     <Button size="lg" className="w-full" asChild>
                                                         <Link href="/cart">Go to Cart</Link>
@@ -983,10 +984,11 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                                         Add to Cart
                                                     </Button>
                                                 )}
-                                                <Button size="lg" className="w-full" onClick={handleBuyNow}>
-                                                    Buy Now
+                                                <Button size="lg" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground flex-col h-auto py-2" onClick={handleBuyNow}>
+                                                    <span>Buy Now</span>
+                                                    <span className="text-xs font-normal">and get it by {estimatedDeliveryDate}</span>
                                                 </Button>
-                                            </div>
+                                            </>
                                         ) : (
                                             <Button size="lg" className="w-full" disabled>
                                                 Out of Stock
@@ -1072,7 +1074,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                     </div>
                                 </div>
                             </div>
-                            <div className="col-span-full mt-8 space-y-8">
+                             <div className="col-span-full mt-8 space-y-8">
                                 <Card>
                                      <CardHeader>
                                         <CardTitle>Available Offers</CardTitle>
