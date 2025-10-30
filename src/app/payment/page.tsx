@@ -298,7 +298,7 @@ export default function PaymentPage() {
     }
     
     // Simulate payment success/failure
-    const paymentSuccess = paymentMethod === 'upi' ? false : Math.random() > 0.2; // 80% success rate, force fail for UPI
+    const paymentSuccess = Math.random() > 0.2; // 80% success rate
     
     setIsProcessing(true);
     setTimeout(() => {
