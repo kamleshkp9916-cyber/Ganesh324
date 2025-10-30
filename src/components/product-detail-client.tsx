@@ -971,26 +971,25 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                         </div>
                                     )}
                                 
-                                     <div className="flex flex-col sm:flex-row gap-2 pt-4">
+                                     <div className="flex flex-col sm:flex-row gap-3 pt-4">
                                         {(variantStock !== undefined && variantStock > 0) ? (
                                             <>
                                                 {inCart ? (
-                                                    <Button size="lg" className="w-full" asChild>
+                                                    <Button size="lg" className="w-full h-12 text-base" asChild>
                                                         <Link href="/cart">Go to Cart</Link>
                                                     </Button>
                                                 ) : (
-                                                    <Button size="lg" className="w-full" variant="outline" onClick={handleAddToCart}>
+                                                    <Button size="lg" className="w-full h-12 text-base transition-transform hover:scale-105 active:scale-95" variant="outline" onClick={handleAddToCart}>
                                                         <ShoppingCart className="mr-2 h-5 w-5" />
                                                         Add to Cart
                                                     </Button>
                                                 )}
-                                                <Button size="lg" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground flex-col h-auto py-2" onClick={handleBuyNow}>
+                                                <Button size="lg" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground flex-col h-12 text-base py-2 transition-transform hover:scale-105 active:scale-95" onClick={handleBuyNow}>
                                                     <span>Buy Now</span>
-                                                    <span className="text-xs font-normal">and get it by {estimatedDeliveryDate}</span>
                                                 </Button>
                                             </>
                                         ) : (
-                                            <Button size="lg" className="w-full" disabled>
+                                            <Button size="lg" className="w-full h-12 text-base" disabled>
                                                 Out of Stock
                                             </Button>
                                         )}
@@ -1393,3 +1392,4 @@ export function ProductDetailClient({ productId }: { productId: string }) {
 }
 
     
+
