@@ -1,6 +1,6 @@
 
 
-import { getFirestore, doc, getDoc } from 'firebase/firestore';
+import { getFirestore, doc, getDoc, collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { getFirestoreDb } from './firebase';
 
 // This file now primarily serves as a definition for the Order type and for fallback mock data.
@@ -61,6 +61,18 @@ export async function getOrderById(orderId: string): Promise<Order | null> {
     } else {
         // Fallback to mock data for demo purposes if not in Firestore
         const mockOrder = allOrderData[orderId as OrderId];
-        return mockOrder ? { ...mockOrder, orderId } : null;
+        if (mockOrder) {
+            // Add the mock order to Firestore for future consistency
+            try {
+                await addDoc(collection(db, 'orders'), {
+                    ...mockOrder,
+                    orderDate: serverTimestamp() // Use a server timestamp for sorting
+                });
+            } catch (e) {
+                console.error("Error saving mock order to Firestore", e);
+            }
+            return { ...mockOrder, orderId };
+        }
+        return null;
     }
 }
