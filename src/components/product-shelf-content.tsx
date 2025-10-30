@@ -10,7 +10,7 @@ import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import { cn } from '@/lib/utils';
 import { Sparkles, ShoppingCart, Package, Users, Star, ShoppingBag, Heart } from 'lucide-react';
-import { productDetails } from '@/lib/product-data';
+import { productDetails, productToSellerMapping } from '@/lib/product-data';
 
 export const ProductShelfContent = ({ sellerProducts, handleAddToCart, handleBuyNow, isMobile, onClose, toast }: { sellerProducts: any[], handleAddToCart: (product: any) => void, handleBuyNow: (product: any) => void, isMobile: boolean, onClose: () => void, toast: any }) => {
     return (
@@ -56,7 +56,7 @@ export const ProductShelfContent = ({ sellerProducts, handleAddToCart, handleBuy
                                             </div>
                                         )}
                                         <div className="absolute bottom-2 left-2 flex items-center gap-1 text-xs text-white bg-black/50 px-1.5 py-0.5 rounded-full backdrop-blur-sm">
-                                            <Star className="w-3 h-3 text-yellow-300 fill-yellow-300" />
+                                            <Star className="w-3 h-3 text-black fill-black" />
                                             <span className="font-bold">4.8</span>
                                         </div>
                                     </div>
