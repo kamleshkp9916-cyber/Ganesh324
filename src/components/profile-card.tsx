@@ -712,39 +712,54 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                           {isLoadingContent ? <ProductSkeletonGrid /> : (
                                   filteredProducts.length > 0 ? (
                                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                                        {filteredProducts.map((product: any) => (
-                                          <Link href={`/product/${product.id}`} key={product.id} className="group block">
-                                                <Card className="w-full overflow-hidden h-full flex flex-col">
-                                                    <div className="relative aspect-square bg-muted">
-                                                        <Image
-                                                            src={product.images[0]?.preview || "https://placehold.co/200x200.png"}
-                                                            alt={product.name}
-                                                            fill
-                                                            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
-                                                            className="object-cover transition-transform group-hover:scale-105"
-                                                        />
-                                                         {product.stock === 0 && (
-                                                            <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                                                                <Badge variant="destructive">Out of Stock</Badge>
+                                        {filteredProducts.map((product: any) => {
+                                            const originalPrice = parseFloat(String(product.price).replace(/[^0-9.-]+/g, ""));
+                                            const hasDiscount = product.discountPercentage && product.discountPercentage > 0;
+                                            const discountedPrice = hasDiscount ? originalPrice * (1 - product.discountPercentage / 100) : originalPrice;
+                                            return (
+                                            <Link href={`/product/${product.id}`} key={product.id} className="group block">
+                                                    <Card className="w-full overflow-hidden h-full flex flex-col">
+                                                        <div className="relative aspect-square bg-muted">
+                                                            <Image
+                                                                src={product.images[0]?.preview || "https://placehold.co/200x200.png"}
+                                                                alt={product.name}
+                                                                fill
+                                                                sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
+                                                                className="object-cover transition-transform group-hover:scale-105"
+                                                            />
+                                                            {product.stock === 0 && (
+                                                                <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                                                                    <Badge variant="destructive">Out of Stock</Badge>
+                                                                </div>
+                                                            )}
+                                                            <div className="absolute bottom-2 left-2 flex items-center gap-1 text-xs text-white bg-black/50 px-1.5 py-0.5 rounded-full backdrop-blur-sm">
+                                                                <Star className="w-3 h-3 text-black fill-black" />
+                                                                <span className="font-bold">{sellerAverageRating}</span>
                                                             </div>
-                                                        )}
-                                                    </div>
-                                                    <div className="p-3 flex-grow flex flex-col">
-                                                        <h4 className="font-semibold truncate text-sm flex-grow">{product.name}</h4>
-                                                        <p className="font-bold text-foreground mt-1">₹{product.price.toLocaleString()}</p>
-                                                        <div className="flex items-center gap-1 text-xs text-amber-400 mt-1">
-                                                            <Star className="w-4 h-4 fill-current" />
-                                                            <span>{sellerAverageRating}</span>
-                                                            <span className="text-muted-foreground">({mockReviews.length})</span>
                                                         </div>
-                                                        <div className="flex items-center gap-4 text-xs text-muted-foreground mt-1">
-                                                            <div className="flex items-center gap-1"><Package className="w-3 h-3" /> {product.stock} left</div>
-                                                            <div className="flex items-center gap-1"><Users className="w-3 h-3" /> {product.sold || 0} sold</div>
+                                                        <div className="p-3 flex-grow flex flex-col">
+                                                            <h4 className="font-semibold truncate text-sm flex-grow">{product.name}</h4>
+                                                            <div className="flex items-baseline gap-x-2 mt-1">
+                                                                <p className="font-bold text-sm text-foreground">
+                                                                    ₹{discountedPrice.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                                                </p>
+                                                                {hasDiscount && (
+                                                                    <>
+                                                                        <p className="text-xs text-muted-foreground line-through">
+                                                                            ₹{originalPrice.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                                                        </p>
+                                                                        <Badge variant="destructive" className="text-[10px] px-1 py-0">({product.discountPercentage}% OFF)</Badge>
+                                                                    </>
+                                                                )}
+                                                            </div>
+                                                            <div className="flex items-center gap-4 text-xs text-muted-foreground mt-2">
+                                                                <div className="flex items-center gap-1"><Package className="w-3 h-3" /> {product.stock} left</div>
+                                                                <div className="flex items-center gap-1"><Users className="w-3 h-3" /> {product.sold || 0} sold</div>
+                                                            </div>
                                                         </div>
-                                                    </div>
-                                                </Card>
-                                          </Link>
-                                      ))}
+                                                    </Card>
+                                            </Link>
+                                        )})}
                                   </div>
                               ) : (
                                   <p className="text-muted-foreground text-center py-8">No products found for this category.</p>
@@ -755,47 +770,61 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                       <TabsContent value="recent" className="mt-4">
                             {isLoadingContent ? <ProductSkeletonGrid /> : (
                               filteredRecentlyViewed.length > 0 ? (
-                                    <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-                                      {filteredRecentlyViewed.map((item) => (
-                                          <Link href={`/product/${item.key}`} key={item.id} className="group block">
-                                              <Card className="w-full group overflow-hidden h-full flex flex-col">
-                                                  <div className="relative aspect-square bg-muted rounded-t-lg">
-                                                      <Image 
-                                                          src={item.imageUrl}
-                                                          alt={item.name}
-                                                          fill
-                                                          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
-                                                          className="object-cover"
-                                                          data-ai-hint={item.hint}
-                                                      />
-                                                        <Button
+                                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                                      {filteredRecentlyViewed.map((item) => {
+                                        const details = productDetails[item.key as keyof typeof productDetails];
+                                        if (!details) return null;
+                                        const originalPrice = parseFloat(details.price.replace(/[^0-9.-]+/g, ""));
+                                        const hasDiscount = details.discountPercentage && details.discountPercentage > 0;
+                                        const discountedPrice = hasDiscount ? originalPrice * (1 - details.discountPercentage / 100) : originalPrice;
+                                        return (
+                                          <Link href={`/product/${item.key}`} key={item.key} className="group block">
+                                            <Card className="w-full overflow-hidden h-full flex flex-col">
+                                                <div className="relative aspect-square bg-muted">
+                                                    <Image
+                                                        src={item.imageUrl}
+                                                        alt={item.name}
+                                                        fill
+                                                        sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
+                                                        className="object-cover transition-transform group-hover:scale-105"
+                                                        data-ai-hint={item.hint}
+                                                    />
+                                                     <Button
                                                           size="icon"
-                                                          variant="secondary"
-                                                          className={cn("absolute top-2 right-2 h-8 w-8 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10",
-                                                            wishlist.includes(item.id) && "bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                                                          )}
+                                                          variant="destructive"
+                                                          className={cn("absolute top-2 right-2 h-8 w-8 rounded-full z-10")}
                                                           onClick={(e) => { e.preventDefault(); handleWishlistToggle(item); }}
-                                                          disabled={wishlist.includes(item.id)}
                                                       >
-                                                          <Heart className="h-4 w-4" />
+                                                          <Heart className={cn("h-4 w-4", wishlist.includes(item.id) ? "fill-current" : "")} />
                                                       </Button>
-                                                  </div>
-                                                  <div className="p-3 flex-grow flex flex-col">
-                                                        <h4 className="font-semibold truncate text-sm flex-grow">{item.name}</h4>
-                                                        <p className="font-bold text-foreground mt-1">{item.price}</p>
-                                                        <div className="flex items-center gap-1 text-xs text-amber-400 mt-1">
-                                                            <Star className="w-4 h-4 fill-current" />
-                                                            <span>{averageRating}</span>
-                                                            <span className="text-muted-foreground">({mockReviews.length})</span>
-                                                        </div>
-                                                         <div className="flex items-center gap-4 text-xs text-muted-foreground mt-1">
-                                                            <div className="flex items-center gap-1"><Package className="w-3 h-3" /> {productDetails[item.key as keyof typeof productDetails]?.stock || 0} left</div>
-                                                            <div className="flex items-center gap-1"><Users className="w-3 h-3" /> {productDetails[item.key as keyof typeof productDetails]?.sold || 0} sold</div>
-                                                        </div>
+                                                      <div className="absolute bottom-2 left-2 flex items-center gap-1 text-xs text-white bg-black/50 px-1.5 py-0.5 rounded-full backdrop-blur-sm">
+                                                        <Star className="w-3 h-3 text-black fill-black" />
+                                                        <span className="font-bold">4.8</span>
+                                                      </div>
+                                                </div>
+                                                <div className="p-3 flex-grow flex flex-col">
+                                                    <h4 className="font-semibold truncate text-sm flex-grow">{item.name}</h4>
+                                                    <div className="flex items-baseline gap-x-2 mt-1">
+                                                        <p className="font-bold text-sm text-foreground">
+                                                            ₹{discountedPrice.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                                        </p>
+                                                        {hasDiscount && (
+                                                            <>
+                                                                <p className="text-xs text-muted-foreground line-through">
+                                                                    ₹{originalPrice.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                                                </p>
+                                                                <Badge variant="destructive" className="text-[10px] px-1 py-0">({details.discountPercentage}% OFF)</Badge>
+                                                            </>
+                                                        )}
                                                     </div>
-                                              </Card>
+                                                    <div className="flex items-center gap-4 text-xs text-muted-foreground mt-2">
+                                                        <div className="flex items-center gap-1"><Package className="w-3 h-3" /> {details.stock || 0} left</div>
+                                                        <div className="flex items-center gap-1"><Users className="w-3 h-3" /> {details.sold || 0} sold</div>
+                                                    </div>
+                                                </div>
+                                            </Card>
                                           </Link>
-                                      ))}
+                                      )})}
                                   </div>
                               ) : (
                                     <div className="text-center py-12 text-muted-foreground flex flex-col items-center gap-4 flex-grow justify-center">
@@ -873,3 +902,5 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
     </>
   );
 }
+
+```
