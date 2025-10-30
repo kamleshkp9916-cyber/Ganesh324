@@ -84,7 +84,7 @@ export default function CategoryPage() {
     const pathSegments = Array.isArray(categoryPath) ? categoryPath : [categoryPath];
 
     const breadcrumbs = useMemo(() => {
-        const crumbs = [{ name: 'Home', href: '/live-selling' }];
+        const crumbs = [{ name: 'Home', href: '/listed-products' }];
         let currentPath = '';
         pathSegments.forEach((segment) => {
             currentPath += `/${segment}`;
@@ -250,7 +250,7 @@ export default function CategoryPage() {
                         </div>
                     ) : visibleProducts.length > 0 ? (
                         <>
-                            <div className="p-4 md:p-6 grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 mt-6">
                                 {visibleProducts.map((product: any) => {
                                     const isNew = product.createdAt && differenceInHours(new Date(), new Date(product.createdAt)) <= 24;
                                     const isScanning = scanningProductId === product.key;
@@ -366,3 +366,5 @@ export default function CategoryPage() {
         </>
     );
 }
+
+    
