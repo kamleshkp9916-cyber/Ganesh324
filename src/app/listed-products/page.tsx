@@ -253,7 +253,7 @@ const ListItem = React.forwardRef<
         <a
           ref={ref}
           className={cn(
-            "block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground",
+            "group relative block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground",
             className
           )}
           {...props}
@@ -262,6 +262,7 @@ const ListItem = React.forwardRef<
           <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
             {children}
           </p>
+           <div className="absolute bottom-0 left-0 right-0 h-0.5 scale-x-0 origin-center bg-foreground transition-transform duration-300 ease-out group-hover:scale-x-100" />
         </a>
       </NavigationMenuLink>
     </li>
@@ -274,3 +275,4 @@ ListItem.displayName = "ListItem"
     
 
     
+
