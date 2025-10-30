@@ -92,9 +92,9 @@ export default function HomePage() {
         <div className="hidden lg:block my-4">
             <nav aria-label="Breadcrumb">
                 <ol className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                    <li><Link href="/live-selling" className="hover:text-primary"><Home className="h-4 w-4" /></Link></li>
+                    <li><Button asChild variant="ghost" size="sm"><Link href="/listed-products"><Home className="h-4 w-4" /><span className="sr-only md:not-sr-only md:ml-2">Home</span></Link></Button></li>
                     <li><ChevronRight className="h-4 w-4" /></li>
-                    <li><span className="font-semibold text-foreground">Home</span></li>
+                    <li><Button asChild variant="secondary" size="sm" className="font-semibold text-foreground"><Link href="/home">Home</Link></Button></li>
                 </ol>
             </nav>
         </div>
