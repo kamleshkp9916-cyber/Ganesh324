@@ -21,11 +21,13 @@ import { SHIPPING_SETTINGS_KEY, ShippingSettings, Coupon, COUPONS_KEY } from '@/
 import { useLocalStorage } from '@/hooks/use-local-storage';
 import { productDetails } from '@/lib/product-data';
 import Link from 'next/link';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger, DialogFooter, AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from '@/components/ui/dialog';
 import { EditAddressForm } from '@/components/edit-address-form';
 import { HelpChat } from '@/components/help-chat';
 import { FeedbackDialog } from '@/components/feedback-dialog';
 import { InputOTP, InputOTPGroup, InputOTPSlot, InputOTPSeparator } from '@/components/ui/input-otp';
+import { allOrderData } from '@/lib/order-data';
+import { addTransaction } from '@/lib/transaction-history';
 
 
 const defaultShippingSettings: ShippingSettings = {
@@ -92,6 +94,7 @@ export default function PaymentPage() {
   const [couponCode, setCouponCode] = useState("");
   const [isCheckingOut, setIsCheckingOut] = useState(false);
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
+  const [isFailureAlertOpen, setIsFailureAlertOpen] = useState(false);
   
   const [savedUpiIds, setSavedUpiIds] = useState(['ganeshprajapati@okhdfcbank']);
   const [newUpiId, setNewUpiId] = useState('');
@@ -153,7 +156,6 @@ export default function PaymentPage() {
       }
     }
     
-    // Clear the buy now flag
     localStorage.removeItem('buyNow');
 
   }, [isClient, searchParams, router, toast, userData]);
@@ -182,7 +184,6 @@ export default function PaymentPage() {
               (!offer.minOrderValue || sub >= offer.minOrderValue) &&
               (!offer.expiresAt || new Date(offer.expiresAt) > new Date())
             );
-            // If an active offer is already better or applied, don't apply coupon discount to this item
             if(applicableOffer && applicableOffer.code !== appliedCoupon.code) {
                  return acc;
             }
@@ -199,7 +200,7 @@ export default function PaymentPage() {
                 if (appliedCoupon.maxDiscount && discount > appliedCoupon.maxDiscount) {
                     discount = appliedCoupon.maxDiscount;
                 }
-            } else { // fixed amount
+            } else {
                 discount = appliedCoupon.discountValue;
             }
         }
@@ -255,7 +256,6 @@ export default function PaymentPage() {
     }
     if (paymentMethod === 'credit' || paymentMethod === 'debit') {
         const { number, expiry, cvv, name } = cardDetails;
-        // Simple validation, can be improved with regex
         return !number || number.length < 16 || !expiry || expiry.length < 5 || !cvv || cvv.length < 3 || !name;
     }
     return false;
@@ -272,39 +272,57 @@ export default function PaymentPage() {
     }
 
     if(paymentMethod === 'wallet' && showWalletOtp) {
-        if (walletOtp !== '123456') { // Mock OTP check
-            toast({
-                variant: "destructive",
-                title: "Invalid OTP",
-                description: "The OTP entered is incorrect. Please try again.",
-            });
+        if (walletOtp !== '123456') {
+            toast({ variant: "destructive", title: "Invalid OTP", description: "The OTP you entered is incorrect. Please try again." });
             setWalletOtp('');
             return;
         }
     }
-
-
-    let paymentSuccess = true;
+    
+    // Simulate payment success/failure
+    const paymentSuccess = Math.random() > 0.2; // 80% success rate
     
     setIsProcessing(true);
     setTimeout(() => {
         setIsProcessing(false);
+        const transactionId = `TXN-${Math.floor(100000 + Math.random() * 900000)}`;
+        
         if (paymentSuccess) {
-            if (paymentMethod === 'upi' && saveUpi && newUpiId) {
-                setSavedUpiIds(prev => [...prev, newUpiId]);
-                setSaveUpi(false);
-                setNewUpiId('');
-                toast({ title: "UPI ID Saved!" });
-            }
-            localStorage.removeItem('streamcart_cart');
+             const newOrder: Omit<Order, 'orderId'> = {
+                userId: user!.uid,
+                products: cartItems.map(item => ({...item, productId: item.key})),
+                address: address,
+                total: total,
+                orderDate: new Date().toISOString(),
+                isReturnable: true,
+                timeline: [{ status: "Order Confirmed", date: format(new Date(), 'MMM dd, yyyy'), time: format(new Date(), 'p'), completed: true }],
+            };
+            allOrderData[transactionId] = newOrder; // Add to mock data
+            addTransaction({
+                id: Date.now(),
+                transactionId: transactionId,
+                type: 'Order',
+                description: `Paid via ${paymentMethod}`,
+                date: format(new Date(), 'MMM dd, yyyy'),
+                time: format(new Date(), 'p'),
+                amount: -total,
+                status: 'Completed',
+            });
+            localStorage.removeItem(CART_KEY);
             localStorage.removeItem('appliedCoupon');
             setIsSuccessModalOpen(true);
         } else {
-             toast({
-                variant: "destructive",
-                title: "❌ Transaction Failed",
-                description: "Your payment could not be processed. Please try another method.",
+            addTransaction({
+                id: Date.now(),
+                transactionId: transactionId,
+                type: 'Order',
+                description: `Paid via ${paymentMethod}`,
+                date: format(new Date(), 'MMM dd, yyyy'),
+                time: format(new Date(), 'p'),
+                amount: -total,
+                status: 'Failed',
             });
+            setIsFailureAlertOpen(true);
         }
     }, 3000);
   }
@@ -337,7 +355,6 @@ export default function PaymentPage() {
 
   const handleCheckout = () => {
     setIsCheckingOut(true);
-    // Save the current cart state to local storage before navigating
     saveCart(cartItems);
     if(appliedCoupon) {
         localStorage.setItem('appliedCoupon', JSON.stringify(appliedCoupon));
@@ -393,7 +410,7 @@ export default function PaymentPage() {
                     </div>
                      {showWalletOtp ? (
                         <div className="space-y-4 pt-2">
-                            <Label htmlFor="wallet-otp">Enter OTP sent to your registered mobile number.</Label>
+                            <Label htmlFor="wallet-otp">Enter OTP sent to {userData?.phone}.</Label>
                             <InputOTP maxLength={6} value={walletOtp} onChange={setWalletOtp}>
                                 <InputOTPGroup>
                                     <InputOTPSlot index={0} />
@@ -519,6 +536,19 @@ export default function PaymentPage() {
         productImage={cartItems[0]?.imageUrl || 'https://placehold.co/600x800.png'}
         productName={cartItems[0]?.name || 'Your Product'}
     />
+     <AlertDialog open={isFailureAlertOpen} onOpenChange={setIsFailureAlertOpen}>
+        <AlertDialogContent>
+            <AlertDialogHeader>
+                <AlertDialogTitle className="text-destructive">Transaction Failed</AlertDialogTitle>
+                <AlertDialogDescription>
+                    Your payment could not be processed. Please try again with a different payment method or check your details. Your items are still in your cart.
+                </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+                <AlertDialogAction onClick={() => setIsFailureAlertOpen(false)}>Try Again</AlertDialogAction>
+            </AlertDialogFooter>
+        </AlertDialogContent>
+    </AlertDialog>
     <div className="min-h-screen bg-muted/40 text-foreground flex flex-col">
        <header className="p-4 flex items-center justify-between sticky top-0 bg-background/90 backdrop-blur-sm z-30 border-b">
             <div className="flex items-center gap-2">
@@ -715,4 +745,3 @@ export default function PaymentPage() {
   );
 }
 
-    
