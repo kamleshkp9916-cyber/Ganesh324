@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import React from 'react';
@@ -902,5 +903,3 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
     </>
   );
 }
-
-```
