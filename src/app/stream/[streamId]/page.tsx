@@ -820,6 +820,8 @@ const ChatPanel = ({
     const addEmoji = (emoji: string) => {
         setNewMessage(prev => prev + emoji);
     };
+    
+    const suggestedEmojis = ['👋', '😂', '🔥', '❤️', '👍'];
 
     return (
         <div className="flex flex-col h-full bg-background">
@@ -914,6 +916,13 @@ const ChatPanel = ({
                             <button onClick={handleCancelReply}><X className="w-3 h-3" /></button>
                         </div>
                     )}
+                     <div className="flex items-center gap-1.5 px-2 pb-2">
+                        {suggestedEmojis.map(emoji => (
+                            <Button key={emoji} variant="ghost" size="icon" className="h-7 w-7 text-lg" onClick={() => addEmoji(emoji)}>
+                                {emoji}
+                            </Button>
+                        ))}
+                    </div>
                     <form onSubmit={handleSendMessage} className="flex items-center gap-2">
                         <Avatar className="h-9 w-9">
                             <AvatarImage src={user?.photoURL || undefined} />
@@ -939,14 +948,14 @@ const ChatPanel = ({
                                         <Smile />
                                     </Button>
                                 </PopoverTrigger>
-                                <PopoverContent className="w-80 h-64 p-0">
-                                    <div className="grid grid-cols-8 gap-1 h-full overflow-y-auto no-scrollbar p-2">
+                                <PopoverContent className="w-80 h-64">
+                                   <div className="grid grid-cols-8 gap-1 h-full overflow-y-auto no-scrollbar">
                                         {emojis.map((emoji, index) => (
                                             <Button key={index} variant="ghost" size="icon" onClick={() => addEmoji(emoji)}>
                                                 {emoji}
                                             </Button>
                                         ))}
-                                    </div>
+                                   </div>
                                 </PopoverContent>
                             </Popover>
                         </div>
@@ -1784,10 +1793,10 @@ const StreamPage = () => {
                         <LoadingSpinner />
                     </div>
                  ) : isMobile ? (
-                     <MobileLayout {...{ router, videoRef, playerRef, handlePlayPause, handleShare, handleMinimize, handleToggleFullscreen, isPaused, seller, sellerData, streamData, handleFollowToggle, isFollowingState, sellerProducts, handlers, relatedStreams, isChatOpen, setIsChatOpen, chatMessages, pinnedMessages, onClose: () => setIsChatOpen(false), handleAddToCart, handleBuyNow, mobileView, setMobileView, isMuted, setIsMuted, handleGoLive, handleSeek, isLive, formatTime, currentTime, duration, buffered, handleProgressClick, progressContainerRef, activeQuality, setActiveQuality, product, user, walletBalance, setIsSuperChatOpen, isSuperChatOpen, isPastStream, isRatingDialogOpen, setIsRatingDialogOpen, handleRateStream, userRating, toast, getProductsForSeller }} />
+                     <MobileLayout {...{ user, handlers, handleAddToCart, handleBuyNow, chatMessages, walletBalance, isPastStream, isSuperChatOpen, setIsSuperChatOpen, ...props }} />
                  ) : (
                     <DesktopLayout 
-                        {...{ router, videoRef, playerRef, handlePlayPause, handleShare, handleMinimize, handleToggleFullscreen, isPaused, seller, sellerData, streamData, handleFollowToggle, isFollowingState, sellerProducts, handlers, relatedStreams, isChatOpen, setIsChatOpen, chatMessages, pinnedMessages, onClose: () => setIsChatOpen(false), handleAddToCart, handleBuyNow, mobileView, setMobileView, isMuted, setIsMuted, handleGoLive, handleSeek, isLive, formatTime, currentTime, duration, buffered, handleProgressClick, progressContainerRef, mainScrollRef, handleMainScroll, showGoToTop, scrollToTop, activeQuality, setActiveQuality, product, user, cartCount, walletBalance, setIsSuperChatOpen, isSuperChatOpen, inlineAuctionCardRefs: inlineAuctionCardRefs, isPastStream, isRatingDialogOpen, setIsRatingDialogOpen, handleRateStream, userRating, toast, getProductsForSeller }}
+                        {...{ user, handlers, handleAddToCart, handleBuyNow, chatMessages, cartCount, walletBalance, isSuperChatOpen, setIsSuperChatOpen, ...props }}
                     />
                  )}
             </div>
@@ -1799,6 +1808,7 @@ export default StreamPage;
 
     
     
+
 
 
 
