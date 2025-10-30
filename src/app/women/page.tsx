@@ -3,7 +3,7 @@
 
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Menu, Search, User, ShoppingCart } from 'lucide-react';
+import { ArrowLeft, Menu, Search, User, ShoppingCart, Home, ChevronRight } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -16,6 +16,7 @@ import { CATEGORY_BANNERS_KEY, CategoryBanners } from '@/app/admin/settings/page
 import { useState, useEffect } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { cn } from '@/lib/utils';
 
 const categories = [
     { name: "Tops", image: "https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?w=400&h=500&fit=crop", hint: "woman wearing top" },
@@ -100,6 +101,16 @@ export default function WomensClothingPage() {
                     <WomensSidebar />
                 </SheetContent>
             </Sheet>
+        </div>
+
+        <div className="hidden lg:block my-4">
+            <nav aria-label="Breadcrumb">
+                <ol className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                    <li><Link href="/listed-products" className="hover:text-primary"><Home className="h-4 w-4" /></Link></li>
+                    <li><ChevronRight className="h-4 w-4" /></li>
+                    <li><span className="font-semibold text-foreground">Women</span></li>
+                </ol>
+            </nav>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 flex-grow overflow-hidden">

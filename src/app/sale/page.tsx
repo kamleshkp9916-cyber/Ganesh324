@@ -3,7 +3,7 @@
 
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Menu, Search, User, ShoppingCart } from 'lucide-react';
+import { ArrowLeft, Menu, Search, User, ShoppingCart, Home, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Logo } from '@/components/logo';
@@ -69,6 +69,15 @@ export default function SalePage() {
         </header>
 
       <main className="container mx-auto px-4 sm:px-6 lg:px-8 flex-grow flex flex-col overflow-hidden">
+        <div className="hidden lg:block my-4">
+            <nav aria-label="Breadcrumb">
+                <ol className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                    <li><Link href="/listed-products" className="hover:text-primary"><Home className="h-4 w-4" /></Link></li>
+                    <li><ChevronRight className="h-4 w-4" /></li>
+                    <li><span className="font-semibold text-foreground">Sale</span></li>
+                </ol>
+            </nav>
+        </div>
         <div className="text-center py-20 text-muted-foreground">
             <h1 className="text-4xl font-bold mb-4 text-red-600">Sale</h1>
             <p>Sale content coming soon.</p>
