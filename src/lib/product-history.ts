@@ -24,7 +24,7 @@ interface ViewedProduct extends Product {
 
 const WISHLIST_KEY = 'streamcart_wishlist';
 const RECENTLY_VIEWED_KEY = 'streamcart_recently_viewed';
-const CART_KEY = 'streamcart_cart';
+export const CART_KEY = 'streamcart_cart';
 const TWENTY_FOUR_HOURS_IN_MS = 24 * 60 * 60 * 1000;
 
 // --- Wishlist Functions ---
