@@ -27,15 +27,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-
-const initialTransactions = [
-    { id: 1, transactionId: 'TXN-984213', type: 'Order', description: 'Paid via Wallet', date: 'Sep 09, 2025', time: '10:30 PM', amount: -2336.40, avatar: 'https://placehold.co/40x40.png?text=O', status: 'Completed', discount: -120.00, items: [{ key: 'prod_1', name: 'Noise Cancelling Headphones', qty: 1, unitPrice: 1980.00 }, { key: 'prod_1_ship', name: 'Express Shipping', qty: 1, unitPrice: 120.00 }] },
-    { id: 2, transactionId: 'TXN-984112', type: 'Order', description: 'Paid via UPI', date: 'Sep 08, 2025', time: '08:15 AM', amount: -7240.00, avatar: 'https://placehold.co/40x40.png?text=O', status: 'Completed', items: [{ key: 'prod_2', name: 'Vintage Camera', qty: 1, unitPrice: 7240.00 }] },
-    { id: 3, transactionId: 'TXN-983990', type: 'Refund', description: 'Refund + Wallet', date: 'Sep 08, 2025', time: '09:00 AM', amount: 5200.00, avatar: 'https://placehold.co/40x40.png?text=R', status: 'Completed' },
-    { id: 4, transactionId: 'TXN-001244', type: 'Deposit', description: 'PhonePe Deposit', date: 'Sep 10, 2025', time: '11:00 AM', amount: 1000.00, avatar: 'https://placehold.co/40x40.png?text=D', status: 'Failed' },
-    { id: 5, transactionId: 'AUC-5721', type: 'Bid', description: 'Auction Hold + Wallet', date: 'Sep 07, 2025', time: '07:45 PM', amount: -9900.00, avatar: 'https://placehold.co/40x40.png?text=B', status: 'Processing' },
-    { id: 6, transactionId: 'WD-3319', type: 'Withdrawal', description: 'To Bank + IMPS', date: 'Sep 06, 2025', time: '02:00 PM', amount: -20000.00, avatar: 'https://placehold.co/40x40.png?text=W', status: 'Completed' },
-];
+import { getTransactions, addTransaction, Transaction } from '@/lib/transaction-history';
 
 const mockNotifications = [
     { id: 1, title: 'Deposit Successful', description: '₹1,000.00 has been added to your wallet.', time: '5m ago', read: false, href: '#' },
@@ -48,13 +40,68 @@ const mockBankAccounts = [
     { id: 2, bankName: 'ICICI Bank', accountNumber: 'XXXX-XXXX-XX98-7654' },
 ];
 
+const AddFundsDialog = () => {
+    const [amount, setAmount] = useState<number | string>('');
+    const [showQr, setShowQr] = useState(false);
+
+    const handleProceed = () => {
+        if (typeof amount === 'number' && amount > 0) {
+            setShowQr(true);
+        }
+    };
+    
+    const upiUrl = `upi://pay?pa=streamcart@mock&am=${amount}&tn=AddFunds`;
+
+    return (
+        <DialogContent>
+            <DialogHeader>
+                <DialogTitle>Add Funds to Wallet</DialogTitle>
+                {!showQr && <DialogDescription>Enter the amount you wish to add.</DialogDescription>}
+            </DialogHeader>
+            {!showQr ? (
+                <div className="py-4 space-y-4">
+                    <div className="space-y-2">
+                        <Label htmlFor="amount">Amount</Label>
+                         <div className="relative">
+                            <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-muted-foreground">₹</span>
+                            <Input 
+                                id="amount" 
+                                type="number" 
+                                placeholder="0.00" 
+                                value={amount} 
+                                onChange={(e) => setAmount(Number(e.target.value))}
+                                className="pl-6"
+                            />
+                        </div>
+                    </div>
+                     <Button className="w-full" onClick={handleProceed} disabled={!amount || Number(amount) <= 0}>
+                        Proceed to Pay
+                    </Button>
+                </div>
+            ) : (
+                <div className="flex flex-col items-center gap-4 py-4">
+                     <p className="font-bold text-2xl">Pay ₹{Number(amount).toFixed(2)}</p>
+                    <div className="bg-white p-4 rounded-lg">
+                        <Image src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(upiUrl)}`} alt="UPI QR Code" width={200} height={200} />
+                    </div>
+                    <p className="text-sm text-muted-foreground">Scan with any UPI app</p>
+                    <Button variant="ghost" onClick={() => setShowQr(false)} className="text-sm">
+                        <ArrowLeft className="mr-2 h-4 w-4"/>
+                        Change Amount
+                    </Button>
+                </div>
+            )}
+        </DialogContent>
+    );
+};
+
 
 export default function WalletPage() {
   const router = useRouter();
   const { user, userData, loading } = useAuth();
   const { toast } = useToast();
   const [balance, setBalance] = useState(42580.22);
-  const [transactions, setTransactions] = useState(initialTransactions);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [isMounted, setIsMounted] = useState(false);
   const [isWithdrawOpen, setIsWithdrawOpen] = useState(false);
   const [bankAccounts, setBankAccounts] = useState(mockBankAccounts);
@@ -63,6 +110,11 @@ export default function WalletPage() {
   const [notifications, setNotifications] = useState(mockNotifications);
 
   const unreadCount = useMemo(() => notifications.filter(n => !n.read).length, [notifications]);
+  
+  useEffect(() => {
+    setIsMounted(true);
+    setTransactions(getTransactions());
+  }, []);
   
   const markAsRead = (id: number) => {
     setNotifications(current => current.map(n => n.id === id ? { ...n, read: true } : n));
@@ -77,10 +129,6 @@ export default function WalletPage() {
   }, [processingTransactions]);
 
 
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
-  
   const filteredTransactions = useMemo(() => {
     if (!searchTerm) return transactions;
     return transactions.filter(t => 
@@ -111,20 +159,20 @@ export default function WalletPage() {
         return;
      }
 
-     const now = new Date();
-     const newTransaction = {
+     const newTransaction: Transaction = {
         id: Date.now(),
         transactionId: `WD-${Math.floor(1000 + Math.random() * 9000)}`,
         type: 'Withdrawal',
         description: `To ${selectedAccount?.bankName}`,
-        date: now.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-        time: now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+        date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+        time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
         amount: -amount,
         avatar: 'https://placehold.co/40x40.png?text=W',
         status: 'Completed',
      };
-     // @ts-ignore
-     setTransactions(prev => [newTransaction, ...prev]);
+
+     addTransaction(newTransaction);
+     setTransactions(getTransactions());
      setBalance(prev => prev - amount);
 
      toast({
@@ -299,19 +347,7 @@ export default function WalletPage() {
                                     <span>Add Funds</span>
                                 </Button>
                             </DialogTrigger>
-                             <DialogContent>
-                                <DialogHeader>
-                                    <DialogTitle>Add Funds via UPI</DialogTitle>
-                                    <DialogDescription>Scan the QR code with any UPI app to add funds to your wallet.</DialogDescription>
-                                </DialogHeader>
-                                <div className="flex flex-col items-center gap-4 py-4">
-                                    <div className="bg-white p-4 rounded-lg">
-                                        <Image src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=upi://pay?pa=streamcart@mock" alt="UPI QR Code" width={200} height={200} />
-                                    </div>
-                                    <p className="text-sm text-muted-foreground">or pay to UPI ID:</p>
-                                    <p className="font-semibold">streamcart@mock</p>
-                                </div>
-                            </DialogContent>
+                             <AddFundsDialog />
                         </Dialog>
                          <Button className="w-full justify-center" variant="outline">
                             <BarChart2 className="h-5 w-5"/>
