@@ -81,6 +81,7 @@ export const ProductShelfContent = ({ sellerProducts, handleAddToCart, handleBuy
                                     <div className="flex items-center justify-between text-xs text-muted-foreground mt-2">
                                         <div className="flex items-center gap-1 cursor-pointer hover:text-primary"><Package className="h-3 w-3" /> {details.stock} left</div>
                                         <div className="flex items-center gap-1 cursor-pointer hover:text-primary"><Users className="h-3 w-3" /> {details.sold} sold</div>
+                                        <div className="flex items-center gap-1 cursor-pointer hover:text-primary"><Star className="h-3 w-3" /> {details.reviews}</div>
                                     </div>
                                 </div>
                                 <CardFooter className="p-2 grid grid-cols-1 gap-2">
