@@ -182,7 +182,6 @@ export default function CategoryPage() {
         <>
             <div className="min-h-screen bg-background text-foreground flex flex-col">
                 <header className="p-4 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-sm z-30 border-b">
-                    <div className="w-10"></div>
                     <h1 className="text-xl font-bold truncate">{pageTitle}</h1>
                      {user ? (
                         <Link href="/cart">
@@ -197,12 +196,16 @@ export default function CategoryPage() {
                      <div className="mb-4 flex justify-between items-center">
                         <nav aria-label="Breadcrumb">
                             <ol className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                                <li><Link href="/listed-products" className="hover:text-primary"><Home className="h-4 w-4" /></Link></li>
+                                <li>
+                                    <Link href="/listed-products" className="flex items-center gap-1.5 px-2 py-1 rounded-md hover:bg-secondary">
+                                        <Home className="h-4 w-4" /> Home
+                                    </Link>
+                                </li>
                                 {breadcrumbs.slice(1).map((crumb, index) => (
                                     <React.Fragment key={index}>
                                         <li><ChevronRight className="h-4 w-4" /></li>
                                         <li>
-                                            <Link href={crumb.href} className={cn("hover:text-primary", index === breadcrumbs.length - 2 ? "font-semibold text-foreground" : "")}>
+                                            <Link href={crumb.href} className={cn("px-2 py-1 rounded-md hover:bg-secondary", index === breadcrumbs.length - 2 ? "font-semibold text-foreground bg-secondary" : "")}>
                                                 {crumb.name}
                                             </Link>
                                         </li>
