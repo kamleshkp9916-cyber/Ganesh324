@@ -155,7 +155,7 @@ export function ProductSearchWithStreams() {
                             <Image src={p.images[0]} alt={p.name} width={48} height={48} className="w-12 h-12 object-cover rounded-md" />
                             <div className="flex-grow">
                                 <p className="font-semibold text-sm">{p.name}</p>
-                                <p className="text-sm font-bold text-primary">{p.price}</p>
+                                <p className="text-sm font-bold text-foreground">{p.price}</p>
                             </div>
                         </Link>
                     ))}
