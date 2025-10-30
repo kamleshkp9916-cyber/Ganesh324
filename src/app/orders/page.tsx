@@ -21,6 +21,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { allOrderData, getStatusFromTimeline } from '@/lib/order-data';
 import { getFirestore, collection, query, where, getDocs, orderBy } from 'firebase/firestore';
 import { getFirestoreDb } from '@/lib/firebase';
+import { Card, CardContent } from '@/components/ui/card';
 
 
 type Order = {
@@ -52,7 +53,7 @@ const statusPriority: { [key: string]: number } = {
 
 function OrderRowSkeleton() {
     return (
-        <div className='relative border-b last:border-b-0 p-4'>
+        <Card className="p-4">
             <div className="flex flex-col md:flex-row items-start md:items-center gap-4 text-sm">
                 <div className="w-full md:w-2/5 flex items-center gap-4">
                      <Skeleton className="h-16 w-16 rounded-md" />
@@ -65,7 +66,7 @@ function OrderRowSkeleton() {
                 <div className="w-full md:w-1/5"><Skeleton className="h-5 w-20" /></div>
                 <div className="w-full md:w-1/5"><Skeleton className="h-6 w-28 rounded-full" /></div>
             </div>
-        </div>
+        </Card>
     );
 }
 
@@ -215,24 +216,11 @@ export default function OrdersPage() {
 
   const getStatusBadgeVariant = (status: string): BadgeProps['variant'] => {
     switch (status) {
-        case 'Delivered':
-            return 'success';
-        case 'Shipped':
-        case 'In Transit':
-        case 'Out for Delivery':
-            return 'warning';
-        case 'Cancelled by user':
-        case 'Undelivered':
-        case 'Failed Delivery Attempt':
-        case 'Returned':
-        case 'Return package picked up':
-            return 'destructive';
-        case 'Return Initiated':
-            return 'purple';
-        case 'Pending':
-            return 'info';
-        default:
-            return 'outline';
+        case 'Delivered': return 'success';
+        case 'Shipped': case 'In Transit': case 'Out for Delivery': return 'warning';
+        case 'Cancelled by user': case 'Cancelled by admin': case 'Returned': return 'destructive';
+        case 'Pending': return 'info';
+        default: return 'outline';
     }
   };
 
@@ -258,7 +246,7 @@ export default function OrdersPage() {
   const renderContent = () => {
     if (isLoading) {
         return (
-            <div className="space-y-2 mt-2 flex-grow">
+            <div className="space-y-4 flex-grow">
                 {Array.from({ length: 5 }).map((_, index) => <OrderRowSkeleton key={index} />)}
             </div>
         );
@@ -266,19 +254,10 @@ export default function OrdersPage() {
     
     if (paginatedOrders.length > 0) {
         return (
-            <div className="flex-grow">
-                {/* Desktop and Tablet Headers */}
-                <div className="hidden md:grid grid-cols-[2fr,1.5fr,1fr,1fr,auto] items-center text-sm font-medium text-muted-foreground px-4 py-3 border-b">
-                    <span>Product</span>
-                    <span>Address</span>
-                    <span className="text-center">Price</span>
-                    <span className="text-center">Status</span>
-                    <span className="w-8"></span>
-                </div>
-
-                <div className="divide-y">
-                    {paginatedOrders.map((order: Order) => (
-                        <div key={order.orderId} className='grid grid-cols-2 md:grid-cols-[2fr,1.5fr,1fr,1fr,auto] items-center gap-4 p-4 hover:bg-muted/50 cursor-pointer' onClick={() => handleRowClick(order.orderId)}>
+            <div className="flex-grow space-y-4">
+                {paginatedOrders.map((order: Order) => (
+                    <Card key={order.orderId} className="hover:bg-muted/50 cursor-pointer" onClick={() => handleRowClick(order.orderId)}>
+                        <CardContent className="p-4 grid grid-cols-2 md:grid-cols-[2fr,1.5fr,1fr,1fr,auto] items-center gap-4">
                             {/* Product Info */}
                             <div className="col-span-2 md:col-span-1 flex items-center gap-4">
                                 <Image src={order.products[0].imageUrl.replace('60x60', '100x100')} alt={order.products[0].name} width={64} height={64} className="rounded-md bg-muted" data-ai-hint={order.products[0].hint} />
@@ -323,9 +302,9 @@ export default function OrdersPage() {
                                     </DropdownMenuContent>
                                 </DropdownMenu>
                             </div>
-                        </div>
-                    ))}
-                </div>
+                        </CardContent>
+                    </Card>
+                ))}
             </div>
         );
     }
@@ -356,7 +335,7 @@ export default function OrdersPage() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-black text-foreground">
+    <div className="flex flex-col min-h-screen bg-muted/40 text-foreground">
       <header className="sticky top-0 z-30 border-b bg-background/80 backdrop-blur-sm flex items-center justify-between gap-4 p-4 md:p-6 flex-shrink-0">
           <div className={cn("flex items-center gap-1 md:gap-3 flex-1", isSearchExpanded && "hidden md:flex")}>
               <Button variant="ghost" size="icon" onClick={() => router.back()} className="md:inline-flex">
@@ -403,71 +382,69 @@ export default function OrdersPage() {
           </div>
       </header>
       <main className="flex-grow p-4 md:p-6 flex flex-col gap-6 overflow-y-auto pb-24">
-          <div className="bg-black p-2 sm:p-4 rounded-lg border flex flex-col h-full">
-              <div className="flex justify-between items-center mb-6">
-                  <h3 className="text-2xl font-bold">Orders</h3>
-                   {orders.length > 0 && (
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <Button variant="outline" size="sm">
-                                    <Filter className="h-4 w-4 mr-2" />
-                                    Filter
-                                </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent className="w-56" align="end">
-                                <DropdownMenuLabel>Filter by Status</DropdownMenuLabel>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuRadioGroup value={statusFilter} onValueChange={setStatusFilter}>
-                                    <DropdownMenuRadioItem value="all">All</DropdownMenuRadioItem>
-                                    <DropdownMenuRadioItem value="pending">Pending</DropdownMenuRadioItem>
-                                    <DropdownMenuRadioItem value="shipped">Shipped</DropdownMenuRadioItem>
-                                    <DropdownMenuRadioItem value="in-transit">In Transit</DropdownMenuRadioItem>
-                                    <DropdownMenuRadioItem value="out-for-delivery">Out for Delivery</DropdownMenuRadioItem>
-                                    <DropdownMenuRadioItem value="delivered">Delivered</DropdownMenuRadioItem>
-                                    <DropdownMenuRadioItem value="failed-delivery-attempt">Undelivered</DropdownMenuRadioItem>
-                                    <DropdownMenuRadioItem value="returned">Returned</DropdownMenuRadioItem>
-                                    <DropdownMenuRadioItem value="cancelled-by-user">Cancelled</DropdownMenuRadioItem>
-                                </DropdownMenuRadioGroup>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
-                   )}
-              </div>
-              
-              
-              {renderContent()}
-
-              {totalPages > 1 && (
-                  <div className="flex items-center justify-between pt-4 mt-auto flex-wrap gap-4">
-                      <div className="text-sm text-muted-foreground w-full sm:w-auto text-center sm:text-left mb-2 sm:mb-0">
-                          Showing page {currentPage} of {totalPages}
-                      </div>
-                      <div className="w-full sm:w-auto mx-auto">
-                          <Pagination>
-                              <PaginationContent>
-                                  <PaginationItem>
-                                      <Button variant="ghost" size="icon" onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1}>
-                                      <ChevronLeft className="h-5 w-5" />
-                                      </Button>
-                                  </PaginationItem>
-                                  <PaginationItem className="hidden sm:block">
-                                      <span className="text-sm font-medium p-2">{currentPage} / {totalPages}</span>
-                                  </PaginationItem>
-                                  <PaginationItem>
-                                  <Button variant="ghost" size="icon" onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages}>
-                                      <ChevronRight className="h-5 w-5" />
-                                      </Button>
-                                  </PaginationItem>
-                              </PaginationContent>
-                          </Pagination>
-                      </div>
-                      <div className="w-full sm:w-auto justify-center sm:justify-end gap-2 flex">
-                          <Button variant="ghost" size="sm">About</Button>
-                          <Button variant="ghost" size="sm">Support</Button>
-                          <Button variant="ghost" size="sm">Contact us</Button>
-                      </div>
-                  </div>
-              )}
+          <div className="flex justify-between items-center">
+              <h3 className="text-2xl font-bold">Orders</h3>
+               {orders.length > 0 && (
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="outline" size="sm">
+                                <Filter className="h-4 w-4 mr-2" />
+                                Filter
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent className="w-56" align="end">
+                            <DropdownMenuLabel>Filter by Status</DropdownMenuLabel>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuRadioGroup value={statusFilter} onValueChange={setStatusFilter}>
+                                <DropdownMenuRadioItem value="all">All</DropdownMenuRadioItem>
+                                <DropdownMenuRadioItem value="pending">Pending</DropdownMenuRadioItem>
+                                <DropdownMenuRadioItem value="shipped">Shipped</DropdownMenuRadioItem>
+                                <DropdownMenuRadioItem value="in-transit">In Transit</DropdownMenuRadioItem>
+                                <DropdownMenuRadioItem value="out-for-delivery">Out for Delivery</DropdownMenuRadioItem>
+                                <DropdownMenuRadioItem value="delivered">Delivered</DropdownMenuRadioItem>
+                                <DropdownMenuRadioItem value="failed-delivery-attempt">Undelivered</DropdownMenuRadioItem>
+                                <DropdownMenuRadioItem value="returned">Returned</DropdownMenuRadioItem>
+                                <DropdownMenuRadioItem value="cancelled-by-user">Cancelled</DropdownMenuRadioItem>
+                            </DropdownMenuRadioGroup>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+               )}
           </div>
+          
+          
+          {renderContent()}
+
+          {totalPages > 1 && (
+              <div className="flex items-center justify-between pt-4 mt-auto flex-wrap gap-4">
+                  <div className="text-sm text-muted-foreground w-full sm:w-auto text-center sm:text-left mb-2 sm:mb-0">
+                      Showing page {currentPage} of {totalPages}
+                  </div>
+                  <div className="w-full sm:w-auto mx-auto">
+                      <Pagination>
+                          <PaginationContent>
+                              <PaginationItem>
+                                  <Button variant="ghost" size="icon" onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1}>
+                                  <ChevronLeft className="h-5 w-5" />
+                                  </Button>
+                              </PaginationItem>
+                              <PaginationItem className="hidden sm:block">
+                                  <span className="text-sm font-medium p-2">{currentPage} / {totalPages}</span>
+                              </PaginationItem>
+                              <PaginationItem>
+                              <Button variant="ghost" size="icon" onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages}>
+                                  <ChevronRight className="h-5 w-5" />
+                                  </Button>
+                              </PaginationItem>
+                          </PaginationContent>
+                      </Pagination>
+                  </div>
+                  <div className="w-full sm:w-auto justify-center sm:justify-end gap-2 flex">
+                      <Button variant="ghost" size="sm">About</Button>
+                      <Button variant="ghost" size="sm">Support</Button>
+                      <Button variant="ghost" size="sm">Contact us</Button>
+                  </div>
+              </div>
+          )}
       </main>
     </div>
   );
