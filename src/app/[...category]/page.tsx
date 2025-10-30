@@ -285,7 +285,7 @@ export default function CategoryPage() {
                                                         </div>
                                                     )}
                                                      <div className="absolute bottom-2 left-2 flex items-center gap-1 text-xs text-white bg-black/50 px-1.5 py-0.5 rounded-full backdrop-blur-sm">
-                                                        <Star className="w-3 h-3 text-amber-300 fill-amber-300" />
+                                                        <Star className="w-3 h-3 text-black fill-black" />
                                                         <span className="font-bold">4.8</span>
                                                     </div>
                                                     <div className="absolute bottom-2 right-2">
