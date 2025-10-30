@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
@@ -971,20 +970,20 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                         </div>
                                     )}
                                 
-                                     <div className="flex flex-col sm:flex-row gap-3 pt-4">
+                                    <div className="flex flex-col sm:flex-row gap-3 pt-4">
                                         {(variantStock !== undefined && variantStock > 0) ? (
                                             <>
                                                 {inCart ? (
-                                                    <Button size="lg" className="w-full h-12 text-base" asChild>
+                                                    <Button size="lg" className="w-full h-12 text-base bg-foreground hover:bg-foreground/80 text-background" asChild>
                                                         <Link href="/cart">Go to Cart</Link>
                                                     </Button>
                                                 ) : (
-                                                    <Button size="lg" className="w-full h-12 text-base transition-transform hover:scale-105 active:scale-95" variant="outline" onClick={handleAddToCart}>
+                                                    <Button size="lg" className="w-full h-12 text-base transition-transform hover:scale-105 active:scale-95 border border-foreground bg-transparent text-foreground hover:bg-foreground hover:text-background" variant="outline" onClick={handleAddToCart}>
                                                         <ShoppingCart className="mr-2 h-5 w-5" />
                                                         Add to Cart
                                                     </Button>
                                                 )}
-                                                <Button size="lg" className="w-full h-12 text-base transition-transform hover:scale-105 active:scale-95 border border-foreground bg-background text-foreground hover:bg-foreground hover:text-background" onClick={handleBuyNow}>
+                                                <Button size="lg" className="w-full h-12 text-base transition-transform hover:scale-105 active:scale-95 border border-foreground bg-transparent text-foreground hover:bg-foreground hover:text-background" onClick={handleBuyNow}>
                                                     Buy Now
                                                 </Button>
                                             </>
@@ -1251,7 +1250,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                                             <Image src={stream.thumbnailUrl} alt={`Live stream from ${stream.name}`} fill sizes="(max-width: 640px) 100vw, 33vw" className="object-cover w-full h-full transition-transform group-hover:scale-105" />
                                                             <div className="absolute top-3 left-3 z-10"><Badge variant="destructive" className="gap-1.5"><div className="h-2 w-2 rounded-full bg-white animate-pulse" />LIVE</Badge></div>
                                                             <div className="absolute top-2 right-2 z-10">
-                                                                <Badge variant="secondary" className="bg-black/40 text-white font-semibold backdrop-blur-sm">
+                                                                <Badge variant="secondary" className="bg-black/50 text-white font-semibold backdrop-blur-sm">
                                                                     <Users className="w-3 h-3 mr-1"/>{stream.viewers.toLocaleString()}
                                                                 </Badge>
                                                             </div>
@@ -1390,8 +1389,3 @@ export function ProductDetailClient({ productId }: { productId: string }) {
         </>
     );
 }
-
-    
-
-
-
