@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
@@ -661,7 +662,7 @@ export default function PaymentPage() {
                                 {cartItems.map((item) => (
                                     <div key={`${''}${item.id}-${item.size || ''}-${item.color || ''}`} className="flex items-start gap-4">
                                         <div className="relative w-16 h-16 rounded-md border flex-shrink-0">
-                                            <Image src={item.imageUrl} alt={item.name} layout="fill" className="object-cover rounded-md" data-ai-hint={item.hint}/>
+                                            <Image src={item.imageUrl || 'https://placehold.co/100x100.png'} alt={item.name} layout="fill" className="object-cover rounded-md" data-ai-hint={item.hint}/>
                                         </div>
                                         <div className="flex-grow">
                                             <p className="font-semibold text-sm leading-tight">{item.name}</p>
