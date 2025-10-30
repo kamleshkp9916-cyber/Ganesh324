@@ -132,9 +132,6 @@ export default function ListedProductsPage() {
                         }}>
                           <ArrowLeft className="h-6 w-6" />
                         </Button>
-                        <Link href="/live-selling" className="flex items-center gap-2">
-                            <span className="font-bold text-lg hidden sm:inline-block">StreamCart</span>
-                        </Link>
                     </div>
 
                     <div className="hidden lg:flex flex-1 justify-center px-8">
@@ -279,6 +276,8 @@ const ListItem = React.forwardRef<
   )
 })
 ListItem.displayName = "ListItem"
+
+    
 
     
 
