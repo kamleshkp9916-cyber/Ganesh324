@@ -984,8 +984,8 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                                         Add to Cart
                                                     </Button>
                                                 )}
-                                                <Button size="lg" className="w-full bg-foreground hover:bg-foreground/80 text-background flex-col h-12 text-base py-2 transition-transform hover:scale-105 active:scale-95" onClick={handleBuyNow}>
-                                                    <span>Buy Now</span>
+                                                <Button size="lg" className="w-full h-12 text-base transition-transform hover:scale-105 active:scale-95 border border-foreground bg-background text-foreground hover:bg-foreground hover:text-background" onClick={handleBuyNow}>
+                                                    Buy Now
                                                 </Button>
                                             </>
                                         ) : (
@@ -1392,5 +1392,6 @@ export function ProductDetailClient({ productId }: { productId: string }) {
 }
 
     
+
 
 
