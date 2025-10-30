@@ -57,9 +57,6 @@ export default function KidsPage() {
 
       <main className="container mx-auto px-4 sm:px-6 lg:px-8 flex-grow flex flex-col overflow-hidden">
         <div className="flex items-center justify-between my-4 lg:hidden flex-shrink-0">
-             <Button variant="ghost" size="icon" onClick={() => router.back()}>
-              <ArrowLeft className="h-6 w-6" />
-            </Button>
             <h1 className="text-2xl font-bold">Kids</h1>
              <Sheet>
                 <SheetTrigger asChild>
@@ -73,7 +70,7 @@ export default function KidsPage() {
             </Sheet>
         </div>
         
-        <div className="hidden lg:block my-4">
+        <div className="hidden lg:flex items-center justify-between my-4">
             <nav aria-label="Breadcrumb">
                 <ol className="flex items-center gap-1.5 text-sm text-muted-foreground">
                     <li><Button asChild variant="ghost" size="sm"><Link href="/listed-products"><Home className="h-4 w-4" /><span className="sr-only md:not-sr-only md:ml-2">Home</span></Link></Button></li>
@@ -92,10 +89,6 @@ export default function KidsPage() {
 
           <div className="lg:col-span-3 h-full overflow-y-auto no-scrollbar">
             <div className="space-y-10 pb-10">
-              <div className="hidden lg:block pt-6">
-                  <h1 className="text-4xl font-bold">Kids</h1>
-              </div>
-              
               <section>
                   <h2 className="text-xl font-semibold mb-4 text-center">Shop for Kids</h2>
                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
