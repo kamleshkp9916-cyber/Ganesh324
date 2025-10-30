@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { CreditCard, ShieldCheck, Banknote, Lock, Info, Loader2, ArrowRight, Wallet, QrCode, ArrowLeft, Coins, Ticket, Edit, Home, MessageSquare, HelpCircle, FileText, Send, Flag, LifeBuoy } from 'lucide-react';
@@ -14,20 +14,22 @@ import Image from 'next/image';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';
-import { getCart, CartProduct, saveCart } from '@/lib/product-history';
+import { getCart, CartProduct, saveCart, CART_KEY } from '@/lib/product-history';
 import { useAuth } from '@/hooks/use-auth';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { SHIPPING_SETTINGS_KEY, ShippingSettings, Coupon, COUPONS_KEY } from '@/app/admin/settings/page';
 import { useLocalStorage } from '@/hooks/use-local-storage';
 import { productDetails } from '@/lib/product-data';
 import Link from 'next/link';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger, DialogFooter, AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from "@/components/ui/alert-dialog";
 import { EditAddressForm } from '@/components/edit-address-form';
 import { HelpChat } from '@/components/help-chat';
 import { FeedbackDialog } from '@/components/feedback-dialog';
 import { InputOTP, InputOTPGroup, InputOTPSlot, InputOTPSeparator } from '@/components/ui/input-otp';
-import { allOrderData } from '@/lib/order-data';
+import { allOrderData, Order } from '@/lib/order-data';
 import { addTransaction } from '@/lib/transaction-history';
+import { updateUserData } from '@/lib/follow-data';
 
 
 const defaultShippingSettings: ShippingSettings = {
@@ -297,7 +299,7 @@ export default function PaymentPage() {
                 isReturnable: true,
                 timeline: [{ status: "Order Confirmed", date: format(new Date(), 'MMM dd, yyyy'), time: format(new Date(), 'p'), completed: true }],
             };
-            allOrderData[transactionId] = newOrder; // Add to mock data
+            allOrderData[transactionId as keyof typeof allOrderData] = newOrder; // Add to mock data
             addTransaction({
                 id: Date.now(),
                 transactionId: transactionId,
@@ -744,4 +746,3 @@ export default function PaymentPage() {
     </>
   );
 }
-
