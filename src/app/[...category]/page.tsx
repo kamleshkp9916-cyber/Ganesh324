@@ -84,7 +84,7 @@ export default function CategoryPage() {
     const pathSegments = Array.isArray(categoryPath) ? categoryPath : [categoryPath];
 
     const breadcrumbs = useMemo(() => {
-        const crumbs = [{ name: 'Home', href: '/listed-products' }];
+        const crumbs = [{ name: 'Home', href: '/live-selling' }];
         let currentPath = '';
         pathSegments.forEach((segment) => {
             currentPath += `/${segment}`;
