@@ -57,10 +57,14 @@ const SuccessModal = ({ isOpen, onClose, productImage, productName }: { isOpen: 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
             <DialogContent className="max-w-4xl p-0" onPointerDownOutside={(e) => e.preventDefault()}>
+                 <DialogHeader className="sr-only">
+                    <DialogTitle>Purchase Successful</DialogTitle>
+                    <DialogDescription>Your order has been confirmed.</DialogDescription>
+                </DialogHeader>
                  <div className="grid grid-cols-1 md:grid-cols-2">
                     <div className="relative aspect-[4/5] hidden md:block">
                          <Image 
-                            src={productImage} 
+                            src={productImage || 'https://placehold.co/600x800.png'} 
                             alt={productName}
                             fill
                             className="object-cover rounded-l-lg"
