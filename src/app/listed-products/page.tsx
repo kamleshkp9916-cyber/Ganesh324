@@ -127,7 +127,7 @@ export default function ListedProductsPage() {
                                 setSearchQuery('');
                                 setSearchResults([]);
                             } else {
-                                router.back()
+                                router.push('/live-selling')
                             }
                         }}>
                           <ArrowLeft className="h-6 w-6" />
@@ -279,5 +279,7 @@ const ListItem = React.forwardRef<
   )
 })
 ListItem.displayName = "ListItem"
+
+    
 
     
