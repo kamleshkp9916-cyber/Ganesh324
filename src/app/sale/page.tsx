@@ -46,7 +46,7 @@ export default function SalePage() {
       </header>
 
       <main className="container mx-auto px-4 sm:px-6 lg:px-8 flex-grow flex flex-col overflow-hidden">
-        <div className="hidden lg:block my-4">
+        <div className="hidden lg:flex items-center justify-between my-4">
             <nav aria-label="Breadcrumb">
                 <ol className="flex items-center gap-1.5 text-sm text-muted-foreground">
                     <li><Button asChild variant="ghost" size="sm"><Link href="/listed-products"><Home className="h-4 w-4" /><span className="sr-only md:not-sr-only md:ml-2">Home</span></Link></Button></li>

@@ -67,9 +67,6 @@ export default function MensClothingPage() {
 
       <main className="container mx-auto px-4 sm:px-6 lg:px-8 flex-grow flex flex-col overflow-hidden">
         <div className="flex items-center justify-between my-4 lg:hidden flex-shrink-0">
-             <Button variant="ghost" size="icon" onClick={() => router.back()}>
-              <ArrowLeft className="h-6 w-6" />
-            </Button>
             <h1 className="text-2xl font-bold">Men</h1>
              <Sheet>
                 <SheetTrigger asChild>
@@ -83,7 +80,7 @@ export default function MensClothingPage() {
             </Sheet>
         </div>
 
-        <div className="hidden lg:block my-4">
+        <div className="hidden lg:flex items-center justify-between my-4">
             <nav aria-label="Breadcrumb">
                  <ol className="flex items-center gap-1.5 text-sm text-muted-foreground">
                     <li><Button asChild variant="ghost" size="sm"><Link href="/listed-products"><Home className="h-4 w-4" /><span className="sr-only md:not-sr-only md:ml-2">Home</span></Link></Button></li>
@@ -104,10 +101,6 @@ export default function MensClothingPage() {
           {/* Right Column: Main Content */}
           <div className="lg:col-span-3 h-full overflow-y-auto no-scrollbar">
             <div className="space-y-10 pb-10">
-              <div className="hidden lg:block pt-6">
-                  <h1 className="text-4xl font-bold">Men</h1>
-              </div>
-
                <section>
                    <Card className="overflow-hidden bg-gray-100 dark:bg-gray-900 border-none">
                        {isMounted && banner1 ? (
