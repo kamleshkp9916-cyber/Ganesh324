@@ -984,7 +984,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                                         Add to Cart
                                                     </Button>
                                                 )}
-                                                <Button size="lg" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground flex-col h-12 text-base py-2 transition-transform hover:scale-105 active:scale-95" onClick={handleBuyNow}>
+                                                <Button size="lg" className="w-full bg-foreground hover:bg-foreground/80 text-background flex-col h-12 text-base py-2 transition-transform hover:scale-105 active:scale-95" onClick={handleBuyNow}>
                                                     <span>Buy Now</span>
                                                 </Button>
                                             </>
@@ -1132,7 +1132,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                         <div className="flex items-center justify-between">
                                             <CardTitle className="flex items-center gap-2">Ratings & Reviews 
                                                 <Badge variant="outline" className="flex items-center gap-1">
-                                                    <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
+                                                    <Star className="w-4 h-4 text-black fill-black" />
                                                     {averageRating}
                                                 </Badge>
                                             </CardTitle>
@@ -1392,4 +1392,5 @@ export function ProductDetailClient({ productId }: { productId: string }) {
 }
 
     
+
 
