@@ -288,7 +288,7 @@ export default function OrdersPage() {
                                         {order.products[0].size && <span>Size: {order.products[0].size}</span>}
                                         {order.products[0].size && order.products[0].color && <span className="mx-1">|</span>}
                                         {order.products[0].color && <span>Color: {order.products[0].color}</span>}
-                                        {(order.products[0].quantity > 1) && <span className="font-semibold"> (x{order.products[0].quantity})</span>}
+                                        {(order.products[0].quantity) && <span className="font-semibold"> (x{order.products[0].quantity})</span>}
                                     </div>
                                     <p className="text-muted-foreground text-xs">Order ID: {order.orderId}</p>
                                     <p className="text-muted-foreground text-xs md:hidden">{format(parseISO(order.orderDate), "MMM dd, yyyy")}</p>
@@ -443,34 +443,44 @@ export default function OrdersPage() {
       </header>
       <main className="flex-grow p-4 md:p-6 flex flex-col gap-6 overflow-y-auto pb-24">
           <Tabs defaultValue="orders" className="w-full">
-            <div className="flex justify-between items-center">
+            <div className="flex justify-between items-center gap-2">
                 <TabsList>
                     <TabsTrigger value="orders">Orders</TabsTrigger>
                     <TabsTrigger value="transactions">Transactions</TabsTrigger>
                 </TabsList>
-                <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                        <Button variant="outline" size="sm">
-                            <Filter className="h-4 w-4 mr-2" />
-                            Filter
-                        </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent className="w-56" align="end">
-                        <DropdownMenuLabel>Filter by Status</DropdownMenuLabel>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuRadioGroup value={statusFilter} onValueChange={setStatusFilter}>
-                            <DropdownMenuRadioItem value="all">All</DropdownMenuRadioItem>
-                            <DropdownMenuRadioItem value="pending">Pending</DropdownMenuRadioItem>
-                            <DropdownMenuRadioItem value="shipped">Shipped</DropdownMenuRadioItem>
-                            <DropdownMenuRadioItem value="in-transit">In Transit</DropdownMenuRadioItem>
-                            <DropdownMenuRadioItem value="out-for-delivery">Out for Delivery</DropdownMenuRadioItem>
-                            <DropdownMenuRadioItem value="delivered">Delivered</DropdownMenuRadioItem>
-                            <DropdownMenuRadioItem value="failed-delivery-attempt">Undelivered</DropdownMenuRadioItem>
-                            <DropdownMenuRadioItem value="returned">Returned</DropdownMenuRadioItem>
-                            <DropdownMenuRadioItem value="cancelled-by-user">Cancelled</DropdownMenuRadioItem>
-                        </DropdownMenuRadioGroup>
-                    </DropdownMenuContent>
-                </DropdownMenu>
+                <div className="flex items-center gap-2">
+                    {statusFilter !== 'all' && (
+                        <Badge variant="secondary" className="gap-1.5 h-8">
+                            {statusFilter.replace('-', ' ')}
+                            <button onClick={() => setStatusFilter('all')} className="rounded-full hover:bg-background/30 p-0.5">
+                                <X className="h-3 w-3" />
+                            </button>
+                        </Badge>
+                    )}
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="outline" size="sm" className="h-8">
+                                <Filter className="h-4 w-4 mr-2" />
+                                Filter
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent className="w-56" align="end">
+                            <DropdownMenuLabel>Filter by Status</DropdownMenuLabel>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuRadioGroup value={statusFilter} onValueChange={setStatusFilter}>
+                                <DropdownMenuRadioItem value="all">All</DropdownMenuRadioItem>
+                                <DropdownMenuRadioItem value="pending">Pending</DropdownMenuRadioItem>
+                                <DropdownMenuRadioItem value="shipped">Shipped</DropdownMenuRadioItem>
+                                <DropdownMenuRadioItem value="in-transit">In Transit</DropdownMenuRadioItem>
+                                <DropdownMenuRadioItem value="out-for-delivery">Out for Delivery</DropdownMenuRadioItem>
+                                <DropdownMenuRadioItem value="delivered">Delivered</DropdownMenuRadioItem>
+                                <DropdownMenuRadioItem value="failed-delivery-attempt">Undelivered</DropdownMenuRadioItem>
+                                <DropdownMenuRadioItem value="returned">Returned</DropdownMenuRadioItem>
+                                <DropdownMenuRadioItem value="cancelled-by-user">Cancelled</DropdownMenuRadioItem>
+                            </DropdownMenuRadioGroup>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                </div>
             </div>
             <TabsContent value="orders" className="mt-6">
                 {renderOrdersContent()}
@@ -485,10 +495,16 @@ export default function OrdersPage() {
                 <Pagination>
                     <PaginationContent>
                         <PaginationItem>
-                            <PaginationPrevious
+                            <Button
+                                variant="outline"
+                                size="sm"
                                 onClick={() => handlePageChange(currentPage - 1)}
-                                className={cn(currentPage === 1 && "pointer-events-none opacity-50")}
-                            />
+                                disabled={currentPage === 1}
+                                className="gap-1"
+                            >
+                                <ChevronLeft className="h-4 w-4" />
+                                Previous
+                            </Button>
                         </PaginationItem>
                         <PaginationItem>
                             <span className="text-sm font-medium p-2">
@@ -496,10 +512,16 @@ export default function OrdersPage() {
                             </span>
                         </PaginationItem>
                         <PaginationItem>
-                            <PaginationNext
+                            <Button
+                                variant="outline"
+                                size="sm"
                                 onClick={() => handlePageChange(currentPage + 1)}
-                                className={cn(currentPage === totalPages && "pointer-events-none opacity-50")}
-                            />
+                                disabled={currentPage === totalPages}
+                                className="gap-1"
+                            >
+                                Next
+                                <ChevronRight className="h-4 w-4" />
+                            </Button>
                         </PaginationItem>
                     </PaginationContent>
                 </Pagination>
@@ -510,3 +532,4 @@ export default function OrdersPage() {
     </div>
   );
 }
+
