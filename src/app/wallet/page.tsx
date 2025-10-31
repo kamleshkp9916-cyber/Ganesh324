@@ -452,7 +452,7 @@ export default function WalletPage() {
                             <ChevronRight className="h-5 w-5 text-muted-foreground"/>
                         </Link>
                      </Button>
-                     <Button variant="ghost" className="w-full justify-between h-auto p-3 text-left hover:bg-muted" disabled>
+                     <Button variant="ghost" className="w-full justify-between h-auto p-3 text-left hover:bg-muted" onClick={() => setIsWithdrawOpen(true)}>
                          <div className="flex items-center gap-3">
                             <CreditCard className="h-6 w-6 text-muted-foreground"/>
                             <div>
@@ -484,7 +484,7 @@ export default function WalletPage() {
         </div>
         
          <Card className="bg-card shadow-lg">
-             <CardHeader className="flex flex-row justify-between items-center">
+             <CardHeader className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
                 <div>
                   <CardTitle>🧾 Invoices / Billing history</CardTitle>
                   <CardDescription>A summary of your recent wallet activity</CardDescription>
@@ -501,25 +501,28 @@ export default function WalletPage() {
               </CardHeader>
               <CardContent className="space-y-1">
                 {filteredTransactions.map(t => (
-                  <div key={t.id} className="flex items-center p-3 rounded-lg hover:bg-muted/50">
-                    <Avatar className="h-9 w-9">
-                      <AvatarImage src={t.avatar} />
-                      <AvatarFallback>{t.type.charAt(0)}</AvatarFallback>
-                    </Avatar>
-                    <div className="ml-4 flex-grow">
-                      <p className="font-semibold">{t.type} <span className="font-mono text-xs text-muted-foreground">{t.transactionId}</span></p>
-                      <p className="text-sm text-muted-foreground">{t.description}</p>
-                      <p className="text-xs text-muted-foreground">{t.date}, {t.time}</p>
+                  <div key={t.id} className="flex flex-col sm:flex-row sm:items-center gap-3 p-3 rounded-lg hover:bg-muted/50">
+                    <div className="flex items-center gap-3 flex-grow">
+                        <Avatar className="h-9 w-9">
+                          <AvatarImage src={t.avatar} />
+                          <AvatarFallback>{t.type.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                        <div className="flex-grow">
+                          <p className="font-semibold text-sm">{t.type} <span className="font-mono text-xs text-muted-foreground hidden sm:inline">{t.transactionId}</span></p>
+                          <p className="text-xs text-muted-foreground">{t.description}</p>
+                          <p className="text-xs text-muted-foreground sm:hidden">{t.date}, {t.time}</p>
+                        </div>
                     </div>
-                    <div className="flex items-center gap-4">
-                         <Badge variant={t.status === 'Completed' ? 'success' : t.status === 'Processing' ? 'warning' : 'destructive'}>{t.status}</Badge>
+                    <div className="flex items-center justify-between sm:justify-end gap-4 pl-12 sm:pl-0">
+                         <p className="text-xs text-muted-foreground hidden sm:block">{t.date}, {t.time}</p>
+                         <Badge variant={t.status === 'Completed' ? 'success' : t.status === 'Processing' ? 'warning' : 'destructive'} className="w-24 justify-center">{t.status}</Badge>
                          <div className="text-right w-36 flex items-center justify-end gap-2">
-                            <p className={cn("font-semibold text-lg flex items-center gap-1", 
+                            <p className={cn("font-semibold text-base sm:text-lg flex items-center gap-1", 
                                 t.status === 'Failed' ? 'text-destructive' : 
                                 t.amount > 0 ? "text-success" : "text-foreground"
                              )}>
                                 {t.status !== 'Failed' && (t.amount > 0 ? <Plus className="inline-block h-4 w-4" /> : <Minus className="inline-block h-4 w-4" />)}
-                                <span>₹{Math.abs(t.amount).toFixed(2)}</span>
+                                <span className="text-sm sm:text-base">₹{Math.abs(t.amount).toFixed(2)}</span>
                             </p>
                             <Button 
                                 variant="ghost" 
