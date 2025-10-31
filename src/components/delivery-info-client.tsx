@@ -299,7 +299,11 @@ export function DeliveryInfoClient({ orderId: encodedOrderId }: { orderId: strin
         }
         setIsVerifyingOtp(true);
         try {
-            const newTimeline = [...order.timeline, { status: 'Cancelled by user', date: format(new Date(), 'MMM dd, yyyy'), time: format(new Date(), 'p'), completed: true }];
+            const newTimeline = [
+                ...order.timeline, 
+                { status: 'Cancelled by user', date: format(new Date(), 'MMM dd, yyyy'), time: format(new Date(), 'p'), completed: true },
+                { status: 'Refund Initiated: The amount will be credited to your original payment method within 5-7 business days.', date: format(new Date(), 'MMM dd, yyyy'), time: format(new Date(), 'p'), completed: false }
+            ];
             updateOrderInLocalStorage(orderId, newTimeline);
 
             toast({ title: "Order Cancelled" });
@@ -480,7 +484,7 @@ export function DeliveryInfoClient({ orderId: encodedOrderId }: { orderId: strin
                                             </p>
                                             {index === currentStatusIndex && item.status.includes(':') && (
                                                 <p className="text-sm text-muted-foreground">
-                                                    {item.status.split(':')[1]}
+                                                    {item.status.split(':').slice(1).join(':').trim()}
                                                 </p>
                                             )}
                                             {item.date && (
