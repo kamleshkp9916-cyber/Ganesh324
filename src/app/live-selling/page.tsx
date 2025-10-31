@@ -814,7 +814,7 @@ export default function LiveSellingPage() {
                             <TabsList>
                                 <TabsTrigger value="recommended">Recommended</TabsTrigger>
                                 <TabsTrigger value="browse">Browse</TabsTrigger>
-                                <TabsTrigger value="following">Following</TabsTrigger>
+                                <TabsTrigger value="following" disabled={!user}>Following</TabsTrigger>
                             </TabsList>
                             <div className="relative w-full sm:w-64">
                                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
