@@ -4,7 +4,7 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Wallet, Search, X, Filter, ChevronLeft, ChevronRight, Clipboard, ChevronDown, Edit, ArrowLeft, MoreHorizontal, CalendarClock, Archive, UserCircle } from 'lucide-react';
+import { Wallet, Search, X, Filter, ChevronLeft, ChevronRight, Clipboard, ChevronDown, Edit, ArrowLeft, MoreHorizontal, CalendarClock, Archive, UserCircle, Plus, Minus } from 'lucide-react';
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { useAuth } from '@/hooks/use-auth.tsx';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
@@ -16,11 +16,12 @@ import Image from 'next/image';
 import { Badge, BadgeProps } from '@/components/ui/badge';
 import { Pagination, PaginationContent, PaginationItem } from '@/components/ui/pagination';
 import { useToast } from '@/hooks/use-toast';
-import { format, addDays, parse } from 'date-fns';
+import { format, addDays, parseISO } from 'date-fns';
 import { Skeleton } from '@/components/ui/skeleton';
 import { getStatusFromTimeline, Order, ORDERS_KEY } from '@/lib/order-data';
 import { Card, CardContent } from '@/components/ui/card';
-
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { getTransactions, Transaction } from '@/lib/transaction-history';
 
 const statusPriority: { [key: string]: number } = {
     "Pending": 1,
@@ -102,6 +103,7 @@ export default function OrdersPage() {
   const itemsPerPage = 10;
   const { toast } = useToast();
   const [orders, setOrders] = useState<Order[]>([]);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -121,6 +123,10 @@ export default function OrdersPage() {
             const allOrders = storedOrders ? JSON.parse(storedOrders) : [];
             const userOrders = allOrders.filter((o: Order) => o.userId === user.uid);
             setOrders(userOrders);
+
+            const allTransactions = getTransactions();
+            setTransactions(allTransactions);
+
         } catch (error) {
             console.error("Error fetching orders from local storage:", error);
             toast({
@@ -142,7 +148,7 @@ export default function OrdersPage() {
     }
 
     const handleStorageChange = (event: StorageEvent) => {
-      if (event.key === ORDERS_KEY) {
+      if (event.key === ORDERS_KEY || event.key === 'streamcart_transactions') {
         fetchOrders();
       }
     };
@@ -184,6 +190,15 @@ export default function OrdersPage() {
     }
     return currentOrders;
   }, [statusFilter, searchTerm, sortedOrders]);
+
+  const filteredTransactions = useMemo(() => {
+      if (!searchTerm) return transactions;
+      return transactions.filter(t => 
+        t.transactionId.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        t.type.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        t.description.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [searchTerm, transactions]);
   
   const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
   
@@ -247,7 +262,7 @@ export default function OrdersPage() {
       router.push(`/delivery-information/${encodedOrderId}`);
   }
 
-  const renderContent = () => {
+  const renderOrdersContent = () => {
     if (isLoading) {
         return (
             <div className="space-y-4 flex-grow">
@@ -327,6 +342,40 @@ export default function OrdersPage() {
     return <EmptyOrders />;
   };
 
+  const renderTransactionsContent = () => (
+    <Card>
+      <CardHeader>
+        <CardTitle>Transaction History</CardTitle>
+        <CardDescription>A summary of your recent wallet activity.</CardDescription>
+      </CardHeader>
+      <CardContent>
+         <div className="divide-y">
+            {filteredTransactions.map(t => (
+                <div key={t.id} className="grid grid-cols-[auto,1fr,auto] items-center gap-4 py-3">
+                    <Avatar className="h-9 w-9">
+                        <AvatarImage src={t.avatar} />
+                        <AvatarFallback>{t.type.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                    <div>
+                        <p className="font-semibold">{t.type} <span className="font-mono text-xs text-muted-foreground">{t.transactionId}</span></p>
+                        <p className="text-sm text-muted-foreground">{t.description}</p>
+                        <p className="text-xs text-muted-foreground">{t.date}, {t.time}</p>
+                    </div>
+                    <div className="text-right">
+                         <p className={cn("font-semibold text-lg flex items-center gap-1", t.amount > 0 ? 'text-green-500' : 'text-foreground')}>
+                            {t.amount > 0 ? <Plus className="inline-block h-4 w-4" /> : <Minus className="inline-block h-4 w-4" />}
+                            <span>₹{Math.abs(t.amount).toLocaleString('en-IN',{minimumFractionDigits: 2})}</span>
+                        </p>
+                        <Badge variant={t.status === 'Completed' ? 'success' : t.status === 'Processing' ? 'warning' : 'destructive'} className="capitalize mt-1">{t.status}</Badge>
+                    </div>
+                </div>
+            ))}
+        </div>
+        {filteredTransactions.length === 0 && <p className="text-center py-8 text-muted-foreground">No transactions found.</p>}
+      </CardContent>
+    </Card>
+  );
+
   return (
     <div className="flex flex-col min-h-screen bg-muted/40 text-foreground">
       <header className="sticky top-0 z-30 border-b bg-background/80 backdrop-blur-sm flex items-center justify-between gap-4 p-4 md:p-6 flex-shrink-0">
@@ -341,9 +390,6 @@ export default function OrdersPage() {
                   </Avatar>
                   <div className="flex items-center gap-2">
                           <h3 className="font-semibold text-xs md:text-base whitespace-nowrap">{userData?.displayName}</h3>
-                          <Link href="/orders" className="text-muted-foreground text-sm hover:text-foreground transition-colors hidden md:inline">
-                              / Orders
-                          </Link>
                   </div>
               </div>
           </div>
@@ -354,7 +400,7 @@ export default function OrdersPage() {
                    isSearchExpanded ? "w-full" : "w-10"
               )}>
                   <Input 
-                      placeholder="Search orders..." 
+                      placeholder="Search orders or transactions..." 
                       className={cn(
                           "bg-background rounded-full transition-all duration-300 ease-in-out h-10 pl-4 pr-10",
                           isSearchExpanded ? "w-full" : "w-0 p-0 opacity-0"
@@ -375,9 +421,13 @@ export default function OrdersPage() {
           </div>
       </header>
       <main className="flex-grow p-4 md:p-6 flex flex-col gap-6 overflow-y-auto pb-24">
-          <div className="flex justify-between items-center">
-              <h3 className="text-2xl font-bold">Orders</h3>
-               {orders.length > 0 && (
+          <Tabs defaultValue="orders" className="w-full">
+            <div className="flex justify-between items-center">
+                <TabsList>
+                    <TabsTrigger value="orders">Orders</TabsTrigger>
+                    <TabsTrigger value="transactions">Transactions</TabsTrigger>
+                </TabsList>
+                {orders.length > 0 && (
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                             <Button variant="outline" size="sm">
@@ -401,11 +451,15 @@ export default function OrdersPage() {
                             </DropdownMenuRadioGroup>
                         </DropdownMenuContent>
                     </DropdownMenu>
-               )}
-          </div>
-          
-          
-          {renderContent()}
+                )}
+            </div>
+            <TabsContent value="orders" className="mt-6">
+                {renderOrdersContent()}
+            </TabsContent>
+            <TabsContent value="transactions" className="mt-6">
+                {renderTransactionsContent()}
+            </TabsContent>
+          </Tabs>
 
           {totalPages > 1 && (
               <div className="flex items-center justify-between pt-4 mt-auto flex-wrap gap-4">
