@@ -106,6 +106,7 @@ export default function OrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState("orders");
 
   useEffect(() => {
     setIsClient(true);
@@ -202,13 +203,24 @@ export default function OrdersPage() {
     );
   }, [searchTerm, transactions]);
   
-  const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
-  
+  const totalPages = useMemo(() => {
+    return activeTab === 'orders'
+      ? Math.ceil(filteredOrders.length / itemsPerPage)
+      : Math.ceil(filteredTransactions.length / itemsPerPage);
+  }, [activeTab, filteredOrders.length, filteredTransactions.length, itemsPerPage]);
+
   const paginatedOrders = useMemo(() => {
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
     return filteredOrders.slice(startIndex, endIndex);
   }, [filteredOrders, currentPage, itemsPerPage]);
+  
+  const paginatedTransactions = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return filteredTransactions.slice(startIndex, endIndex);
+  }, [filteredTransactions, currentPage, itemsPerPage]);
+
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -221,6 +233,10 @@ export default function OrdersPage() {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [searchRef]);
+
+  useEffect(() => {
+      setCurrentPage(1);
+  }, [activeTab, statusFilter, searchTerm]);
 
   if (!isClient || authLoading) {
     return (
@@ -288,7 +304,7 @@ export default function OrdersPage() {
                                         {order.products[0].size && <span>Size: {order.products[0].size}</span>}
                                         {order.products[0].size && order.products[0].color && <span className="mx-1">|</span>}
                                         {order.products[0].color && <span>Color: {order.products[0].color}</span>}
-                                        {(order.products[0].quantity > 1) && <span className="font-semibold"> (x{order.products[0].quantity})</span>}
+                                        {order.products[0].quantity > 0 && <span className="font-semibold"> (x{order.products[0].quantity})</span>}
                                     </div>
                                     <p className="text-muted-foreground text-xs">Order ID: {order.orderId}</p>
                                     <p className="text-muted-foreground text-xs md:hidden">{format(parseISO(order.orderDate), "MMM dd, yyyy")}</p>
@@ -352,6 +368,10 @@ export default function OrdersPage() {
   const renderTransactionsContent = () => {
     const isRefunded = (transactionId: string) => transactions.some(refund => refund.type === 'Refund' && refund.description.includes(transactionId) && refund.status === 'Completed');
 
+    if (paginatedTransactions.length === 0) {
+        return <div className="text-center py-12 text-muted-foreground">No transactions found.</div>;
+    }
+
     return (
         <Card>
             <CardHeader>
@@ -360,7 +380,7 @@ export default function OrdersPage() {
             </CardHeader>
             <CardContent>
                 <div className="divide-y">
-                    {filteredTransactions.map(t => (
+                    {paginatedTransactions.map(t => (
                         <div key={t.id} className="grid grid-cols-[auto,1fr,auto] items-start gap-x-4 gap-y-2 py-4 md:grid-cols-[auto,1fr,1fr,auto] md:items-center">
                             <Avatar className="h-9 w-9 row-span-2 md:row-span-1">
                                 <AvatarImage src={t.avatar} />
@@ -396,7 +416,6 @@ export default function OrdersPage() {
                         </div>
                     ))}
                 </div>
-                {filteredTransactions.length === 0 && <p className="text-center py-8 text-muted-foreground">No transactions found.</p>}
             </CardContent>
         </Card>
     );
@@ -447,13 +466,13 @@ export default function OrdersPage() {
           </div>
       </header>
       <main className="flex-grow p-4 md:p-6 flex flex-col gap-6 overflow-y-auto pb-24">
-          <Tabs defaultValue="orders" className="w-full">
+          <Tabs defaultValue={activeTab} onValueChange={setActiveTab} className="w-full">
             <div className="flex justify-between items-center gap-2">
                 <TabsList>
                     <TabsTrigger value="orders">Orders</TabsTrigger>
                     <TabsTrigger value="transactions">Transactions</TabsTrigger>
                 </TabsList>
-                <div className="flex items-center gap-2">
+                 <div className={cn("flex items-center gap-2", activeTab !== 'orders' && "invisible")}>
                     {statusFilter !== 'all' && (
                         <Badge variant="secondary" className="gap-1.5 h-8">
                             {statusFilter.replace('-', ' ')}
