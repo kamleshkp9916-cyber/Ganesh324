@@ -10,11 +10,10 @@ import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/use-auth.tsx';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
-import { useEffect, useState, useMemo, useRef } from 'react';
+import { useEffect, useState, useMemo, useRef, useCallback } from 'react';
 import { useToast } from "@/hooks/use-toast";
 import { format, addDays, parse, differenceInDays, intervalToDuration, formatDuration, parseISO } from 'date-fns';
-import { getOrderById, Order, getStatusFromTimeline } from '@/lib/order-data';
-import { updateOrderStatus } from '@/ai/flows/chat-flow';
+import { getOrderById, Order, getStatusFromTimeline, saveAllOrders } from '@/lib/order-data';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -103,7 +102,6 @@ export const ReviewDialog = ({ order, onReviewSubmit, closeDialog, user, reviewT
                 imageUrl: imagePreview,
                 hint: reviewToEdit?.hint || order?.products[0].hint,
                 productInfo: reviewToEdit?.productInfo,
-                paymentMethod: reviewToEdit?.paymentMethod,
                 userId: user.uid,
                 date: reviewToEdit?.date || new Date().toISOString(),
             };
@@ -200,14 +198,15 @@ export function DeliveryInfoClient({ orderId: encodedOrderId }: { orderId: strin
     const [myReview, setMyReview] = useState<Review | null>(null);
     const [isAddressDialogOpen, setIsAddressDialogOpen] = useState(false);
 
+    const fetchOrder = useCallback(async () => {
+        const fetchedOrder = await getOrderById(orderId);
+        setOrder(fetchedOrder);
+    }, [orderId]);
+
     useEffect(() => {
         setIsMounted(true);
-        const fetchOrder = async () => {
-            const fetchedOrder = await getOrderById(orderId);
-            setOrder(fetchedOrder);
-        }
         fetchOrder();
-    }, [orderId]);
+    }, [fetchOrder]);
     
     useEffect(() => {
         if (user && order) {
@@ -277,39 +276,40 @@ export function DeliveryInfoClient({ orderId: encodedOrderId }: { orderId: strin
     const currentStatusIndex = order.timeline.length - 1 - lastCompletedIndex;
     
 
-    const handleConfirmCancellation = async (otpValue: string) => {
+    const updateOrderInLocalStorage = (orderId: string, newTimeline: Order['timeline']) => {
+        const allOrdersJSON = localStorage.getItem('streamcart_orders');
+        let allOrders: Order[] = allOrdersJSON ? JSON.parse(allOrdersJSON) : [];
+        const orderIndex = allOrders.findIndex(o => o.orderId === orderId);
+        
+        if (orderIndex !== -1) {
+            allOrders[orderIndex] = {
+                ...allOrders[orderIndex],
+                timeline: newTimeline
+            };
+            saveAllOrders(allOrders); // This will also dispatch storage event
+            setOrder(allOrders[orderIndex]); // Update local state immediately
+        }
+    };
+
+
+     const handleConfirmCancellation = async (otpValue: string) => {
         if (otpValue !== '123456') {
-            toast({
-                title: "Invalid OTP",
-                description: "The OTP you entered is incorrect. Please try again.",
-                variant: "destructive"
-            });
+            toast({ title: "Invalid OTP", variant: "destructive" });
             return;
         }
-
         setIsVerifyingOtp(true);
         try {
-            await updateOrderStatus(orderId, 'Cancelled by user');
-            const updatedOrder = await getOrderById(orderId);
-            setOrder(updatedOrder);
-            
-            toast({
-                title: "Order Cancelled",
-                description: `Order ${orderId} has been cancelled.`,
-            });
+            const newTimeline = [...order.timeline, { status: 'Cancelled by user', date: format(new Date(), 'MMM dd, yyyy'), time: format(new Date(), 'p'), completed: true }];
+            updateOrderInLocalStorage(orderId, newTimeline);
 
+            toast({ title: "Order Cancelled" });
             setIsCancelFlowOpen(false);
             setCancelStep("reason");
             setCancelReason("");
             setCancelFeedback("");
             setOtp("");
         } catch (error) {
-            console.error("Failed to cancel order:", error);
-             toast({
-                title: "Cancellation Failed",
-                description: "There was an error cancelling your order. Please try again.",
-                variant: "destructive",
-            });
+            toast({ title: "Cancellation Failed", variant: "destructive" });
         } finally {
             setIsVerifyingOtp(false);
         }
@@ -317,37 +317,22 @@ export function DeliveryInfoClient({ orderId: encodedOrderId }: { orderId: strin
     
      const handleConfirmReturn = async (otpValue: string) => {
         if (otpValue !== '654321') {
-            toast({
-                title: "Invalid OTP",
-                description: "The OTP you entered is incorrect. Please try again.",
-                variant: "destructive"
-            });
+            toast({ title: "Invalid OTP", variant: "destructive" });
             return;
         }
-
         setIsVerifyingReturnOtp(true);
         try {
-            await updateOrderStatus(orderId, 'Return Initiated');
-            const updatedOrder = await getOrderById(orderId);
-            setOrder(updatedOrder);
-            
-            toast({
-                title: "Return Initiated",
-                description: `A return has been initiated for order ${orderId}.`,
-            });
+            const newTimeline = [...order.timeline, { status: 'Return Initiated', date: format(new Date(), 'MMM dd, yyyy'), time: format(new Date(), 'p'), completed: true }];
+            updateOrderInLocalStorage(orderId, newTimeline);
 
+            toast({ title: "Return Initiated" });
             setIsReturnFlowOpen(false);
             setReturnStep("reason");
             setReturnReason("");
             setReturnFeedback("");
             setReturnOtp("");
         } catch (error) {
-            console.error("Failed to initiate return:", error);
-             toast({
-                title: "Return Failed",
-                description: "There was an error initiating your return. Please try again.",
-                variant: "destructive",
-            });
+            toast({ title: "Return Failed", variant: "destructive" });
         } finally {
             setIsVerifyingReturnOtp(false);
         }
@@ -711,36 +696,6 @@ export function DeliveryInfoClient({ orderId: encodedOrderId }: { orderId: strin
                         </CardFooter>
                     )}
                 </Card>
-                {myReview && (
-                    <Card className="max-w-4xl mx-auto mt-6">
-                        <CardHeader>
-                            <CardTitle>Your Review</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                             <div className="flex gap-4">
-                                <Avatar>
-                                    <AvatarImage src={myReview.avatar} alt={myReview.author} />
-                                    <AvatarFallback>{myReview.author.charAt(0)}</AvatarFallback>
-                                </Avatar>
-                                <div className="flex-grow">
-                                    <div className="flex items-center justify-between">
-                                        <h5 className="font-semibold">{myReview.author}</h5>
-                                        <p className="text-xs text-muted-foreground">{format(new Date(myReview.date), 'dd MMM yyyy')}</p>
-                                    </div>
-                                    <div className="flex items-center gap-1 mt-1">
-                                        {[...Array(5)].map((_, i) => (
-                                            <Star key={i} className={cn("h-4 w-4", i < myReview.rating ? 'text-yellow-400 fill-yellow-400' : 'text-muted-foreground')} />
-                                        ))}
-                                    </div>
-                                    <p className="text-sm text-muted-foreground mt-2">{myReview.text}</p>
-                                    {myReview.imageUrl && (
-                                        <Image src={myReview.imageUrl} alt="Review image" width={80} height={80} className="mt-2 rounded-md object-cover" />
-                                    )}
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
-                )}
             </main>
             <Footer />
         </div>
