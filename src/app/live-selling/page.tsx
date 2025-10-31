@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import Link from 'next/link';
@@ -736,8 +735,12 @@ export default function LiveSellingPage() {
                                     <span>My Cart</span>
                                         {cartCount > 0 && <Badge variant="destructive" className="ml-auto">{cartCount}</Badge>}
                                 </DropdownMenuItem>
+                                <DropdownMenuItem onSelect={() => router.push('/wallet')}>
+                                    <Wallet className="mr-2 h-4 w-4" />
+                                    <span>My Wallet</span>
+                                </DropdownMenuItem>
                                 <DropdownMenuSeparator />
-                                <DropdownMenuItem onSelect={() => router.push('/setting')}>
+                                    <DropdownMenuItem onSelect={() => router.push('/setting')}>
                                     <Settings className="mr-2 h-4 w-4" />
                                     <span>Settings</span>
                                 </DropdownMenuItem>
@@ -786,7 +789,7 @@ export default function LiveSellingPage() {
                                 </DropdownMenuItem>
                                 </DropdownMenuContent>
                         )}
-                    </DropdownMenu>
+                        </DropdownMenu>
                     
                     {(userData?.role === 'seller' || userData?.role === 'admin') && (
                             <Dialog>
@@ -1042,3 +1045,5 @@ export default function LiveSellingPage() {
   );
 }
 
+
+    
