@@ -449,7 +449,7 @@ export function DeliveryInfoClient({ orderId: encodedOrderId }: { orderId: strin
                                                 </div>
                                             )}
                                         </div>
-                                        <h3 className="font-semibold text-lg">{product.name}</h3>
+                                        <h3 className="font-semibold text-lg">{product.name} {product.quantity > 1 && `(x${product.quantity})`}</h3>
                                         <p className="font-bold text-lg">₹{order.total.toFixed(2)}</p>
                                     </CardContent>
                                 </Card>
@@ -740,3 +740,4 @@ export function DeliveryInfoClient({ orderId: encodedOrderId }: { orderId: strin
 }
 
     
+
