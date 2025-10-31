@@ -253,7 +253,13 @@ export default function CartPage() {
                                 </CardHeader>
                                 <CardContent className="p-0">
                                     <div className="divide-y">
-                                        {cartItems.map(item => (
+                                        {cartItems.map(item => {
+                                             const details = productDetails[item.key as keyof typeof productDetails];
+                                             const hasDiscount = details && details.discountPercentage && details.discountPercentage > 0;
+                                             const discountedPrice = parseFloat(item.price.replace(/[^0-9.-]+/g, ''));
+                                             const originalPrice = hasDiscount ? discountedPrice / (1 - details.discountPercentage / 100) : discountedPrice;
+                                            
+                                            return (
                                             <div key={`${item.id}-${item.size || ''}-${item.color || ''}`} className="p-4 flex flex-col sm:flex-row items-start sm:items-center gap-4">
                                                 <Link href={`/product/${item.key}`} className="block flex-shrink-0">
                                                     <Image src={item.imageUrl || 'https://placehold.co/100x100.png'} alt={item.name} width={100} height={100} className="rounded-lg object-cover" data-ai-hint={item.hint} />
@@ -262,7 +268,19 @@ export default function CartPage() {
                                                     <Link href={`/product/${item.key}`} className="hover:underline">
                                                         <h3 className="font-semibold">{item.name}</h3>
                                                     </Link>
-                                                    <p className="text-sm text-muted-foreground mt-1">{item.price}</p>
+                                                     <div className="flex items-baseline gap-x-2 mt-1">
+                                                        <p className="font-bold text-sm text-foreground">
+                                                          ₹{discountedPrice.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                                        </p>
+                                                        {hasDiscount && (
+                                                          <>
+                                                            <p className="text-xs text-muted-foreground line-through">
+                                                              ₹{originalPrice.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                                            </p>
+                                                            <Badge variant="destructive" className="text-[10px] px-1 py-0">({details.discountPercentage}% OFF)</Badge>
+                                                          </>
+                                                        )}
+                                                      </div>
                                                     {(item.size || item.color) && (
                                                         <div className="flex items-center gap-2 mt-1">
                                                             {item.size && <Badge variant="outline">Size: {item.size}</Badge>}
@@ -300,7 +318,7 @@ export default function CartPage() {
                                                     </Button>
                                                 )}
                                             </div>
-                                        ))}
+                                        )})}
                                     </div>
                                 </CardContent>
                             </Card>
