@@ -642,6 +642,8 @@ export default function PaymentPage() {
                                 {cartItems.map((item) => {
                                     const details = productDetails[item.key as keyof typeof productDetails];
                                     const hasDiscount = details && details.discountPercentage && details.discountPercentage > 0;
+                                    const itemPrice = parseFloat(item.price.replace(/[^0-9.-]+/g, ''));
+                                    const originalPrice = hasDiscount ? itemPrice / (1 - details.discountPercentage / 100) : itemPrice;
                                     
                                     return (
                                         <div key={`${''}${item.id}-${item.size || ''}-${item.color || ''}`} className="flex items-start gap-4">
@@ -651,17 +653,23 @@ export default function PaymentPage() {
                                             <div className="flex-grow">
                                                 <p className="font-semibold text-sm leading-tight">{item.name}</p>
                                                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                                                    {item.color && <span>Color: {item.color}</span>}
                                                     {item.size && <span>Size: {item.size}</span>}
+                                                    {item.size && item.color && <span className="mx-1">|</span>}
+                                                    {item.color && <span>Color: {item.color}</span>}
                                                 </div>
                                                 <p className="text-xs text-muted-foreground">Qty: {item.quantity}</p>
                                             </div>
                                             <div className="text-right">
-                                                <p className="font-semibold text-sm">₹{(parseFloat(item.price.replace(/[^0-9.-]+/g, '')) * item.quantity).toLocaleString('en-IN')}</p>
-                                                {hasDiscount && (
-                                                    <Badge variant="destructive" className="text-[10px] mt-1 ml-auto">
-                                                        {details.discountPercentage}% OFF
-                                                    </Badge>
+                                                {hasDiscount ? (
+                                                    <div className="flex flex-col items-end">
+                                                        <p className="font-semibold text-sm">₹{itemPrice.toLocaleString('en-IN')}</p>
+                                                        <div className="flex items-center gap-1.5">
+                                                            <p className="text-xs text-muted-foreground line-through">₹{originalPrice.toLocaleString('en-IN')}</p>
+                                                            <Badge variant="destructive" className="text-[10px]">{details.discountPercentage}% OFF</Badge>
+                                                        </div>
+                                                    </div>
+                                                ) : (
+                                                    <p className="font-semibold text-sm">₹{itemPrice.toLocaleString('en-IN')}</p>
                                                 )}
                                             </div>
                                         </div>
@@ -740,4 +748,5 @@ export default function PaymentPage() {
 }
 
     
+
 
