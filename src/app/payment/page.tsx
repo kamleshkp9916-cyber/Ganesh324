@@ -32,6 +32,7 @@ import { Order, saveOrder } from '@/lib/order-data';
 import { addTransaction } from '@/lib/transaction-history';
 import { updateUserData } from '@/lib/follow-data';
 import { format, addDays } from 'date-fns';
+import { Badge } from '@/components/ui/badge';
 
 
 const defaultShippingSettings: ShippingSettings = {
