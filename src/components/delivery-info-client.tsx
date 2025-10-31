@@ -13,8 +13,8 @@ import { useAuth } from '@/hooks/use-auth.tsx';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { useEffect, useState, useMemo, useRef } from 'react';
 import { useToast } from "@/hooks/use-toast";
-import { format, addDays, parse, differenceInDays } from 'date-fns';
-import { getOrderById, Order, OrderId, getStatusFromTimeline } from '@/lib/order-data';
+import { format, addDays, parse, differenceInDays, intervalToDuration, formatDuration, parseISO } from 'date-fns';
+import { getOrderById, Order, getStatusFromTimeline } from '@/lib/order-data';
 import { updateOrderStatus } from '@/ai/flows/chat-flow';
 import {
   AlertDialog,
@@ -179,7 +179,7 @@ export function DeliveryInfoClient({ orderId: encodedOrderId }: { orderId: strin
     const { toast } = useToast();
     const [isMounted, setIsMounted] = useState(false);
     
-    const orderId = useMemo(() => decodeURIComponent(encodedOrderId) as OrderId, [encodedOrderId]);
+    const orderId = useMemo(() => decodeURIComponent(encodedOrderId), [encodedOrderId]);
     
     const [order, setOrder] = useState<Order | null>(null);
 
@@ -222,7 +222,7 @@ export function DeliveryInfoClient({ orderId: encodedOrderId }: { orderId: strin
     const estimatedDeliveryDate = useMemo(() => {
         if (!order || !order.orderDate) return null;
         try {
-            const parsedDate = parse(order.orderDate, 'MMM dd, yyyy', new Date());
+            const parsedDate = parseISO(order.orderDate);
             const deliveryDate = addDays(parsedDate, 5);
             return format(deliveryDate, 'E, MMM dd, yyyy');
         } catch (error) {
@@ -739,3 +739,5 @@ export function DeliveryInfoClient({ orderId: encodedOrderId }: { orderId: strin
         </div>
     );
 }
+
+    
