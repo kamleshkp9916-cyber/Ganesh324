@@ -55,6 +55,16 @@ export const saveOrder = (order: Order) => {
     }
 };
 
+export const saveAllOrders = (orders: Order[]) => {
+    if (typeof window === 'undefined') return;
+    try {
+        localStorage.setItem(ORDERS_KEY, JSON.stringify(orders));
+        window.dispatchEvent(new Event('storage'));
+    } catch (error) {
+        console.error("Error saving all orders to local storage:", error);
+    }
+};
+
 export const updateOrderStatus = async (orderId: string, newStatus: string): Promise<void> => {
      if (typeof window === 'undefined') return;
      try {
