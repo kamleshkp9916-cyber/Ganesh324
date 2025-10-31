@@ -10,7 +10,7 @@ import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/use-auth.tsx';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
-import { useEffect, useState, useMemo, useRef, useCallback } from 'react';
+import { useEffect, useState, useMemo, useCallback } from 'react';
 import { useToast } from "@/hooks/use-toast";
 import { format, addDays, parse, differenceInDays, intervalToDuration, formatDuration, parseISO } from 'date-fns';
 import { getOrderById, Order, getStatusFromTimeline, saveAllOrders } from '@/lib/order-data';
@@ -37,6 +37,8 @@ import { productDetails } from '@/lib/product-data';
 import { addReview, Review, updateReview, getReviews } from '@/lib/review-data';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { Footer } from './footer';
+import { addTransaction } from '@/lib/transaction-history';
+import { updateUserData } from '@/lib/follow-data';
 
 
 const getStatusIcon = (status: string) => {
@@ -277,7 +279,7 @@ export function DeliveryInfoClient({ orderId: encodedOrderId }: { orderId: strin
     
 
     const updateOrderInLocalStorage = (orderId: string, newTimeline: Order['timeline']) => {
-        const allOrdersJSON = localStorage.getItem('streamcart_orders');
+        const allOrdersJSON = localStorage.getItem(ORDERS_KEY);
         let allOrders: Order[] = allOrdersJSON ? JSON.parse(allOrdersJSON) : [];
         const orderIndex = allOrders.findIndex(o => o.orderId === orderId);
         
@@ -286,8 +288,8 @@ export function DeliveryInfoClient({ orderId: encodedOrderId }: { orderId: strin
                 ...allOrders[orderIndex],
                 timeline: newTimeline
             };
-            saveAllOrders(allOrders); // This will also dispatch storage event
-            setOrder(allOrders[orderIndex]); // Update local state immediately
+            saveAllOrders(allOrders);
+            setOrder(allOrders[orderIndex]);
         }
     };
 
@@ -305,8 +307,19 @@ export function DeliveryInfoClient({ orderId: encodedOrderId }: { orderId: strin
                 { status: 'Refund Initiated: The amount will be credited to your original payment method within 5-7 business days.', date: format(new Date(), 'MMM dd, yyyy'), time: format(new Date(), 'p'), completed: false }
             ];
             updateOrderInLocalStorage(orderId, newTimeline);
+            
+            addTransaction({
+                id: Date.now(),
+                transactionId: `REF-${order.orderId.replace('#', '')}`,
+                type: 'Refund',
+                description: `For cancelled order ${order.orderId}`,
+                date: format(new Date(), 'MMM dd, yyyy'),
+                time: format(new Date(), 'p'),
+                amount: order.total,
+                status: 'Processing',
+            });
 
-            toast({ title: "Order Cancelled" });
+            toast({ title: "Order Cancelled & Refund Initiated" });
             setIsCancelFlowOpen(false);
             setCancelStep("reason");
             setCancelReason("");
@@ -519,7 +532,7 @@ export function DeliveryInfoClient({ orderId: encodedOrderId }: { orderId: strin
                                             <DialogTitle>Change Delivery Address</DialogTitle>
                                             <DialogDescription>Select a saved address or add a new one.</DialogDescription>
                                         </DialogHeader>
-                                        <EditAddressForm onSave={handleAddressSave} onCancel={() => setIsAddressDialogOpen(false)} />
+                                        <EditAddressForm onSave={handleAddressSave} onCancel={() => setIsAddressDialogOpen(false)} onAddressesUpdate={onAddressesUpdate} />
                                     </DialogContent>
                                 </Dialog>
                             )}
