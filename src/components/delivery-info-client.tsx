@@ -37,6 +37,7 @@ import { Badge } from './ui/badge';
 import { productDetails } from '@/lib/product-data';
 import { addReview, Review, updateReview, getReviews } from '@/lib/review-data';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
+import { Footer } from './footer';
 
 
 const getStatusIcon = (status: string) => {
@@ -449,13 +450,13 @@ export function DeliveryInfoClient({ orderId: encodedOrderId }: { orderId: strin
                                             )}
                                         </div>
                                         <h3 className="font-semibold text-lg">{product.name}</h3>
-                                        {product.quantity > 1 && <p className="text-sm text-muted-foreground">Quantity: {product.quantity}</p>}
                                         {(product.size || product.color) && (
                                             <div className="flex items-center gap-2 mt-1">
                                                 {product.size && <Badge variant="outline">Size: {product.size}</Badge>}
                                                 {product.color && <Badge variant="outline">Color: {product.color}</Badge>}
                                             </div>
                                         )}
+                                        {product.quantity > 0 && <p className="text-sm text-muted-foreground mt-1">Quantity: {product.quantity}</p>}
                                         <p className="font-bold text-lg mt-1">₹{order.total.toFixed(2)}</p>
                                     </CardContent>
                                 </Card>
@@ -741,6 +742,7 @@ export function DeliveryInfoClient({ orderId: encodedOrderId }: { orderId: strin
                     </Card>
                 )}
             </main>
+            <Footer />
         </div>
     );
 }
