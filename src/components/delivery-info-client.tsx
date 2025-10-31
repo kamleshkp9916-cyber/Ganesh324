@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { useRouter } from 'next/navigation';
@@ -449,8 +448,15 @@ export function DeliveryInfoClient({ orderId: encodedOrderId }: { orderId: strin
                                                 </div>
                                             )}
                                         </div>
-                                        <h3 className="font-semibold text-lg">{product.name} {product.quantity > 1 && `(x${product.quantity})`}</h3>
-                                        <p className="font-bold text-lg">₹{order.total.toFixed(2)}</p>
+                                        <h3 className="font-semibold text-lg">{product.name}</h3>
+                                        {product.quantity > 1 && <p className="text-sm text-muted-foreground">Quantity: {product.quantity}</p>}
+                                        {(product.size || product.color) && (
+                                            <div className="flex items-center gap-2 mt-1">
+                                                {product.size && <Badge variant="outline">Size: {product.size}</Badge>}
+                                                {product.color && <Badge variant="outline">Color: {product.color}</Badge>}
+                                            </div>
+                                        )}
+                                        <p className="font-bold text-lg mt-1">₹{order.total.toFixed(2)}</p>
                                     </CardContent>
                                 </Card>
                             </Link>
@@ -738,6 +744,3 @@ export function DeliveryInfoClient({ orderId: encodedOrderId }: { orderId: strin
         </div>
     );
 }
-
-    
-
