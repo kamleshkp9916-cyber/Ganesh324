@@ -440,15 +440,17 @@ export default function WalletPage() {
                     <CardDescription>Do more, faster</CardDescription>
                  </CardHeader>
                  <CardContent className="space-y-3">
-                     <Button variant="ghost" className="w-full justify-between h-auto p-3 text-left hover:bg-muted">
-                         <div className="flex items-center gap-3">
-                            <ShoppingBag className="h-6 w-6 text-muted-foreground"/>
-                            <div>
-                                <p className="font-semibold">Browse Products</p>
-                                <p className="text-xs text-muted-foreground">Spend from wallet</p>
+                     <Button asChild variant="ghost" className="w-full justify-between h-auto p-3 text-left hover:bg-muted">
+                        <Link href="/listed-products">
+                            <div className="flex items-center gap-3">
+                                <ShoppingBag className="h-6 w-6 text-muted-foreground"/>
+                                <div>
+                                    <p className="font-semibold">Browse Products</p>
+                                    <p className="text-xs text-muted-foreground">Spend from wallet</p>
+                                </div>
                             </div>
-                         </div>
-                         <ChevronRight className="h-5 w-5 text-muted-foreground"/>
+                            <ChevronRight className="h-5 w-5 text-muted-foreground"/>
+                        </Link>
                      </Button>
                      <Button variant="ghost" className="w-full justify-between h-auto p-3 text-left hover:bg-muted" disabled>
                          <div className="flex items-center gap-3">
