@@ -91,6 +91,50 @@ function EmptyBoxIcon(props: React.SVGProps<SVGSVGElement>) {
     );
 }
 
+const SampleOrderCard = () => {
+  const router = useRouter();
+  return (
+    <div className="text-center py-12 text-muted-foreground flex flex-col items-center gap-4 flex-grow justify-center">
+        <EmptyBoxIcon className="w-16 h-16 text-border" />
+        <h3 className="text-xl font-semibold">No Orders Yet</h3>
+        <p className="max-w-xs">Looks like you haven't made any orders. Start shopping to see them here.</p>
+        <div className="w-full max-w-md p-4 opacity-50">
+             <Card className="w-full">
+                <CardContent className="p-4 grid grid-cols-2 md:grid-cols-[2fr,1.5fr,1fr,1fr,auto] items-center gap-4 text-left">
+                    <div className="col-span-2 md:col-span-1 flex items-center gap-4">
+                        <div className="w-16 h-16 bg-muted rounded-md flex-shrink-0" />
+                        <div className="flex-1">
+                            <p className="font-semibold text-foreground">Sample Product</p>
+                            <p className="text-muted-foreground text-xs">Order ID: #SAMPLE123</p>
+                            <p className="text-muted-foreground text-xs md:hidden">Sample Date</p>
+                        </div>
+                    </div>
+                    <div className="col-span-2 md:col-span-1">
+                        <p className="font-medium text-sm">Your Name</p>
+                        <p className="text-xs text-muted-foreground">Your City, Your State</p>
+                    </div>
+                    <div className="text-left md:text-center">
+                        <p className="font-medium md:hidden text-muted-foreground text-xs">Price</p>
+                        <p className="font-medium">₹0.00</p>
+                    </div>
+                    <div className="text-left md:text-center">
+                        <p className="font-medium md:hidden text-muted-foreground text-xs">Status</p>
+                        <Badge variant="outline">Pending</Badge>
+                    </div>
+                    <div className="col-span-2 md:col-span-1 flex justify-end">
+                        <Button variant="ghost" size="icon" className="h-8 w-8" disabled>
+                            <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                    </div>
+                </CardContent>
+            </Card>
+        </div>
+        <Button onClick={() => router.push('/live-selling')}>Go Shopping</Button>
+    </div>
+  );
+};
+
+
 export default function OrdersPage() {
   const router = useRouter();
   const { user, userData, loading: authLoading } = useAuth();
@@ -321,14 +365,7 @@ export default function OrdersPage() {
     }
 
     if (orders.length === 0) {
-        return (
-            <div className="text-center py-12 text-muted-foreground flex flex-col items-center gap-4 flex-grow justify-center">
-                <EmptyBoxIcon className="w-16 h-16 text-border" />
-                <h3 className="text-xl font-semibold">No Orders Yet</h3>
-                <p>Looks like you haven't made any orders. Start shopping to see them here.</p>
-                <Button onClick={() => router.push('/live-selling')}>Go Shopping</Button>
-            </div>
-        );
+        return <SampleOrderCard />;
     }
     
     return null;
@@ -449,3 +486,5 @@ export default function OrdersPage() {
     </div>
   );
 }
+
+    
