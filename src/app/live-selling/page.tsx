@@ -631,6 +631,7 @@ export default function LiveSellingPage() {
                                 </motion.div>
                             ) : (
                                 <Link href="/live-selling" className="flex items-center gap-2">
+                                    <Logo />
                                     <span className="font-bold text-lg hidden sm:inline-block">StreamCart</span>
                                 </Link>
                             )}
@@ -656,9 +657,9 @@ export default function LiveSellingPage() {
                     
                         <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon" className="relative">
+                                <Button variant="ghost" size="icon" className="relative" disabled={!user}>
                                 <Bell className="h-5 w-5" />
-                                {unreadCount > 0 && (
+                                {user && unreadCount > 0 && (
                                     <span className="absolute top-1.5 right-1.5 flex h-2 w-2">
                                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
                                         <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
@@ -814,7 +815,7 @@ export default function LiveSellingPage() {
                             <TabsList>
                                 <TabsTrigger value="recommended">Recommended</TabsTrigger>
                                 <TabsTrigger value="browse">Browse</TabsTrigger>
-                                <TabsTrigger value="following" disabled={!user}>Following</TabsTrigger>
+                                {user && <TabsTrigger value="following">Following</TabsTrigger>}
                             </TabsList>
                             <div className="relative w-full sm:w-64">
                                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -1044,6 +1045,3 @@ export default function LiveSellingPage() {
     </>
   );
 }
-
-
-    
