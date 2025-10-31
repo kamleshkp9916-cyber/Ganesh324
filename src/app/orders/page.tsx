@@ -120,8 +120,9 @@ export default function OrdersPage() {
         setIsLoading(true);
         try {
             const storedOrders = localStorage.getItem(ORDERS_KEY);
-            const allOrders = storedOrders ? JSON.parse(storedOrders) : [];
+            let allOrders = storedOrders ? JSON.parse(storedOrders) : [];
             const userOrders = allOrders.filter((o: Order) => o.userId === user.uid);
+            
             setOrders(userOrders);
 
             const allTransactions = getTransactions();
@@ -282,6 +283,12 @@ export default function OrdersPage() {
                                 <Image src={order.products[0].imageUrl} alt={order.products[0].name} width={64} height={64} className="rounded-md bg-muted" data-ai-hint={order.products[0].hint} />
                                 <div className="flex-1">
                                     <p className="font-semibold text-foreground group-hover:underline">{order.products[0].name}{order.products.length > 1 && ` + ${order.products.length - 1} more`}</p>
+                                     <div className="text-xs text-muted-foreground mt-1">
+                                        {order.products[0].size && <span>Size: {order.products[0].size}</span>}
+                                        {order.products[0].size && order.products[0].color && <span className="mx-1">|</span>}
+                                        {order.products[0].color && <span>Color: {order.products[0].color}</span>}
+                                        {order.products[0].quantity > 1 && <span className="font-semibold"> (x{order.products[0].quantity})</span>}
+                                    </div>
                                     <p className="text-muted-foreground text-xs">Order ID: {order.orderId}</p>
                                     <p className="text-muted-foreground text-xs md:hidden">{format(new Date(order.orderDate), "MMM dd, yyyy")}</p>
                                 </div>
@@ -327,23 +334,18 @@ export default function OrdersPage() {
             </div>
         );
     }
-
-    if (searchTerm && filteredOrders.length === 0) {
-        return (
-            <div className="text-center py-12 text-muted-foreground flex flex-col items-center gap-4 flex-grow justify-center">
-                <Search className="w-16 h-16 text-border" />
-                <h3 className="text-xl font-semibold">No Results Found</h3>
-                <p>There is nothing similar to this. Try searching for something else.</p>
-                <Button onClick={() => router.push('/live-selling')}>Go Shopping</Button>
-            </div>
-        );
-    }
     
     if (orders.length === 0) {
       return <EmptyOrders />;
     }
 
-    return <EmptyOrders />;
+    return (
+        <div className="text-center py-12 text-muted-foreground flex flex-col items-center gap-4 flex-grow justify-center">
+            <Search className="w-16 h-16 text-border" />
+            <h3 className="text-xl font-semibold">No Matching Orders</h3>
+            <p>Try adjusting your search or filter to find what you're looking for.</p>
+        </div>
+    );
   };
 
   const renderTransactionsContent = () => (
