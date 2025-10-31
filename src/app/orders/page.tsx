@@ -35,6 +35,17 @@ type Order = {
     timeline: any[];
 };
 
+const mockOrderForDisplay: Order = {
+    orderId: "#MOCK123",
+    userId: "mockUser",
+    products: [{ name: "Sample Product", imageUrl: "https://placehold.co/100x100.png", hint: 'sample', key: 'prod_1' }],
+    address: { name: "Your Name", village: "123 Main Street", city: "Your City", state: "Your State", pincode: "000000", phone: "9876543210" },
+    total: 999.00,
+    orderDate: new Date().toISOString(),
+    isReturnable: true,
+    timeline: [{ status: "Pending", date: format(new Date(), 'MMM dd, yyyy'), time: format(new Date(), 'p'), completed: true }]
+};
+
 
 const statusPriority: { [key: string]: number } = {
     "Pending": 1,
@@ -171,14 +182,16 @@ export default function OrdersPage() {
             querySnapshot.forEach((doc) => {
                 fetchedOrders.push({ ...doc.data(), orderId: doc.id } as Order);
             });
-            setOrders(fetchedOrders);
+            // Always show the mock order for development/demo purposes
+            setOrders([mockOrderForDisplay, ...fetchedOrders]);
         } catch (error) {
             console.error("Error fetching orders:", error);
             toast({
                 title: "Error",
-                description: "Could not fetch your orders.",
+                description: "Could not fetch your orders. Showing sample data.",
                 variant: "destructive"
             })
+            setOrders([mockOrderForDisplay]); // Show mock on error
         } finally {
             setIsLoading(false);
         }
@@ -188,7 +201,7 @@ export default function OrdersPage() {
        fetchOrders();
     } else if (!user && isClient) {
         setIsLoading(false);
-        setOrders([]);
+        setOrders([mockOrderForDisplay]); // Show mock if not logged in
     }
   }, [user, isClient, toast]);
 
@@ -304,11 +317,11 @@ export default function OrdersPage() {
                         <CardContent className="p-4 grid grid-cols-2 md:grid-cols-[2fr,1.5fr,1fr,1fr,auto] items-center gap-4">
                             {/* Product Info */}
                             <div className="col-span-2 md:col-span-1 flex items-center gap-4">
-                                <Image src={order.products[0].imageUrl.replace('60x60', '100x100')} alt={order.products[0].name} width={64} height={64} className="rounded-md bg-muted" data-ai-hint={order.products[0].hint} />
+                                <Image src={order.products[0].imageUrl} alt={order.products[0].name} width={64} height={64} className="rounded-md bg-muted" data-ai-hint={order.products[0].hint} />
                                 <div className="flex-1">
                                     <p className="font-semibold text-foreground group-hover:underline">{order.products[0].name}{order.products.length > 1 && ` + ${order.products.length - 1} more`}</p>
                                     <p className="text-muted-foreground text-xs">Order ID: {order.orderId}</p>
-                                    <p className="text-muted-foreground text-xs md:hidden">{order.orderDate}</p>
+                                    <p className="text-muted-foreground text-xs md:hidden">{format(new Date(order.orderDate), "MMM dd, yyyy")}</p>
                                 </div>
                             </div>
                             
@@ -364,11 +377,7 @@ export default function OrdersPage() {
         );
     }
 
-    if (orders.length === 0) {
-        return <SampleOrderCard />;
-    }
-    
-    return null;
+    return <SampleOrderCard />;
   };
 
   return (
@@ -486,5 +495,3 @@ export default function OrdersPage() {
     </div>
   );
 }
-
-    
