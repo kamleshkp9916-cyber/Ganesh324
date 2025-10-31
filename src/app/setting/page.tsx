@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useRouter } from 'next/navigation';
@@ -127,11 +128,15 @@ function DeleteAccountFlow() {
                 <div className="flex flex-col items-center gap-4 py-4">
                      <InputOTP maxLength={6} value={otp} onChange={setOtp}>
                         <InputOTPGroup>
-                            <InputOTPSlot index={0} /><InputOTPSlot index={1} /><InputOTPSlot index={2} />
+                            <InputOTPSlot index={0} />
+                            <InputOTPSlot index={1} />
+                            <InputOTPSlot index={2} />
                         </InputOTPGroup>
                         <InputOTPSeparator />
                         <InputOTPGroup>
-                            <InputOTPSlot index={3} /><InputOTPSlot index={4} /><InputOTPSlot index={5} />
+                            <InputOTPSlot index={3} />
+                            <InputOTPSlot index={4} />
+                            <InputOTPSlot index={5} />
                         </InputOTPGroup>
                     </InputOTP>
                 </div>
@@ -308,9 +313,8 @@ export default function SettingsPage() {
             <main className="flex-grow p-4 md:p-6 lg:p-8">
                 <div className="max-w-4xl mx-auto">
                     <Tabs defaultValue="account">
-                        <TabsList className="mb-6 grid w-full grid-cols-2 md:grid-cols-5">
+                        <TabsList className="mb-6 grid w-full grid-cols-2 md:grid-cols-4">
                             <TabsTrigger value="account"><User className="mr-2 h-4 w-4" /> Account</TabsTrigger>
-                            <TabsTrigger value="funds"><Wallet className="mr-2 h-4 w-4" /> Funds</TabsTrigger>
                             <TabsTrigger value="appearance"><Palette className="mr-2 h-4 w-4" /> Appearance</TabsTrigger>
                             <TabsTrigger value="security"><Shield className="mr-2 h-4 w-4" /> Security</TabsTrigger>
                             <TabsTrigger value="notifications"><Bell className="mr-2 h-4 w-4" /> Notifications</TabsTrigger>
@@ -376,121 +380,6 @@ export default function SettingsPage() {
                             </Card>
                         </TabsContent>
                         
-                        <TabsContent value="funds" className="space-y-8">
-                             <Card>
-                                <CardHeader>
-                                    <CardTitle>Wallet Balance</CardTitle>
-                                     <CardDescription>View your current balance and recent transactions.</CardDescription>
-                                </CardHeader>
-                                <CardContent className="flex items-center justify-between">
-                                    <div>
-                                        <p className="text-sm text-muted-foreground">Available Balance</p>
-                                        <p className="text-3xl font-bold">₹42,580.22</p>
-                                    </div>
-                                    <Button asChild>
-                                        <Link href="/wallet">
-                                            <Wallet className="mr-2 h-4 w-4" />
-                                            View Wallet
-                                        </Link>
-                                    </Button>
-                                </CardContent>
-                            </Card>
-                             <Card>
-                                <CardHeader>
-                                    <CardTitle>Bank Accounts for Withdrawals</CardTitle>
-                                    <CardDescription>Manage the bank accounts where you receive money.</CardDescription>
-                                </CardHeader>
-                                <CardContent className="space-y-4">
-                                     {bankAccounts.map(account => (
-                                        <div key={account.id} className="p-3 rounded-lg border flex justify-between items-center">
-                                            <div>
-                                                <p className="font-semibold">{account.bankName}</p>
-                                                <p className="text-sm text-muted-foreground">{account.accountNumber}</p>
-                                            </div>
-                                             <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive">
-                                                <Trash2 className="h-4 w-4" />
-                                            </Button>
-                                        </div>
-                                    ))}
-                                    {bankAccounts.length === 0 && <p className="text-sm text-center text-muted-foreground py-4">No bank accounts added.</p>}
-                                </CardContent>
-                                <CardFooter>
-                                    <Dialog>
-                                        <DialogTrigger asChild>
-                                            <Button variant="outline"><Plus className="mr-2 h-4 w-4" /> Add New Bank Account</Button>
-                                        </DialogTrigger>
-                                        <DialogContent>
-                                            <DialogHeader>
-                                                <DialogTitle>Add Bank Account</DialogTitle>
-                                                <DialogDescription>Your details are stored securely.</DialogDescription>
-                                            </DialogHeader>
-                                            <AddBankForm onSave={handleAddBankAccount} />
-                                        </DialogContent>
-                                    </Dialog>
-                                </CardFooter>
-                            </Card>
-                             <Card>
-                                <CardHeader>
-                                    <CardTitle>Payment Methods</CardTitle>
-                                    <CardDescription>Manage your saved cards and UPI IDs for quick checkouts.</CardDescription>
-                                </CardHeader>
-                                <CardContent className="space-y-4">
-                                     <h4 className="font-semibold text-sm">Saved Cards</h4>
-                                     {paymentMethods.map(method => (
-                                        <div key={method.id} className="p-3 rounded-lg border flex justify-between items-center">
-                                            <div className="flex items-center gap-3">
-                                                <CreditCard className="h-6 w-6 text-muted-foreground" />
-                                                <div>
-                                                    <p className="font-semibold">{method.provider} ending in {method.last4}</p>
-                                                    <p className="text-sm text-muted-foreground">Expires 12/2028</p>
-                                                </div>
-                                            </div>
-                                            <div className="flex items-center gap-2">
-                                                {method.isDefault && <Badge>Default</Badge>}
-                                                <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive">
-                                                    <Trash2 className="h-4 w-4" />
-                                                </Button>
-                                            </div>
-                                        </div>
-                                    ))}
-                                    {paymentMethods.length === 0 && <p className="text-sm text-center text-muted-foreground py-2">No saved cards.</p>}
-
-                                    <h4 className="font-semibold text-sm pt-4">Saved UPI IDs</h4>
-                                     {upiIds.map(upi => (
-                                        <div key={upi.id} className="p-3 rounded-lg border flex justify-between items-center">
-                                            <div className="flex items-center gap-3">
-                                                 <Avatar className="h-8 w-8 bg-muted"><AvatarImage src="https://upload.wikimedia.org/wikipedia/commons/e/e1/UPI-Logo-vector.svg" /></Avatar>
-                                                <div>
-                                                    <p className="font-semibold">{upi.upiId}</p>
-                                                </div>
-                                            </div>
-                                            <div className="flex items-center gap-2">
-                                                {upi.isDefault && <Badge>Default</Badge>}
-                                                <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive">
-                                                    <Trash2 className="h-4 w-4" />
-                                                </Button>
-                                            </div>
-                                        </div>
-                                    ))}
-                                     {upiIds.length === 0 && <p className="text-sm text-center text-muted-foreground py-2">No saved UPI IDs.</p>}
-                                </CardContent>
-                                <CardFooter className="gap-2">
-                                     <Dialog>
-                                        <DialogTrigger asChild>
-                                            <Button variant="outline"><Plus className="mr-2 h-4 w-4" /> Add New Card</Button>
-                                        </DialogTrigger>
-                                        <AddPaymentMethodForm onSave={handleAddPaymentMethod} />
-                                    </Dialog>
-                                     <Dialog>
-                                        <DialogTrigger asChild>
-                                            <Button variant="outline"><Plus className="mr-2 h-4 w-4" /> Add UPI ID</Button>
-                                        </DialogTrigger>
-                                        <AddUpiForm onSave={handleAddUpi} />
-                                    </Dialog>
-                                </CardFooter>
-                            </Card>
-                        </TabsContent>
-
                         <TabsContent value="appearance" className="space-y-8">
                              <Card>
                                 <CardHeader>

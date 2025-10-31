@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
@@ -14,7 +15,7 @@ import Image from 'next/image';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';
-import { getCart, CartProduct, saveCart, CART_KEY } from '@/lib/product-history';
+import { getCart, CartProduct, saveCart } from '@/lib/product-history';
 import { useAuth } from '@/hooks/use-auth';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { SHIPPING_SETTINGS_KEY, ShippingSettings, Coupon, COUPONS_KEY } from '@/app/admin/settings/page';
@@ -45,8 +46,6 @@ const initialCoupons: Coupon[] = [
 type PaymentMethod = 'upi' | 'cod' | 'debit' | 'credit' | 'wallet' | 'coins';
 
 const paymentMethods = [
-    { id: 'wallet', label: 'Wallet', icon: <Wallet className="w-5 h-5" />, disabled: false },
-    { id: 'coins', label: 'Coins', icon: <Coins className="w-5 h-5" />, disabled: true },
     { id: 'upi', label: 'UPI', icon: <QrCode className="w-5 h-5" />, disabled: false },
     { id: 'cod', label: 'Cash on Delivery', icon: <Banknote className="w-5 h-5" />, disabled: true },
     { id: 'debit', label: 'Debit Card', icon: <CreditCard className="w-5 h-5" />, disabled: false },
@@ -415,50 +414,6 @@ export default function PaymentPage() {
   
   const renderPaymentContent = () => {
     switch (paymentMethod) {
-        case 'wallet':
-             return (
-                 <form className="space-y-4" onSubmit={handlePlaceOrder}>
-                    <div className="p-4 border rounded-lg bg-muted/50">
-                        <div className="flex justify-between items-center">
-                            <span className="text-sm text-muted-foreground">Available Balance</span>
-                            <span className="font-bold">₹42,580.22</span>
-                        </div>
-                         <div className="flex justify-between items-center mt-2">
-                            <span className="text-sm text-muted-foreground">Order Total</span>
-                            <span className="font-bold text-primary">- ₹{total.toLocaleString('en-IN')}</span>
-                        </div>
-                        <Separator className="my-3"/>
-                        <div className="flex justify-between items-center">
-                            <span className="text-sm text-muted-foreground">Remaining Balance</span>
-                            <span className="font-bold">₹{(42580.22 - total).toLocaleString('en-IN')}</span>
-                        </div>
-                    </div>
-                     {showWalletOtp ? (
-                        <div className="space-y-4 pt-2">
-                            <Label htmlFor="wallet-otp">Enter OTP sent to {userData?.phone}.</Label>
-                            <InputOTP maxLength={6} value={walletOtp} onChange={setWalletOtp}>
-                                <InputOTPGroup>
-                                    <InputOTPSlot index={0} />
-                                    <InputOTPSlot index={1} />
-                                    <InputOTPSlot index={2} />
-                                    <InputOTPSeparator />
-                                    <InputOTPSlot index={3} />
-                                    <InputOTPSlot index={4} />
-                                    <InputOTPSlot index={5} />
-                                </InputOTPGroup>
-                            </InputOTP>
-                             <Button type="submit" size="lg" className="w-full" disabled={isProcessing || walletOtp.length !== 6}>
-                                {isProcessing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                                Confirm & Pay
-                            </Button>
-                        </div>
-                    ) : (
-                         <Button type="submit" size="lg" className="w-full" disabled={isProcessing}>
-                            Pay from Wallet
-                        </Button>
-                    )}
-                 </form>
-            );
         case 'upi':
             return (
                 <form className="space-y-4" onSubmit={handlePlaceOrder}>

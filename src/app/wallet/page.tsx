@@ -3,7 +3,7 @@
 
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { RefreshCw, CreditCard, Download, Lock, Coins, Loader2, Bell, ChevronRight, Briefcase, ShoppingBag, BarChart2, Plus, Search, Printer, ArrowLeft, Minus } from 'lucide-react';
+import { RefreshCw, CreditCard, Download, Lock, Coins, Loader2, Bell, ChevronRight, Briefcase, ShoppingBag, BarChart2, Plus, Search, Printer, ArrowLeft, Minus, Wallet } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -35,127 +35,23 @@ const mockNotifications = [
     { id: 3, title: 'Withdrawal Processed', description: 'Your withdrawal of ₹20,000.00 is successful.', time: '4h ago', read: true, href: '#' },
 ];
 
-const mockBankAccounts = [
-    { id: 1, bankName: 'HDFC Bank', accountNumber: 'XXXX-XXXX-XX12-3456' },
-    { id: 2, bankName: 'ICICI Bank', accountNumber: 'XXXX-XXXX-XX98-7654' },
-];
-
-const AddFundsDialog = ({ onDeposit }: { onDeposit: (amount: number, success: boolean) => void }) => {
-    const [amount, setAmount] = useState<number | string>('');
-    const [showQr, setShowQr] = useState(false);
-    const [isProcessing, setIsProcessing] = useState(false);
-    const { toast } = useToast();
-
-    const handleProceed = () => {
-        if (typeof amount === 'number' && amount > 0) {
-            setShowQr(true);
-        }
-    };
-    
-    const simulatePayment = () => {
-        setIsProcessing(true);
-        setTimeout(() => {
-            const success = Math.random() > 0.2; // 80% success rate
-            onDeposit(Number(amount), success);
-            setIsProcessing(false);
-            setShowQr(false);
-            setAmount('');
-            document.getElementById('closeAddFundsDialog')?.click();
-        }, 2000);
-    }
-
-    const upiUrl = `upi://pay?pa=streamcart@mock&am=${amount}&tn=AddFunds`;
-
-    return (
-         <DialogContent>
-            <DialogHeader>
-                <DialogTitle>Add Funds to Wallet</DialogTitle>
-                {!showQr && <DialogDescription>Enter the amount you wish to add.</DialogDescription>}
-            </DialogHeader>
-            {!showQr ? (
-                <div className="py-4 space-y-4">
-                    <div className="space-y-2">
-                        <Label htmlFor="amount">Amount</Label>
-                         <div className="relative">
-                            <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-muted-foreground">₹</span>
-                            <Input 
-                                id="amount" 
-                                type="number" 
-                                placeholder="0.00" 
-                                value={amount} 
-                                onChange={(e) => setAmount(Number(e.target.value))}
-                                className="pl-6"
-                            />
-                        </div>
-                    </div>
-                     <Button className="w-full" onClick={handleProceed} disabled={!amount || Number(amount) <= 0}>
-                        Proceed to Pay
-                    </Button>
-                </div>
-            ) : (
-                <div className="flex flex-col items-center gap-4 py-4">
-                     <p className="font-bold text-2xl">Pay ₹{Number(amount).toFixed(2)}</p>
-                    <div className="bg-white p-4 rounded-lg">
-                        <Image src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(upiUrl)}`} alt="UPI QR Code" width={200} height={200} />
-                    </div>
-                    <p className="text-sm text-muted-foreground">Scan with any UPI app or simulate payment.</p>
-                     <Button className="w-full" onClick={simulatePayment} disabled={isProcessing}>
-                        {isProcessing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                        Simulate Payment
-                    </Button>
-                    <Button variant="ghost" onClick={() => setShowQr(false)} className="text-sm">
-                        <ArrowLeft className="mr-2 h-4 w-4"/>
-                        Change Amount
-                    </Button>
-                </div>
-            )}
-        </DialogContent>
-    );
-};
-
-
 export default function WalletPage() {
   const router = useRouter();
   const { user, userData, loading } = useAuth();
   const { toast } = useToast();
-  const [balance, setBalance] = useState(42580.22);
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [isMounted, setIsMounted] = useState(false);
-  const [isWithdrawOpen, setIsWithdrawOpen] = useState(false);
-  const [bankAccounts, setBankAccounts] = useState(mockBankAccounts);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [isGeneratingInvoice, setIsGeneratingInvoice] = useState<string | null>(null);
   const [notifications, setNotifications] = useState(mockNotifications);
 
   const unreadCount = useMemo(() => notifications.filter(n => !n.read).length, [notifications]);
   
   useEffect(() => {
     setIsMounted(true);
-    setTransactions(getTransactions());
   }, []);
   
   const markAsRead = (id: number) => {
     setNotifications(current => current.map(n => n.id === id ? { ...n, read: true } : n));
   };
   
-    const processingTransactions = useMemo(() => {
-    return transactions.filter(t => t.status === 'Processing');
-  }, [transactions]);
-  
-  const blockedMargin = useMemo(() => {
-    return processingTransactions.reduce((acc, t) => acc + Math.abs(t.amount), 0);
-  }, [processingTransactions]);
-
-
-  const filteredTransactions = useMemo(() => {
-    if (!searchTerm) return transactions;
-    return transactions.filter(t => 
-        (t.transactionId && t.transactionId.toLowerCase().includes(searchTerm.toLowerCase())) ||
-        (t.type && t.type.toLowerCase().includes(searchTerm.toLowerCase())) ||
-        (t.description && t.description.toLowerCase().includes(searchTerm.toLowerCase()))
-    );
-  }, [searchTerm, transactions]);
-
   if (loading || !isMounted) {
     return <div className="h-screen w-full flex items-center justify-center bg-background"><LoadingSpinner /></div>;
   }
@@ -164,104 +60,6 @@ export default function WalletPage() {
     router.push('/');
     return null;
   }
-  
-  const handleDeposit = (amount: number, success: boolean) => {
-    const newTransaction: Transaction = {
-        id: Date.now(),
-        transactionId: `DEP-${Math.floor(100000 + Math.random() * 900000)}`,
-        type: 'Deposit',
-        description: 'Added via UPI',
-        date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-        time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
-        amount: amount,
-        avatar: 'https://placehold.co/40x40.png?text=D',
-        status: success ? 'Completed' : 'Failed',
-    };
-    
-    addTransaction(newTransaction);
-    setTransactions(getTransactions());
-    
-    if (success) {
-        setBalance(prev => prev + amount);
-        toast({
-            title: "Deposit Successful!",
-            description: `₹${amount.toFixed(2)} has been added to your wallet.`,
-        });
-    } else {
-        toast({
-            variant: 'destructive',
-            title: 'Deposit Failed',
-            description: 'The transaction could not be completed. Please try again.',
-        });
-    }
-  };
-
-  const handleWithdraw = (amount: number, bankAccountId: string) => {
-     const selectedAccount = bankAccounts.find(acc => String(acc.id) === bankAccountId);
-     const cashAvailable = balance - blockedMargin;
-     if (amount > cashAvailable) {
-        toast({
-            variant: 'destructive',
-            title: 'Insufficient Balance',
-            description: 'You do not have enough funds to complete this withdrawal.'
-        });
-        return;
-     }
-
-     const newTransaction: Transaction = {
-        id: Date.now(),
-        transactionId: `WD-${Math.floor(1000 + Math.random() * 9000)}`,
-        type: 'Withdrawal',
-        description: `To ${selectedAccount?.bankName}`,
-        date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-        time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
-        amount: -amount,
-        avatar: 'https://placehold.co/40x40.png?text=W',
-        status: 'Completed',
-     };
-
-     addTransaction(newTransaction);
-     setTransactions(getTransactions());
-     setBalance(prev => prev - amount);
-
-     toast({
-        title: "Withdrawal Initiated!",
-        description: `₹${amount} is on its way to ${selectedAccount?.bankName}.`,
-    });
-     setIsWithdrawOpen(false);
-  };
-  
-  const handleGenerateInvoice = (transactionId: string) => {
-    if (isGeneratingInvoice) return;
-
-    const transaction = transactions.find(t => t.transactionId === transactionId);
-    if (!transaction || transaction.type !== 'Order') {
-        toast({
-            variant: "destructive",
-            title: "Invoice Not Available",
-            description: "Invoices can only be generated for completed orders.",
-        });
-        return;
-    }
-    
-    setIsGeneratingInvoice(transactionId);
-    toast({
-        title: "Generating Invoice...",
-        description: "Please wait while we prepare your invoice.",
-    });
-
-    setTimeout(() => {
-        setIsGeneratingInvoice(null);
-        const invoiceUrl = `/invoice/${transactionId}`; 
-        window.open(invoiceUrl, '_blank');
-        toast({
-            title: "Invoice Ready!",
-            description: "Your invoice has been opened in a new tab.",
-        });
-    }, 2000);
-  };
-
-  const cashAvailable = balance - blockedMargin;
 
   return (
     <Dialog>
@@ -315,233 +113,14 @@ export default function WalletPage() {
       </header>
 
       <main className="p-4 sm:p-6 lg:p-8 space-y-6">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 space-y-6">
-            <Card className="bg-card shadow-lg">
-               <CardHeader className="flex flex-row items-center justify-between">
-                  <CardTitle>Account Balance</CardTitle>
-                  <div className="flex items-center gap-2">
-                      <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground">
-                          <RefreshCw className="h-4 w-4" />
-                      </Button>
-                  </div>
-              </CardHeader>
-              <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="md:col-span-2">
-                    <p className="text-sm text-muted-foreground">Total balance</p>
-                    <p className="text-5xl font-bold mt-1">₹{balance.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
-                    <div className="grid grid-cols-2 gap-4 mt-6">
-                        <Card className="bg-muted/50 p-4">
-                            <p className="text-xs text-muted-foreground">Cash Available</p>
-                            <p className="text-lg font-bold">₹{cashAvailable.toFixed(2)}</p>
-                        </Card>
-                        <Dialog>
-                            <DialogTrigger asChild>
-                                <Card className="bg-muted/50 p-4 cursor-pointer hover:bg-muted">
-                                    <p className="text-xs text-muted-foreground">Blocked Margin</p>
-                                    <p className="text-lg font-bold">₹{blockedMargin.toFixed(2)}</p>
-                                    <p className="text-xs text-muted-foreground">For processing orders</p>
-                                </Card>
-                            </DialogTrigger>
-                            <DialogContent>
-                                <DialogHeader>
-                                    <DialogTitle>Blocked Margin Details</DialogTitle>
-                                    <DialogDescription>Funds held for orders that are currently being processed.</DialogDescription>
-                                </DialogHeader>
-                                <div className="space-y-2 py-4">
-                                    {processingTransactions.length > 0 ? (
-                                        processingTransactions.map(t => (
-                                            <div key={t.id} className="flex justify-between items-center text-sm p-2 bg-muted rounded-md">
-                                                <div>
-                                                    <p className="font-semibold">{t.description}</p>
-                                                    <p className="text-xs text-muted-foreground">{t.transactionId}</p>
-                                                </div>
-                                                <p className="font-semibold">₹{Math.abs(t.amount).toFixed(2)}</p>
-                                            </div>
-                                        ))
-                                    ) : (
-                                        <p className="text-center text-sm text-muted-foreground py-4">No funds are currently blocked.</p>
-                                    )}
-                                </div>
-                            </DialogContent>
-                        </Dialog>
-                         <Card className="bg-muted/50 p-4 col-span-2">
-                            <p className="text-xs text-muted-foreground">Month-to-date spend</p>
-                            <p className="text-lg font-bold">₹3,140</p>
-                        </Card>
-                    </div>
-                </div>
-                <div className="flex flex-col justify-between">
-                   <div>
-                       <div className="flex justify-between items-center p-3 bg-muted/50 border rounded-lg">
-                           <div className="flex items-center gap-2">
-                            <Coins className="h-6 w-6 text-primary" />
-                            <div>
-                                <p className="text-xs text-muted-foreground">StreamCart Coins</p>
-                                <p className="text-lg font-bold">1,250</p>
-                            </div>
-                           </div>
-                       </div>
-                        <p className="text-xs text-muted-foreground mt-1">Earn coins on every order.</p>
-                        <div className="flex justify-between items-center mt-4">
-                            <p className="text-xs text-muted-foreground">Last statement</p>
-                            <p className="text-sm font-medium">Aug 31, 2025</p>
-                        </div>
-                   </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-1 gap-2 mt-6">
-                        <Dialog>
-                            <DialogTrigger asChild>
-                                <Button className="w-full justify-center">
-                                    <Plus className="h-5 w-5" />
-                                    <span>Add Funds</span>
-                                </Button>
-                            </DialogTrigger>
-                             <AddFundsDialog onDeposit={handleDeposit} />
-                             <DialogClose id="closeAddFundsDialog" className="hidden" />
-                        </Dialog>
-                         <Button className="w-full justify-center" variant="outline">
-                            <BarChart2 className="h-5 w-5"/>
-                            <span>View Statements</span>
-                        </Button>
-                        <Dialog open={isWithdrawOpen} onOpenChange={setIsWithdrawOpen}>
-                            <DialogTrigger asChild>
-                                <Button className="w-full justify-center" variant="outline">
-                                    <Download className="h-5 w-5" />
-                                    <span>Withdraw</span>
-                                </Button>
-                            </DialogTrigger>
-                             <DialogContent>
-                                <DialogHeader>
-                                    <DialogTitle>Withdraw Funds</DialogTitle>
-                                    <DialogDescription>
-                                        Select an account and enter the amount you wish to withdraw.
-                                    </DialogDescription>
-                                </DialogHeader>
-                                <WithdrawForm 
-                                    cashAvailable={cashAvailable}
-                                    bankAccounts={bankAccounts} 
-                                    onWithdraw={handleWithdraw}
-                                    onAddAccount={(newAccount) => {
-                                        setBankAccounts(prev => [...prev, { ...newAccount, id: Date.now() }]);
-                                        toast({ title: "Bank Account Added!", description: "You can now select it for withdrawals." });
-                                    }} 
-                                />
-                            </DialogContent>
-                        </Dialog>
-                    </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-          <div className="space-y-6">
-             <Card className="bg-card shadow-lg">
-                 <CardHeader>
-                    <CardTitle className="text-base">Quick Actions</CardTitle>
-                    <CardDescription>Do more, faster</CardDescription>
-                 </CardHeader>
-                 <CardContent className="space-y-3">
-                     <Button asChild variant="ghost" className="w-full justify-between h-auto p-3 text-left hover:bg-muted">
-                        <Link href="/listed-products">
-                            <div className="flex items-center gap-3">
-                                <ShoppingBag className="h-6 w-6 text-muted-foreground"/>
-                                <div>
-                                    <p className="font-semibold">Browse Products</p>
-                                    <p className="text-xs text-muted-foreground">Spend from wallet</p>
-                                </div>
-                            </div>
-                            <ChevronRight className="h-5 w-5 text-muted-foreground"/>
-                        </Link>
-                     </Button>
-                     <Button variant="ghost" className="w-full justify-between h-auto p-3 text-left hover:bg-muted" onClick={() => setIsWithdrawOpen(true)}>
-                         <div className="flex items-center gap-3">
-                            <CreditCard className="h-6 w-6 text-muted-foreground"/>
-                            <div>
-                                <p className="font-semibold">Withdraw to Bank</p>
-                                <p className="text-xs text-muted-foreground">IMPS / NEFT / UPI</p>
-                            </div>
-                         </div>
-                         <ChevronRight className="h-5 w-5 text-muted-foreground"/>
-                     </Button>
-                 </CardContent>
-             </Card>
-             <Card className="bg-card shadow-lg">
-                 <CardHeader className="flex flex-row justify-between items-center">
-                    <CardTitle className="text-base">Insights</CardTitle>
-                    <CardDescription>This month</CardDescription>
-                 </CardHeader>
-                 <CardContent className="space-y-4 text-sm">
-                    <div className="flex justify-between items-center">
-                        <p className="text-muted-foreground">Spending vs. last month</p>
-                        <p className="font-semibold text-destructive">-8%</p>
-                    </div>
-                     <div className="flex justify-between items-center">
-                        <p className="text-muted-foreground">Average transaction</p>
-                        <p className="font-semibold">₹1,920</p>
-                    </div>
-                 </CardContent>
-             </Card>
-          </div>
+        <div className="flex flex-col items-center justify-center text-center py-20 bg-card rounded-lg shadow-lg">
+            <Wallet className="h-16 w-16 text-primary mb-4" />
+            <h2 className="text-3xl font-bold">Wallet Feature Coming Soon!</h2>
+            <p className="text-muted-foreground mt-2 max-w-md">We're working hard to bring you a seamless and secure wallet experience. Stay tuned for updates on easy payments, withdrawals, and exclusive rewards.</p>
+            <Button className="mt-6" asChild>
+                <Link href="/live-selling">Continue Shopping</Link>
+            </Button>
         </div>
-        
-         <Card className="bg-card shadow-lg">
-             <CardHeader className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
-                <div>
-                  <CardTitle>🧾 Invoices / Billing history</CardTitle>
-                  <CardDescription>A summary of your recent wallet activity</CardDescription>
-                </div>
-                 <div className="relative w-full max-w-xs">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input 
-                        placeholder="Search transactions..."
-                        className="bg-muted border-border pl-9"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                    />
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-1">
-                {filteredTransactions.map(t => (
-                  <div key={t.id} className="flex flex-col sm:flex-row sm:items-center gap-3 p-3 rounded-lg hover:bg-muted/50">
-                    <div className="flex items-center gap-3 flex-grow">
-                        <Avatar className="h-9 w-9">
-                          <AvatarImage src={t.avatar} />
-                          <AvatarFallback>{t.type.charAt(0)}</AvatarFallback>
-                        </Avatar>
-                        <div className="flex-grow">
-                          <p className="font-semibold text-sm">{t.type} <span className="font-mono text-xs text-muted-foreground hidden sm:inline">{t.transactionId}</span></p>
-                          <p className="text-xs text-muted-foreground">{t.description}</p>
-                          <p className="text-xs text-muted-foreground sm:hidden">{t.date}, {t.time}</p>
-                        </div>
-                    </div>
-                    <div className="flex items-center justify-between sm:justify-end gap-4 pl-12 sm:pl-0">
-                         <p className="text-xs text-muted-foreground hidden sm:block">{t.date}, {t.time}</p>
-                         <Badge variant={t.status === 'Completed' ? 'success' : t.status === 'Processing' ? 'warning' : 'destructive'} className="w-24 justify-center">{t.status}</Badge>
-                         <div className="text-right w-36 flex items-center justify-end gap-2">
-                            <p className={cn("font-semibold text-base sm:text-lg flex items-center gap-1", 
-                                t.status === 'Failed' ? 'text-destructive' : 
-                                t.amount > 0 ? "text-success" : "text-foreground"
-                             )}>
-                                {t.status !== 'Failed' && (t.amount > 0 ? <Plus className="inline-block h-4 w-4" /> : <Minus className="inline-block h-4 w-4" />)}
-                                <span className="text-sm sm:text-base">₹{Math.abs(t.amount).toFixed(2)}</span>
-                            </p>
-                            <Button 
-                                variant="ghost" 
-                                size="icon" 
-                                className="h-8 w-8 text-muted-foreground hover:text-foreground" 
-                                onClick={() => handleGenerateInvoice(t.transactionId)}
-                                disabled={t.type !== 'Order' || isGeneratingInvoice === t.transactionId}
-                            >
-                                {isGeneratingInvoice === t.transactionId ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
-                            </Button>
-                        </div>
-                    </div>
-                  </div>
-                ))}
-                {filteredTransactions.length === 0 && (
-                    <p className="text-center text-muted-foreground py-8">No transactions found.</p>
-                )}
-              </CardContent>
-            </Card>
       </main>
 
       <footer className="p-4 sm:p-6 mt-8 border-t text-center text-xs text-muted-foreground">
