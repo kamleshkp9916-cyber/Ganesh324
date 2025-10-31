@@ -655,13 +655,15 @@ export default function PaymentPage() {
                                                     {item.size && <span>Size: {item.size}</span>}
                                                 </div>
                                                 <p className="text-xs text-muted-foreground">Qty: {item.quantity}</p>
+                                            </div>
+                                            <div className="text-right">
+                                                <p className="font-semibold text-sm">₹{(parseFloat(item.price.replace(/[^0-9.-]+/g, '')) * item.quantity).toLocaleString('en-IN')}</p>
                                                 {hasDiscount && (
-                                                    <Badge variant="destructive" className="text-[10px] mt-1">
+                                                    <Badge variant="destructive" className="text-[10px] mt-1 ml-auto">
                                                         {details.discountPercentage}% OFF
                                                     </Badge>
                                                 )}
                                             </div>
-                                            <p className="font-semibold text-sm">₹{(parseFloat(item.price.replace(/[^0-9.-]+/g, '')) * item.quantity).toLocaleString('en-IN')}</p>
                                         </div>
                                     )
                                 })}
@@ -738,3 +740,4 @@ export default function PaymentPage() {
 }
 
     
+
