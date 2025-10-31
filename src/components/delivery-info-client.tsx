@@ -439,8 +439,7 @@ export function DeliveryInfoClient({ orderId: encodedOrderId }: { orderId: strin
                                             <Image
                                                 src={product.imageUrl}
                                                 alt={product.name}
-                                                width={200}
-                                                height={200}
+                                                fill
                                                 className="object-cover w-full h-full"
                                                 data-ai-hint={product.hint}
                                             />
@@ -451,7 +450,7 @@ export function DeliveryInfoClient({ orderId: encodedOrderId }: { orderId: strin
                                             )}
                                         </div>
                                         <h3 className="font-semibold text-lg">{product.name}</h3>
-                                        <p className="font-bold text-primary-foreground">{product.price}</p>
+                                        <p className="font-bold text-lg">₹{order.total.toFixed(2)}</p>
                                     </CardContent>
                                 </Card>
                             </Link>
