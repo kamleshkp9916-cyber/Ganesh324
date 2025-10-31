@@ -19,7 +19,7 @@ import { useToast } from '@/hooks/use-toast';
 import { format, addDays, parseISO } from 'date-fns';
 import { Skeleton } from '@/components/ui/skeleton';
 import { getStatusFromTimeline, Order, ORDERS_KEY } from '@/lib/order-data';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { getTransactions, Transaction } from '@/lib/transaction-history';
 
@@ -338,6 +338,10 @@ export default function OrdersPage() {
             </div>
         );
     }
+    
+    if (orders.length === 0) {
+      return <EmptyOrders />;
+    }
 
     return <EmptyOrders />;
   };
@@ -427,31 +431,29 @@ export default function OrdersPage() {
                     <TabsTrigger value="orders">Orders</TabsTrigger>
                     <TabsTrigger value="transactions">Transactions</TabsTrigger>
                 </TabsList>
-                {orders.length > 0 && (
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button variant="outline" size="sm">
-                                <Filter className="h-4 w-4 mr-2" />
-                                Filter
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent className="w-56" align="end">
-                            <DropdownMenuLabel>Filter by Status</DropdownMenuLabel>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuRadioGroup value={statusFilter} onValueChange={setStatusFilter}>
-                                <DropdownMenuRadioItem value="all">All</DropdownMenuRadioItem>
-                                <DropdownMenuRadioItem value="pending">Pending</DropdownMenuRadioItem>
-                                <DropdownMenuRadioItem value="shipped">Shipped</DropdownMenuRadioItem>
-                                <DropdownMenuRadioItem value="in-transit">In Transit</DropdownMenuRadioItem>
-                                <DropdownMenuRadioItem value="out-for-delivery">Out for Delivery</DropdownMenuRadioItem>
-                                <DropdownMenuRadioItem value="delivered">Delivered</DropdownMenuRadioItem>
-                                <DropdownMenuRadioItem value="failed-delivery-attempt">Undelivered</DropdownMenuRadioItem>
-                                <DropdownMenuRadioItem value="returned">Returned</DropdownMenuRadioItem>
-                                <DropdownMenuRadioItem value="cancelled-by-user">Cancelled</DropdownMenuRadioItem>
-                            </DropdownMenuRadioGroup>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                )}
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button variant="outline" size="sm">
+                            <Filter className="h-4 w-4 mr-2" />
+                            Filter
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-56" align="end">
+                        <DropdownMenuLabel>Filter by Status</DropdownMenuLabel>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuRadioGroup value={statusFilter} onValueChange={setStatusFilter}>
+                            <DropdownMenuRadioItem value="all">All</DropdownMenuRadioItem>
+                            <DropdownMenuRadioItem value="pending">Pending</DropdownMenuRadioItem>
+                            <DropdownMenuRadioItem value="shipped">Shipped</DropdownMenuRadioItem>
+                            <DropdownMenuRadioItem value="in-transit">In Transit</DropdownMenuRadioItem>
+                            <DropdownMenuRadioItem value="out-for-delivery">Out for Delivery</DropdownMenuRadioItem>
+                            <DropdownMenuRadioItem value="delivered">Delivered</DropdownMenuRadioItem>
+                            <DropdownMenuRadioItem value="failed-delivery-attempt">Undelivered</DropdownMenuRadioItem>
+                            <DropdownMenuRadioItem value="returned">Returned</DropdownMenuRadioItem>
+                            <DropdownMenuRadioItem value="cancelled-by-user">Cancelled</DropdownMenuRadioItem>
+                        </DropdownMenuRadioGroup>
+                    </DropdownMenuContent>
+                </DropdownMenu>
             </div>
             <TabsContent value="orders" className="mt-6">
                 {renderOrdersContent()}
