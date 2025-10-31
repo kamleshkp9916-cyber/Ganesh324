@@ -661,12 +661,10 @@ export default function PaymentPage() {
                                             </div>
                                             <div className="text-right">
                                                 {hasDiscount ? (
-                                                    <div className="flex flex-col items-end">
+                                                    <div className="flex items-baseline gap-x-2">
                                                         <p className="font-semibold text-sm">₹{itemPrice.toLocaleString('en-IN')}</p>
-                                                        <div className="flex items-center gap-1.5">
-                                                            <p className="text-xs text-muted-foreground line-through">₹{originalPrice.toLocaleString('en-IN')}</p>
-                                                            <Badge variant="destructive" className="text-[10px]">{details.discountPercentage}% OFF</Badge>
-                                                        </div>
+                                                        <p className="text-xs text-muted-foreground line-through">₹{originalPrice.toLocaleString('en-IN')}</p>
+                                                        <Badge variant="destructive" className="text-[10px]">{details.discountPercentage}% OFF</Badge>
                                                     </div>
                                                 ) : (
                                                     <p className="font-semibold text-sm">₹{itemPrice.toLocaleString('en-IN')}</p>
