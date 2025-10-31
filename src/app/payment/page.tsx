@@ -638,22 +638,32 @@ export default function PaymentPage() {
                         </CardHeader>
                         <CardContent>
                              <div className="space-y-4 max-h-60 overflow-y-auto pr-2">
-                                {cartItems.map((item) => (
-                                    <div key={`${''}${item.id}-${item.size || ''}-${item.color || ''}`} className="flex items-start gap-4">
-                                        <div className="relative w-16 h-16 rounded-md border flex-shrink-0">
-                                            <Image src={item.imageUrl || 'https://placehold.co/100x100.png'} alt={item.name} layout="fill" className="object-cover rounded-md" data-ai-hint={item.hint}/>
-                                        </div>
-                                        <div className="flex-grow">
-                                            <p className="font-semibold text-sm leading-tight">{item.name}</p>
-                                            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                                                {item.color && <span>Color: {item.color}</span>}
-                                                {item.size && <span>Size: {item.size}</span>}
+                                {cartItems.map((item) => {
+                                    const details = productDetails[item.key as keyof typeof productDetails];
+                                    const hasDiscount = details && details.discountPercentage && details.discountPercentage > 0;
+                                    
+                                    return (
+                                        <div key={`${''}${item.id}-${item.size || ''}-${item.color || ''}`} className="flex items-start gap-4">
+                                            <div className="relative w-16 h-16 rounded-md border flex-shrink-0">
+                                                <Image src={item.imageUrl || 'https://placehold.co/100x100.png'} alt={item.name} layout="fill" className="object-cover rounded-md" data-ai-hint={item.hint}/>
                                             </div>
-                                            <p className="text-xs text-muted-foreground">Qty: {item.quantity}</p>
+                                            <div className="flex-grow">
+                                                <p className="font-semibold text-sm leading-tight">{item.name}</p>
+                                                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                                    {item.color && <span>Color: {item.color}</span>}
+                                                    {item.size && <span>Size: {item.size}</span>}
+                                                </div>
+                                                <p className="text-xs text-muted-foreground">Qty: {item.quantity}</p>
+                                                {hasDiscount && (
+                                                    <Badge variant="destructive" className="text-[10px] mt-1">
+                                                        {details.discountPercentage}% OFF
+                                                    </Badge>
+                                                )}
+                                            </div>
+                                            <p className="font-semibold text-sm">₹{(parseFloat(item.price.replace(/[^0-9.-]+/g, '')) * item.quantity).toLocaleString('en-IN')}</p>
                                         </div>
-                                        <p className="font-semibold text-sm">₹{(parseFloat(item.price.replace(/[^0-9.-]+/g, '')) * item.quantity).toLocaleString('en-IN')}</p>
-                                    </div>
-                                ))}
+                                    )
+                                })}
                             </div>
                             <Separator className="my-4" />
                             <div className="space-y-2 text-sm">
@@ -725,3 +735,5 @@ export default function PaymentPage() {
     </>
   );
 }
+
+    
