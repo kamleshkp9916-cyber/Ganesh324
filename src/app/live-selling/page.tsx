@@ -104,7 +104,7 @@ import { useRouter } from 'next/navigation';
 import { useTheme } from 'next-themes';
 import { CreatePostForm } from '@/components/create-post-form';
 import { getCart, addToCart, saveCart } from '@/lib/product-history';
-import { Dialog, DialogHeader, DialogTitle, DialogTrigger, DialogContent, DialogFooter, DialogClose } from '@/components/ui/dialog';
+import { Dialog, DialogHeader, DialogTitle, DialogTrigger, DialogContent } from '@/components/ui/dialog';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { GoLiveDialog } from '@/components/go-live-dialog';
 import { collection, query, orderBy, onSnapshot, Timestamp, deleteDoc, doc, updateDoc, increment, addDoc, serverTimestamp, where, getDocs, runTransaction, limit } from "firebase/firestore";
@@ -735,10 +735,6 @@ export default function LiveSellingPage() {
                                     <ShoppingCart className="mr-2 h-4 w-4" />
                                     <span>My Cart</span>
                                         {cartCount > 0 && <Badge variant="destructive" className="ml-auto">{cartCount}</Badge>}
-                                </DropdownMenuItem>
-                                <DropdownMenuItem onSelect={() => router.push('/wallet')}>
-                                    <Wallet className="mr-2 h-4 w-4" />
-                                    <span>My Wallet</span>
                                 </DropdownMenuItem>
                                 <DropdownMenuSeparator />
                                 <DropdownMenuItem onSelect={() => router.push('/setting')}>
