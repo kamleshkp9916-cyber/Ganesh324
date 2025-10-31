@@ -287,7 +287,7 @@ export default function OrdersPage() {
                                         {order.products[0].size && <span>Size: {order.products[0].size}</span>}
                                         {order.products[0].size && order.products[0].color && <span className="mx-1">|</span>}
                                         {order.products[0].color && <span>Color: {order.products[0].color}</span>}
-                                        {order.products[0].quantity > 1 && <span className="font-semibold"> (x{order.products[0].quantity})</span>}
+                                        {(order.products[0].quantity && order.products[0].quantity > 1) && <span className="font-semibold"> (x{order.products[0].quantity})</span>}
                                     </div>
                                     <p className="text-muted-foreground text-xs">Order ID: {order.orderId}</p>
                                     <p className="text-muted-foreground text-xs md:hidden">{format(new Date(order.orderDate), "MMM dd, yyyy")}</p>
@@ -357,22 +357,25 @@ export default function OrdersPage() {
       <CardContent>
          <div className="divide-y">
             {filteredTransactions.map(t => (
-                <div key={t.id} className="grid grid-cols-[auto,1fr,auto] items-center gap-4 py-3">
-                    <Avatar className="h-9 w-9">
+                <div key={t.id} className="grid grid-cols-[auto,1fr,auto] items-center gap-x-4 gap-y-2 py-3">
+                    <Avatar className="h-9 w-9 row-span-2 md:row-span-1">
                         <AvatarImage src={t.avatar} />
                         <AvatarFallback>{t.type.charAt(0)}</AvatarFallback>
                     </Avatar>
-                    <div>
-                        <p className="font-semibold">{t.type} <span className="font-mono text-xs text-muted-foreground">{t.transactionId}</span></p>
+                    <div className="col-span-2 md:col-span-1">
+                        <p className="font-semibold text-sm">{t.type} <span className="font-mono text-xs text-muted-foreground hidden sm:inline">{t.transactionId}</span></p>
                         <p className="text-sm text-muted-foreground">{t.description}</p>
-                        <p className="text-xs text-muted-foreground">{t.date}, {t.time}</p>
+                        <p className="text-xs text-muted-foreground sm:hidden">{t.date}, {t.time}</p>
                     </div>
-                    <div className="text-right">
-                         <p className={cn("font-semibold text-lg flex items-center gap-1", t.amount > 0 ? 'text-green-500' : 'text-foreground')}>
+                    <div className="col-start-2 md:col-start-auto text-right row-span-2 md:row-span-1 flex flex-col items-end">
+                         <p className={cn("font-semibold text-base flex items-center gap-1", t.amount > 0 ? 'text-green-500' : 'text-foreground')}>
                             {t.amount > 0 ? <Plus className="inline-block h-4 w-4" /> : <Minus className="inline-block h-4 w-4" />}
                             <span>₹{Math.abs(t.amount).toLocaleString('en-IN',{minimumFractionDigits: 2})}</span>
                         </p>
-                        <Badge variant={t.status === 'Completed' ? 'success' : t.status === 'Processing' ? 'warning' : 'destructive'} className="capitalize mt-1">{t.status}</Badge>
+                        <div className="flex items-center gap-2">
+                             <p className="text-xs text-muted-foreground hidden sm:block">{t.date}, {t.time}</p>
+                             <Badge variant={t.status === 'Completed' ? 'success' : t.status === 'Processing' ? 'warning' : 'destructive'} className="capitalize">{t.status}</Badge>
+                        </div>
                     </div>
                 </div>
             ))}
