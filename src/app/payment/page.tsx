@@ -28,7 +28,7 @@ import { EditAddressForm } from '@/components/edit-address-form';
 import { HelpChat } from '@/components/help-chat';
 import { FeedbackDialog } from '@/components/feedback-dialog';
 import { InputOTP, InputOTPGroup, InputOTPSlot, InputOTPSeparator } from '@/components/ui/input-otp';
-import { allOrderData, Order } from '@/lib/order-data';
+import { Order, saveOrder } from '@/lib/order-data';
 import { addTransaction } from '@/lib/transaction-history';
 import { updateUserData } from '@/lib/follow-data';
 import { format, addDays } from 'date-fns';
@@ -306,10 +306,11 @@ export default function PaymentPage() {
     setIsProcessing(true);
     setTimeout(() => {
         setIsProcessing(false);
-        const transactionId = `TXN-${Math.floor(100000 + Math.random() * 900000)}`;
+        const transactionId = `#STREAM${Math.floor(100000 + Math.random() * 900000)}`;
         
         if (paymentSuccess) {
-             const newOrder: Omit<Order, 'orderId'> = {
+             const newOrder: Order = {
+                orderId: transactionId,
                 userId: user!.uid,
                 products: cartItems.map(item => ({...item, productId: item.key})),
                 address: address,
@@ -317,11 +318,9 @@ export default function PaymentPage() {
                 orderDate: new Date().toISOString(),
                 isReturnable: true,
                 timeline: [{ status: "Order Confirmed", date: format(new Date(), 'MMM dd, yyyy'), time: format(new Date(), 'p'), completed: true }],
-                paymentMethod: paymentMethod,
-                refundStatus: 'N/A',
-                transactionId: transactionId,
             };
-            allOrderData[transactionId as keyof typeof allOrderData] = newOrder; // Add to mock data
+            saveOrder(newOrder); // Save to local storage
+            
             addTransaction({
                 id: Date.now(),
                 transactionId: transactionId,
@@ -332,8 +331,9 @@ export default function PaymentPage() {
                 amount: -total,
                 status: 'Completed',
             });
-            localStorage.removeItem(CART_KEY);
+            localStorage.removeItem('streamcart_cart');
             localStorage.removeItem('appliedCoupon');
+            window.dispatchEvent(new Event('storage'));
             setIsSuccessModalOpen(true);
         } else {
             addTransaction({

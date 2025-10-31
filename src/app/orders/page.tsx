@@ -18,33 +18,8 @@ import { Pagination, PaginationContent, PaginationItem } from '@/components/ui/p
 import { useToast } from '@/hooks/use-toast';
 import { format, addDays, parse } from 'date-fns';
 import { Skeleton } from '@/components/ui/skeleton';
-import { allOrderData, getStatusFromTimeline } from '@/lib/order-data';
-import { getFirestore, collection, query, where, getDocs, orderBy } from 'firebase/firestore';
-import { getFirestoreDb } from '@/lib/firebase';
+import { getStatusFromTimeline, Order, ORDERS_KEY } from '@/lib/order-data';
 import { Card, CardContent } from '@/components/ui/card';
-
-
-type Order = {
-    orderId: string;
-    userId: string;
-    products: any[];
-    address: any;
-    total: number;
-    orderDate: string;
-    isReturnable: boolean;
-    timeline: any[];
-};
-
-const mockOrderForDisplay: Order = {
-    orderId: "#MOCK123",
-    userId: "mockUser",
-    products: [{ name: "Sample Product", imageUrl: "https://placehold.co/100x100.png", hint: 'sample', key: 'prod_1' }],
-    address: { name: "Your Name", village: "123 Main Street", city: "Your City", state: "Your State", pincode: "000000", phone: "9876543210" },
-    total: 999.00,
-    orderDate: new Date().toISOString(),
-    isReturnable: true,
-    timeline: [{ status: "Pending", date: format(new Date(), 'MMM dd, yyyy'), time: format(new Date(), 'p'), completed: true }]
-};
 
 
 const statusPriority: { [key: string]: number } = {
@@ -134,26 +109,20 @@ export default function OrdersPage() {
   }, []);
 
   useEffect(() => {
-    const fetchOrders = async () => {
+    const fetchOrders = () => {
         if (!user) {
             setIsLoading(false);
             return;
         };
 
         setIsLoading(true);
-        const db = getFirestoreDb();
-        const ordersRef = collection(db, "orders");
-        const q = query(ordersRef, where("userId", "==", user.uid), orderBy("orderDate", "desc"));
-
         try {
-            const querySnapshot = await getDocs(q);
-            const fetchedOrders: Order[] = [];
-            querySnapshot.forEach((doc) => {
-                fetchedOrders.push({ ...doc.data(), orderId: doc.id } as Order);
-            });
-            setOrders(fetchedOrders);
+            const storedOrders = localStorage.getItem(ORDERS_KEY);
+            const allOrders = storedOrders ? JSON.parse(storedOrders) : [];
+            const userOrders = allOrders.filter((o: Order) => o.userId === user.uid);
+            setOrders(userOrders);
         } catch (error) {
-            console.error("Error fetching orders:", error);
+            console.error("Error fetching orders from local storage:", error);
             toast({
                 title: "Error",
                 description: "Could not fetch your orders.",
@@ -171,6 +140,16 @@ export default function OrdersPage() {
         setIsLoading(false);
         setOrders([]);
     }
+
+    const handleStorageChange = (event: StorageEvent) => {
+      if (event.key === ORDERS_KEY) {
+        fetchOrders();
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+
   }, [user, isClient, toast]);
 
   const sortedOrders = useMemo(() => {
