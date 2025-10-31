@@ -278,22 +278,6 @@ export function DeliveryInfoClient({ orderId: encodedOrderId }: { orderId: strin
     const currentStatusIndex = order.timeline.length - 1 - lastCompletedIndex;
     
 
-    const updateOrderInLocalStorage = (orderId: string, newTimeline: Order['timeline']) => {
-        const allOrdersJSON = localStorage.getItem(ORDERS_KEY);
-        let allOrders: Order[] = allOrdersJSON ? JSON.parse(allOrdersJSON) : [];
-        const orderIndex = allOrders.findIndex(o => o.orderId === orderId);
-        
-        if (orderIndex !== -1) {
-            allOrders[orderIndex] = {
-                ...allOrders[orderIndex],
-                timeline: newTimeline
-            };
-            saveAllOrders(allOrders);
-            setOrder(allOrders[orderIndex]);
-        }
-    };
-
-
      const handleConfirmCancellation = async (otpValue: string) => {
         if (otpValue !== '123456') {
             toast({ title: "Invalid OTP", variant: "destructive" });
@@ -301,32 +285,44 @@ export function DeliveryInfoClient({ orderId: encodedOrderId }: { orderId: strin
         }
         setIsVerifyingOtp(true);
         try {
-            const newTimeline: Order['timeline'] = [
-                ...order.timeline, 
-                { status: 'Cancelled by user', date: format(new Date(), 'MMM dd, yyyy'), time: format(new Date(), 'p'), completed: true },
-                { status: 'Refund Initiated: The amount will be credited to your original payment method within 5-7 business days.', date: format(new Date(), 'MMM dd, yyyy'), time: format(new Date(), 'p'), completed: false }
-            ];
+            const allOrdersJSON = localStorage.getItem('streamcart_orders');
+            let allOrders: Order[] = allOrdersJSON ? JSON.parse(allOrdersJSON) : [];
             
-            updateOrderInLocalStorage(orderId, newTimeline);
-            
-            addTransaction({
-                id: Date.now(),
-                transactionId: `REF-${order.orderId.replace('#', '')}`,
-                type: 'Refund',
-                description: `For cancelled order ${order.orderId}`,
-                date: format(new Date(), 'MMM dd, yyyy'),
-                time: format(new Date(), 'p'),
-                amount: order.total,
-                status: 'Processing',
-            });
+            const orderIndex = allOrders.findIndex(o => o.orderId === orderId);
 
-            toast({ title: "Order Cancelled & Refund Initiated" });
-            setIsCancelFlowOpen(false);
-            setCancelStep("reason");
-            setCancelReason("");
-            setCancelFeedback("");
-            setOtp("");
+            if (orderIndex !== -1) {
+                const updatedOrder = { ...allOrders[orderIndex] };
+                updatedOrder.timeline = [
+                    ...updatedOrder.timeline,
+                    { status: 'Cancelled by user', date: format(new Date(), 'MMM dd, yyyy'), time: format(new Date(), 'p'), completed: true },
+                    { status: 'Refund Initiated: The amount will be credited to your original payment method within 5-7 business days.', date: format(new Date(), 'MMM dd, yyyy'), time: format(new Date(), 'p'), completed: false }
+                ];
+                allOrders[orderIndex] = updatedOrder;
+                saveAllOrders(allOrders);
+                setOrder(updatedOrder);
+
+                addTransaction({
+                    id: Date.now(),
+                    transactionId: `REF-${order.orderId.replace('#', '')}`,
+                    type: 'Refund',
+                    description: `For cancelled order ${order.orderId}`,
+                    date: format(new Date(), 'MMM dd, yyyy'),
+                    time: format(new Date(), 'p'),
+                    amount: order.total,
+                    status: 'Processing',
+                });
+                
+                toast({ title: "Order Cancelled & Refund Initiated" });
+                setIsCancelFlowOpen(false);
+                setCancelStep("reason");
+                setCancelReason("");
+                setCancelFeedback("");
+                setOtp("");
+            } else {
+                throw new Error("Order not found in local storage.");
+            }
         } catch (error) {
+            console.error("Cancellation error:", error);
             toast({ title: "Cancellation Failed", variant: "destructive" });
         } finally {
             setIsVerifyingOtp(false);
@@ -340,15 +336,24 @@ export function DeliveryInfoClient({ orderId: encodedOrderId }: { orderId: strin
         }
         setIsVerifyingReturnOtp(true);
         try {
-            const newTimeline = [...order.timeline, { status: 'Return Initiated', date: format(new Date(), 'MMM dd, yyyy'), time: format(new Date(), 'p'), completed: true }];
-            updateOrderInLocalStorage(orderId, newTimeline);
+            const allOrdersJSON = localStorage.getItem('streamcart_orders');
+            let allOrders: Order[] = allOrdersJSON ? JSON.parse(allOrdersJSON) : [];
+            
+            const orderIndex = allOrders.findIndex(o => o.orderId === orderId);
+             if (orderIndex !== -1) {
+                const updatedOrder = { ...allOrders[orderIndex] };
+                updatedOrder.timeline.push({ status: 'Return Initiated', date: format(new Date(), 'MMM dd, yyyy'), time: format(new Date(), 'p'), completed: true });
+                allOrders[orderIndex] = updatedOrder;
+                saveAllOrders(allOrders);
+                setOrder(updatedOrder);
 
-            toast({ title: "Return Initiated" });
-            setIsReturnFlowOpen(false);
-            setReturnStep("reason");
-            setReturnReason("");
-            setReturnFeedback("");
-            setReturnOtp("");
+                toast({ title: "Return Initiated" });
+                setIsReturnFlowOpen(false);
+                setReturnStep("reason");
+                setReturnReason("");
+                setReturnFeedback("");
+                setReturnOtp("");
+            }
         } catch (error) {
             toast({ title: "Return Failed", variant: "destructive" });
         } finally {
