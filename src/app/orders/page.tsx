@@ -14,7 +14,7 @@ import { Input } from '@/components/ui/input';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuItem } from '@/components/ui/dropdown-menu';
 import Image from 'next/image';
 import { Badge, BadgeProps } from '@/components/ui/badge';
-import { Pagination, PaginationContent, PaginationItem } from '@/components/ui/pagination';
+import { Pagination, PaginationContent, PaginationItem, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
 import { useToast } from '@/hooks/use-toast';
 import { format, addDays, parseISO } from 'date-fns';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -288,10 +288,10 @@ export default function OrdersPage() {
                                         {order.products[0].size && <span>Size: {order.products[0].size}</span>}
                                         {order.products[0].size && order.products[0].color && <span className="mx-1">|</span>}
                                         {order.products[0].color && <span>Color: {order.products[0].color}</span>}
-                                        {(order.products[0].quantity && order.products[0].quantity > 1) && <span className="font-semibold"> (x{order.products[0].quantity})</span>}
+                                        {(order.products[0].quantity > 1) && <span className="font-semibold"> (x{order.products[0].quantity})</span>}
                                     </div>
                                     <p className="text-muted-foreground text-xs">Order ID: {order.orderId}</p>
-                                    <p className="text-muted-foreground text-xs md:hidden">{format(new Date(order.orderDate), "MMM dd, yyyy")}</p>
+                                    <p className="text-muted-foreground text-xs md:hidden">{format(parseISO(order.orderDate), "MMM dd, yyyy")}</p>
                                 </div>
                             </div>
                             
@@ -481,36 +481,30 @@ export default function OrdersPage() {
           </Tabs>
 
           {totalPages > 1 && (
-              <div className="flex items-center justify-between pt-4 mt-auto flex-wrap gap-4">
-                  <div className="text-sm text-muted-foreground w-full sm:w-auto text-center sm:text-left mb-2 sm:mb-0">
-                      Showing page {currentPage} of {totalPages}
-                  </div>
-                  <div className="w-full sm:w-auto mx-auto">
-                      <Pagination>
-                          <PaginationContent>
-                              <PaginationItem>
-                                  <Button variant="ghost" size="icon" onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1}>
-                                  <ChevronLeft className="h-5 w-5" />
-                                  </Button>
-                              </PaginationItem>
-                              <PaginationItem className="hidden sm:block">
-                                  <span className="text-sm font-medium p-2">{currentPage} / {totalPages}</span>
-                              </PaginationItem>
-                              <PaginationItem>
-                              <Button variant="ghost" size="icon" onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages}>
-                                  <ChevronRight className="h-5 w-5" />
-                                  </Button>
-                              </PaginationItem>
-                          </PaginationContent>
-                      </Pagination>
-                  </div>
-                  <div className="w-full sm:w-auto justify-center sm:justify-end gap-2 flex">
-                      <Button variant="ghost" size="sm">About</Button>
-                      <Button variant="ghost" size="sm">Support</Button>
-                      <Button variant="ghost" size="sm">Contact us</Button>
-                  </div>
-              </div>
-          )}
+            <div className="flex items-center justify-center pt-4 mt-auto">
+                <Pagination>
+                    <PaginationContent>
+                        <PaginationItem>
+                            <PaginationPrevious
+                                onClick={() => handlePageChange(currentPage - 1)}
+                                className={cn(currentPage === 1 && "pointer-events-none opacity-50")}
+                            />
+                        </PaginationItem>
+                        <PaginationItem>
+                            <span className="text-sm font-medium p-2">
+                                Page {currentPage} of {totalPages}
+                            </span>
+                        </PaginationItem>
+                        <PaginationItem>
+                            <PaginationNext
+                                onClick={() => handlePageChange(currentPage + 1)}
+                                className={cn(currentPage === totalPages && "pointer-events-none opacity-50")}
+                            />
+                        </PaginationItem>
+                    </PaginationContent>
+                </Pagination>
+            </div>
+        )}
       </main>
       <Footer />
     </div>
