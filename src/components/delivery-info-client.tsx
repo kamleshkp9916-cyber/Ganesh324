@@ -301,11 +301,12 @@ export function DeliveryInfoClient({ orderId: encodedOrderId }: { orderId: strin
         }
         setIsVerifyingOtp(true);
         try {
-            const newTimeline = [
+            const newTimeline: Order['timeline'] = [
                 ...order.timeline, 
                 { status: 'Cancelled by user', date: format(new Date(), 'MMM dd, yyyy'), time: format(new Date(), 'p'), completed: true },
                 { status: 'Refund Initiated: The amount will be credited to your original payment method within 5-7 business days.', date: format(new Date(), 'MMM dd, yyyy'), time: format(new Date(), 'p'), completed: false }
             ];
+            
             updateOrderInLocalStorage(orderId, newTimeline);
             
             addTransaction({
