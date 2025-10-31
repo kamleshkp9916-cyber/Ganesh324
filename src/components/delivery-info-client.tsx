@@ -355,13 +355,19 @@ export function DeliveryInfoClient({ orderId: encodedOrderId }: { orderId: strin
         }
     };
 
-    const handleAddressSave = (data: any) => {
+    const handleAddressSave = (address: any) => {
         toast({
             title: "Address Updated",
             description: "Your delivery address has been successfully updated.",
         });
         setIsAddressDialogOpen(false);
     };
+    
+    const handleAddressesUpdate = (newAddresses: any[]) => {
+      if(user){
+        updateUserData(user.uid, { addresses: newAddresses });
+      }
+    }
 
     const handleRefundRequest = () => {
         toast({
@@ -527,12 +533,16 @@ export function DeliveryInfoClient({ orderId: encodedOrderId }: { orderId: strin
                                     <DialogTrigger asChild>
                                         <Button variant="outline"><Edit className="mr-2 h-4 w-4" /> Edit Address</Button>
                                     </DialogTrigger>
-                                    <DialogContent>
+                                     <DialogContent>
                                         <DialogHeader>
                                             <DialogTitle>Change Delivery Address</DialogTitle>
                                             <DialogDescription>Select a saved address or add a new one.</DialogDescription>
                                         </DialogHeader>
-                                        <EditAddressForm onSave={handleAddressSave} onCancel={() => setIsAddressDialogOpen(false)} onAddressesUpdate={onAddressesUpdate} />
+                                        <EditAddressForm 
+                                            onSave={handleAddressSave}
+                                            onCancel={() => setIsAddressDialogOpen(false)}
+                                            onAddressesUpdate={handleAddressesUpdate}
+                                        />
                                     </DialogContent>
                                 </Dialog>
                             )}
