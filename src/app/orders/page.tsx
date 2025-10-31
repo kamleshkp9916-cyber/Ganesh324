@@ -4,7 +4,7 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Wallet, Search, X, Filter, ChevronLeft, ChevronRight, Clipboard, ChevronDown, Edit, ArrowLeft, MoreHorizontal, CalendarClock, Archive, UserCircle, Plus, Minus } from 'lucide-react';
+import { Wallet, Search, X, Filter, ChevronLeft, ChevronRight, Clipboard, ChevronDown, Edit, ArrowLeft, MoreHorizontal, CalendarClock, Archive, UserCircle, Plus, Minus, Hash } from 'lucide-react';
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { useAuth } from '@/hooks/use-auth.tsx';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
@@ -288,7 +288,7 @@ export default function OrdersPage() {
                                         {order.products[0].size && <span>Size: {order.products[0].size}</span>}
                                         {order.products[0].size && order.products[0].color && <span className="mx-1">|</span>}
                                         {order.products[0].color && <span>Color: {order.products[0].color}</span>}
-                                        {(order.products[0].quantity) && <span className="font-semibold"> (x{order.products[0].quantity})</span>}
+                                        {(order.products[0].quantity > 1) && <span className="font-semibold"> (x{order.products[0].quantity})</span>}
                                     </div>
                                     <p className="text-muted-foreground text-xs">Order ID: {order.orderId}</p>
                                     <p className="text-muted-foreground text-xs md:hidden">{format(parseISO(order.orderDate), "MMM dd, yyyy")}</p>
@@ -369,7 +369,12 @@ export default function OrdersPage() {
                             <div className="col-span-2 md:col-span-1">
                                 <p className="font-semibold text-sm">{t.type}</p>
                                 <p className="text-xs text-muted-foreground">Via {t.description}</p>
-                                <p className="text-xs text-muted-foreground font-mono">ID: {t.transactionId}</p>
+                                <div className="flex items-center gap-2">
+                                     <p className="text-xs text-muted-foreground font-mono">ID: {t.transactionId}</p>
+                                      <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground" onClick={() => copyToClipboard(t.transactionId)}>
+                                        <Clipboard className="h-3 w-3" />
+                                     </Button>
+                                </div>
                                 {t.status === 'Failed' && (
                                      <p className={cn("text-xs italic mt-1", isRefunded(t.transactionId) ? "text-green-600 dark:text-green-500" : "text-amber-600 dark:text-amber-500")}>
                                         {isRefunded(t.transactionId) ? "Refund completed." : "The refund will reach you shortly."}
@@ -532,4 +537,3 @@ export default function OrdersPage() {
     </div>
   );
 }
-
