@@ -356,32 +356,39 @@ export default function OrdersPage() {
       </CardHeader>
       <CardContent>
          <div className="divide-y">
-            {filteredTransactions.map(t => (
-                <div key={t.id} className="grid grid-cols-[auto,1fr,auto] items-start gap-x-4 gap-y-2 py-4 md:grid-cols-[auto,1fr,1fr,auto] md:items-center">
-                    <Avatar className="h-9 w-9 row-span-2 md:row-span-1">
-                        <AvatarImage src={t.avatar} />
-                        <AvatarFallback>{t.type.charAt(0)}</AvatarFallback>
-                    </Avatar>
-                    <div className="col-span-2 md:col-span-1">
-                        <p className="font-semibold text-sm">{t.type}</p>
-                        <p className="text-xs text-muted-foreground">Via {t.description}</p>
-                        <p className="text-xs text-muted-foreground font-mono">ID: {t.transactionId}</p>
-                        {t.status === 'Failed' && <p className="text-xs text-amber-600 dark:text-amber-500 italic mt-1">The refund will reach you shortly.</p>}
-                    </div>
-                     <div className="col-span-3 md:col-span-1 md:text-right">
-                         <p className={cn("font-semibold text-base flex items-center gap-1", t.amount > 0 ? 'text-green-500' : 'text-foreground')}>
-                            {t.amount > 0 ? <Plus className="inline-block h-4 w-4" /> : <Minus className="inline-block h-4 w-4" />}
-                            <span>₹{Math.abs(t.amount).toLocaleString('en-IN',{minimumFractionDigits: 2})}</span>
-                        </p>
-                    </div>
-                    <div className="col-span-3 md:col-span-1 text-right">
-                         <div className="flex items-center justify-end gap-2">
-                             <p className="text-xs text-muted-foreground">{t.date}, {t.time}</p>
-                             <Badge variant={t.status === 'Completed' ? 'success' : t.status === 'Processing' ? 'warning' : 'destructive'} className="capitalize">{t.status}</Badge>
+            {filteredTransactions.map(t => {
+                 const isRefunded = transactions.some(refund => refund.type === 'Refund' && refund.description.includes(t.transactionId) && refund.status === 'Completed');
+                 return (
+                    <div key={t.id} className="grid grid-cols-[auto,1fr,auto] items-start gap-x-4 gap-y-2 py-4 md:grid-cols-[auto,1fr,1fr,auto] md:items-center">
+                        <Avatar className="h-9 w-9 row-span-2 md:row-span-1">
+                            <AvatarImage src={t.avatar} />
+                            <AvatarFallback>{t.type.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                        <div className="col-span-2 md:col-span-1">
+                            <p className="font-semibold text-sm">{t.type}</p>
+                            <p className="text-xs text-muted-foreground">Via {t.description}</p>
+                            <p className="text-xs text-muted-foreground font-mono">ID: {t.transactionId}</p>
+                            {t.status === 'Failed' && (
+                                <p className={cn("text-xs italic mt-1", isRefunded ? "text-green-600 dark:text-green-500" : "text-amber-600 dark:text-amber-500")}>
+                                    {isRefunded ? "Refund completed." : "The refund will reach you shortly."}
+                                </p>
+                            )}
+                        </div>
+                         <div className="col-span-3 md:col-span-1 md:text-right">
+                             <p className={cn("font-semibold text-base flex items-center gap-1 justify-start md:justify-end", t.amount > 0 ? 'text-green-500' : 'text-foreground')}>
+                                {t.amount > 0 ? <Plus className="inline-block h-4 w-4" /> : <Minus className="inline-block h-4 w-4" />}
+                                <span>₹{Math.abs(t.amount).toLocaleString('en-IN',{minimumFractionDigits: 2})}</span>
+                            </p>
+                        </div>
+                        <div className="col-span-3 md:col-span-1 text-right">
+                             <div className="flex items-center justify-end gap-2">
+                                 <p className="text-xs text-muted-foreground">{t.date}, {t.time}</p>
+                                 <Badge variant={t.status === 'Completed' ? 'success' : t.status === 'Processing' ? 'warning' : 'destructive'} className="capitalize">{t.status}</Badge>
+                            </div>
                         </div>
                     </div>
-                </div>
-            ))}
+                )
+            })}
         </div>
         {filteredTransactions.length === 0 && <p className="text-center py-8 text-muted-foreground">No transactions found.</p>}
       </CardContent>
