@@ -650,25 +650,25 @@ export default function PaymentPage() {
                                             <div className="relative w-16 h-16 rounded-md border flex-shrink-0">
                                                 <Image src={item.imageUrl || 'https://placehold.co/100x100.png'} alt={item.name} layout="fill" className="object-cover rounded-md" data-ai-hint={item.hint}/>
                                             </div>
-                                            <div className="flex-grow">
-                                                <p className="font-semibold text-sm leading-tight">{item.name}</p>
+                                            <div className="flex-grow min-w-0">
+                                                <p className="font-semibold text-sm leading-tight truncate">{item.name}</p>
                                                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
                                                     {item.size && <span>Size: {item.size}</span>}
                                                     {item.size && item.color && <span className="mx-1">|</span>}
                                                     {item.color && <span>Color: {item.color}</span>}
                                                 </div>
                                                 <p className="text-xs text-muted-foreground">Qty: {item.quantity}</p>
-                                            </div>
-                                            <div className="text-right">
-                                                {hasDiscount ? (
-                                                    <div className="flex items-baseline gap-x-2">
-                                                        <p className="font-semibold text-sm">₹{itemPrice.toLocaleString('en-IN')}</p>
+                                                 {hasDiscount && (
+                                                    <div className="flex items-center gap-x-2 mt-1">
                                                         <p className="text-xs text-muted-foreground line-through">₹{originalPrice.toLocaleString('en-IN')}</p>
-                                                        <Badge variant="destructive" className="text-[10px]">{details.discountPercentage}% OFF</Badge>
+                                                        <Badge variant="destructive" className="text-[10px]">
+                                                            {details.discountPercentage}% OFF
+                                                        </Badge>
                                                     </div>
-                                                ) : (
-                                                    <p className="font-semibold text-sm">₹{itemPrice.toLocaleString('en-IN')}</p>
                                                 )}
+                                            </div>
+                                            <div className="text-right flex-shrink-0">
+                                                <p className="font-semibold text-sm">₹{itemPrice.toLocaleString('en-IN')}</p>
                                             </div>
                                         </div>
                                     )
@@ -746,3 +746,4 @@ export default function PaymentPage() {
 }
 
     
+
