@@ -260,60 +260,63 @@ export default function CartPage() {
                                 const originalPrice = hasDiscount ? discountedPrice / (1 - details.discountPercentage / 100) : discountedPrice;
                                 
                                 return (
-                                <div key={`${item.id}-${item.size || ''}-${item.color || ''}`} className="p-4 flex flex-col sm:flex-row gap-4">
-                                    <div className="flex gap-4 flex-grow">
-                                        <div className="flex-shrink-0">
-                                            <Link href={`/product/${item.key}`} className="block">
-                                                <Image src={item.imageUrl || 'https://placehold.co/100x100.png'} alt={item.name} width={100} height={100} className="rounded-lg object-cover" data-ai-hint={item.hint} />
-                                            </Link>
-                                        </div>
-                                        <div className="flex-grow flex flex-col">
-                                            <div className="flex justify-between items-start">
-                                                <div className='flex-grow'>
-                                                    <Link href={`/product/${item.key}`} className="hover:underline">
-                                                        <h3 className="font-semibold">{item.name}</h3>
-                                                    </Link>
-                                                    {(item.size || item.color) && (
-                                                        <div className="flex items-center gap-2 mt-1">
-                                                            {item.size && <Badge variant="outline">Size: {item.size}</Badge>}
-                                                            {item.color && <Badge variant="outline">Color: {item.color}</Badge>}
-                                                        </div>
-                                                    )}
-                                                    <div className="flex items-baseline gap-x-2 mt-1">
-                                                        <p className="font-bold text-sm text-foreground">
-                                                        ₹{discountedPrice.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                                                        </p>
-                                                        {hasDiscount && (
-                                                        <>
-                                                            <p className="text-xs text-muted-foreground line-through">
-                                                            ₹{originalPrice.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                                                            </p>
-                                                            <Badge variant="destructive" className="text-[10px] px-1 py-0">({details.discountPercentage}% OFF)</Badge>
-                                                        </>
-                                                        )}
-                                                    </div>
-                                                    <p className="text-xs text-muted-foreground mt-1">Estimated delivery by <span className="font-semibold text-foreground">{estimatedDeliveryDate}</span></p>
-                                                </div>
-                                                {!isBuyNow && (
-                                                    <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive h-8 w-8 flex-shrink-0" onClick={() => handleRemoveFromCart(item.id, item.size, item.color)}>
-                                                        <Trash2 className="h-4 w-4" />
-                                                    </Button>
-                                                )}
-                                            </div>
-                                        </div>
+                                <div key={`${item.id}-${item.size || ''}-${item.color || ''}`} className="p-4 flex gap-4">
+                                    <div className="flex-shrink-0">
+                                        <Link href={`/product/${item.key}`} className="block">
+                                            <Image src={item.imageUrl || 'https://placehold.co/100x100.png'} alt={item.name} width={100} height={100} className="rounded-lg object-cover" data-ai-hint={item.hint} />
+                                        </Link>
                                     </div>
-                                    <div className="flex items-center justify-between sm:justify-end mt-2 sm:mt-0 sm:flex-col sm:items-end sm:justify-between sm:w-28 sm:flex-shrink-0">
-                                        <div className="flex items-center gap-2">
-                                            <Button size="icon" variant="outline" className="h-8 w-8" onClick={() => handleQuantityChange(item.id, item.quantity - 1, item.size, item.color)} disabled={item.quantity <= 1}>
-                                                <Minus className="h-4 w-4" />
-                                            </Button>
-                                            <span className="w-10 text-center font-semibold">{item.quantity}</span>
-                                            <Button size="icon" variant="outline" className="h-8 w-8" onClick={() => handleQuantityChange(item.id, item.quantity + 1, item.size, item.color)}>
-                                                <Plus className="h-4 w-4" />
-                                            </Button>
+                                    <div className="flex-grow flex flex-col justify-between">
+                                        <div className="flex justify-between items-start">
+                                            <div className='flex-grow'>
+                                                <Link href={`/product/${item.key}`} className="hover:underline">
+                                                    <h3 className="font-semibold">{item.name}</h3>
+                                                </Link>
+                                                {(item.size || item.color) && (
+                                                    <div className="flex items-center gap-2 mt-1">
+                                                        {item.size && <Badge variant="outline">Size: {item.size}</Badge>}
+                                                        {item.color && <Badge variant="outline">Color: {item.color}</Badge>}
+                                                    </div>
+                                                )}
+                                                <div className="flex items-baseline gap-x-2 mt-1">
+                                                    <p className="font-bold text-sm text-foreground">
+                                                    ₹{discountedPrice.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                                    </p>
+                                                    {hasDiscount && (
+                                                    <>
+                                                        <p className="text-xs text-muted-foreground line-through">
+                                                        ₹{originalPrice.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                                        </p>
+                                                        <Badge variant="destructive" className="text-[10px] px-1 py-0">({details.discountPercentage}% OFF)</Badge>
+                                                    </>
+                                                    )}
+                                                </div>
+                                                <div className="flex items-center gap-1.5 text-xs mt-1">
+                                                    <Star className="w-3.5 h-3.5 text-yellow-400 fill-yellow-400" />
+                                                    <span className="font-semibold text-foreground">4.8</span>
+                                                    <span className="text-muted-foreground">(1.2k reviews)</span>
+                                                </div>
+                                                <p className="text-xs text-muted-foreground mt-1">Estimated delivery by <span className="font-semibold text-foreground">{estimatedDeliveryDate}</span></p>
+                                            </div>
+                                            {!isBuyNow && (
+                                                <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive h-8 w-8 flex-shrink-0" onClick={() => handleRemoveFromCart(item.id, item.size, item.color)}>
+                                                    <Trash2 className="h-4 w-4" />
+                                                </Button>
+                                            )}
                                         </div>
-                                        <div className="font-bold text-base sm:text-right">
-                                            ₹{(parseFloat(item.price.replace('₹', '').replace(/,/g, '')) * item.quantity).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                        <div className="flex items-center justify-between mt-2">
+                                            <div className="flex items-center gap-2">
+                                                <Button size="icon" variant="outline" className="h-8 w-8" onClick={() => handleQuantityChange(item.id, item.quantity - 1, item.size, item.color)} disabled={item.quantity <= 1}>
+                                                    <Minus className="h-4 w-4" />
+                                                </Button>
+                                                <span className="w-10 text-center font-semibold">{item.quantity}</span>
+                                                <Button size="icon" variant="outline" className="h-8 w-8" onClick={() => handleQuantityChange(item.id, item.quantity + 1, item.size, item.color)}>
+                                                    <Plus className="h-4 w-4" />
+                                                </Button>
+                                            </div>
+                                            <div className="font-bold text-base">
+                                                ₹{(parseFloat(item.price.replace('₹', '').replace(/,/g, '')) * item.quantity).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
