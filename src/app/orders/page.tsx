@@ -7,6 +7,9 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import { Footer } from '@/components/footer';
+import { getTransactions, Transaction } from '@/lib/transaction-history';
+import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
+import { Timeline } from '@/components/timeline';
 
 // Single-file React component (default export)
 // Requirements: Tailwind CSS + framer-motion installed
@@ -228,55 +231,55 @@ function OrderDetail({ order, statusData, loading, onBack, onRequestReturn, onSi
           <img src={order.product.image} className="w-20 h-20 rounded-lg object-cover" alt="product" data-ai-hint={order.product['data-ai-hint']} />
           <div>
             <div className="text-lg font-semibold">{order.product.name}</div>
-            <div className="text-xs text-slate-500">{order.id} • {order.product.sku}</div>
-            <div className="text-sm text-slate-700 mt-1">₹{order.product.price.toFixed(2)}</div>
+            <div className="text-xs text-gray-500">{order.id} • {order.product.sku}</div>
+            <div className="text-sm text-gray-700 mt-1">₹{order.product.price.toFixed(2)}</div>
             {order.shippingAddress && (
-              <div className="mt-2 text-xs text-slate-400">To: {order.shippingAddress.name} • {order.shippingAddress.city} • {order.shippingAddress.postalCode}</div>
+              <div className="mt-2 text-xs text-gray-400">To: {order.shippingAddress.name} • {order.shippingAddress.city} • {order.shippingAddress.postalCode}</div>
             )}
             {order.returnRequest && (
-              <div className="mt-2 text-xs text-amber-700">Return requested: {order.returnRequest.type} • {order.returnRequest.status}</div>
+              <div className="mt-2 text-xs text-yellow-700">Return requested: {order.returnRequest.type} • {order.returnRequest.status}</div>
             )}
           </div>
         </div>
         <div className="text-right">
-          <div className="text-sm text-slate-500">Progress</div>
+          <div className="text-sm text-gray-500">Progress</div>
           <div className="text-lg font-semibold">{percent}%</div>
-          <div className="mt-2 text-xs text-slate-400">Placed on {new Date(order.placedAt).toLocaleDateString()}</div>
+          <div className="mt-2 text-xs text-gray-400">Placed on {new Date(order.placedAt).toLocaleDateString()}</div>
         </div>
       </div>
 
       <div className="mb-4">
-        <div className="w-full bg-slate-100 rounded-full overflow-hidden h-2">
-          <div className="h-2 rounded-full bg-indigo-500 transition-all" style={{ width: `${percent}%` }} />
+        <div className="w-full bg-gray-100 rounded-full overflow-hidden h-2">
+          <div className="h-2 rounded-full bg-black transition-all" style={{ width: `${percent}%` }} />
         </div>
       </div>
 
       <div className="flex items-center justify-between mb-3">
         <div className="text-sm font-medium">Delivery Timeline</div>
         <div className="flex items-center gap-3">
-          <button onClick={onBack} className="text-sm text-indigo-600 hover:underline">Back to orders</button>
+          <button onClick={onBack} className="text-sm text-black hover:underline">Back to orders</button>
           {/* Return / Cancel buttons shown based on rules */}
           {allowCancel && !order.returnRequest && (
-            <button onClick={() => onRequestReturn('cancel')} className="text-sm px-3 py-1 rounded-md border bg-amber-50 text-amber-700">Cancel order</button>
+            <button onClick={() => onRequestReturn('cancel')} className="text-sm px-3 py-1 rounded-md border bg-gray-100 text-black">Cancel order</button>
           )}
 
           {allowReturn && !order.returnRequest && (
-            <button onClick={() => onRequestReturn('return')} className="text-sm px-3 py-1 rounded-md border bg-red-50 text-red-700">Request return</button>
+            <button onClick={() => onRequestReturn('return')} className="text-sm px-3 py-1 rounded-md border bg-gray-100 text-black">Request return</button>
           )}
 
           {order.returnRequest && (
-            <div className="text-xs text-amber-600">Request: {order.returnRequest.type} • {order.returnRequest.status}</div>
+            <div className="text-xs text-gray-600">Request: {order.returnRequest.type} • {order.returnRequest.status}</div>
           )}
 
           {/* Small dev/testing helper: simulate pickup to complete refund in mock */}
           {order.returnRequest && order.returnRequest.status !== 'completed' && (
-            <button onClick={onSimulatePickup} className="text-sm px-3 py-1 rounded-md border bg-green-50 text-green-700">Simulate pickup (dev)</button>
+            <button onClick={onSimulatePickup} className="text-sm px-3 py-1 rounded-md border bg-gray-100 text-black">Simulate pickup (dev)</button>
           )}
         </div>
       </div>
 
       {loading ? (
-        <div className="text-sm text-slate-500">Loading status…</div>
+        <div className="text-sm text-gray-500">Loading status…</div>
       ) : (
         <div className="space-y-4">
           {stages.map((s: any, idx: number) => (
@@ -285,7 +288,7 @@ function OrderDetail({ order, statusData, loading, onBack, onRequestReturn, onSi
         </div>
       )}
 
-      <div className="mt-6 text-xs text-slate-500">This timeline pulls data from the delivery API in production. Each stage shows its timestamp when completed.</div>
+      <div className="mt-6 text-xs text-gray-500">This timeline pulls data from the delivery API in production. Each stage shows its timestamp when completed.</div>
     </div>
   );
 }
@@ -299,22 +302,22 @@ function TimelineStep({ step, index, total }: any) {
   return (
     <motion.div initial="hidden" animate="enter" variants={variants} className="flex items-start gap-4">
       <div className="flex flex-col items-center">
-        <div className={`w-8 h-8 rounded-full flex items-center justify-center border ${step.completed ? 'bg-indigo-500 text-white border-transparent' : 'bg-white text-slate-400 border-slate-200'}`}>
+        <div className={`w-8 h-8 rounded-full flex items-center justify-center border ${step.completed ? 'bg-black text-white border-transparent' : 'bg-white text-gray-400 border-gray-200'}`}>
           {step.completed ? (
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="w-4 h-4 fill-current"><path d="M9 16.2l-3.5-3.5L4 14.2 9 19.2 20 8.2 17.5 5.7z"/></svg>
           ) : (
             <div className="text-xs font-medium">{index + 1}</div>
           )}
         </div>
-        {index < total - 1 && <div className={`w-px flex-1 bg-slate-200 mt-2`} style={{ minHeight: 32 }} />}
+        {index < total - 1 && <div className={`w-px flex-1 bg-gray-200 mt-2`} style={{ minHeight: 32 }} />}
       </div>
 
       <div className="flex-1 pt-0.5">
         <div className="flex items-center justify-between">
           <div className="font-medium text-sm">{step.label}</div>
-          <div className="text-xs text-slate-400">{step.timestamp ? new Date(step.timestamp).toLocaleString() : 'Pending'}</div>
+          <div className="text-xs text-gray-400">{step.timestamp ? new Date(step.timestamp).toLocaleString() : 'Pending'}</div>
         </div>
-        <div className="text-xs text-slate-500 mt-1">{step.completed ? 'Completed' : 'Waiting'}</div>
+        <div className="text-xs text-gray-500 mt-1">{step.completed ? 'Completed' : 'Waiting'}</div>
       </div>
     </motion.div>
   );
@@ -393,29 +396,29 @@ function HelpBot({ orders, selectedOrder, onOpenReturn, onCancelOrder, onShowAdd
         <div className="w-96 bg-white rounded-xl shadow-lg overflow-hidden">
           <div className="p-3 border-b flex items-center justify-between">
             <div className="font-medium">Help</div>
-            <button onClick={() => setOpen(false)} className="text-xs text-slate-500">Close</button>
+            <button onClick={() => setOpen(false)} className="text-xs text-gray-500">Close</button>
           </div>
           <div className="p-3 h-64 overflow-y-auto text-sm" id="help-chat">
             {messages.map((m, i) => (
-              <div key={i} className={`mb-2 ${m.from==='bot' ? 'text-slate-700' : 'text-right'}`}>
-                <div className={`${m.from==='bot' ? 'inline-block bg-slate-100 p-2 rounded-md' : 'inline-block bg-indigo-50 p-2 rounded-md'}`}>{m.text}</div>
+              <div key={i} className={`mb-2 ${m.from==='bot' ? 'text-gray-700' : 'text-right'}`}>
+                <div className={`${m.from==='bot' ? 'inline-block bg-gray-100 p-2 rounded-md' : 'inline-block bg-gray-900 text-white p-2 rounded-md'}`}>{m.text}</div>
               </div>
             ))}
           </div>
           <div className="p-3 border-t flex gap-2">
             <input value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => e.key==='Enter' && send()} className="flex-1 p-2 border rounded-md text-sm" placeholder="Ask: cancel, return, refund, address..." />
-            <button onClick={send} className="px-3 py-2 bg-indigo-600 text-white rounded-md text-sm">Send</button>
+            <button onClick={send} className="px-3 py-2 bg-black text-white rounded-md text-sm">Send</button>
           </div>
           <div className="p-3 border-t flex gap-2">{/* quick action buttons */}
-            <button onClick={handleCancel} className="px-2 py-1 rounded-md text-xs bg-amber-50 text-amber-700">Cancel order</button>
-            <button onClick={handleRequestReturn} className="px-2 py-1 rounded-md text-xs bg-red-50 text-red-700">Request return</button>
+            <button onClick={handleCancel} className="px-2 py-1 rounded-md text-xs bg-gray-100 text-black">Cancel order</button>
+            <button onClick={handleRequestReturn} className="px-2 py-1 rounded-md text-xs bg-gray-100 text-black">Request return</button>
             <button onClick={handleRefundStatus} className="px-2 py-1 rounded-md text-xs border">Refund status</button>
             <button onClick={handleShowAddress} className="px-2 py-1 rounded-md text-xs border">Show address</button>
           </div>
         </div>
       )}
 
-      <button onClick={() => setOpen((o) => !o)} className="w-14 h-14 rounded-full bg-indigo-600 text-white shadow-lg flex items-center justify-center">?
+      <button onClick={() => setOpen((o) => !o)} className="w-14 h-14 rounded-full bg-black text-white shadow-lg flex items-center justify-center">?
       </button>
     </div>
   );
@@ -435,7 +438,7 @@ export default function OrdersPage() {
     const [contactPhone, setContactPhone] = useState("");
     const [attachedPhotos, setAttachedPhotos] = useState<any[]>([]);
     const [tab, setTab] = useState("orders"); // 'orders' or 'transactions'
-    const [transactions, setTransactions] = useState(MOCK_TRANSACTIONS.slice());
+    const [transactions, setTransactions] = useState(getTransactions());
     const fileInputRef = useRef<any>(null);
     const router = useRouter();
 
@@ -449,13 +452,6 @@ export default function OrdersPage() {
 
         setLoadingStatus(true);
         setStatusData(null);
-
-        // --- Replace below with real API call when backend is ready ---
-        // fetch(`/api/delivery/${selectedOrder.id}`)
-        //   .then(r => r.json())
-        //   .then(data => { setStatusData(data); setLoadingStatus(false); })
-        //   .catch(err => { console.error(err); setLoadingStatus(false); });
-        // ------------------------------------------------------------
 
         fetchDeliveryStatusMock(selectedOrder.id)
         .then((data) => {
@@ -552,8 +548,8 @@ export default function OrdersPage() {
     }
 
     return (
-        <div className="min-h-screen bg-slate-50 text-slate-800 flex flex-col">
-            <header className="p-4 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-sm z-30 border-b">
+        <div className="min-h-screen bg-white text-black flex flex-col">
+            <header className="p-4 flex items-center justify-between sticky top-0 bg-white/80 backdrop-blur-sm z-30 border-b">
                 <Button variant="ghost" size="icon" onClick={() => router.back()}>
                 <ArrowLeft className="h-6 w-6" />
                 </Button>
@@ -564,54 +560,54 @@ export default function OrdersPage() {
                  <div className="max-w-6xl mx-auto">
                     <header className="mb-4 flex items-center justify-between">
                     <div>
-                        <p className="text-sm text-slate-600">View orders, request returns, and see transactions.</p>
+                        <p className="text-sm text-gray-600">View orders, request returns, and see transactions.</p>
                     </div>
                     <div className="flex items-center gap-3">
-                        <button onClick={() => setTab("orders")} className={`px-3 py-1 rounded-md ${tab==='orders' ? 'bg-indigo-600 text-white' : 'border'}`}>Orders</button>
-                        <button onClick={() => setTab("transactions")} className={`px-3 py-1 rounded-md ${tab==='transactions' ? 'bg-indigo-600 text-white' : 'border'}`}>Transactions</button>
+                        <button onClick={() => setTab("orders")} className={`px-3 py-1 rounded-md ${tab==='orders' ? 'bg-black text-white' : 'border'}`}>Orders</button>
+                        <button onClick={() => setTab("transactions")} className={`px-3 py-1 rounded-md ${tab==='transactions' ? 'bg-black text-white' : 'border'}`}>Transactions</button>
                     </div>
                     </header>
 
                     {tab === 'orders' && (
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div className="md:col-span-1">
-                        <div className="bg-white p-4 rounded-2xl shadow-sm">
-                        <h2 className="font-medium mb-3">Orders</h2>
+                        <div className="bg-white p-4 rounded-2xl shadow-sm border">
+                        <h2 className="font-medium mb-3 text-black">Orders</h2>
                         <div className="space-y-3">
                             {orders.map((o) => (
                             <button
                                 key={o.id}
                                 onClick={() => setSelectedOrder(o)}
                                 className={`w-full text-left p-3 rounded-xl border flex items-center gap-3 hover:shadow transition ${
-                                selectedOrder?.id === o.id ? "border-indigo-400 bg-indigo-50" : "border-transparent"
+                                selectedOrder?.id === o.id ? "border-black bg-gray-100" : "border-transparent"
                                 }`}
                             >
                                 <img src={o.product.image} alt={o.product.name} className="w-14 h-14 rounded-md object-cover" data-ai-hint={o.product['data-ai-hint']} />
                                 <div className="flex-1">
-                                <div className="text-sm font-medium text-foreground">{o.product.name}</div>
-                                <div className="text-xs text-muted-foreground">{o.id} • {isClient ? new Date(o.placedAt).toLocaleString() : ''}</div>
-                                <div className="text-xs text-slate-400 mt-1">{formatAddress(o.shippingAddress)}</div>
+                                <div className="text-sm font-medium text-black">{o.product.name}</div>
+                                <div className="text-xs text-gray-500">{o.id} • {isClient ? new Date(o.placedAt).toLocaleString() : ''}</div>
+                                <div className="text-xs text-gray-400 mt-1">{formatAddress(o.shippingAddress)}</div>
                                 {o.returnRequest && (
-                                    <div className="text-xs text-amber-600 mt-1">Return: {o.returnRequest.type} • {o.returnRequest.status}</div>
+                                    <div className="text-xs text-yellow-600 mt-1">Return: {o.returnRequest.type} • {o.returnRequest.status}</div>
                                 )}
                                 </div>
-                                <div className="text-sm text-foreground capitalize">{o.status.replace(/_/g, ' ')}</div>
+                                <div className="text-sm text-black capitalize">{o.status.replace(/_/g, ' ')}</div>
                             </button>
                             ))}
                         </div>
                         </div>
 
-                        <div className="mt-4 text-xs text-slate-500">
+                        <div className="mt-4 text-xs text-gray-500">
                         <div>Note: This frontend uses mock data. When you connect the backend, replace the mock fetch in the code with a real API call to your delivery service.</div>
                         </div>
                     </div>
 
                     <div className="md:col-span-2">
-                        <div className="bg-white p-6 rounded-2xl shadow-sm min-h-[300px]">
+                        <div className="bg-white p-6 rounded-2xl shadow-sm border min-h-[300px]">
                         {!selectedOrder ? (
                             <div className="flex flex-col items-center justify-center h-64">
-                            <div className="text-slate-500">No order selected</div>
-                            <div className="text-sm mt-2 text-slate-400">Click an order on the left to see its tracking steps.</div>
+                            <div className="text-gray-500">No order selected</div>
+                            <div className="text-sm mt-2 text-gray-400">Click an order on the left to see its tracking steps.</div>
                             </div>
                         ) : (
                             <OrderDetail
@@ -632,11 +628,11 @@ export default function OrdersPage() {
                     )}
 
                     {tab === 'transactions' && (
-                    <div className="bg-white p-6 rounded-2xl shadow-sm">
+                    <div className="bg-white p-6 rounded-2xl shadow-sm border">
                         <h2 className="text-lg font-medium mb-4">Transactions</h2>
                         <div className="overflow-x-auto">
                         <table className="w-full text-sm">
-                            <thead className="text-xs text-slate-500 text-left">
+                            <thead className="text-xs text-gray-500 text-left">
                             <tr>
                                 <th className="py-2">Txn ID</th>
                                 <th>Order</th>
@@ -654,7 +650,7 @@ export default function OrdersPage() {
                                 <td className="capitalize">{t.type}</td>
                                 <td>₹{(t.amount ?? 0).toFixed(2)}</td>
                                 <td>{t.status}</td>
-                                <td className="text-xs text-slate-500">{new Date(t.at).toLocaleString()}</td>
+                                <td className="text-xs text-gray-500">{new Date(t.at).toLocaleString()}</td>
                                 </tr>
                             ))}
                             </tbody>
@@ -668,9 +664,9 @@ export default function OrdersPage() {
                     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
                         <div className="bg-white rounded-xl p-6 w-full max-w-lg">
                         <h3 className="text-lg font-semibold">{returnType === 'cancel' ? 'Cancel order' : 'Request return'}</h3>
-                        <p className="text-sm text-slate-600 mt-2">Order <span className="font-medium">{selectedOrder.id}</span> • {selectedOrder.product.name}</p>
+                        <p className="text-sm text-gray-600 mt-2">Order <span className="font-medium">{selectedOrder.id}</span> • {selectedOrder.product.name}</p>
 
-                        <label className="block text-xs text-slate-500 mt-4">Reason</label>
+                        <label className="block text-xs text-gray-500 mt-4">Reason</label>
                         <select value={returnReason} onChange={(e) => setReturnReason(e.target.value)} className="w-full mt-2 p-2 border rounded-md text-sm">
                             <option value="">-- Select reason --</option>
                             <option value="wrong_item">Wrong item delivered</option>
@@ -679,26 +675,26 @@ export default function OrdersPage() {
                             <option value="other">Other</option>
                         </select>
 
-                        <label className="block text-xs text-slate-500 mt-3">Pickup vs Drop-off</label>
+                        <label className="block text-xs text-gray-500 mt-3">Pickup vs Drop-off</label>
                         <div className="flex items-center gap-3 mt-2">
                             <label className="flex items-center gap-2"><input type="radio" checked={returnPickupOption==='pickup'} onChange={() => setReturnPickupOption('pickup')} /> Pickup</label>
                             <label className="flex items-center gap-2"><input type="radio" checked={returnPickupOption==='dropoff'} onChange={() => setReturnPickupOption('dropoff')} /> Drop-off</label>
                         </div>
 
-                        <label className="block text-xs text-slate-500 mt-3">Contact phone for pickup (optional)</label>
+                        <label className="block text-xs text-gray-500 mt-3">Contact phone for pickup (optional)</label>
                         <input value={contactPhone} onChange={(e) => setContactPhone(e.target.value)} className="w-full mt-2 p-2 border rounded-md text-sm" placeholder="+91 98XXXXXXXX" />
 
-                        <label className="block text-xs text-slate-500 mt-3">Attach photos (optional)</label>
+                        <label className="block text-xs text-gray-500 mt-3">Attach photos (optional)</label>
                         <input ref={fileInputRef} onChange={handlePhotoAttach} type="file" multiple accept="image/*" className="w-full mt-2 text-sm" />
 
                         <div className="flex items-center gap-3 mt-4 justify-end">
                             <button onClick={() => { setShowReturnConfirm(false); setReturnType(null); }} className="px-3 py-2 rounded-md text-sm border">Cancel</button>
-                            <button onClick={handleSubmitReturn} disabled={returning} className="px-3 py-2 rounded-md text-sm bg-indigo-600 text-white disabled:opacity-60">
+                            <button onClick={handleSubmitReturn} disabled={returning} className="px-3 py-2 rounded-md text-sm bg-black text-white disabled:opacity-60">
                             {returning ? 'Submitting...' : returnType === 'cancel' ? 'Confirm Cancel' : 'Submit Return'}
                             </button>
                         </div>
 
-                        <div className="mt-3 text-xs text-slate-500">Note: In this mock, refunds are created as pending and will be marked successful after a simulated pickup. In production your backend will process pickup and refund flows.</div>
+                        <div className="mt-3 text-xs text-gray-500">Note: In this mock, refunds are created as pending and will be marked successful after a simulated pickup. In production your backend will process pickup and refund flows.</div>
                         </div>
                     </div>
                     )}
@@ -717,3 +713,4 @@ export default function OrdersPage() {
         </div>
     );
 }
+
