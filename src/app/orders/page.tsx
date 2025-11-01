@@ -102,7 +102,7 @@ function submitReturnRequestMock({ orderId, type, reason, contactPhone, pickup, 
 // Mock: simulate pickup completed by delivery partner — this will mark refund as completed
 function simulatePickupComplete(orderId: any) {
     const transactions = getTransactions();
-    const txIndex = transactions.findIndex((t) => t.transactionId.includes(orderId) && t.type === "Refund" && t.status === "Processing");
+    const txIndex = transactions.findIndex((t) => t.transactionId && t.transactionId.includes(orderId) && t.type === "Refund" && t.status === "Processing");
 
     if (txIndex !== -1) {
         // This is a simplified update. In a real app, you'd update this through a proper state management or API call.
@@ -262,31 +262,56 @@ export default function OrdersPage() {
     return `${addr.name}, ${addr.village}, ${addr.city}, ${addr.state} - ${addr.pincode}, India • ${addr.phone}`;
   }
 
-  const handleConfirmCancellation = (otpValue: string) => {
+  const handleConfirmCancellation = async (otpValue: string) => {
     if (otpValue !== '123456') {
         toast({ title: "Invalid OTP", variant: "destructive" });
         return;
     }
     setIsVerifyingOtp(true);
-    setTimeout(() => {
-        toast({ title: "Order Cancelled", description: `Your order ${selectedOrder.orderId} has been cancelled.` });
+    try {
+        const allOrdersJSON = localStorage.getItem(ORDERS_KEY);
+        let allOrders: Order[] = allOrdersJSON ? JSON.parse(allOrdersJSON) : [];
         
-        // Add cancellation and refund note to timeline
-        const updatedTimeline = [
-            ...selectedOrder.timeline,
-            { status: 'Cancelled by user', date: format(new Date(), 'MMM dd, yyyy'), time: format(new Date(), 'p'), completed: true },
-            { status: 'Refund Initiated: The amount will be credited to your original payment method within 5-7 business days.', date: format(new Date(), 'MMM dd, yyyy'), time: format(new Date(), 'p'), completed: false }
-        ];
-        updateOrder(selectedOrder.orderId, { timeline: updatedTimeline });
-        
-        setIsCancelFlowOpen(false);
-        setCancelStep("reason");
-        setCancelReason("");
-        setCancelFeedback("");
-        setOtp("");
+        const orderIndex = allOrders.findIndex(o => o.orderId === orderId);
+
+        if (orderIndex !== -1) {
+            const updatedOrder = { ...allOrders[orderIndex] };
+            updatedOrder.timeline = [
+                ...updatedOrder.timeline,
+                { status: 'Cancelled by user', date: format(new Date(), 'MMM dd, yyyy'), time: format(new Date(), 'p'), completed: true },
+                { status: 'Refund Initiated: The amount will be credited to your original payment method within 5-7 business days.', date: format(new Date(), 'MMM dd, yyyy'), time: format(new Date(), 'p'), completed: false }
+            ];
+            allOrders[orderIndex] = updatedOrder;
+            saveAllOrders(allOrders);
+            setOrder(updatedOrder);
+
+            addTransaction({
+                id: Date.now(),
+                transactionId: `REF-${order.orderId.replace('#', '')}`,
+                type: 'Refund',
+                description: `For cancelled order ${order.orderId}`,
+                date: format(new Date(), 'MMM dd, yyyy'),
+                time: format(new Date(), 'p'),
+                amount: order.total,
+                status: 'Processing',
+            });
+            
+            toast({ title: "Order Cancelled & Refund Initiated" });
+            setIsCancelFlowOpen(false);
+            setCancelStep("reason");
+            setCancelReason("");
+            setCancelFeedback("");
+            setOtp("");
+        } else {
+            throw new Error("Order not found in local storage.");
+        }
+    } catch (error) {
+        console.error("Cancellation error:", error);
+        toast({ title: "Cancellation Failed", variant: "destructive" });
+    } finally {
         setIsVerifyingOtp(false);
-    }, 1500);
-  }
+    }
+  };
   
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
@@ -530,7 +555,7 @@ function OrderDetail({ order, statusData, loading, onBack, onRequestReturn, onSi
   const product = order.products[0];
   const stages = statusData?.stages ?? order.timeline ?? [];
   const completedCount = stages.filter((s: any) => s.completed).length;
-  const percent = stages.length > Math.round((completedCount / stages.length) * 100) : 0;
+  const percent = stages.length > 0 ? Math.round((completedCount / stages.length) * 100) : 0;
   
   const outForDeliveryCompleted = stages.find((s: any) => (s.key === 'out_for_delivery') || (s.status && s.status.toLowerCase().includes('out for delivery')))?.completed;
   const isDelivered = stages.find((s: any) => (s.key === 'delivered') || (s.status && s.status.toLowerCase().includes('delivered')))?.completed;
