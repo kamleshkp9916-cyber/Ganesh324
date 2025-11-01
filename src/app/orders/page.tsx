@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useEffect, useState, useRef, useCallback } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { motion } from "framer-motion";
 import { ArrowLeft, RefreshCw, CreditCard, Download, Lock, Coins, Loader2, Bell, ChevronRight, Briefcase, ShoppingBag, BarChart2, Plus, ArrowUp, ArrowDown, Search, Printer, CheckCircle2, Circle, Hourglass, Package, PackageCheck, PackageOpen, Truck, Home, XCircle, AlertTriangle, ShieldCheck } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -17,124 +17,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { InputOTP, InputOTPGroup, InputOTPSlot, InputOTPSeparator } from "@/components/ui/input-otp";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-
-// Single-file React component (default export)
-// Requirements: Tailwind CSS + framer-motion installed
-// How to use: paste into your React app (e.g. src/components/OrdersPage.jsx)
-// This version includes: more mock orders, return/cancel flow with reasons, attach photos,
-// pickup vs drop-off choice, mock refund lifecycle (refund initiated after pickup),
-// a help bot UI with quick actions, and a Transactions tab showing payments/refunds/failed payments.
-
-const MOCK_ORDERS = [
-  {
-    id: "ORD-1001",
-    product: {
-      id: "P-001",
-      name: "Mock Camera Pro",
-      sku: "MC-PRO-01",
-      price: 499.99,
-      image:
-        "https://picsum.photos/seed/camera/800/800",
-      "data-ai-hint": "camera",
-    },
-    placedAt: "2025-10-28T09:15:00.000Z",
-    status: "shipped",
-    returnRequest: null,
-    shippingAddress: {
-      name: "Rahul Sharma",
-      phone: "+91 9876543210",
-      line1: "Flat 12A, Sunrise Apartments",
-      line2: "MG Road",
-      city: "Ahmedabad",
-      state: "Gujarat",
-      postalCode: "380015",
-      country: "India",
-    },
-  },
-  {
-    id: "ORD-1002",
-    product: {
-      id: "P-002",
-      name: "Mock Headphones X",
-      sku: "MH-X-02",
-      price: 129.99,
-      image:
-        "https://picsum.photos/seed/headphones/800/800",
-      "data-ai-hint": "headphones",
-    },
-    placedAt: "2025-10-30T13:45:00.000Z",
-    status: "delivered",
-    returnRequest: null,
-    shippingAddress: {
-      name: "Anita Patel",
-      phone: "+91 9123456780",
-      line1: "House 8, Rose Villa",
-      line2: "Sector 14",
-      city: "Surat",
-      state: "Gujarat",
-      postalCode: "395007",
-      country: "India",
-    },
-  },
-  {
-    id: "ORD-1003",
-    product: {
-      id: "P-003",
-      name: "Mock Tripod Lite",
-      sku: "MT-LT-03",
-      price: 39.99,
-      image:
-        "https://picsum.photos/seed/tripod/800/800",
-      "data-ai-hint": "camera tripod",
-    },
-    placedAt: "2025-10-31T10:05:00.000Z",
-    status: "packed",
-    returnRequest: null,
-    shippingAddress: {
-      name: "Ganesh Prajapati",
-      phone: "+91 9988776655",
-      line1: "Plot 23, Village Road",
-      line2: "Near Primary School",
-      city: "Rajkot",
-      state: "Gujarat",
-      postalCode: "360001",
-      country: "India",
-    },
-  },
-  {
-    id: "ORD-1004",
-    product: {
-      id: "P-004",
-      name: "Mock SD Card 128GB",
-      sku: "MSD-128",
-      price: 19.99,
-      image:
-        "https://picsum.photos/seed/sd-card/800/800",
-      "data-ai-hint": "sd card",
-    },
-    placedAt: "2025-10-25T08:20:00.000Z",
-    status: "out_for_delivery",
-    returnRequest: null,
-    shippingAddress: {
-      name: "Vikram Singh",
-      phone: "+91 9090909090",
-      line1: "Shop 5, Central Market",
-      line2: "Station Road",
-      city: "Vadodara",
-      state: "Gujarat",
-      postalCode: "390001",
-      country: "India",
-    },
-  },
-];
-
-const ALL_STAGES = [
-  { key: "ordered", label: "Order placed" },
-  { key: "packed", label: "Packed" },
-  { key: "shipped", label: "Shipped" },
-  { key: "out_for_delivery", label: "Out for delivery" },
-  { key: "delivered", label: "Delivered" },
-];
+import { getOrderById, Order, saveAllOrders, getStatusFromTimeline } from "@/lib/order-data";
+import { ORDERS_KEY } from "@/lib/order-data";
 
 const cancellationReasons = [
   "Changed my mind",
@@ -153,15 +37,6 @@ const returnReasons = [
   "Other"
 ];
 
-
-// Mock transactions (payments/refunds/failed)
-
-function pushTransaction(tx: any) {
-  const newTx = { id: `TX-${Math.floor(10000 + Math.random() * 90000)}`, ...tx };
-  // MOCK_TRANSACTIONS = [newTx, ...MOCK_TRANSACTIONS];
-  addTransaction(newTx as Transaction);
-  return newTx;
-}
 
 // Mock delivery API call — replace this function with real fetch to the delivery API
 function fetchDeliveryStatusMock(orderId: any) {
@@ -208,7 +83,7 @@ function submitReturnRequestMock({ orderId, type, reason, contactPhone, pickup, 
         requestedAt: new Date().toISOString(),
       };
       // create a pending refund transaction (refund will be completed after pickup in mock)
-      const refundTx = pushTransaction({ orderId, type: "refund", amount: 0, status: "pending", at: new Date().toISOString() });
+      const refundTx = addTransaction({ id: Date.now(), orderId, type: "refund", amount: 0, status: "pending", at: new Date().toISOString() });
       resp.refundTx = refundTx;
       res(resp);
     }, 900)
@@ -226,10 +101,18 @@ function simulatePickupComplete(orderId: any) {
   return null;
 }
 
+const ALL_STAGES = [
+    { key: "ordered", label: "Order placed" },
+    { key: "packed", label: "Packed" },
+    { key: "shipped", label: "Shipped" },
+    { key: "out_for_delivery", label: "Out for delivery" },
+    { key: "delivered", label: "Delivered" },
+];
+
 export default function OrdersPage() {
   const router = useRouter();
   const [isClient, setIsClient] = useState(false);
-  const [orders, setOrders] = useState(MOCK_ORDERS);
+  const [orders, setOrders] = useState<Order[]>([]);
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
   const [statusData, setStatusData] = useState<any>(null);
   const [loadingStatus, setLoadingStatus] = useState(false);
@@ -254,6 +137,8 @@ export default function OrdersPage() {
   
   useEffect(() => {
     setIsClient(true);
+    const allOrders = JSON.parse(localStorage.getItem(ORDERS_KEY) || '[]');
+    setOrders(allOrders);
     setTransactions(getTransactions());
   }, []);
 
@@ -263,13 +148,6 @@ export default function OrdersPage() {
 
     setLoadingStatus(true);
     setStatusData(null);
-
-    // --- Replace below with real API call when backend is ready ---
-    // fetch(`/api/delivery/${selectedOrder.id}`)
-    //   .then(r => r.json())
-    //   .then(data => { setStatusData(data); setLoadingStatus(false); })
-    //   .catch(err => { console.error(err); setLoadingStatus(false); });
-    // ------------------------------------------------------------
 
     fetchDeliveryStatusMock(selectedOrder.id)
       .then((data) => {
@@ -281,9 +159,10 @@ export default function OrdersPage() {
 
   // Helper: update order in orders state
   function updateOrder(orderId: any, patch: any) {
-    setOrders((prev) => prev.map((o) => (o.id === orderId ? { ...o, ...patch } : o)));
-    // also update selectedOrder if it's the same
-    if (selectedOrder?.id === orderId) setSelectedOrder((s:any) => ({ ...s, ...patch }));
+    const updatedOrders = orders.map((o) => (o.orderId === orderId ? { ...o, ...patch } : o));
+    setOrders(updatedOrders);
+    saveAllOrders(updatedOrders);
+    if (selectedOrder?.orderId === orderId) setSelectedOrder((s:any) => ({ ...s, ...patch }));
   }
 
   // Called when user confirms a cancel/return
@@ -292,7 +171,7 @@ export default function OrdersPage() {
     setReturning(true);
     try {
       const resp: any = await submitReturnRequestMock({
-        orderId: selectedOrder.id,
+        orderId: selectedOrder.orderId,
         type: returnType,
         reason: returnReason,
         contactPhone,
@@ -300,7 +179,7 @@ export default function OrdersPage() {
         photos: attachedPhotos,
       });
       // update UI — store return request info on order
-      updateOrder(selectedOrder.id, { returnRequest: resp, status: returnType === 'cancel' ? 'cancel_requested' : (selectedOrder.status) });
+      updateOrder(selectedOrder.orderId, { returnRequest: resp, status: returnType === 'cancel' ? 'cancel_requested' : (selectedOrder.status) });
       // add refund tx to local list
       addTransaction(resp.refundTx);
       setTransactions(getTransactions());
@@ -329,32 +208,26 @@ export default function OrdersPage() {
   // Simulate pickup button (for testing) — in real life pickup will be processed by backend
   function handleSimulatePickup() {
     if (!selectedOrder) return;
-    const tx = simulatePickupComplete(selectedOrder.id);
+    const tx = simulatePickupComplete(selectedOrder.orderId);
     if (tx) {
-      // update transactions state
       setTransactions(getTransactions());
-      // update order returnRequest status
       const updatedReturn = { ...(selectedOrder.returnRequest || {}), refundTx: tx, status: "pickup_completed", refundedAt: new Date().toISOString() };
-      updateOrder(selectedOrder.id, { returnRequest: updatedReturn });
+      updateOrder(selectedOrder.orderId, { returnRequest: updatedReturn });
       alert(`Pickup simulated — refund ${tx.status} for ${tx.id}`);
     } else {
       alert("No pending pickup/refund found for this order (mock). Try creating a return request first).");
     }
   }
 
-  // New: cancel action that can be called by UI or bot. Allows cancel any time before 'out_for_delivery' stage.
   async function handleCancelFromBot(orderId: any) {
-    const order = orders.find((o) => o.id === orderId);
+    const order = orders.find((o) => o.orderId === orderId);
     if (!order) return;
-    // fetch latest stages (mock)
     const status: any = await fetchDeliveryStatusMock(orderId);
     const outForDeliveryCompleted = status.stages.find((s: any) => s.key === 'out_for_delivery')?.completed;
     if (outForDeliveryCompleted) {
       alert('This order is already out for delivery and cannot be cancelled.');
       return;
     }
-
-    // proceed with cancel request
     const resp: any = await submitReturnRequestMock({ orderId, type: 'cancel', reason: 'Cancelled via help', contactPhone: null, pickup: 'dropoff', photos: [] });
     updateOrder(orderId, { returnRequest: resp, status: 'cancel_requested' });
     addTransaction(resp.refundTx);
@@ -374,7 +247,7 @@ export default function OrdersPage() {
     }
     setIsVerifyingOtp(true);
     setTimeout(() => {
-        toast({ title: "Order Cancelled", description: `Your order ${selectedOrder.id} has been cancelled.` });
+        toast({ title: "Order Cancelled", description: `Your order ${selectedOrder.orderId} has been cancelled.` });
         setIsCancelFlowOpen(false);
         setCancelStep("reason");
         setCancelReason("");
@@ -413,22 +286,22 @@ export default function OrdersPage() {
                   <div className="space-y-3">
                     {orders.map((o) => (
                       <button
-                        key={o.id}
+                        key={o.orderId}
                         onClick={() => setSelectedOrder(o)}
                         className={`w-full text-left p-3 rounded-xl border flex items-center gap-3 hover:shadow transition ${
-                          selectedOrder?.id === o.id ? "border-primary bg-primary/10" : "border-transparent"
+                          selectedOrder?.orderId === o.orderId ? "border-primary bg-primary/10" : "border-transparent"
                         }`}
                       >
-                        <img src={o.product.image} alt={o.product.name} className="w-14 h-14 rounded-md object-cover" data-ai-hint={o.product['data-ai-hint']} />
+                        <img src={o.products[0].imageUrl} alt={o.products[0].name} className="w-14 h-14 rounded-md object-cover" />
                         <div className="flex-1">
-                          <div className="text-sm font-medium text-foreground">{o.product.name}</div>
-                          <div className="text-xs text-muted-foreground">{o.id} • {isClient ? new Date(o.placedAt).toLocaleString() : ''}</div>
-                          <div className="text-xs text-muted-foreground/80 mt-1">{formatAddress(o.shippingAddress)}</div>
+                          <div className="text-sm font-medium text-foreground">{o.products[0].name}</div>
+                           <div className="text-xs text-muted-foreground">{o.orderId} • {isClient ? new Date(o.orderDate).toLocaleString() : ''}</div>
+                          <div className="text-xs text-muted-foreground/80 mt-1">{formatAddress(o.address)}</div>
                           {o.returnRequest && (
                             <div className="text-xs text-yellow-600 mt-1">Return: {o.returnRequest.type} • {o.returnRequest.status}</div>
                           )}
                         </div>
-                        <div className="text-sm text-foreground capitalize">{o.status.replace(/_/g, ' ')}</div>
+                        <div className="text-sm text-foreground capitalize">{getStatusFromTimeline(o.timeline)}</div>
                       </button>
                     ))}
                   </div>
@@ -491,7 +364,7 @@ export default function OrdersPage() {
                         <td className="capitalize">{t.type}</td>
                         <td>₹{(t.amount ?? 0).toFixed(2)}</td>
                         <td>{t.status}</td>
-                        <td className="text-xs text-muted-foreground">{new Date(t.at).toLocaleString()}</td>
+                        <td className="text-xs text-muted-foreground">{new Date(t.date).toLocaleString()}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -645,7 +518,7 @@ function OrderDetail({ order, statusData, loading, onBack, onRequestReturn, onSi
     <div>
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center gap-4">
-          <img src={order.product.image} className="w-20 h-20 rounded-lg object-cover" alt="product" data-ai-hint={order.product['data-ai-hint']} />
+          <img src={order.product.image} className="w-20 h-20 rounded-lg object-cover" alt="product" />
           <div>
             <div className="text-lg font-semibold">{order.product.name}</div>
             <div className="text-xs text-muted-foreground">{order.id} • {order.product.sku}</div>
