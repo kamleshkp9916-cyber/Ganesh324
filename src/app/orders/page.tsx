@@ -116,6 +116,21 @@ function simulatePickupComplete(orderId: any) {
     return null;
 }
 
+const getStatusIcon = (status: string) => {
+    if (!status) return <Circle className="h-5 w-5" />;
+    if (status.toLowerCase().includes("pending")) return <Hourglass className="h-5 w-5" />;
+    if (status.toLowerCase().includes("confirmed")) return <PackageOpen className="h-5 w-5" />;
+    if (status.toLowerCase().includes("packed")) return <Package className="h-5 w-5" />;
+    if (status.toLowerCase().includes("dispatch")) return <PackageCheck className="h-5 w-5" />;
+    if (status.toLowerCase().includes("shipped")) return <Truck className="h-5 w-5" />;
+    if (status.toLowerCase().includes("in transit")) return <Truck className="h-5 w-5" />;
+    if (status.toLowerCase().includes("out for delivery")) return <Truck className="h-5 w-5" />;
+    if (status.toLowerCase().includes("delivered")) return <Home className="h-5 w-5" />;
+    if (status.toLowerCase().includes('cancelled') || status.toLowerCase().includes('undelivered') || status.toLowerCase().includes('failed delivery attempt') || status.toLowerCase().includes('return')) return <XCircle className="h-5 w-5" />;
+    return <Circle className="h-5 w-5" />;
+};
+
+
 export default function OrdersPage() {
   const router = useRouter();
   const [isClient, setIsClient] = useState(false);
@@ -262,7 +277,7 @@ export default function OrdersPage() {
     return `${addr.name}, ${addr.village}, ${addr.city}, ${addr.state} - ${addr.pincode}, India • ${addr.phone}`;
   }
 
-  const handleConfirmCancellation = async (otpValue: string) => {
+  const handleConfirmCancellation = async (otpValue: string, orderId: string) => {
     if (otpValue !== '123456') {
         toast({ title: "Invalid OTP", variant: "destructive" });
         return;
@@ -273,6 +288,7 @@ export default function OrdersPage() {
         let allOrders: Order[] = allOrdersJSON ? JSON.parse(allOrdersJSON) : [];
         
         const orderIndex = allOrders.findIndex(o => o.orderId === orderId);
+        const order = allOrders[orderIndex];
 
         if (orderIndex !== -1) {
             const updatedOrder = { ...allOrders[orderIndex] };
@@ -353,9 +369,6 @@ export default function OrdersPage() {
                            <div className="text-sm font-medium text-card-foreground">{o.products[0].name}</div>
                            <div className="text-xs text-muted-foreground">{o.orderId} • {isClient ? new Date(o.orderDate).toLocaleString() : ''}</div>
                           <div className="text-xs text-muted-foreground mt-1 truncate">{formatAddress(o.address)}</div>
-                          {o.returnRequest && (
-                            <div className="text-xs text-amber-500 mt-1">Return: {o.returnRequest.type} • {o.returnRequest.status}</div>
-                          )}
                         </div>
                          <div className="text-sm text-muted-foreground capitalize">{getStatusFromTimeline(o.timeline)}</div>
                       </button>
@@ -474,7 +487,7 @@ export default function OrdersPage() {
                                     onChange={(value) => {
                                         setOtp(value);
                                         if (value.length === 6) {
-                                            handleConfirmCancellation(value);
+                                            handleConfirmCancellation(value, selectedOrder.orderId);
                                         }
                                     }}
                                 >
