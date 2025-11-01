@@ -408,7 +408,10 @@ useEffect(() => {
                 <div className="bg-card p-4 rounded-2xl shadow-lg">
                   <h2 className="font-medium mb-3 text-card-foreground">Orders</h2>
                   <div className="space-y-3">
-                    {orders.map((o) => (
+                    {orders.map((o) => {
+                      const completedCount = o.timeline.filter((s: any) => s.completed).length;
+                      const percent = o.timeline.length > 0 ? Math.round((completedCount / o.timeline.length) * 100) : 0;
+                      return (
                       <button
                         key={o.orderId}
                         onClick={() => setSelectedOrder(o)}
@@ -422,9 +425,9 @@ useEffect(() => {
                            <div className="text-xs text-muted-foreground">{o.orderId} • {isClient ? new Date(o.orderDate).toLocaleString() : ''}</div>
                           <div className="text-xs text-muted-foreground mt-1 truncate">{formatAddress(o.address)}</div>
                         </div>
-                         <div className="text-sm text-muted-foreground capitalize">{getStatusFromTimeline(o.timeline)}</div>
+                         <div className="text-sm font-semibold text-muted-foreground capitalize">{percent}%</div>
                       </button>
-                    ))}
+                    )})}
                   </div>
                 </div>
 
@@ -829,5 +832,7 @@ function HelpBot({ orders, selectedOrder, onOpenReturn, onCancelOrder, onShowAdd
     </div>
   );
 }
+
+    
 
     
