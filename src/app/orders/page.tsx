@@ -377,7 +377,7 @@ useEffect(() => {
                       >
                         <Image src={o.products[0].imageUrl} alt={o.products[0].name} width={56} height={56} className="w-14 h-14 rounded-md object-cover" />
                         <div className="flex-1 overflow-hidden">
-                           <div className="text-sm font-medium text-card-foreground">{o.products[0].name}</div>
+                           <div className="text-sm font-medium text-card-foreground">{o.products[0].name}{o.products.length > 1 ? ` + ${o.products.length - 1} more` : ''}</div>
                            <div className="text-xs text-muted-foreground">{o.orderId} • {isClient ? new Date(o.orderDate).toLocaleString() : ''}</div>
                           <div className="text-xs text-muted-foreground mt-1 truncate">{formatAddress(o.address)}</div>
                         </div>
@@ -576,7 +576,7 @@ useEffect(() => {
 }
 
 function OrderDetail({ order, statusData, loading, onBack, onRefresh, onRequestReturn, onSimulatePickup }: any) {
-  const product = order.products[0];
+  const { products } = order;
   const stages = statusData?.stages ?? order.timeline ?? [];
   const completedCount = stages.filter((s: any) => s.completed).length;
   const percent = stages.length > 0 ? Math.round((completedCount / stages.length) * 100) : 0;
@@ -590,27 +590,31 @@ function OrderDetail({ order, statusData, loading, onBack, onRefresh, onRequestR
   return (
     <div>
       <div className="flex items-start justify-between mb-4">
-        <div className="flex items-center gap-4">
-           <Link href={`/product/${product.productId}`} className="block hover:opacity-80 transition-opacity">
-             <Image src={product.imageUrl} width={80} height={80} className="w-20 h-20 rounded-lg object-cover" alt="product" />
-           </Link>
-          <div>
-            <Link href={`/product/${product.productId}`} className="hover:underline">
-              <div className="text-lg font-semibold text-card-foreground">{product.name}</div>
-            </Link>
-             <div className="text-xs text-muted-foreground space-x-2">
-                {product.quantity > 1 && <span>Qty: {product.quantity}</span>}
-                {product.size && <span>Size: {product.size}</span>}
-                {product.color && <span>Color: {product.color}</span>}
-            </div>
-            <div className="text-sm text-muted-foreground mt-1">₹{order.total.toFixed(2)}</div>
-            {order.address && (
+        <div className="flex flex-col gap-4">
+           {products.map((product: any, index: number) => (
+               <div key={index} className="flex items-center gap-4">
+                   <Link href={`/product/${product.key}`} className="block hover:opacity-80 transition-opacity">
+                     <Image src={product.imageUrl} width={80} height={80} className="w-20 h-20 rounded-lg object-cover" alt="product" />
+                   </Link>
+                  <div>
+                    <Link href={`/product/${product.key}`} className="hover:underline">
+                      <div className="text-lg font-semibold text-card-foreground">{product.name}</div>
+                    </Link>
+                     <div className="text-xs text-muted-foreground space-x-2">
+                        {product.quantity > 1 && <span>Qty: {product.quantity}</span>}
+                        {product.size && <span>Size: {product.size}</span>}
+                        {product.color && <span>Color: {product.color}</span>}
+                    </div>
+                    <div className="text-sm text-muted-foreground mt-1">₹{parseFloat(product.price.replace('₹','').replace(',','')).toFixed(2)}</div>
+                  </div>
+               </div>
+           ))}
+             {order.address && (
               <div className="mt-2 text-xs text-muted-foreground">To: {order.address.name} • {order.address.city} • {order.address.pincode}</div>
             )}
             {order.returnRequest && (
               <div className="mt-2 text-xs text-amber-500">Request: {order.returnRequest.type} • {order.returnRequest.status}</div>
             )}
-          </div>
         </div>
         <div className="text-right">
           <div className="text-sm text-muted-foreground">Progress</div>

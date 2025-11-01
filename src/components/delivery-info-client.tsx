@@ -419,9 +419,7 @@ export function DeliveryInfoClient({ orderId: encodedOrderId }: { orderId: strin
     const showReturnButton = currentStatus === 'Delivered' && order.isReturnable !== false && isReturnWindowActive;
     const showRefundButton = currentStatus === 'Returned';
     const showReviewButton = currentStatus === 'Delivered';
-    const productId = order.products[0].key;
-    const product = order.products[0];
-
+    
     return (
         <div className="min-h-screen bg-background text-foreground flex flex-col">
             <header className="p-4 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-sm z-30 border-b">
@@ -446,36 +444,34 @@ export function DeliveryInfoClient({ orderId: encodedOrderId }: { orderId: strin
                     </CardHeader>
                     <CardContent className="grid lg:grid-cols-3 gap-8">
                         <div className="lg:col-span-1 space-y-4">
-                            <Link href={`/product/${productId}`} className="block hover:opacity-90 transition-opacity">
-                                <Card className="overflow-hidden bg-card/10">
-                                    <CardContent className="p-4 flex flex-col items-center text-center">
-                                        <div className="w-full aspect-square bg-muted rounded-lg overflow-hidden mb-4 relative">
-                                            <Image
-                                                src={product.imageUrl}
-                                                alt={product.name}
-                                                fill
-                                                className="object-cover w-full h-full"
-                                                data-ai-hint={product.hint}
-                                            />
-                                            {(product as any).stock === 0 && (
-                                                <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                                                    <Badge variant="destructive" className="text-lg">Out of Stock</Badge>
+                            {order.products.map(product => (
+                                <Link key={product.key} href={`/product/${product.key}`} className="block hover:opacity-90 transition-opacity">
+                                    <Card className="overflow-hidden bg-card/10">
+                                        <CardContent className="p-4 flex flex-col items-center text-center">
+                                            <div className="w-full aspect-square bg-muted rounded-lg overflow-hidden mb-4 relative">
+                                                <Image
+                                                    src={product.imageUrl}
+                                                    alt={product.name}
+                                                    fill
+                                                    className="object-cover w-full h-full"
+                                                    data-ai-hint={product.hint}
+                                                />
+                                            </div>
+                                            <h3 className="font-semibold text-lg">{product.name}</h3>
+                                            {(product.size || product.color) && (
+                                                <div className="flex items-center gap-2 mt-1">
+                                                    {product.size && <Badge variant="outline">Size: {product.size}</Badge>}
+                                                    {product.color && <Badge variant="outline">Color: {product.color}</Badge>}
                                                 </div>
                                             )}
-                                        </div>
-                                        <h3 className="font-semibold text-lg">{product.name}</h3>
-                                        {(product.size || product.color) && (
-                                            <div className="flex items-center gap-2 mt-1">
-                                                {product.size && <Badge variant="outline">Size: {product.size}</Badge>}
-                                                {product.color && <Badge variant="outline">Color: {product.color}</Badge>}
-                                            </div>
-                                        )}
-                                        {product.quantity > 0 && <p className="text-sm text-muted-foreground mt-1">Quantity: {product.quantity}</p>}
-                                        <p className="font-bold text-lg mt-1">₹{order.total.toFixed(2)}</p>
-                                    </CardContent>
-                                </Card>
-                            </Link>
-                                {estimatedDeliveryDate && !['Cancelled by user', 'Delivered', 'Undelivered', 'Returned', 'Return Initiated', 'Return package picked up'].includes(currentStatus) && (
+                                            {product.quantity > 1 && <p className="text-sm text-muted-foreground mt-1">Quantity: {product.quantity}</p>}
+                                            <p className="font-bold text-lg mt-1">₹{parseFloat(product.price.replace('₹','').replace(',','')).toFixed(2)}</p>
+                                        </CardContent>
+                                    </Card>
+                                </Link>
+                            ))}
+
+                            {estimatedDeliveryDate && !['Cancelled by user', 'Delivered', 'Undelivered', 'Returned', 'Return Initiated', 'Return package picked up'].includes(currentStatus) && (
                                 <Card className="bg-card/10">
                                     <CardContent className="p-4 flex items-center gap-4">
                                         <CalendarDays className="h-8 w-8 text-primary" />
