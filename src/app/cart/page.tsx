@@ -240,12 +240,14 @@ export default function CartPage() {
         <h1 className="text-xl font-bold">{isBuyNow ? 'Checkout' : 'Shopping Cart'}</h1>
         <div className="w-10"></div>
       </header>
-
+       {cartItems.length === 0 ? (
+         <div className="flex-grow flex items-center justify-center">
+             <EmptyCart />
+         </div>
+      ) : (
       <div className="flex-grow lg:grid lg:grid-cols-3 lg:gap-8 lg:items-start max-w-6xl mx-auto w-full lg:p-8">
         <main className="lg:col-span-2">
-            {cartItems.length === 0 ? (
-                <EmptyCart />
-            ) : (
+            
                 <Card className="rounded-none lg:rounded-lg">
                     <CardHeader>
                         <CardTitle>{isBuyNow ? 'Your Item' : `Your Items (${totalItems})`}</CardTitle>
@@ -327,10 +329,10 @@ export default function CartPage() {
                         </ScrollArea>
                     </CardContent>
                 </Card>
-            )}
+            
         </main>
 
-        {cartItems.length > 0 && (
+        
             <aside className="lg:col-span-1 lg:sticky lg:top-24">
                 <div className="bg-background lg:bg-transparent rounded-t-lg -mx-4 sm:mx-0 px-4 sm:px-0 pt-4 pb-20 lg:p-0">
                 <Card>
@@ -434,8 +436,9 @@ export default function CartPage() {
                 </div>
             </div>
             </aside>
-        )}
+        
       </div>
+      )}
 
        {cartItems.length > 0 && (
            <div className="lg:hidden sticky bottom-0 left-0 right-0 bg-background border-t p-4 z-20 shadow-[-2px_0px_16px_rgba(0,0,0,0.2)]">
