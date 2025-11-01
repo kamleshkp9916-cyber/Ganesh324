@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useEffect, useState, useRef, useCallback } from "react";
+import React, { useEffect, useState, useRef, useCallback, useMemo } from "react";
 import { motion } from "framer-motion";
 import { ArrowLeft, RefreshCw, CreditCard, Download, Lock, Coins, Loader2, Bell, ChevronRight, Briefcase, ShoppingBag, BarChart2, Plus, ArrowUp, ArrowDown, Search, Printer, CheckCircle2, Circle, Hourglass, Package, PackageCheck, PackageOpen, Truck, Home, XCircle, AlertTriangle, ShieldCheck } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -629,14 +629,19 @@ useEffect(() => {
 
 function OrderDetail({ order, statusData, loading, onBack, onRefresh, onRequestReturn, onSimulatePickup }: any) {
   const { products } = order;
-  const currentStatus = getStatusFromTimeline(statusData?.stages || order.timeline);
+  const currentStatus = getStatusFromTimeline(order.timeline);
   const isCancelled = currentStatus.toLowerCase().includes('cancelled');
   
   const timelineToShow = useMemo(() => {
-    const timeline = statusData?.stages || order.timeline;
+    // If statusData is available and not cancelled, use it as the source of truth
+    if (statusData && !isCancelled) {
+        return statusData.stages;
+    }
+    // Otherwise, use the local order timeline
+    const timeline = order.timeline;
     const cancelIndex = timeline.findIndex((item: any) => item && item.status && item.status.toLowerCase().includes('cancelled'));
     return cancelIndex > -1 ? timeline.slice(0, cancelIndex + 1) : timeline;
-  }, [statusData, order.timeline]);
+  }, [statusData, order.timeline, isCancelled]);
 
   const completedCount = timelineToShow.filter((s: any) => s.completed).length;
   const percent = isCancelled ? 100 : (timelineToShow.length > 1 ? Math.round(((completedCount -1) / (timelineToShow.length - 1)) * 100) : 0);
@@ -860,3 +865,4 @@ function HelpBot({ orders, selectedOrder, onOpenReturn, onCancelOrder, onShowAdd
     
 
     
+
