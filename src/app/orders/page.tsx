@@ -3,7 +3,7 @@
 
 import React, { useEffect, useState, useRef, useCallback, useMemo } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, RefreshCw, CreditCard, Download, Lock, Coins, Loader2, Bell, ChevronRight, Briefcase, ShoppingBag, BarChart2, Plus, ArrowUp, ArrowDown, Search, Printer, CheckCircle2, Circle, Hourglass, Package, PackageCheck, PackageOpen, Truck, Home, XCircle, AlertTriangle, ShieldCheck } from 'lucide-react';
+import { ArrowLeft, RefreshCw, CreditCard, Download, Lock, Coins, Loader2, Bell, ChevronRight, Briefcase, ShoppingBag, BarChart2, Plus, ArrowUp, ArrowDown, Search, Printer, CheckCircle2, Circle, Hourglass, Package, PackageCheck, PackageOpen, Truck, Home, XCircle, AlertTriangle, ShieldCheck, RotateCcw, Star } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Footer } from '@/components/footer';
@@ -24,6 +24,9 @@ import Link from 'next/link';
 import { cn } from "@/lib/utils";
 import { Timeline } from "@/components/timeline";
 import { Pagination, PaginationContent, PaginationItem, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
+import { Review, addReview, getUserReviews, updateReview } from "@/lib/review-data";
+import { useAuth } from "@/hooks/use-auth";
+import { ReviewDialog } from "../delivery-information/[orderId]/page";
 
 const cancellationReasons = [
   "Changed my mind",
@@ -628,109 +631,109 @@ useEffect(() => {
 }
 
 function OrderDetail({ order, statusData, loading, onBack, onRefresh, onRequestReturn, onSimulatePickup }: any) {
-  const { products } = order;
-  const currentStatus = getStatusFromTimeline(order.timeline);
-  const isCancelled = currentStatus.toLowerCase().includes('cancelled');
-  
-  const timelineToShow = useMemo(() => {
-    // If statusData is available and not cancelled, use it as the source of truth
-    if (statusData && !isCancelled) {
-        return statusData.stages;
-    }
-    // Otherwise, use the local order timeline
-    const timeline = order.timeline;
-    const cancelIndex = timeline.findIndex((item: any) => item && item.status && item.status.toLowerCase().includes('cancelled'));
-    return cancelIndex > -1 ? timeline.slice(0, cancelIndex + 1) : timeline;
-  }, [statusData, order.timeline, isCancelled]);
+    const isCancelled = useMemo(() => getStatusFromTimeline(order.timeline).toLowerCase().includes('cancelled'), [order.timeline]);
+    
+    const timelineToShow = useMemo(() => {
+        const timeline = statusData?.stages || order.timeline;
+        const cancelIndex = timeline.findIndex((item: any) => item && item.status && item.status.toLowerCase().includes('cancelled'));
+        
+        if (cancelIndex > -1) {
+            return timeline.slice(0, cancelIndex + 1);
+        }
+        return timeline;
+    }, [order.timeline, statusData]);
 
-  const completedCount = timelineToShow.filter((s: any) => s.completed).length;
-  const percent = isCancelled ? 100 : (timelineToShow.length > 1 ? Math.round(((completedCount -1) / (timelineToShow.length - 1)) * 100) : 0);
-  
-  const isDelivered = currentStatus === 'Delivered';
+    const completedCount = useMemo(() => timelineToShow.filter((s: any) => s.completed).length, [timelineToShow]);
+    const percent = useMemo(() => {
+        if (isCancelled) return 100;
+        if (timelineToShow.length <= 1) return 0;
+        return Math.round(((completedCount - 1) / (timelineToShow.length - 1)) * 100);
+    }, [isCancelled, completedCount, timelineToShow.length]);
 
-  const allowCancel = !isDelivered && !isCancelled;
-  const allowReturn = isDelivered && !isCancelled && order.returnRequest?.status !== 'requested';
+    const currentStatus = getStatusFromTimeline(order.timeline);
+    const isDelivered = currentStatus === 'Delivered';
+    const showCancelButton = !isCancelled && !isDelivered && !order.returnRequest;
+    const showReturnButton = isDelivered && order.isReturnable !== false && !order.returnRequest;
 
-  return (
-    <div>
-      <div className="flex items-start justify-between mb-4">
-        <div className="flex flex-col gap-4">
-           {products.map((product: any, index: number) => (
-               <div key={index} className="flex items-center gap-4">
-                   <Link href={`/product/${product.key}`} className="block hover:opacity-80 transition-opacity">
-                     <Image src={product.imageUrl} width={80} height={80} className="w-20 h-20 rounded-lg object-cover" alt="product" />
-                   </Link>
-                  <div>
-                    <Link href={`/product/${product.key}`} className="hover:underline">
-                      <div className="text-lg font-semibold text-card-foreground">{product.name}</div>
-                    </Link>
-                     <div className="text-xs text-muted-foreground space-x-2">
-                        {product.quantity > 1 && <span>Qty: {product.quantity}</span>}
-                        {product.size && <span>Size: {product.size}</span>}
-                        {product.color && <span>Color: {product.color}</span>}
-                    </div>
-                    <div className="text-sm text-muted-foreground mt-1">₹{parseFloat(product.price.replace('₹','').replace(',','')).toFixed(2)}</div>
-                  </div>
-               </div>
-           ))}
-             {order.address && (
-              <div className="mt-2 text-xs text-muted-foreground">To: {order.address.name} • {order.address.city} • {order.address.pincode}</div>
+    return (
+        <div>
+            <div className="flex items-start justify-between mb-4">
+                <div className="flex flex-col gap-4">
+                    {order.products.map((product: any, index: number) => (
+                        <div key={index} className="flex items-center gap-4">
+                            <Link href={`/product/${product.key}`} className="block hover:opacity-80 transition-opacity">
+                                <Image src={product.imageUrl} width={80} height={80} className="w-20 h-20 rounded-lg object-cover" alt="product" />
+                            </Link>
+                            <div>
+                                <Link href={`/product/${product.key}`} className="hover:underline">
+                                    <div className="text-lg font-semibold text-card-foreground">{product.name}</div>
+                                </Link>
+                                <div className="text-xs text-muted-foreground space-x-2">
+                                    {product.quantity > 1 && <span>Qty: {product.quantity}</span>}
+                                    {product.size && <span>Size: {product.size}</span>}
+                                    {product.color && <span>Color: {product.color}</span>}
+                                </div>
+                                <div className="text-sm text-muted-foreground mt-1">₹{parseFloat(product.price.replace('₹','').replace(',','')).toFixed(2)}</div>
+                            </div>
+                        </div>
+                    ))}
+                    {order.address && (
+                        <div className="mt-2 text-xs text-muted-foreground">To: {order.address.name} • {order.address.city} • {order.address.pincode}</div>
+                    )}
+                    {order.returnRequest && (
+                        <div className="text-xs text-amber-500">Request: {order.returnRequest.type} • {order.returnRequest.status}</div>
+                    )}
+                </div>
+                <div className="text-right">
+                    <div className="text-sm text-muted-foreground">Progress</div>
+                    <div className="text-lg font-semibold text-card-foreground">{percent}%</div>
+                    <div className="mt-2 text-xs text-muted-foreground">Placed on {new Date(order.orderDate).toLocaleDateString()}</div>
+                </div>
+            </div>
+
+            <div className="mb-4">
+                <div className="w-full bg-muted rounded-full overflow-hidden h-2">
+                    <div className="h-2 rounded-full bg-primary transition-all" style={{ width: `${percent}%` }} />
+                </div>
+            </div>
+
+            <div className="flex items-center justify-between mb-3">
+                <div className="text-sm font-medium text-card-foreground">Delivery Timeline</div>
+                <div className="flex items-center flex-wrap gap-2 justify-end">
+                    {!isCancelled && <Button variant="ghost" size="sm" onClick={onRefresh} disabled={loading} className="text-xs text-muted-foreground">
+                        <RefreshCw className={cn("mr-2 h-3 w-3", loading && "animate-spin")} />
+                        Refresh
+                    </Button>}
+                    {showCancelButton && (
+                        <button onClick={() => onRequestReturn('cancel')} className="text-sm px-3 py-1 rounded-md border border-amber-500/50 bg-amber-500/10 text-amber-400">Cancel order</button>
+                    )}
+                    {showReturnButton && (
+                        <button onClick={() => onRequestReturn('return')} className="text-sm px-3 py-1 rounded-md border border-red-500/50 bg-red-500/10 text-red-400">Request return</button>
+                    )}
+                    {isDelivered && (
+                        <Dialog>
+                            <DialogTrigger asChild>
+                                <Button variant="outline" size="sm"><Star className="mr-2 h-4 w-4" /> Write a Review</Button>
+                            </DialogTrigger>
+                            <ReviewDialog order={order} />
+                        </Dialog>
+                    )}
+                </div>
+            </div>
+
+            {loading ? (
+                <div className="text-sm text-muted-foreground">Loading status…</div>
+            ) : (
+                <div className="space-y-4">
+                    {timelineToShow.map((s: any, idx: number) => (
+                        <TimelineStep key={s.key || idx} step={s} index={idx} total={timelineToShow.length} />
+                    ))}
+                </div>
             )}
-            {order.returnRequest && (
-              <div className="text-xs text-amber-500">Request: {order.returnRequest.type} • {order.returnRequest.status}</div>
-            )}
+
+            <div className="mt-6 text-xs text-muted-foreground">This timeline pulls data from the delivery API in production. Each stage shows its timestamp when completed.</div>
         </div>
-        <div className="text-right">
-          <div className="text-sm text-muted-foreground">Progress</div>
-          <div className="text-lg font-semibold text-card-foreground">{percent}%</div>
-          <div className="mt-2 text-xs text-muted-foreground">Placed on {new Date(order.orderDate).toLocaleDateString()}</div>
-        </div>
-      </div>
-
-      <div className="mb-4">
-        <div className="w-full bg-muted rounded-full overflow-hidden h-2">
-          <div className="h-2 rounded-full bg-primary transition-all" style={{ width: `${percent}%` }} />
-        </div>
-      </div>
-
-      <div className="flex items-center justify-between mb-3">
-        <div className="text-sm font-medium text-card-foreground">Delivery Timeline</div>
-        <div className="flex items-center flex-wrap gap-2 justify-end">
-           <Button variant="ghost" size="sm" onClick={onRefresh} disabled={loading} className="text-xs text-muted-foreground">
-              <RefreshCw className={cn("mr-2 h-3 w-3", loading && "animate-spin")} />
-              Refresh
-            </Button>
-          {allowCancel && !order.returnRequest && (
-             <button onClick={() => onRequestReturn('cancel')} className="text-sm px-3 py-1 rounded-md border border-amber-500/50 bg-amber-500/10 text-amber-400">Cancel order</button>
-          )}
-
-          {allowReturn && !order.returnRequest && (
-             <button onClick={() => onRequestReturn('return')} className="text-sm px-3 py-1 rounded-md border border-red-500/50 bg-red-500/10 text-red-400">Request return</button>
-          )}
-
-          {order.returnRequest && (
-            <div className="text-xs text-amber-500">Request: {order.returnRequest.type} • {order.returnRequest.status}</div>
-          )}
-
-          {order.returnRequest && order.returnRequest.status !== 'completed' && (
-            <button onClick={onSimulatePickup} className="text-sm px-3 py-1 rounded-md border border-green-500/50 bg-green-500/10 text-green-400">Simulate pickup (dev)</button>
-          )}
-        </div>
-      </div>
-
-      {loading ? (
-        <div className="text-sm text-muted-foreground">Loading status…</div>
-      ) : (
-        <div className="space-y-4">
-          {timelineToShow.map((s: any, idx: number) => (
-            <TimelineStep key={s.key || idx} step={s} index={idx} total={timelineToShow.length} />
-          ))}
-        </div>
-      )}
-
-      <div className="mt-6 text-xs text-muted-foreground">This timeline pulls data from the delivery API in production. Each stage shows its timestamp when completed.</div>
-    </div>
-  );
+    );
 }
 
 function TimelineStep({ step, index, total }: any) {
@@ -859,10 +862,3 @@ function HelpBot({ orders, selectedOrder, onOpenReturn, onCancelOrder, onShowAdd
     </div>
   );
 }
-
-    
-
-    
-
-    
-
