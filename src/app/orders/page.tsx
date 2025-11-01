@@ -26,7 +26,9 @@ import { Timeline } from "@/components/timeline";
 import { Pagination, PaginationContent, PaginationItem, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { Review, addReview, getUserReviews, updateReview } from "@/lib/review-data";
 import { useAuth } from "@/hooks/use-auth";
-import { ReviewDialog } from "../delivery-information/[orderId]/page";
+import { ReviewDialog } from '@/components/delivery-info-client';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
+
 
 const cancellationReasons = [
   "Changed my mind",
@@ -189,7 +191,8 @@ const handleFetchStatus = useCallback(async () => {
     try {
       const data: any = await fetchDeliveryStatusMock(selectedOrder.orderId);
       setStatusData(data);
-      setOrders(prevOrders => prevOrders.map(o => o.orderId === data.orderId ? { ...o, timeline: data.stages } : o));
+      // Don't update the local order timeline directly from mock data anymore
+      // Let's assume the local order data is the source of truth for cancellations
     } catch (e) {
       console.error('fetchDeliveryStatusMock error', e);
       toast({ title: "Error", description: "Could not fetch latest order status." });
@@ -631,29 +634,53 @@ useEffect(() => {
 }
 
 function OrderDetail({ order, statusData, loading, onBack, onRefresh, onRequestReturn, onSimulatePickup }: any) {
-    const isCancelled = useMemo(() => getStatusFromTimeline(order.timeline).toLowerCase().includes('cancelled'), [order.timeline]);
-    
+    const { user } = useAuth();
+    const [isReviewDialogOpen, setIsReviewDialogOpen] = useState(false);
+    const [myReview, setMyReview] = useState<Review | null>(null);
+
+    useEffect(() => {
+        if (user && order) {
+             const existingReviews = getReviews(order.products[0].key);
+             const userReview = existingReviews.find(r => r.userId === user.uid);
+             if (userReview) {
+                 setMyReview(userReview);
+             }
+        }
+    }, [user, order]);
+
+
+    const currentStatus = useMemo(() => getStatusFromTimeline(order.timeline), [order.timeline]);
+    const isCancelled = currentStatus.toLowerCase().includes('cancelled');
+
     const timelineToShow = useMemo(() => {
         const timeline = statusData?.stages || order.timeline;
         const cancelIndex = timeline.findIndex((item: any) => item && item.status && item.status.toLowerCase().includes('cancelled'));
-        
-        if (cancelIndex > -1) {
-            return timeline.slice(0, cancelIndex + 1);
-        }
-        return timeline;
+        return cancelIndex > -1 ? timeline.slice(0, cancelIndex + 1) : timeline;
     }, [order.timeline, statusData]);
-
+    
     const completedCount = useMemo(() => timelineToShow.filter((s: any) => s.completed).length, [timelineToShow]);
+    
     const percent = useMemo(() => {
         if (isCancelled) return 100;
         if (timelineToShow.length <= 1) return 0;
         return Math.round(((completedCount - 1) / (timelineToShow.length - 1)) * 100);
     }, [isCancelled, completedCount, timelineToShow.length]);
 
-    const currentStatus = getStatusFromTimeline(order.timeline);
+
     const isDelivered = currentStatus === 'Delivered';
     const showCancelButton = !isCancelled && !isDelivered && !order.returnRequest;
     const showReturnButton = isDelivered && order.isReturnable !== false && !order.returnRequest;
+    const showRefundButton = currentStatus === 'Returned';
+    const showReviewButton = isDelivered;
+
+    const handleReviewSubmit = (review: Review) => {
+        if (myReview) {
+             updateReview(order.products[0].key, review);
+        } else {
+             addReview(order.products[0].key, review);
+        }
+        setMyReview(review);
+    };
 
     return (
         <div>
@@ -711,11 +738,11 @@ function OrderDetail({ order, statusData, loading, onBack, onRefresh, onRequestR
                         <button onClick={() => onRequestReturn('return')} className="text-sm px-3 py-1 rounded-md border border-red-500/50 bg-red-500/10 text-red-400">Request return</button>
                     )}
                     {isDelivered && (
-                        <Dialog>
+                        <Dialog open={isReviewDialogOpen} onOpenChange={setIsReviewDialogOpen}>
                             <DialogTrigger asChild>
-                                <Button variant="outline" size="sm"><Star className="mr-2 h-4 w-4" /> Write a Review</Button>
+                                <Button variant="outline" size="sm"><Star className="mr-2 h-4 w-4" /> {myReview ? "Edit Your Review" : "Write a Review"}</Button>
                             </DialogTrigger>
-                            <ReviewDialog order={order} />
+                             <ReviewDialog order={order} user={user} reviewToEdit={myReview || undefined} onReviewSubmit={handleReviewSubmit} closeDialog={() => setIsReviewDialogOpen(false)} />
                         </Dialog>
                     )}
                 </div>
@@ -862,3 +889,5 @@ function HelpBot({ orders, selectedOrder, onOpenReturn, onCancelOrder, onShowAdd
     </div>
   );
 }
+
+    
