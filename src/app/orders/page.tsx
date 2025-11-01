@@ -5,12 +5,11 @@ import React, { useEffect, useState, useRef, useCallback } from "react";
 import { motion } from "framer-motion";
 import { ArrowLeft, RefreshCw, CreditCard, Download, Lock, Coins, Loader2, Bell, ChevronRight, Briefcase, ShoppingBag, BarChart2, Plus, ArrowUp, ArrowDown, Search, Printer, CheckCircle2, Circle, Hourglass, Package, PackageCheck, PackageOpen, Truck, Home, XCircle, AlertTriangle, ShieldCheck } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { Button } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button';
 import { Footer } from '@/components/footer';
 import { getTransactions, Transaction, addTransaction } from '@/lib/transaction-history';
 import { Dialog, DialogContent, DialogTrigger, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Timeline } from '@/components/timeline';
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Label } from "@/components/ui/label";
@@ -20,9 +19,9 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { getOrderById, Order, saveAllOrders, getStatusFromTimeline } from "@/lib/order-data";
 import { ORDERS_KEY } from "@/lib/order-data";
 import { format } from "date-fns";
-import { Badge } from "@/components/ui/badge";
-import Link from "next/link";
-
+import Image from "next/image";
+import Link from 'next/link';
+import { cn } from "@/lib/utils";
 
 const cancellationReasons = [
   "Changed my mind",
@@ -41,9 +40,15 @@ const returnReasons = [
   "Other"
 ];
 
-
 // Mock delivery API call — replace this function with real fetch to the delivery API
 function fetchDeliveryStatusMock(orderId: any) {
+  const ALL_STAGES = [
+    { key: "ordered", label: "Order placed" },
+    { key: "packed", label: "Packed" },
+    { key: "shipped", label: "Shipped" },
+    { key: "out_for_delivery", label: "Out for delivery" },
+    { key: "delivered", label: "Delivered" },
+  ];
   // Simulate varied timestamps and stage completions per orderId
   const now = new Date();
   const base = new Date(now.getTime() - 1000 * 60 * 60 * 24 * 2); // two days ago
@@ -110,14 +115,6 @@ function simulatePickupComplete(orderId: any) {
     }
     return null;
 }
-
-const ALL_STAGES = [
-    { key: "ordered", label: "Order placed" },
-    { key: "packed", label: "Packed" },
-    { key: "shipped", label: "Shipped" },
-    { key: "out_for_delivery", label: "Out for delivery" },
-    { key: "delivered", label: "Delivered" },
-];
 
 export default function OrdersPage() {
   const router = useRouter();
@@ -305,7 +302,7 @@ export default function OrdersPage() {
                           selectedOrder?.orderId === o.orderId ? "border-gray-500 bg-gray-800" : "border-transparent"
                         }`}
                       >
-                        <img src={o.products[0].imageUrl} alt={o.products[0].name} className="w-14 h-14 rounded-md object-cover" />
+                        <Image src={o.products[0].imageUrl} alt={o.products[0].name} width={56} height={56} className="w-14 h-14 rounded-md object-cover" />
                         <div className="flex-1 overflow-hidden">
                            <div className="text-sm font-medium text-white">{o.products[0].name}</div>
                            <div className="text-xs text-slate-400">{o.orderId} • {isClient ? new Date(o.orderDate).toLocaleString() : ''}</div>
@@ -509,23 +506,23 @@ export default function OrdersPage() {
 }
 
 function OrderDetail({ order, statusData, loading, onBack, onRequestReturn, onSimulatePickup }: any) {
+  const ALL_STAGES = [
+    { key: "ordered", label: "Order placed" },
+    { key: "packed", label: "Packed" },
+    { key: "shipped", label: "Shipped" },
+    { key: "out_for_delivery", label: "Out for delivery" },
+    { key: "delivered", label: "Delivered" },
+  ];
   const product = order.products[0];
   const stages = statusData?.stages ?? ALL_STAGES.map((s: any) => ({ key: s.key, label: s.label, completed: false, timestamp: null }));
 
   const completedCount = stages.filter((s: any) => s.completed).length;
   const percent = Math.round((completedCount / ALL_STAGES.length) * 100);
 
-  // Determine current stage key
-  const currentStage = stages.slice().reverse().find((s: any) => s.completed)?.key ?? 'ordered';
-
-  // Return / cancel rules:
-  // - If order is packed but not yet shipped -> allow 'Cancel order' (type: 'cancel')
-  // - If order is delivered -> allow 'Request return' (type: 'return')
-  // Updated rule: user can cancel any time BEFORE 'out_for_delivery' stage.
   const outForDeliveryCompleted = stages.find((s: any) => s.key === 'out_for_delivery')?.completed;
   const isDelivered = stages.find((s: any) => s.key === 'delivered')?.completed;
 
-  const allowCancel = !outForDeliveryCompleted && !isDelivered; // cancel allowed before out_for_delivery
+  const allowCancel = !outForDeliveryCompleted && !isDelivered;
   const allowReturn = isDelivered;
 
   return (
@@ -533,16 +530,16 @@ function OrderDetail({ order, statusData, loading, onBack, onRequestReturn, onSi
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center gap-4">
           <Link href={`/product/${product.key}`} className="block hover:opacity-80 transition-opacity">
-            <img src={product.imageUrl} className="w-20 h-20 rounded-lg object-cover" alt="product" />
+            <Image src={product.imageUrl} width={80} height={80} className="w-20 h-20 rounded-lg object-cover" alt="product" />
           </Link>
           <div>
             <Link href={`/product/${product.key}`} className="hover:underline">
               <div className="text-lg font-semibold text-white">{product.name}</div>
             </Link>
              <div className="text-xs text-slate-400 space-x-2">
-                {product.quantity > 1 && <Badge variant="secondary">Qty: {product.quantity}</Badge>}
-                {product.size && <Badge variant="secondary">Size: {product.size}</Badge>}
-                {product.color && <Badge variant="secondary">Color: {product.color}</Badge>}
+                {product.quantity > 1 && <span>Qty: {product.quantity}</span>}
+                {product.size && <span>Size: {product.size}</span>}
+                {product.color && <span>Color: {product.color}</span>}
             </div>
             <div className="text-sm text-slate-300 mt-1">₹{order.total.toFixed(2)}</div>
             {order.address && (
@@ -570,7 +567,6 @@ function OrderDetail({ order, statusData, loading, onBack, onRequestReturn, onSi
         <div className="text-sm font-medium text-white">Delivery Timeline</div>
         <div className="flex items-center gap-3">
           <button onClick={onBack} className="text-sm text-gray-300 hover:underline">Back to orders</button>
-          {/* Return / Cancel buttons shown based on rules */}
           {allowCancel && !order.returnRequest && (
             <button onClick={() => onRequestReturn('cancel')} className="text-sm px-3 py-1 rounded-md border border-amber-400/50 bg-amber-400/10 text-amber-300">Cancel order</button>
           )}
@@ -583,7 +579,6 @@ function OrderDetail({ order, statusData, loading, onBack, onRequestReturn, onSi
             <div className="text-xs text-amber-400">Request: {order.returnRequest.type} • {order.returnRequest.status}</div>
           )}
 
-          {/* Small dev/testing helper: simulate pickup to complete refund in mock */}
           {order.returnRequest && order.returnRequest.status !== 'completed' && (
             <button onClick={onSimulatePickup} className="text-sm px-3 py-1 rounded-md border border-green-400/50 bg-green-400/10 text-green-300">Simulate pickup (dev)</button>
           )}
@@ -606,6 +601,13 @@ function OrderDetail({ order, statusData, loading, onBack, onRequestReturn, onSi
 }
 
 function TimelineStep({ step, index, total }: any) {
+  const ALL_STAGES = [
+    { key: "ordered", label: "Order placed" },
+    { key: "packed", label: "Packed" },
+    { key: "shipped", label: "Shipped" },
+    { key: "out_for_delivery", label: "Out for delivery" },
+    { key: "delivered", label: "Delivered" },
+  ];
   const variants = {
     hidden: { opacity: 0, y: -6 },
     enter: { opacity: 1, y: 0 },
@@ -731,7 +733,7 @@ function HelpBot({ orders, selectedOrder, onOpenReturn, onCancelOrder, onShowAdd
       )}
 
       <button onClick={() => setOpen((o) => !o)} className="w-14 h-14 rounded-full bg-white text-black shadow-lg flex items-center justify-center">
-         <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12.22 17.78a.75.75 0 0 0 1.06 0l6.25-6.25a.75.75 0 0 0-1.06-1.06L13 15.94V3a.75.75 0 0 0-1.5 0v12.94l-4.72-4.72a.75.75 0 0 0-1.06 1.06l6.25 6.25z"/><path d="M3.5 12.75a.75.75 0 0 0 0 1.5h17a.75.75 0 0 0 0-1.5h-17z"/></svg>
+         ?
       </button>
     </div>
   );
