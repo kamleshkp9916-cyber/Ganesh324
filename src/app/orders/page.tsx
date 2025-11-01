@@ -40,8 +40,9 @@ const returnReasons = [
   "Other"
 ];
 
-// Mock delivery API call — replace this function with real fetch to the delivery API
-function fetchDeliveryStatusMock(orderId: any) {
+// Helper: default mock fetchStatus (remove in production)
+async function fetchDeliveryStatusMock(orderId: any) {
+  // NOTE: keep this as a tiny local mock only for testing — replace with real fetch.
   const ALL_STAGES = [
     { key: "ordered", label: "Order placed" },
     { key: "packed", label: "Packed" },
@@ -49,33 +50,24 @@ function fetchDeliveryStatusMock(orderId: any) {
     { key: "out_for_delivery", label: "Out for delivery" },
     { key: "delivered", label: "Delivered" },
   ];
-  // Simulate varied timestamps and stage completions per orderId
-  const now = new Date();
-  const base = new Date(now.getTime() - 1000 * 60 * 60 * 24 * 2); // two days ago
-
-  // Create timestamps for each stage (some completed, some pending)
-  const timestamps = ALL_STAGES.map((s, i) => {
-    const t = new Date(base.getTime() + i * 1000 * 60 * 60 * 8); // 8 hours apart
-    return t.toISOString();
-  });
-
-  // Determine completed stages based on orderId (just for variety)
-  let completedCount = 2; // default
-  if (orderId.endsWith("1")) completedCount = 3; // shipped
-  if (orderId.endsWith("2")) completedCount = 5; // delivered
-  if (orderId.endsWith("3")) completedCount = 2; // packed
-  if (orderId.endsWith("4")) completedCount = 4; // out_for_delivery
-
-  const stages = ALL_STAGES.map((s, idx) => ({
+  // create deterministic completed count by orderId char
+  let completedCount = 1;
+  if (orderId.endsWith("1")) completedCount = 3;
+  if (orderId.endsWith("2")) completedCount = 5;
+  if (orderId.endsWith("3")) completedCount = 2; 
+  if (orderId.endsWith("4")) completedCount = 4;
+  
+  const base = Date.now() - 1000 * 60 * 60 * 24 * 2;
+  const stages = ALL_STAGES.map((s, i) => ({
     key: s.key,
     label: s.label,
-    completed: idx <= completedCount - 1,
-    timestamp: idx <= completedCount - 1 ? timestamps[idx] : null,
+    completed: i <= completedCount - 1,
+    timestamp: i <= completedCount - 1 ? new Date(base + i * 1000 * 60 * 60 * 8).toISOString() : null,
   }));
-
-  // Simulate network delay
-  return new Promise((res) => setTimeout(() => res({ orderId, stages }), 400));
+  const updatedAt = new Date().toISOString();
+  return new Promise((res) => setTimeout(() => res({ orderId, stages, currentStatus: stages.slice().reverse().find((x) => x.completed)?.key ?? "ordered", updatedAt }), 300));
 }
+
 
 // Mock submit return request API function
 function submitReturnRequestMock({ orderId, type, reason, contactPhone, pickup, photos }: any) {
@@ -174,19 +166,73 @@ export default function OrdersPage() {
   }, [loadData]);
 
 
-  useEffect(() => {
-    if (!selectedOrder) return;
+// Fetch status once and then poll while an order is selected.
+// Uses a visibility-aware interval so polling pauses when the tab is hidden.
+useEffect(() => {
+  if (!selectedOrder) return;
 
+  let mounted = true;
+  let intervalId: NodeJS.Timeout | null = null;
+  let backoff = 1; // exponential backoff multiplier if errors
+
+  const fetchOnce = async () => {
+    if (!mounted) return;
     setLoadingStatus(true);
-    setStatusData(null);
+    try {
+      const data: any = await fetchDeliveryStatusMock(selectedOrder.orderId);
+      if (!mounted) return;
+      // Only update when we have new data. We don't clear statusData first (avoids flicker).
+      setStatusData((prev: any) => {
+        // quick shallow compare based on stages timestamps (if provided)
+        const prevUpdated = prev?.stages?.find((s: any) => s.timestamp)?.timestamp || null;
+        const nextUpdated = data?.stages?.find((s: any) => s.timestamp)?.timestamp || null;
+        if (!prev || !prevUpdated || (nextUpdated && new Date(nextUpdated) > new Date(prevUpdated))) {
+          // update order list quick-status for glance
+          setOrders((prevOrders) => prevOrders.map((o: any) => (o.orderId === data.orderId ? { ...o, status: data.stages.slice().reverse().find((s: any) => s.completed)?.key ?? o.status } : o)));
+          return data;
+        }
+        return prev;
+      });
+      backoff = 1;
+    } catch (e) {
+      console.error('fetchDeliveryStatusMock error', e);
+      backoff = Math.min(5, backoff * 2);
+    } finally {
+      if (mounted) setLoadingStatus(false);
+    }
+  };
 
-    fetchDeliveryStatusMock(selectedOrder.orderId)
-      .then((data) => {
-        setStatusData(data);
-      })
-      .catch((e) => console.error(e))
-      .finally(() => setLoadingStatus(false));
-  }, [selectedOrder]);
+  // initial fetch immediately
+  fetchOnce();
+
+  // interval that respects visibility
+  const startInterval = () => {
+    if (!intervalId) {
+        intervalId = setInterval(fetchOnce, 10000 * backoff);
+    }
+  };
+
+  const handleVisibility = () => {
+    if (document.visibilityState === 'hidden') {
+      if (intervalId) clearInterval(intervalId);
+      intervalId = null;
+    } else {
+      if (!intervalId) {
+          startInterval();
+      }
+    }
+  };
+
+  startInterval();
+  document.addEventListener('visibilitychange', handleVisibility);
+
+  return () => {
+    mounted = false;
+    if (intervalId) clearInterval(intervalId);
+    document.removeEventListener('visibilitychange', handleVisibility);
+  };
+}, [selectedOrder]);
+
 
   // Helper: update order in orders state
   function updateOrder(orderId: any, patch: any) {
@@ -277,7 +323,7 @@ export default function OrdersPage() {
     return `${addr.name}, ${addr.village}, ${addr.city}, ${addr.state} - ${addr.pincode}, India • ${addr.phone}`;
   }
 
-  const handleConfirmCancellation = async (otpValue: string, orderId: string) => {
+  const handleConfirmCancellation = async (otpValue: string) => {
     if (otpValue !== '123456') {
         toast({ title: "Invalid OTP", variant: "destructive" });
         return;
@@ -287,7 +333,7 @@ export default function OrdersPage() {
         const allOrdersJSON = localStorage.getItem(ORDERS_KEY);
         let allOrders: Order[] = allOrdersJSON ? JSON.parse(allOrdersJSON) : [];
         
-        const orderIndex = allOrders.findIndex(o => o.orderId === orderId);
+        const orderIndex = allOrders.findIndex(o => o.orderId === selectedOrder.orderId);
         const order = allOrders[orderIndex];
 
         if (orderIndex !== -1) {
@@ -487,7 +533,7 @@ export default function OrdersPage() {
                                     onChange={(value) => {
                                         setOtp(value);
                                         if (value.length === 6) {
-                                            handleConfirmCancellation(value, selectedOrder.orderId);
+                                            handleConfirmCancellation(value);
                                         }
                                     }}
                                 >
@@ -777,3 +823,5 @@ function HelpBot({ orders, selectedOrder, onOpenReturn, onCancelOrder, onShowAdd
     </div>
   );
 }
+
+    
