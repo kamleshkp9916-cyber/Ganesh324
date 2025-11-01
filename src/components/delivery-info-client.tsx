@@ -10,7 +10,7 @@ import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/use-auth.tsx';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
-import { useEffect, useState, useMemo, useCallback } from 'react';
+import { useEffect, useState, useMemo, useCallback, useRef } from 'react';
 import { useToast } from "@/hooks/use-toast";
 import { format, addDays, parse, differenceInDays, intervalToDuration, formatDuration, parseISO } from 'date-fns';
 import { getOrderById, Order, getStatusFromTimeline, saveAllOrders } from '@/lib/order-data';
@@ -512,7 +512,7 @@ export function DeliveryInfoClient({ orderId: encodedOrderId }: { orderId: strin
                                                     {item.status.split(':').slice(1).join(':').trim()}
                                                 </p>
                                             )}
-                                            {item.date && (
+                                            {item.completed && item.date && (
                                                 <p className="text-sm text-muted-foreground">
                                                     {item.date} {item.time && `- ${item.time}`}
                                                 </p>
