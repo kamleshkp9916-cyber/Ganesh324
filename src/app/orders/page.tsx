@@ -223,13 +223,25 @@ export default function OrdersPage() {
     if (!selectedOrder) return;
     const tx = simulatePickupComplete(selectedOrder.orderId);
     if (tx) {
-      const updatedReturn = { ...(selectedOrder.returnRequest || {}), refundTx: tx, status: "pickup_completed", refundedAt: new Date().toISOString() };
-      updateOrder(selectedOrder.orderId, { returnRequest: updatedReturn });
-      alert(`Pickup simulated — refund ${tx.status} for ${tx.id}`);
+        const updatedReturn = { ...(selectedOrder.returnRequest || {}), refundTx: tx, status: "pickup_completed", refundedAt: new Date().toISOString() };
+        
+        let timelineUpdate = {};
+        if (selectedOrder.timeline) {
+            const newTimeline = [...selectedOrder.timeline];
+            const returnPickedUpIndex = newTimeline.findIndex(item => item.status === 'Return package picked up');
+            if (returnPickedUpIndex === -1) {
+                newTimeline.push({ status: 'Return package picked up', date: format(new Date(), 'MMM dd, yyyy'), time: format(new Date(), 'p'), completed: true });
+                newTimeline.push({ status: 'Refund Initiated: Amount will be credited in 5-7 business days.', date: format(new Date(), 'MMM dd, yyyy'), time: format(new Date(), 'p'), completed: false });
+            }
+            timelineUpdate = { timeline: newTimeline };
+        }
+
+        updateOrder(selectedOrder.orderId, { returnRequest: updatedReturn, ...timelineUpdate });
+        toast({ title: "Pickup Simulated", description: `Refund ${tx.status} for transaction ${tx.transactionId}` });
     } else {
-      alert("No pending pickup/refund found for this order (mock). Try creating a return request first).");
+        toast({ variant: 'destructive', title: "Error", description: "No pending pickup/refund found for this order." });
     }
-  }
+}
 
   async function handleCancelFromBot(orderId: any) {
     const order = orders.find((o) => o.orderId === orderId);
@@ -258,6 +270,15 @@ export default function OrdersPage() {
     setIsVerifyingOtp(true);
     setTimeout(() => {
         toast({ title: "Order Cancelled", description: `Your order ${selectedOrder.orderId} has been cancelled.` });
+        
+        // Add cancellation and refund note to timeline
+        const updatedTimeline = [
+            ...selectedOrder.timeline,
+            { status: 'Cancelled by user', date: format(new Date(), 'MMM dd, yyyy'), time: format(new Date(), 'p'), completed: true },
+            { status: 'Refund Initiated: The amount will be credited to your original payment method within 5-7 business days.', date: format(new Date(), 'MMM dd, yyyy'), time: format(new Date(), 'p'), completed: false }
+        ];
+        updateOrder(selectedOrder.orderId, { timeline: updatedTimeline });
+        
         setIsCancelFlowOpen(false);
         setCancelStep("reason");
         setCancelReason("");
@@ -514,13 +535,13 @@ function OrderDetail({ order, statusData, loading, onBack, onRequestReturn, onSi
     { key: "delivered", label: "Delivered" },
   ];
   const product = order.products[0];
-  const stages = statusData?.stages ?? ALL_STAGES.map((s: any) => ({ key: s.key, label: s.label, completed: false, timestamp: null }));
+  const stages = statusData?.stages ?? order.timeline ?? ALL_STAGES.map((s: any) => ({ key: s.key, label: s.label, completed: false, timestamp: null }));
 
   const completedCount = stages.filter((s: any) => s.completed).length;
-  const percent = Math.round((completedCount / ALL_STAGES.length) * 100);
+  const percent = stages.length ? Math.round((completedCount / stages.length) * 100) : 0;
 
-  const outForDeliveryCompleted = stages.find((s: any) => s.key === 'out_for_delivery')?.completed;
-  const isDelivered = stages.find((s: any) => s.key === 'delivered')?.completed;
+  const outForDeliveryCompleted = stages.find((s: any) => s.key === 'out_for_delivery' || s.status.toLowerCase().includes('out for delivery'))?.completed;
+  const isDelivered = stages.find((s: any) => s.key === 'delivered' || s.status.toLowerCase().includes('delivered'))?.completed;
 
   const allowCancel = !outForDeliveryCompleted && !isDelivered;
   const allowReturn = isDelivered;
@@ -529,9 +550,9 @@ function OrderDetail({ order, statusData, loading, onBack, onRequestReturn, onSi
     <div>
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center gap-4">
-          <Link href={`/product/${product.key}`} className="block hover:opacity-80 transition-opacity">
-            <Image src={product.imageUrl} width={80} height={80} className="w-20 h-20 rounded-lg object-cover" alt="product" />
-          </Link>
+           <Link href={`/product/${product.key}`} className="block hover:opacity-80 transition-opacity">
+             <Image src={product.imageUrl} width={80} height={80} className="w-20 h-20 rounded-lg object-cover" alt="product" />
+           </Link>
           <div>
             <Link href={`/product/${product.key}`} className="hover:underline">
               <div className="text-lg font-semibold text-card-foreground">{product.name}</div>
@@ -590,7 +611,7 @@ function OrderDetail({ order, statusData, loading, onBack, onRequestReturn, onSi
       ) : (
         <div className="space-y-4">
           {stages.map((s: any, idx: number) => (
-            <TimelineStep key={s.key} step={s} index={idx} total={ALL_STAGES.length} />
+            <TimelineStep key={s.key || idx} step={s} index={idx} total={stages.length} />
           ))}
         </div>
       )}
@@ -601,26 +622,14 @@ function OrderDetail({ order, statusData, loading, onBack, onRequestReturn, onSi
 }
 
 function TimelineStep({ step, index, total }: any) {
-  const ALL_STAGES = [
-    { key: "ordered", label: "Order placed" },
-    { key: "packed", label: "Packed" },
-    { key: "shipped", label: "Shipped" },
-    { key: "out_for_delivery", label: "Out for delivery" },
-    { key: "delivered", label: "Delivered" },
-  ];
-  const variants = {
-    hidden: { opacity: 0, y: -6 },
-    enter: { opacity: 1, y: 0 },
-  };
-
   return (
-    <motion.div initial="hidden" animate="enter" variants={variants} className="flex items-start gap-4">
+    <motion.div initial="hidden" animate="enter" variants={{hidden: { opacity: 0, y: -6 }, enter: { opacity: 1, y: 0 }}} className="flex items-start gap-4">
       <div className="flex flex-col items-center">
         <div className={cn(`w-8 h-8 rounded-full flex items-center justify-center border`, step.completed ? 'bg-primary text-primary-foreground' : 'bg-card text-muted-foreground border-border')}>
           {step.completed ? (
             <CheckCircle2 className="w-4 h-4" />
           ) : (
-            <div className="text-xs">{index + 1}</div>
+            getStatusIcon(step.status)
           )}
         </div>
         {index < total - 1 && <div className={`w-px flex-1 bg-border mt-2`} style={{ minHeight: 32 }} />}
@@ -628,8 +637,8 @@ function TimelineStep({ step, index, total }: any) {
 
       <div className="flex-1 pt-0.5">
         <div className="flex items-center justify-between">
-          <div className="font-medium text-sm text-card-foreground">{step.label}</div>
-          <div className="text-xs text-muted-foreground">{step.timestamp ? new Date(step.timestamp).toLocaleString() : (step.completed ? "Done" : "Pending")}</div>
+          <div className="font-medium text-sm text-card-foreground">{step.label || step.status}</div>
+          <div className="text-xs text-muted-foreground">{step.timestamp ? new Date(step.timestamp).toLocaleString() : (step.date ? `${step.date} ${step.time}`: (step.completed ? "Done" : "Pending"))}</div>
         </div>
         <div className="text-xs text-muted-foreground mt-1">{step.completed ? "Completed" : "Waiting"}</div>
       </div>
@@ -738,6 +747,3 @@ function HelpBot({ orders, selectedOrder, onOpenReturn, onCancelOrder, onShowAdd
     </div>
   );
 }
-
-    
-
