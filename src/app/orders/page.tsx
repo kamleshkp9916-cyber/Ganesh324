@@ -231,7 +231,7 @@ export default function OrdersPage() {
             const returnPickedUpIndex = newTimeline.findIndex(item => item.status === 'Return package picked up');
             if (returnPickedUpIndex === -1) {
                 newTimeline.push({ status: 'Return package picked up', date: format(new Date(), 'MMM dd, yyyy'), time: format(new Date(), 'p'), completed: true });
-                newTimeline.push({ status: 'Refund Initiated: Amount will be credited in 5-7 business days.', date: format(new Date(), 'MMM dd, yyyy'), time: format(new Date(), 'p'), completed: false });
+                newTimeline.push({ status: 'Refund Initiated: The amount will be credited in 5-7 business days.', date: format(new Date(), 'MMM dd, yyyy'), time: format(new Date(), 'p'), completed: false });
             }
             timelineUpdate = { timeline: newTimeline };
         }
@@ -527,21 +527,13 @@ export default function OrdersPage() {
 }
 
 function OrderDetail({ order, statusData, loading, onBack, onRequestReturn, onSimulatePickup }: any) {
-  const ALL_STAGES = [
-    { key: "ordered", label: "Order placed" },
-    { key: "packed", label: "Packed" },
-    { key: "shipped", label: "Shipped" },
-    { key: "out_for_delivery", label: "Out for delivery" },
-    { key: "delivered", label: "Delivered" },
-  ];
   const product = order.products[0];
-  const stages = statusData?.stages ?? order.timeline ?? ALL_STAGES.map((s: any) => ({ key: s.key, label: s.label, completed: false, timestamp: null }));
-
+  const stages = statusData?.stages ?? order.timeline ?? [];
   const completedCount = stages.filter((s: any) => s.completed).length;
-  const percent = stages.length ? Math.round((completedCount / stages.length) * 100) : 0;
-
-  const outForDeliveryCompleted = stages.find((s: any) => s.key === 'out_for_delivery' || s.status.toLowerCase().includes('out for delivery'))?.completed;
-  const isDelivered = stages.find((s: any) => s.key === 'delivered' || s.status.toLowerCase().includes('delivered'))?.completed;
+  const percent = stages.length > Math.round((completedCount / stages.length) * 100) : 0;
+  
+  const outForDeliveryCompleted = stages.find((s: any) => (s.key === 'out_for_delivery') || (s.status && s.status.toLowerCase().includes('out for delivery')))?.completed;
+  const isDelivered = stages.find((s: any) => (s.key === 'delivered') || (s.status && s.status.toLowerCase().includes('delivered')))?.completed;
 
   const allowCancel = !outForDeliveryCompleted && !isDelivered;
   const allowReturn = isDelivered;
@@ -638,7 +630,7 @@ function TimelineStep({ step, index, total }: any) {
       <div className="flex-1 pt-0.5">
         <div className="flex items-center justify-between">
           <div className="font-medium text-sm text-card-foreground">{step.label || step.status}</div>
-          <div className="text-xs text-muted-foreground">{step.timestamp ? new Date(step.timestamp).toLocaleString() : (step.date ? `${step.date} ${step.time}`: (step.completed ? "Done" : "Pending"))}</div>
+          <div className="text-xs text-muted-foreground">{step.timestamp ? new Date(step.timestamp).toLocaleString() : (step.completed ? "Done" : "Pending")}</div>
         </div>
         <div className="text-xs text-muted-foreground mt-1">{step.completed ? "Completed" : "Waiting"}</div>
       </div>
