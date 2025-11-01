@@ -22,8 +22,9 @@ export type Order = {
 };
 
 export function getStatusFromTimeline(timeline: Order['timeline']): string {
+    if (!timeline || timeline.length === 0) return "Unknown";
     const lastCompletedStep = [...timeline].reverse().find(step => step.completed);
-    if (!lastCompletedStep) return "Unknown";
+    if (!lastCompletedStep || !lastCompletedStep.status) return "Unknown";
     return lastCompletedStep.status.split(':')[0].trim();
 }
 
