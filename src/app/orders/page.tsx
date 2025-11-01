@@ -1,15 +1,22 @@
 
 "use client";
 
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, RefreshCw, CreditCard, Download, Lock, Coins, Loader2, Bell, ChevronRight, Briefcase, ShoppingBag, BarChart2, Plus, ArrowUp, ArrowDown, Search, Printer } from 'lucide-react';
+import { ArrowLeft, RefreshCw, CreditCard, Download, Lock, Coins, Loader2, Bell, ChevronRight, Briefcase, ShoppingBag, BarChart2, Plus, ArrowUp, ArrowDown, Search, Printer, CheckCircle2, Circle, Hourglass, Package, PackageCheck, PackageOpen, Truck, Home, XCircle, AlertTriangle, ShieldCheck } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Footer } from '@/components/footer';
-import { getTransactions, Transaction } from '@/lib/transaction-history';
-import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
+import { getTransactions, Transaction, addTransaction } from '@/lib/transaction-history';
+import { Dialog, DialogContent, DialogTrigger, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Timeline } from '@/components/timeline';
+import { useToast } from "@/hooks/use-toast";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { InputOTP, InputOTPGroup, InputOTPSlot, InputOTPSeparator } from "@/components/ui/input-otp";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 // Single-file React component (default export)
 // Requirements: Tailwind CSS + framer-motion installed
@@ -148,15 +155,11 @@ const returnReasons = [
 
 
 // Mock transactions (payments/refunds/failed)
-let MOCK_TRANSACTIONS = [
-  { id: "TX-9001", orderId: "ORD-1001", type: "payment", amount: 499.99, status: "successful", at: "2025-10-28T09:16:00.000Z" },
-  { id: "TX-9002", orderId: "ORD-1002", type: "payment", amount: 129.99, status: "successful", at: "2025-10-30T13:46:00.000Z" },
-  { id: "TX-9003", orderId: "ORD-1004", type: "payment", amount: 19.99, status: "failed", at: "2025-10-25T08:21:00.000Z" },
-];
 
 function pushTransaction(tx: any) {
   const newTx = { id: `TX-${Math.floor(10000 + Math.random() * 90000)}`, ...tx };
-  MOCK_TRANSACTIONS = [newTx, ...MOCK_TRANSACTIONS];
+  // MOCK_TRANSACTIONS = [newTx, ...MOCK_TRANSACTIONS];
+  addTransaction(newTx as Transaction);
   return newTx;
 }
 
@@ -215,11 +218,11 @@ function submitReturnRequestMock({ orderId, type, reason, contactPhone, pickup, 
 // Mock: simulate pickup completed by delivery partner — this will mark refund as completed
 function simulatePickupComplete(orderId: any) {
   // find the pending refund tx and mark as successful and add amount
-  const txIndex = MOCK_TRANSACTIONS.findIndex((t) => t.orderId === orderId && t.type === "refund" && t.status === "pending");
-  if (txIndex !== -1) {
-    MOCK_TRANSACTIONS[txIndex] = { ...MOCK_TRANSACTIONS[txIndex], status: "successful", amount:  Math.round((Math.random()*100 + 20) * 100)/100 };
-    return MOCK_TRANSACTIONS[txIndex];
-  }
+  // const txIndex = MOCK_TRANSACTIONS.findIndex((t) => t.orderId === orderId && t.type === "refund" && t.status === "pending");
+  // if (txIndex !== -1) {
+  //   MOCK_TRANSACTIONS[txIndex] = { ...MOCK_TRANSACTIONS[txIndex], status: "successful", amount:  Math.round((Math.random()*100 + 20) * 100)/100 };
+  //   return MOCK_TRANSACTIONS[txIndex];
+  // }
   return null;
 }
 
@@ -238,11 +241,20 @@ export default function OrdersPage() {
   const [contactPhone, setContactPhone] = useState("");
   const [attachedPhotos, setAttachedPhotos] = useState<any[]>([]);
   const [tab, setTab] = useState("orders"); // 'orders' or 'transactions'
-  const [transactions, setTransactions] = useState(getTransactions());
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
   const fileInputRef = useRef<any>(null);
+
+  const [isCancelFlowOpen, setIsCancelFlowOpen] = useState(false);
+  const [cancelStep, setCancelStep] = useState("reason");
+  const [cancelReason, setCancelReason] = useState("");
+  const [cancelFeedback, setCancelFeedback] = useState("");
+  const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
+  const [otp, setOtp] = useState('');
+  const { toast } = useToast();
   
   useEffect(() => {
     setIsClient(true);
+    setTransactions(getTransactions());
   }, []);
 
 
@@ -271,7 +283,7 @@ export default function OrdersPage() {
   function updateOrder(orderId: any, patch: any) {
     setOrders((prev) => prev.map((o) => (o.id === orderId ? { ...o, ...patch } : o)));
     // also update selectedOrder if it's the same
-    if (selectedOrder?.id === orderId) setSelectedOrder((s) => ({ ...s, ...patch }));
+    if (selectedOrder?.id === orderId) setSelectedOrder((s:any) => ({ ...s, ...patch }));
   }
 
   // Called when user confirms a cancel/return
@@ -290,7 +302,8 @@ export default function OrdersPage() {
       // update UI — store return request info on order
       updateOrder(selectedOrder.id, { returnRequest: resp, status: returnType === 'cancel' ? 'cancel_requested' : (selectedOrder.status) });
       // add refund tx to local list
-      setTransactions((t) => [resp.refundTx, ...t]);
+      addTransaction(resp.refundTx);
+      setTransactions(getTransactions());
 
       // close confirm
       setShowReturnConfirm(false);
@@ -319,7 +332,7 @@ export default function OrdersPage() {
     const tx = simulatePickupComplete(selectedOrder.id);
     if (tx) {
       // update transactions state
-      setTransactions((t) => [tx, ...t.filter((x) => x.id !== tx.id)]);
+      setTransactions(getTransactions());
       // update order returnRequest status
       const updatedReturn = { ...(selectedOrder.returnRequest || {}), refundTx: tx, status: "pickup_completed", refundedAt: new Date().toISOString() };
       updateOrder(selectedOrder.id, { returnRequest: updatedReturn });
@@ -344,13 +357,31 @@ export default function OrdersPage() {
     // proceed with cancel request
     const resp: any = await submitReturnRequestMock({ orderId, type: 'cancel', reason: 'Cancelled via help', contactPhone: null, pickup: 'dropoff', photos: [] });
     updateOrder(orderId, { returnRequest: resp, status: 'cancel_requested' });
-    setTransactions((t) => [resp.refundTx, ...t]);
+    addTransaction(resp.refundTx);
+    setTransactions(getTransactions());
     alert('Cancel request submitted via Help Bot.');
   }
 
   function formatAddress(addr: any) {
     if (!addr) return '';
     return `${addr.name}, ${addr.line1}${addr.line2 ? ', ' + addr.line2 : ''}, ${addr.city}, ${addr.state} - ${addr.postalCode}, ${addr.country} • ${addr.phone}`;
+  }
+
+  const handleConfirmCancellation = (otpValue: string) => {
+    if (otpValue !== '123456') {
+        toast({ title: "Invalid OTP", variant: "destructive" });
+        return;
+    }
+    setIsVerifyingOtp(true);
+    setTimeout(() => {
+        toast({ title: "Order Cancelled", description: `Your order ${selectedOrder.id} has been cancelled.` });
+        setIsCancelFlowOpen(false);
+        setCancelStep("reason");
+        setCancelReason("");
+        setCancelFeedback("");
+        setOtp("");
+        setIsVerifyingOtp(false);
+    }, 1500);
   }
   
   return (
@@ -423,7 +454,11 @@ export default function OrdersPage() {
                       onBack={() => setSelectedOrder(null)}
                       onRequestReturn={(type: any) => {
                         setReturnType(type); // 'cancel' or 'return'
-                        setShowReturnConfirm(true);
+                        if (type === 'cancel') {
+                            setIsCancelFlowOpen(true);
+                        } else {
+                            setShowReturnConfirm(true);
+                        }
                       }}
                       onSimulatePickup={handleSimulatePickup}
                     />
@@ -465,8 +500,76 @@ export default function OrdersPage() {
             </div>
           )}
 
+          {/* Cancellation Modal */}
+            <Dialog open={isCancelFlowOpen} onOpenChange={setIsCancelFlowOpen}>
+                <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                        <DialogTitle>Cancel Order</DialogTitle>
+                        <DialogDescription>
+                           Please complete the following steps to cancel your order.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <Tabs value={cancelStep} onValueChange={setCancelStep} className="w-full">
+                        <TabsList className="grid w-full grid-cols-3">
+                            <TabsTrigger value="reason" disabled={cancelStep !== 'reason'}>Reason</TabsTrigger>
+                            <TabsTrigger value="feedback" disabled={!cancelReason}>Feedback</TabsTrigger>
+                            <TabsTrigger value="confirm" disabled={!cancelReason}>Confirm</TabsTrigger>
+                        </TabsList>
+                        <TabsContent value="reason" className="py-4">
+                            <RadioGroup value={cancelReason} onValueChange={setCancelReason}>
+                                <div className="space-y-2">
+                                    {cancellationReasons.map(reason => (
+                                        <div key={reason} className="flex items-center space-x-2">
+                                            <RadioGroupItem value={reason} id={reason} />
+                                            <Label htmlFor={reason}>{reason}</Label>
+                                        </div>
+                                    ))}
+                                </div>
+                            </RadioGroup>
+                             <Button onClick={() => setCancelStep('feedback')} disabled={!cancelReason} className="mt-4 w-full">Next</Button>
+                        </TabsContent>
+                        <TabsContent value="feedback" className="py-4">
+                             <div className="space-y-2">
+                                <Label htmlFor="feedback">Feedback (Optional)</Label>
+                                <Textarea id="feedback" value={cancelFeedback} onChange={(e) => setCancelFeedback(e.target.value)} placeholder="Tell us more..." />
+                            </div>
+                            <Button onClick={() => setCancelStep('confirm')} className="mt-4 w-full">Next</Button>
+                        </TabsContent>
+                        <TabsContent value="confirm" className="py-4">
+                            <div className="flex flex-col items-center gap-4 text-center">
+                                <ShieldCheck className="h-12 w-12 text-primary" />
+                                <p>An OTP has been sent to your registered mobile number for verification.</p>
+                                <InputOTP
+                                    maxLength={6}
+                                    value={otp}
+                                    onChange={(value) => {
+                                        setOtp(value);
+                                        if (value.length === 6) {
+                                            handleConfirmCancellation(value);
+                                        }
+                                    }}
+                                >
+                                    <InputOTPGroup>
+                                        <InputOTPSlot index={0} />
+                                        <InputOTPSlot index={1} />
+                                        <InputOTPSlot index={2} />
+                                    </InputOTPGroup>
+                                    <InputOTPSeparator />
+                                    <InputOTPGroup>
+                                        <InputOTPSlot index={3} />
+                                        <InputOTPSlot index={4} />
+                                        <InputOTPSlot index={5} />
+                                    </InputOTPGroup>
+                                </InputOTP>
+                                {isVerifyingOtp && <div className="flex items-center text-sm text-muted-foreground"><Loader2 className="mr-2 h-4 w-4 animate-spin"/>Verifying...</div>}
+                            </div>
+                        </TabsContent>
+                    </Tabs>
+                </DialogContent>
+            </Dialog>
+
           {/* Return confirmation modal (enhanced) */}
-          {showReturnConfirm && selectedOrder && (
+         {showReturnConfirm && selectedOrder && (
             <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
               <div className="bg-card rounded-xl p-6 w-full max-w-lg">
                 <h3 className="text-lg font-semibold">{returnType === 'cancel' ? 'Cancel order' : 'Request return'}</h3>
@@ -514,7 +617,7 @@ export default function OrdersPage() {
           />
         </div>
       </main>
-      <Footer />
+      <Footer/>
     </div>
   );
 }
