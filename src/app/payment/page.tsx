@@ -749,7 +749,3 @@ export default function PaymentPage() {
     </>
   );
 }
-
-    
-
-
