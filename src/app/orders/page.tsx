@@ -313,6 +313,21 @@ useEffect(() => {
     }
     setIsVerifyingOtp(true);
     try {
+        // Call the backend to notify delivery partner
+        // This URL assumes the function is deployed in the same project.
+        // In a real app, this would come from a config.
+        const functionUrl = `https://us-central1-${process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID}.cloudfunctions.net/notifyDeliveryPartner`;
+        await fetch(functionUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                orderId: selectedOrder.orderId,
+                status: 'cancelled',
+            }),
+        });
+        
         const allOrdersJSON = localStorage.getItem(ORDERS_KEY);
         let allOrders: Order[] = allOrdersJSON ? JSON.parse(allOrdersJSON) : [];
         
@@ -354,7 +369,7 @@ useEffect(() => {
         }
     } catch (error) {
         console.error("Cancellation error:", error);
-        toast({ title: "Cancellation Failed", variant: "destructive" });
+        toast({ title: "Cancellation Failed", description: "Could not notify delivery partner.", variant: "destructive" });
     } finally {
         setIsVerifyingOtp(false);
     }
@@ -480,7 +495,7 @@ useEffect(() => {
                     </tr>
                   </thead>
                   <tbody>
-                    {paginatedTransactions.map((t: Transaction, index: number) => (
+                    {paginatedTransactions.map((t, index) => (
                       <tr key={`${t.transactionId}-${index}`} className="border-t border-border">
                         <td className="py-2">{t.transactionId}</td>
                         <td>{t.transactionId}</td>
@@ -651,11 +666,15 @@ function OrderDetail({ order, statusData, loading, onBack, onRefresh, onRequestR
 
     const currentStatus = useMemo(() => getStatusFromTimeline(order.timeline), [order.timeline]);
     const isCancelled = currentStatus.toLowerCase().includes('cancelled');
+    const isDelivered = currentStatus === 'Delivered';
 
     const timelineToShow = useMemo(() => {
         const timeline = statusData?.stages || order.timeline;
         const cancelIndex = timeline.findIndex((item: any) => item && item.status && item.status.toLowerCase().includes('cancelled'));
-        return cancelIndex > -1 ? timeline.slice(0, cancelIndex + 1) : timeline;
+        if (cancelIndex > -1) {
+            return timeline.slice(0, cancelIndex + 1);
+        }
+        return timeline;
     }, [order.timeline, statusData]);
     
     const completedCount = useMemo(() => timelineToShow.filter((s: any) => s.completed).length, [timelineToShow]);
@@ -667,9 +686,25 @@ function OrderDetail({ order, statusData, loading, onBack, onRefresh, onRequestR
     }, [isCancelled, completedCount, timelineToShow.length]);
 
 
-    const isDelivered = currentStatus === 'Delivered';
     const showCancelButton = !isCancelled && !isDelivered && !order.returnRequest;
-    const showReturnButton = isDelivered && order.isReturnable !== false && !order.returnRequest;
+    const isReturnWindowActive = useMemo(() => {
+        if (!order || currentStatus !== 'Delivered' || order.isReturnable === false) {
+            return false;
+        }
+        const deliveredStep = order.timeline.find(step => step.status.startsWith('Delivered'));
+        if (!deliveredStep || !deliveredStep.date) {
+            return false;
+        }
+        try {
+            const deliveryDate = parse(deliveredStep.date, 'MMM dd, yyyy', new Date());
+            const daysSinceDelivery = differenceInDays(new Date(), deliveryDate);
+            return daysSinceDelivery <= 7;
+        } catch {
+            return false;
+        }
+    }, [currentStatus, order]);
+
+    const showReturnButton = isDelivered && order.isReturnable !== false && isReturnWindowActive && !order.returnRequest;
     const showRefundButton = currentStatus === 'Returned';
     const showReviewButton = isDelivered;
 
@@ -720,7 +755,7 @@ function OrderDetail({ order, statusData, loading, onBack, onRefresh, onRequestR
 
             <div className="mb-4">
                 <div className="w-full bg-muted rounded-full overflow-hidden h-2">
-                    <div className="h-2 rounded-full bg-primary transition-all" style={{ width: `${percent}%` }} />
+                    <div className={cn("h-2 rounded-full transition-all", isCancelled ? "bg-destructive" : "bg-primary")} style={{ width: `${percent}%` }} />
                 </div>
             </div>
 
@@ -737,7 +772,7 @@ function OrderDetail({ order, statusData, loading, onBack, onRefresh, onRequestR
                     {showReturnButton && (
                         <button onClick={() => onRequestReturn('return')} className="text-sm px-3 py-1 rounded-md border border-red-500/50 bg-red-500/10 text-red-400">Request return</button>
                     )}
-                    {isDelivered && (
+                    {showReviewButton && (
                         <Dialog open={isReviewDialogOpen} onOpenChange={setIsReviewDialogOpen}>
                             <DialogTrigger asChild>
                                 <Button variant="outline" size="sm"><Star className="mr-2 h-4 w-4" /> {myReview ? "Edit Your Review" : "Write a Review"}</Button>
@@ -889,5 +924,3 @@ function HelpBot({ orders, selectedOrder, onOpenReturn, onCancelOrder, onShowAdd
     </div>
   );
 }
-
-    

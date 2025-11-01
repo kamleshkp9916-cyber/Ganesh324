@@ -220,3 +220,35 @@ exports.getBankAccounts = onRequest(async (req, res) => {
         res.status(500).json({ error: "Could not get bank accounts." });
     }
 });
+
+exports.notifyDeliveryPartner = onRequest(async (req, res) => {
+    // Allow CORS for development
+    res.set('Access-Control-Allow-Origin', '*');
+    if (req.method === 'OPTIONS') {
+        // Pre-flight request
+        res.set('Access-Control-Allow-Methods', 'POST');
+        res.set('Access-Control-Allow-Headers', 'Content-Type');
+        res.set('Access-Control-Max-Age', '3600');
+        res.status(204).send('');
+        return;
+    }
+    
+    if (req.method !== 'POST') {
+        return res.status(405).json({ error: 'Use POST' });
+    }
+    const { orderId, status } = req.body;
+    if (!orderId || !status) {
+        return res.status(400).json({ error: 'Missing orderId or status' });
+    }
+
+    // In a real app, this would integrate with a delivery partner's API
+    // (e.g., ShipRocket, Delhivery, etc.)
+    console.log(`Notifying delivery partner for order ${orderId} with status: ${status}`);
+
+    // Simulate an API call
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    console.log(`Successfully notified delivery partner for order ${orderId}.`);
+
+    res.status(200).json({ success: true, message: `Delivery partner notified for order ${orderId}` });
+});
