@@ -33,6 +33,7 @@ import { addTransaction } from '@/lib/transaction-history';
 import { updateUserData } from '@/lib/follow-data';
 import { format, addDays } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
 
 const defaultShippingSettings: ShippingSettings = {
@@ -696,7 +697,17 @@ export default function PaymentPage() {
                                     <span>₹{shippingCost.toFixed(2)}</span>
                                 </div>
                                 <div className="flex justify-between">
-                                    <span className="text-muted-foreground">Tax</span>
+                                    <span className="text-muted-foreground flex items-center gap-1.5">
+                                        Tax
+                                        <Popover>
+                                            <PopoverTrigger asChild>
+                                                <Info className="h-4 w-4 cursor-pointer text-muted-foreground hover:text-foreground" />
+                                            </PopoverTrigger>
+                                            <PopoverContent>
+                                                <p className="text-sm">Taxes are calculated based on your shipping address and include GST (2.5%) and SGST (2.5%) on the subtotal.</p>
+                                            </PopoverContent>
+                                        </Popover>
+                                    </span>
                                     <span>₹{estimatedTaxes.toFixed(2)}</span>
                                 </div>
                             </div>
@@ -749,3 +760,4 @@ export default function PaymentPage() {
     </>
   );
 }
+
