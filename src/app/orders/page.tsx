@@ -147,7 +147,7 @@ export default function OrdersPage() {
   const [cancelStep, setCancelStep] = useState("reason");
   const [cancelReason, setCancelReason] = useState("");
   const [cancelFeedback, setCancelFeedback] = useState("");
-  const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
+  const [isVerifyingOtp, setIsVerifyingOtp] = useState(isVerifyingOtp);
   const [otp, setOtp] = useState('');
   const { toast } = useToast();
 
@@ -300,20 +300,19 @@ useEffect(() => {
     }
     setIsVerifyingOtp(true);
     try {
-        const allOrdersJSON = localStorage.getItem(ORDERS_KEY);
-        let allOrders: Order[] = allOrdersJSON ? JSON.parse(allOrdersJSON) : [];
-        
-        const orderIndex = allOrders.findIndex(o => o.orderId === selectedOrder.orderId);
-        const order = allOrders[orderIndex];
+        const allOrders = JSON.parse(localStorage.getItem(ORDERS_KEY) || '[]');
+        const orderIndex = allOrders.findIndex((o: Order) => o.orderId === selectedOrder.orderId);
 
         if (orderIndex !== -1) {
-            const updatedOrder = { ...allOrders[orderIndex] };
+            const updatedOrder: Order = { ...allOrders[orderIndex] };
             updatedOrder.timeline = [
-                ...updatedOrder.timeline,
+                ...updatedOrder.timeline.filter(t => t.completed),
                 { status: 'Cancelled by user', date: format(new Date(), 'MMM dd, yyyy'), time: format(new Date(), 'p'), completed: true },
                 { status: 'Refund Initiated: The amount will be credited to your original payment method within 5-7 business days.', date: format(new Date(), 'MMM dd, yyyy'), time: format(new Date(), 'p'), completed: false }
             ];
             allOrders[orderIndex] = updatedOrder;
+            
+            setOrders(allOrders);
             saveAllOrders(allOrders);
             setSelectedOrder(updatedOrder);
 
@@ -620,17 +619,20 @@ useEffect(() => {
 
 function OrderDetail({ order, statusData, loading, onBack, onRefresh, onRequestReturn, onSimulatePickup }: any) {
   const { products } = order;
-  const stages = statusData?.stages ?? order.timeline ?? [];
-  const completedCount = stages.filter((s: any) => s.completed).length;
-  const percent = stages.length > 0 ? Math.round((completedCount / stages.length) * 100) : 0;
   
   const currentStatus = getStatusFromTimeline(order.timeline);
   const isDelivered = currentStatus === 'Delivered';
   const isCancelled = currentStatus.toLowerCase().includes('cancelled');
   
-  const allowCancel = !isDelivered && !isCancelled;
+  // Filter timeline to only show up to the cancellation point if cancelled
+  const cancelIndex = order.timeline.findIndex((item:any) => item.status.toLowerCase().includes('cancelled'));
+  const timelineToShow = cancelIndex > -1 ? order.timeline.slice(0, cancelIndex + 1) : order.timeline;
 
-  const allowReturn = isDelivered;
+  const completedCount = timelineToShow.filter((s: any) => s.completed).length;
+  const percent = timelineToShow.length > 0 ? Math.round((completedCount / timelineToShow.length) * 100) : 0;
+  
+  const allowCancel = !isDelivered && !isCancelled;
+  const allowReturn = isDelivered && !isCancelled;
 
   return (
     <div>
@@ -703,8 +705,8 @@ function OrderDetail({ order, statusData, loading, onBack, onRefresh, onRequestR
         <div className="text-sm text-muted-foreground">Loading status…</div>
       ) : (
         <div className="space-y-4">
-          {stages.map((s: any, idx: number) => (
-            <TimelineStep key={s.key || idx} step={s} index={idx} total={stages.length} />
+          {timelineToShow.map((s: any, idx: number) => (
+            <TimelineStep key={s.key || idx} step={s} index={idx} total={timelineToShow.length} />
           ))}
         </div>
       )}
@@ -840,5 +842,3 @@ function HelpBot({ orders, selectedOrder, onOpenReturn, onCancelOrder, onShowAdd
     </div>
   );
 }
-
-    
