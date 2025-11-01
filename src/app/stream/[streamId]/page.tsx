@@ -1744,7 +1744,9 @@ const StreamPage = () => {
     const handleBuyNow = useCallback((product: any) => {
         handleAuthAction(() => {
             if (product) {
-                router.push(`/cart?buyNow=true&productId=${product.key}`);
+                addToCart({ ...product, quantity: 1 });
+                localStorage.setItem('buyNow', 'true');
+                router.push('/cart');
             }
         });
     }, [router, handleAuthAction]);
@@ -1875,6 +1877,7 @@ export default StreamPage;
 
     
     
+
 
 
 
