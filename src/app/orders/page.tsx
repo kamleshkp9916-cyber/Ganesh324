@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import React, { useEffect, useState, useRef, useCallback } from "react";
@@ -608,7 +609,7 @@ function OrderDetail({ order, statusData, loading, onBack, onRefresh, onRequestR
               <div className="mt-2 text-xs text-muted-foreground">To: {order.address.name} • {order.address.city} • {order.address.pincode}</div>
             )}
             {order.returnRequest && (
-              <div className="mt-2 text-xs text-amber-500">Return requested: {order.returnRequest.type} • {order.returnRequest.status}</div>
+              <div className="mt-2 text-xs text-amber-500">Request: {order.returnRequest.type} • {order.returnRequest.status}</div>
             )}
           </div>
         </div>
@@ -627,7 +628,7 @@ function OrderDetail({ order, statusData, loading, onBack, onRefresh, onRequestR
 
       <div className="flex items-center justify-between mb-3">
         <div className="text-sm font-medium text-card-foreground">Delivery Timeline</div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center flex-wrap gap-x-3 gap-y-2 justify-end">
            <Button variant="ghost" size="sm" onClick={onRefresh} disabled={loading} className="text-xs text-muted-foreground">
               <RefreshCw className={cn("mr-2 h-3 w-3", loading && "animate-spin")} />
               Refresh
@@ -793,5 +794,7 @@ function HelpBot({ orders, selectedOrder, onOpenReturn, onCancelOrder, onShowAdd
   );
 }
 
+
+    
 
     
