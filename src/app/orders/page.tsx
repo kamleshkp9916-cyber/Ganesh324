@@ -293,7 +293,7 @@ useEffect(() => {
     return `${addr.name}, ${addr.village}, ${addr.city}, ${addr.state} - ${addr.pincode}, India • ${addr.phone}`;
   }
 
-  async function handleConfirmCancellation(otpValue: string) {
+   async function handleConfirmCancellation(otpValue: string) {
     if (otpValue !== '123456') {
         toast({ title: "Invalid OTP", variant: "destructive" });
         return;
@@ -307,11 +307,12 @@ useEffect(() => {
 
         if (orderIndex !== -1) {
             const updatedOrder: Order = { ...allOrders[orderIndex] };
-            updatedOrder.timeline = [
-                ...updatedOrder.timeline.filter(t => t.completed),
-                { status: 'Cancelled by user', date: format(new Date(), 'MMM dd, yyyy'), time: format(new Date(), 'p'), completed: true },
+            updatedOrder.timeline.push(
+                { status: 'Cancelled by user', date: format(new Date(), 'MMM dd, yyyy'), time: format(new Date(), 'p'), completed: true }
+            );
+            updatedOrder.timeline.push(
                 { status: 'Refund Initiated: The amount will be credited to your original payment method within 5-7 business days.', date: format(new Date(), 'MMM dd, yyyy'), time: format(new Date(), 'p'), completed: false }
-            ];
+            );
             allOrders[orderIndex] = updatedOrder;
             
             saveAllOrders(allOrders);
@@ -320,12 +321,12 @@ useEffect(() => {
 
             addTransaction({
                 id: Date.now(),
-                transactionId: `REF-${order.orderId.replace('#', '')}`,
+                transactionId: `REF-${selectedOrder.orderId.replace('#', '')}`,
                 type: 'Refund',
-                description: `For cancelled order ${order.orderId}`,
+                description: `For cancelled order ${selectedOrder.orderId}`,
                 date: format(new Date(), 'MMM dd, yyyy'),
                 time: format(new Date(), 'p'),
-                amount: order.total,
+                amount: selectedOrder.total,
                 status: 'Processing',
             });
             
@@ -624,10 +625,10 @@ function OrderDetail({ order, statusData, loading, onBack, onRefresh, onRequestR
   
   const currentStatus = getStatusFromTimeline(order.timeline);
   const isDelivered = currentStatus === 'Delivered';
-  const isCancelled = currentStatus.toLowerCase().includes('cancelled by user');
+  const isCancelled = currentStatus.toLowerCase().includes('cancelled');
   
   // Filter timeline to only show up to the cancellation point if cancelled
-  const cancelIndex = order.timeline.findIndex((item:any) => item.status.toLowerCase().includes('cancelled'));
+  const cancelIndex = order.timeline.findIndex((item:any) => item && item.status && item.status.toLowerCase().includes('cancelled'));
   const timelineToShow = cancelIndex > -1 ? order.timeline.slice(0, cancelIndex + 1) : order.timeline;
 
   const completedCount = timelineToShow.filter((s: any) => s.completed).length;
