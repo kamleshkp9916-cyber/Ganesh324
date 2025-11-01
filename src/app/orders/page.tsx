@@ -315,7 +315,7 @@ useEffect(() => {
             ];
             allOrders[orderIndex] = updatedOrder;
             saveAllOrders(allOrders);
-            setOrder(updatedOrder);
+            setSelectedOrder(updatedOrder);
 
             addTransaction({
                 id: Date.now(),
