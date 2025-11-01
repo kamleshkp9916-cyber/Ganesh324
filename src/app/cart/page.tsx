@@ -260,7 +260,7 @@ export default function CartPage() {
                                 const originalPrice = hasDiscount ? discountedPrice / (1 - details.discountPercentage / 100) : discountedPrice;
                                 
                                 return (
-                                     <div key={`${item.id}-${item.size || ''}-${item.color || ''}`} className="p-4 flex flex-col sm:flex-row gap-4">
+                                     <div key={`${item.id}-${item.size || ''}-${item.color || ''}`} className="p-4 flex flex-col sm:flex-row sm:justify-between gap-4">
                                         <div className="flex gap-4">
                                             <div className="flex-shrink-0">
                                                 <Link href={`/product/${item.key}`} className="block">
@@ -307,7 +307,7 @@ export default function CartPage() {
                                                 </div>
                                             </div>
                                         </div>
-                                         <div className="mt-2 flex items-center justify-between">
+                                        <div className="mt-2 flex items-center justify-between sm:flex-col sm:items-end sm:justify-between sm:gap-4 sm:mt-0">
                                             <div className='flex items-center'>
                                                 <Button size="icon" variant="outline" className="h-8 w-8" onClick={() => handleQuantityChange(item.id, item.quantity - 1, item.size, item.color)} disabled={item.quantity <= 1}>
                                                     <Minus className="h-4 w-4" />
@@ -317,7 +317,7 @@ export default function CartPage() {
                                                     <Plus className="h-4 w-4" />
                                                 </Button>
                                             </div>
-                                            <div className="font-bold text-base sm:text-lg">
+                                            <div className="font-bold text-base sm:mt-auto">
                                                 ₹{(discountedPrice * item.quantity).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                             </div>
                                         </div>
