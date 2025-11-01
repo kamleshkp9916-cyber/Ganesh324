@@ -3,9 +3,9 @@
 
 import React, { useEffect, useState, useRef } from "react";
 import { motion } from "framer-motion";
+import { ArrowLeft, RefreshCw, CreditCard, Download, Lock, Coins, Loader2, Bell, ChevronRight, Briefcase, ShoppingBag, BarChart2, Plus, ArrowUp, ArrowDown, Search, Printer } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft } from 'lucide-react';
 import { Footer } from '@/components/footer';
 import { getTransactions, Transaction } from '@/lib/transaction-history';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
@@ -129,6 +129,24 @@ const ALL_STAGES = [
   { key: "delivered", label: "Delivered" },
 ];
 
+const cancellationReasons = [
+  "Changed my mind",
+  "Ordered by mistake",
+  "Delivery time is too long",
+  "Found a better deal elsewhere",
+  "Other"
+];
+
+const returnReasons = [
+  "Item was defective or damaged",
+  "Received the wrong item",
+  "The item doesn't match the description or photos",
+  "The item doesn't fit properly",
+  "No longer need the item",
+  "Other"
+];
+
+
 // Mock transactions (payments/refunds/failed)
 let MOCK_TRANSACTIONS = [
   { id: "TX-9001", orderId: "ORD-1001", type: "payment", amount: 499.99, status: "successful", at: "2025-10-28T09:16:00.000Z" },
@@ -205,6 +223,302 @@ function simulatePickupComplete(orderId: any) {
   return null;
 }
 
+export default function OrdersPage() {
+  const router = useRouter();
+  const [isClient, setIsClient] = useState(false);
+  const [orders, setOrders] = useState(MOCK_ORDERS);
+  const [selectedOrder, setSelectedOrder] = useState<any>(null);
+  const [statusData, setStatusData] = useState<any>(null);
+  const [loadingStatus, setLoadingStatus] = useState(false);
+  const [returning, setReturning] = useState(false);
+  const [returnReason, setReturnReason] = useState("");
+  const [showReturnConfirm, setShowReturnConfirm] = useState(false);
+  const [returnType, setReturnType] = useState<any>(null);
+  const [returnPickupOption, setReturnPickupOption] = useState("pickup");
+  const [contactPhone, setContactPhone] = useState("");
+  const [attachedPhotos, setAttachedPhotos] = useState<any[]>([]);
+  const [tab, setTab] = useState("orders"); // 'orders' or 'transactions'
+  const [transactions, setTransactions] = useState(getTransactions());
+  const fileInputRef = useRef<any>(null);
+  
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+
+  useEffect(() => {
+    if (!selectedOrder) return;
+
+    setLoadingStatus(true);
+    setStatusData(null);
+
+    // --- Replace below with real API call when backend is ready ---
+    // fetch(`/api/delivery/${selectedOrder.id}`)
+    //   .then(r => r.json())
+    //   .then(data => { setStatusData(data); setLoadingStatus(false); })
+    //   .catch(err => { console.error(err); setLoadingStatus(false); });
+    // ------------------------------------------------------------
+
+    fetchDeliveryStatusMock(selectedOrder.id)
+      .then((data) => {
+        setStatusData(data);
+      })
+      .catch((e) => console.error(e))
+      .finally(() => setLoadingStatus(false));
+  }, [selectedOrder]);
+
+  // Helper: update order in orders state
+  function updateOrder(orderId: any, patch: any) {
+    setOrders((prev) => prev.map((o) => (o.id === orderId ? { ...o, ...patch } : o)));
+    // also update selectedOrder if it's the same
+    if (selectedOrder?.id === orderId) setSelectedOrder((s) => ({ ...s, ...patch }));
+  }
+
+  // Called when user confirms a cancel/return
+  async function handleSubmitReturn() {
+    if (!selectedOrder || !returnType) return;
+    setReturning(true);
+    try {
+      const resp: any = await submitReturnRequestMock({
+        orderId: selectedOrder.id,
+        type: returnType,
+        reason: returnReason,
+        contactPhone,
+        pickup: returnPickupOption,
+        photos: attachedPhotos,
+      });
+      // update UI — store return request info on order
+      updateOrder(selectedOrder.id, { returnRequest: resp, status: returnType === 'cancel' ? 'cancel_requested' : (selectedOrder.status) });
+      // add refund tx to local list
+      setTransactions((t) => [resp.refundTx, ...t]);
+
+      // close confirm
+      setShowReturnConfirm(false);
+      setReturnReason("");
+      setReturnType(null);
+      setReturnPickupOption("pickup");
+      setContactPhone("");
+      setAttachedPhotos([]);
+      if (fileInputRef.current) fileInputRef.current.value = null;
+    } catch (e) {
+      console.error(e);
+      // show error to user (not implemented)
+    } finally {
+      setReturning(false);
+    }
+  }
+
+  function handlePhotoAttach(e: any) {
+    const files = Array.from(e.target.files || []);
+    setAttachedPhotos(files);
+  }
+
+  // Simulate pickup button (for testing) — in real life pickup will be processed by backend
+  function handleSimulatePickup() {
+    if (!selectedOrder) return;
+    const tx = simulatePickupComplete(selectedOrder.id);
+    if (tx) {
+      // update transactions state
+      setTransactions((t) => [tx, ...t.filter((x) => x.id !== tx.id)]);
+      // update order returnRequest status
+      const updatedReturn = { ...(selectedOrder.returnRequest || {}), refundTx: tx, status: "pickup_completed", refundedAt: new Date().toISOString() };
+      updateOrder(selectedOrder.id, { returnRequest: updatedReturn });
+      alert(`Pickup simulated — refund ${tx.status} for ${tx.id}`);
+    } else {
+      alert("No pending pickup/refund found for this order (mock). Try creating a return request first).");
+    }
+  }
+
+  // New: cancel action that can be called by UI or bot. Allows cancel any time before 'out_for_delivery' stage.
+  async function handleCancelFromBot(orderId: any) {
+    const order = orders.find((o) => o.id === orderId);
+    if (!order) return;
+    // fetch latest stages (mock)
+    const status: any = await fetchDeliveryStatusMock(orderId);
+    const outForDeliveryCompleted = status.stages.find((s: any) => s.key === 'out_for_delivery')?.completed;
+    if (outForDeliveryCompleted) {
+      alert('This order is already out for delivery and cannot be cancelled.');
+      return;
+    }
+
+    // proceed with cancel request
+    const resp: any = await submitReturnRequestMock({ orderId, type: 'cancel', reason: 'Cancelled via help', contactPhone: null, pickup: 'dropoff', photos: [] });
+    updateOrder(orderId, { returnRequest: resp, status: 'cancel_requested' });
+    setTransactions((t) => [resp.refundTx, ...t]);
+    alert('Cancel request submitted via Help Bot.');
+  }
+
+  function formatAddress(addr: any) {
+    if (!addr) return '';
+    return `${addr.name}, ${addr.line1}${addr.line2 ? ', ' + addr.line2 : ''}, ${addr.city}, ${addr.state} - ${addr.postalCode}, ${addr.country} • ${addr.phone}`;
+  }
+  
+  return (
+    <div className="min-h-screen bg-background text-foreground flex flex-col">
+       <header className="p-4 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-sm z-30 border-b">
+        <Button variant="ghost" size="icon" onClick={() => router.back()}>
+          <ArrowLeft className="h-6 w-6" />
+        </Button>
+        <h1 className="text-xl font-bold">My Orders</h1>
+        <div className="w-10"></div>
+      </header>
+      <main className="flex-grow p-6">
+        <div className="max-w-6xl mx-auto">
+          <header className="mb-4 flex items-center justify-between">
+            <div>
+              <p className="text-sm text-muted-foreground">View orders, request returns, and see transactions.</p>
+            </div>
+            <div className="flex items-center gap-3">
+              <button onClick={() => setTab("orders")} className={`px-3 py-1 rounded-md ${tab === 'orders' ? 'bg-primary text-primary-foreground' : 'border'}`}>Orders</button>
+              <button onClick={() => setTab("transactions")} className={`px-3 py-1 rounded-md ${tab === 'transactions' ? 'bg-primary text-primary-foreground' : 'border'}`}>Transactions</button>
+            </div>
+          </header>
+
+          {tab === 'orders' && (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="md:col-span-1">
+                <div className="bg-card p-4 rounded-2xl shadow-sm border">
+                  <h2 className="font-medium mb-3 text-card-foreground">Orders</h2>
+                  <div className="space-y-3">
+                    {orders.map((o) => (
+                      <button
+                        key={o.id}
+                        onClick={() => setSelectedOrder(o)}
+                        className={`w-full text-left p-3 rounded-xl border flex items-center gap-3 hover:shadow transition ${
+                          selectedOrder?.id === o.id ? "border-primary bg-primary/10" : "border-transparent"
+                        }`}
+                      >
+                        <img src={o.product.image} alt={o.product.name} className="w-14 h-14 rounded-md object-cover" data-ai-hint={o.product['data-ai-hint']} />
+                        <div className="flex-1">
+                          <div className="text-sm font-medium text-foreground">{o.product.name}</div>
+                          <div className="text-xs text-muted-foreground">{o.id} • {isClient ? new Date(o.placedAt).toLocaleString() : ''}</div>
+                          <div className="text-xs text-muted-foreground/80 mt-1">{formatAddress(o.shippingAddress)}</div>
+                          {o.returnRequest && (
+                            <div className="text-xs text-yellow-600 mt-1">Return: {o.returnRequest.type} • {o.returnRequest.status}</div>
+                          )}
+                        </div>
+                        <div className="text-sm text-foreground capitalize">{o.status.replace(/_/g, ' ')}</div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="mt-4 text-xs text-muted-foreground">
+                  <div>Note: This frontend uses mock data. When you connect the backend, replace the mock fetch in the code with a real API call to your delivery service.</div>
+                </div>
+              </div>
+
+              <div className="md:col-span-2">
+                <div className="bg-card p-6 rounded-2xl shadow-sm border min-h-[300px]">
+                  {!selectedOrder ? (
+                    <div className="flex flex-col items-center justify-center h-64">
+                      <div className="text-muted-foreground">No order selected</div>
+                      <div className="text-sm mt-2 text-muted-foreground/80">Click an order on the left to see its tracking steps.</div>
+                    </div>
+                  ) : (
+                    <OrderDetail
+                      order={selectedOrder}
+                      statusData={statusData}
+                      loading={loadingStatus}
+                      onBack={() => setSelectedOrder(null)}
+                      onRequestReturn={(type: any) => {
+                        setReturnType(type); // 'cancel' or 'return'
+                        setShowReturnConfirm(true);
+                      }}
+                      onSimulatePickup={handleSimulatePickup}
+                    />
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {tab === 'transactions' && (
+            <div className="bg-card p-6 rounded-2xl shadow-sm border">
+              <h2 className="text-lg font-medium mb-4">Transactions</h2>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead className="text-xs text-muted-foreground text-left">
+                    <tr>
+                      <th className="py-2">Txn ID</th>
+                      <th>Order</th>
+                      <th>Type</th>
+                      <th>Amount</th>
+                      <th>Status</th>
+                      <th>Time</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {transactions.map((t: Transaction) => (
+                      <tr key={t.id} className="border-t">
+                        <td className="py-2">{t.id}</td>
+                        <td>{t.orderId}</td>
+                        <td className="capitalize">{t.type}</td>
+                        <td>₹{(t.amount ?? 0).toFixed(2)}</td>
+                        <td>{t.status}</td>
+                        <td className="text-xs text-muted-foreground">{new Date(t.at).toLocaleString()}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {/* Return confirmation modal (enhanced) */}
+          {showReturnConfirm && selectedOrder && (
+            <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+              <div className="bg-card rounded-xl p-6 w-full max-w-lg">
+                <h3 className="text-lg font-semibold">{returnType === 'cancel' ? 'Cancel order' : 'Request return'}</h3>
+                <p className="text-sm text-muted-foreground mt-2">Order <span className="font-medium">{selectedOrder.id}</span> • {selectedOrder.product.name}</p>
+
+                 <label className="block text-xs text-muted-foreground mt-4">Reason</label>
+                  <select value={returnReason} onChange={(e) => setReturnReason(e.target.value)} className="w-full mt-2 p-2 border rounded-md text-sm bg-background text-foreground">
+                      <option value="">-- Select reason --</option>
+                      {(returnType === 'cancel' ? cancellationReasons : returnReasons).map(reason => (
+                          <option key={reason} value={reason}>{reason}</option>
+                      ))}
+                  </select>
+
+                <label className="block text-xs text-muted-foreground mt-3">Pickup vs Drop-off</label>
+                <div className="flex items-center gap-3 mt-2">
+                  <label className="flex items-center gap-2"><input type="radio" checked={returnPickupOption==='pickup'} onChange={() => setReturnPickupOption('pickup')} /> Pickup</label>
+                  <label className="flex items-center gap-2"><input type="radio" checked={returnPickupOption==='dropoff'} onChange={() => setReturnPickupOption('dropoff')} /> Drop-off</label>
+                </div>
+
+                <label className="block text-xs text-muted-foreground mt-3">Contact phone for pickup (optional)</label>
+                <input value={contactPhone} onChange={(e) => setContactPhone(e.target.value)} className="w-full mt-2 p-2 border rounded-md text-sm bg-background text-foreground" placeholder="+91 98XXXXXXXX" />
+
+                <label className="block text-xs text-muted-foreground mt-3">Attach photos (optional)</label>
+                <input ref={fileInputRef} onChange={handlePhotoAttach} type="file" multiple accept="image/*" className="w-full mt-2 text-sm text-foreground" />
+
+                <div className="flex items-center gap-3 mt-4 justify-end">
+                  <button onClick={() => { setShowReturnConfirm(false); setReturnType(null); }} className="px-3 py-2 rounded-md text-sm border">Cancel</button>
+                  <button onClick={handleSubmitReturn} disabled={returning} className="px-3 py-2 rounded-md text-sm bg-primary text-primary-foreground disabled:opacity-60">
+                    {returning ? 'Submitting...' : returnType === 'cancel' ? 'Confirm Cancel' : 'Submit Return'}
+                  </button>
+                </div>
+
+                <div className="mt-3 text-xs text-muted-foreground">Note: In this mock, refunds are created as pending and will be marked successful after a simulated pickup. In production your backend will process pickup and refund flows.</div>
+              </div>
+            </div>
+          )}
+
+          {/* Help bot (improved) */}
+          <HelpBot
+            orders={orders}
+            selectedOrder={selectedOrder}
+            onOpenReturn={(t: any) => { setReturnType(t); setShowReturnConfirm(true); }}
+            onCancelOrder={(id: any) => handleCancelFromBot(id)}
+            onShowAddress={(order: any) => alert(formatAddress(order?.shippingAddress))}
+          />
+        </div>
+      </main>
+      <Footer />
+    </div>
+  );
+}
+
 function OrderDetail({ order, statusData, loading, onBack, onRequestReturn, onSimulatePickup }: any) {
   const stages = statusData?.stages ?? ALL_STAGES.map((s: any) => ({ key: s.key, label: s.label, completed: false, timestamp: null }));
 
@@ -231,55 +545,55 @@ function OrderDetail({ order, statusData, loading, onBack, onRequestReturn, onSi
           <img src={order.product.image} className="w-20 h-20 rounded-lg object-cover" alt="product" data-ai-hint={order.product['data-ai-hint']} />
           <div>
             <div className="text-lg font-semibold">{order.product.name}</div>
-            <div className="text-xs text-gray-500">{order.id} • {order.product.sku}</div>
-            <div className="text-sm text-gray-700 mt-1">₹{order.product.price.toFixed(2)}</div>
+            <div className="text-xs text-muted-foreground">{order.id} • {order.product.sku}</div>
+            <div className="text-sm text-foreground mt-1">₹{order.product.price.toFixed(2)}</div>
             {order.shippingAddress && (
-              <div className="mt-2 text-xs text-gray-400">To: {order.shippingAddress.name} • {order.shippingAddress.city} • {order.shippingAddress.postalCode}</div>
+              <div className="mt-2 text-xs text-muted-foreground/80">To: {order.shippingAddress.name} • {order.shippingAddress.city} • {order.shippingAddress.postalCode}</div>
             )}
             {order.returnRequest && (
-              <div className="mt-2 text-xs text-yellow-700">Return requested: {order.returnRequest.type} • {order.returnRequest.status}</div>
+              <div className="mt-2 text-xs text-yellow-600">Return requested: {order.returnRequest.type} • {order.returnRequest.status}</div>
             )}
           </div>
         </div>
         <div className="text-right">
-          <div className="text-sm text-gray-500">Progress</div>
+          <div className="text-sm text-muted-foreground">Progress</div>
           <div className="text-lg font-semibold">{percent}%</div>
-          <div className="mt-2 text-xs text-gray-400">Placed on {new Date(order.placedAt).toLocaleDateString()}</div>
+          <div className="mt-2 text-xs text-muted-foreground/80">Placed on {new Date(order.placedAt).toLocaleDateString()}</div>
         </div>
       </div>
 
       <div className="mb-4">
-        <div className="w-full bg-gray-100 rounded-full overflow-hidden h-2">
-          <div className="h-2 rounded-full bg-black transition-all" style={{ width: `${percent}%` }} />
+        <div className="w-full bg-muted rounded-full overflow-hidden h-2">
+          <div className="h-2 rounded-full bg-primary transition-all" style={{ width: `${percent}%` }} />
         </div>
       </div>
 
       <div className="flex items-center justify-between mb-3">
         <div className="text-sm font-medium">Delivery Timeline</div>
         <div className="flex items-center gap-3">
-          <button onClick={onBack} className="text-sm text-black hover:underline">Back to orders</button>
+          <button onClick={onBack} className="text-sm text-primary hover:underline">Back to orders</button>
           {/* Return / Cancel buttons shown based on rules */}
           {allowCancel && !order.returnRequest && (
-            <button onClick={() => onRequestReturn('cancel')} className="text-sm px-3 py-1 rounded-md border bg-gray-100 text-black">Cancel order</button>
+            <button onClick={() => onRequestReturn('cancel')} className="text-sm px-3 py-1 rounded-md border bg-destructive/10 text-destructive-foreground">Cancel order</button>
           )}
 
           {allowReturn && !order.returnRequest && (
-            <button onClick={() => onRequestReturn('return')} className="text-sm px-3 py-1 rounded-md border bg-gray-100 text-black">Request return</button>
+            <button onClick={() => onRequestReturn('return')} className="text-sm px-3 py-1 rounded-md border bg-destructive/10 text-destructive-foreground">Request return</button>
           )}
 
           {order.returnRequest && (
-            <div className="text-xs text-gray-600">Request: {order.returnRequest.type} • {order.returnRequest.status}</div>
+            <div className="text-xs text-muted-foreground">Request: {order.returnRequest.type} • {order.returnRequest.status}</div>
           )}
 
           {/* Small dev/testing helper: simulate pickup to complete refund in mock */}
           {order.returnRequest && order.returnRequest.status !== 'completed' && (
-            <button onClick={onSimulatePickup} className="text-sm px-3 py-1 rounded-md border bg-gray-100 text-black">Simulate pickup (dev)</button>
+            <button onClick={onSimulatePickup} className="text-sm px-3 py-1 rounded-md border bg-green-100 text-green-700">Simulate pickup (dev)</button>
           )}
         </div>
       </div>
 
       {loading ? (
-        <div className="text-sm text-gray-500">Loading status…</div>
+        <div className="text-sm text-muted-foreground">Loading status…</div>
       ) : (
         <div className="space-y-4">
           {stages.map((s: any, idx: number) => (
@@ -288,7 +602,7 @@ function OrderDetail({ order, statusData, loading, onBack, onRequestReturn, onSi
         </div>
       )}
 
-      <div className="mt-6 text-xs text-gray-500">This timeline pulls data from the delivery API in production. Each stage shows its timestamp when completed.</div>
+      <div className="mt-6 text-xs text-muted-foreground">This timeline pulls data from the delivery API in production. Each stage shows its timestamp when completed.</div>
     </div>
   );
 }
@@ -302,22 +616,22 @@ function TimelineStep({ step, index, total }: any) {
   return (
     <motion.div initial="hidden" animate="enter" variants={variants} className="flex items-start gap-4">
       <div className="flex flex-col items-center">
-        <div className={`w-8 h-8 rounded-full flex items-center justify-center border ${step.completed ? 'bg-black text-white border-transparent' : 'bg-white text-gray-400 border-gray-200'}`}>
+        <div className={`w-8 h-8 rounded-full flex items-center justify-center border ${step.completed ? 'bg-primary text-primary-foreground border-transparent' : 'bg-background text-muted-foreground'}`}>
           {step.completed ? (
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="w-4 h-4 fill-current"><path d="M9 16.2l-3.5-3.5L4 14.2 9 19.2 20 8.2 17.5 5.7z"/></svg>
           ) : (
             <div className="text-xs font-medium">{index + 1}</div>
           )}
         </div>
-        {index < total - 1 && <div className={`w-px flex-1 bg-gray-200 mt-2`} style={{ minHeight: 32 }} />}
+        {index < total - 1 && <div className={`w-px flex-1 bg-border mt-2`} style={{ minHeight: 32 }} />}
       </div>
 
       <div className="flex-1 pt-0.5">
         <div className="flex items-center justify-between">
           <div className="font-medium text-sm">{step.label}</div>
-          <div className="text-xs text-gray-400">{step.timestamp ? new Date(step.timestamp).toLocaleString() : 'Pending'}</div>
+          <div className="text-xs text-muted-foreground">{step.timestamp ? new Date(step.timestamp).toLocaleString() : 'Pending'}</div>
         </div>
-        <div className="text-xs text-gray-500 mt-1">{step.completed ? 'Completed' : 'Waiting'}</div>
+        <div className="text-xs text-muted-foreground mt-1">{step.completed ? 'Completed' : 'Waiting'}</div>
       </div>
     </motion.div>
   );
@@ -393,324 +707,33 @@ function HelpBot({ orders, selectedOrder, onOpenReturn, onCancelOrder, onShowAdd
   return (
     <div className="fixed right-6 bottom-6 z-50">
       {open && (
-        <div className="w-96 bg-white rounded-xl shadow-lg overflow-hidden">
+        <div className="w-96 bg-card rounded-xl shadow-lg overflow-hidden border">
           <div className="p-3 border-b flex items-center justify-between">
             <div className="font-medium">Help</div>
-            <button onClick={() => setOpen(false)} className="text-xs text-gray-500">Close</button>
+            <button onClick={() => setOpen(false)} className="text-xs text-muted-foreground">Close</button>
           </div>
           <div className="p-3 h-64 overflow-y-auto text-sm" id="help-chat">
             {messages.map((m, i) => (
-              <div key={i} className={`mb-2 ${m.from==='bot' ? 'text-gray-700' : 'text-right'}`}>
-                <div className={`${m.from==='bot' ? 'inline-block bg-gray-100 p-2 rounded-md' : 'inline-block bg-gray-900 text-white p-2 rounded-md'}`}>{m.text}</div>
+              <div key={i} className={`mb-2 ${m.from==='bot' ? 'text-foreground' : 'text-right'}`}>
+                <div className={`${m.from==='bot' ? 'inline-block bg-muted p-2 rounded-md' : 'inline-block bg-primary/10 p-2 rounded-md'}`}>{m.text}</div>
               </div>
             ))}
           </div>
           <div className="p-3 border-t flex gap-2">
-            <input value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => e.key==='Enter' && send()} className="flex-1 p-2 border rounded-md text-sm" placeholder="Ask: cancel, return, refund, address..." />
-            <button onClick={send} className="px-3 py-2 bg-black text-white rounded-md text-sm">Send</button>
+            <input value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => e.key==='Enter' && send()} className="flex-1 p-2 border rounded-md text-sm bg-background" placeholder="Ask: cancel, return, refund, address..." />
+            <button onClick={send} className="px-3 py-2 bg-primary text-primary-foreground rounded-md text-sm">Send</button>
           </div>
           <div className="p-3 border-t flex gap-2">{/* quick action buttons */}
-            <button onClick={handleCancel} className="px-2 py-1 rounded-md text-xs bg-gray-100 text-black">Cancel order</button>
-            <button onClick={handleRequestReturn} className="px-2 py-1 rounded-md text-xs bg-gray-100 text-black">Request return</button>
+            <button onClick={handleCancel} className="px-2 py-1 rounded-md text-xs bg-muted text-foreground">Cancel order</button>
+            <button onClick={handleRequestReturn} className="px-2 py-1 rounded-md text-xs bg-muted text-foreground">Request return</button>
             <button onClick={handleRefundStatus} className="px-2 py-1 rounded-md text-xs border">Refund status</button>
             <button onClick={handleShowAddress} className="px-2 py-1 rounded-md text-xs border">Show address</button>
           </div>
         </div>
       )}
 
-      <button onClick={() => setOpen((o) => !o)} className="w-14 h-14 rounded-full bg-black text-white shadow-lg flex items-center justify-center">?
+      <button onClick={() => setOpen((o) => !o)} className="w-14 h-14 rounded-full bg-primary text-primary-foreground shadow-lg flex items-center justify-center">?
       </button>
     </div>
   );
 }
-
-export default function OrdersPage() {
-    const [orders, setOrders] = useState(MOCK_ORDERS);
-    const [selectedOrder, setSelectedOrder] = useState<any>(null);
-    const [statusData, setStatusData] = useState<any>(null);
-    const [loadingStatus, setLoadingStatus] = useState(false);
-    const [isClient, setIsClient] = useState(false);
-    const [returning, setReturning] = useState(false);
-    const [returnReason, setReturnReason] = useState("");
-    const [showReturnConfirm, setShowReturnConfirm] = useState(false);
-    const [returnType, setReturnType] = useState<any>(null);
-    const [returnPickupOption, setReturnPickupOption] = useState("pickup");
-    const [contactPhone, setContactPhone] = useState("");
-    const [attachedPhotos, setAttachedPhotos] = useState<any[]>([]);
-    const [tab, setTab] = useState("orders"); // 'orders' or 'transactions'
-    const [transactions, setTransactions] = useState(getTransactions());
-    const fileInputRef = useRef<any>(null);
-    const router = useRouter();
-
-
-    useEffect(() => {
-        setIsClient(true);
-    }, []);
-
-    useEffect(() => {
-        if (!selectedOrder) return;
-
-        setLoadingStatus(true);
-        setStatusData(null);
-
-        fetchDeliveryStatusMock(selectedOrder.id)
-        .then((data) => {
-            setStatusData(data);
-        })
-        .catch((e) => console.error(e))
-        .finally(() => setLoadingStatus(false));
-    }, [selectedOrder]);
-
-    // Helper: update order in orders state
-    function updateOrder(orderId: any, patch: any) {
-        setOrders((prev) => prev.map((o) => (o.id === orderId ? { ...o, ...patch } : o)));
-        // also update selectedOrder if it's the same
-        if (selectedOrder?.id === orderId) setSelectedOrder((s) => ({ ...s, ...patch }));
-    }
-
-    // Called when user confirms a cancel/return
-    async function handleSubmitReturn() {
-        if (!selectedOrder || !returnType) return;
-        setReturning(true);
-        try {
-        const resp: any = await submitReturnRequestMock({
-            orderId: selectedOrder.id,
-            type: returnType,
-            reason: returnReason,
-            contactPhone,
-            pickup: returnPickupOption,
-            photos: attachedPhotos,
-        });
-        // update UI — store return request info on order
-        updateOrder(selectedOrder.id, { returnRequest: resp, status: returnType === 'cancel' ? 'cancel_requested' : (selectedOrder.status) });
-        // add refund tx to local list
-        setTransactions((t) => [resp.refundTx, ...t]);
-
-        // close confirm
-        setShowReturnConfirm(false);
-        setReturnReason("");
-        setReturnType(null);
-        setReturnPickupOption("pickup");
-        setContactPhone("");
-        setAttachedPhotos([]);
-        if (fileInputRef.current) fileInputRef.current.value = null;
-        } catch (e) {
-        console.error(e);
-        // show error to user (not implemented)
-        } finally {
-        setReturning(false);
-        }
-    }
-
-    function handlePhotoAttach(e: any) {
-        const files = Array.from(e.target.files || []);
-        setAttachedPhotos(files);
-    }
-
-    // Simulate pickup button (for testing) — in real life pickup will be processed by backend
-    function handleSimulatePickup() {
-        if (!selectedOrder) return;
-        const tx = simulatePickupComplete(selectedOrder.id);
-        if (tx) {
-        // update transactions state
-        setTransactions((t) => [tx, ...t.filter((x) => x.id !== tx.id)]);
-        // update order returnRequest status
-        const updatedReturn = { ...(selectedOrder.returnRequest || {}), refundTx: tx, status: "pickup_completed", refundedAt: new Date().toISOString() };
-        updateOrder(selectedOrder.id, { returnRequest: updatedReturn });
-        alert(`Pickup simulated — refund ${tx.status} for ${tx.id}`);
-        } else {
-        alert("No pending pickup/refund found for this order (mock). Try creating a return request first).");
-        }
-    }
-
-    // New: cancel action that can be called by UI or bot. Allows cancel any time before 'out_for_delivery' stage.
-    async function handleCancelFromBot(orderId: any) {
-        const order = orders.find((o) => o.id === orderId);
-        if (!order) return;
-        // fetch latest stages (mock)
-        const status: any = await fetchDeliveryStatusMock(orderId);
-        const outForDeliveryCompleted = status.stages.find((s: any) => s.key === 'out_for_delivery')?.completed;
-        if (outForDeliveryCompleted) {
-        alert('This order is already out for delivery and cannot be cancelled.');
-        return;
-        }
-
-        // proceed with cancel request
-        const resp: any = await submitReturnRequestMock({ orderId, type: 'cancel', reason: 'Cancelled via help', contactPhone: null, pickup: 'dropoff', photos: [] });
-        updateOrder(orderId, { returnRequest: resp, status: 'cancel_requested' });
-        setTransactions((t) => [resp.refundTx, ...t]);
-        alert('Cancel request submitted via Help Bot.');
-    }
-
-    function formatAddress(addr: any) {
-        if (!addr) return '';
-        return `${addr.name}, ${addr.line1}${addr.line2 ? ', ' + addr.line2 : ''}, ${addr.city}, ${addr.state} - ${addr.postalCode}, ${addr.country} • ${addr.phone}`;
-    }
-
-    return (
-        <div className="min-h-screen bg-white text-black flex flex-col">
-            <header className="p-4 flex items-center justify-between sticky top-0 bg-white/80 backdrop-blur-sm z-30 border-b">
-                <Button variant="ghost" size="icon" onClick={() => router.back()}>
-                <ArrowLeft className="h-6 w-6" />
-                </Button>
-                <h1 className="text-xl font-bold">My Orders</h1>
-                <div className="w-10"></div>
-            </header>
-            <main className="flex-grow p-6">
-                 <div className="max-w-6xl mx-auto">
-                    <header className="mb-4 flex items-center justify-between">
-                    <div>
-                        <p className="text-sm text-gray-600">View orders, request returns, and see transactions.</p>
-                    </div>
-                    <div className="flex items-center gap-3">
-                        <button onClick={() => setTab("orders")} className={`px-3 py-1 rounded-md ${tab==='orders' ? 'bg-black text-white' : 'border'}`}>Orders</button>
-                        <button onClick={() => setTab("transactions")} className={`px-3 py-1 rounded-md ${tab==='transactions' ? 'bg-black text-white' : 'border'}`}>Transactions</button>
-                    </div>
-                    </header>
-
-                    {tab === 'orders' && (
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div className="md:col-span-1">
-                        <div className="bg-white p-4 rounded-2xl shadow-sm border">
-                        <h2 className="font-medium mb-3 text-black">Orders</h2>
-                        <div className="space-y-3">
-                            {orders.map((o) => (
-                            <button
-                                key={o.id}
-                                onClick={() => setSelectedOrder(o)}
-                                className={`w-full text-left p-3 rounded-xl border flex items-center gap-3 hover:shadow transition ${
-                                selectedOrder?.id === o.id ? "border-black bg-gray-100" : "border-transparent"
-                                }`}
-                            >
-                                <img src={o.product.image} alt={o.product.name} className="w-14 h-14 rounded-md object-cover" data-ai-hint={o.product['data-ai-hint']} />
-                                <div className="flex-1">
-                                <div className="text-sm font-medium text-black">{o.product.name}</div>
-                                <div className="text-xs text-gray-500">{o.id} • {isClient ? new Date(o.placedAt).toLocaleString() : ''}</div>
-                                <div className="text-xs text-gray-400 mt-1">{formatAddress(o.shippingAddress)}</div>
-                                {o.returnRequest && (
-                                    <div className="text-xs text-yellow-600 mt-1">Return: {o.returnRequest.type} • {o.returnRequest.status}</div>
-                                )}
-                                </div>
-                                <div className="text-sm text-black capitalize">{o.status.replace(/_/g, ' ')}</div>
-                            </button>
-                            ))}
-                        </div>
-                        </div>
-
-                        <div className="mt-4 text-xs text-gray-500">
-                        <div>Note: This frontend uses mock data. When you connect the backend, replace the mock fetch in the code with a real API call to your delivery service.</div>
-                        </div>
-                    </div>
-
-                    <div className="md:col-span-2">
-                        <div className="bg-white p-6 rounded-2xl shadow-sm border min-h-[300px]">
-                        {!selectedOrder ? (
-                            <div className="flex flex-col items-center justify-center h-64">
-                            <div className="text-gray-500">No order selected</div>
-                            <div className="text-sm mt-2 text-gray-400">Click an order on the left to see its tracking steps.</div>
-                            </div>
-                        ) : (
-                            <OrderDetail
-                            order={selectedOrder}
-                            statusData={statusData}
-                            loading={loadingStatus}
-                            onBack={() => setSelectedOrder(null)}
-                            onRequestReturn={(type: any) => {
-                                setReturnType(type); // 'cancel' or 'return'
-                                setShowReturnConfirm(true);
-                            }}
-                            onSimulatePickup={handleSimulatePickup}
-                            />
-                        )}
-                        </div>
-                    </div>
-                    </div>
-                    )}
-
-                    {tab === 'transactions' && (
-                    <div className="bg-white p-6 rounded-2xl shadow-sm border">
-                        <h2 className="text-lg font-medium mb-4">Transactions</h2>
-                        <div className="overflow-x-auto">
-                        <table className="w-full text-sm">
-                            <thead className="text-xs text-gray-500 text-left">
-                            <tr>
-                                <th className="py-2">Txn ID</th>
-                                <th>Order</th>
-                                <th>Type</th>
-                                <th>Amount</th>
-                                <th>Status</th>
-                                <th>Time</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            {transactions.map((t) => (
-                                <tr key={t.id} className="border-t">
-                                <td className="py-2">{t.id}</td>
-                                <td>{t.orderId}</td>
-                                <td className="capitalize">{t.type}</td>
-                                <td>₹{(t.amount ?? 0).toFixed(2)}</td>
-                                <td>{t.status}</td>
-                                <td className="text-xs text-gray-500">{new Date(t.at).toLocaleString()}</td>
-                                </tr>
-                            ))}
-                            </tbody>
-                        </table>
-                        </div>
-                    </div>
-                    )}
-
-                    {/* Return confirmation modal (enhanced) */}
-                    {showReturnConfirm && selectedOrder && (
-                    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-                        <div className="bg-white rounded-xl p-6 w-full max-w-lg">
-                        <h3 className="text-lg font-semibold">{returnType === 'cancel' ? 'Cancel order' : 'Request return'}</h3>
-                        <p className="text-sm text-gray-600 mt-2">Order <span className="font-medium">{selectedOrder.id}</span> • {selectedOrder.product.name}</p>
-
-                        <label className="block text-xs text-gray-500 mt-4">Reason</label>
-                        <select value={returnReason} onChange={(e) => setReturnReason(e.target.value)} className="w-full mt-2 p-2 border rounded-md text-sm">
-                            <option value="">-- Select reason --</option>
-                            <option value="wrong_item">Wrong item delivered</option>
-                            <option value="defective">Item defective / damaged</option>
-                            <option value="no_longer_needed">No longer needed</option>
-                            <option value="other">Other</option>
-                        </select>
-
-                        <label className="block text-xs text-gray-500 mt-3">Pickup vs Drop-off</label>
-                        <div className="flex items-center gap-3 mt-2">
-                            <label className="flex items-center gap-2"><input type="radio" checked={returnPickupOption==='pickup'} onChange={() => setReturnPickupOption('pickup')} /> Pickup</label>
-                            <label className="flex items-center gap-2"><input type="radio" checked={returnPickupOption==='dropoff'} onChange={() => setReturnPickupOption('dropoff')} /> Drop-off</label>
-                        </div>
-
-                        <label className="block text-xs text-gray-500 mt-3">Contact phone for pickup (optional)</label>
-                        <input value={contactPhone} onChange={(e) => setContactPhone(e.target.value)} className="w-full mt-2 p-2 border rounded-md text-sm" placeholder="+91 98XXXXXXXX" />
-
-                        <label className="block text-xs text-gray-500 mt-3">Attach photos (optional)</label>
-                        <input ref={fileInputRef} onChange={handlePhotoAttach} type="file" multiple accept="image/*" className="w-full mt-2 text-sm" />
-
-                        <div className="flex items-center gap-3 mt-4 justify-end">
-                            <button onClick={() => { setShowReturnConfirm(false); setReturnType(null); }} className="px-3 py-2 rounded-md text-sm border">Cancel</button>
-                            <button onClick={handleSubmitReturn} disabled={returning} className="px-3 py-2 rounded-md text-sm bg-black text-white disabled:opacity-60">
-                            {returning ? 'Submitting...' : returnType === 'cancel' ? 'Confirm Cancel' : 'Submit Return'}
-                            </button>
-                        </div>
-
-                        <div className="mt-3 text-xs text-gray-500">Note: In this mock, refunds are created as pending and will be marked successful after a simulated pickup. In production your backend will process pickup and refund flows.</div>
-                        </div>
-                    </div>
-                    )}
-
-                    {/* Help bot (improved) */}
-                    <HelpBot
-                        orders={orders}
-                        selectedOrder={selectedOrder}
-                        onOpenReturn={(t: any) => { setReturnType(t); setShowReturnConfirm(true); }}
-                        onCancelOrder={(id: any) => handleCancelFromBot(id)}
-                        onShowAddress={(order: any) => alert(formatAddress(order?.shippingAddress))}
-                    />
-                </div>
-            </main>
-            <Footer />
-        </div>
-    );
-}
-
