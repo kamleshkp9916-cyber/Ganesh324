@@ -147,7 +147,7 @@ export default function OrdersPage() {
   const [cancelStep, setCancelStep] = useState("reason");
   const [cancelReason, setCancelReason] = useState("");
   const [cancelFeedback, setCancelFeedback] = useState("");
-  const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
+  const [isVerifyingOtp, setIsVerifyingOtp] = useState(isVerifyingOtp);
   const [otp, setOtp] = useState('');
   const { toast } = useToast();
 
@@ -307,11 +307,16 @@ useEffect(() => {
 
         if (orderIndex !== -1) {
             const updatedOrder: Order = { ...allOrders[orderIndex] };
-            updatedOrder.timeline = [
-                ...updatedOrder.timeline,
-                { status: 'Cancelled by user', date: format(new Date(), 'MMM dd, yyyy'), time: format(new Date(), 'p'), completed: true },
-                { status: 'Refund Initiated: The amount will be credited to your original payment method within 5-7 business days.', date: format(new Date(), 'MMM dd, yyyy'), time: format(new Date(), 'p'), completed: false }
-            ];
+
+            // Prevent adding duplicate cancellation steps
+            if (!updatedOrder.timeline.some(step => step.status === 'Cancelled by user')) {
+                updatedOrder.timeline = [
+                    ...updatedOrder.timeline,
+                    { status: 'Cancelled by user', date: format(new Date(), 'MMM dd, yyyy'), time: format(new Date(), 'p'), completed: true },
+                    { status: 'Refund Initiated: The amount will be credited to your original payment method within 5-7 business days.', date: format(new Date(), 'MMM dd, yyyy'), time: format(new Date(), 'p'), completed: false }
+                ];
+            }
+
             allOrders[orderIndex] = updatedOrder;
             
             saveAllOrders(allOrders);
@@ -624,15 +629,16 @@ function OrderDetail({ order, statusData, loading, onBack, onRefresh, onRequestR
   
   const currentTimeline = statusData?.stages || order.timeline;
   const currentStatus = getStatusFromTimeline(currentTimeline);
-  const isDelivered = currentStatus === 'Delivered';
-  const isCancelled = currentStatus.toLowerCase().includes('cancelled');
   
+  const isCancelled = currentStatus.toLowerCase().includes('cancelled');
+  const isDelivered = currentStatus === 'Delivered';
+
   // Filter timeline to only show up to the cancellation point if cancelled
   const cancelIndex = currentTimeline.findIndex((item:any) => item && item.status && item.status.toLowerCase().includes('cancelled'));
-  const timelineToShow = cancelIndex > -1 ? currentTimeline.slice(0, cancelIndex + 1) : currentTimeline;
+  const timelineToShow = isCancelled && cancelIndex > -1 ? currentTimeline.slice(0, cancelIndex + 1) : currentTimeline;
 
   const completedCount = timelineToShow.filter((s: any) => s.completed).length;
-  const percent = timelineToShow.length > 0 ? Math.round((completedCount / timelineToShow.length) * 100) : 0;
+  const percent = timelineToShow.length > 0 ? Math.round(((completedCount -1) / (timelineToShow.length - 1)) * 100) : 0;
   
   const allowCancel = !isDelivered && !isCancelled;
   const allowReturn = isDelivered && !isCancelled;
