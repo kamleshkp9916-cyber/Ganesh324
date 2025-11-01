@@ -176,9 +176,9 @@ export default function OrdersPage() {
 const handleFetchStatus = useCallback(async () => {
     if (!selectedOrder) return;
     
-    // Only fetch if the order is not already in a final state like 'Cancelled'
     const currentStatus = getStatusFromTimeline(selectedOrder.timeline);
     if (currentStatus.toLowerCase().includes('cancelled') || currentStatus.toLowerCase().includes('delivered') || currentStatus.toLowerCase().includes('returned')) {
+        setStatusData(null); // Clear old status data if order is in a final state
         return;
     }
 
@@ -186,7 +186,6 @@ const handleFetchStatus = useCallback(async () => {
     try {
       const data: any = await fetchDeliveryStatusMock(selectedOrder.orderId);
       setStatusData(data);
-      // Update the main order list as well
       setOrders(prevOrders => prevOrders.map(o => o.orderId === data.orderId ? { ...o, timeline: data.stages } : o));
     } catch (e) {
       console.error('fetchDeliveryStatusMock error', e);
@@ -316,7 +315,6 @@ useEffect(() => {
         if (orderIndex !== -1) {
             const updatedOrder: Order = { ...allOrders[orderIndex] };
 
-            // Prevent adding duplicate cancellation steps
             if (!updatedOrder.timeline.some(step => step && step.status && step.status.toLowerCase().includes('cancelled'))) {
                 updatedOrder.timeline.push({ status: 'Cancelled by user', date: format(new Date(), 'MMM dd, yyyy'), time: format(new Date(), 'p'), completed: true });
                 updatedOrder.timeline.push({ status: 'Refund Initiated: The amount will be credited to your original payment method within 5-7 business days.', date: format(new Date(), 'MMM dd, yyyy'), time: format(new Date(), 'p'), completed: false });
@@ -631,17 +629,18 @@ useEffect(() => {
 
 function OrderDetail({ order, statusData, loading, onBack, onRefresh, onRequestReturn, onSimulatePickup }: any) {
   const { products } = order;
+  const currentStatus = getStatusFromTimeline(statusData?.stages || order.timeline);
+  const isCancelled = currentStatus.toLowerCase().includes('cancelled');
   
-  const currentTimeline = statusData?.stages || order.timeline;
-  const currentStatus = getStatusFromTimeline(currentTimeline);
-  
-  const cancelIndex = currentTimeline.findIndex((item:any) => item && item.status && item.status.toLowerCase().includes('cancelled'));
-  const timelineToShow = cancelIndex > -1 ? currentTimeline.slice(0, cancelIndex + 1) : currentTimeline;
+  const timelineToShow = useMemo(() => {
+    const timeline = statusData?.stages || order.timeline;
+    const cancelIndex = timeline.findIndex((item: any) => item && item.status && item.status.toLowerCase().includes('cancelled'));
+    return cancelIndex > -1 ? timeline.slice(0, cancelIndex + 1) : timeline;
+  }, [statusData, order.timeline]);
 
   const completedCount = timelineToShow.filter((s: any) => s.completed).length;
-  const percent = timelineToShow.length > 1 ? Math.round(((completedCount -1) / (timelineToShow.length - 1)) * 100) : 0;
+  const percent = isCancelled ? 100 : (timelineToShow.length > 1 ? Math.round(((completedCount -1) / (timelineToShow.length - 1)) * 100) : 0);
   
-  const isCancelled = currentStatus.toLowerCase().includes('cancelled');
   const isDelivered = currentStatus === 'Delivered';
 
   const allowCancel = !isDelivered && !isCancelled;
