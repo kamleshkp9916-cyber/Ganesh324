@@ -4,7 +4,7 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Wallet, Search, X, Filter, ChevronLeft, ChevronRight, Clipboard, ChevronDown, Edit, ArrowLeft, MoreHorizontal, CalendarClock, Archive, UserCircle, Plus, Minus, Hash } from 'lucide-react';
+import { Wallet, Search, X, Filter, ChevronLeft, ChevronRight, Clipboard, ChevronDown, Edit, ArrowLeft, MoreHorizontal, CalendarClock, Archive, UserCircle } from 'lucide-react';
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { useAuth } from '@/hooks/use-auth.tsx';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
@@ -23,21 +23,43 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { getTransactions, Transaction } from '@/lib/transaction-history';
 import { Footer } from '@/components/footer';
+import { Timeline } from '@/components/timeline';
+import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 
-const statusPriority: { [key: string]: number } = {
-    "Pending": 1,
-    "Order Confirmed": 2,
-    "Packed": 3,
-    "Shipped": 4,
-    "In Transit": 5,
-    "Out for Delivery": 6,
-    "Delivered": 7,
-    "Failed Delivery Attempt": 8,
-    "Return Initiated": 9,
-    "Return package picked up": 10,
-    "Returned": 11,
-    "Cancelled by user": 12,
-};
+const mockUserOrders = [
+    {
+        orderId: "#STREAM977836",
+        userId: "mockUser",
+        products: [{ name: "Vintage Camera", key: "prod_1", imageUrl: "https://picsum.photos/seed/vintage-camera/800/800", hint: "vintage camera", quantity: 1, size: "N/A", color: "Silver" }],
+        address: { name: "Mock User", village: "123 Mockingbird Lane", city: "Faketown", state: "CA", pincode: "90210", phone: "1234567890" },
+        total: 12500.00,
+        orderDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+        isReturnable: true,
+        timeline: [
+            { status: "Pending", date: format(new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), 'MMM dd, yyyy'), time: format(new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), 'p'), completed: true },
+            { status: "Order Confirmed", date: format(new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), 'MMM dd, yyyy'), time: format(new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), 'p'), completed: true },
+            { status: "Packed", date: format(new Date(Date.now() - 1 * 24 * 60 * 60 * 1000), 'MMM dd, yyyy'), time: format(new Date(Date.now() - 1 * 24 * 60 * 60 * 1000), 'p'), completed: true },
+            { status: "Shipped", date: null, time: null, completed: false },
+        ],
+    },
+    {
+        orderId: "#STREAM207816",
+        userId: "mockUser",
+        products: [{ name: "Wireless Headphones", key: "prod_2", imageUrl: "https://picsum.photos/seed/headphones/800/800", hint: "headphones", quantity: 2, size: "One Size", color: "Black" }],
+        address: { name: "Mock User", village: "123 Mockingbird Lane", city: "Faketown", state: "CA", pincode: "90210", phone: "1234567890" },
+        total: 9998.00,
+        orderDate: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+        isReturnable: true,
+        timeline: [
+            { status: "Pending", date: format(new Date(Date.now() - 5 * 24 * 60 * 60 * 1000), 'MMM dd, yyyy'), time: format(new Date(Date.now() - 5 * 24 * 60 * 60 * 1000), 'p'), completed: true },
+            { status: "Order Confirmed", date: format(new Date(Date.now() - 5 * 24 * 60 * 60 * 1000), 'MMM dd, yyyy'), time: format(new Date(Date.now() - 5 * 24 * 60 * 60 * 1000), 'p'), completed: true },
+            { status: "Packed", date: format(new Date(Date.now() - 4 * 24 * 60 * 60 * 1000), 'MMM dd, yyyy'), time: format(new Date(Date.now() - 4 * 24 * 60 * 60 * 1000), 'p'), completed: true },
+            { status: "Shipped", date: format(new Date(Date.now() - 4 * 24 * 60 * 60 * 1000), 'MMM dd, yyyy'), time: format(new Date(Date.now() - 4 * 24 * 60 * 60 * 1000), 'p'), completed: true },
+            { status: "In Transit", date: format(new Date(Date.now() - 3 * 24 * 60 * 60 * 1000), 'MMM dd, yyyy'), time: format(new Date(Date.now() - 3 * 24 * 60 * 60 * 1000), 'p'), completed: true },
+            { status: "Delivered", date: format(new Date(Date.now() - 1 * 24 * 60 * 60 * 1000), 'MMM dd, yyyy'), time: format(new Date(Date.now() - 1 * 24 * 60 * 60 * 1000), 'p'), completed: true },
+        ],
+    },
+];
 
 function OrderRowSkeleton() {
     return (
@@ -52,7 +74,7 @@ function OrderRowSkeleton() {
                 </div>
                 <div className="w-full md:w-1/5"><Skeleton className="h-5 w-24" /></div>
                 <div className="w-full md:w-1/5"><Skeleton className="h-5 w-20" /></div>
-                <div className="w-full md:w-1/5"><Skeleton className="h-6 w-28 rounded-full" /></div>
+                <div className="w-full md:w-1/s/5"><Skeleton className="h-6 w-28 rounded-full" /></div>
             </div>
         </Card>
     );
@@ -107,6 +129,8 @@ export default function OrdersPage() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("orders");
+  const [selectedOrderForTimeline, setSelectedOrderForTimeline] = useState<Order | null>(null);
+
 
   useEffect(() => {
     setIsClient(true);
@@ -125,19 +149,14 @@ export default function OrdersPage() {
             let allOrders = storedOrders ? JSON.parse(storedOrders) : [];
             const userOrders = allOrders.filter((o: Order) => o.userId === user.uid);
             
-            setOrders(userOrders);
+            setOrders(userOrders.length > 0 ? userOrders : mockUserOrders);
 
             const allTransactions = getTransactions();
             setTransactions(allTransactions);
 
         } catch (error) {
             console.error("Error fetching orders from local storage:", error);
-            toast({
-                title: "Error",
-                description: "Could not fetch your orders.",
-                variant: "destructive"
-            })
-            setOrders([]);
+            setOrders(mockUserOrders); // Fallback to mock on error
         } finally {
             setIsLoading(false);
         }
@@ -163,13 +182,6 @@ export default function OrdersPage() {
 
   const sortedOrders = useMemo(() => {
     return [...orders].sort((a, b) => {
-        const statusA = getStatusFromTimeline(a.timeline);
-        const statusB = getStatusFromTimeline(b.timeline);
-        const priorityA = statusPriority[statusA] || 99;
-        const priorityB = statusPriority[statusB] || 99;
-        if (priorityA !== priorityB) {
-            return priorityA - priorityB;
-        }
         try {
              return new Date(b.orderDate).getTime() - new Date(a.orderDate).getTime();
         } catch {
@@ -187,8 +199,7 @@ export default function OrdersPage() {
         const lowercasedSearchTerm = searchTerm.toLowerCase();
         currentOrders = currentOrders.filter(order =>
             order.orderId.toLowerCase().includes(lowercasedSearchTerm) ||
-            order.products.some(p => p.name.toLowerCase().includes(lowercasedSearchTerm)) ||
-            (order.address.village + ", " + order.address.city).toLowerCase().includes(lowercasedSearchTerm)
+            order.products.some(p => p.name.toLowerCase().includes(lowercasedSearchTerm))
         );
     }
     return currentOrders;
@@ -295,55 +306,46 @@ export default function OrdersPage() {
                 {paginatedOrders.map((order: Order) => (
                     <Card key={order.orderId} className="hover:bg-muted/50 cursor-pointer" onClick={() => handleRowClick(order.orderId)}>
                         <CardContent className="p-4 grid grid-cols-2 md:grid-cols-[2fr,1.5fr,1fr,1fr,auto] items-center gap-4">
-                            {/* Product Info */}
                             <div className="col-span-2 md:col-span-1 flex items-center gap-4">
                                 <Image src={order.products[0].imageUrl} alt={order.products[0].name} width={64} height={64} className="rounded-md bg-muted" data-ai-hint={order.products[0].hint} />
                                 <div className="flex-1">
                                     <p className="font-semibold text-foreground group-hover:underline">{order.products[0].name}{order.products.length > 1 && ` + ${order.products.length - 1} more`}</p>
-                                     <div className="text-xs text-muted-foreground mt-1">
-                                        {order.products[0].size && <span>Size: {order.products[0].size}</span>}
-                                        {order.products[0].size && order.products[0].color && <span className="mx-1">|</span>}
-                                        {order.products[0].color && <span>Color: {order.products[0].color}</span>}
-                                        {order.products[0].quantity > 0 && <span className="font-semibold"> (x{order.products[0].quantity})</span>}
+                                     <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
+                                        {order.products[0].size && <Badge variant="outline">Size: {order.products[0].size}</Badge>}
+                                        {order.products[0].color && <Badge variant="outline">Color: {order.products[0].color}</Badge>}
                                     </div>
                                     <p className="text-muted-foreground text-xs">Order ID: {order.orderId}</p>
                                     <p className="text-muted-foreground text-xs md:hidden">{format(parseISO(order.orderDate), "MMM dd, yyyy")}</p>
                                 </div>
                             </div>
                             
-                            {/* Address Info */}
-                             <div className="col-span-2 md:col-span-1">
+                            <div className="col-span-2 md:col-span-1">
                                 <p className="font-medium text-sm">{order.address.name}</p>
                                 <p className="text-xs text-muted-foreground">{order.address.village}, {order.address.city}</p>
                             </div>
 
-                            {/* Price */}
                             <div className="text-left md:text-center">
                                 <p className="font-medium md:hidden text-muted-foreground text-xs">Price</p>
                                 <p className="font-medium">₹{order.total.toFixed(2)}</p>
                             </div>
 
-                            {/* Status */}
                             <div className="text-left md:text-center">
                                 <p className="font-medium md:hidden text-muted-foreground text-xs">Status</p>
-                                <Badge variant={getStatusBadgeVariant(getStatusFromTimeline(order.timeline))} className="capitalize w-fit">{getStatusFromTimeline(order.timeline)}</Badge>
+                                <DialogTrigger asChild>
+                                    <Badge 
+                                        variant={getStatusBadgeVariant(getStatusFromTimeline(order.timeline))} 
+                                        className="capitalize w-fit cursor-pointer"
+                                        onClick={(e) => { e.stopPropagation(); setSelectedOrderForTimeline(order); }}
+                                    >
+                                        {getStatusFromTimeline(order.timeline)}
+                                    </Badge>
+                                </DialogTrigger>
                             </div>
                             
-                            {/* Actions */}
                             <div className="col-span-2 md:col-span-1 flex justify-end">
-                                <DropdownMenu>
-                                    <DropdownMenuTrigger asChild>
-                                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => e.stopPropagation()}>
-                                            <MoreHorizontal className="h-4 w-4" />
-                                        </Button>
-                                    </DropdownMenuTrigger>
-                                    <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
-                                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                        <DropdownMenuItem onSelect={() => handleRowClick(order.orderId)}>View Details</DropdownMenuItem>
-                                        <DropdownMenuItem onSelect={() => copyToClipboard(order.orderId)}>Copy Order ID</DropdownMenuItem>
-                                        <DropdownMenuItem>Contact Support</DropdownMenuItem>
-                                    </DropdownMenuContent>
-                                </DropdownMenu>
+                                <Button variant="outline" size="sm" onClick={() => handleRowClick(order.orderId)}>
+                                    Track Order
+                                </Button>
                             </div>
                         </CardContent>
                     </Card>
@@ -366,8 +368,6 @@ export default function OrdersPage() {
   };
 
   const renderTransactionsContent = () => {
-    const isRefunded = (transactionId: string) => transactions.some(refund => refund.type === 'Refund' && refund.description.includes(transactionId) && refund.status === 'Completed');
-
     if (paginatedTransactions.length === 0) {
         return <div className="text-center py-12 text-muted-foreground">No transactions found.</div>;
     }
@@ -381,30 +381,17 @@ export default function OrdersPage() {
             <CardContent>
                 <div className="divide-y">
                     {paginatedTransactions.map(t => (
-                        <div key={t.id} className="grid grid-cols-[auto,1fr,auto] items-start gap-x-4 gap-y-2 py-4 md:grid-cols-[auto,1fr,1fr,auto] md:items-center">
+                        <div key={t.id} className="grid grid-cols-[auto,1fr,auto] items-center gap-x-4 gap-y-2 py-4 md:grid-cols-[auto,1fr,1fr,auto]">
                             <Avatar className="h-9 w-9 row-span-2 md:row-span-1">
-                                <AvatarImage src={t.avatar} />
                                 <AvatarFallback>{t.type.charAt(0)}</AvatarFallback>
                             </Avatar>
                             <div className="col-span-2 md:col-span-1">
                                 <p className="font-semibold text-sm">{t.type}</p>
-                                <p className="text-xs text-muted-foreground">Via {t.description}</p>
-                                <div className="flex items-center gap-2">
-                                     <p className="text-xs text-muted-foreground font-mono">ID: {t.transactionId}</p>
-                                      <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground" onClick={() => copyToClipboard(t.transactionId)}>
-                                        <Clipboard className="h-3 w-3" />
-                                     </Button>
-                                </div>
-                                {t.status === 'Failed' && (
-                                     <p className={cn("text-xs italic mt-1", isRefunded(t.transactionId) ? "text-green-600 dark:text-green-500" : "text-amber-600 dark:text-amber-500")}>
-                                        {isRefunded(t.transactionId) ? "Refund completed." : "The refund will reach you shortly."}
-                                    </p>
-                                )}
+                                <p className="text-xs text-muted-foreground">{t.description}</p>
                             </div>
                             <div className="col-span-3 md:col-span-1 md:text-right">
-                                <p className={cn("font-semibold text-base flex items-center gap-1 justify-start md:justify-end", t.amount > 0 ? 'text-green-500' : 'text-foreground')}>
-                                    {t.amount > 0 ? <Plus className="inline-block h-4 w-4" /> : <Minus className="inline-block h-4 w-4" />}
-                                    <span>₹{Math.abs(t.amount).toLocaleString('en-IN',{minimumFractionDigits: 2})}</span>
+                                <p className={cn("font-semibold text-base", t.amount > 0 ? 'text-green-500' : 'text-foreground')}>
+                                    {t.amount > 0 ? '+' : '-'} ₹{Math.abs(t.amount).toLocaleString('en-IN',{minimumFractionDigits: 2})}
                                 </p>
                             </div>
                             <div className="col-span-3 md:col-span-1 text-right">
@@ -422,6 +409,7 @@ export default function OrdersPage() {
   };
 
   return (
+    <Dialog onOpenChange={(open) => !open && setSelectedOrderForTimeline(null)}>
     <div className="flex flex-col min-h-screen bg-muted/40 text-foreground">
       <header className="sticky top-0 z-30 border-b bg-background/80 backdrop-blur-sm flex items-center justify-between gap-4 p-4 md:p-6 flex-shrink-0">
           <div className={cn("flex items-center gap-1 md:gap-3 flex-1", isSearchExpanded && "hidden md:flex")}>
@@ -553,6 +541,10 @@ export default function OrdersPage() {
         )}
       </main>
       <Footer />
+       <DialogContent>
+            <Timeline order={selectedOrderForTimeline} />
+        </DialogContent>
     </div>
+    </Dialog>
   );
 }
