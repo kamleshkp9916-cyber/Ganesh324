@@ -266,15 +266,6 @@ export default function CartPage() {
                                                 <Link href={`/product/${item.key}`} className="block">
                                                     <Image src={item.imageUrl || 'https://placehold.co/100x100.png'} alt={item.name} width={100} height={100} className="rounded-lg object-cover" data-ai-hint={item.hint} />
                                                 </Link>
-                                                <div className="mt-2 flex items-center justify-center sm:hidden">
-                                                    <Button size="icon" variant="outline" className="h-8 w-8" onClick={() => handleQuantityChange(item.id, item.quantity - 1, item.size, item.color)} disabled={item.quantity <= 1}>
-                                                        <Minus className="h-4 w-4" />
-                                                    </Button>
-                                                    <span className="w-10 text-center font-semibold">{item.quantity}</span>
-                                                    <Button size="icon" variant="outline" className="h-8 w-8" onClick={() => handleQuantityChange(item.id, item.quantity + 1, item.size, item.color)}>
-                                                        <Plus className="h-4 w-4" />
-                                                    </Button>
-                                                </div>
                                             </div>
                                             <div className="flex-grow flex flex-col justify-between">
                                                 <div className="flex justify-between items-start">
@@ -314,19 +305,31 @@ export default function CartPage() {
                                                         </Button>
                                                     )}
                                                 </div>
+                                                <div className="mt-2 flex sm:hidden items-center justify-between">
+                                                    <div className='flex items-center'>
+                                                        <Button size="icon" variant="outline" className="h-8 w-8" onClick={() => handleQuantityChange(item.id, item.quantity - 1, item.size, item.color)} disabled={item.quantity <= 1}>
+                                                            <Minus className="h-4 w-4" />
+                                                        </Button>
+                                                        <span className="w-10 text-center font-semibold">{item.quantity}</span>
+                                                        <Button size="icon" variant="outline" className="h-8 w-8" onClick={() => handleQuantityChange(item.id, item.quantity + 1, item.size, item.color)}>
+                                                            <Plus className="h-4 w-4" />
+                                                        </Button>
+                                                    </div>
+                                                    <div className="font-bold text-base">
+                                                        ₹{(parseFloat(item.price.replace('₹', '').replace(/,/g, '')) * item.quantity).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
-                                         <div className="hidden sm:flex items-center justify-between mt-4 sm:mt-0 sm:flex-col sm:justify-end sm:items-end sm:w-24 flex-shrink-0">
-                                            <div className="flex items-center gap-2">
-                                                <Button size="icon" variant="outline" className="h-8 w-8" onClick={() => handleQuantityChange(item.id, item.quantity - 1, item.size, item.color)} disabled={item.quantity <= 1}>
-                                                    <Minus className="h-4 w-4" />
-                                                </Button>
-                                                <span className="w-10 text-center font-semibold">{item.quantity}</span>
-                                                <Button size="icon" variant="outline" className="h-8 w-8" onClick={() => handleQuantityChange(item.id, item.quantity + 1, item.size, item.color)}>
-                                                    <Plus className="h-4 w-4" />
-                                                </Button>
-                                            </div>
-                                            <div className="font-bold text-base sm:mt-auto">
+                                         <div className="hidden sm:flex items-center gap-2">
+                                            <Button size="icon" variant="outline" className="h-8 w-8" onClick={() => handleQuantityChange(item.id, item.quantity - 1, item.size, item.color)} disabled={item.quantity <= 1}>
+                                                <Minus className="h-4 w-4" />
+                                            </Button>
+                                            <span className="w-10 text-center font-semibold">{item.quantity}</span>
+                                            <Button size="icon" variant="outline" className="h-8 w-8" onClick={() => handleQuantityChange(item.id, item.quantity + 1, item.size, item.color)}>
+                                                <Plus className="h-4 w-4" />
+                                            </Button>
+                                            <div className="font-bold text-base sm:mt-auto text-right w-24">
                                                 ₹{(parseFloat(item.price.replace('₹', '').replace(/,/g, '')) * item.quantity).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                             </div>
                                         </div>
