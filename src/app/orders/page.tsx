@@ -268,66 +268,66 @@ export default function OrdersPage() {
   }
   
   return (
-    <div className="min-h-screen bg-black text-slate-300 flex flex-col">
-       <header className="p-4 flex items-center justify-between sticky top-0 bg-black/80 backdrop-blur-sm z-30 border-b border-gray-800">
+    <div className="min-h-screen bg-background text-foreground flex flex-col">
+       <header className="p-4 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-sm z-30 border-b">
         <Button variant="ghost" size="icon" onClick={() => router.back()}>
           <ArrowLeft className="h-6 w-6" />
         </Button>
-        <h1 className="text-xl font-bold text-white">My Orders</h1>
+        <h1 className="text-xl font-bold">My Orders</h1>
         <div className="w-10"></div>
       </header>
       <main className="flex-grow p-6">
         <div className="max-w-6xl mx-auto">
           <header className="mb-4 flex items-center justify-between">
             <div>
-              <p className="text-sm text-slate-400">View orders, request returns, and see transactions.</p>
+              <p className="text-sm text-muted-foreground">View orders, request returns, and see transactions.</p>
             </div>
             <div className="flex items-center gap-3">
-              <button onClick={() => setTab("orders")} className={`px-3 py-1 rounded-md text-sm ${tab === 'orders' ? 'bg-white text-black' : 'border border-gray-700'}`}>Orders</button>
-              <button onClick={() => setTab("transactions")} className={`px-3 py-1 rounded-md text-sm ${tab === 'transactions' ? 'bg-white text-black' : 'border border-gray-700'}`}>Transactions</button>
+              <button onClick={() => setTab("orders")} className={cn(`px-3 py-1 rounded-md text-sm`, tab === 'orders' ? 'bg-primary text-primary-foreground' : 'border border-border')}>Orders</button>
+              <button onClick={() => setTab("transactions")} className={cn(`px-3 py-1 rounded-md text-sm`, tab === 'transactions' ? 'bg-primary text-primary-foreground' : 'border border-border')}>Transactions</button>
             </div>
           </header>
 
           {tab === 'orders' && (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="md:col-span-1">
-                <div className="bg-gray-900/50 p-4 rounded-2xl shadow-xl">
-                  <h2 className="font-medium mb-3 text-white">Orders</h2>
+                <div className="bg-card p-4 rounded-2xl shadow-lg">
+                  <h2 className="font-medium mb-3 text-card-foreground">Orders</h2>
                   <div className="space-y-3">
                     {orders.map((o) => (
                       <button
                         key={o.orderId}
                         onClick={() => setSelectedOrder(o)}
-                        className={`w-full text-left p-3 rounded-xl border flex items-center gap-3 hover:shadow-lg transition ${
-                          selectedOrder?.orderId === o.orderId ? "border-gray-500 bg-gray-800" : "border-transparent"
-                        }`}
+                        className={cn(`w-full text-left p-3 rounded-xl border flex items-center gap-3 hover:shadow-lg transition`,
+                          selectedOrder?.orderId === o.orderId ? "border-primary bg-primary/10" : "border-border"
+                        )}
                       >
                         <Image src={o.products[0].imageUrl} alt={o.products[0].name} width={56} height={56} className="w-14 h-14 rounded-md object-cover" />
                         <div className="flex-1 overflow-hidden">
-                           <div className="text-sm font-medium text-white">{o.products[0].name}</div>
-                           <div className="text-xs text-slate-400">{o.orderId} • {isClient ? new Date(o.orderDate).toLocaleString() : ''}</div>
-                          <div className="text-xs text-slate-500 mt-1 truncate">{formatAddress(o.address)}</div>
+                           <div className="text-sm font-medium text-card-foreground">{o.products[0].name}</div>
+                           <div className="text-xs text-muted-foreground">{o.orderId} • {isClient ? new Date(o.orderDate).toLocaleString() : ''}</div>
+                          <div className="text-xs text-muted-foreground mt-1 truncate">{formatAddress(o.address)}</div>
                           {o.returnRequest && (
-                            <div className="text-xs text-amber-400 mt-1">Return: {o.returnRequest.type} • {o.returnRequest.status}</div>
+                            <div className="text-xs text-amber-500 mt-1">Return: {o.returnRequest.type} • {o.returnRequest.status}</div>
                           )}
                         </div>
-                         <div className="text-sm text-slate-300 capitalize">{getStatusFromTimeline(o.timeline)}</div>
+                         <div className="text-sm text-muted-foreground capitalize">{getStatusFromTimeline(o.timeline)}</div>
                       </button>
                     ))}
                   </div>
                 </div>
 
-                <div className="mt-4 text-xs text-slate-500">
+                <div className="mt-4 text-xs text-muted-foreground">
                   <div>Note: This frontend uses mock data. When you connect the backend, replace the mock fetch in the code with a real API call to your delivery service.</div>
                 </div>
               </div>
 
               <div className="md:col-span-2">
-                <div className="bg-gray-900/50 p-6 rounded-2xl shadow-xl min-h-[300px]">
+                <div className="bg-card p-6 rounded-2xl shadow-lg min-h-[300px]">
                   {!selectedOrder ? (
                     <div className="flex flex-col items-center justify-center h-64">
-                      <div className="text-slate-400">No order selected</div>
-                      <div className="text-sm mt-2 text-slate-500">Click an order on the left to see its tracking steps.</div>
+                      <div className="text-muted-foreground">No order selected</div>
+                      <div className="text-sm mt-2 text-muted-foreground">Click an order on the left to see its tracking steps.</div>
                     </div>
                   ) : (
                     <OrderDetail
@@ -352,11 +352,11 @@ export default function OrdersPage() {
           )}
 
           {tab === 'transactions' && (
-            <div className="bg-gray-900/50 p-6 rounded-2xl shadow-xl">
-              <h2 className="text-lg font-medium mb-4 text-white">Transactions</h2>
+            <div className="bg-card p-6 rounded-2xl shadow-lg">
+              <h2 className="text-lg font-medium mb-4 text-card-foreground">Transactions</h2>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
-                  <thead className="text-xs text-slate-400 text-left">
+                  <thead className="text-xs text-muted-foreground text-left">
                     <tr>
                       <th className="py-2">Txn ID</th>
                       <th>Order</th>
@@ -368,13 +368,13 @@ export default function OrdersPage() {
                   </thead>
                   <tbody>
                     {transactions.map((t: Transaction) => (
-                      <tr key={t.id} className="border-t border-gray-800">
+                      <tr key={t.id} className="border-t border-border">
                         <td className="py-2">{t.transactionId}</td>
                         <td>{t.transactionId}</td>
                         <td className="capitalize">{t.type}</td>
                         <td>₹{(t.amount ?? 0).toFixed(2)}</td>
                         <td>{t.status}</td>
-                        <td className="text-xs text-slate-500">{new Date(t.date).toLocaleString()}</td>
+                        <td className="text-xs text-muted-foreground">{new Date(t.date).toLocaleString()}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -385,7 +385,7 @@ export default function OrdersPage() {
 
           {/* Cancellation Modal */}
             <Dialog open={isCancelFlowOpen} onOpenChange={setIsCancelFlowOpen}>
-                <DialogContent className="sm:max-w-md bg-gray-900 border-gray-800 text-white">
+                <DialogContent className="sm:max-w-md">
                     <DialogHeader>
                         <DialogTitle>Cancel Order</DialogTitle>
                         <DialogDescription>
@@ -393,7 +393,7 @@ export default function OrdersPage() {
                         </DialogDescription>
                     </DialogHeader>
                     <Tabs value={cancelStep} onValueChange={setCancelStep} className="w-full">
-                        <TabsList className="grid w-full grid-cols-3 bg-gray-800">
+                        <TabsList className="grid w-full grid-cols-3">
                             <TabsTrigger value="reason" disabled={cancelStep !== 'reason'}>Reason</TabsTrigger>
                             <TabsTrigger value="feedback" disabled={!cancelReason}>Feedback</TabsTrigger>
                             <TabsTrigger value="confirm" disabled={!cancelReason}>Confirm</TabsTrigger>
@@ -409,18 +409,18 @@ export default function OrdersPage() {
                                     ))}
                                 </div>
                             </RadioGroup>
-                             <Button onClick={() => setCancelStep('feedback')} disabled={!cancelReason} className="mt-4 w-full bg-white text-black hover:bg-gray-200">Next</Button>
+                             <Button onClick={() => setCancelStep('feedback')} disabled={!cancelReason} className="mt-4 w-full">Next</Button>
                         </TabsContent>
                         <TabsContent value="feedback" className="py-4">
                              <div className="space-y-2">
                                 <Label htmlFor="feedback">Feedback (Optional)</Label>
-                                <Textarea id="feedback" value={cancelFeedback} onChange={(e) => setCancelFeedback(e.target.value)} placeholder="Tell us more..." className="bg-gray-800 border-gray-700 focus:ring-white" />
+                                <Textarea id="feedback" value={cancelFeedback} onChange={(e) => setCancelFeedback(e.target.value)} placeholder="Tell us more..." />
                             </div>
-                            <Button onClick={() => setCancelStep('confirm')} className="mt-4 w-full bg-white text-black hover:bg-gray-200">Next</Button>
+                            <Button onClick={() => setCancelStep('confirm')} className="mt-4 w-full">Next</Button>
                         </TabsContent>
                         <TabsContent value="confirm" className="py-4">
                             <div className="flex flex-col items-center gap-4 text-center">
-                                <ShieldCheck className="h-12 w-12 text-green-400" />
+                                <ShieldCheck className="h-12 w-12 text-primary" />
                                 <p>An OTP has been sent to your registered mobile number for verification.</p>
                                 <InputOTP
                                     maxLength={6}
@@ -444,7 +444,7 @@ export default function OrdersPage() {
                                         <InputOTPSlot index={5} />
                                     </InputOTPGroup>
                                 </InputOTP>
-                                {isVerifyingOtp && <div className="flex items-center text-sm text-slate-400"><Loader2 className="mr-2 h-4 w-4 animate-spin"/>Verifying...</div>}
+                                {isVerifyingOtp && <div className="flex items-center text-sm text-muted-foreground"><Loader2 className="mr-2 h-4 w-4 animate-spin"/>Verifying...</div>}
                             </div>
                         </TabsContent>
                     </Tabs>
@@ -454,38 +454,38 @@ export default function OrdersPage() {
           {/* Return confirmation modal (enhanced) */}
          {showReturnConfirm && selectedOrder && (
             <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
-              <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 w-full max-w-lg">
-                <h3 className="text-lg font-semibold text-white">{returnType === 'cancel' ? 'Cancel order' : 'Request return'}</h3>
-                <p className="text-sm text-slate-400 mt-2">Order <span className="font-medium text-white">{selectedOrder.orderId}</span> • {selectedOrder.products[0].name}</p>
+              <div className="bg-card border border-border rounded-xl p-6 w-full max-w-lg">
+                <h3 className="text-lg font-semibold text-card-foreground">{returnType === 'cancel' ? 'Cancel order' : 'Request return'}</h3>
+                <p className="text-sm text-muted-foreground mt-2">Order <span className="font-medium text-card-foreground">{selectedOrder.orderId}</span> • {selectedOrder.products[0].name}</p>
 
-                 <label className="block text-xs text-slate-500 mt-4">Reason</label>
-                  <select value={returnReason} onChange={(e) => setReturnReason(e.target.value)} className="w-full mt-2 p-2 bg-gray-800 border-gray-700 rounded-md text-sm">
+                 <label className="block text-xs text-muted-foreground mt-4">Reason</label>
+                  <select value={returnReason} onChange={(e) => setReturnReason(e.target.value)} className="w-full mt-2 p-2 bg-input border-border rounded-md text-sm">
                       <option value="">-- Select reason --</option>
                       {(returnType === 'cancel' ? cancellationReasons : returnReasons).map(reason => (
                           <option key={reason} value={reason}>{reason}</option>
                       ))}
                   </select>
 
-                <label className="block text-xs text-slate-500 mt-3">Pickup vs Drop-off</label>
+                <label className="block text-xs text-muted-foreground mt-3">Pickup vs Drop-off</label>
                 <div className="flex items-center gap-3 mt-2">
                   <label className="flex items-center gap-2"><input type="radio" checked={returnPickupOption==='pickup'} onChange={() => setReturnPickupOption('pickup')} /> Pickup</label>
                   <label className="flex items-center gap-2"><input type="radio" checked={returnPickupOption==='dropoff'} onChange={() => setReturnPickupOption('dropoff')} /> Drop-off</label>
                 </div>
 
-                <label className="block text-xs text-slate-500 mt-3">Contact phone for pickup (optional)</label>
-                <input value={contactPhone} onChange={(e) => setContactPhone(e.target.value)} className="w-full mt-2 p-2 bg-gray-800 border-gray-700 rounded-md text-sm" placeholder="+91 98XXXXXXXX" />
+                <label className="block text-xs text-muted-foreground mt-3">Contact phone for pickup (optional)</label>
+                <input value={contactPhone} onChange={(e) => setContactPhone(e.target.value)} className="w-full mt-2 p-2 bg-input border-border rounded-md text-sm" placeholder="+91 98XXXXXXXX" />
 
-                <label className="block text-xs text-slate-500 mt-3">Attach photos (optional)</label>
+                <label className="block text-xs text-muted-foreground mt-3">Attach photos (optional)</label>
                 <input ref={fileInputRef} onChange={handlePhotoAttach} type="file" multiple accept="image/*" className="w-full mt-2 text-sm" />
 
                 <div className="flex items-center gap-3 mt-4 justify-end">
-                  <button onClick={() => { setShowReturnConfirm(false); setReturnType(null); }} className="px-3 py-2 rounded-md text-sm border border-gray-700">Cancel</button>
-                  <button onClick={handleSubmitReturn} disabled={returning} className="px-3 py-2 rounded-md text-sm bg-white text-black disabled:opacity-60">
+                  <button onClick={() => { setShowReturnConfirm(false); setReturnType(null); }} className="px-3 py-2 rounded-md text-sm border border-border">Cancel</button>
+                  <button onClick={handleSubmitReturn} disabled={returning} className="px-3 py-2 rounded-md text-sm bg-primary text-primary-foreground disabled:opacity-60">
                     {returning ? 'Submitting...' : returnType === 'cancel' ? 'Confirm Cancel' : 'Submit Return'}
                   </button>
                 </div>
 
-                <div className="mt-3 text-xs text-slate-500">Note: In this mock, refunds are created as pending and will be marked successful after a simulated pickup. In production your backend will process pickup and refund flows.</div>
+                <div className="mt-3 text-xs text-muted-foreground">Note: In this mock, refunds are created as pending and will be marked successful after a simulated pickup. In production your backend will process pickup and refund flows.</div>
               </div>
             </div>
           )}
@@ -534,59 +534,59 @@ function OrderDetail({ order, statusData, loading, onBack, onRequestReturn, onSi
           </Link>
           <div>
             <Link href={`/product/${product.key}`} className="hover:underline">
-              <div className="text-lg font-semibold text-white">{product.name}</div>
+              <div className="text-lg font-semibold text-card-foreground">{product.name}</div>
             </Link>
-             <div className="text-xs text-slate-400 space-x-2">
+             <div className="text-xs text-muted-foreground space-x-2">
                 {product.quantity > 1 && <span>Qty: {product.quantity}</span>}
                 {product.size && <span>Size: {product.size}</span>}
                 {product.color && <span>Color: {product.color}</span>}
             </div>
-            <div className="text-sm text-slate-300 mt-1">₹{order.total.toFixed(2)}</div>
+            <div className="text-sm text-muted-foreground mt-1">₹{order.total.toFixed(2)}</div>
             {order.address && (
-              <div className="mt-2 text-xs text-slate-500">To: {order.address.name} • {order.address.city} • {order.address.pincode}</div>
+              <div className="mt-2 text-xs text-muted-foreground">To: {order.address.name} • {order.address.city} • {order.address.pincode}</div>
             )}
             {order.returnRequest && (
-              <div className="mt-2 text-xs text-amber-400">Return requested: {order.returnRequest.type} • {order.returnRequest.status}</div>
+              <div className="mt-2 text-xs text-amber-500">Return requested: {order.returnRequest.type} • {order.returnRequest.status}</div>
             )}
           </div>
         </div>
         <div className="text-right">
-          <div className="text-sm text-slate-400">Progress</div>
-          <div className="text-lg font-semibold text-white">{percent}%</div>
-          <div className="mt-2 text-xs text-slate-400">Placed on {new Date(order.orderDate).toLocaleDateString()}</div>
+          <div className="text-sm text-muted-foreground">Progress</div>
+          <div className="text-lg font-semibold text-card-foreground">{percent}%</div>
+          <div className="mt-2 text-xs text-muted-foreground">Placed on {new Date(order.orderDate).toLocaleDateString()}</div>
         </div>
       </div>
 
       <div className="mb-4">
-        <div className="w-full bg-gray-800 rounded-full overflow-hidden h-2">
-          <div className="h-2 rounded-full bg-white transition-all" style={{ width: `${percent}%` }} />
+        <div className="w-full bg-muted rounded-full overflow-hidden h-2">
+          <div className="h-2 rounded-full bg-primary transition-all" style={{ width: `${percent}%` }} />
         </div>
       </div>
 
       <div className="flex items-center justify-between mb-3">
-        <div className="text-sm font-medium text-white">Delivery Timeline</div>
+        <div className="text-sm font-medium text-card-foreground">Delivery Timeline</div>
         <div className="flex items-center gap-3">
-          <button onClick={onBack} className="text-sm text-gray-300 hover:underline">Back to orders</button>
+          <button onClick={onBack} className="text-sm text-muted-foreground hover:underline">Back to orders</button>
           {allowCancel && !order.returnRequest && (
-            <button onClick={() => onRequestReturn('cancel')} className="text-sm px-3 py-1 rounded-md border border-amber-400/50 bg-amber-400/10 text-amber-300">Cancel order</button>
+            <button onClick={() => onRequestReturn('cancel')} className="text-sm px-3 py-1 rounded-md border border-amber-500/50 bg-amber-500/10 text-amber-400">Cancel order</button>
           )}
 
           {allowReturn && !order.returnRequest && (
-            <button onClick={() => onRequestReturn('return')} className="text-sm px-3 py-1 rounded-md border border-red-400/50 bg-red-400/10 text-red-300">Request return</button>
+            <button onClick={() => onRequestReturn('return')} className="text-sm px-3 py-1 rounded-md border border-red-500/50 bg-red-500/10 text-red-400">Request return</button>
           )}
 
           {order.returnRequest && (
-            <div className="text-xs text-amber-400">Request: {order.returnRequest.type} • {order.returnRequest.status}</div>
+            <div className="text-xs text-amber-500">Request: {order.returnRequest.type} • {order.returnRequest.status}</div>
           )}
 
           {order.returnRequest && order.returnRequest.status !== 'completed' && (
-            <button onClick={onSimulatePickup} className="text-sm px-3 py-1 rounded-md border border-green-400/50 bg-green-400/10 text-green-300">Simulate pickup (dev)</button>
+            <button onClick={onSimulatePickup} className="text-sm px-3 py-1 rounded-md border border-green-500/50 bg-green-500/10 text-green-400">Simulate pickup (dev)</button>
           )}
         </div>
       </div>
 
       {loading ? (
-        <div className="text-sm text-slate-400">Loading status…</div>
+        <div className="text-sm text-muted-foreground">Loading status…</div>
       ) : (
         <div className="space-y-4">
           {stages.map((s: any, idx: number) => (
@@ -595,7 +595,7 @@ function OrderDetail({ order, statusData, loading, onBack, onRequestReturn, onSi
         </div>
       )}
 
-      <div className="mt-6 text-xs text-slate-500">This timeline pulls data from the delivery API in production. Each stage shows its timestamp when completed.</div>
+      <div className="mt-6 text-xs text-muted-foreground">This timeline pulls data from the delivery API in production. Each stage shows its timestamp when completed.</div>
     </div>
   );
 }
@@ -616,22 +616,22 @@ function TimelineStep({ step, index, total }: any) {
   return (
     <motion.div initial="hidden" animate="enter" variants={variants} className="flex items-start gap-4">
       <div className="flex flex-col items-center">
-        <div className={`w-8 h-8 rounded-full flex items-center justify-center border ${step.completed ? 'bg-white text-black border-transparent' : 'bg-gray-800 text-slate-400 border-gray-700'}`}>
+        <div className={cn(`w-8 h-8 rounded-full flex items-center justify-center border`, step.completed ? 'bg-primary text-primary-foreground' : 'bg-card text-muted-foreground border-border')}>
           {step.completed ? (
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="w-4 h-4 fill-current"><path d="M9 16.2l-3.5-3.5L4 14.2 9 19.2 20 8.2 17.5 5.7z"/></svg>
+            <CheckCircle2 className="w-4 h-4" />
           ) : (
-            <div className="text-xs font-medium">{index + 1}</div>
+            <div className="text-xs">{index + 1}</div>
           )}
         </div>
-        {index < total - 1 && <div className={`w-px flex-1 bg-gray-800 mt-2`} style={{ minHeight: 32 }} />}
+        {index < total - 1 && <div className={`w-px flex-1 bg-border mt-2`} style={{ minHeight: 32 }} />}
       </div>
 
       <div className="flex-1 pt-0.5">
         <div className="flex items-center justify-between">
-          <div className="font-medium text-sm text-white">{step.label}</div>
-          <div className="text-xs text-slate-400">{step.timestamp ? new Date(step.timestamp).toLocaleString() : 'Pending'}</div>
+          <div className="font-medium text-sm text-card-foreground">{step.label}</div>
+          <div className="text-xs text-muted-foreground">{step.timestamp ? new Date(step.timestamp).toLocaleString() : (s.completed ? "Done" : "Pending")}</div>
         </div>
-        <div className="text-xs text-slate-500 mt-1">{step.completed ? 'Completed' : 'Waiting'}</div>
+        <div className="text-xs text-muted-foreground mt-1">{step.completed ? "Completed" : "Waiting"}</div>
       </div>
     </motion.div>
   );
@@ -707,37 +707,36 @@ function HelpBot({ orders, selectedOrder, onOpenReturn, onCancelOrder, onShowAdd
   return (
     <div className="fixed right-6 bottom-6 z-50">
       {open && (
-        <div className="w-96 bg-gray-900 border border-gray-800 rounded-xl shadow-lg overflow-hidden">
-          <div className="p-3 border-b border-gray-800 flex items-center justify-between">
-            <div className="font-medium text-white">Help</div>
-            <button onClick={() => setOpen(false)} className="text-xs text-slate-400">Close</button>
+        <div className="w-96 bg-card border border-border rounded-xl shadow-lg overflow-hidden">
+          <div className="p-3 border-b border-border flex items-center justify-between">
+            <div className="font-medium text-card-foreground">Help</div>
+            <button onClick={() => setOpen(false)} className="text-xs text-muted-foreground">Close</button>
           </div>
           <div className="p-3 h-64 overflow-y-auto text-sm" id="help-chat">
             {messages.map((m, i) => (
-              <div key={i} className={`mb-2 ${m.from==='bot' ? 'text-slate-300' : 'text-right'}`}>
-                <div className={`${m.from==='bot' ? 'inline-block bg-gray-800 p-2 rounded-md' : 'inline-block bg-blue-500 text-white p-2 rounded-md'}`}>{m.text}</div>
+              <div key={i} className={`mb-2 ${m.from==='bot' ? 'text-muted-foreground' : 'text-right'}`}>
+                <div className={`${m.from==='bot' ? 'inline-block bg-muted p-2 rounded-md' : 'inline-block bg-primary text-primary-foreground p-2 rounded-md'}`}>{m.text}</div>
               </div>
             ))}
           </div>
-          <div className="p-3 border-t border-gray-800 flex gap-2">
-            <input value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => e.key==='Enter' && send()} className="flex-1 p-2 bg-gray-800 border-gray-700 rounded-md text-sm" placeholder="Ask: cancel, return, refund, address..." />
-            <button onClick={send} className="px-3 py-2 bg-white text-black rounded-md text-sm">Send</button>
+          <div className="p-3 border-t border-border flex gap-2">
+            <input value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => e.key==='Enter' && send()} className="flex-1 p-2 bg-input border-border rounded-md text-sm" placeholder="Ask: cancel, return, refund, address..." />
+            <button onClick={send} className="px-3 py-2 bg-primary text-primary-foreground rounded-md text-sm">Send</button>
           </div>
-          <div className="p-3 border-t border-gray-800 flex gap-2">{/* quick action buttons */}
-            <button onClick={handleCancel} className="px-2 py-1 rounded-md text-xs bg-amber-400/10 text-amber-300">Cancel order</button>
-            <button onClick={handleRequestReturn} className="px-2 py-1 rounded-md text-xs bg-red-400/10 text-red-300">Request return</button>
-            <button onClick={handleRefundStatus} className="px-2 py-1 rounded-md text-xs border border-gray-700">Refund status</button>
-            <button onClick={handleShowAddress} className="px-2 py-1 rounded-md text-xs border border-gray-700">Show address</button>
+          <div className="p-3 border-t border-border flex gap-2">{/* quick action buttons */}
+            <button onClick={handleCancel} className="px-2 py-1 rounded-md text-xs bg-amber-500/10 text-amber-400">Cancel order</button>
+            <button onClick={handleRequestReturn} className="px-2 py-1 rounded-md text-xs bg-red-500/10 text-red-400">Request return</button>
+            <button onClick={handleRefundStatus} className="px-2 py-1 rounded-md text-xs border border-border">Refund status</button>
+            <button onClick={handleShowAddress} className="px-2 py-1 rounded-md text-xs border border-border">Show address</button>
           </div>
         </div>
       )}
 
-      <button onClick={() => setOpen((o) => !o)} className="w-14 h-14 rounded-full bg-white text-black shadow-lg flex items-center justify-center">
+      <button onClick={() => setOpen((o) => !o)} className="w-14 h-14 rounded-full bg-primary text-primary-foreground shadow-lg flex items-center justify-center">
          ?
       </button>
     </div>
   );
 }
 
-
-
+    
