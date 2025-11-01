@@ -147,7 +147,7 @@ export default function OrdersPage() {
   const [cancelStep, setCancelStep] = useState("reason");
   const [cancelReason, setCancelReason] = useState("");
   const [cancelFeedback, setCancelFeedback] = useState("");
-  const [isVerifyingOtp, setIsVerifyingOtp] = useState(isVerifyingOtp);
+  const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
   const [otp, setOtp] = useState('');
   const { toast } = useToast();
 
@@ -300,7 +300,9 @@ useEffect(() => {
     }
     setIsVerifyingOtp(true);
     try {
-        const allOrders = JSON.parse(localStorage.getItem(ORDERS_KEY) || '[]');
+        const allOrdersJSON = localStorage.getItem(ORDERS_KEY);
+        let allOrders: Order[] = allOrdersJSON ? JSON.parse(allOrdersJSON) : [];
+        
         const orderIndex = allOrders.findIndex((o: Order) => o.orderId === selectedOrder.orderId);
 
         if (orderIndex !== -1) {
@@ -312,8 +314,8 @@ useEffect(() => {
             ];
             allOrders[orderIndex] = updatedOrder;
             
-            setOrders(allOrders);
             saveAllOrders(allOrders);
+            setOrders(allOrders);
             setSelectedOrder(updatedOrder);
 
             addTransaction({
@@ -622,7 +624,7 @@ function OrderDetail({ order, statusData, loading, onBack, onRefresh, onRequestR
   
   const currentStatus = getStatusFromTimeline(order.timeline);
   const isDelivered = currentStatus === 'Delivered';
-  const isCancelled = currentStatus.toLowerCase().includes('cancelled');
+  const isCancelled = currentStatus.toLowerCase().includes('cancelled by user');
   
   // Filter timeline to only show up to the cancellation point if cancelled
   const cancelIndex = order.timeline.findIndex((item:any) => item.status.toLowerCase().includes('cancelled'));
@@ -660,7 +662,7 @@ function OrderDetail({ order, statusData, loading, onBack, onRefresh, onRequestR
               <div className="mt-2 text-xs text-muted-foreground">To: {order.address.name} • {order.address.city} • {order.address.pincode}</div>
             )}
             {order.returnRequest && (
-              <div className="mt-2 text-xs text-amber-500">Request: {order.returnRequest.type} • {order.returnRequest.status}</div>
+              <div className="text-xs text-amber-500">Request: {order.returnRequest.type} • {order.returnRequest.status}</div>
             )}
         </div>
         <div className="text-right">
