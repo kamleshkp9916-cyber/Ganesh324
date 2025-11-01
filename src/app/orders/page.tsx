@@ -14,7 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { InputOTP, InputOTPGroup, InputOTPSlot, InputOTPSeparator } from "@/components/ui/input-otp";
+import { InputOTP, InputOTPGroup, InputOTPSeparator, InputOTPSlot } from "@/components/ui/input-otp";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { getOrderById, Order, saveAllOrders, getStatusFromTimeline } from "@/lib/order-data";
 import { ORDERS_KEY } from "@/lib/order-data";
@@ -381,7 +381,6 @@ useEffect(() => {
                            <div className="text-xs text-muted-foreground">{o.orderId} • {isClient ? new Date(o.orderDate).toLocaleString() : ''}</div>
                           <div className="text-xs text-muted-foreground mt-1 truncate">{formatAddress(o.address)}</div>
                         </div>
-                         <div className="text-sm font-semibold text-muted-foreground capitalize">{status}</div>
                       </button>
                     )})}
                   </div>
@@ -793,5 +792,6 @@ function HelpBot({ orders, selectedOrder, onOpenReturn, onCancelOrder, onShowAdd
     </div>
   );
 }
+
 
     
