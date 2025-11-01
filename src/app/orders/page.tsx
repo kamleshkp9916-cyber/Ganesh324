@@ -1,550 +1,242 @@
 
-"use client";
+import React, { useEffect, useState } from "react";
+import { motion } from "framer-motion";
 
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { Button } from '@/components/ui/button';
-import { Wallet, Search, X, Filter, ChevronLeft, ChevronRight, Clipboard, ChevronDown, Edit, ArrowLeft, MoreHorizontal, CalendarClock, Archive, UserCircle } from 'lucide-react';
-import React, { useState, useMemo, useRef, useEffect } from 'react';
-import { useAuth } from '@/hooks/use-auth.tsx';
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { cn } from '@/lib/utils';
-import { LoadingSpinner } from '@/components/ui/loading-spinner';
-import { Input } from '@/components/ui/input';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuItem } from '@/components/ui/dropdown-menu';
-import Image from 'next/image';
-import { Badge, BadgeProps } from '@/components/ui/badge';
-import { Pagination, PaginationContent, PaginationItem, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
-import { useToast } from '@/hooks/use-toast';
-import { format, addDays, parseISO } from 'date-fns';
-import { Skeleton } from '@/components/ui/skeleton';
-import { getStatusFromTimeline, Order, ORDERS_KEY } from '@/lib/order-data';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { getTransactions, Transaction } from '@/lib/transaction-history';
-import { Footer } from '@/components/footer';
-import { Timeline } from '@/components/timeline';
-import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
+// Single-file React component (default export)
+// Requirements: Tailwind CSS + framer-motion installed
+// How to use: paste into your React app (e.g. src/components/OrdersPage.jsx)
+// Tailwind classes are used for styling. Replace mock fetch with your delivery API when backend is ready.
 
-const mockUserOrders = [
-    {
-        orderId: "#STREAM977836",
-        userId: "mockUser",
-        products: [{ name: "Vintage Camera", key: "prod_1", imageUrl: "https://picsum.photos/seed/vintage-camera/800/800", hint: "vintage camera", quantity: 1, size: "N/A", color: "Silver" }],
-        address: { name: "Mock User", village: "123 Mockingbird Lane", city: "Faketown", state: "CA", pincode: "90210", phone: "1234567890" },
-        total: 12500.00,
-        orderDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-        isReturnable: true,
-        timeline: [
-            { status: "Pending", date: format(new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), 'MMM dd, yyyy'), time: format(new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), 'p'), completed: true },
-            { status: "Order Confirmed", date: format(new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), 'MMM dd, yyyy'), time: format(new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), 'p'), completed: true },
-            { status: "Packed", date: format(new Date(Date.now() - 1 * 24 * 60 * 60 * 1000), 'MMM dd, yyyy'), time: format(new Date(Date.now() - 1 * 24 * 60 * 60 * 1000), 'p'), completed: true },
-            { status: "Shipped", date: null, time: null, completed: false },
-        ],
+const MOCK_ORDERS = [
+  {
+    id: "ORD-1001",
+    product: {
+      id: "P-001",
+      name: "Mock Camera Pro",
+      sku: "MC-PRO-01",
+      price: 499.99,
+      image:
+        "https://images.unsplash.com/photo-1519183071298-a2962be54a73?w=800&q=60",
     },
-    {
-        orderId: "#STREAM207816",
-        userId: "mockUser",
-        products: [{ name: "Wireless Headphones", key: "prod_2", imageUrl: "https://picsum.photos/seed/headphones/800/800", hint: "headphones", quantity: 2, size: "One Size", color: "Black" }],
-        address: { name: "Mock User", village: "123 Mockingbird Lane", city: "Faketown", state: "CA", pincode: "90210", phone: "1234567890" },
-        total: 9998.00,
-        orderDate: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-        isReturnable: true,
-        timeline: [
-            { status: "Pending", date: format(new Date(Date.now() - 5 * 24 * 60 * 60 * 1000), 'MMM dd, yyyy'), time: format(new Date(Date.now() - 5 * 24 * 60 * 60 * 1000), 'p'), completed: true },
-            { status: "Order Confirmed", date: format(new Date(Date.now() - 5 * 24 * 60 * 60 * 1000), 'MMM dd, yyyy'), time: format(new Date(Date.now() - 5 * 24 * 60 * 60 * 1000), 'p'), completed: true },
-            { status: "Packed", date: format(new Date(Date.now() - 4 * 24 * 60 * 60 * 1000), 'MMM dd, yyyy'), time: format(new Date(Date.now() - 4 * 24 * 60 * 60 * 1000), 'p'), completed: true },
-            { status: "Shipped", date: format(new Date(Date.now() - 4 * 24 * 60 * 60 * 1000), 'MMM dd, yyyy'), time: format(new Date(Date.now() - 4 * 24 * 60 * 60 * 1000), 'p'), completed: true },
-            { status: "In Transit", date: format(new Date(Date.now() - 3 * 24 * 60 * 60 * 1000), 'MMM dd, yyyy'), time: format(new Date(Date.now() - 3 * 24 * 60 * 60 * 1000), 'p'), completed: true },
-            { status: "Delivered", date: format(new Date(Date.now() - 1 * 24 * 60 * 60 * 1000), 'MMM dd, yyyy'), time: format(new Date(Date.now() - 1 * 24 * 60 * 60 * 1000), 'p'), completed: true },
-        ],
+    placedAt: "2025-10-28T09:15:00.000Z",
+    status: "shipped",
+  },
+  {
+    id: "ORD-1002",
+    product: {
+      id: "P-002",
+      name: "Mock Headphones X",
+      sku: "MH-X-02",
+      price: 129.99,
+      image:
+        "https://images.unsplash.com/photo-1518444026728-1b3eb0f1b5a0?w=800&q=60",
     },
+    placedAt: "2025-10-30T13:45:00.000Z",
+    status: "out_for_delivery",
+  },
 ];
 
-function OrderRowSkeleton() {
-    return (
-        <Card className="p-4">
-            <div className="flex flex-col md:flex-row items-start md:items-center gap-4 text-sm">
-                <div className="w-full md:w-2/5 flex items-center gap-4">
-                     <Skeleton className="h-16 w-16 rounded-md" />
-                     <div className="space-y-2 flex-1">
-                        <Skeleton className="h-5 w-3/4" />
-                        <Skeleton className="h-4 w-1/2" />
-                     </div>
-                </div>
-                <div className="w-full md:w-1/5"><Skeleton className="h-5 w-24" /></div>
-                <div className="w-full md:w-1/5"><Skeleton className="h-5 w-20" /></div>
-                <div className="w-full md:w-1/s/5"><Skeleton className="h-6 w-28 rounded-full" /></div>
-            </div>
-        </Card>
-    );
+const ALL_STAGES = [
+  { key: "ordered", label: "Order placed" },
+  { key: "packed", label: "Packed" },
+  { key: "shipped", label: "Shipped" },
+  { key: "out_for_delivery", label: "Out for delivery" },
+  { key: "delivered", label: "Delivered" },
+];
+
+// Mock delivery API call — replace this function with real fetch to the delivery API when backend is ready
+function fetchDeliveryStatusMock(orderId: string) {
+  // Simulate varied timestamps and stage completions per orderId
+  const now = new Date();
+  const base = new Date(now.getTime() - 1000 * 60 * 60 * 24 * 2); // two days ago
+
+  // Create timestamps for each stage (some completed, some pending)
+  const timestamps = ALL_STAGES.map((s, i) => {
+    const t = new Date(base.getTime() + i * 1000 * 60 * 60 * 8); // 8 hours apart
+    return t.toISOString();
+  });
+
+  // Determine completed stages based on orderId (just for variety)
+  let completedCount = 2; // default
+  if (orderId.endsWith("1")) completedCount = 3; // shipped
+  if (orderId.endsWith("2")) completedCount = 4; // out_for_delivery
+
+  const stages = ALL_STAGES.map((s, idx) => ({
+    key: s.key,
+    label: s.label,
+    completed: idx <= completedCount - 1,
+    timestamp: idx <= completedCount - 1 ? timestamps[idx] : null,
+  }));
+
+  // Simulate network delay
+  return new Promise((res) => setTimeout(() => res({ orderId, stages }), 500));
 }
-
-function EmptyBoxIcon(props: React.SVGProps<SVGSVGElement>) {
-    return (
-        <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="64"
-            height="64"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            {...props}
-        >
-            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
-            <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
-            <line x1="12" y1="22.08" x2="12" y2="12"></line>
-        </svg>
-    );
-}
-
-const EmptyOrders = () => {
-  const router = useRouter();
-  return (
-    <div className="text-center py-12 text-muted-foreground flex flex-col items-center gap-4 flex-grow justify-center">
-        <EmptyBoxIcon className="w-16 h-16 text-border" />
-        <h3 className="text-xl font-semibold">No Orders Yet</h3>
-        <p className="max-w-xs">Looks like you haven't made any orders. Start shopping to see them here.</p>
-        <Button onClick={() => router.push('/live-selling')}>Go Shopping</Button>
-    </div>
-  );
-};
-
 
 export default function OrdersPage() {
-  const router = useRouter();
-  const { user, userData, loading: authLoading } = useAuth();
-  const [searchTerm, setSearchTerm] = useState('');
-  const [isSearchExpanded, setIsSearchExpanded] = useState(false);
-  const searchRef = useRef<HTMLDivElement>(null);
-  const [statusFilter, setStatusFilter] = useState("all");
-  const [isClient, setIsClient] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
-  const { toast } = useToast();
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState("orders");
-  const [selectedOrderForTimeline, setSelectedOrderForTimeline] = useState<Order | null>(null);
-
+  const [orders] = useState(MOCK_ORDERS);
+  const [selectedOrder, setSelectedOrder] = useState<any>(null);
+  const [statusData, setStatusData] = useState<any>(null);
+  const [loadingStatus, setLoadingStatus] = useState(false);
 
   useEffect(() => {
-    setIsClient(true);
-  }, []);
+    if (!selectedOrder) return;
 
-  useEffect(() => {
-    const fetchOrders = () => {
-        if (!user) {
-            setIsLoading(false);
-            return;
-        };
+    setLoadingStatus(true);
+    setStatusData(null);
 
-        setIsLoading(true);
-        try {
-            const storedOrders = localStorage.getItem(ORDERS_KEY);
-            let allOrders = storedOrders ? JSON.parse(storedOrders) : [];
-            const userOrders = allOrders.filter((o: Order) => o.userId === user.uid);
-            
-            setOrders(userOrders.length > 0 ? userOrders : mockUserOrders);
+    // --- Replace below with real API call when backend is ready ---
+    // fetch(`/api/delivery/${selectedOrder.id}`)
+    //   .then(r => r.json())
+    //   .then(data => { setStatusData(data); setLoadingStatus(false); })
+    //   .catch(err => { console.error(err); setLoadingStatus(false); });
+    // ------------------------------------------------------------
 
-            const allTransactions = getTransactions();
-            setTransactions(allTransactions);
+    fetchDeliveryStatusMock(selectedOrder.id)
+      .then((data) => {
+        setStatusData(data);
+      })
+      .catch((e) => console.error(e))
+      .finally(() => setLoadingStatus(false));
+  }, [selectedOrder]);
 
-        } catch (error) {
-            console.error("Error fetching orders from local storage:", error);
-            setOrders(mockUserOrders); // Fallback to mock on error
-        } finally {
-            setIsLoading(false);
-        }
-    };
-    
-    if (user && isClient) {
-       fetchOrders();
-    } else if (!user && isClient) {
-        setIsLoading(false);
-        setOrders([]);
-    }
+  return (
+    <div className="min-h-screen bg-slate-50 p-6">
+      <div className="max-w-5xl mx-auto">
+        <header className="mb-6">
+          <h1 className="text-2xl font-semibold">Your Orders</h1>
+          <p className="text-sm text-slate-600">Click an order to view its delivery status.</p>
+        </header>
 
-    const handleStorageChange = (event: StorageEvent) => {
-      if (event.key === ORDERS_KEY || event.key === 'streamcart_transactions') {
-        fetchOrders();
-      }
-    };
-
-    window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
-
-  }, [user, isClient, toast]);
-
-  const sortedOrders = useMemo(() => {
-    return [...orders].sort((a, b) => {
-        try {
-             return new Date(b.orderDate).getTime() - new Date(a.orderDate).getTime();
-        } catch {
-            return 0;
-        }
-    });
-  }, [orders]);
-
-  const filteredOrders = useMemo(() => {
-    let currentOrders = [...sortedOrders];
-    if (statusFilter !== "all") {
-        currentOrders = currentOrders.filter(order => getStatusFromTimeline(order.timeline).toLowerCase().replace(/ /g, '-') === statusFilter);
-    }
-    if (searchTerm) {
-        const lowercasedSearchTerm = searchTerm.toLowerCase();
-        currentOrders = currentOrders.filter(order =>
-            order.orderId.toLowerCase().includes(lowercasedSearchTerm) ||
-            order.products.some(p => p.name.toLowerCase().includes(lowercasedSearchTerm))
-        );
-    }
-    return currentOrders;
-  }, [statusFilter, searchTerm, sortedOrders]);
-
-  const filteredTransactions = useMemo(() => {
-      if (!searchTerm) return transactions;
-      return transactions.filter(t => 
-        t.transactionId.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        t.type.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        t.description.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  }, [searchTerm, transactions]);
-  
-  const totalPages = useMemo(() => {
-    return activeTab === 'orders'
-      ? Math.ceil(filteredOrders.length / itemsPerPage)
-      : Math.ceil(filteredTransactions.length / itemsPerPage);
-  }, [activeTab, filteredOrders.length, filteredTransactions.length, itemsPerPage]);
-
-  const paginatedOrders = useMemo(() => {
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    return filteredOrders.slice(startIndex, endIndex);
-  }, [filteredOrders, currentPage, itemsPerPage]);
-  
-  const paginatedTransactions = useMemo(() => {
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    return filteredTransactions.slice(startIndex, endIndex);
-  }, [filteredTransactions, currentPage, itemsPerPage]);
-
-
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
-        setIsSearchExpanded(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [searchRef]);
-
-  useEffect(() => {
-      setCurrentPage(1);
-  }, [activeTab, statusFilter, searchTerm]);
-
-  if (!isClient || authLoading) {
-    return (
-        <div className="flex items-center justify-center min-h-screen">
-            <LoadingSpinner />
-        </div>
-    )
-  }
-
-  if (!user) {
-     router.push('/');
-     return <div className="flex items-center justify-center min-h-screen"><LoadingSpinner /></div>;
-  }
-
-  const getStatusBadgeVariant = (status: string): BadgeProps['variant'] => {
-    switch (status) {
-        case 'Delivered': return 'success';
-        case 'Shipped': case 'In Transit': case 'Out for Delivery': return 'warning';
-        case 'Cancelled by user': case 'Cancelled by admin': case 'Returned': return 'destructive';
-        case 'Pending': return 'info';
-        default: return 'outline';
-    }
-  };
-
-  const handlePageChange = (page: number) => {
-    if (page >= 1 && page <= totalPages) {
-      setCurrentPage(page);
-    }
-  };
-  
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text);
-    toast({
-        title: "Copied!",
-        description: `${text} has been copied to your clipboard.`,
-    });
-  };
-
-  const handleRowClick = (orderId: string) => {
-      const encodedOrderId = encodeURIComponent(orderId);
-      router.push(`/delivery-information/${encodedOrderId}`);
-  }
-
-  const renderOrdersContent = () => {
-    if (isLoading) {
-        return (
-            <div className="space-y-4 flex-grow">
-                {Array.from({ length: 5 }).map((_, index) => <OrderRowSkeleton key={index} />)}
-            </div>
-        );
-    }
-    
-    if (paginatedOrders.length > 0) {
-        return (
-            <div className="flex-grow space-y-4">
-                {paginatedOrders.map((order: Order) => (
-                    <Card key={order.orderId} className="hover:bg-muted/50 cursor-pointer" onClick={() => handleRowClick(order.orderId)}>
-                        <CardContent className="p-4 grid grid-cols-2 md:grid-cols-[2fr,1.5fr,1fr,1fr,auto] items-center gap-4">
-                            <div className="col-span-2 md:col-span-1 flex items-center gap-4">
-                                <Image src={order.products[0].imageUrl} alt={order.products[0].name} width={64} height={64} className="rounded-md bg-muted" data-ai-hint={order.products[0].hint} />
-                                <div className="flex-1">
-                                    <p className="font-semibold text-foreground group-hover:underline">{order.products[0].name}{order.products.length > 1 && ` + ${order.products.length - 1} more`}</p>
-                                     <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
-                                        {order.products[0].size && <Badge variant="outline">Size: {order.products[0].size}</Badge>}
-                                        {order.products[0].color && <Badge variant="outline">Color: {order.products[0].color}</Badge>}
-                                    </div>
-                                    <p className="text-muted-foreground text-xs">Order ID: {order.orderId}</p>
-                                    <p className="text-muted-foreground text-xs md:hidden">{format(parseISO(order.orderDate), "MMM dd, yyyy")}</p>
-                                </div>
-                            </div>
-                            
-                            <div className="col-span-2 md:col-span-1">
-                                <p className="font-medium text-sm">{order.address.name}</p>
-                                <p className="text-xs text-muted-foreground">{order.address.village}, {order.address.city}</p>
-                            </div>
-
-                            <div className="text-left md:text-center">
-                                <p className="font-medium md:hidden text-muted-foreground text-xs">Price</p>
-                                <p className="font-medium">₹{order.total.toFixed(2)}</p>
-                            </div>
-
-                            <div className="text-left md:text-center">
-                                <p className="font-medium md:hidden text-muted-foreground text-xs">Status</p>
-                                <DialogTrigger asChild>
-                                    <Badge 
-                                        variant={getStatusBadgeVariant(getStatusFromTimeline(order.timeline))} 
-                                        className="capitalize w-fit cursor-pointer"
-                                        onClick={(e) => { e.stopPropagation(); setSelectedOrderForTimeline(order); }}
-                                    >
-                                        {getStatusFromTimeline(order.timeline)}
-                                    </Badge>
-                                </DialogTrigger>
-                            </div>
-                            
-                            <div className="col-span-2 md:col-span-1 flex justify-end">
-                                <Button variant="outline" size="sm" onClick={() => handleRowClick(order.orderId)}>
-                                    Track Order
-                                </Button>
-                            </div>
-                        </CardContent>
-                    </Card>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="md:col-span-1">
+            <div className="bg-white p-4 rounded-2xl shadow-sm">
+              <h2 className="font-medium mb-3">Orders</h2>
+              <div className="space-y-3">
+                {orders.map((o) => (
+                  <button
+                    key={o.id}
+                    onClick={() => setSelectedOrder(o)}
+                    className={`w-full text-left p-3 rounded-xl border flex items-center gap-3 hover:shadow transition ${
+                      selectedOrder?.id === o.id ? "border-indigo-400 bg-indigo-50" : "border-transparent"
+                    }`}
+                  >
+                    <img src={o.product.image} alt={o.product.name} className="w-14 h-14 rounded-md object-cover" />
+                    <div className="flex-1">
+                      <div className="text-sm font-medium">{o.product.name}</div>
+                      <div className="text-xs text-slate-500">{o.id} • {new Date(o.placedAt).toLocaleString()}</div>
+                    </div>
+                    <div className="text-sm text-slate-700">{o.status.replace(/_/g, ' ')}</div>
+                  </button>
                 ))}
+              </div>
             </div>
-        );
-    }
-    
-    if (orders.length === 0) {
-      return <EmptyOrders />;
-    }
 
-    return (
-        <div className="text-center py-12 text-muted-foreground flex flex-col items-center gap-4 flex-grow justify-center">
-            <Search className="w-16 h-16 text-border" />
-            <h3 className="text-xl font-semibold">No Matching Orders</h3>
-            <p>Try adjusting your search or filter to find what you're looking for.</p>
-        </div>
-    );
-  };
+            <div className="mt-4 text-xs text-slate-500">
+              <div>Note: This frontend uses mock data. When you connect the backend, replace the mock fetch in the code with a real API call to your delivery service.</div>
+            </div>
+          </div>
 
-  const renderTransactionsContent = () => {
-    if (paginatedTransactions.length === 0) {
-        return <div className="text-center py-12 text-muted-foreground">No transactions found.</div>;
-    }
-
-    return (
-        <Card>
-            <CardHeader>
-                <CardTitle>Transaction History</CardTitle>
-                <CardDescription>A summary of your recent wallet activity.</CardDescription>
-            </CardHeader>
-            <CardContent>
-                <div className="divide-y">
-                    {paginatedTransactions.map(t => (
-                        <div key={t.id} className="grid grid-cols-[auto,1fr,auto] items-center gap-x-4 gap-y-2 py-4 md:grid-cols-[auto,1fr,1fr,auto]">
-                            <Avatar className="h-9 w-9 row-span-2 md:row-span-1">
-                                <AvatarFallback>{t.type.charAt(0)}</AvatarFallback>
-                            </Avatar>
-                            <div className="col-span-2 md:col-span-1">
-                                <p className="font-semibold text-sm">{t.type}</p>
-                                <p className="text-xs text-muted-foreground">{t.description}</p>
-                            </div>
-                            <div className="col-span-3 md:col-span-1 md:text-right">
-                                <p className={cn("font-semibold text-base", t.amount > 0 ? 'text-green-500' : 'text-foreground')}>
-                                    {t.amount > 0 ? '+' : '-'} ₹{Math.abs(t.amount).toLocaleString('en-IN',{minimumFractionDigits: 2})}
-                                </p>
-                            </div>
-                            <div className="col-span-3 md:col-span-1 text-right">
-                                <div className="flex items-center justify-end gap-2">
-                                    <p className="text-xs text-muted-foreground">{t.date}, {t.time}</p>
-                                    <Badge variant={t.status === 'Completed' ? 'success' : t.status === 'Processing' ? 'warning' : 'destructive'} className="capitalize">{t.status}</Badge>
-                                </div>
-                            </div>
-                        </div>
-                    ))}
+          <div className="md:col-span-2">
+            <div className="bg-white p-6 rounded-2xl shadow-sm min-h-[300px]">
+              {!selectedOrder ? (
+                <div className="flex flex-col items-center justify-center h-64">
+                  <div className="text-slate-500">No order selected</div>
+                  <div className="text-sm mt-2 text-slate-400">Click an order on the left to see its tracking steps.</div>
                 </div>
-            </CardContent>
-        </Card>
-    );
+              ) : (
+                <OrderDetail
+                  order={selectedOrder}
+                  statusData={statusData}
+                  loading={loadingStatus}
+                  onBack={() => setSelectedOrder(null)}
+                />
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function OrderDetail({ order, statusData, loading, onBack }: { order: any, statusData: any, loading: boolean, onBack: () => void }) {
+  const stages = statusData?.stages ?? ALL_STAGES.map((s) => ({ key: s.key, label: s.label, completed: false, timestamp: null }));
+
+  const completedCount = stages.filter((s: any) => s.completed).length;
+  const percent = Math.round((completedCount / ALL_STAGES.length) * 100);
+
+  return (
+    <div>
+      <div className="flex items-start justify-between mb-4">
+        <div className="flex items-center gap-4">
+          <img src={order.product.image} className="w-20 h-20 rounded-lg object-cover" alt="product" />
+          <div>
+            <div className="text-lg font-semibold">{order.product.name}</div>
+            <div className="text-xs text-slate-500">{order.id} • {order.product.sku}</div>
+            <div className="text-sm text-slate-700 mt-1">₹{order.product.price.toFixed(2)}</div>
+          </div>
+        </div>
+        <div className="text-right">
+          <div className="text-sm text-slate-500">Progress</div>
+          <div className="text-lg font-semibold">{percent}%</div>
+          <div className="mt-2 text-xs text-slate-400">Placed on {new Date(order.placedAt).toLocaleDateString()}</div>
+        </div>
+      </div>
+
+      <div className="mb-4">
+        <div className="w-full bg-slate-100 rounded-full overflow-hidden h-2">
+          <div className="h-2 rounded-full bg-indigo-500 transition-all" style={{ width: `${percent}%` }} />
+        </div>
+      </div>
+
+      <div className="flex items-center justify-between mb-3">
+        <div className="text-sm font-medium">Delivery Timeline</div>
+        <div>
+          <button onClick={onBack} className="text-sm text-indigo-600 hover:underline">Back to orders</button>
+        </div>
+      </div>
+
+      {loading ? (
+        <div className="text-sm text-slate-500">Loading status…</div>
+      ) : (
+        <div className="space-y-4">
+          {stages.map((s: any, idx: number) => (
+            <TimelineStep key={s.key} step={s} index={idx} total={ALL_STAGES.length} />
+          ))}
+        </div>
+      )}
+
+      <div className="mt-6 text-xs text-slate-500">This timeline pulls data from the delivery API in production. Each stage shows its timestamp when completed.</div>
+    </div>
+  );
+}
+
+function TimelineStep({ step, index, total }: { step: any, index: number, total: number }) {
+  const variants = {
+    hidden: { opacity: 0, y: -6 },
+    enter: { opacity: 1, y: 0 },
   };
 
   return (
-    <Dialog onOpenChange={(open) => !open && setSelectedOrderForTimeline(null)}>
-    <div className="flex flex-col min-h-screen bg-muted/40 text-foreground">
-      <header className="sticky top-0 z-30 border-b bg-background/80 backdrop-blur-sm flex items-center justify-between gap-4 p-4 md:p-6 flex-shrink-0">
-          <div className={cn("flex items-center gap-1 md:gap-3 flex-1", isSearchExpanded && "hidden md:flex")}>
-              <Button variant="ghost" size="icon" onClick={() => router.back()} className="md:inline-flex">
-                  <ArrowLeft className="h-5 w-5" />
-              </Button>
-              <div className={cn("flex items-center gap-2", isSearchExpanded && "hidden md:flex")}>
-                  <Avatar className="h-8 w-8 md:h-10 md:w-10">
-                      <AvatarImage src={user.photoURL || undefined} alt={user.displayName || 'User'}/>
-                      <AvatarFallback>{user.displayName ? user.displayName.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
-                  </Avatar>
-                  <div className="flex items-center gap-2">
-                          <h3 className="font-semibold text-xs md:text-base whitespace-nowrap">{userData?.displayName}</h3>
-                  </div>
-              </div>
-          </div>
+    <motion.div initial="hidden" animate="enter" variants={variants} className="flex items-start gap-4">
+      <div className="flex flex-col items-center">
+        <div className={`w-8 h-8 rounded-full flex items-center justify-center border ${step.completed ? 'bg-indigo-500 text-white border-transparent' : 'bg-white text-slate-400 border-slate-200'}`}>
+          {step.completed ? (
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="w-4 h-4 fill-current"><path d="M9 16.2l-3.5-3.5L4 14.2 9 19.2 20 8.2 17.5 5.7z"/></svg>
+          ) : (
+            <div className="text-xs font-medium">{index + 1}</div>
+          )}
+        </div>
+        {index < total - 1 && <div className={`w-px flex-1 bg-slate-200 mt-2`} style={{ minHeight: 32 }} />}
+      </div>
 
-          <div className="flex items-center justify-end gap-2 flex-1" ref={searchRef}>
-              <div className={cn(
-                  "relative flex items-center transition-all duration-300 ease-in-out w-full",
-                   isSearchExpanded ? "w-full" : "w-10"
-              )}>
-                  <Input 
-                      placeholder="Search orders or transactions..." 
-                      className={cn(
-                          "bg-background rounded-full transition-all duration-300 ease-in-out h-10 pl-4 pr-10",
-                          isSearchExpanded ? "w-full" : "w-0 p-0 opacity-0"
-                      )}
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      onFocus={() => setIsSearchExpanded(true)}
-                  />
-                  <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      className="text-foreground rounded-full hover:bg-accent h-10 w-10 shrink-0"
-                      onClick={() => setIsSearchExpanded(p => !p)}
-                  >
-                  {isSearchExpanded ? <X className="h-5 w-5" /> : <Search className="h-5 w-5" />}
-                  </Button>
-              </div>
-          </div>
-      </header>
-      <main className="flex-grow p-4 md:p-6 flex flex-col gap-6 overflow-y-auto pb-24">
-          <Tabs defaultValue={activeTab} onValueChange={setActiveTab} className="w-full">
-            <div className="flex justify-between items-center gap-2">
-                <TabsList>
-                    <TabsTrigger value="orders">Orders</TabsTrigger>
-                    <TabsTrigger value="transactions">Transactions</TabsTrigger>
-                </TabsList>
-                 <div className={cn("flex items-center gap-2", activeTab !== 'orders' && "invisible")}>
-                    {statusFilter !== 'all' && (
-                        <Badge variant="secondary" className="gap-1.5 h-8">
-                            {statusFilter.replace('-', ' ')}
-                            <button onClick={() => setStatusFilter('all')} className="rounded-full hover:bg-background/30 p-0.5">
-                                <X className="h-3 w-3" />
-                            </button>
-                        </Badge>
-                    )}
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button variant="outline" size="sm" className="h-8">
-                                <Filter className="h-4 w-4 mr-2" />
-                                Filter
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent className="w-56" align="end">
-                            <DropdownMenuLabel>Filter by Status</DropdownMenuLabel>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuRadioGroup value={statusFilter} onValueChange={setStatusFilter}>
-                                <DropdownMenuRadioItem value="all">All</DropdownMenuRadioItem>
-                                <DropdownMenuRadioItem value="pending">Pending</DropdownMenuRadioItem>
-                                <DropdownMenuRadioItem value="shipped">Shipped</DropdownMenuRadioItem>
-                                <DropdownMenuRadioItem value="in-transit">In Transit</DropdownMenuRadioItem>
-                                <DropdownMenuRadioItem value="out-for-delivery">Out for Delivery</DropdownMenuRadioItem>
-                                <DropdownMenuRadioItem value="delivered">Delivered</DropdownMenuRadioItem>
-                                <DropdownMenuRadioItem value="failed-delivery-attempt">Undelivered</DropdownMenuRadioItem>
-                                <DropdownMenuRadioItem value="returned">Returned</DropdownMenuRadioItem>
-                                <DropdownMenuRadioItem value="cancelled-by-user">Cancelled</DropdownMenuRadioItem>
-                            </DropdownMenuRadioGroup>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                </div>
-            </div>
-            <TabsContent value="orders" className="mt-6">
-                {renderOrdersContent()}
-            </TabsContent>
-            <TabsContent value="transactions" className="mt-6">
-                {renderTransactionsContent()}
-            </TabsContent>
-          </Tabs>
-
-          {totalPages > 1 && (
-            <div className="flex items-center justify-center pt-4 mt-auto">
-                <Pagination>
-                    <PaginationContent>
-                        <PaginationItem>
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handlePageChange(currentPage - 1)}
-                                disabled={currentPage === 1}
-                                className="gap-1"
-                            >
-                                <ChevronLeft className="h-4 w-4" />
-                                Previous
-                            </Button>
-                        </PaginationItem>
-                        <PaginationItem>
-                            <span className="text-sm font-medium p-2">
-                                Page {currentPage} of {totalPages}
-                            </span>
-                        </PaginationItem>
-                        <PaginationItem>
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handlePageChange(currentPage + 1)}
-                                disabled={currentPage === totalPages}
-                                className="gap-1"
-                            >
-                                Next
-                                <ChevronRight className="h-4 w-4" />
-                            </Button>
-                        </PaginationItem>
-                    </PaginationContent>
-                </Pagination>
-            </div>
-        )}
-      </main>
-      <Footer />
-       <DialogContent>
-            <Timeline order={selectedOrderForTimeline} />
-        </DialogContent>
-    </div>
-    </Dialog>
+      <div className="flex-1 pt-0.5">
+        <div className="flex items-center justify-between">
+          <div className="font-medium text-sm">{step.label}</div>
+          <div className="text-xs text-slate-400">{step.timestamp ? new Date(step.timestamp).toLocaleString() : 'Pending'}</div>
+        </div>
+        <div className="text-xs text-slate-500 mt-1">{step.completed ? 'Completed' : 'Waiting'}</div>
+      </div>
+    </motion.div>
   );
 }
