@@ -472,7 +472,7 @@ useEffect(() => {
                   </thead>
                   <tbody>
                     {paginatedTransactions.map((t: Transaction) => (
-                      <tr key={t.id} className="border-t border-border">
+                      <tr key={t.transactionId} className="border-t border-border">
                         <td className="py-2">{t.transactionId}</td>
                         <td>{t.transactionId}</td>
                         <td className="capitalize">{t.type}</td>
@@ -850,5 +850,7 @@ function HelpBot({ orders, selectedOrder, onOpenReturn, onCancelOrder, onShowAdd
     </div>
   );
 }
+
+    
 
     
