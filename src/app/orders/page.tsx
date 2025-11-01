@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import React, { useEffect, useState, useRef, useCallback } from "react";
@@ -628,12 +627,11 @@ function OrderDetail({ order, statusData, loading, onBack, onRefresh, onRequestR
 
       <div className="flex items-center justify-between mb-3">
         <div className="text-sm font-medium text-card-foreground">Delivery Timeline</div>
-        <div className="flex items-center flex-wrap gap-x-3 gap-y-2 justify-end">
+        <div className="flex items-center flex-wrap gap-2 justify-end">
            <Button variant="ghost" size="sm" onClick={onRefresh} disabled={loading} className="text-xs text-muted-foreground">
               <RefreshCw className={cn("mr-2 h-3 w-3", loading && "animate-spin")} />
               Refresh
             </Button>
-          <button onClick={onBack} className="text-sm text-muted-foreground hover:underline">Back to orders</button>
           {allowCancel && !order.returnRequest && (
             <button onClick={() => onRequestReturn('cancel')} className="text-sm px-3 py-1 rounded-md border border-amber-500/50 bg-amber-500/10 text-amber-400">Cancel order</button>
           )}
@@ -793,8 +791,3 @@ function HelpBot({ orders, selectedOrder, onOpenReturn, onCancelOrder, onShowAdd
     </div>
   );
 }
-
-
-    
-
-    
