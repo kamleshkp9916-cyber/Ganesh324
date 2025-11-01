@@ -175,6 +175,13 @@ export default function OrdersPage() {
 
 const handleFetchStatus = useCallback(async () => {
     if (!selectedOrder) return;
+    
+    // Only fetch if the order is not already in a final state like 'Cancelled'
+    const currentStatus = getStatusFromTimeline(selectedOrder.timeline);
+    if (currentStatus.toLowerCase().includes('cancelled') || currentStatus.toLowerCase().includes('delivered') || currentStatus.toLowerCase().includes('returned')) {
+        return;
+    }
+
     setLoadingStatus(true);
     try {
       const data: any = await fetchDeliveryStatusMock(selectedOrder.orderId);
@@ -188,6 +195,7 @@ const handleFetchStatus = useCallback(async () => {
       setLoadingStatus(false);
     }
 }, [selectedOrder, toast]);
+
 
 // Fetch status only when order is selected initially
 useEffect(() => {
@@ -309,14 +317,11 @@ useEffect(() => {
             const updatedOrder: Order = { ...allOrders[orderIndex] };
 
             // Prevent adding duplicate cancellation steps
-            if (!updatedOrder.timeline.some(step => step.status === 'Cancelled by user')) {
-                updatedOrder.timeline = [
-                    ...updatedOrder.timeline,
-                    { status: 'Cancelled by user', date: format(new Date(), 'MMM dd, yyyy'), time: format(new Date(), 'p'), completed: true },
-                    { status: 'Refund Initiated: The amount will be credited to your original payment method within 5-7 business days.', date: format(new Date(), 'MMM dd, yyyy'), time: format(new Date(), 'p'), completed: false }
-                ];
+            if (!updatedOrder.timeline.some(step => step && step.status && step.status.toLowerCase().includes('cancelled'))) {
+                updatedOrder.timeline.push({ status: 'Cancelled by user', date: format(new Date(), 'MMM dd, yyyy'), time: format(new Date(), 'p'), completed: true });
+                updatedOrder.timeline.push({ status: 'Refund Initiated: The amount will be credited to your original payment method within 5-7 business days.', date: format(new Date(), 'MMM dd, yyyy'), time: format(new Date(), 'p'), completed: false });
             }
-
+            
             allOrders[orderIndex] = updatedOrder;
             
             saveAllOrders(allOrders);
@@ -471,8 +476,8 @@ useEffect(() => {
                     </tr>
                   </thead>
                   <tbody>
-                    {paginatedTransactions.map((t: Transaction) => (
-                      <tr key={t.transactionId} className="border-t border-border">
+                    {paginatedTransactions.map((t: Transaction, index: number) => (
+                      <tr key={`${t.transactionId}-${index}`} className="border-t border-border">
                         <td className="py-2">{t.transactionId}</td>
                         <td>{t.transactionId}</td>
                         <td className="capitalize">{t.type}</td>
@@ -634,7 +639,7 @@ function OrderDetail({ order, statusData, loading, onBack, onRefresh, onRequestR
   const timelineToShow = cancelIndex > -1 ? currentTimeline.slice(0, cancelIndex + 1) : currentTimeline;
 
   const completedCount = timelineToShow.filter((s: any) => s.completed).length;
-  const percent = timelineToShow.length > 0 ? Math.round(((completedCount -1) / (timelineToShow.length - 1)) * 100) : 0;
+  const percent = timelineToShow.length > 1 ? Math.round(((completedCount -1) / (timelineToShow.length - 1)) * 100) : 0;
   
   const isCancelled = currentStatus.toLowerCase().includes('cancelled');
   const isDelivered = currentStatus === 'Delivered';
@@ -850,6 +855,8 @@ function HelpBot({ orders, selectedOrder, onOpenReturn, onCancelOrder, onShowAdd
     </div>
   );
 }
+
+    
 
     
 
