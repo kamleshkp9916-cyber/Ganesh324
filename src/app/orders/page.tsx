@@ -1,16 +1,15 @@
-
 "use client";
 
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, CheckCircle2, Circle, Home, Hourglass, Package, PackageCheck, PackageOpen, Truck, Wallet, RefreshCw, BadgeEuro, XCircle } from "lucide-react";
+import { ArrowLeft, CheckCircle2, Circle, Home, Hourglass, Package, PackageCheck, PackageOpen, Truck, Wallet, RefreshCw, BadgeEuro, XCircle, ShoppingBag } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Footer } from "@/components/footer";
-import { Timeline } from "@/components/timeline";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getTransactions, Transaction } from "@/lib/transaction-history";
+import { Timeline } from "@/components/timeline";
 
 const MOCK_ORDERS = [
   {
@@ -62,6 +61,34 @@ const ALL_STAGES = [
   { key: "out_for_delivery", label: "Out for delivery" },
   { key: "delivered", label: "Delivered" },
 ];
+
+// Mock delivery API call — replace this function with real fetch to the delivery API
+function fetchDeliveryStatusMock(orderId: string) {
+  // Simulate varied timestamps and stage completions per orderId
+  const now = new Date();
+  const base = new Date(now.getTime() - 1000 * 60 * 60 * 24 * 2); // two days ago
+
+  // Create timestamps for each stage (some completed, some pending)
+  const timestamps = ALL_STAGES.map((s, i) => {
+    const t = new Date(base.getTime() + i * 1000 * 60 * 60 * 8); // 8 hours apart
+    return t.toISOString();
+  });
+
+  // Determine completed stages based on orderId (just for variety)
+  let completedCount = 2; // default
+  if (orderId.endsWith("1")) completedCount = 3; // shipped
+  if (orderId.endsWith("2")) completedCount = 4; // out_for_delivery
+
+  const stages = ALL_STAGES.map((s, idx) => ({
+    key: s.key,
+    label: s.label,
+    completed: idx <= completedCount - 1,
+    timestamp: idx <= completedCount - 1 ? timestamps[idx] : null,
+  }));
+
+  // Simulate network delay
+  return new Promise<{ orderId: string, stages: any[] }>((res) => setTimeout(() => res({ orderId, stages }), 500));
+}
 
 function OrderDetail({ order, statusData, loading, onBack }: { order: any, statusData: any, loading: boolean, onBack: () => void }) {
   const stages = statusData?.stages ?? order.timeline ?? ALL_STAGES.map((s: any) => ({ ...s, completed: false, timestamp: null }));
@@ -182,7 +209,12 @@ export default function OrdersPage() {
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
   const [statusData, setStatusData] = useState<any>(null);
   const [loadingStatus, setLoadingStatus] = useState(false);
+  const [isClient, setIsClient] = useState(false);
   const router = useRouter();
+  
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   useEffect(() => {
     setTransactions(getTransactions());
@@ -194,11 +226,12 @@ export default function OrdersPage() {
     setLoadingStatus(true);
     setStatusData(null);
     
-    setTimeout(() => {
-        setStatusData({ orderId: selectedOrder.id, stages: selectedOrder.timeline });
-        setLoadingStatus(false);
-    }, 500);
-
+    fetchDeliveryStatusMock(selectedOrder.id)
+      .then((data) => {
+        setStatusData(data);
+      })
+      .catch((e) => console.error(e))
+      .finally(() => setLoadingStatus(false));
   }, [selectedOrder]);
 
   return (
@@ -234,7 +267,7 @@ export default function OrdersPage() {
                                     <img src={o.product.image} alt={o.product.name} className="w-14 h-14 rounded-md object-cover" />
                                     <div className="flex-1">
                                     <div className="text-sm font-medium text-foreground">{o.product.name}</div>
-                                    <div className="text-xs text-muted-foreground">{o.id} • {new Date(o.placedAt).toLocaleString()}</div>
+                                    <div className="text-xs text-muted-foreground">{o.id} • {isClient ? new Date(o.placedAt).toLocaleString() : ''}</div>
                                     </div>
                                     <div className="text-sm text-foreground capitalize">{o.status.replace(/_/g, ' ')}</div>
                                 </button>
@@ -295,4 +328,3 @@ export default function OrdersPage() {
     </div>
   );
 }
-
