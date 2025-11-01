@@ -147,7 +147,7 @@ export default function CartPage() {
     const couponSubtotal = cartItems.reduce((acc, item) => {
         const itemCategory = productDetails[item.key as keyof typeof productDetails]?.category;
         if (appliedCoupon.applicableCategories?.includes('All') || (itemCategory && appliedCoupon.applicableCategories?.includes(itemCategory))) {
-             const price = parseFloat(item.price.replace('₹', '').replace(/,/g, ''));
+             const price = parseFloat(item.price.replace(/[^0-9.-]+/g, ''));
              return acc + (price * item.quantity);
         }
         return acc;
@@ -230,7 +230,7 @@ export default function CartPage() {
   const isBuyNow = cartItems.length === 1 && localStorage.getItem('buyNow') === 'true';
 
   return (
-    <div className="min-h-screen bg-muted/40 text-foreground flex flex-col h-screen">
+    <div className="min-h-screen bg-muted/40 text-foreground flex flex-col">
       <header className="p-4 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-sm z-30 border-b flex-shrink-0">
         <Button variant="ghost" size="icon" onClick={() => router.back()}>
           <ArrowLeft className="h-6 w-6" />
@@ -239,14 +239,14 @@ export default function CartPage() {
         <div className="w-10"></div>
       </header>
 
-      <main className="flex-grow p-4 md:p-6 lg:p-8 overflow-hidden">
-        <div className="max-w-6xl mx-auto h-full">
-            {cartItems.length === 0 ? (
-                <EmptyCart />
-            ) : (
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start h-full">
-                    <ScrollArea className="lg:col-span-2 h-full pr-6 -mr-6">
-                        <div className="space-y-6">
+      <div className="flex-grow overflow-y-auto">
+        <main className="p-4 md:p-6 lg:p-8">
+            <div className="max-w-6xl mx-auto">
+                {cartItems.length === 0 ? (
+                    <EmptyCart />
+                ) : (
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+                        <div className="lg:col-span-2 space-y-6">
                             <Card>
                                 <CardHeader>
                                     <CardTitle>{isBuyNow ? 'Your Item' : `Your Items (${totalItems})`}</CardTitle>
@@ -323,103 +323,103 @@ export default function CartPage() {
                                 </CardContent>
                             </Card>
                         </div>
-                    </ScrollArea>
 
-                    <div className="lg:col-span-1 space-y-6">
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Order Summary</CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                                <div className="space-y-2 text-sm">
-                                    <div className="flex justify-between">
-                                        <span className="text-muted-foreground">Subtotal</span>
-                                        <span>₹{subtotal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-                                    </div>
-                                    {appliedCoupon && (
-                                        <div className="flex justify-between items-center text-green-600 dark:text-green-400">
-                                            <span className="flex items-center gap-1.5"><Tag className="h-4 w-4"/> Coupon ({appliedCoupon.code})</span>
-                                            <span>- ₹{couponDiscount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                        <div className="lg:col-span-1 space-y-6 lg:sticky lg:top-24">
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle>Order Summary</CardTitle>
+                                </CardHeader>
+                                <CardContent className="space-y-4">
+                                    <div className="space-y-2 text-sm">
+                                        <div className="flex justify-between">
+                                            <span className="text-muted-foreground">Subtotal</span>
+                                            <span>₹{subtotal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                                         </div>
-                                    )}
-                                    <div className="flex justify-between">
-                                        <span className="text-muted-foreground">Shipping</span>
-                                        <span>₹{shippingCost.toFixed(2)}</span>
-                                    </div>
-                                    <div className="flex justify-between">
-                                        <span className="text-muted-foreground">Estimated taxes</span>
-                                        <span>₹{estimatedTaxes.toFixed(2)}</span>
-                                    </div>
-                                </div>
-                                <Separator />
-                                <div className="flex justify-between font-bold text-lg">
-                                    <span>Total</span>
-                                    <span>₹{total.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-                                </div>
-                            </CardContent>
-                            <CardFooter className="flex-col items-stretch">
-                                <Button className="w-full" size="lg" onClick={handleCheckout} disabled={isCheckingOut}>
-                                    {isCheckingOut ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                                    Continue to Payment
-                                </Button>
-                                 {!address && (
-                                    <p className="text-destructive text-xs text-center mt-2">
-                                        Please add or select a delivery address to continue.
-                                    </p>
-                                )}
-                            </CardFooter>
-                        </Card>
-                        
-                        <Card>
-                            <CardHeader>
-                                <div className="flex items-center justify-between">
-                                    <CardTitle className="text-base">
-                                        Delivery To
-                                    </CardTitle>
-                                     <Dialog open={isAddressDialogOpen} onOpenChange={setIsAddressDialogOpen}>
-                                        <DialogTrigger asChild>
-                                            <Button variant="link" size="sm" className="p-0 h-auto text-sm hover:text-primary"><Edit className="mr-2 h-3 w-3" /> {address ? 'Change' : 'Add Address'}</Button>
-                                        </DialogTrigger>
-                                        <DialogContent>
-                                            <DialogHeader>
-                                                <DialogTitle>Change Delivery Address</DialogTitle>
-                                            </DialogHeader>
-                                            <EditAddressForm 
-                                                onSave={handleAddressSave} 
-                                                onCancel={() => setIsAddressDialogOpen(false)}
-                                                onAddressesUpdate={handleAddressesUpdate}
-                                            />
-                                        </DialogContent>
-                                    </Dialog>
-                                </div>
-                                 <CardDescription>{address ? "Your order will be delivered here." : "Please select or add a delivery address."}</CardDescription>
-                            </CardHeader>
-                            {address && (
-                                <CardContent className="text-sm space-y-2">
-                                    <div className="flex items-start gap-3">
-                                        <Home className="h-5 w-5 mt-1 text-muted-foreground"/>
-                                        <div>
-                                            <p className="font-semibold">{address.name}</p>
-                                            <p className="text-muted-foreground">{address.village}, {address.city}, {address.state} - {address.pincode}</p>
-                                            <p className="text-muted-foreground">Phone: {address.phone}</p>
+                                        {appliedCoupon && (
+                                            <div className="flex justify-between items-center text-green-600 dark:text-green-400">
+                                                <span className="flex items-center gap-1.5"><Tag className="h-4 w-4"/> Coupon ({appliedCoupon.code})</span>
+                                                <span>- ₹{couponDiscount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                                            </div>
+                                        )}
+                                        <div className="flex justify-between">
+                                            <span className="text-muted-foreground">Shipping</span>
+                                            <span>₹{shippingCost.toFixed(2)}</span>
                                         </div>
+                                        <div className="flex justify-between">
+                                            <span className="text-muted-foreground">Estimated taxes</span>
+                                            <span>₹{estimatedTaxes.toFixed(2)}</span>
+                                        </div>
+                                    </div>
+                                    <Separator />
+                                    <div className="flex justify-between font-bold text-lg">
+                                        <span>Total</span>
+                                        <span>₹{total.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                                     </div>
                                 </CardContent>
-                            )}
-                        </Card>
-                         <div className="p-4 mt-auto flex items-center justify-center gap-x-2">
-                            <Button variant="link" className="text-xs text-muted-foreground hover:text-primary px-2" onClick={() => toast({ title: "Report Sent", description: "Thank you for your feedback." })}>Report</Button>
-                            <FeedbackDialog>
-                                <Button variant="link" className="text-xs text-muted-foreground hover:text-primary px-2">Feedback</Button>
-                            </FeedbackDialog>
-                            <Button asChild variant="link" className="text-xs text-muted-foreground hover:text-primary px-2"><Link href="/contact">Contact Us</Link></Button>
-                            <Button asChild variant="link" className="text-xs text-muted-foreground hover:text-primary px-2"><Link href="/help">Help</Link></Button>
-                      </div>
-                     </div>
-                </div>
-            )}
-        </div>
-      </main>
+                                <CardFooter className="flex-col items-stretch">
+                                    <Button className="w-full" size="lg" onClick={handleCheckout} disabled={isCheckingOut}>
+                                        {isCheckingOut ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                                        Continue to Payment
+                                    </Button>
+                                     {!address && (
+                                        <p className="text-destructive text-xs text-center mt-2">
+                                            Please add or select a delivery address to continue.
+                                        </p>
+                                    )}
+                                </CardFooter>
+                            </Card>
+                            
+                            <Card>
+                                <CardHeader>
+                                    <div className="flex items-center justify-between">
+                                        <CardTitle className="text-base">
+                                            Delivery To
+                                        </CardTitle>
+                                         <Dialog open={isAddressDialogOpen} onOpenChange={setIsAddressDialogOpen}>
+                                            <DialogTrigger asChild>
+                                                <Button variant="link" size="sm" className="p-0 h-auto text-sm hover:text-primary"><Edit className="mr-2 h-3 w-3" /> {address ? 'Change' : 'Add Address'}</Button>
+                                            </DialogTrigger>
+                                            <DialogContent>
+                                                <DialogHeader>
+                                                    <DialogTitle>Change Delivery Address</DialogTitle>
+                                                </DialogHeader>
+                                                <EditAddressForm 
+                                                    onSave={handleAddressSave} 
+                                                    onCancel={() => setIsAddressDialogOpen(false)}
+                                                    onAddressesUpdate={handleAddressesUpdate}
+                                                />
+                                            </DialogContent>
+                                        </Dialog>
+                                    </div>
+                                     <CardDescription>{address ? "Your order will be delivered here." : "Please select or add a delivery address."}</CardDescription>
+                                </CardHeader>
+                                {address && (
+                                    <CardContent className="text-sm space-y-2">
+                                        <div className="flex items-start gap-3">
+                                            <Home className="h-5 w-5 mt-1 text-muted-foreground"/>
+                                            <div>
+                                                <p className="font-semibold">{address.name}</p>
+                                                <p className="text-muted-foreground">{address.village}, {address.city}, {address.state} - {address.pincode}</p>
+                                                <p className="text-muted-foreground">Phone: {address.phone}</p>
+                                            </div>
+                                        </div>
+                                    </CardContent>
+                                )}
+                            </Card>
+                             <div className="p-4 mt-auto flex items-center justify-center gap-x-2">
+                                <Button variant="link" className="text-xs text-muted-foreground hover:text-primary px-2" onClick={() => toast({ title: "Report Sent", description: "Thank you for your feedback." })}>Report</Button>
+                                <FeedbackDialog>
+                                    <Button variant="link" className="text-xs text-muted-foreground hover:text-primary px-2">Feedback</Button>
+                                </FeedbackDialog>
+                                <Button asChild variant="link" className="text-xs text-muted-foreground hover:text-primary px-2"><Link href="/contact">Contact Us</Link></Button>
+                                <Button asChild variant="link" className="text-xs text-muted-foreground hover:text-primary px-2"><Link href="/help">Help</Link></Button>
+                          </div>
+                         </div>
+                    </div>
+                )}
+            </div>
+        </main>
+      </div>
       
       {isHelpChatOpen && (
         <HelpChat
