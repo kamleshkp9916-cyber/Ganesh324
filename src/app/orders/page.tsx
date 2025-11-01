@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import React, { useEffect, useState, useRef, useCallback } from "react";
@@ -189,7 +188,7 @@ useEffect(() => {
         const nextUpdated = data?.stages?.find((s: any) => s.timestamp)?.timestamp || null;
         if (!prev || !prevUpdated || (nextUpdated && new Date(nextUpdated) > new Date(prevUpdated))) {
           // update order list quick-status for glance
-          setOrders((prevOrders) => prevOrders.map((o: any) => (o.orderId === data.orderId ? { ...o, status: data.stages.slice().reverse().find((s: any) => s.completed)?.key ?? o.status } : o)));
+          setOrders((prevOrders) => prevOrders.map((o: any) => (o.orderId === data.orderId ? { ...o, timeline: data.stages } : o)));
           return data;
         }
         return prev;
@@ -208,9 +207,8 @@ useEffect(() => {
 
   // interval that respects visibility
   const startInterval = () => {
-    if (!intervalId) {
-        intervalId = setInterval(fetchOnce, 10000 * backoff);
-    }
+    if (intervalId) clearInterval(intervalId);
+    intervalId = setInterval(fetchOnce, 10000 * backoff);
   };
 
   const handleVisibility = () => {
@@ -256,8 +254,15 @@ useEffect(() => {
         pickup: returnPickupOption,
         photos: attachedPhotos,
       });
-      // update UI — store return request info on order
-      updateOrder(selectedOrder.orderId, { returnRequest: resp, status: returnType === 'cancel' ? 'cancel_requested' : (getStatusFromTimeline(selectedOrder.timeline)) });
+      
+      const newTimelineStep = {
+        status: returnType === 'cancel' ? 'Cancellation Requested' : 'Return Initiated',
+        date: format(new Date(), 'MMM dd, yyyy'),
+        time: format(new Date(), 'p'),
+        completed: true
+      };
+      
+      updateOrder(selectedOrder.orderId, { returnRequest: resp, timeline: [...selectedOrder.timeline, newTimelineStep] });
 
       // close confirm
       setShowReturnConfirm(false);
@@ -309,7 +314,7 @@ useEffect(() => {
     const order = orders.find((o) => o.orderId === orderId);
     if (!order) return;
     const status: any = await fetchDeliveryStatusMock(orderId);
-    const outForDeliveryCompleted = status.stages.find((s: any) => s.key === 'out_for_delivery')?.completed;
+    const outForDeliveryCompleted = status.stages.find((s: any) => s.key === 'out_for_delivery' && s.status)?.completed;
     if (outForDeliveryCompleted) {
       alert('This order is already out for delivery and cannot be cancelled.');
       return;
@@ -824,3 +829,5 @@ function HelpBot({ orders, selectedOrder, onOpenReturn, onCancelOrder, onShowAdd
     </div>
   );
 }
+
+    
