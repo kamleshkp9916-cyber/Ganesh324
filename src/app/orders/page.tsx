@@ -166,71 +166,28 @@ export default function OrdersPage() {
   }, [loadData]);
 
 
-// Fetch status once and then poll while an order is selected.
-// Uses a visibility-aware interval so polling pauses when the tab is hidden.
-useEffect(() => {
-  if (!selectedOrder) return;
-
-  let mounted = true;
-  let intervalId: NodeJS.Timeout | null = null;
-  let backoff = 1; // exponential backoff multiplier if errors
-
-  const fetchOnce = async () => {
-    if (!mounted) return;
+const handleFetchStatus = useCallback(async () => {
+    if (!selectedOrder) return;
     setLoadingStatus(true);
     try {
       const data: any = await fetchDeliveryStatusMock(selectedOrder.orderId);
-      if (!mounted) return;
-      // Only update when we have new data. We don't clear statusData first (avoids flicker).
-      setStatusData((prev: any) => {
-        // quick shallow compare based on stages timestamps (if provided)
-        const prevUpdated = prev?.stages?.find((s: any) => s.timestamp)?.timestamp || null;
-        const nextUpdated = data?.stages?.find((s: any) => s.timestamp)?.timestamp || null;
-        if (!prev || !prevUpdated || (nextUpdated && new Date(nextUpdated) > new Date(prevUpdated))) {
-          // update order list quick-status for glance
-          setOrders((prevOrders) => prevOrders.map((o: any) => (o.orderId === data.orderId ? { ...o, timeline: data.stages } : o)));
-          return data;
-        }
-        return prev;
-      });
-      backoff = 1;
+      setStatusData(data);
+      // Update the main order list as well
+      setOrders(prevOrders => prevOrders.map(o => o.orderId === data.orderId ? { ...o, timeline: data.stages } : o));
     } catch (e) {
       console.error('fetchDeliveryStatusMock error', e);
-      backoff = Math.min(5, backoff * 2);
+      toast({ title: "Error", description: "Could not fetch latest order status." });
     } finally {
-      if (mounted) setLoadingStatus(false);
+      setLoadingStatus(false);
     }
-  };
+}, [selectedOrder, toast]);
 
-  // initial fetch immediately
-  fetchOnce();
-
-  // interval that respects visibility
-  const startInterval = () => {
-    if (intervalId) clearInterval(intervalId);
-    intervalId = setInterval(fetchOnce, 10000 * backoff);
-  };
-
-  const handleVisibility = () => {
-    if (document.visibilityState === 'hidden') {
-      if (intervalId) clearInterval(intervalId);
-      intervalId = null;
-    } else {
-      if (!intervalId) {
-          startInterval();
-      }
+// Fetch status only when order is selected initially
+useEffect(() => {
+    if (selectedOrder) {
+        handleFetchStatus();
     }
-  };
-
-  startInterval();
-  document.addEventListener('visibilitychange', handleVisibility);
-
-  return () => {
-    mounted = false;
-    if (intervalId) clearInterval(intervalId);
-    document.removeEventListener('visibilitychange', handleVisibility);
-  };
-}, [selectedOrder]);
+}, [selectedOrder, handleFetchStatus]);
 
 
   // Helper: update order in orders state
@@ -314,7 +271,7 @@ useEffect(() => {
     const order = orders.find((o) => o.orderId === orderId);
     if (!order) return;
     const status: any = await fetchDeliveryStatusMock(orderId);
-    const outForDeliveryCompleted = status.stages.find((s: any) => s.key === 'out_for_delivery' && s.status)?.completed;
+    const outForDeliveryCompleted = status.stages.find((s: any) => (s.key === 'out_for_delivery' || s.status?.toLowerCase().includes('out for delivery')))?.completed;
     if (outForDeliveryCompleted) {
       alert('This order is already out for delivery and cannot be cancelled.');
       return;
@@ -409,8 +366,7 @@ useEffect(() => {
                   <h2 className="font-medium mb-3 text-card-foreground">Orders</h2>
                   <div className="space-y-3">
                     {orders.map((o) => {
-                      const completedCount = o.timeline.filter((s: any) => s.completed).length;
-                      const percent = o.timeline.length > 0 ? Math.round((completedCount / o.timeline.length) * 100) : 0;
+                      const status = getStatusFromTimeline(o.timeline);
                       return (
                       <button
                         key={o.orderId}
@@ -425,7 +381,7 @@ useEffect(() => {
                            <div className="text-xs text-muted-foreground">{o.orderId} • {isClient ? new Date(o.orderDate).toLocaleString() : ''}</div>
                           <div className="text-xs text-muted-foreground mt-1 truncate">{formatAddress(o.address)}</div>
                         </div>
-                         <div className="text-sm font-semibold text-muted-foreground capitalize">{percent}%</div>
+                         <div className="text-sm font-semibold text-muted-foreground capitalize">{status}</div>
                       </button>
                     )})}
                   </div>
@@ -449,6 +405,7 @@ useEffect(() => {
                       statusData={statusData}
                       loading={loadingStatus}
                       onBack={() => setSelectedOrder(null)}
+                      onRefresh={handleFetchStatus}
                       onRequestReturn={(type: any) => {
                         if (type === 'cancel') {
                             setIsCancelFlowOpen(true);
@@ -619,14 +576,14 @@ useEffect(() => {
   );
 }
 
-function OrderDetail({ order, statusData, loading, onBack, onRequestReturn, onSimulatePickup }: any) {
+function OrderDetail({ order, statusData, loading, onBack, onRefresh, onRequestReturn, onSimulatePickup }: any) {
   const product = order.products[0];
   const stages = statusData?.stages ?? order.timeline ?? [];
   const completedCount = stages.filter((s: any) => s.completed).length;
   const percent = stages.length > 0 ? Math.round((completedCount / stages.length) * 100) : 0;
   
-  const outForDeliveryCompleted = stages.find((s: any) => s && s.status && (s.key === 'out_for_delivery' || s.status.toLowerCase().includes('out for delivery')))?.completed;
-  const isDelivered = stages.find((s: any) => s && s.status && (s.key === 'delivered' || s.status.toLowerCase().includes('delivered')))?.completed;
+  const outForDeliveryCompleted = stages.find((s: any) => s && (s.key === 'out_for_delivery' || s.status?.toLowerCase().includes('out for delivery')))?.completed;
+  const isDelivered = stages.find((s: any) => s && (s.key === 'delivered' || s.status?.toLowerCase().includes('delivered')))?.completed;
 
   const allowCancel = !outForDeliveryCompleted && !isDelivered;
   const allowReturn = isDelivered;
@@ -672,6 +629,10 @@ function OrderDetail({ order, statusData, loading, onBack, onRequestReturn, onSi
       <div className="flex items-center justify-between mb-3">
         <div className="text-sm font-medium text-card-foreground">Delivery Timeline</div>
         <div className="flex items-center gap-3">
+           <Button variant="ghost" size="sm" onClick={onRefresh} disabled={loading} className="text-xs text-muted-foreground">
+              <RefreshCw className={cn("mr-2 h-3 w-3", loading && "animate-spin")} />
+              Refresh
+            </Button>
           <button onClick={onBack} className="text-sm text-muted-foreground hover:underline">Back to orders</button>
           {allowCancel && !order.returnRequest && (
             <button onClick={() => onRequestReturn('cancel')} className="text-sm px-3 py-1 rounded-md border border-amber-500/50 bg-amber-500/10 text-amber-400">Cancel order</button>
@@ -832,7 +793,5 @@ function HelpBot({ orders, selectedOrder, onOpenReturn, onCancelOrder, onShowAdd
     </div>
   );
 }
-
-    
 
     
