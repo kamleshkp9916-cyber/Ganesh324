@@ -22,10 +22,20 @@ export type Order = {
 };
 
 export function getStatusFromTimeline(timeline: Order['timeline']): string {
-    if (!timeline || timeline.length === 0) return "Pending";
-    const lastCompletedStep = [...timeline].reverse().find(step => step.completed && step.status);
-    if (!lastCompletedStep) return "Pending"; // Default to Pending if no completed steps found
-    return lastCompletedStep.status.split(':')[0].trim();
+    if (!timeline || timeline.length === 0) {
+        return "Pending";
+    }
+
+    // Find the last step in the timeline that is marked as completed.
+    const lastCompletedStep = [...timeline].reverse().find(step => step && step.completed && typeof step.status === 'string');
+
+    if (lastCompletedStep) {
+        // Return the status, stripping any extra info after a colon.
+        return lastCompletedStep.status.split(':')[0].trim();
+    }
+
+    // If no step is completed, it's still pending.
+    return "Pending";
 }
 
 
