@@ -3,6 +3,10 @@
 
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
+import { useRouter } from 'next/navigation';
+import { Button } from '@/components/ui/button';
+import { ArrowLeft } from 'lucide-react';
+import { Footer } from '@/components/footer';
 
 // Single-file React component (default export)
 // Requirements: Tailwind CSS + framer-motion installed
@@ -162,6 +166,8 @@ export default function OrdersPage() {
   const [statusData, setStatusData] = useState<any>(null);
   const [loadingStatus, setLoadingStatus] = useState(false);
   const [isClient, setIsClient] = useState(false);
+  const router = useRouter();
+
 
   useEffect(() => {
     setIsClient(true);
@@ -189,62 +195,70 @@ export default function OrdersPage() {
   }, [selectedOrder]);
 
   return (
-    <div className="min-h-screen bg-slate-50 p-6">
-      <div className="max-w-5xl mx-auto">
-        <header className="mb-6">
-          <h1 className="text-2xl font-semibold">Your Orders</h1>
-          <p className="text-sm text-slate-600">Click an order to view its delivery status.</p>
-        </header>
+    <div className="min-h-screen bg-slate-50 text-slate-800 flex flex-col">
+       <header className="p-4 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-sm z-30 border-b">
+        <Button variant="ghost" size="icon" onClick={() => router.back()}>
+          <ArrowLeft className="h-6 w-6" />
+        </Button>
+        <h1 className="text-xl font-bold">My Orders</h1>
+        <div className="w-10"></div>
+      </header>
+      <main className="flex-grow p-6">
+        <div className="max-w-5xl mx-auto">
+            <header className="mb-6">
+            <p className="text-sm text-slate-600">Click an order to view its delivery status.</p>
+            </header>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="md:col-span-1">
-            <div className="bg-white p-4 rounded-2xl shadow-sm">
-              <h2 className="font-medium mb-3">Orders</h2>
-              <div className="space-y-3">
-                {orders.map((o) => (
-                  <button
-                    key={o.id}
-                    onClick={() => setSelectedOrder(o)}
-                    className={`w-full text-left p-3 rounded-xl border flex items-center gap-3 hover:shadow transition ${
-                      selectedOrder?.id === o.id ? "border-indigo-400 bg-indigo-50" : "border-transparent"
-                    }`}
-                  >
-                    <img src={o.product.image} alt={o.product.name} className="w-14 h-14 rounded-md object-cover" />
-                    <div className="flex-1">
-                      <div className="text-sm font-medium">{o.product.name}</div>
-                      <div className="text-xs text-slate-500">{o.id} • {isClient ? new Date(o.placedAt).toLocaleString() : ''}</div>
-                    </div>
-                    <div className="text-sm text-slate-700 capitalize">{o.status.replace(/_/g, ' ')}</div>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="mt-4 text-xs text-slate-500">
-              <div>Note: This frontend uses mock data. When you connect the backend, replace the mock fetch in the code with a real API call to your delivery service.</div>
-            </div>
-          </div>
-
-          <div className="md:col-span-2">
-            <div className="bg-white p-6 rounded-2xl shadow-sm min-h-[300px]">
-              {!selectedOrder ? (
-                <div className="flex flex-col items-center justify-center h-64">
-                  <div className="text-slate-500">No order selected</div>
-                  <div className="text-sm mt-2 text-slate-400">Click an order on the left to see its tracking steps.</div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="md:col-span-1">
+                <div className="bg-white p-4 rounded-2xl shadow-sm">
+                <h2 className="font-medium mb-3">Orders</h2>
+                <div className="space-y-3">
+                    {orders.map((o) => (
+                    <button
+                        key={o.id}
+                        onClick={() => setSelectedOrder(o)}
+                        className={`w-full text-left p-3 rounded-xl border flex items-center gap-3 hover:shadow transition ${
+                        selectedOrder?.id === o.id ? "border-indigo-400 bg-indigo-50" : "border-transparent"
+                        }`}
+                    >
+                        <img src={o.product.image} alt={o.product.name} className="w-14 h-14 rounded-md object-cover" />
+                        <div className="flex-1">
+                        <div className="text-sm font-medium">{o.product.name}</div>
+                        <div className="text-xs text-slate-500">{o.id} • {isClient ? new Date(o.placedAt).toLocaleString() : ''}</div>
+                        </div>
+                        <div className="text-sm text-slate-700 capitalize">{o.status.replace(/_/g, ' ')}</div>
+                    </button>
+                    ))}
                 </div>
-              ) : (
-                <OrderDetail
-                  order={selectedOrder}
-                  statusData={statusData}
-                  loading={loadingStatus}
-                  onBack={() => setSelectedOrder(null)}
-                />
-              )}
+                </div>
+
+                <div className="mt-4 text-xs text-slate-500">
+                <div>Note: This frontend uses mock data. When you connect the backend, replace the mock fetch in the code with a real API call to your delivery service.</div>
+                </div>
             </div>
-          </div>
+
+            <div className="md:col-span-2">
+                <div className="bg-white p-6 rounded-2xl shadow-sm min-h-[300px]">
+                {!selectedOrder ? (
+                    <div className="flex flex-col items-center justify-center h-64">
+                    <div className="text-slate-500">No order selected</div>
+                    <div className="text-sm mt-2 text-slate-400">Click an order on the left to see its tracking steps.</div>
+                    </div>
+                ) : (
+                    <OrderDetail
+                    order={selectedOrder}
+                    statusData={statusData}
+                    loading={loadingStatus}
+                    onBack={() => setSelectedOrder(null)}
+                    />
+                )}
+                </div>
+            </div>
+            </div>
         </div>
-      </div>
+      </main>
+      <Footer/>
     </div>
   );
 }
-
