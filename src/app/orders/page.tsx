@@ -147,7 +147,7 @@ export default function OrdersPage() {
   const [cancelStep, setCancelStep] = useState("reason");
   const [cancelReason, setCancelReason] = useState("");
   const [cancelFeedback, setCancelFeedback] = useState("");
-  const [isVerifyingOtp, setIsVerifyingOtp] = useState(isVerifyingOtp);
+  const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
   const [otp, setOtp] = useState('');
   const { toast } = useToast();
 
@@ -630,18 +630,17 @@ function OrderDetail({ order, statusData, loading, onBack, onRefresh, onRequestR
   const currentTimeline = statusData?.stages || order.timeline;
   const currentStatus = getStatusFromTimeline(currentTimeline);
   
-  const isCancelled = currentStatus.toLowerCase().includes('cancelled');
-  const isDelivered = currentStatus === 'Delivered';
-
-  // Filter timeline to only show up to the cancellation point if cancelled
   const cancelIndex = currentTimeline.findIndex((item:any) => item && item.status && item.status.toLowerCase().includes('cancelled'));
-  const timelineToShow = isCancelled && cancelIndex > -1 ? currentTimeline.slice(0, cancelIndex + 1) : currentTimeline;
+  const timelineToShow = cancelIndex > -1 ? currentTimeline.slice(0, cancelIndex + 1) : currentTimeline;
 
   const completedCount = timelineToShow.filter((s: any) => s.completed).length;
   const percent = timelineToShow.length > 0 ? Math.round(((completedCount -1) / (timelineToShow.length - 1)) * 100) : 0;
   
+  const isCancelled = currentStatus.toLowerCase().includes('cancelled');
+  const isDelivered = currentStatus === 'Delivered';
+
   const allowCancel = !isDelivered && !isCancelled;
-  const allowReturn = isDelivered && !isCancelled;
+  const allowReturn = isDelivered && !isCancelled && order.returnRequest?.status !== 'requested';
 
   return (
     <div>
@@ -693,11 +692,11 @@ function OrderDetail({ order, statusData, loading, onBack, onRefresh, onRequestR
               Refresh
             </Button>
           {allowCancel && !order.returnRequest && (
-            <button onClick={() => onRequestReturn('cancel')} className="text-sm px-3 py-1 rounded-md border border-amber-500/50 bg-amber-500/10 text-amber-400">Cancel order</button>
+             <button onClick={() => onRequestReturn('cancel')} className="text-sm px-3 py-1 rounded-md border border-amber-500/50 bg-amber-500/10 text-amber-400">Cancel order</button>
           )}
 
           {allowReturn && !order.returnRequest && (
-            <button onClick={() => onRequestReturn('return')} className="text-sm px-3 py-1 rounded-md border border-red-500/50 bg-red-500/10 text-red-400">Request return</button>
+             <button onClick={() => onRequestReturn('return')} className="text-sm px-3 py-1 rounded-md border border-red-500/50 bg-red-500/10 text-red-400">Request return</button>
           )}
 
           {order.returnRequest && (
@@ -851,3 +850,5 @@ function HelpBot({ orders, selectedOrder, onOpenReturn, onCancelOrder, onShowAdd
     </div>
   );
 }
+
+    
