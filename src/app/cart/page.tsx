@@ -319,7 +319,7 @@ export default function CartPage() {
                     </div>
 
                      <div className="lg:col-span-1 lg:sticky lg:top-24 space-y-6">
-                         <div className="bg-background lg:bg-transparent rounded-t-lg border-t lg:border-t-0 -mx-4 sm:mx-0 px-4 sm:px-0 pt-4 pb-20 lg:p-0">
+                         <div className="bg-transparent lg:bg-transparent rounded-t-lg -mx-4 sm:mx-0 px-4 sm:px-0 pt-4 pb-20 lg:p-0">
                             <Card>
                                 <CardHeader>
                                     <CardTitle>Order Summary</CardTitle>
@@ -349,6 +349,17 @@ export default function CartPage() {
                                     <div className="flex justify-between font-bold text-lg">
                                         <span>Total</span>
                                         <span>₹{total.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                                    </div>
+                                     <div className="hidden lg:block pt-4">
+                                        <Button className="w-full" size="lg" onClick={handleCheckout} disabled={isCheckingOut}>
+                                            {isCheckingOut ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                                            Continue to Payment
+                                        </Button>
+                                        {!address && (
+                                            <p className="text-destructive text-xs text-center mt-2">
+                                                Please add a delivery address to continue.
+                                            </p>
+                                        )}
                                     </div>
                                 </CardContent>
                             </Card>
