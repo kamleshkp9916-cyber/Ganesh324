@@ -304,7 +304,7 @@ export default function AdminOrdersPage() {
                             <TableRow>
                                 <TableHead>Order ID</TableHead>
                                 <TableHead>Customer</TableHead>
-                                <TableHead>Product</TableHead>
+                                <TableHead>Product(s)</TableHead>
                                 <TableHead>Type</TableHead>
                                 <TableHead>Status</TableHead>
                                 <TableHead className="text-right">Total</TableHead>
@@ -317,9 +317,13 @@ export default function AdminOrdersPage() {
                                     <TableCell className="font-medium">{order.orderId}</TableCell>
                                     <TableCell>{order.address.name}</TableCell>
                                     <TableCell>
-                                        <Link href={`/product/${order.products[0].key}`} className="hover:underline">
-                                            {order.products[0].name}{order.products.length > 1 ? ` + ${order.products.length - 1} more` : ''}
-                                        </Link>
+                                        <div className="flex flex-col">
+                                            {order.products.map((p, index) => (
+                                                <Link key={`${p.key}-${index}`} href={`/product/${p.key}`} className="hover:underline text-sm">
+                                                    {p.name} {p.size && `(${p.size})`} {p.color && `(${p.color})`} {p.quantity > 1 && `x${p.quantity}`}
+                                                </Link>
+                                            ))}
+                                        </div>
                                     </TableCell>
                                     <TableCell>
                                         <Badge variant={order.type === 'Live Stream' ? 'destructive' : 'secondary'} className="text-xs">
@@ -415,5 +419,3 @@ export default function AdminOrdersPage() {
     </div>
   );
 }
-
-    
