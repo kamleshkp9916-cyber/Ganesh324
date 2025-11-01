@@ -4,14 +4,13 @@
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, CheckCircle2, Circle, Home, Hourglass, Package, PackageCheck, PackageOpen, Truck, Wallet, RefreshCw, BadgeEuro, XCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Footer } from "@/components/footer";
-
-// Single-file React component (default export)
-// Requirements: Tailwind CSS + framer-motion installed
-// How to use: paste into your React app (e.g. src/components/OrdersPage.jsx)
-// Tailwind classes are used for styling. Replace mock fetch with your delivery API when backend is ready.
+import { Timeline } from "@/components/timeline";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { getTransactions, Transaction } from "@/lib/transaction-history";
 
 const MOCK_ORDERS = [
   {
@@ -26,6 +25,13 @@ const MOCK_ORDERS = [
     },
     placedAt: "2025-10-28T09:15:00.000Z",
     status: "shipped",
+    timeline: [
+        { key: "ordered", label: "Order placed", completed: true, timestamp: "2025-10-28T09:15:00.000Z" },
+        { key: "packed", label: "Packed", completed: true, timestamp: "2025-10-28T17:00:00.000Z" },
+        { key: "shipped", label: "Shipped", completed: true, timestamp: "2025-10-29T10:00:00.000Z" },
+        { key: "out_for_delivery", label: "Out for delivery", completed: false, timestamp: null },
+        { key: "delivered", label: "Delivered", completed: false, timestamp: null },
+    ]
   },
   {
     id: "ORD-1002",
@@ -39,6 +45,13 @@ const MOCK_ORDERS = [
     },
     placedAt: "2025-10-30T13:45:00.000Z",
     status: "out_for_delivery",
+     timeline: [
+        { key: "ordered", label: "Order placed", completed: true, timestamp: "2025-10-30T13:45:00.000Z" },
+        { key: "packed", label: "Packed", completed: true, timestamp: "2025-10-30T21:00:00.000Z" },
+        { key: "shipped", label: "Shipped", completed: true, timestamp: "2025-10-31T11:00:00.000Z" },
+        { key: "out_for_delivery", label: "Out for delivery", completed: true, timestamp: "2025-11-01T08:00:00.000Z" },
+        { key: "delivered", label: "Delivered", completed: false, timestamp: null },
+    ]
   },
 ];
 
@@ -50,130 +63,8 @@ const ALL_STAGES = [
   { key: "delivered", label: "Delivered" },
 ];
 
-// Mock delivery API call — replace this function with real fetch to the delivery API when backend is ready
-function fetchDeliveryStatusMock(orderId: string) {
-  // Simulate varied timestamps and stage completions per orderId
-  const now = new Date();
-  const base = new Date(now.getTime() - 1000 * 60 * 60 * 24 * 2); // two days ago
-
-  // Create timestamps for each stage (some completed, some pending)
-  const timestamps = ALL_STAGES.map((s, i) => {
-    const t = new Date(base.getTime() + i * 1000 * 60 * 60 * 8); // 8 hours apart
-    return t.toISOString();
-  });
-
-  // Determine completed stages based on orderId (just for variety)
-  let completedCount = 2; // default
-  if (orderId.endsWith("1")) completedCount = 3; // shipped
-  if (orderId.endsWith("2")) completedCount = 4; // out_for_delivery
-
-  const stages = ALL_STAGES.map((s, idx) => ({
-    key: s.key,
-    label: s.label,
-    completed: idx <= completedCount - 1,
-    timestamp: idx <= completedCount - 1 ? timestamps[idx] : null,
-  }));
-
-  // Simulate network delay
-  return new Promise((res) => setTimeout(() => res({ orderId, stages }), 500));
-}
-
-export default function OrdersPage() {
-  const [orders] = useState(MOCK_ORDERS);
-  const [selectedOrder, setSelectedOrder] = useState<any>(null);
-  const [statusData, setStatusData] = useState<any>(null);
-  const [loadingStatus, setLoadingStatus] = useState(false);
-  const router = useRouter();
-
-  useEffect(() => {
-    if (!selectedOrder) return;
-
-    setLoadingStatus(true);
-    setStatusData(null);
-
-    // --- Replace below with real API call when backend is ready ---
-    // fetch(`/api/delivery/${selectedOrder.id}`)
-    //   .then(r => r.json())
-    //   .then(data => { setStatusData(data); setLoadingStatus(false); })
-    //   .catch(err => { console.error(err); setLoadingStatus(false); });
-    // ------------------------------------------------------------
-
-    fetchDeliveryStatusMock(selectedOrder.id)
-      .then((data) => {
-        setStatusData(data as any);
-      })
-      .catch((e) => console.error(e))
-      .finally(() => setLoadingStatus(false));
-  }, [selectedOrder]);
-
-  return (
-    <div className="min-h-screen bg-background text-foreground flex flex-col">
-       <header className="p-4 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-sm z-30 border-b">
-        <Button variant="ghost" size="icon" onClick={() => router.back()}>
-          <ArrowLeft className="h-6 w-6" />
-        </Button>
-        <h1 className="text-xl font-bold">Your Orders</h1>
-        <div className="w-10"></div>
-      </header>
-
-      <main className="flex-grow p-6">
-        <div className="max-w-5xl mx-auto">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="md:col-span-1">
-                <div className="bg-card p-4 rounded-2xl shadow-sm border">
-                <h2 className="font-medium mb-3 text-card-foreground">Orders</h2>
-                <div className="space-y-3">
-                    {orders.map((o) => (
-                    <button
-                        key={o.id}
-                        onClick={() => setSelectedOrder(o)}
-                        className={`w-full text-left p-3 rounded-xl border flex items-center gap-3 hover:shadow transition ${
-                        selectedOrder?.id === o.id ? "border-primary bg-primary/10" : "border-transparent"
-                        }`}
-                    >
-                        <img src={o.product.image} alt={o.product.name} className="w-14 h-14 rounded-md object-cover" />
-                        <div className="flex-1">
-                        <div className="text-sm font-medium text-foreground">{o.product.name}</div>
-                        <div className="text-xs text-muted-foreground">{o.id} • {new Date(o.placedAt).toLocaleString()}</div>
-                        </div>
-                        <div className="text-sm text-foreground capitalize">{o.status.replace(/_/g, ' ')}</div>
-                    </button>
-                    ))}
-                </div>
-                </div>
-
-                <div className="mt-4 text-xs text-muted-foreground">
-                <div>Note: This frontend uses mock data. When you connect the backend, replace the mock fetch in the code with a real API call to your delivery service.</div>
-                </div>
-            </div>
-
-            <div className="md:col-span-2">
-                <div className="bg-card p-6 rounded-2xl shadow-sm border min-h-[300px]">
-                {!selectedOrder ? (
-                    <div className="flex flex-col items-center justify-center h-64">
-                    <div className="text-muted-foreground">No order selected</div>
-                    <div className="text-sm mt-2 text-muted-foreground/80">Click an order on the left to see its tracking steps.</div>
-                    </div>
-                ) : (
-                    <OrderDetail
-                    order={selectedOrder}
-                    statusData={statusData}
-                    loading={loadingStatus}
-                    onBack={() => setSelectedOrder(null)}
-                    />
-                )}
-                </div>
-            </div>
-            </div>
-        </div>
-      </main>
-      <Footer />
-    </div>
-  );
-}
-
 function OrderDetail({ order, statusData, loading, onBack }: { order: any, statusData: any, loading: boolean, onBack: () => void }) {
-  const stages = statusData?.stages ?? ALL_STAGES.map((s) => ({ key: s.key, label: s.label, completed: false, timestamp: null }));
+  const stages = statusData?.stages ?? order.timeline ?? ALL_STAGES.map((s: any) => ({ ...s, completed: false, timestamp: null }));
 
   const completedCount = stages.filter((s: any) => s.completed).length;
   const percent = Math.round((completedCount / ALL_STAGES.length) * 100);
@@ -212,11 +103,18 @@ function OrderDetail({ order, statusData, loading, onBack }: { order: any, statu
       {loading ? (
         <div className="text-sm text-muted-foreground">Loading status…</div>
       ) : (
-        <div className="space-y-4">
-          {stages.map((s: any, idx: number) => (
-            <TimelineStep key={s.key} step={s} index={idx} total={ALL_STAGES.length} />
-          ))}
-        </div>
+        <Dialog>
+            <DialogTrigger asChild>
+                <div className="space-y-4 cursor-pointer">
+                    {stages.map((s: any, idx: number) => (
+                        <TimelineStep key={s.key} step={s} index={idx} total={ALL_STAGES.length} />
+                    ))}
+                </div>
+            </DialogTrigger>
+            <DialogContent>
+                <Timeline order={order} />
+            </DialogContent>
+        </Dialog>
       )}
 
       <div className="mt-6 text-xs text-muted-foreground">This timeline pulls data from the delivery API in production. Each stage shows its timestamp when completed.</div>
@@ -230,14 +128,27 @@ function TimelineStep({ step, index, total }: { step: any, index: number, total:
     enter: { opacity: 1, y: 0 },
   };
 
+   const getStatusIcon = (status: string) => {
+    if (status.toLowerCase().includes("pending")) return <Hourglass className="h-5 w-5" />;
+    if (status.toLowerCase().includes("confirmed")) return <PackageOpen className="h-5 w-5" />;
+    if (status.toLowerCase().includes("packed")) return <Package className="h-5 w-5" />;
+    if (status.toLowerCase().includes("dispatch")) return <PackageCheck className="h-5 w-5" />;
+    if (status.toLowerCase().includes("shipped")) return <Truck className="h-5 w-5" />;
+    if (status.toLowerCase().includes("in transit")) return <Truck className="h-5 w-5" />;
+    if (status.toLowerCase().includes("out for delivery")) return <Truck className="h-5 w-5" />;
+    if (status.toLowerCase().includes("delivered")) return <Home className="h-5 w-5" />;
+    if (status.toLowerCase().includes('cancelled') || status.toLowerCase().includes('undelivered') || status.toLowerCase().includes('failed delivery attempt') || status.toLowerCase().includes('return')) return <XCircle className="h-5 w-5" />;
+    return <Circle className="h-5 w-5" />;
+};
+
   return (
     <motion.div initial="hidden" animate="enter" variants={variants} className="flex items-start gap-4">
       <div className="flex flex-col items-center">
         <div className={`w-8 h-8 rounded-full flex items-center justify-center border ${step.completed ? 'bg-primary text-primary-foreground border-transparent' : 'bg-card text-muted-foreground border-border'}`}>
           {step.completed ? (
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="w-4 h-4 fill-current"><path d="M9 16.2l-3.5-3.5L4 14.2 9 19.2 20 8.2 17.5 5.7z"/></svg>
+            <CheckCircle2 className="h-5 w-5" />
           ) : (
-            <div className="text-xs font-medium">{index + 1}</div>
+            getStatusIcon(step.key)
           )}
         </div>
         {index < total - 1 && <div className={`w-px flex-1 bg-border mt-2`} style={{ minHeight: 32 }} />}
@@ -254,4 +165,134 @@ function TimelineStep({ step, index, total }: { step: any, index: number, total:
   );
 }
 
+const getTransactionIcon = (type: Transaction['type']) => {
+    switch (type) {
+        case 'Order': return <ShoppingBag className="w-5 h-5 text-blue-500" />;
+        case 'Refund': return <RefreshCw className="w-5 h-5 text-green-500" />;
+        case 'Deposit': return <Wallet className="w-5 h-5 text-indigo-500" />;
+        case 'Withdrawal': return <BadgeEuro className="w-5 h-5 text-red-500" />;
+        case 'Bid': return <gavel className="w-5 h-5 text-purple-500" />;
+        default: return <Wallet className="w-5 h-5 text-gray-500" />;
+    }
+}
+
+export default function OrdersPage() {
+  const [orders] = useState(MOCK_ORDERS);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [selectedOrder, setSelectedOrder] = useState<any>(null);
+  const [statusData, setStatusData] = useState<any>(null);
+  const [loadingStatus, setLoadingStatus] = useState(false);
+  const router = useRouter();
+
+  useEffect(() => {
+    setTransactions(getTransactions());
+  }, []);
+
+  useEffect(() => {
+    if (!selectedOrder) return;
+
+    setLoadingStatus(true);
+    setStatusData(null);
     
+    setTimeout(() => {
+        setStatusData({ orderId: selectedOrder.id, stages: selectedOrder.timeline });
+        setLoadingStatus(false);
+    }, 500);
+
+  }, [selectedOrder]);
+
+  return (
+    <div className="min-h-screen bg-background text-foreground flex flex-col">
+       <header className="p-4 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-sm z-30 border-b">
+        <Button variant="ghost" size="icon" onClick={() => router.back()}>
+          <ArrowLeft className="h-6 w-6" />
+        </Button>
+        <h1 className="text-xl font-bold">Your Orders</h1>
+        <div className="w-10"></div>
+      </header>
+
+      <main className="flex-grow p-6">
+        <div className="max-w-5xl mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="md:col-span-1">
+                <Tabs defaultValue="orders" className="w-full">
+                    <TabsList className="grid w-full grid-cols-2">
+                        <TabsTrigger value="orders">Orders</TabsTrigger>
+                        <TabsTrigger value="transactions">Transactions</TabsTrigger>
+                    </TabsList>
+                    <TabsContent value="orders">
+                        <div className="bg-card p-4 rounded-b-2xl shadow-sm border border-t-0">
+                            <div className="space-y-3">
+                                {orders.map((o) => (
+                                <button
+                                    key={o.id}
+                                    onClick={() => setSelectedOrder(o)}
+                                    className={`w-full text-left p-3 rounded-xl border flex items-center gap-3 hover:shadow transition ${
+                                    selectedOrder?.id === o.id ? "border-primary bg-primary/10" : "border-transparent"
+                                    }`}
+                                >
+                                    <img src={o.product.image} alt={o.product.name} className="w-14 h-14 rounded-md object-cover" />
+                                    <div className="flex-1">
+                                    <div className="text-sm font-medium text-foreground">{o.product.name}</div>
+                                    <div className="text-xs text-muted-foreground">{o.id} • {new Date(o.placedAt).toLocaleString()}</div>
+                                    </div>
+                                    <div className="text-sm text-foreground capitalize">{o.status.replace(/_/g, ' ')}</div>
+                                </button>
+                                ))}
+                            </div>
+                        </div>
+                    </TabsContent>
+                    <TabsContent value="transactions">
+                        <div className="bg-card p-4 rounded-b-2xl shadow-sm border border-t-0">
+                            <div className="space-y-3 max-h-[60vh] overflow-y-auto">
+                                {transactions.map((t) => (
+                                <div key={t.id} className="w-full text-left p-3 rounded-xl border border-transparent flex items-center gap-3">
+                                    <div className="w-14 h-14 rounded-md bg-muted flex items-center justify-center">
+                                        {getTransactionIcon(t.type)}
+                                    </div>
+                                    <div className="flex-1">
+                                        <div className="text-sm font-medium text-foreground">{t.type}</div>
+                                        <div className="text-xs text-muted-foreground">{t.description}</div>
+                                    </div>
+                                    <div className="text-right">
+                                        <div className={`text-sm font-semibold ${t.amount > 0 ? 'text-green-500' : 'text-foreground'}`}>
+                                            {t.amount > 0 ? '+' : ''}₹{Math.abs(t.amount).toFixed(2)}
+                                        </div>
+                                        <div className="text-xs text-muted-foreground">{t.date}</div>
+                                    </div>
+                                </div>
+                                ))}
+                            </div>
+                        </div>
+                    </TabsContent>
+                </Tabs>
+                <div className="mt-4 text-xs text-muted-foreground">
+                    <div>Note: This frontend uses mock data. When you connect the backend, replace the mock fetch in the code with a real API call to your delivery service.</div>
+                </div>
+            </div>
+
+            <div className="md:col-span-2">
+                <div className="bg-card p-6 rounded-2xl shadow-sm border min-h-[300px]">
+                {!selectedOrder ? (
+                    <div className="flex flex-col items-center justify-center h-64">
+                    <div className="text-muted-foreground">No order selected</div>
+                    <div className="text-sm mt-2 text-muted-foreground/80">Click an order on the left to see its tracking steps.</div>
+                    </div>
+                ) : (
+                    <OrderDetail
+                    order={selectedOrder}
+                    statusData={statusData}
+                    loading={loadingStatus}
+                    onBack={() => setSelectedOrder(null)}
+                    />
+                )}
+                </div>
+            </div>
+            </div>
+        </div>
+      </main>
+      <Footer />
+    </div>
+  );
+}
+
