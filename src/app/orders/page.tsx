@@ -24,7 +24,8 @@ const MOCK_ORDERS = [
       sku: "MC-PRO-01",
       price: 499.99,
       image:
-        "https://images.unsplash.com/photo-1519183071298-a2962be54a73?w=800&q=60",
+        "https://picsum.photos/seed/camera/800/800",
+      "data-ai-hint": "camera",
     },
     placedAt: "2025-10-28T09:15:00.000Z",
     status: "shipped",
@@ -48,7 +49,8 @@ const MOCK_ORDERS = [
       sku: "MH-X-02",
       price: 129.99,
       image:
-        "https://images.unsplash.com/photo-1518444026728-1b3eb0f1b5a0?w=800&q=60",
+        "https://picsum.photos/seed/headphones/800/800",
+      "data-ai-hint": "headphones",
     },
     placedAt: "2025-10-30T13:45:00.000Z",
     status: "delivered",
@@ -72,7 +74,8 @@ const MOCK_ORDERS = [
       sku: "MT-LT-03",
       price: 39.99,
       image:
-        "https://images.unsplash.com/photo-1516035050018-7e8a6f12b9b9?w=800&q=60",
+        "https://picsum.photos/seed/tripod/800/800",
+      "data-ai-hint": "camera tripod",
     },
     placedAt: "2025-10-31T10:05:00.000Z",
     status: "packed",
@@ -96,7 +99,8 @@ const MOCK_ORDERS = [
       sku: "MSD-128",
       price: 19.99,
       image:
-        "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=800&q=60",
+        "https://picsum.photos/seed/sd-card/800/800",
+      "data-ai-hint": "sd card",
     },
     placedAt: "2025-10-25T08:20:00.000Z",
     status: "out_for_delivery",
@@ -221,7 +225,7 @@ function OrderDetail({ order, statusData, loading, onBack, onRequestReturn, onSi
     <div>
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center gap-4">
-          <img src={order.product.image} className="w-20 h-20 rounded-lg object-cover" alt="product" />
+          <img src={order.product.image} className="w-20 h-20 rounded-lg object-cover" alt="product" data-ai-hint={order.product['data-ai-hint']} />
           <div>
             <div className="text-lg font-semibold">{order.product.name}</div>
             <div className="text-xs text-slate-500">{order.id} • {order.product.sku}</div>
@@ -417,7 +421,6 @@ function HelpBot({ orders, selectedOrder, onOpenReturn, onCancelOrder, onShowAdd
   );
 }
 
-
 export default function OrdersPage() {
     const [orders, setOrders] = useState(MOCK_ORDERS);
     const [selectedOrder, setSelectedOrder] = useState<any>(null);
@@ -583,7 +586,7 @@ export default function OrdersPage() {
                                 selectedOrder?.id === o.id ? "border-indigo-400 bg-indigo-50" : "border-transparent"
                                 }`}
                             >
-                                <img src={o.product.image} alt={o.product.name} className="w-14 h-14 rounded-md object-cover" />
+                                <img src={o.product.image} alt={o.product.name} className="w-14 h-14 rounded-md object-cover" data-ai-hint={o.product['data-ai-hint']} />
                                 <div className="flex-1">
                                 <div className="text-sm font-medium text-foreground">{o.product.name}</div>
                                 <div className="text-xs text-muted-foreground">{o.id} • {isClient ? new Date(o.placedAt).toLocaleString() : ''}</div>
