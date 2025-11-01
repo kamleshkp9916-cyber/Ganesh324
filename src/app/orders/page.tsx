@@ -629,7 +629,7 @@ function TimelineStep({ step, index, total }: any) {
       <div className="flex-1 pt-0.5">
         <div className="flex items-center justify-between">
           <div className="font-medium text-sm text-card-foreground">{step.label}</div>
-          <div className="text-xs text-muted-foreground">{step.timestamp ? new Date(step.timestamp).toLocaleString() : (s.completed ? "Done" : "Pending")}</div>
+          <div className="text-xs text-muted-foreground">{step.timestamp ? new Date(step.timestamp).toLocaleString() : (step.completed ? "Done" : "Pending")}</div>
         </div>
         <div className="text-xs text-muted-foreground mt-1">{step.completed ? "Completed" : "Waiting"}</div>
       </div>
