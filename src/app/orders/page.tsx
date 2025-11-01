@@ -624,10 +624,12 @@ function OrderDetail({ order, statusData, loading, onBack, onRefresh, onRequestR
   const completedCount = stages.filter((s: any) => s.completed).length;
   const percent = stages.length > 0 ? Math.round((completedCount / stages.length) * 100) : 0;
   
-  const outForDeliveryCompleted = stages.find((s: any) => s && (s.key === 'out_for_delivery' || s.status?.toLowerCase().includes('out for delivery')))?.completed;
-  const isDelivered = stages.find((s: any) => s && (s.key === 'delivered' || s.status?.toLowerCase().includes('delivered')))?.completed;
+  const currentStatus = getStatusFromTimeline(order.timeline);
+  const isDelivered = currentStatus === 'Delivered';
+  const isCancelled = currentStatus.toLowerCase().includes('cancelled');
+  
+  const allowCancel = !isDelivered && !isCancelled;
 
-  const allowCancel = !outForDeliveryCompleted && !isDelivered;
   const allowReturn = isDelivered;
 
   return (
