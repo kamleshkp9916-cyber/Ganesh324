@@ -2,7 +2,7 @@
 "use client";
 
 import { useRouter } from 'next/navigation';
-import { Button } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button';
 import { ArrowLeft, CheckCircle2, Circle, Truck, Package, PackageCheck, PackageOpen, Home, CalendarDays, XCircle, Hourglass, Edit, AlertTriangle, MessageSquare, ShieldCheck, Loader2, RotateCcw, Star, Share2, Upload, Image as ImageIcon, Plus, X } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import Image from 'next/image';
@@ -14,17 +14,7 @@ import { useEffect, useState, useMemo, useCallback, useRef } from 'react';
 import { useToast } from "@/hooks/use-toast";
 import { format, addDays, parse, differenceInDays, intervalToDuration, formatDuration, parseISO } from 'date-fns';
 import { getOrderById, Order, getStatusFromTimeline, saveAllOrders } from '@/lib/order-data';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogClose, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { EditAddressForm } from '@/components/edit-address-form';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -39,37 +29,6 @@ import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { Footer } from './footer';
 import { addTransaction } from '@/lib/transaction-history';
 import { updateUserData } from '@/lib/follow-data';
-
-
-const getStatusIcon = (status: string) => {
-    if (status.toLowerCase().includes("pending")) return <Hourglass className="h-5 w-5" />;
-    if (status.toLowerCase().includes("confirmed")) return <PackageOpen className="h-5 w-5" />;
-    if (status.toLowerCase().includes("packed")) return <Package className="h-5 w-5" />;
-    if (status.toLowerCase().includes("dispatch")) return <PackageCheck className="h-5 w-5" />;
-    if (status.toLowerCase().includes("shipped")) return <Truck className="h-5 w-5" />;
-    if (status.toLowerCase().includes("in transit")) return <Truck className="h-5 w-5" />;
-    if (status.toLowerCase().includes("out for delivery")) return <Truck className="h-5 w-5" />;
-    if (status.toLowerCase().includes("delivered")) return <Home className="h-5 w-5" />;
-    if (status.toLowerCase().includes('cancelled') || status.toLowerCase().includes('undelivered') || status.toLowerCase().includes('failed delivery attempt') || status.toLowerCase().includes('return')) return <XCircle className="h-5 w-5" />;
-    return <Circle className="h-5 w-5" />;
-};
-
-const cancellationReasons = [
-    "Changed my mind",
-    "Found a better deal elsewhere",
-    "Ordered by mistake",
-    "Delivery time is too long",
-    "Other"
-];
-
-const returnReasons = [
-    "Item was defective or damaged",
-    "Received the wrong item",
-    "The item doesn't match the description or photos",
-    "The item doesn't fit properly",
-    "No longer need the item",
-    "Other"
-];
 
 export const ReviewDialog = ({ order, onReviewSubmit, closeDialog, user, reviewToEdit }: { order?: Order, onReviewSubmit: (review: any) => void, closeDialog: () => void, user: any, reviewToEdit?: Review }) => {
     const [rating, setRating] = useState(reviewToEdit?.rating || 0);
@@ -171,7 +130,6 @@ export const ReviewDialog = ({ order, onReviewSubmit, closeDialog, user, reviewT
         </DialogContent>
     );
 };
-
 
 export function DeliveryInfoClient({ orderId: encodedOrderId }: { orderId: string }) {
     const router = useRouter();
@@ -292,11 +250,8 @@ export function DeliveryInfoClient({ orderId: encodedOrderId }: { orderId: strin
 
             if (orderIndex !== -1) {
                 const updatedOrder = { ...allOrders[orderIndex] };
-                updatedOrder.timeline = [
-                    ...updatedOrder.timeline,
-                    { status: 'Cancelled by user', date: format(new Date(), 'MMM dd, yyyy'), time: format(new Date(), 'p'), completed: true },
-                    { status: 'Refund Initiated: The amount will be credited to your original payment method within 5-7 business days.', date: format(new Date(), 'MMM dd, yyyy'), time: format(new Date(), 'p'), completed: false }
-                ];
+                updatedOrder.timeline.push({ status: 'Cancelled by user', date: format(new Date(), 'MMM dd, yyyy'), time: format(new Date(), 'p'), completed: true });
+                updatedOrder.timeline.push({ status: 'Refund Initiated: The amount will be credited to your original payment method within 5-7 business days.', date: format(new Date(), 'MMM dd, yyyy'), time: format(new Date(), 'p'), completed: false });
                 allOrders[orderIndex] = updatedOrder;
                 saveAllOrders(allOrders);
                 setOrder(updatedOrder);
