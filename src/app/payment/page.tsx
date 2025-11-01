@@ -77,9 +77,14 @@ const SuccessModal = ({ isOpen, onClose, productImage, productName }: { isOpen: 
                         <p className="text-muted-foreground mb-8">
                             Thank you for entrusting your care to us. Please be patient as we process your items as quickly as possible.
                         </p>
-                        <Button asChild className="w-full">
-                            <Link href="/live-selling" onClick={onClose}>Back to Homepage</Link>
-                        </Button>
+                        <div className="w-full space-y-2">
+                            <Button asChild className="w-full">
+                                <Link href="/live-selling" onClick={onClose}>Back to Homepage</Link>
+                            </Button>
+                             <Button asChild variant="outline" className="w-full">
+                                <Link href="/orders" onClick={onClose}>Go to My Orders</Link>
+                            </Button>
+                        </div>
                     </div>
                 </div>
             </DialogContent>
@@ -593,7 +598,7 @@ export default function PaymentPage() {
                                             <DialogTitle>Change Delivery Address</DialogTitle>
                                         </DialogHeader>
                                         <EditAddressForm 
-                                            onSave={handleAddressSave} 
+                                            onSave={handleAddressSave}
                                             onCancel={() => setIsAddressDialogOpen(false)}
                                             onAddressesUpdate={handleAddressesUpdate}
                                         />
@@ -746,4 +751,5 @@ export default function PaymentPage() {
 }
 
     
+
 
