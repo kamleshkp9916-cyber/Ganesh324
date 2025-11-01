@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import React, { useEffect, useState, useRef, useCallback } from "react";
@@ -616,8 +617,8 @@ function OrderDetail({ order, statusData, loading, onBack, onRequestReturn, onSi
   const completedCount = stages.filter((s: any) => s.completed).length;
   const percent = stages.length > 0 ? Math.round((completedCount / stages.length) * 100) : 0;
   
-  const outForDeliveryCompleted = stages.find((s: any) => (s.key === 'out_for_delivery') || (s.status && s.status.toLowerCase().includes('out for delivery')))?.completed;
-  const isDelivered = stages.find((s: any) => (s.key === 'delivered') || (s.status && s.status.toLowerCase().includes('delivered')))?.completed;
+  const outForDeliveryCompleted = stages.find((s: any) => s && s.status && (s.key === 'out_for_delivery' || s.status.toLowerCase().includes('out for delivery')))?.completed;
+  const isDelivered = stages.find((s: any) => s && s.status && (s.key === 'delivered' || s.status.toLowerCase().includes('delivered')))?.completed;
 
   const allowCancel = !outForDeliveryCompleted && !isDelivered;
   const allowReturn = isDelivered;
@@ -626,11 +627,11 @@ function OrderDetail({ order, statusData, loading, onBack, onRequestReturn, onSi
     <div>
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center gap-4">
-           <Link href={`/product/${product.key}`} className="block hover:opacity-80 transition-opacity">
+           <Link href={`/product/${product.productId}`} className="block hover:opacity-80 transition-opacity">
              <Image src={product.imageUrl} width={80} height={80} className="w-20 h-20 rounded-lg object-cover" alt="product" />
            </Link>
           <div>
-            <Link href={`/product/${product.key}`} className="hover:underline">
+            <Link href={`/product/${product.productId}`} className="hover:underline">
               <div className="text-lg font-semibold text-card-foreground">{product.name}</div>
             </Link>
              <div className="text-xs text-muted-foreground space-x-2">
@@ -823,5 +824,3 @@ function HelpBot({ orders, selectedOrder, onOpenReturn, onCancelOrder, onShowAdd
     </div>
   );
 }
-
-    
