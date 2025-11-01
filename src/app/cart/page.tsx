@@ -260,12 +260,21 @@ export default function CartPage() {
                                 const originalPrice = hasDiscount ? discountedPrice / (1 - details.discountPercentage / 100) : discountedPrice;
                                 
                                 return (
-                                    <div key={`${item.id}-${item.size || ''}-${item.color || ''}`} className="p-4 flex flex-col sm:flex-row gap-4">
+                                    <div key={`${item.id}-${item.size || ''}-${item.color || ''}`} className="p-4 flex flex-col sm:flex-row gap-4 justify-between">
                                         <div className="flex gap-4">
                                             <div className="flex-shrink-0">
                                                 <Link href={`/product/${item.key}`} className="block">
                                                     <Image src={item.imageUrl || 'https://placehold.co/100x100.png'} alt={item.name} width={100} height={100} className="rounded-lg object-cover" data-ai-hint={item.hint} />
                                                 </Link>
+                                                <div className="mt-2 flex items-center justify-center sm:hidden">
+                                                    <Button size="icon" variant="outline" className="h-8 w-8" onClick={() => handleQuantityChange(item.id, item.quantity - 1, item.size, item.color)} disabled={item.quantity <= 1}>
+                                                        <Minus className="h-4 w-4" />
+                                                    </Button>
+                                                    <span className="w-10 text-center font-semibold">{item.quantity}</span>
+                                                    <Button size="icon" variant="outline" className="h-8 w-8" onClick={() => handleQuantityChange(item.id, item.quantity + 1, item.size, item.color)}>
+                                                        <Plus className="h-4 w-4" />
+                                                    </Button>
+                                                </div>
                                             </div>
                                             <div className="flex-grow flex flex-col justify-between">
                                                 <div className="flex justify-between items-start">
@@ -307,7 +316,7 @@ export default function CartPage() {
                                                 </div>
                                             </div>
                                         </div>
-                                         <div className="flex items-center justify-between mt-4 sm:mt-0 sm:flex-col sm:justify-end sm:items-end sm:w-24 flex-shrink-0">
+                                         <div className="hidden sm:flex items-center justify-between mt-4 sm:mt-0 sm:flex-col sm:justify-end sm:items-end sm:w-24 flex-shrink-0">
                                             <div className="flex items-center gap-2">
                                                 <Button size="icon" variant="outline" className="h-8 w-8" onClick={() => handleQuantityChange(item.id, item.quantity - 1, item.size, item.color)} disabled={item.quantity <= 1}>
                                                     <Minus className="h-4 w-4" />
