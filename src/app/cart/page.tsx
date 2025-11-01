@@ -241,208 +241,210 @@ export default function CartPage() {
         <div className="w-10"></div>
       </header>
 
-      <div className="flex-grow lg:overflow-y-auto lg:p-8">
-        <main className="max-w-6xl mx-auto">
+      <div className="flex-grow lg:grid lg:grid-cols-3 lg:gap-8 lg:items-start max-w-6xl mx-auto w-full lg:p-8">
+        <main className="lg:col-span-2">
             {cartItems.length === 0 ? (
                 <EmptyCart />
             ) : (
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-                    <div className="lg:col-span-2 space-y-6">
-                        <Card className="rounded-none lg:rounded-lg">
-                            <CardHeader>
-                                <CardTitle>{isBuyNow ? 'Your Item' : `Your Items (${totalItems})`}</CardTitle>
-                            </CardHeader>
-                            <CardContent className="p-0">
-                                <ScrollArea className="h-full max-h-[calc(100vh-250px)] lg:max-h-none">
-                                <div className="divide-y">
-                                    {cartItems.map(item => {
-                                         const details = productDetails[item.key as keyof typeof productDetails];
-                                         const hasDiscount = details && details.discountPercentage && details.discountPercentage > 0;
-                                         const discountedPrice = parseFloat(item.price.replace(/[^0-9.-]+/g, ''));
-                                         const originalPrice = hasDiscount ? discountedPrice / (1 - details.discountPercentage / 100) : discountedPrice;
-                                        
-                                        return (
-                                        <div key={`${item.id}-${item.size || ''}-${item.color || ''}`} className="p-4 flex gap-4">
-                                            <div className="flex-shrink-0">
-                                                <Link href={`/product/${item.key}`} className="block">
-                                                    <Image src={item.imageUrl || 'https://placehold.co/100x100.png'} alt={item.name} width={100} height={100} className="rounded-lg object-cover" data-ai-hint={item.hint} />
-                                                </Link>
-                                            </div>
-                                            <div className="flex-grow flex flex-col">
-                                                <div className="flex justify-between items-start">
-                                                    <div className='flex-grow'>
-                                                        <Link href={`/product/${item.key}`} className="hover:underline">
-                                                            <h3 className="font-semibold">{item.name}</h3>
-                                                        </Link>
-                                                        {(item.size || item.color) && (
-                                                            <div className="flex items-center gap-2 mt-1">
-                                                                {item.size && <Badge variant="outline">Size: {item.size}</Badge>}
-                                                                {item.color && <Badge variant="outline">Color: {item.color}</Badge>}
-                                                            </div>
-                                                        )}
-                                                         <div className="flex items-baseline gap-x-2 mt-1">
-                                                            <p className="font-bold text-sm text-foreground">
-                                                            ₹{discountedPrice.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                                                            </p>
-                                                            {hasDiscount && (
-                                                            <>
-                                                                <p className="text-xs text-muted-foreground line-through">
-                                                                ₹{originalPrice.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                                                                </p>
-                                                                <Badge variant="destructive" className="text-[10px] px-1 py-0">({details.discountPercentage}% OFF)</Badge>
-                                                            </>
-                                                            )}
+                <Card className="rounded-none lg:rounded-lg">
+                    <CardHeader>
+                        <CardTitle>{isBuyNow ? 'Your Item' : `Your Items (${totalItems})`}</CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-0">
+                        <ScrollArea className="h-full max-h-[calc(100vh-250px)] lg:max-h-none">
+                        <div className="divide-y">
+                            {cartItems.map(item => {
+                                const details = productDetails[item.key as keyof typeof productDetails];
+                                const hasDiscount = details && details.discountPercentage && details.discountPercentage > 0;
+                                const discountedPrice = parseFloat(item.price.replace(/[^0-9.-]+/g, ''));
+                                const originalPrice = hasDiscount ? discountedPrice / (1 - details.discountPercentage / 100) : discountedPrice;
+                                
+                                return (
+                                <div key={`${item.id}-${item.size || ''}-${item.color || ''}`} className="p-4 flex flex-col sm:flex-row gap-4">
+                                    <div className="flex gap-4 flex-grow">
+                                        <div className="flex-shrink-0">
+                                            <Link href={`/product/${item.key}`} className="block">
+                                                <Image src={item.imageUrl || 'https://placehold.co/100x100.png'} alt={item.name} width={100} height={100} className="rounded-lg object-cover" data-ai-hint={item.hint} />
+                                            </Link>
+                                        </div>
+                                        <div className="flex-grow flex flex-col">
+                                            <div className="flex justify-between items-start">
+                                                <div className='flex-grow'>
+                                                    <Link href={`/product/${item.key}`} className="hover:underline">
+                                                        <h3 className="font-semibold">{item.name}</h3>
+                                                    </Link>
+                                                    {(item.size || item.color) && (
+                                                        <div className="flex items-center gap-2 mt-1">
+                                                            {item.size && <Badge variant="outline">Size: {item.size}</Badge>}
+                                                            {item.color && <Badge variant="outline">Color: {item.color}</Badge>}
                                                         </div>
-                                                        <p className="text-xs text-muted-foreground mt-1">Estimated delivery by <span className="font-semibold text-foreground">{estimatedDeliveryDate}</span></p>
-                                                    </div>
-                                                      {!isBuyNow && (
-                                                        <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive h-8 w-8 flex-shrink-0" onClick={() => handleRemoveFromCart(item.id, item.size, item.color)}>
-                                                            <Trash2 className="h-4 w-4" />
-                                                        </Button>
                                                     )}
-                                                </div>
-                                                <div className="flex items-center justify-between mt-auto pt-2">
-                                                    <div className="flex items-center gap-2">
-                                                        <Button size="icon" variant="outline" className="h-8 w-8" onClick={() => handleQuantityChange(item.id, item.quantity - 1, item.size, item.color)} disabled={item.quantity <= 1}>
-                                                            <Minus className="h-4 w-4" />
-                                                        </Button>
-                                                        <span className="w-10 text-center font-semibold">{item.quantity}</span>
-                                                        <Button size="icon" variant="outline" className="h-8 w-8" onClick={() => handleQuantityChange(item.id, item.quantity + 1, item.size, item.color)}>
-                                                            <Plus className="h-4 w-4" />
-                                                        </Button>
+                                                    <div className="flex items-baseline gap-x-2 mt-1">
+                                                        <p className="font-bold text-sm text-foreground">
+                                                        ₹{discountedPrice.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                                        </p>
+                                                        {hasDiscount && (
+                                                        <>
+                                                            <p className="text-xs text-muted-foreground line-through">
+                                                            ₹{originalPrice.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                                            </p>
+                                                            <Badge variant="destructive" className="text-[10px] px-1 py-0">({details.discountPercentage}% OFF)</Badge>
+                                                        </>
+                                                        )}
                                                     </div>
-                                                    <div className="font-bold text-base">
-                                                        ₹{(parseFloat(item.price.replace('₹', '').replace(/,/g, '')) * item.quantity).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                                                    </div>
+                                                    <p className="text-xs text-muted-foreground mt-1">Estimated delivery by <span className="font-semibold text-foreground">{estimatedDeliveryDate}</span></p>
                                                 </div>
+                                                {!isBuyNow && (
+                                                    <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive h-8 w-8 flex-shrink-0" onClick={() => handleRemoveFromCart(item.id, item.size, item.color)}>
+                                                        <Trash2 className="h-4 w-4" />
+                                                    </Button>
+                                                )}
                                             </div>
                                         </div>
-                                    )})}
+                                    </div>
+                                    <div className="flex items-center justify-between sm:justify-end mt-2 sm:mt-0 sm:flex-col sm:items-end sm:justify-between sm:w-28 sm:flex-shrink-0">
+                                        <div className="flex items-center gap-2">
+                                            <Button size="icon" variant="outline" className="h-8 w-8" onClick={() => handleQuantityChange(item.id, item.quantity - 1, item.size, item.color)} disabled={item.quantity <= 1}>
+                                                <Minus className="h-4 w-4" />
+                                            </Button>
+                                            <span className="w-10 text-center font-semibold">{item.quantity}</span>
+                                            <Button size="icon" variant="outline" className="h-8 w-8" onClick={() => handleQuantityChange(item.id, item.quantity + 1, item.size, item.color)}>
+                                                <Plus className="h-4 w-4" />
+                                            </Button>
+                                        </div>
+                                        <div className="font-bold text-base sm:text-right">
+                                            ₹{(parseFloat(item.price.replace('₹', '').replace(/,/g, '')) * item.quantity).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                        </div>
+                                    </div>
                                 </div>
-                                </ScrollArea>
-                            </CardContent>
-                        </Card>
-                    </div>
-
-                     <div className="lg:col-span-1 lg:sticky lg:top-24 space-y-6">
-                         <div className="bg-background lg:bg-transparent rounded-t-lg -mx-4 sm:mx-0 px-4 sm:px-0 pt-4 pb-20 lg:p-0">
-                            <Card>
-                                <CardHeader>
-                                    <CardTitle>Order Summary</CardTitle>
-                                </CardHeader>
-                                <CardContent className="space-y-4">
-                                    <div className="space-y-2 text-sm">
-                                        <div className="flex justify-between">
-                                            <span className="text-muted-foreground">Subtotal</span>
-                                            <span>₹{subtotal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-                                        </div>
-                                        {appliedCoupon && (
-                                            <div className="flex justify-between items-center text-green-600 dark:text-green-400">
-                                                <span className="flex items-center gap-1.5"><Tag className="h-4 w-4"/> Coupon ({appliedCoupon.code})</span>
-                                                <span>- ₹{couponDiscount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-                                            </div>
-                                        )}
-                                        <div className="flex justify-between">
-                                            <span className="text-muted-foreground">Shipping</span>
-                                            <span>₹{shippingCost.toFixed(2)}</span>
-                                        </div>
-                                        <div className="flex justify-between">
-                                            <span className="text-muted-foreground flex items-center gap-1.5">
-                                                Estimated taxes
-                                                <Popover>
-                                                    <PopoverTrigger asChild>
-                                                        <Info className="h-4 w-4 cursor-pointer" />
-                                                    </PopoverTrigger>
-                                                    <PopoverContent>
-                                                        <p className="text-sm">Taxes are calculated based on your shipping address and include GST (2.5%) and SGST (2.5%) on the subtotal.</p>
-                                                    </PopoverContent>
-                                                </Popover>
-                                            </span>
-                                            <span>₹{estimatedTaxes.toFixed(2)}</span>
-                                        </div>
-                                    </div>
-                                    <Separator />
-                                    <div className="flex justify-between font-bold text-lg">
-                                        <span>Total</span>
-                                        <span>₹{total.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-                                    </div>
-                                     <div className="hidden lg:block pt-4">
-                                        <Button className="w-full" size="lg" onClick={handleCheckout} disabled={isCheckingOut}>
-                                            {isCheckingOut ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                                            Continue to Payment
-                                        </Button>
-                                        {!address && (
-                                            <p className="text-destructive text-xs text-center mt-2">
-                                                Please add a delivery address to continue.
-                                            </p>
-                                        )}
-                                    </div>
-                                </CardContent>
-                            </Card>
-                            
-                            <Card className="mt-6">
-                                <CardHeader>
-                                    <div className="flex items-center justify-between">
-                                        <CardTitle className="text-base">
-                                            Delivery To
-                                        </CardTitle>
-                                        <Dialog open={isAddressDialogOpen} onOpenChange={setIsAddressDialogOpen}>
-                                            <DialogTrigger asChild>
-                                                <Button variant="link" size="sm" className="p-0 h-auto text-sm hover:text-primary"><Edit className="mr-2 h-3 w-3" /> {address ? 'Change' : 'Add Address'}</Button>
-                                            </DialogTrigger>
-                                            <DialogContent>
-                                                <DialogHeader>
-                                                    <DialogTitle>Change Delivery Address</DialogTitle>
-                                                </DialogHeader>
-                                                <EditAddressForm 
-                                                    onSave={handleAddressSave} 
-                                                    onCancel={() => setIsAddressDialogOpen(false)}
-                                                    onAddressesUpdate={handleAddressesUpdate}
-                                                />
-                                            </DialogContent>
-                                        </Dialog>
-                                    </div>
-                                    <CardDescription>{address ? "Your order will be delivered here." : "Please select or add a delivery address."}</CardDescription>
-                                </CardHeader>
-                                {address && (
-                                    <CardContent className="text-sm space-y-2">
-                                        <div className="flex items-start gap-3">
-                                            <Home className="h-5 w-5 mt-1 text-muted-foreground"/>
-                                            <div>
-                                                <p className="font-semibold">{address.name}</p>
-                                                <p className="text-muted-foreground">{address.village}, {address.city}, {address.state} - {address.pincode}</p>
-                                                <p className="text-muted-foreground">Phone: {address.phone}</p>
-                                            </div>
-                                        </div>
-                                    </CardContent>
-                                )}
-                            </Card>
-                            <div className="p-4 mt-auto flex items-center justify-center gap-x-2">
-                                <Button variant="link" className="text-xs text-muted-foreground hover:text-primary px-2" onClick={() => toast({ title: "Report Sent", description: "Thank you for your feedback." })}>Report</Button>
-                                <FeedbackDialog>
-                                    <Button variant="link" className="text-xs text-muted-foreground hover:text-primary px-2">Feedback</Button>
-                                </FeedbackDialog>
-                                <Button asChild variant="link" className="text-xs text-muted-foreground hover:text-primary px-2"><Link href="/contact">Contact Us</Link></Button>
-                                <Button asChild variant="link" className="text-xs text-muted-foreground hover:text-primary px-2"><Link href="/help">Help</Link></Button>
-                            </div>
+                            )})}
                         </div>
-                     </div>
-                </div>
+                        </ScrollArea>
+                    </CardContent>
+                </Card>
             )}
         </main>
+
+        {cartItems.length > 0 && (
+            <aside className="lg:col-span-1 lg:sticky lg:top-24">
+                <div className="bg-background lg:bg-transparent rounded-t-lg -mx-4 sm:mx-0 px-4 sm:px-0 pt-4 pb-20 lg:p-0">
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Order Summary</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        <div className="space-y-2 text-sm">
+                            <div className="flex justify-between">
+                                <span className="text-muted-foreground">Subtotal</span>
+                                <span>₹{subtotal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                            </div>
+                            {appliedCoupon && (
+                                <div className="flex justify-between items-center text-green-600 dark:text-green-400">
+                                    <span className="flex items-center gap-1.5"><Tag className="h-4 w-4"/> Coupon ({appliedCoupon.code})</span>
+                                    <span>- ₹{couponDiscount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                                </div>
+                            )}
+                            <div className="flex justify-between">
+                                <span className="text-muted-foreground">Shipping</span>
+                                <span>₹{shippingCost.toFixed(2)}</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span className="text-muted-foreground flex items-center gap-1.5">
+                                    Estimated taxes
+                                    <Popover>
+                                        <PopoverTrigger asChild>
+                                            <Info className="h-4 w-4 cursor-pointer" />
+                                        </PopoverTrigger>
+                                        <PopoverContent>
+                                            <p className="text-sm">Taxes are calculated based on your shipping address and include GST (2.5%) and SGST (2.5%) on the subtotal.</p>
+                                        </PopoverContent>
+                                    </Popover>
+                                </span>
+                                <span>₹{estimatedTaxes.toFixed(2)}</span>
+                            </div>
+                        </div>
+                        <Separator />
+                        <div className="flex justify-between font-bold text-lg">
+                            <span>Total</span>
+                            <span>₹{total.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                        </div>
+                            <div className="hidden lg:block pt-4">
+                            <Button className="w-full" size="lg" onClick={handleCheckout} disabled={isCheckingOut}>
+                                {isCheckingOut ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                                Continue to Payment
+                            </Button>
+                            {!address && (
+                                <p className="text-destructive text-xs text-center mt-2">
+                                    Please add a delivery address to continue.
+                                </p>
+                            )}
+                        </div>
+                    </CardContent>
+                </Card>
+                
+                <Card className="mt-6">
+                    <CardHeader>
+                        <div className="flex items-center justify-between">
+                            <CardTitle className="text-base">
+                                Delivery To
+                            </CardTitle>
+                            <Dialog open={isAddressDialogOpen} onOpenChange={setIsAddressDialogOpen}>
+                                <DialogTrigger asChild>
+                                    <Button variant="link" size="sm" className="p-0 h-auto text-sm hover:text-primary"><Edit className="mr-2 h-3 w-3" /> {address ? 'Change' : 'Add Address'}</Button>
+                                </DialogTrigger>
+                                <DialogContent>
+                                    <DialogHeader>
+                                        <DialogTitle>Change Delivery Address</DialogTitle>
+                                    </DialogHeader>
+                                    <EditAddressForm 
+                                        onSave={handleAddressSave} 
+                                        onCancel={() => setIsAddressDialogOpen(false)}
+                                        onAddressesUpdate={handleAddressesUpdate}
+                                    />
+                                </DialogContent>
+                            </Dialog>
+                        </div>
+                        <CardDescription>{address ? "Your order will be delivered here." : "Please select or add a delivery address."}</CardDescription>
+                    </CardHeader>
+                    {address && (
+                        <CardContent className="text-sm space-y-2">
+                            <div className="flex items-start gap-3">
+                                <Home className="h-5 w-5 mt-1 text-muted-foreground"/>
+                                <div>
+                                    <p className="font-semibold">{address.name}</p>
+                                    <p className="text-muted-foreground">{address.village}, {address.city}, {address.state} - {address.pincode}</p>
+                                    <p className="text-muted-foreground">Phone: {address.phone}</p>
+                                </div>
+                            </div>
+                        </CardContent>
+                    )}
+                </Card>
+                <div className="p-4 mt-auto flex items-center justify-center gap-x-2">
+                    <Button variant="link" className="text-xs text-muted-foreground hover:text-primary px-2" onClick={() => toast({ title: "Report Sent", description: "Thank you for your feedback." })}>Report</Button>
+                    <FeedbackDialog>
+                        <Button variant="link" className="text-xs text-muted-foreground hover:text-primary px-2">Feedback</Button>
+                    </FeedbackDialog>
+                    <Button asChild variant="link" className="text-xs text-muted-foreground hover:text-primary px-2"><Link href="/contact">Contact Us</Link></Button>
+                    <Button asChild variant="link" className="text-xs text-muted-foreground hover:text-primary px-2"><Link href="/help">Help</Link></Button>
+                </div>
+            </div>
+            </aside>
+        )}
       </div>
 
-       <div className="lg:hidden sticky bottom-0 left-0 right-0 bg-background border-t p-4 z-20 shadow-[-2px_0px_16px_rgba(0,0,0,0.2)]">
-            <Button className="w-full" size="lg" onClick={handleCheckout} disabled={isCheckingOut}>
-                {isCheckingOut ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                Continue to Payment (₹{total.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })})
-            </Button>
-            {!address && (
-                <p className="text-destructive text-xs text-center mt-2">
-                    Please add a delivery address to continue.
-                </p>
-            )}
-       </div>
+       {cartItems.length > 0 && (
+           <div className="lg:hidden sticky bottom-0 left-0 right-0 bg-background border-t p-4 z-20 shadow-[-2px_0px_16px_rgba(0,0,0,0.2)]">
+                <Button className="w-full" size="lg" onClick={handleCheckout} disabled={isCheckingOut}>
+                    {isCheckingOut ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                    Continue to Payment (₹{total.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })})
+                </Button>
+                {!address && (
+                    <p className="text-destructive text-xs text-center mt-2">
+                        Please add a delivery address to continue.
+                    </p>
+                )}
+           </div>
+       )}
       
       {isHelpChatOpen && (
         <HelpChat
