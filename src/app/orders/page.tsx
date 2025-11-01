@@ -22,6 +22,8 @@ import { format, addDays, parse, differenceInDays, intervalToDuration, formatDur
 import Image from "next/image";
 import Link from 'next/link';
 import { cn } from "@/lib/utils";
+import { Timeline } from "@/components/timeline";
+import { Pagination, PaginationContent, PaginationItem, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 
 const cancellationReasons = [
   "Changed my mind",
@@ -148,6 +150,11 @@ export default function OrdersPage() {
   const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
   const [otp, setOtp] = useState('');
   const { toast } = useToast();
+
+  const [ordersPage, setOrdersPage] = useState(1);
+  const [transactionsPage, setTransactionsPage] = useState(1);
+  const ORDERS_PER_PAGE = 5;
+  const TRANSACTIONS_PER_PAGE = 10;
   
   const loadData = useCallback(() => {
     const allOrders = JSON.parse(localStorage.getItem(ORDERS_KEY) || '[]');
@@ -286,7 +293,7 @@ useEffect(() => {
     return `${addr.name}, ${addr.village}, ${addr.city}, ${addr.state} - ${addr.pincode}, India • ${addr.phone}`;
   }
 
-  const handleConfirmCancellation = async (otpValue: string) => {
+  async function handleConfirmCancellation(otpValue: string) {
     if (otpValue !== '123456') {
         toast({ title: "Invalid OTP", variant: "destructive" });
         return;
@@ -337,6 +344,12 @@ useEffect(() => {
         setIsVerifyingOtp(false);
     }
   };
+
+  const paginatedOrders = orders.slice((ordersPage - 1) * ORDERS_PER_PAGE, ordersPage * ORDERS_PER_PAGE);
+  const totalOrderPages = Math.ceil(orders.length / ORDERS_PER_PAGE);
+
+  const paginatedTransactions = transactions.slice((transactionsPage - 1) * TRANSACTIONS_PER_PAGE, transactionsPage * TRANSACTIONS_PER_PAGE);
+  const totalTransactionPages = Math.ceil(transactions.length / TRANSACTIONS_PER_PAGE);
   
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
@@ -365,7 +378,7 @@ useEffect(() => {
                 <div className="bg-card p-4 rounded-2xl shadow-lg">
                   <h2 className="font-medium mb-3 text-card-foreground">Orders</h2>
                   <div className="space-y-3">
-                    {orders.map((o) => {
+                    {paginatedOrders.map((o) => {
                       const status = getStatusFromTimeline(o.timeline);
                       return (
                       <button
@@ -384,6 +397,21 @@ useEffect(() => {
                       </button>
                     )})}
                   </div>
+                   {totalOrderPages > 1 && (
+                        <Pagination className="mt-4">
+                            <PaginationContent>
+                                <PaginationItem>
+                                    <Button variant="outline" onClick={() => setOrdersPage(p => Math.max(1, p - 1))} disabled={ordersPage === 1}>Previous</Button>
+                                </PaginationItem>
+                                <PaginationItem>
+                                    <span className="p-2 text-sm">Page {ordersPage} of {totalOrderPages}</span>
+                                </PaginationItem>
+                                <PaginationItem>
+                                    <Button variant="outline" onClick={() => setOrdersPage(p => Math.min(totalOrderPages, p + 1))} disabled={ordersPage === totalOrderPages}>Next</Button>
+                                </PaginationItem>
+                            </PaginationContent>
+                        </Pagination>
+                    )}
                 </div>
 
                 <div className="mt-4 text-xs text-muted-foreground">
@@ -437,7 +465,7 @@ useEffect(() => {
                     </tr>
                   </thead>
                   <tbody>
-                    {transactions.map((t: Transaction) => (
+                    {paginatedTransactions.map((t: Transaction) => (
                       <tr key={t.id} className="border-t border-border">
                         <td className="py-2">{t.transactionId}</td>
                         <td>{t.transactionId}</td>
@@ -450,6 +478,21 @@ useEffect(() => {
                   </tbody>
                 </table>
               </div>
+               {totalTransactionPages > 1 && (
+                <Pagination className="mt-4">
+                    <PaginationContent>
+                        <PaginationItem>
+                            <Button variant="outline" onClick={() => setTransactionsPage(p => Math.max(1, p - 1))} disabled={transactionsPage === 1}>Previous</Button>
+                        </PaginationItem>
+                         <PaginationItem>
+                            <span className="p-2 text-sm">Page {transactionsPage} of {totalTransactionPages}</span>
+                        </PaginationItem>
+                        <PaginationItem>
+                            <Button variant="outline" onClick={() => setTransactionsPage(p => Math.min(totalTransactionPages, p + 1))} disabled={transactionsPage === totalTransactionPages}>Next</Button>
+                        </PaginationItem>
+                    </PaginationContent>
+                </Pagination>
+            )}
             </div>
           )}
 
