@@ -22,11 +22,12 @@ export type Order = {
 };
 
 export function getStatusFromTimeline(timeline: Order['timeline']): string {
-    if (!timeline || timeline.length === 0) return "Unknown";
-    const lastCompletedStep = [...timeline].reverse().find(step => step.completed);
-    if (!lastCompletedStep || !lastCompletedStep.status) return "Unknown";
+    if (!timeline || timeline.length === 0) return "Pending";
+    const lastCompletedStep = [...timeline].reverse().find(step => step.completed && step.status);
+    if (!lastCompletedStep) return "Pending"; // Default to Pending if no completed steps found
     return lastCompletedStep.status.split(':')[0].trim();
 }
+
 
 export async function getOrderById(orderId: string): Promise<Order | null> {
     if (typeof window === 'undefined') return null;
