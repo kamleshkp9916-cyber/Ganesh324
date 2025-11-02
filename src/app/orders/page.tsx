@@ -29,7 +29,6 @@ import { useAuth } from "@/hooks/use-auth";
 import { ReviewDialog } from '@/components/delivery-info-client';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
-
 const cancellationReasons = [
   "Changed my mind",
   "Ordered by mistake",
@@ -162,6 +161,13 @@ export default function OrdersPage() {
     if (!selectedOrder || !returnType) return;
     setReturning(true);
     try {
+        const functionUrl = `https://us-central1-gcp-project-id.cloudfunctions.net/notifyDeliveryPartner`;
+        await fetch(functionUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ orderId: selectedOrder.orderId, status: 'return_initiated' }),
+        });
+
       const resp: any = await submitReturnRequestMock({
         orderId: selectedOrder.orderId,
         type: returnType,
@@ -265,6 +271,13 @@ export default function OrdersPage() {
             saveAllOrders(allOrders);
             setOrders(allOrders);
             setSelectedOrder(updatedOrder);
+
+            const functionUrl = `https://us-central1-gcp-project-id.cloudfunctions.net/notifyDeliveryPartner`;
+             await fetch(functionUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ orderId: selectedOrder.orderId, status: 'cancelled' }),
+            });
 
             addTransaction({
                 id: Date.now(),
@@ -712,7 +725,7 @@ function TimelineStep({ step, index, total }: any) {
 function HelpBot({ orders, selectedOrder, onOpenReturn, onCancelOrder, onShowAddress }: any) {
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState([
-    { from: 'bot', text: 'Hi — I can help with returns, refunds and order status. Use buttons or ask a question.' },
+    { from: 'bot', text: 'Hi — I can help with returns and order status. Use buttons or ask a question.' },
   ]);
   const [input, setInput] = useState("");
 
@@ -722,13 +735,6 @@ function HelpBot({ orders, selectedOrder, onOpenReturn, onCancelOrder, onShowAdd
 
   function pushUser(text: any) {
     setMessages((m) => [...m, { from: 'user', text }]);
-  }
-
-  function handleRequestReturn() {
-    if (!selectedOrder) { pushBot('Please select an order first (click one on the left).'); return; }
-    pushUser('Request return');
-    onOpenReturn('return');
-    pushBot('Return modal opened. Pick reason, pickup/dropoff and submit.');
   }
 
   function handleRefundStatus() {
@@ -753,12 +759,13 @@ function HelpBot({ orders, selectedOrder, onOpenReturn, onCancelOrder, onShowAdd
     const msgLower = text.toLowerCase();
 
     if (msgLower.includes('return')) {
-      handleRequestReturn();
+        pushBot("You can request a return for delivered items within 7 days. Is this what you want to do?");
     } else if (msgLower.includes('refund')) {
       handleRefundStatus();
     } else if (msgLower.includes('address')) {
       handleShowAddress();
-    } else {
+    }
+    else {
       pushBot("I can help with: [Request return], [Refund status], [Show address].");
     }
 
@@ -784,11 +791,6 @@ function HelpBot({ orders, selectedOrder, onOpenReturn, onCancelOrder, onShowAdd
             <input value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => e.key==='Enter' && send()} className="flex-1 p-2 bg-input border-border rounded-md text-sm" placeholder="Ask: return, refund, address..." />
             <button onClick={send} className="px-3 py-2 bg-primary text-primary-foreground rounded-md text-sm">Send</button>
           </div>
-          <div className="p-3 border-t border-border flex gap-2">{/* quick action buttons */}
-            <button onClick={handleRequestReturn} className="px-2 py-1 rounded-md text-xs bg-red-500/10 text-red-400">Request return</button>
-            <button onClick={handleRefundStatus} className="px-2 py-1 rounded-md text-xs border border-border">Refund status</button>
-            <button onClick={handleShowAddress} className="px-2 py-1 rounded-md text-xs border border-border">Show address</button>
-          </div>
         </div>
       )}
 
@@ -798,126 +800,3 @@ function HelpBot({ orders, selectedOrder, onOpenReturn, onCancelOrder, onShowAdd
     </div>
   );
 }
-
-```
-```xml
-<change>
-    <file>src/lib/order-data.ts</file>
-    <description/>
-    <content><![CDATA[
-"use client";
-import { getFirestore, doc, getDoc, collection, addDoc, serverTimestamp } from 'firebase/firestore';
-import { getFirestoreDb } from './firebase';
-import { format } from 'date-fns';
-
-export const ORDERS_KEY = 'streamcart_orders';
-
-export type Order = {
-    orderId: string;
-    userId: string;
-    products: any[];
-    address: any;
-    total: number;
-    orderDate: string;
-    isReturnable: boolean;
-    timeline: {
-        status: string;
-        date: string | null;
-        time: string | null;
-        completed: boolean;
-    }[];
-};
-
-const mockOrders: Order[] = [
-    {
-        orderId: "#STREAM704587",
-        userId: "aDPVI1F2NAaKhvVi0Nq2BO5shqz1",
-        products: [{ id: 13, key: 'prod_13', name: 'Classic White Shirt', price: '₹1,999.00', imageUrl: 'https://images.unsplash.com/photo-1603252109303-2751441dd157?w=800&h=800&fit=crop', quantity: 2, size: "XXL" }],
-        address: { city: "RAMGARH", village: "saunda basti manda tand patratu", country: "India", state: "Jharkhand", district: "ssssss", name: "Ganesh Prajapati", id: 1761033198028, phone: "+91 9174798550", pincode: "829133" },
-        total: 4247.90,
-        orderDate: "2025-11-01T04:47:40.741Z",
-        isReturnable: true,
-        timeline: [
-            { status: "Order Confirmed", date: "Nov 01, 2025", time: "10:17 AM", completed: true },
-            { status: "Packed", date: "Nov 01, 2025", time: "01:00 PM", completed: true },
-            { status: "Shipped", date: "Nov 02, 2025", time: "09:00 AM", completed: false },
-            { status: "In Transit", date: null, time: null, completed: false },
-            { status: "Out for Delivery", date: null, time: null, completed: false },
-            { status: "Delivered", date: null, time: null, completed: false }
-        ]
-    }
-];
-
-export function getStatusFromTimeline(timeline: Order['timeline']): string {
-    if (!timeline || timeline.length === 0) {
-        return "Pending";
-    }
-    const lastCompletedStep = [...timeline].reverse().find(step => step && step.completed && typeof step.status === 'string');
-    if (lastCompletedStep) {
-        return lastCompletedStep.status.split(':')[0].trim();
-    }
-    return "Pending";
-}
-
-export async function getOrderById(orderId: string): Promise<Order | null> {
-    if (typeof window === 'undefined') return null;
-    try {
-        const storedOrders = localStorage.getItem(ORDERS_KEY);
-        const allOrders: Order[] = storedOrders ? JSON.parse(storedOrders) : mockOrders;
-        const order = allOrders.find((o: Order) => o.orderId === orderId);
-        if (!order && allOrders.length === 0) {
-            localStorage.setItem(ORDERS_KEY, JSON.stringify(mockOrders));
-            return mockOrders.find(o => o.orderId === orderId) || null;
-        }
-        return order || null;
-    } catch (error) {
-        console.error("Error fetching order from local storage:", error);
-        return null;
-    }
-}
-
-export const saveOrder = (order: Order) => {
-    if (typeof window === 'undefined') return;
-    try {
-        const storedOrders = localStorage.getItem(ORDERS_KEY);
-        const allOrders = storedOrders ? JSON.parse(storedOrders) : [];
-        const newOrders = [order, ...allOrders];
-        localStorage.setItem(ORDERS_KEY, JSON.stringify(newOrders));
-        window.dispatchEvent(new Event('storage'));
-    } catch (error) {
-        console.error("Error saving order to local storage:", error);
-    }
-};
-
-export const saveAllOrders = (orders: Order[]) => {
-    if (typeof window === 'undefined') return;
-    try {
-        localStorage.setItem(ORDERS_KEY, JSON.stringify(orders));
-        window.dispatchEvent(new Event('storage'));
-    } catch (error) {
-        console.error("Error saving all orders to local storage:", error);
-    }
-};
-
-export const updateOrderStatus = async (orderId: string, newStatus: string): Promise<void> => {
-     if (typeof window === 'undefined') return;
-     try {
-        const storedOrders = localStorage.getItem(ORDERS_KEY);
-        let allOrders: Order[] = storedOrders ? JSON.parse(storedOrders) : [];
-        const orderIndex = allOrders.findIndex(o => o.orderId === orderId);
-
-        if (orderIndex > -1) {
-            allOrders[orderIndex].timeline.push({
-                status: newStatus,
-                date: new Date().toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }),
-                time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }),
-                completed: true,
-            });
-            localStorage.setItem(ORDERS_KEY, JSON.stringify(allOrders));
-            window.dispatchEvent(new Event('storage'));
-        }
-     } catch (error) {
-         console.error("Error updating order status in local storage:", error);
-     }
-}
-
