@@ -1,4 +1,3 @@
-
 "use client";
 
 export interface Transaction {
@@ -48,4 +47,3 @@ export const addTransaction = (transaction: Transaction) => {
     localStorage.setItem(TRANSACTIONS_KEY, JSON.stringify(newItems));
     window.dispatchEvent(new StorageEvent('storage', { key: TRANSACTIONS_KEY }));
 };
-

@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useEffect, useState, useRef, useCallback, useMemo } from "react";
@@ -139,17 +138,21 @@ export default function OrdersPage() {
 
     const storedOrdersJSON = localStorage.getItem(ORDERS_KEY);
     // Use file data only if local storage is empty or invalid
-    let initialOrders: Order[] = [];
-    try {
-      const parsed = storedOrdersJSON ? JSON.parse(storedOrdersJSON) : null;
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        initialOrders = parsed;
-      } else {
-        initialOrders = Object.values(allOrderData);
+    let initialOrders: Order[] = Object.values(allOrderData);
+
+    if (storedOrdersJSON) {
+        try {
+            const parsed = JSON.parse(storedOrdersJSON);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+                initialOrders = parsed;
+            } else {
+                localStorage.setItem(ORDERS_KEY, JSON.stringify(initialOrders));
+            }
+        } catch (e) {
+           console.error("Could not parse orders from localStorage, using file data.", e);
+        }
+    } else {
         localStorage.setItem(ORDERS_KEY, JSON.stringify(initialOrders));
-      }
-    } catch (e) {
-       initialOrders = Object.values(allOrderData);
     }
     
     setOrders(initialOrders);
@@ -889,9 +892,3 @@ function HelpBot({ orders, selectedOrder, onOpenReturn, onCancelOrder, onShowAdd
     </div>
   );
 }
-
-
-    
-
-    
-
