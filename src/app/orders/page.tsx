@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useEffect, useState, useRef, useCallback, useMemo } from "react";
@@ -192,7 +191,9 @@ const handleFetchStatus = useCallback(async () => {
       const functionUrl = `https://us-central1-gcp-project-id.cloudfunctions.net/notifyDeliveryPartner`;
       const response = await fetch(functionUrl, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify({ orderId: selectedOrder.orderId, status: 'getStatus' }),
       });
       if (!response.ok) {
@@ -675,10 +676,7 @@ function OrderDetail({ order, statusData, loading, onBack, onRefresh, onRequestR
     const timelineToShow = useMemo(() => {
       const timeline = statusData?.stages || order.timeline;
       const cancelIndex = timeline.findIndex((item: any) => item && item.status && item.status.toLowerCase().includes('cancelled'));
-      if (cancelIndex > -1) {
-        return timeline.slice(0, cancelIndex + 1);
-      }
-      return timeline;
+      return cancelIndex > -1 ? timeline.slice(0, cancelIndex + 1) : timeline;
     }, [order.timeline, statusData]);
     
     const completedCount = useMemo(() => timelineToShow.filter((s: any) => s.completed).length, [timelineToShow]);
@@ -691,7 +689,7 @@ function OrderDetail({ order, statusData, loading, onBack, onRefresh, onRequestR
 
 
     const showReturnButton = useMemo(() => {
-        if (!order || currentStatus !== 'Delivered' || order.isReturnable === false) {
+        if (!order || currentStatus !== 'Delivered' || order.isReturnable === false || order.returnRequest) {
             return false;
         }
         const deliveredStep = order.timeline.find((step:any) => step.status.startsWith('Delivered'));
@@ -836,15 +834,6 @@ function HelpBot({ orders, selectedOrder, onOpenReturn, onCancelOrder, onShowAdd
     setMessages((m) => [...m, { from: 'user', text }]);
   }
 
-  async function handleCancel() {
-    if (!selectedOrder) { pushBot('Please select an order first (click one on the left).'); return; }
-    pushUser('Cancel order');
-    pushBot('Checking order status...');
-    // call cancel handler
-    await onCancelOrder(selectedOrder.id);
-    pushBot('Cancel request submitted. Check Transactions tab for refund status.');
-  }
-
   function handleRequestReturn() {
     if (!selectedOrder) { pushBot('Please select an order first (click one on the left).'); return; }
     pushUser('Request return');
@@ -919,4 +908,3 @@ function HelpBot({ orders, selectedOrder, onOpenReturn, onCancelOrder, onShowAdd
     </div>
   );
 }
-
