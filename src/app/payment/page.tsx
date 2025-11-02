@@ -109,7 +109,7 @@ const SuccessModal = ({ isOpen, onClose, productImage, productName }: { isOpen: 
                             <Button asChild variant="outline" className="w-full">
                                 <Link href="/live-selling">Continue Shopping</Link>
                             </Button>
-                             <Button variant="ghost" onClick={() => router.back()} className="w-full">
+                             <Button variant="ghost" onClick={() => router.push('/live-selling')} className="w-full">
                                 Go Back
                             </Button>
                         </div>
