@@ -873,16 +873,14 @@ function HelpBot({ orders, selectedOrder, onOpenReturn, onCancelOrder, onShowAdd
     pushUser(text);
     const msgLower = text.toLowerCase();
 
-    if (msgLower.includes('cancel')) {
-      handleCancel();
-    } else if (msgLower.includes('return')) {
+    if (msgLower.includes('return')) {
       handleRequestReturn();
     } else if (msgLower.includes('refund')) {
       handleRefundStatus();
     } else if (msgLower.includes('address')) {
       handleShowAddress();
     } else {
-      pushBot("I can help: [Cancel order], [Request return], [Refund status], [Show address]. Or click the buttons below.");
+      pushBot("I can help with: [Request return], [Refund status], [Show address]. Or click the buttons below.");
     }
 
     setInput("");
@@ -904,7 +902,7 @@ function HelpBot({ orders, selectedOrder, onOpenReturn, onCancelOrder, onShowAdd
             ))}
           </div>
           <div className="p-3 border-t border-border flex gap-2">
-            <input value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => e.key==='Enter' && send()} className="flex-1 p-2 bg-input border-border rounded-md text-sm" placeholder="Ask: cancel, return, refund, address..." />
+            <input value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => e.key==='Enter' && send()} className="flex-1 p-2 bg-input border-border rounded-md text-sm" placeholder="Ask: return, refund, address..." />
             <button onClick={send} className="px-3 py-2 bg-primary text-primary-foreground rounded-md text-sm">Send</button>
           </div>
           <div className="p-3 border-t border-border flex gap-2">{/* quick action buttons */}
@@ -921,3 +919,4 @@ function HelpBot({ orders, selectedOrder, onOpenReturn, onCancelOrder, onShowAdd
     </div>
   );
 }
+
