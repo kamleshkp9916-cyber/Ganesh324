@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import React, { useEffect, useState, useRef, useCallback, useMemo } from "react";
@@ -16,7 +17,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { InputOTP, InputOTPGroup, InputOTPSeparator, InputOTPSlot } from "@/components/ui/input-otp";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { getOrderById, Order, saveAllOrders, getStatusFromTimeline, ORDERS_KEY } from '@/lib/order-data';
+import { getOrderById, Order, saveAllOrders, getStatusFromTimeline, allOrderData } from '@/lib/order-data';
 import { format, addDays, parse, differenceInDays, intervalToDuration, formatDuration, parseISO } from 'date-fns';
 import Image from "next/image";
 import Link from 'next/link';
@@ -27,8 +28,8 @@ import { addReview, getUserReviews, updateReview, getReviews, type Review } from
 import { useAuth } from "@/hooks/use-auth";
 import { ReviewDialog } from '@/components/delivery-info-client';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
-import { allOrderData } from "@/lib/order-data";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
+import { Badge } from "@/components/ui/badge";
 
 const cancellationReasons = [
   "Changed my mind",
@@ -134,26 +135,22 @@ export default function OrdersPage() {
   
   const loadData = useCallback(() => {
     if (typeof window !== 'undefined') {
-        const storedOrdersJSON = localStorage.getItem(ORDERS_KEY);
-        let currentOrders: Order[] = [];
+        const storedOrdersJSON = localStorage.getItem('streamcart_orders');
+        // Always start with the file data, then override with local storage if it exists
+        let allOrders: Order[] = Object.values(allOrderData);
+
         if (storedOrdersJSON) {
             try {
-                currentOrders = JSON.parse(storedOrdersJSON);
+                const localOrders = JSON.parse(storedOrdersJSON);
+                if (Array.isArray(localOrders) && localOrders.length > 0) {
+                    allOrders = localOrders;
+                }
             } catch (e) {
-                console.error("Could not parse orders from localStorage, starting fresh.", e);
-                currentOrders = []; // Start with an empty array if parsing fails
+                console.error("Could not parse orders from localStorage, using file data.", e);
             }
         }
         
-        // If local storage is empty, initialize with default mock data
-        if (currentOrders.length === 0) {
-            const initialOrders = Object.values(allOrderData);
-            saveAllOrders(initialOrders);
-            setOrders(initialOrders);
-        } else {
-            setOrders(currentOrders);
-        }
-        
+        setOrders(allOrders);
         setTransactions(getTransactions());
     }
 }, []);
@@ -274,7 +271,7 @@ export default function OrdersPage() {
     }
     setIsVerifyingOtp(true);
     try {
-        const allOrdersJSON = localStorage.getItem(ORDERS_KEY);
+        const allOrdersJSON = localStorage.getItem('streamcart_orders');
         let allOrders: Order[] = allOrdersJSON ? JSON.parse(allOrdersJSON) : [];
         
         const orderIndex = allOrders.findIndex((o: Order) => o.orderId === selectedOrder.orderId);
@@ -534,40 +531,34 @@ export default function OrdersPage() {
                         <TabsContent value="confirm" className="py-4">
                             <div className="flex flex-col items-center gap-4 text-center">
                                 <ShieldCheck className="h-12 w-12 text-primary" />
-                                {otp ? (
-                                    <>
-                                        <p>Enter the OTP sent to your registered mobile number for verification.</p>
-                                        <InputOTP
-                                            maxLength={6}
-                                            value={otp}
-                                            onChange={(value) => {
-                                                setOtp(value);
-                                                if (value.length === 6) {
-                                                    handleConfirmCancellation(value);
-                                                }
-                                            }}
-                                        >
-                                            <InputOTPGroup>
-                                                <InputOTPSlot index={0} />
-                                                <InputOTPSlot index={1} />
-                                                <InputOTPSlot index={2} />
-                                            </InputOTPGroup>
-                                            <InputOTPSeparator />
-                                            <InputOTPGroup>
-                                                <InputOTPSlot index={3} />
-                                                <InputOTPSlot index={4} />
-                                                <InputOTPSlot index={5} />
-                                            </InputOTPGroup>
-                                        </InputOTP>
-                                    </>
-                                ) : (
-                                    <>
-                                        <p>We will send an OTP to your registered mobile number to confirm the cancellation.</p>
-                                        <Button onClick={() => setOtp(' ')} disabled={isVerifyingOtp}>
-                                            {isVerifyingOtp ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : null}
-                                            Get OTP
-                                        </Button>
-                                    </>
+                                <p>We will send an OTP to your registered mobile number to confirm the cancellation.</p>
+                                <Button onClick={() => setOtp(' ')} disabled={isVerifyingOtp}>
+                                    {isVerifyingOtp ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : null}
+                                    Get OTP
+                                </Button>
+                                {otp && (
+                                    <InputOTP
+                                        maxLength={6}
+                                        value={otp.trim()}
+                                        onChange={(value) => {
+                                            setOtp(value);
+                                            if (value.length === 6) {
+                                                handleConfirmCancellation(value);
+                                            }
+                                        }}
+                                    >
+                                        <InputOTPGroup>
+                                            <InputOTPSlot index={0} />
+                                            <InputOTPSlot index={1} />
+                                            <InputOTPSlot index={2} />
+                                        </InputOTPGroup>
+                                        <InputOTPSeparator />
+                                        <InputOTPGroup>
+                                            <InputOTPSlot index={3} />
+                                            <InputOTPSlot index={4} />
+                                            <InputOTPSlot index={5} />
+                                        </InputOTPGroup>
+                                    </InputOTP>
                                 )}
                                 {isVerifyingOtp && <div className="flex items-center text-sm text-muted-foreground"><Loader2 className="mr-2 h-4 w-4 animate-spin"/>Verifying...</div>}
                             </div>
