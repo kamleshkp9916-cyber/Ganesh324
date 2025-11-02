@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useEffect, useState, useRef, useCallback, useMemo } from "react";
@@ -131,10 +130,19 @@ export default function OrdersPage() {
   const TRANSACTIONS_PER_PAGE = 10;
   
   const loadData = useCallback(() => {
-    const storedOrders = localStorage.getItem(ORDERS_KEY);
-    const allOrders = storedOrders ? JSON.parse(storedOrders) : Object.values(allOrderData);
-    setOrders(allOrders);
-    setTransactions(getTransactions());
+    if (typeof window !== 'undefined') {
+        const storedOrdersJSON = localStorage.getItem(ORDERS_KEY);
+        let allOrders: Order[] = storedOrdersJSON ? JSON.parse(storedOrdersJSON) : [];
+        
+        // If local storage is empty, populate it with mock data
+        if (allOrders.length === 0) {
+            allOrders = Object.values(allOrderData);
+            saveAllOrders(allOrders);
+        }
+        
+        setOrders(allOrders);
+        setTransactions(getTransactions());
+    }
   }, []);
   
   useEffect(() => {
@@ -489,29 +497,41 @@ export default function OrdersPage() {
                         <TabsContent value="confirm" className="py-4">
                             <div className="flex flex-col items-center gap-4 text-center">
                                 <ShieldCheck className="h-12 w-12 text-primary" />
-                                <p>An OTP has been sent to your registered mobile number for verification.</p>
-                                <InputOTP
-                                    maxLength={6}
-                                    value={otp}
-                                    onChange={(value) => {
-                                        setOtp(value);
-                                        if (value.length === 6) {
-                                            handleConfirmCancellation(value);
-                                        }
-                                    }}
-                                >
-                                    <InputOTPGroup>
-                                        <InputOTPSlot index={0} />
-                                        <InputOTPSlot index={1} />
-                                        <InputOTPSlot index={2} />
-                                    </InputOTPGroup>
-                                    <InputOTPSeparator />
-                                    <InputOTPGroup>
-                                        <InputOTPSlot index={3} />
-                                        <InputOTPSlot index={4} />
-                                        <InputOTPSlot index={5} />
-                                    </InputOTPGroup>
-                                </InputOTP>
+                                {otp ? (
+                                    <>
+                                        <p>Enter the OTP sent to your registered mobile number for verification.</p>
+                                        <InputOTP
+                                            maxLength={6}
+                                            value={otp}
+                                            onChange={(value) => {
+                                                setOtp(value);
+                                                if (value.length === 6) {
+                                                    handleConfirmCancellation(value);
+                                                }
+                                            }}
+                                        >
+                                            <InputOTPGroup>
+                                                <InputOTPSlot index={0} />
+                                                <InputOTPSlot index={1} />
+                                                <InputOTPSlot index={2} />
+                                            </InputOTPGroup>
+                                            <InputOTPSeparator />
+                                            <InputOTPGroup>
+                                                <InputOTPSlot index={3} />
+                                                <InputOTPSlot index={4} />
+                                                <InputOTPSlot index={5} />
+                                            </InputOTPGroup>
+                                        </InputOTP>
+                                    </>
+                                ) : (
+                                    <>
+                                        <p>We will send an OTP to your registered mobile number to confirm the cancellation.</p>
+                                        <Button onClick={() => setOtp(' ')} disabled={isVerifyingOtp}>
+                                            {isVerifyingOtp ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : null}
+                                            Get OTP
+                                        </Button>
+                                    </>
+                                )}
                                 {isVerifyingOtp && <div className="flex items-center text-sm text-muted-foreground"><Loader2 className="mr-2 h-4 w-4 animate-spin"/>Verifying...</div>}
                             </div>
                         </TabsContent>
