@@ -24,7 +24,7 @@ import Link from 'next/link';
 import { cn } from "@/lib/utils";
 import { Timeline } from "@/components/timeline";
 import { Pagination, PaginationContent, PaginationItem, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
-import { Review, addReview, getUserReviews, updateReview, getReviews } from "@/lib/review-data";
+import { addReview, getUserReviews, updateReview, getReviews, type Review } from "@/lib/review-data";
 import { useAuth } from "@/hooks/use-auth";
 import { ReviewDialog } from '@/components/delivery-info-client';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
@@ -189,12 +189,19 @@ const handleFetchStatus = useCallback(async () => {
 
     setLoadingStatus(true);
     try {
-      const data: any = await fetchDeliveryStatusMock(selectedOrder.orderId);
+      const functionUrl = `https://us-central1-gcp-project-id.cloudfunctions.net/notifyDeliveryPartner`;
+      const response = await fetch(functionUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId: selectedOrder.orderId, status: 'getStatus' }),
+      });
+      if (!response.ok) {
+        throw new Error('Failed to fetch status from delivery partner');
+      }
+      const data: any = await response.json();
       setStatusData(data);
-      // Don't update the local order timeline directly from mock data anymore
-      // Let's assume the local order data is the source of truth for cancellations
     } catch (e) {
-      console.error('fetchDeliveryStatusMock error', e);
+      console.error('fetchDeliveryStatus error', e);
       toast({ title: "Error", description: "Could not fetch latest order status." });
     } finally {
       setLoadingStatus(false);
@@ -313,7 +320,6 @@ useEffect(() => {
     }
     setIsVerifyingOtp(true);
     try {
-        // In a real app, this would come from a config.
         const functionUrl = `https://us-central1-gcp-project-id.cloudfunctions.net/notifyDeliveryPartner`;
         await fetch(functionUrl, {
             method: 'POST',
@@ -684,12 +690,11 @@ function OrderDetail({ order, statusData, loading, onBack, onRefresh, onRequestR
     }, [isCancelled, completedCount, timelineToShow.length]);
 
 
-    const showCancelButton = !isCancelled && !isDelivered && !order.returnRequest;
-    const isReturnWindowActive = useMemo(() => {
+    const showReturnButton = useMemo(() => {
         if (!order || currentStatus !== 'Delivered' || order.isReturnable === false) {
             return false;
         }
-        const deliveredStep = order.timeline.find(step => step.status.startsWith('Delivered'));
+        const deliveredStep = order.timeline.find((step:any) => step.status.startsWith('Delivered'));
         if (!deliveredStep || !deliveredStep.date) {
             return false;
         }
@@ -701,9 +706,7 @@ function OrderDetail({ order, statusData, loading, onBack, onRefresh, onRequestR
             return false;
         }
     }, [currentStatus, order]);
-
-    const showReturnButton = isDelivered && order.isReturnable !== false && isReturnWindowActive && !order.returnRequest;
-    const showRefundButton = currentStatus === 'Returned';
+    
     const showReviewButton = isDelivered;
 
     const handleReviewSubmit = (review: Review) => {
@@ -764,11 +767,8 @@ function OrderDetail({ order, statusData, loading, onBack, onRefresh, onRequestR
                         <RefreshCw className={cn("mr-2 h-3 w-3", loading && "animate-spin")} />
                         Refresh
                     </Button>}
-                    {showCancelButton && (
-                        <button onClick={() => onRequestReturn('cancel')} className="text-sm px-3 py-1 rounded-md border border-amber-500/50 bg-amber-500/10 text-amber-400">Cancel order</button>
-                    )}
                     {showReturnButton && (
-                        <button onClick={() => onRequestReturn('return')} className="text-sm px-3 py-1 rounded-md border border-red-500/50 bg-red-500/10 text-red-400">Request return</button>
+                         <button onClick={() => onRequestReturn('return')} className="text-sm px-3 py-1 rounded-md border border-red-500/50 bg-red-500/10 text-red-400">Request return</button>
                     )}
                     {showReviewButton && (
                         <Dialog open={isReviewDialogOpen} onOpenChange={setIsReviewDialogOpen}>
@@ -908,7 +908,6 @@ function HelpBot({ orders, selectedOrder, onOpenReturn, onCancelOrder, onShowAdd
             <button onClick={send} className="px-3 py-2 bg-primary text-primary-foreground rounded-md text-sm">Send</button>
           </div>
           <div className="p-3 border-t border-border flex gap-2">{/* quick action buttons */}
-            <button onClick={handleCancel} className="px-2 py-1 rounded-md text-xs bg-amber-500/10 text-amber-400">Cancel order</button>
             <button onClick={handleRequestReturn} className="px-2 py-1 rounded-md text-xs bg-red-500/10 text-red-400">Request return</button>
             <button onClick={handleRefundStatus} className="px-2 py-1 rounded-md text-xs border border-border">Refund status</button>
             <button onClick={handleShowAddress} className="px-2 py-1 rounded-md text-xs border border-border">Show address</button>
