@@ -1,9 +1,10 @@
+
 "use client";
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Button, buttonVariants } from '@/components/ui/button';
-import { CreditCard, ShieldCheck, Banknote, Lock, Info, Loader2, ArrowRight, Wallet, QrCode, ArrowLeft, Coins, Ticket, Edit, Home, MessageSquare, HelpCircle, FileText, Send, Flag, LifeBuoy } from 'lucide-react';
+import { CreditCard, ShieldCheck, Banknote, Lock, Info, Loader2, ArrowRight, Wallet, QrCode, ArrowLeft, Coins, Ticket, Edit, Home, MessageSquare, HelpCircle, FileText, Send, Flag, LifeBuoy, X } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
@@ -53,9 +54,34 @@ const paymentMethods = [
 ];
 
 const SuccessModal = ({ isOpen, onClose, productImage, productName }: { isOpen: boolean, onClose: () => void, productImage: string, productName: string }) => {
+    const router = useRouter();
+
+    const Confetti = () => {
+        const colors = ['#f44336', '#e91e63', '#9c27b0', '#673ab7', '#3f51b5', '#2196f3', '#03a9f4', '#00bcd4', '#009688', '#4caf50', '#8bc34a', '#cddc39', '#ffeb3b', '#ffc107', '#ff9800', '#ff5722'];
+        const confettiCount = 50;
+
+        return (
+            <div className="confetti-background">
+                {Array.from({ length: confettiCount }).map((_, i) => (
+                    <div
+                        key={i}
+                        className="confetti"
+                        style={{
+                            left: `${Math.random() * 100}vw`,
+                            animationDuration: `${Math.random() * 3 + 4}s`,
+                            animationDelay: `${Math.random() * 2}s`,
+                            backgroundColor: colors[Math.floor(Math.random() * colors.length)]
+                        }}
+                    ></div>
+                ))}
+            </div>
+        );
+    };
+
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="max-w-4xl p-0" onPointerDownOutside={(e) => e.preventDefault()}>
+            <DialogContent className="max-w-4xl p-0" onPointerDownOutside={(e) => e.preventDefault()} hideCloseButton>
+                 {isOpen && <Confetti />}
                  <DialogHeader className="sr-only">
                     <DialogTitle>Purchase Successful</DialogTitle>
                     <DialogDescription>Your order has been confirmed.</DialogDescription>
@@ -77,11 +103,14 @@ const SuccessModal = ({ isOpen, onClose, productImage, productName }: { isOpen: 
                             Thank you for entrusting your care to us. Please be patient as we process your items as quickly as possible.
                         </p>
                         <div className="w-full space-y-2">
-                            <Button asChild className="w-full">
-                                <Link href="/live-selling" onClick={onClose}>Back to Homepage</Link>
+                             <Button asChild className="w-full">
+                                <Link href="/orders">Go to My Orders</Link>
                             </Button>
-                             <Button asChild variant="outline" className="w-full">
-                                <Link href="/orders" onClick={onClose}>Go to My Orders</Link>
+                            <Button asChild variant="outline" className="w-full">
+                                <Link href="/live-selling">Continue Shopping</Link>
+                            </Button>
+                             <Button variant="ghost" onClick={() => router.back()} className="w-full">
+                                Go Back
                             </Button>
                         </div>
                     </div>
