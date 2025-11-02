@@ -398,12 +398,13 @@ function OrdersPageContent() {
             const returnPickedUpIndex = newTimeline.findIndex(item => item.status === 'Return package picked up');
             if (returnPickedUpIndex === -1) {
                 newTimeline.push({ status: 'Return package picked up', date: format(new Date(), 'MMM dd, yyyy'), time: format(new Date(), 'p'), completed: true });
-                newTimeline.push({ status: 'Refund Completed: The amount has been credited to your original payment method.', date: format(new Date(), 'MMM dd, yyyy'), time: format(new Date(), 'p'), completed: true });
+                newTimeline.push({ status: 'Refund Completed', date: format(new Date(), 'MMM dd, yyyy'), time: format(new Date(), 'p'), completed: true });
             }
             timelineUpdate = { timeline: newTimeline };
         }
 
         updateOrder(selectedOrder.orderId, { returnRequest: updatedReturn, ...timelineUpdate });
+        setTransactions(getTransactions());
         toast({ title: "Pickup Simulated", description: `Refund ${tx.status} for transaction ${tx.transactionId}` });
     } else {
         toast({ variant: 'destructive', title: "Error", description: "No pending pickup/refund found for this order." });
@@ -453,6 +454,7 @@ function OrdersPageContent() {
                 amount: selectedOrder.total,
                 status: 'Processing',
             });
+            setTransactions(getTransactions());
             
             toast({ title: "Order Cancelled & Refund Initiated" });
             setIsCancelFlowOpen(false);
