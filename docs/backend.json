@@ -1,0 +1,61 @@
+{
+  "entities": {
+    "User": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "User",
+      "type": "object",
+      "description": "Represents a user of the StreamCart application.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the user entity."
+        },
+        "email": {
+          "type": "string",
+          "description": "Email address of the user.",
+          "format": "email"
+        },
+        "phone": {
+          "type": "string",
+          "description": "Phone number of the user."
+        },
+        "signupDate": {
+          "type": "string",
+          "description": "The date and time the user signed up.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "email"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/users/{userId}",
+        "definition": {
+          "entityName": "User",
+          "schema": {
+            "$ref": "#/backend/entities/User"
+          },
+          "description": "Stores user data. The 'userId' parameter corresponds to the Firebase Authentication UID, ensuring path-based ownership and authorization independence.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier for the user, matching the Firebase Authentication UID."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "The data structure is designed to store user information securely and efficiently. It prioritizes authorization independence by leveraging path-based ownership. The structure ensures that access control is straightforward and doesn't rely on complex hierarchical `get()` calls, which improves security and simplifies debugging. The segregation of user data into individual user documents provides a homogeneous security posture for each user's information. This design facilitates secure `list` operations, as access is determined by the path structure."
+  }
+}
