@@ -3,7 +3,7 @@
 
 import React, { useEffect, useState, useRef, useCallback, useMemo } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, RefreshCw, CreditCard, Download, Lock, Coins, Loader2, Bell, ChevronRight, Briefcase, ShoppingBag, BarChart2, Plus, ArrowUp, ArrowDown, Search, Printer, CheckCircle2, Circle, Hourglass, Package, PackageCheck, PackageOpen, Truck, Home, XCircle, AlertTriangle, ShieldCheck, RotateCcw, Star, Edit } from 'lucide-react';
+import { ArrowLeft, RefreshCw, CreditCard, Download, Lock, Coins, Loader2, Bell, ChevronRight, Briefcase, ShoppingBag, BarChart2, Plus, ArrowUp, ArrowDown, Search, Printer, CheckCircle2, Circle, Hourglass, Package, PackageCheck, PackageOpen, Truck, Home, XCircle, AlertTriangle, ShieldCheck, RotateCcw, Star, Edit, MoreVertical } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Footer } from '@/components/footer';
@@ -16,7 +16,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { InputOTP, InputOTPGroup, InputOTPSeparator, InputOTPSlot } from "@/components/ui/input-otp";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { getOrderById, Order, saveAllOrders, getStatusFromTimeline, ORDERS_KEY, allOrderData } from '@/lib/order-data';
+import { getOrderById, Order, saveAllOrders, getStatusFromTimeline, ORDERS_KEY } from '@/lib/order-data';
 import { format, addDays, parse, differenceInDays, intervalToDuration, formatDuration, parseISO } from 'date-fns';
 import Image from "next/image";
 import Link from 'next/link';
@@ -27,6 +27,8 @@ import { addReview, getUserReviews, updateReview, getReviews, type Review } from
 import { useAuth } from "@/hooks/use-auth";
 import { ReviewDialog } from '@/components/delivery-info-client';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
+import { allOrderData } from "@/lib/order-data";
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 
 const cancellationReasons = [
   "Changed my mind",
@@ -133,30 +135,28 @@ export default function OrdersPage() {
   const loadData = useCallback(() => {
     if (typeof window !== 'undefined') {
         const storedOrdersJSON = localStorage.getItem(ORDERS_KEY);
-        // Always start with the file data, then override with local storage if it exists
-        let allOrders: Order[] = Object.values(allOrderData);
-
+        let currentOrders: Order[] = [];
         if (storedOrdersJSON) {
             try {
-                const localOrders = JSON.parse(storedOrdersJSON);
-                // Simple merge: assume local storage is more up-to-date
-                const localOrderMap = new Map(localOrders.map((o: Order) => [o.orderId, o]));
-                allOrders = allOrders.map(o => localOrderMap.get(o.orderId) || o);
-                localOrders.forEach((o: Order) => {
-                    if (!allOrders.some(existing => existing.orderId === o.orderId)) {
-                        allOrders.push(o);
-                    }
-                });
+                currentOrders = JSON.parse(storedOrdersJSON);
             } catch (e) {
-                console.error("Could not parse orders from localStorage", e);
+                console.error("Could not parse orders from localStorage, starting fresh.", e);
+                currentOrders = []; // Start with an empty array if parsing fails
             }
         }
         
-        saveAllOrders(allOrders); // Resync local storage with the merged/default data
-        setOrders(allOrders);
+        // If local storage is empty, initialize with default mock data
+        if (currentOrders.length === 0) {
+            const initialOrders = Object.values(allOrderData);
+            saveAllOrders(initialOrders);
+            setOrders(initialOrders);
+        } else {
+            setOrders(currentOrders);
+        }
+        
         setTransactions(getTransactions());
     }
-  }, []);
+}, []);
   
   useEffect(() => {
     setIsClient(true);
@@ -425,52 +425,76 @@ export default function OrdersPage() {
             </div>
           )}
 
-          {tab === 'transactions' && (
+            {tab === 'transactions' && (
             <div className="bg-card p-6 rounded-2xl shadow-lg">
-              <h2 className="text-lg font-medium mb-4 text-card-foreground">Transactions</h2>
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead className="text-xs text-muted-foreground text-left">
-                    <tr>
-                      <th className="py-2">Txn ID</th>
-                      <th>Order</th>
-                      <th>Type</th>
-                      <th>Amount</th>
-                      <th>Status</th>
-                      <th>Time</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {paginatedTransactions.map((t, index) => (
-                      <tr key={`${t.transactionId}-${index}`} className="border-t border-border">
-                        <td className="py-2">{t.transactionId}</td>
-                        <td>{t.transactionId}</td>
-                        <td className="capitalize">{t.type}</td>
-                        <td>₹{(t.amount ?? 0).toFixed(2)}</td>
-                        <td>{t.status}</td>
-                        <td className="text-xs text-muted-foreground">{new Date(t.date).toLocaleString()}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-               {totalTransactionPages > 1 && (
-                <Pagination className="mt-4">
-                    <PaginationContent>
-                        <PaginationItem>
-                            <Button variant="outline" onClick={() => setTransactionsPage(p => Math.max(1, p - 1))} disabled={transactionsPage === 1}>Previous</Button>
-                        </PaginationItem>
-                         <PaginationItem>
-                            <span className="p-2 text-sm">Page {transactionsPage} of {totalTransactionPages}</span>
-                        </PaginationItem>
-                        <PaginationItem>
-                            <Button variant="outline" onClick={() => setTransactionsPage(p => Math.min(totalTransactionPages, p + 1))} disabled={transactionsPage === totalTransactionPages}>Next</Button>
-                        </PaginationItem>
-                    </PaginationContent>
-                </Pagination>
-            )}
+                <h2 className="text-lg font-medium mb-4 text-card-foreground">Transactions</h2>
+                <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                        <thead className="text-xs text-muted-foreground text-left">
+                            <tr>
+                                <th className="py-2">Transaction ID</th>
+                                <th>Type</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                                <th>Time</th>
+                                <th className="text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {paginatedTransactions.map((t, index) => (
+                                <tr key={`${t.transactionId}-${index}`} className="border-t border-border">
+                                    <td className="py-2 font-mono">{t.transactionId}</td>
+                                    <td className="capitalize">{t.type}</td>
+                                    <td className={cn(t.amount > 0 ? "text-green-500" : "text-foreground")}>
+                                        {t.amount > 0 ? '+' : ''}₹{(t.amount ?? 0).toFixed(2)}
+                                    </td>
+                                    <td>
+                                        <Badge variant={t.status === 'Completed' ? 'success' : t.status === 'Processing' ? 'warning' : 'destructive'}>
+                                            {t.status}
+                                        </Badge>
+                                    </td>
+                                    <td className="text-xs text-muted-foreground">{new Date(t.date).toLocaleString()}</td>
+                                    <td className="text-right">
+                                         <DropdownMenu>
+                                            <DropdownMenuTrigger asChild>
+                                                <Button variant="ghost" size="icon" className="h-8 w-8">
+                                                    <MoreVertical className="h-4 w-4" />
+                                                </Button>
+                                            </DropdownMenuTrigger>
+                                            <DropdownMenuContent align="end">
+                                                <DropdownMenuLabel>Details</DropdownMenuLabel>
+                                                <DropdownMenuSeparator />
+                                                <DropdownMenuItem>
+                                                    <div className="text-xs space-y-1">
+                                                        <p><strong>Payment Method:</strong> {t.paymentMethod || 'N/A'}</p>
+                                                        <p><strong>Gateway ID:</strong> {t.gatewayTransactionId || 'N/A'}</p>
+                                                    </div>
+                                                </DropdownMenuItem>
+                                            </DropdownMenuContent>
+                                        </DropdownMenu>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+                {totalTransactionPages > 1 && (
+                    <Pagination className="mt-4">
+                        <PaginationContent>
+                            <PaginationItem>
+                                <Button variant="outline" onClick={() => setTransactionsPage(p => Math.max(1, p - 1))} disabled={transactionsPage === 1}>Previous</Button>
+                            </PaginationItem>
+                            <PaginationItem>
+                                <span className="p-2 text-sm">Page {transactionsPage} of {totalTransactionPages}</span>
+                            </PaginationItem>
+                            <PaginationItem>
+                                <Button variant="outline" onClick={() => setTransactionsPage(p => Math.min(totalTransactionPages, p + 1))} disabled={transactionsPage === totalTransactionPages}>Next</Button>
+                            </PaginationItem>
+                        </PaginationContent>
+                    </Pagination>
+                )}
             </div>
-          )}
+            )}
 
           {/* Cancellation Modal */}
             <Dialog open={isCancelFlowOpen} onOpenChange={setIsCancelFlowOpen}>
@@ -850,3 +874,4 @@ function HelpBot({ orders, selectedOrder, onOpenReturn, onCancelOrder, onShowAdd
     </div>
   );
 }
+
