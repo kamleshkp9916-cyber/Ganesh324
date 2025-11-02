@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useEffect, useState, useRef, useCallback, useMemo } from "react";
@@ -125,6 +126,7 @@ export default function OrdersPage() {
   const [cancelFeedback, setCancelFeedback] = useState("");
   const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
   const [otp, setOtp] = useState('');
+  const [otpSent, setOtpSent] = useState(false);
   const { toast } = useToast();
 
   const [ordersPage, setOrdersPage] = useState(1);
@@ -136,23 +138,21 @@ export default function OrdersPage() {
     if (typeof window === 'undefined') return;
 
     const storedOrdersJSON = localStorage.getItem(ORDERS_KEY);
-    // Always start with the file data, then override with local storage if it exists
-    let allOrders: Order[] = Object.values(allOrderData);
-
-    if (storedOrdersJSON) {
-        try {
-            const localOrders = JSON.parse(storedOrdersJSON);
-            if (Array.isArray(localOrders) && localOrders.length > 0) {
-                // To prevent losing mock data on empty local storage, we can merge or decide on a strategy.
-                // Here, we'll just use local storage if it's valid.
-                allOrders = localOrders;
-            }
-        } catch (e) {
-            console.error("Could not parse orders from localStorage, using file data.", e);
-        }
+    // Use file data only if local storage is empty or invalid
+    let initialOrders: Order[] = [];
+    try {
+      const parsed = storedOrdersJSON ? JSON.parse(storedOrdersJSON) : null;
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        initialOrders = parsed;
+      } else {
+        initialOrders = Object.values(allOrderData);
+        localStorage.setItem(ORDERS_KEY, JSON.stringify(initialOrders));
+      }
+    } catch (e) {
+       initialOrders = Object.values(allOrderData);
     }
     
-    setOrders(allOrders);
+    setOrders(initialOrders);
     setTransactions(getTransactions());
 }, []);
   
@@ -315,6 +315,7 @@ export default function OrdersPage() {
             setCancelReason("");
             setCancelFeedback("");
             setOtp("");
+            setOtpSent(false);
         } else {
             throw new Error("Order not found in local storage.");
         }
@@ -476,7 +477,7 @@ export default function OrdersPage() {
                                             </Badge>
                                         </td>
                                         <td className="text-xs text-muted-foreground">{new Date(t.date).toLocaleString()}</td>
-                                        <td className="text-right">
+                                         <td className="text-right">
                                             <DropdownMenu>
                                                 <DropdownMenuTrigger asChild>
                                                     <Button variant="ghost" size="icon" className="h-8 w-8">
@@ -557,30 +558,42 @@ export default function OrdersPage() {
                         <TabsContent value="confirm" className="py-4">
                             <div className="flex flex-col items-center gap-4 text-center">
                                 <ShieldCheck className="h-12 w-12 text-primary" />
-                                <p>An OTP has been sent to your registered mobile number for verification.</p>
-                                <InputOTP
-                                    maxLength={6}
-                                    value={otp}
-                                    onChange={(value) => {
-                                        setOtp(value);
-                                        if (value.length === 6) {
-                                            handleConfirmCancellation(value);
-                                        }
-                                    }}
-                                >
-                                    <InputOTPGroup>
-                                        <InputOTPSlot index={0} />
-                                        <InputOTPSlot index={1} />
-                                        <InputOTPSlot index={2} />
-                                    </InputOTPGroup>
-                                    <InputOTPSeparator />
-                                    <InputOTPGroup>
-                                        <InputOTPSlot index={3} />
-                                        <InputOTPSlot index={4} />
-                                        <InputOTPSlot index={5} />
-                                    </InputOTPGroup>
-                                </InputOTP>
-                                {isVerifyingOtp && <div className="flex items-center text-sm text-muted-foreground"><Loader2 className="mr-2 h-4 w-4 animate-spin"/>Verifying...</div>}
+                                {!otpSent ? (
+                                    <>
+                                        <p>An OTP will be sent to your registered mobile number for verification.</p>
+                                        <Button onClick={() => {
+                                            toast({ title: "OTP Sent!", description: "A 6-digit code has been sent." });
+                                            setOtpSent(true);
+                                        }}>Get OTP</Button>
+                                    </>
+                                ) : (
+                                    <>
+                                        <p>An OTP has been sent. Please enter it below to confirm cancellation.</p>
+                                        <InputOTP
+                                            maxLength={6}
+                                            value={otp}
+                                            onChange={(value) => {
+                                                setOtp(value);
+                                                if (value.length === 6) {
+                                                    handleConfirmCancellation(value);
+                                                }
+                                            }}
+                                        >
+                                            <InputOTPGroup>
+                                                <InputOTPSlot index={0} />
+                                                <InputOTPSlot index={1} />
+                                                <InputOTPSlot index={2} />
+                                            </InputOTPGroup>
+                                            <InputOTPSeparator />
+                                            <InputOTPGroup>
+                                                <InputOTPSlot index={3} />
+                                                <InputOTPSlot index={4} />
+                                                <InputOTPSlot index={5} />
+                                            </InputOTPGroup>
+                                        </InputOTP>
+                                        {isVerifyingOtp && <div className="flex items-center text-sm text-muted-foreground"><Loader2 className="mr-2 h-4 w-4 animate-spin"/>Verifying...</div>}
+                                    </>
+                                )}
                             </div>
                         </TabsContent>
                     </Tabs>
@@ -625,15 +638,6 @@ export default function OrdersPage() {
               </div>
             </div>
           )}
-
-          {/* Help bot (improved) */}
-          <HelpBot
-            orders={orders}
-            selectedOrder={selectedOrder}
-            onOpenReturn={(t: any) => { setReturnType(t); setShowReturnConfirm(true); }}
-            onCancelOrder={(id: any) => handleCancelFromBot(id)}
-            onShowAddress={(order: any) => alert(formatAddress(order?.address))}
-          />
         </div>
       </main>
       <Footer/>
@@ -890,3 +894,4 @@ function HelpBot({ orders, selectedOrder, onOpenReturn, onCancelOrder, onShowAdd
     
 
     
+
