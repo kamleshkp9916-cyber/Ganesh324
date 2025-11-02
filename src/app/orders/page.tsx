@@ -258,10 +258,10 @@ function TimelineStep({ step, index, total }: any) {
 
       <div className="flex-1 pt-0.5">
         <div className="flex items-center justify-between">
-          <div className="font-medium text-sm text-card-foreground">{step.label || step.status}</div>
+          <div className="font-medium text-sm text-card-foreground">{step.label || step.status.split(':')[0]}</div>
           <div className="text-xs text-muted-foreground">{step.completed ? (step.date ? `${step.date}, ${step.time}`: 'Completed') : "Pending"}</div>
         </div>
-        <div className="text-xs text-muted-foreground mt-1">{step.completed ? "Completed" : "Waiting"}</div>
+        <div className="text-xs text-muted-foreground mt-1">{step.completed ? (step.status.includes(':') ? step.status.split(':')[1].trim() : 'Completed') : "Waiting"}</div>
       </div>
     </motion.div>
   );
@@ -426,11 +426,15 @@ function OrdersPageContent() {
         if (orderIndex !== -1) {
             const updatedOrder: Order = { ...allOrders[orderIndex] };
 
-            if (!updatedOrder.timeline.some(step => step && step.status && step.status.toLowerCase().includes('cancelled'))) {
-                updatedOrder.timeline.push({ status: 'Cancelled by user', date: format(new Date(), 'MMM dd, yyyy'), time: format(new Date(), 'p'), completed: true });
-                updatedOrder.timeline.push({ status: 'Refund Initiated: The amount will be credited in 5-7 business days.', date: format(new Date(), 'MMM dd, yyyy'), time: format(new Date(), 'p'), completed: false });
+            const timeline = updatedOrder.timeline || [];
+            
+            // Add cancellation step
+            if (!timeline.some(step => step && step.status && step.status.toLowerCase().includes('cancelled'))) {
+                timeline.push({ status: 'Cancelled by user', date: format(new Date(), 'MMM dd, yyyy'), time: format(new Date(), 'p'), completed: true });
+                timeline.push({ status: 'Refund Initiated: The amount will be credited in 5-7 business days.', date: format(new Date(), 'MMM dd, yyyy'), time: format(new Date(), 'p'), completed: false });
             }
             
+            updatedOrder.timeline = timeline;
             allOrders[orderIndex] = updatedOrder;
             
             saveAllOrders(allOrders);
@@ -793,3 +797,5 @@ function OrdersPageContent() {
 export default function OrdersPage() {
     return <OrdersPageContent />
 }
+
+    
