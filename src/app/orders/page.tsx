@@ -16,14 +16,14 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { InputOTP, InputOTPGroup, InputOTPSeparator, InputOTPSlot } from "@/components/ui/input-otp";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { getOrderById, Order, saveAllOrders, getStatusFromTimeline, allOrderData, ORDERS_KEY } from "@/lib/order-data";
+import { getOrderById, Order, saveAllOrders, getStatusFromTimeline, allOrderData, ORDERS_KEY } from '@/lib/order-data';
 import { format, addDays, parse, differenceInDays, intervalToDuration, formatDuration, parseISO } from 'date-fns';
 import Image from "next/image";
 import Link from 'next/link';
 import { cn } from "@/lib/utils";
 import { Timeline } from "@/components/timeline";
 import { Pagination, PaginationContent, PaginationItem, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
-import { addReview, getUserReviews, updateReview, getReviews, type Review } from "@/lib/review-data";
+import { addReview, getUserReviews, updateReview, getReviews, type Review } from '@/lib/review-data';
 import { useAuth } from "@/hooks/use-auth";
 import { ReviewDialog } from '@/components/delivery-info-client';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
@@ -591,7 +591,6 @@ function OrderDetail({ order, onBack, onRequestReturn, onSimulatePickup }: any) 
 
     const currentStatus = useMemo(() => getStatusFromTimeline(order.timeline), [order.timeline]);
     const isCancelled = currentStatus.toLowerCase().includes('cancelled');
-    const isDelivered = currentStatus === 'Delivered';
 
     const timelineToShow = useMemo(() => {
       const timeline = order.timeline;
@@ -625,7 +624,7 @@ function OrderDetail({ order, onBack, onRequestReturn, onSimulatePickup }: any) 
         }
     }, [currentStatus, order]);
     
-    const showReviewButton = isDelivered;
+    const showReviewButton = currentStatus === 'Delivered';
     
     const showCancelButton = !['Out for Delivery', 'Delivered', 'Return Initiated', 'Return package picked up', 'Returned'].includes(currentStatus) && !isCancelled;
 
