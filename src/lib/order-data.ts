@@ -23,7 +23,6 @@ export type Order = {
 };
 
 // --- Mock Data ---
-// This object is now empty to clear the default orders.
 export const allOrderData: { [key: string]: Order } = {
     '#STREAM619732': {
         orderId: '#STREAM619732',
