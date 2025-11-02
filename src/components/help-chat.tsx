@@ -186,7 +186,7 @@ export function HelpChat({ order, onClose, initialOptions, onExecuteAction }: { 
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
-            <Card className="w-60 h-[450px] flex flex-col shadow-2xl rounded-xl">
+            <Card className="h-[450px] flex flex-col shadow-2xl rounded-xl border-red-500 border-2" style={{width: '220px'}}>
                 <CardHeader className="flex flex-row items-center justify-between p-3 border-b bg-card">
                     <div className="flex items-center gap-3">
                          <Avatar>
@@ -258,3 +258,5 @@ export function HelpChat({ order, onClose, initialOptions, onExecuteAction }: { 
         </div>
     );
 }
+
+    
