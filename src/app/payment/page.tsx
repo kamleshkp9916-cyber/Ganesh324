@@ -324,7 +324,14 @@ export default function PaymentPage() {
                 total: total,
                 orderDate: new Date().toISOString(),
                 isReturnable: true,
-                timeline: [{ status: "Order Confirmed", date: format(new Date(), 'MMM dd, yyyy'), time: format(new Date(), 'p'), completed: true }],
+                timeline: [
+                    { status: "Order Confirmed", date: format(new Date(), 'MMM dd, yyyy'), time: format(new Date(), 'p'), completed: true },
+                    { status: "Packed", date: null, time: null, completed: false },
+                    { status: "Shipped", date: null, time: null, completed: false },
+                    { status: "In Transit", date: null, time: null, completed: false },
+                    { status: "Out for Delivery", date: null, time: null, completed: false },
+                    { status: "Delivered", date: null, time: null, completed: false },
+                ],
             };
             saveOrder(newOrder); // Save to local storage
             
