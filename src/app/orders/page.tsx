@@ -131,24 +131,9 @@ export default function OrdersPage() {
   const TRANSACTIONS_PER_PAGE = 10;
   
   const loadData = useCallback(() => {
-    const storedOrders = localStorage.getItem(ORDERS_KEY);
-    // Always load from the file first to get a clean state, then check local storage.
-    let currentOrders = Object.values(allOrderData);
-    if (storedOrders) {
-        try {
-            const parsedOrders = JSON.parse(storedOrders);
-            // If local storage has orders, use them. Otherwise, we stick with the (now empty) file data.
-            if (Array.isArray(parsedOrders) && parsedOrders.length > 0) {
-                currentOrders = parsedOrders;
-            } else {
-                 // If local storage is empty, clear it to ensure it doesn't get used next time.
-                 localStorage.removeItem(ORDERS_KEY);
-            }
-        } catch (e) {
-            console.error("Could not parse orders from local storage, using default.", e);
-        }
-    }
-    setOrders(currentOrders as Order[]);
+    // Force reset of orders to clear localStorage cache
+    saveAllOrders([]);
+    setOrders([]);
     setTransactions(getTransactions());
   }, []);
   
@@ -807,7 +792,7 @@ function HelpBot({ orders, selectedOrder, onOpenReturn, onCancelOrder, onShowAdd
   return (
     <div className="fixed right-6 bottom-6 z-50">
       {open && (
-        <div className="w-96 bg-card border border-border rounded-xl shadow-lg overflow-hidden">
+        <div className="w-72 bg-card border border-border rounded-xl shadow-lg overflow-hidden">
           <div className="p-3 border-b border-border flex items-center justify-between">
             <div className="font-medium text-card-foreground">Help</div>
             <button onClick={() => setOpen(false)} className="text-xs text-muted-foreground">Close</button>
