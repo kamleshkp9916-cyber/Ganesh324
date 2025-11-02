@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useEffect, useState, useRef, useCallback, useMemo } from "react";
@@ -15,7 +16,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { InputOTP, InputOTPGroup, InputOTPSeparator, InputOTPSlot } from "@/components/ui/input-otp";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { getOrderById, Order, saveAllOrders, getStatusFromTimeline, allOrderData, ORDERS_KEY } from '@/lib/order-data';
+import { getOrderById, Order, saveAllOrders, getStatusFromTimeline, ORDERS_KEY } from '@/lib/order-data';
 import { format, addDays, parse, differenceInDays, intervalToDuration, formatDuration, parseISO } from 'date-fns';
 import Image from "next/image";
 import Link from 'next/link';
@@ -132,14 +133,26 @@ export default function OrdersPage() {
   const loadData = useCallback(() => {
     if (typeof window !== 'undefined') {
         const storedOrdersJSON = localStorage.getItem(ORDERS_KEY);
-        let allOrders: Order[] = storedOrdersJSON ? JSON.parse(storedOrdersJSON) : [];
-        
-        // If local storage is empty, populate it with mock data
-        if (allOrders.length === 0) {
-            allOrders = Object.values(allOrderData);
-            saveAllOrders(allOrders);
+        // Always start with the file data, then override with local storage if it exists
+        let allOrders: Order[] = Object.values(allOrderData);
+
+        if (storedOrdersJSON) {
+            try {
+                const localOrders = JSON.parse(storedOrdersJSON);
+                // Simple merge: assume local storage is more up-to-date
+                const localOrderMap = new Map(localOrders.map((o: Order) => [o.orderId, o]));
+                allOrders = allOrders.map(o => localOrderMap.get(o.orderId) || o);
+                localOrders.forEach((o: Order) => {
+                    if (!allOrders.some(existing => existing.orderId === o.orderId)) {
+                        allOrders.push(o);
+                    }
+                });
+            } catch (e) {
+                console.error("Could not parse orders from localStorage", e);
+            }
         }
         
+        saveAllOrders(allOrders); // Resync local storage with the merged/default data
         setOrders(allOrders);
         setTransactions(getTransactions());
     }
@@ -812,7 +825,7 @@ function HelpBot({ orders, selectedOrder, onOpenReturn, onCancelOrder, onShowAdd
   return (
     <div className="fixed right-6 bottom-6 z-50">
       {open && (
-        <div className="w-72 bg-card border border-border rounded-xl shadow-lg overflow-hidden">
+        <div className="w-60 bg-card border border-border rounded-xl shadow-lg overflow-hidden">
           <div className="p-3 border-b border-border flex items-center justify-between">
             <div className="font-medium text-card-foreground">Help</div>
             <button onClick={() => setOpen(false)} className="text-xs text-muted-foreground">Close</button>
@@ -837,4 +850,3 @@ function HelpBot({ orders, selectedOrder, onOpenReturn, onCancelOrder, onShowAdd
     </div>
   );
 }
-
