@@ -1,5 +1,3 @@
-
-
 "use client";
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
@@ -325,7 +323,8 @@ export default function PaymentPage() {
                 orderDate: new Date().toISOString(),
                 isReturnable: true,
                 timeline: [
-                    { status: "Order Confirmed", date: format(new Date(), 'MMM dd, yyyy'), time: format(new Date(), 'p'), completed: true },
+                    { status: "Pending", date: format(new Date(), 'MMM dd, yyyy'), time: format(new Date(), 'p'), completed: true },
+                    { status: "Order Confirmed", date: null, time: null, completed: false },
                     { status: "Packed", date: null, time: null, completed: false },
                     { status: "Shipped", date: null, time: null, completed: false },
                     { status: "In Transit", date: null, time: null, completed: false },
@@ -767,5 +766,3 @@ export default function PaymentPage() {
     </>
   );
 }
-
-
