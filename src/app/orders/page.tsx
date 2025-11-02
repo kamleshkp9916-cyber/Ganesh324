@@ -313,10 +313,8 @@ useEffect(() => {
     }
     setIsVerifyingOtp(true);
     try {
-        // Call the backend to notify delivery partner
-        // This URL assumes the function is deployed in the same project.
         // In a real app, this would come from a config.
-        const functionUrl = `https://us-central1-${process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID}.cloudfunctions.net/notifyDeliveryPartner`;
+        const functionUrl = `https://us-central1-gcp-project-id.cloudfunctions.net/notifyDeliveryPartner`;
         await fetch(functionUrl, {
             method: 'POST',
             headers: {
@@ -669,12 +667,12 @@ function OrderDetail({ order, statusData, loading, onBack, onRefresh, onRequestR
     const isDelivered = currentStatus === 'Delivered';
 
     const timelineToShow = useMemo(() => {
-        const timeline = statusData?.stages || order.timeline;
-        const cancelIndex = timeline.findIndex((item: any) => item && item.status && item.status.toLowerCase().includes('cancelled'));
-        if (cancelIndex > -1) {
-            return timeline.slice(0, cancelIndex + 1);
-        }
-        return timeline;
+      const timeline = statusData?.stages || order.timeline;
+      const cancelIndex = timeline.findIndex((item: any) => item && item.status && item.status.toLowerCase().includes('cancelled'));
+      if (cancelIndex > -1) {
+        return timeline.slice(0, cancelIndex + 1);
+      }
+      return timeline;
     }, [order.timeline, statusData]);
     
     const completedCount = useMemo(() => timelineToShow.filter((s: any) => s.completed).length, [timelineToShow]);
