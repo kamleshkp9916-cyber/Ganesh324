@@ -16,7 +16,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { InputOTP, InputOTPGroup, InputOTPSeparator, InputOTPSlot } from "@/components/ui/input-otp";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { getOrderById, Order, saveAllOrders, getStatusFromTimeline } from "@/lib/order-data";
+import { getOrderById, Order, saveAllOrders, getStatusFromTimeline, allOrderData } from "@/lib/order-data";
 import { ORDERS_KEY } from "@/lib/order-data";
 import { format, addDays, parse, differenceInDays, intervalToDuration, formatDuration, parseISO } from 'date-fns';
 import Image from "next/image";
@@ -132,8 +132,8 @@ export default function OrdersPage() {
   const TRANSACTIONS_PER_PAGE = 10;
   
   const loadData = useCallback(() => {
-    const allOrders = JSON.parse(localStorage.getItem(ORDERS_KEY) || '[]');
-    setOrders(allOrders);
+    const allOrders = Object.values(allOrderData);
+    setOrders(allOrders as Order[]);
     setTransactions(getTransactions());
   }, []);
   
@@ -630,6 +630,8 @@ function OrderDetail({ order, onBack, onRequestReturn, onSimulatePickup }: any) 
     }, [currentStatus, order]);
     
     const showReviewButton = isDelivered;
+    
+     const showCancelButton = !['Out for Delivery', 'Delivered', 'Return Initiated', 'Return package picked up', 'Returned', 'Cancelled by user'].includes(currentStatus);
 
     const handleReviewSubmit = (review: Review) => {
         if (myReview) {
@@ -692,6 +694,26 @@ function OrderDetail({ order, onBack, onRequestReturn, onSimulatePickup }: any) 
                 ))}
             </div>
 
+             <div className="mt-6 flex flex-wrap gap-2 justify-end">
+                {showCancelButton && (
+                    <Button variant="destructive" size="sm" onClick={() => onRequestReturn('cancel')}>Cancel Order</Button>
+                )}
+                {showReturnButton && (
+                    <Button variant="outline" size="sm" onClick={() => onRequestReturn('return')}>Request Return</Button>
+                )}
+                {showReviewButton && (
+                     <Dialog open={isReviewDialogOpen} onOpenChange={setIsReviewDialogOpen}>
+                        <DialogTrigger asChild>
+                            <Button size="sm"><Star className="mr-2 h-4 w-4" /> {myReview ? "Edit Your Review" : "Write a Review"}</Button>
+                        </DialogTrigger>
+                        <ReviewDialog order={order} user={user} reviewToEdit={myReview || undefined} onReviewSubmit={handleReviewSubmit} closeDialog={() => setIsReviewDialogOpen(false)} />
+                    </Dialog>
+                )}
+                {order.returnRequest?.status === 'pickup_completed' && (
+                    <Button size="sm" variant="secondary" onClick={onSimulatePickup}>Simulate Pickup</Button>
+                )}
+            </div>
+
             <div className="mt-6 text-xs text-muted-foreground">This timeline shows the journey of your order from confirmation to delivery.</div>
         </div>
     );
@@ -714,7 +736,7 @@ function TimelineStep({ step, index, total }: any) {
       <div className="flex-1 pt-0.5">
         <div className="flex items-center justify-between">
           <div className="font-medium text-sm text-card-foreground">{step.label || step.status}</div>
-          <div className="text-xs text-muted-foreground">{step.timestamp ? new Date(step.timestamp).toLocaleString() : (step.completed ? "Done" : "Pending")}</div>
+          <div className="text-xs text-muted-foreground">{step.completed ? (step.date ? `${step.date}, ${step.time}`: 'Completed') : "Pending"}</div>
         </div>
         <div className="text-xs text-muted-foreground mt-1">{step.completed ? "Completed" : "Waiting"}</div>
       </div>
