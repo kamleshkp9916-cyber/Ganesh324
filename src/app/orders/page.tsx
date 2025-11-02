@@ -3,7 +3,7 @@
 
 import React, { useEffect, useState, useRef, useCallback, useMemo } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, RefreshCw, CreditCard, Download, Lock, Coins, Loader2, Bell, ChevronRight, Briefcase, ShoppingBag, BarChart2, Plus, ArrowUp, ArrowDown, Search, Printer, CheckCircle2, Circle, Hourglass, Package, PackageCheck, PackageOpen, Truck, Home, XCircle, AlertTriangle, ShieldCheck, RotateCcw, Star } from 'lucide-react';
+import { ArrowLeft, RefreshCw, CreditCard, Download, Lock, Coins, Loader2, Bell, ChevronRight, Briefcase, ShoppingBag, BarChart2, Plus, ArrowUp, ArrowDown, Search, Printer, CheckCircle2, Circle, Hourglass, Package, PackageCheck, PackageOpen, Truck, Home, XCircle, AlertTriangle, ShieldCheck, RotateCcw, Star, Edit } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Footer } from '@/components/footer';
@@ -16,8 +16,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { InputOTP, InputOTPGroup, InputOTPSeparator, InputOTPSlot } from "@/components/ui/input-otp";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { getOrderById, Order, saveAllOrders, getStatusFromTimeline, allOrderData } from "@/lib/order-data";
-import { ORDERS_KEY } from "@/lib/order-data";
+import { getOrderById, Order, saveAllOrders, getStatusFromTimeline, allOrderData, ORDERS_KEY } from "@/lib/order-data";
 import { format, addDays, parse, differenceInDays, intervalToDuration, formatDuration, parseISO } from 'date-fns';
 import Image from "next/image";
 import Link from 'next/link';
@@ -132,7 +131,8 @@ export default function OrdersPage() {
   const TRANSACTIONS_PER_PAGE = 10;
   
   const loadData = useCallback(() => {
-    const allOrders = Object.values(allOrderData);
+    const storedOrders = localStorage.getItem(ORDERS_KEY);
+    const allOrders = storedOrders ? JSON.parse(storedOrders) : Object.values(allOrderData);
     setOrders(allOrders as Order[]);
     setTransactions(getTransactions());
   }, []);
