@@ -16,7 +16,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { InputOTP, InputOTPGroup, InputOTPSeparator, InputOTPSlot } from "@/components/ui/input-otp";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { getOrderById, Order, saveAllOrders, getStatusFromTimeline, allOrderData } from '@/lib/order-data';
+import { getOrderById, Order, saveAllOrders, getStatusFromTimeline, allOrderData, ORDERS_KEY } from '@/lib/order-data';
 import { format, addDays, parse, differenceInDays, intervalToDuration, formatDuration, parseISO } from 'date-fns';
 import Image from "next/image";
 import Link from 'next/link';
@@ -138,20 +138,20 @@ export default function OrdersPage() {
 
     const storedOrdersJSON = localStorage.getItem(ORDERS_KEY);
     // Use file data only if local storage is empty or invalid
-    let initialOrders: Order[] = [];
-    try {
-        const localOrders = storedOrdersJSON ? JSON.parse(storedOrdersJSON) : null;
-        if (Array.isArray(localOrders) && localOrders.length > 0) {
-            initialOrders = localOrders;
-        } else {
-            initialOrders = Object.values(allOrderData);
+    let allOrders: Order[] = Object.values(allOrderData);
+
+    if (storedOrdersJSON) {
+        try {
+            const localOrders = JSON.parse(storedOrdersJSON);
+            if (Array.isArray(localOrders) && localOrders.length > 0) {
+                allOrders = localOrders;
+            }
+        } catch (e) {
+            console.error("Could not parse orders from localStorage, using file data.", e);
         }
-    } catch (e) {
-        console.error("Could not parse orders from localStorage, using file data.", e);
-        initialOrders = Object.values(allOrderData);
     }
     
-    setOrders(initialOrders);
+    setOrders(allOrders);
     setTransactions(getTransactions());
 }, []);
   
@@ -556,35 +556,29 @@ export default function OrdersPage() {
                         <TabsContent value="confirm" className="py-4">
                             <div className="flex flex-col items-center gap-4 text-center">
                                 <ShieldCheck className="h-12 w-12 text-primary" />
-                                <p>We will send an OTP to your registered mobile number to confirm the cancellation.</p>
-                                <Button onClick={() => setOtp(' ')} disabled={isVerifyingOtp}>
-                                    {isVerifyingOtp ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : null}
-                                    Get OTP
-                                </Button>
-                                {otp && (
-                                    <InputOTP
-                                        maxLength={6}
-                                        value={otp.trim()}
-                                        onChange={(value) => {
-                                            setOtp(value);
-                                            if (value.length === 6) {
-                                                handleConfirmCancellation(value);
-                                            }
-                                        }}
-                                    >
-                                        <InputOTPGroup>
-                                            <InputOTPSlot index={0} />
-                                            <InputOTPSlot index={1} />
-                                            <InputOTPSlot index={2} />
-                                        </InputOTPGroup>
-                                        <InputOTPSeparator />
-                                        <InputOTPGroup>
-                                            <InputOTPSlot index={3} />
-                                            <InputOTPSlot index={4} />
-                                            <InputOTPSlot index={5} />
-                                        </InputOTPGroup>
-                                    </InputOTP>
-                                )}
+                                <p>An OTP has been sent to your registered mobile number for verification.</p>
+                                <InputOTP
+                                    maxLength={6}
+                                    value={otp}
+                                    onChange={(value) => {
+                                        setOtp(value);
+                                        if (value.length === 6) {
+                                            handleConfirmCancellation(value);
+                                        }
+                                    }}
+                                >
+                                    <InputOTPGroup>
+                                        <InputOTPSlot index={0} />
+                                        <InputOTPSlot index={1} />
+                                        <InputOTPSlot index={2} />
+                                    </InputOTPGroup>
+                                    <InputOTPSeparator />
+                                    <InputOTPGroup>
+                                        <InputOTPSlot index={3} />
+                                        <InputOTPSlot index={4} />
+                                        <InputOTPSlot index={5} />
+                                    </InputOTPGroup>
+                                </InputOTP>
                                 {isVerifyingOtp && <div className="flex items-center text-sm text-muted-foreground"><Loader2 className="mr-2 h-4 w-4 animate-spin"/>Verifying...</div>}
                             </div>
                         </TabsContent>
@@ -891,5 +885,7 @@ function HelpBot({ orders, selectedOrder, onOpenReturn, onCancelOrder, onShowAdd
   );
 }
 
+
+    
 
     
