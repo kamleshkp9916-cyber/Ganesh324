@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useEffect, useState, useRef, useCallback, useMemo } from "react";
@@ -16,7 +15,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { InputOTP, InputOTPGroup, InputOTPSeparator, InputOTPSlot } from "@/components/ui/input-otp";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Order, saveAllOrders, getStatusFromTimeline, ORDERS_KEY } from '@/lib/order-data';
+import { Order, saveAllOrders, getStatusFromTimeline, ORDERS_KEY, getOrderById } from '@/lib/order-data';
 import { format, addDays, parse, differenceInDays, intervalToDuration, formatDuration, parseISO } from 'date-fns';
 import Image from "next/image";
 import Link from 'next/link';
@@ -100,546 +99,6 @@ const getStatusIcon = (status: string) => {
     if (status.toLowerCase().includes('cancelled') || status.toLowerCase().includes('undelivered') || status.toLowerCase().includes('failed delivery attempt') || status.toLowerCase().includes('return')) return <XCircle className="h-5 w-5" />;
     return <Circle className="h-5 w-5" />;
 };
-
-
-export default function OrdersPage() {
-  const router = useRouter();
-  const [isClient, setIsClient] = useState(false);
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [selectedOrder, setSelectedOrder] = useState<any>(null);
-  const [statusData, setStatusData] = useState<any>(null);
-  const [loadingStatus, setLoadingStatus] = useState(false);
-  const [returning, setReturning] = useState(false);
-  const [returnReason, setReturnReason] = useState("");
-  const [showReturnConfirm, setShowReturnConfirm] = useState(false);
-  const [returnType, setReturnType] = useState<any>(null);
-  const [returnPickupOption, setReturnPickupOption] = useState("pickup");
-  const [contactPhone, setContactPhone] = useState("");
-  const [attachedPhotos, setAttachedPhotos] = useState<any[]>([]);
-  const [tab, setTab] = useState("orders"); // 'orders' or 'transactions'
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const fileInputRef = useRef<any>(null);
-
-  const [isCancelFlowOpen, setIsCancelFlowOpen] = useState(false);
-  const [cancelStep, setCancelStep] = useState("reason");
-  const [cancelReason, setCancelReason] = useState("");
-  const [cancelFeedback, setCancelFeedback] = useState("");
-  const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
-  const [otp, setOtp] = useState('');
-  const [otpSent, setOtpSent] = useState(false);
-  const { toast } = useToast();
-
-  const [ordersPage, setOrdersPage] = useState(1);
-  const [transactionsPage, setTransactionsPage] = useState(1);
-  const ORDERS_PER_PAGE = 5;
-  const TRANSACTIONS_PER_PAGE = 10;
-  
-  const loadData = useCallback(() => {
-    if (typeof window === 'undefined') return;
-
-    const storedOrdersJSON = localStorage.getItem(ORDERS_KEY);
-    // Always start with the file data, then override with local storage if it exists
-    let allOrders: Order[] = [];
-    try {
-        const parsed = storedOrdersJSON ? JSON.parse(storedOrdersJSON) : [];
-        if (Array.isArray(parsed) && parsed.length > 0) {
-            allOrders = parsed;
-        }
-    } catch (e) {
-       console.error("Could not parse orders from localStorage, using file data.", e);
-    }
-    
-    setOrders(allOrders);
-    setTransactions(getTransactions());
-}, []);
-  
-  useEffect(() => {
-    setIsClient(true);
-    loadData();
-
-    window.addEventListener('storage', loadData);
-    return () => {
-      window.removeEventListener('storage', loadData);
-    }
-  }, [loadData]);
-
-
-  // Helper: update order in orders state
-  function updateOrder(orderId: any, patch: any) {
-    const updatedOrders = orders.map((o) => (o.orderId === orderId ? { ...o, ...patch } : o));
-    saveAllOrders(updatedOrders);
-    setOrders(updatedOrders);
-    if (selectedOrder?.orderId === orderId) setSelectedOrder((s:any) => ({ ...s, ...patch }));
-  }
-
-  // Called when user confirms a cancel/return
-  async function handleSubmitReturn() {
-    if (!selectedOrder || !returnType) return;
-    setReturning(true);
-    try {
-        const functionUrl = `https://us-central1-gcp-project-id.cloudfunctions.net/notifyDeliveryPartner`;
-        await fetch(functionUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ orderId: selectedOrder.orderId, status: 'return_initiated' }),
-        });
-
-      const resp: any = await submitReturnRequestMock({
-        orderId: selectedOrder.orderId,
-        type: returnType,
-        reason: returnReason,
-        contactPhone,
-        pickup: returnPickupOption,
-        photos: attachedPhotos,
-      });
-      
-      const newTimelineStep = {
-        status: returnType === 'cancel' ? 'Cancellation Requested' : 'Return Initiated',
-        date: format(new Date(), 'MMM dd, yyyy'),
-        time: format(new Date(), 'p'),
-        completed: true
-      };
-      
-      updateOrder(selectedOrder.orderId, { returnRequest: resp, timeline: [...selectedOrder.timeline, newTimelineStep] });
-
-      // close confirm
-      setShowReturnConfirm(false);
-      setReturnReason("");
-      setReturnType(null);
-      setReturnPickupOption("pickup");
-      setContactPhone("");
-      setAttachedPhotos([]);
-      if (fileInputRef.current) fileInputRef.current.value = null;
-    } catch (e) {
-      console.error(e);
-      // show error to user (not implemented)
-    } finally {
-      setReturning(false);
-    }
-  }
-
-  function handlePhotoAttach(e: any) {
-    const files = Array.from(e.target.files || []);
-    setAttachedPhotos(files);
-  }
-
-  // Simulate pickup button (for testing) — in real life pickup will be processed by backend
-  function handleSimulatePickup() {
-    if (!selectedOrder) return;
-    const tx = simulatePickupComplete(selectedOrder.orderId);
-    if (tx) {
-        const updatedReturn = { ...(selectedOrder.returnRequest || {}), refundTx: tx, status: "pickup_completed", refundedAt: new Date().toISOString() };
-        
-        let timelineUpdate = {};
-        if (selectedOrder.timeline) {
-            const newTimeline = [...selectedOrder.timeline];
-            const returnPickedUpIndex = newTimeline.findIndex(item => item.status === 'Return package picked up');
-            if (returnPickedUpIndex === -1) {
-                newTimeline.push({ status: 'Return package picked up', date: format(new Date(), 'MMM dd, yyyy'), time: format(new Date(), 'p'), completed: true });
-                newTimeline.push({ status: 'Refund Initiated: The amount will be credited in 5-7 business days.', date: format(new Date(), 'MMM dd, yyyy'), time: format(new Date(), 'p'), completed: false });
-            }
-            timelineUpdate = { timeline: newTimeline };
-        }
-
-        updateOrder(selectedOrder.orderId, { returnRequest: updatedReturn, ...timelineUpdate });
-        toast({ title: "Pickup Simulated", description: `Refund ${tx.status} for transaction ${tx.transactionId}` });
-    } else {
-        toast({ variant: 'destructive', title: "Error", description: "No pending pickup/refund found for this order." });
-    }
-}
-
-  async function handleCancelFromBot(orderId: any) {
-    const order = orders.find((o) => o.orderId === orderId);
-    if (!order) return;
-    // In a real app, you would check status here before allowing cancellation.
-    const resp: any = await submitReturnRequestMock({ orderId, type: 'cancel', reason: 'Cancelled via help', contactPhone: null, pickup: 'dropoff', photos: [] });
-    updateOrder(orderId, { returnRequest: resp, status: 'cancel_requested' });
-    alert('Cancel request submitted via Help Bot.');
-  }
-
-  function formatAddress(addr: any) {
-    if (!addr) return '';
-    return `${addr.name}, ${addr.village}, ${addr.city}, ${addr.state} - ${addr.pincode}, India • ${addr.phone}`;
-  }
-
-   async function handleConfirmCancellation(otpValue: string) {
-    if (otpValue !== '123456') {
-        toast({ title: "Invalid OTP", variant: "destructive" });
-        return;
-    }
-    setIsVerifyingOtp(true);
-    try {
-        const allOrdersJSON = localStorage.getItem('streamcart_orders');
-        let allOrders: Order[] = allOrdersJSON ? JSON.parse(allOrdersJSON) : [];
-        
-        const orderIndex = allOrders.findIndex((o: Order) => o.orderId === selectedOrder.orderId);
-
-        if (orderIndex !== -1) {
-            const updatedOrder: Order = { ...allOrders[orderIndex] };
-
-            if (!updatedOrder.timeline.some(step => step && step.status && step.status.toLowerCase().includes('cancelled'))) {
-                updatedOrder.timeline.push({ status: 'Cancelled by user', date: format(new Date(), 'MMM dd, yyyy'), time: format(new Date(), 'p'), completed: true });
-                updatedOrder.timeline.push({ status: 'Refund Initiated: The amount will be credited to your original payment method within 5-7 business days.', date: format(new Date(), 'MMM dd, yyyy'), time: format(new Date(), 'p'), completed: false });
-            }
-            
-            allOrders[orderIndex] = updatedOrder;
-            
-            saveAllOrders(allOrders);
-            setOrders(allOrders);
-            setSelectedOrder(updatedOrder);
-
-            const functionUrl = `https://us-central1-gcp-project-id.cloudfunctions.net/notifyDeliveryPartner`;
-             await fetch(functionUrl, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ orderId: selectedOrder.orderId, status: 'cancelled' }),
-            });
-
-            addTransaction({
-                transactionId: `REF-${selectedOrder.orderId.replace('#', '')}`,
-                type: 'Refund',
-                description: `For cancelled order ${selectedOrder.orderId}`,
-                date: format(new Date(), 'MMM dd, yyyy'),
-                time: format(new Date(), 'p'),
-                amount: selectedOrder.total,
-                status: 'Processing',
-            });
-            
-            toast({ title: "Order Cancelled & Refund Initiated" });
-            setIsCancelFlowOpen(false);
-            setCancelStep("reason");
-            setCancelReason("");
-            setCancelFeedback("");
-            setOtp("");
-            setOtpSent(false);
-        } else {
-            throw new Error("Order not found in local storage.");
-        }
-    } catch (error) {
-        console.error("Cancellation error:", error);
-        toast({ title: "Cancellation Failed", variant: "destructive" });
-    } finally {
-        setIsVerifyingOtp(false);
-    }
-  };
-
-  const paginatedOrders = orders.slice((ordersPage - 1) * ORDERS_PER_PAGE, ordersPage * ORDERS_PER_PAGE);
-  const totalOrderPages = Math.ceil(orders.length / ORDERS_PER_PAGE);
-
-  const paginatedTransactions = transactions.slice((transactionsPage - 1) * TRANSACTIONS_PER_PAGE, transactionsPage * TRANSACTIONS_PER_PAGE);
-  const totalTransactionPages = Math.ceil(transactions.length / TRANSACTIONS_PER_PAGE);
-  
-  return (
-    <div className="min-h-screen bg-background text-foreground flex flex-col">
-       <header className="p-4 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-sm z-30 border-b">
-        <Button variant="ghost" size="icon" onClick={() => router.back()}>
-          <ArrowLeft className="h-6 w-6" />
-        </Button>
-        <h1 className="text-xl font-bold">My Orders</h1>
-        <div className="w-10"></div>
-      </header>
-      <main className="flex-grow p-6">
-        <div className="max-w-6xl mx-auto">
-          <header className="mb-4 flex items-center justify-between">
-            <div>
-              <p className="text-sm text-muted-foreground">View orders, request returns, and see transactions.</p>
-            </div>
-            <div className="flex items-center gap-3">
-              <button onClick={() => setTab("orders")} className={cn(`px-3 py-1 rounded-md text-sm`, tab === 'orders' ? 'bg-primary text-primary-foreground' : 'border border-border')}>Orders</button>
-              <button onClick={() => setTab("transactions")} className={cn(`px-3 py-1 rounded-md text-sm`, tab === 'transactions' ? 'bg-primary text-primary-foreground' : 'border border-border')}>Transactions</button>
-            </div>
-          </header>
-
-          {tab === 'orders' && (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="md:col-span-1">
-                <div className="bg-card p-4 rounded-2xl shadow-lg">
-                  <h2 className="font-medium mb-3 text-card-foreground">Orders</h2>
-                  <div className="space-y-3">
-                    {!isClient ? (
-                        Array.from({ length: 3 }).map((_, i) => (
-                           <div key={i} className="flex items-center gap-3 p-3">
-                                <Skeleton className="w-14 h-14 rounded-md" />
-                                <div className="flex-1 space-y-2">
-                                    <Skeleton className="h-4 w-3/4" />
-                                    <Skeleton className="h-3 w-1/2" />
-                                </div>
-                           </div>
-                        ))
-                    ) : (
-                        paginatedOrders.map((o) => {
-                          const status = getStatusFromTimeline(o.timeline);
-                          return (
-                          <button
-                            key={o.orderId}
-                            onClick={() => setSelectedOrder(o)}
-                            className={cn(`w-full text-left p-3 rounded-xl border flex items-center gap-3 hover:shadow-lg transition`,
-                              selectedOrder?.orderId === o.orderId ? "border-primary bg-primary/10" : "border-border"
-                            )}
-                          >
-                            <Image src={o.products[0].imageUrl} alt={o.products[0].name} width={56} height={56} className="w-14 h-14 rounded-md object-cover" />
-                            <div className="flex-1 overflow-hidden">
-                               <div className="text-sm font-medium text-card-foreground">{o.products[0].name}{o.products.length > 1 ? ` + ${o.products.length - 1} more` : ''}</div>
-                               <div className="text-xs text-muted-foreground">{o.orderId} • {isClient ? new Date(o.orderDate).toLocaleString() : ''}</div>
-                              <div className="text-xs text-muted-foreground mt-1 truncate">{formatAddress(o.address)}</div>
-                            </div>
-                          </button>
-                        )})
-                    )}
-                  </div>
-                   {totalOrderPages > 1 && (
-                        <Pagination className="mt-4">
-                            <PaginationContent>
-                                <PaginationItem>
-                                    <Button variant="outline" onClick={() => setOrdersPage(p => Math.max(1, p - 1))} disabled={ordersPage === 1}>Previous</Button>
-                                </PaginationItem>
-                                <PaginationItem>
-                                    <span className="p-2 text-sm">Page {ordersPage} of {totalOrderPages}</span>
-                                </PaginationItem>
-                                <PaginationItem>
-                                    <Button variant="outline" onClick={() => setOrdersPage(p => Math.min(totalOrderPages, p + 1))} disabled={ordersPage === totalOrderPages}>Next</Button>
-                                </PaginationItem>
-                            </PaginationContent>
-                        </Pagination>
-                    )}
-                </div>
-              </div>
-
-              <div className="md:col-span-2">
-                <div className="bg-card p-6 rounded-2xl shadow-lg min-h-[300px]">
-                  {!selectedOrder ? (
-                    <div className="flex flex-col items-center justify-center h-64">
-                      <div className="text-muted-foreground">No order selected</div>
-                      <div className="text-sm mt-2 text-muted-foreground">Click an order on the left to see its tracking steps.</div>
-                    </div>
-                  ) : (
-                    <OrderDetail
-                      order={selectedOrder}
-                      onBack={() => setSelectedOrder(null)}
-                      onRequestReturn={(type: any) => {
-                        if (type === 'cancel') {
-                            setIsCancelFlowOpen(true);
-                        } else {
-                            setReturnType(type);
-                            setShowReturnConfirm(true);
-                        }
-                      }}
-                      onSimulatePickup={handleSimulatePickup}
-                    />
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
-
-            {tab === 'transactions' && (
-            <div className="bg-card p-6 rounded-2xl shadow-lg">
-                <h2 className="text-lg font-medium mb-4 text-card-foreground">Transactions</h2>
-                <div className="overflow-x-auto">
-                    <table className="w-full text-sm">
-                        <thead className="text-xs text-muted-foreground text-left">
-                            <tr>
-                                <th className="py-2">Txn ID/Order</th>
-                                <th>Type</th>
-                                <th>Amount</th>
-                                <th>Status</th>
-                                <th>Time</th>
-                                <th className="text-right">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                             {!isClient ? (
-                                Array.from({length: 5}).map((_, i) => (
-                                    <tr key={i} className="border-t border-border">
-                                        <td className="py-4"><Skeleton className="h-5 w-24" /></td>
-                                        <td><Skeleton className="h-5 w-16" /></td>
-                                        <td><Skeleton className="h-5 w-20" /></td>
-                                        <td><Skeleton className="h-5 w-24" /></td>
-                                        <td><Skeleton className="h-5 w-28" /></td>
-                                        <td className="text-right"><Skeleton className="h-8 w-8 rounded-full" /></td>
-                                    </tr>
-                                ))
-                            ) : (
-                                paginatedTransactions.map((t, index) => (
-                                    <tr key={`${t.transactionId}-${index}`} className="border-t border-border">
-                                        <td className="py-2 font-mono">{t.transactionId}</td>
-                                        <td className="capitalize">{t.type}</td>
-                                        <td className={cn(t.amount > 0 ? "text-green-500" : "text-foreground")}>
-                                            {t.amount > 0 ? '+' : ''}₹{(t.amount ?? 0).toFixed(2)}
-                                        </td>
-                                        <td>
-                                            <Badge variant={t.status === 'Completed' ? 'success' : t.status === 'Processing' ? 'warning' : 'destructive'}>
-                                                {t.status}
-                                            </Badge>
-                                        </td>
-                                        <td className="text-xs text-muted-foreground">{new Date(t.date).toLocaleString()}</td>
-                                         <td className="text-right">
-                                            <DropdownMenu>
-                                                <DropdownMenuTrigger asChild>
-                                                    <Button variant="ghost" size="icon" className="h-8 w-8">
-                                                        <MoreVertical className="h-4 w-4" />
-                                                    </Button>
-                                                </DropdownMenuTrigger>
-                                                <DropdownMenuContent align="end">
-                                                    <DropdownMenuLabel>Details</DropdownMenuLabel>
-                                                    <DropdownMenuSeparator />
-                                                    <DropdownMenuItem>
-                                                        <div className="text-xs space-y-1">
-                                                            <p><strong>Payment Method:</strong> {t.paymentMethod || 'N/A'}</p>
-                                                            <p><strong>Gateway ID:</strong> {t.gatewayTransactionId || 'N/A'}</p>
-                                                        </div>
-                                                    </DropdownMenuItem>
-                                                </DropdownMenuContent>
-                                            </DropdownMenu>
-                                        </td>
-                                    </tr>
-                                ))
-                            )}
-                        </tbody>
-                    </table>
-                </div>
-                {totalTransactionPages > 1 && (
-                    <Pagination className="mt-4">
-                        <PaginationContent>
-                            <PaginationItem>
-                                <Button variant="outline" onClick={() => setTransactionsPage(p => Math.max(1, p - 1))} disabled={transactionsPage === 1}>Previous</Button>
-                            </PaginationItem>
-                            <PaginationItem>
-                                <span className="p-2 text-sm">Page {transactionsPage} of {totalTransactionPages}</span>
-                            </PaginationItem>
-                            <PaginationItem>
-                                <Button variant="outline" onClick={() => setTransactionsPage(p => Math.min(totalTransactionPages, p + 1))} disabled={transactionsPage === totalTransactionPages}>Next</Button>
-                            </PaginationItem>
-                        </PaginationContent>
-                    </Pagination>
-                )}
-            </div>
-            )}
-
-          {/* Cancellation Modal */}
-            <Dialog open={isCancelFlowOpen} onOpenChange={setIsCancelFlowOpen}>
-                <DialogContent className="sm:max-w-md">
-                    <DialogHeader>
-                        <DialogTitle>Cancel Order</DialogTitle>
-                        <DialogDescription>
-                           Please complete the following steps to cancel your order.
-                        </DialogDescription>
-                    </DialogHeader>
-                    <Tabs value={cancelStep} onValueChange={setCancelStep} className="w-full">
-                        <TabsList className="grid w-full grid-cols-3">
-                            <TabsTrigger value="reason" disabled={cancelStep !== 'reason'}>Reason</TabsTrigger>
-                            <TabsTrigger value="feedback" disabled={!cancelReason}>Feedback</TabsTrigger>
-                            <TabsTrigger value="confirm" disabled={!cancelReason}>Confirm</TabsTrigger>
-                        </TabsList>
-                        <TabsContent value="reason" className="py-4">
-                            <RadioGroup value={cancelReason} onValueChange={setCancelReason}>
-                                <div className="space-y-2">
-                                    {cancellationReasons.map(reason => (
-                                        <div key={reason} className="flex items-center space-x-2">
-                                            <RadioGroupItem value={reason} id={reason} />
-                                            <Label htmlFor={reason}>{reason}</Label>
-                                        </div>
-                                    ))}
-                                </div>
-                            </RadioGroup>
-                             <Button onClick={() => setCancelStep('feedback')} disabled={!cancelReason} className="mt-4 w-full">Next</Button>
-                        </TabsContent>
-                        <TabsContent value="feedback" className="py-4">
-                             <div className="space-y-2">
-                                <Label htmlFor="feedback">Feedback (Optional)</Label>
-                                <Textarea id="feedback" value={cancelFeedback} onChange={(e) => setCancelFeedback(e.target.value)} placeholder="Tell us more..." />
-                            </div>
-                            <Button onClick={() => setCancelStep('confirm')} className="mt-4 w-full">Next</Button>
-                        </TabsContent>
-                        <TabsContent value="confirm" className="py-4">
-                            <div className="flex flex-col items-center gap-4 text-center">
-                                <ShieldCheck className="h-12 w-12 text-primary" />
-                                {!otpSent ? (
-                                    <>
-                                        <p>An OTP will be sent to your registered mobile number for verification.</p>
-                                        <Button onClick={() => {
-                                            toast({ title: "OTP Sent!", description: "A 6-digit code has been sent." });
-                                            setOtpSent(true);
-                                        }}>Get OTP</Button>
-                                    </>
-                                ) : (
-                                    <>
-                                        <p>An OTP has been sent. Please enter it below to confirm cancellation.</p>
-                                        <InputOTP
-                                            maxLength={6}
-                                            value={otp}
-                                            onChange={(value) => {
-                                                setOtp(value);
-                                                if (value.length === 6) {
-                                                    handleConfirmCancellation(value);
-                                                }
-                                            }}
-                                        >
-                                            <InputOTPGroup>
-                                                <InputOTPSlot index={0} />
-                                                <InputOTPSlot index={1} />
-                                                <InputOTPSlot index={2} />
-                                            </InputOTPGroup>
-                                            <InputOTPSeparator />
-                                            <InputOTPGroup>
-                                                <InputOTPSlot index={3} />
-                                                <InputOTPSlot index={4} />
-                                                <InputOTPSlot index={5} />
-                                            </InputOTPGroup>
-                                        </InputOTP>
-                                        {isVerifyingOtp && <div className="flex items-center text-sm text-muted-foreground"><Loader2 className="mr-2 h-4 w-4 animate-spin"/>Verifying...</div>}
-                                    </>
-                                )}
-                            </div>
-                        </TabsContent>
-                    </Tabs>
-                </DialogContent>
-            </Dialog>
-
-          {/* Return confirmation modal (enhanced) */}
-         {showReturnConfirm && selectedOrder && (
-            <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
-              <div className="bg-card border border-border rounded-xl p-6 w-full max-w-lg">
-                <h3 className="text-lg font-semibold text-card-foreground">{returnType === 'cancel' ? 'Cancel order' : 'Request return'}</h3>
-                <p className="text-sm text-muted-foreground mt-2">Order <span className="font-medium text-card-foreground">{selectedOrder.orderId}</span> • {selectedOrder.products[0].name}</p>
-
-                 <label className="block text-xs text-muted-foreground mt-4">Reason</label>
-                  <select value={returnReason} onChange={(e) => setReturnReason(e.target.value)} className="w-full mt-2 p-2 bg-input border-border rounded-md text-sm">
-                      <option value="">-- Select reason --</option>
-                      {(returnType === 'cancel' ? cancellationReasons : returnReasons).map(reason => (
-                          <option key={reason} value={reason}>{reason}</option>
-                      ))}
-                  </select>
-
-                <label className="block text-xs text-muted-foreground mt-3">Pickup vs Drop-off</label>
-                <div className="flex items-center gap-3 mt-2">
-                  <label className="flex items-center gap-2"><input type="radio" checked={returnPickupOption==='pickup'} onChange={() => setReturnPickupOption('pickup')} /> Pickup</label>
-                  <label className="flex items-center gap-2"><input type="radio" checked={returnPickupOption==='dropoff'} onChange={() => setReturnPickupOption('dropoff')} /> Drop-off</label>
-                </div>
-
-                <label className="block text-xs text-muted-foreground mt-3">Contact phone for pickup (optional)</label>
-                <input value={contactPhone} onChange={(e) => setContactPhone(e.target.value)} className="w-full mt-2 p-2 bg-input border-border rounded-md text-sm" placeholder="+91 98XXXXXXXX" />
-
-                <label className="block text-xs text-muted-foreground mt-3">Attach photos (optional)</label>
-                <input ref={fileInputRef} onChange={handlePhotoAttach} type="file" multiple accept="image/*" className="w-full mt-2 text-sm" />
-
-                <div className="flex items-center gap-3 mt-4 justify-end">
-                  <button onClick={() => { setShowReturnConfirm(false); setReturnType(null); }} className="px-3 py-2 rounded-md text-sm border border-border">Cancel</button>
-                  <button onClick={handleSubmitReturn} disabled={returning} className="px-3 py-2 rounded-md text-sm bg-primary text-primary-foreground disabled:opacity-60">
-                    {returning ? 'Submitting...' : returnType === 'cancel' ? 'Confirm Cancel' : 'Submit Return'}
-                  </button>
-                </div>
-
-                <div className="mt-3 text-xs text-muted-foreground">Note: In this mock, refunds are created as pending and will be marked successful after a simulated pickup. In production your backend will process pickup and refund flows.</div>
-              </div>
-            </div>
-          )}
-        </div>
-      </main>
-      <Footer/>
-    </div>
-  );
-}
 
 function OrderDetail({ order, onBack, onRequestReturn, onSimulatePickup }: any) {
     const { user } = useAuth();
@@ -807,81 +266,528 @@ function TimelineStep({ step, index, total }: any) {
   );
 }
 
-function HelpBot({ orders, selectedOrder, onOpenReturn, onCancelOrder, onShowAddress }: any) {
-  const [open, setOpen] = useState(false);
-  const [messages, setMessages] = useState([
-    { from: 'bot', text: 'Hi — I can help with returns and order status. Use buttons or ask a question.' },
-  ]);
-  const [input, setInput] = useState("");
+function OrdersPageContent() {
+  const router = useRouter();
+  const [isClient, setIsClient] = useState(false);
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [selectedOrder, setSelectedOrder] = useState<any>(null);
+  const [statusData, setStatusData] = useState<any>(null);
+  const [loadingStatus, setLoadingStatus] = useState(false);
+  const [returning, setReturning] = useState(false);
+  const [returnReason, setReturnReason] = useState("");
+  const [showReturnConfirm, setShowReturnConfirm] = useState(false);
+  const [returnType, setReturnType] = useState<any>(null);
+  const [returnPickupOption, setReturnPickupOption] = useState("pickup");
+  const [contactPhone, setContactPhone] = useState("");
+  const [attachedPhotos, setAttachedPhotos] = useState<any[]>([]);
+  const [tab, setTab] = useState("orders"); // 'orders' or 'transactions'
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const fileInputRef = useRef<any>(null);
 
-  function pushBot(text: any) {
-    setMessages((m) => [...m, { from: 'bot', text }]);
-  }
+  const [isCancelFlowOpen, setIsCancelFlowOpen] = useState(false);
+  const [cancelStep, setCancelStep] = useState("reason");
+  const [cancelReason, setCancelReason] = useState("");
+  const [cancelFeedback, setCancelFeedback] = useState("");
+  const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
+  const [otp, setOtp] = useState('');
+  const [otpSent, setOtpSent] = useState(false);
+  const { toast } = useToast();
 
-  function pushUser(text: any) {
-    setMessages((m) => [...m, { from: 'user', text }]);
-  }
+  const [ordersPage, setOrdersPage] = useState(1);
+  const [transactionsPage, setTransactionsPage] = useState(1);
+  const ORDERS_PER_PAGE = 5;
+  const TRANSACTIONS_PER_PAGE = 10;
+  
+  const loadData = useCallback(() => {
+    if (typeof window === 'undefined') return;
 
-  function handleRefundStatus() {
-    if (!selectedOrder) { pushBot('Please select an order first (click one on the left).'); return; }
-    pushUser('Refund status');
-    const tx = orders.find((o: any) => o.id === selectedOrder.id)?.returnRequest?.refundTx;
-    if (!tx) pushBot('No refund transaction found for this order yet.');
-    else pushBot(`Refund transaction ${tx.id} is currently ${tx.status}.`);
-  }
-
-  function handleShowAddress() {
-    if (!selectedOrder) { pushBot('Please select an order first (click one on the left).'); return; }
-    pushUser('Show address');
-    onShowAddress(selectedOrder);
-    pushBot('Displayed address for the selected order.');
-  }
-
-  function send() {
-    if (!input.trim()) return;
-    const text = input.trim();
-    pushUser(text);
-    const msgLower = text.toLowerCase();
-
-    if (msgLower.includes('return')) {
-        pushBot("You can request a return for delivered items within 7 days. Is this what you want to do?");
-    } else if (msgLower.includes('refund')) {
-      handleRefundStatus();
-    } else if (msgLower.includes('address')) {
-      handleShowAddress();
+    const storedOrdersJSON = localStorage.getItem(ORDERS_KEY);
+    let allOrders: Order[] = [];
+    if (storedOrdersJSON) {
+        try {
+            const parsed = JSON.parse(storedOrdersJSON);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+                allOrders = parsed;
+            }
+        } catch (e) {
+           console.error("Could not parse orders from localStorage, using file data.", e);
+        }
     }
-    else {
-      pushBot("I can help with: [Request return], [Refund status], [Show address].");
-    }
+    
+    setOrders(allOrders);
+    setTransactions(getTransactions());
+}, []);
+  
+  useEffect(() => {
+    setIsClient(true);
+    loadData();
 
-    setInput("");
+    window.addEventListener('storage', loadData);
+    return () => {
+      window.removeEventListener('storage', loadData);
+    }
+  }, [loadData]);
+
+
+  // Helper: update order in orders state
+  function updateOrder(orderId: any, patch: any) {
+    const updatedOrders = orders.map((o) => (o.orderId === orderId ? { ...o, ...patch } : o));
+    saveAllOrders(updatedOrders);
+    setOrders(updatedOrders);
+    if (selectedOrder?.orderId === orderId) setSelectedOrder((s:any) => ({ ...s, ...patch }));
   }
 
+  // Called when user confirms a cancel/return
+  async function handleSubmitReturn() {
+    if (!selectedOrder || !returnType) return;
+    setReturning(true);
+    try {
+        const functionUrl = `https://us-central1-gcp-project-id.cloudfunctions.net/notifyDeliveryPartner`;
+        await fetch(functionUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ orderId: selectedOrder.orderId, status: 'return_initiated' }),
+        });
+
+      const resp: any = await submitReturnRequestMock({
+        orderId: selectedOrder.orderId,
+        type: returnType,
+        reason: returnReason,
+        contactPhone,
+        pickup: returnPickupOption,
+        photos: attachedPhotos,
+      });
+      
+      const newTimelineStep = {
+        status: returnType === 'cancel' ? 'Cancellation Requested' : 'Return Initiated',
+        date: format(new Date(), 'MMM dd, yyyy'),
+        time: format(new Date(), 'p'),
+        completed: true
+      };
+      
+      updateOrder(selectedOrder.orderId, { returnRequest: resp, timeline: [...selectedOrder.timeline, newTimelineStep] });
+
+      setShowReturnConfirm(false);
+      setReturnReason("");
+      setReturnType(null);
+      setReturnPickupOption("pickup");
+      setContactPhone("");
+      setAttachedPhotos([]);
+      if (fileInputRef.current) fileInputRef.current.value = null;
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setReturning(false);
+    }
+  }
+
+  function handlePhotoAttach(e: any) {
+    const files = Array.from(e.target.files || []);
+    setAttachedPhotos(files);
+  }
+
+  function handleSimulatePickup() {
+    if (!selectedOrder) return;
+    const tx = simulatePickupComplete(selectedOrder.orderId);
+    if (tx) {
+        const updatedReturn = { ...(selectedOrder.returnRequest || {}), refundTx: tx, status: "pickup_completed", refundedAt: new Date().toISOString() };
+        
+        let timelineUpdate = {};
+        if (selectedOrder.timeline) {
+            const newTimeline = [...selectedOrder.timeline];
+            const returnPickedUpIndex = newTimeline.findIndex(item => item.status === 'Return package picked up');
+            if (returnPickedUpIndex === -1) {
+                newTimeline.push({ status: 'Return package picked up', date: format(new Date(), 'MMM dd, yyyy'), time: format(new Date(), 'p'), completed: true });
+                newTimeline.push({ status: 'Refund Completed: The amount has been credited to your original payment method.', date: format(new Date(), 'MMM dd, yyyy'), time: format(new Date(), 'p'), completed: true });
+            }
+            timelineUpdate = { timeline: newTimeline };
+        }
+
+        updateOrder(selectedOrder.orderId, { returnRequest: updatedReturn, ...timelineUpdate });
+        toast({ title: "Pickup Simulated", description: `Refund ${tx.status} for transaction ${tx.transactionId}` });
+    } else {
+        toast({ variant: 'destructive', title: "Error", description: "No pending pickup/refund found for this order." });
+    }
+}
+
+  async function handleConfirmCancellation(otpValue: string) {
+    if (otpValue !== '123456') {
+        toast({ title: "Invalid OTP", variant: "destructive" });
+        return;
+    }
+    setIsVerifyingOtp(true);
+    try {
+        const allOrdersJSON = localStorage.getItem('streamcart_orders');
+        let allOrders: Order[] = allOrdersJSON ? JSON.parse(allOrdersJSON) : [];
+        
+        const orderIndex = allOrders.findIndex((o: Order) => o.orderId === selectedOrder.orderId);
+
+        if (orderIndex !== -1) {
+            const updatedOrder: Order = { ...allOrders[orderIndex] };
+
+            if (!updatedOrder.timeline.some(step => step && step.status && step.status.toLowerCase().includes('cancelled'))) {
+                updatedOrder.timeline.push({ status: 'Cancelled by user', date: format(new Date(), 'MMM dd, yyyy'), time: format(new Date(), 'p'), completed: true });
+                updatedOrder.timeline.push({ status: 'Refund Initiated: The amount will be credited to your original payment method within 5-7 business days.', date: format(new Date(), 'MMM dd, yyyy'), time: format(new Date(), 'p'), completed: false });
+            }
+            
+            allOrders[orderIndex] = updatedOrder;
+            
+            saveAllOrders(allOrders);
+            setOrders(allOrders);
+            setSelectedOrder(updatedOrder);
+
+            const functionUrl = `https://us-central1-gcp-project-id.cloudfunctions.net/notifyDeliveryPartner`;
+             await fetch(functionUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ orderId: selectedOrder.orderId, status: 'cancelled' }),
+            });
+
+            addTransaction({
+                id: Date.now(),
+                transactionId: `REF-${selectedOrder.orderId.replace('#', '')}`,
+                type: 'Refund',
+                description: `For cancelled order ${selectedOrder.orderId}`,
+                date: format(new Date(), 'MMM dd, yyyy'),
+                time: format(new Date(), 'p'),
+                amount: selectedOrder.total,
+                status: 'Processing',
+            });
+            
+            toast({ title: "Order Cancelled & Refund Initiated" });
+            setIsCancelFlowOpen(false);
+            setCancelStep("reason");
+            setCancelReason("");
+            setCancelFeedback("");
+            setOtp("");
+            setOtpSent(false);
+        } else {
+            throw new Error("Order not found in local storage.");
+        }
+    } catch (error) {
+        console.error("Cancellation error:", error);
+        toast({ title: "Cancellation Failed", variant: "destructive" });
+    } finally {
+        setIsVerifyingOtp(false);
+    }
+  };
+
+  const paginatedOrders = orders.slice((ordersPage - 1) * ORDERS_PER_PAGE, ordersPage * ORDERS_PER_PAGE);
+  const totalOrderPages = Math.ceil(orders.length / ORDERS_PER_PAGE);
+
+  const paginatedTransactions = transactions.slice((transactionsPage - 1) * TRANSACTIONS_PER_PAGE, transactionsPage * TRANSACTIONS_PER_PAGE);
+  const totalTransactionPages = Math.ceil(transactions.length / TRANSACTIONS_PER_PAGE);
+  
   return (
-    <div className="fixed right-6 bottom-6 z-50">
-      {open && (
-        <div className="w-72 bg-card border border-border rounded-xl shadow-lg overflow-hidden">
-          <div className="p-3 border-b border-border flex items-center justify-between">
-            <div className="font-medium text-card-foreground">Help</div>
-            <button onClick={() => setOpen(false)} className="text-xs text-muted-foreground">Close</button>
-          </div>
-          <div className="p-3 h-64 overflow-y-auto text-sm" id="help-chat">
-            {messages.map((m, i) => (
-              <div key={i} className={`mb-2 ${m.from==='bot' ? 'text-muted-foreground' : 'text-right'}`}>
-                <div className={`${m.from==='bot' ? 'inline-block bg-muted p-2 rounded-md' : 'inline-block bg-primary text-primary-foreground p-2 rounded-md'}`}>{m.text}</div>
-              </div>
-            ))}
-          </div>
-          <div className="p-3 border-t border-border flex gap-2">
-            <input value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => e.key==='Enter' && send()} className="flex-1 p-2 bg-input border-border rounded-md text-sm" placeholder="Ask: return, refund, address..." />
-            <button onClick={send} className="px-3 py-2 bg-primary text-primary-foreground rounded-md text-sm">Send</button>
-          </div>
-        </div>
-      )}
+    <div className="min-h-screen bg-background text-foreground flex flex-col">
+       <header className="p-4 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-sm z-30 border-b">
+        <Button variant="ghost" size="icon" onClick={() => router.back()}>
+          <ArrowLeft className="h-6 w-6" />
+        </Button>
+        <h1 className="text-xl font-bold">My Orders</h1>
+        <div className="w-10"></div>
+      </header>
+      <main className="flex-grow p-6">
+        <div className="max-w-6xl mx-auto">
+          <header className="mb-4 flex items-center justify-between">
+            <div>
+              <p className="text-sm text-muted-foreground">View orders, request returns, and see transactions.</p>
+            </div>
+            <div className="flex items-center gap-3">
+              <button onClick={() => setTab("orders")} className={cn(`px-3 py-1 rounded-md text-sm`, tab === 'orders' ? 'bg-primary text-primary-foreground' : 'border border-border')}>Orders</button>
+              <button onClick={() => setTab("transactions")} className={cn(`px-3 py-1 rounded-md text-sm`, tab === 'transactions' ? 'bg-primary text-primary-foreground' : 'border border-border')}>Transactions</button>
+            </div>
+          </header>
 
-      <button onClick={() => setOpen((o) => !o)} className="w-14 h-14 rounded-full bg-primary text-primary-foreground shadow-lg flex items-center justify-center">
-         ?
-      </button>
+          {tab === 'orders' && (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="md:col-span-1">
+                <div className="bg-card p-4 rounded-2xl shadow-lg">
+                  <h2 className="font-medium mb-3 text-card-foreground">Orders</h2>
+                  <div className="space-y-3">
+                    {!isClient ? (
+                        Array.from({ length: 3 }).map((_, i) => (
+                           <div key={i} className="flex items-center gap-3 p-3">
+                                <Skeleton className="w-14 h-14 rounded-md" />
+                                <div className="flex-1 space-y-2">
+                                    <Skeleton className="h-4 w-3/4" />
+                                    <Skeleton className="h-3 w-1/2" />
+                                </div>
+                           </div>
+                        ))
+                    ) : (
+                        paginatedOrders.map((o) => {
+                          const status = getStatusFromTimeline(o.timeline);
+                          return (
+                          <button
+                            key={o.orderId}
+                            onClick={() => setSelectedOrder(o)}
+                            className={cn(`w-full text-left p-3 rounded-xl border flex items-center gap-3 hover:shadow-lg transition`,
+                              selectedOrder?.orderId === o.orderId ? "border-primary bg-primary/10" : "border-border"
+                            )}
+                          >
+                            <Image src={o.products[0].imageUrl} alt={o.products[0].name} width={56} height={56} className="w-14 h-14 rounded-md object-cover" />
+                            <div className="flex-1 overflow-hidden">
+                               <div className="text-sm font-medium text-card-foreground">{o.products[0].name}{o.products.length > 1 ? ` + ${o.products.length - 1} more` : ''}</div>
+                               <div className="text-xs text-muted-foreground">{o.orderId} • {isClient ? new Date(o.orderDate).toLocaleString() : ''}</div>
+                              <div className="text-xs text-muted-foreground mt-1 truncate">{o.address.name}, {o.address.city}</div>
+                            </div>
+                          </button>
+                        )})
+                    )}
+                  </div>
+                   {totalOrderPages > 1 && (
+                        <Pagination className="mt-4">
+                            <PaginationContent>
+                                <PaginationItem>
+                                    <Button variant="outline" onClick={() => setOrdersPage(p => Math.max(1, p - 1))} disabled={ordersPage === 1}>Previous</Button>
+                                </PaginationItem>
+                                <PaginationItem>
+                                    <span className="p-2 text-sm">Page {ordersPage} of {totalOrderPages}</span>
+                                </PaginationItem>
+                                <PaginationItem>
+                                    <Button variant="outline" onClick={() => setOrdersPage(p => Math.min(totalOrderPages, p + 1))} disabled={ordersPage === totalOrderPages}>Next</Button>
+                                </PaginationItem>
+                            </PaginationContent>
+                        </Pagination>
+                    )}
+                </div>
+              </div>
+
+              <div className="md:col-span-2">
+                <div className="bg-card p-6 rounded-2xl shadow-lg min-h-[300px]">
+                  {!selectedOrder ? (
+                    <div className="flex flex-col items-center justify-center h-64">
+                      <div className="text-muted-foreground">No order selected</div>
+                      <div className="text-sm mt-2 text-muted-foreground">Click an order on the left to see its tracking steps.</div>
+                    </div>
+                  ) : (
+                    <OrderDetail
+                      order={selectedOrder}
+                      onBack={() => setSelectedOrder(null)}
+                      onRequestReturn={(type: any) => {
+                        if (type === 'cancel') {
+                            setIsCancelFlowOpen(true);
+                        } else {
+                            setReturnType(type);
+                            setShowReturnConfirm(true);
+                        }
+                      }}
+                      onSimulatePickup={handleSimulatePickup}
+                    />
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+            {tab === 'transactions' && (
+            <div className="bg-card p-6 rounded-2xl shadow-lg">
+                <h2 className="text-lg font-medium mb-4 text-card-foreground">Transactions</h2>
+                <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                        <thead className="text-xs text-muted-foreground text-left">
+                            <tr>
+                                <th className="py-2">Txn ID/Order</th>
+                                <th>Type</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                                <th>Time</th>
+                                <th className="text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                             {!isClient ? (
+                                Array.from({length: 5}).map((_, i) => (
+                                    <tr key={i} className="border-t border-border">
+                                        <td className="py-4"><Skeleton className="h-5 w-24" /></td>
+                                        <td><Skeleton className="h-5 w-16" /></td>
+                                        <td><Skeleton className="h-5 w-20" /></td>
+                                        <td><Skeleton className="h-5 w-24" /></td>
+                                        <td><Skeleton className="h-5 w-28" /></td>
+                                        <td className="text-right"><Skeleton className="h-8 w-8 rounded-full" /></td>
+                                    </tr>
+                                ))
+                            ) : (
+                                paginatedTransactions.map((t, index) => (
+                                    <tr key={`${t.transactionId}-${index}`} className="border-t border-border">
+                                        <td className="py-2 font-mono">{t.transactionId}</td>
+                                        <td className="capitalize">{t.type}</td>
+                                        <td className={cn(t.amount > 0 ? "text-green-500" : "text-foreground")}>
+                                            {t.amount > 0 ? '+' : ''}₹{(t.amount ?? 0).toFixed(2)}
+                                        </td>
+                                        <td>
+                                            <Badge variant={t.status === 'Completed' ? 'success' : t.status === 'Processing' ? 'warning' : 'destructive'}>
+                                                {t.status}
+                                            </Badge>
+                                        </td>
+                                        <td className="text-xs text-muted-foreground">{new Date(t.date).toLocaleString()}</td>
+                                         <td className="text-right">
+                                            <DropdownMenu>
+                                                <DropdownMenuTrigger asChild>
+                                                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                                                        <MoreVertical className="h-4 w-4" />
+                                                    </Button>
+                                                </DropdownMenuTrigger>
+                                                <DropdownMenuContent align="end">
+                                                    <DropdownMenuLabel>Details</DropdownMenuLabel>
+                                                    <DropdownMenuSeparator />
+                                                    <DropdownMenuItem>
+                                                        <div className="text-xs space-y-1">
+                                                            <p><strong>Payment Method:</strong> {t.paymentMethod || 'N/A'}</p>
+                                                            <p><strong>Gateway ID:</strong> {t.gatewayTransactionId || 'N/A'}</p>
+                                                        </div>
+                                                    </DropdownMenuItem>
+                                                </DropdownMenuContent>
+                                            </DropdownMenu>
+                                        </td>
+                                    </tr>
+                                ))
+                            )}
+                        </tbody>
+                    </table>
+                </div>
+                {totalTransactionPages > 1 && (
+                    <Pagination className="mt-4">
+                        <PaginationContent>
+                            <PaginationItem>
+                                <Button variant="outline" onClick={() => setTransactionsPage(p => Math.max(1, p - 1))} disabled={transactionsPage === 1}>Previous</Button>
+                            </PaginationItem>
+                            <PaginationItem>
+                                <span className="p-2 text-sm">Page {transactionsPage} of {totalTransactionPages}</span>
+                            </PaginationItem>
+                            <PaginationItem>
+                                <Button variant="outline" onClick={() => setTransactionsPage(p => Math.min(totalTransactionPages, p + 1))} disabled={transactionsPage === totalTransactionPages}>Next</Button>
+                            </PaginationItem>
+                        </PaginationContent>
+                    </Pagination>
+                )}
+            </div>
+            )}
+
+            <Dialog open={isCancelFlowOpen} onOpenChange={setIsCancelFlowOpen}>
+                <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                        <DialogTitle>Cancel Order</DialogTitle>
+                        <DialogDescription>
+                           Please complete the following steps to cancel your order.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <Tabs value={cancelStep} onValueChange={setCancelStep} className="w-full">
+                        <TabsList className="grid w-full grid-cols-3">
+                            <TabsTrigger value="reason" disabled={cancelStep !== 'reason'}>Reason</TabsTrigger>
+                            <TabsTrigger value="feedback" disabled={!cancelReason}>Feedback</TabsTrigger>
+                            <TabsTrigger value="confirm" disabled={!cancelReason}>Confirm</TabsTrigger>
+                        </TabsList>
+                        <TabsContent value="reason" className="py-4">
+                            <RadioGroup value={cancelReason} onValueChange={setCancelReason}>
+                                <div className="space-y-2">
+                                    {cancellationReasons.map(reason => (
+                                        <div key={reason} className="flex items-center space-x-2">
+                                            <RadioGroupItem value={reason} id={reason} />
+                                            <Label htmlFor={reason}>{reason}</Label>
+                                        </div>
+                                    ))}
+                                </div>
+                            </RadioGroup>
+                             <Button onClick={() => setCancelStep('feedback')} disabled={!cancelReason} className="mt-4 w-full">Next</Button>
+                        </TabsContent>
+                        <TabsContent value="feedback" className="py-4">
+                             <div className="space-y-2">
+                                <Label htmlFor="feedback">Feedback (Optional)</Label>
+                                <Textarea id="feedback" value={cancelFeedback} onChange={(e) => setCancelFeedback(e.target.value)} placeholder="Tell us more..." />
+                            </div>
+                            <Button onClick={() => setCancelStep('confirm')} className="mt-4 w-full">Next</Button>
+                        </TabsContent>
+                        <TabsContent value="confirm" className="py-4">
+                            <div className="flex flex-col items-center gap-4 text-center">
+                                <ShieldCheck className="h-12 w-12 text-primary" />
+                                {!otpSent ? (
+                                    <>
+                                        <p>An OTP will be sent to your registered mobile number for verification.</p>
+                                        <Button onClick={() => {
+                                            toast({ title: "OTP Sent!", description: "A 6-digit code has been sent." });
+                                            setOtpSent(true);
+                                        }}>Get OTP</Button>
+                                    </>
+                                ) : (
+                                    <>
+                                        <p>An OTP has been sent. Please enter it below to confirm cancellation.</p>
+                                        <InputOTP
+                                            maxLength={6}
+                                            value={otp}
+                                            onChange={(value) => {
+                                                setOtp(value);
+                                                if (value.length === 6) {
+                                                    handleConfirmCancellation(value);
+                                                }
+                                            }}
+                                        >
+                                            <InputOTPGroup>
+                                                <InputOTPSlot index={0} />
+                                                <InputOTPSlot index={1} />
+                                                <InputOTPSlot index={2} />
+                                            </InputOTPGroup>
+                                            <InputOTPSeparator />
+                                            <InputOTPGroup>
+                                                <InputOTPSlot index={3} />
+                                                <InputOTPSlot index={4} />
+                                                <InputOTPSlot index={5} />
+                                            </InputOTPGroup>
+                                        </InputOTP>
+                                        {isVerifyingOtp && <div className="flex items-center text-sm text-muted-foreground"><Loader2 className="mr-2 h-4 w-4 animate-spin"/>Verifying...</div>}
+                                    </>
+                                )}
+                            </div>
+                        </TabsContent>
+                    </Tabs>
+                </DialogContent>
+            </Dialog>
+
+         {showReturnConfirm && selectedOrder && (
+            <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+              <div className="bg-card border border-border rounded-xl p-6 w-full max-w-lg">
+                <h3 className="text-lg font-semibold text-card-foreground">{returnType === 'cancel' ? 'Cancel order' : 'Request return'}</h3>
+                <p className="text-sm text-muted-foreground mt-2">Order <span className="font-medium text-card-foreground">{selectedOrder.orderId}</span> • {selectedOrder.products[0].name}</p>
+
+                 <label className="block text-xs text-muted-foreground mt-4">Reason</label>
+                  <select value={returnReason} onChange={(e) => setReturnReason(e.target.value)} className="w-full mt-2 p-2 bg-input border-border rounded-md text-sm">
+                      <option value="">-- Select reason --</option>
+                      {(returnType === 'cancel' ? cancellationReasons : returnReasons).map(reason => (
+                          <option key={reason} value={reason}>{reason}</option>
+                      ))}
+                  </select>
+
+                <label className="block text-xs text-muted-foreground mt-3">Pickup vs Drop-off</label>
+                <div className="flex items-center gap-3 mt-2">
+                  <label className="flex items-center gap-2"><input type="radio" checked={returnPickupOption==='pickup'} onChange={() => setReturnPickupOption('pickup')} /> Pickup</label>
+                  <label className="flex items-center gap-2"><input type="radio" checked={returnPickupOption==='dropoff'} onChange={() => setReturnPickupOption('dropoff')} /> Drop-off</label>
+                </div>
+
+                <label className="block text-xs text-muted-foreground mt-3">Contact phone for pickup (optional)</label>
+                <input value={contactPhone} onChange={(e) => setContactPhone(e.target.value)} className="w-full mt-2 p-2 bg-input border-border rounded-md text-sm" placeholder="+91 98XXXXXXXX" />
+
+                <label className="block text-xs text-muted-foreground mt-3">Attach photos (optional)</label>
+                <input ref={fileInputRef} onChange={handlePhotoAttach} type="file" multiple accept="image/*" className="w-full mt-2 text-sm" />
+
+                <div className="flex items-center gap-3 mt-4 justify-end">
+                  <button onClick={() => { setShowReturnConfirm(false); setReturnType(null); }} className="px-3 py-2 rounded-md text-sm border border-border">Cancel</button>
+                  <button onClick={handleSubmitReturn} disabled={returning} className="px-3 py-2 rounded-md text-sm bg-primary text-primary-foreground disabled:opacity-60">
+                    {returning ? 'Submitting...' : returnType === 'cancel' ? 'Confirm Cancel' : 'Submit Return'}
+                  </button>
+                </div>
+
+                <div className="mt-3 text-xs text-muted-foreground">Note: In this mock, refunds are created as pending and will be marked successful after a simulated pickup. In production your backend will process pickup and refund flows.</div>
+              </div>
+            </div>
+          )}
+        </div>
+      </main>
+      <Footer/>
     </div>
   );
+}
+
+export default function OrdersPage() {
+    return <OrdersPageContent />
 }
