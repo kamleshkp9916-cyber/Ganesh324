@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useEffect, useState, useRef, useCallback, useMemo } from "react";
@@ -28,7 +27,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { ReviewDialog } from '@/components/delivery-info-client';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
-import { Badge } from "@/components/ui/badge";
+import { Badge, BadgeProps } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const cancellationReasons = [
@@ -137,13 +136,15 @@ export default function OrdersPage() {
     if (typeof window === 'undefined') return;
 
     const storedOrdersJSON = localStorage.getItem(ORDERS_KEY);
-    // Use file data only if local storage is empty or invalid
+    // Always start with the file data, then override with local storage if it exists
     let allOrders: Order[] = Object.values(allOrderData);
 
     if (storedOrdersJSON) {
         try {
             const localOrders = JSON.parse(storedOrdersJSON);
             if (Array.isArray(localOrders) && localOrders.length > 0) {
+                // To prevent losing mock data on empty local storage, we can merge or decide on a strategy.
+                // Here, we'll just use local storage if it's valid.
                 allOrders = localOrders;
             }
         } catch (e) {
@@ -441,7 +442,7 @@ export default function OrdersPage() {
                     <table className="w-full text-sm">
                         <thead className="text-xs text-muted-foreground text-left">
                             <tr>
-                                <th className="py-2">Transaction ID</th>
+                                <th className="py-2">Txn ID/Order</th>
                                 <th>Type</th>
                                 <th>Amount</th>
                                 <th>Status</th>
@@ -693,7 +694,7 @@ function OrderDetail({ order, onBack, onRequestReturn, onSimulatePickup }: any) 
     
     const showReviewButton = currentStatus === 'Delivered';
     
-    const showCancelButton = !['Out for Delivery', 'Delivered', 'Return Initiated', 'Return package picked up', 'Returned'].includes(currentStatus) && !isCancelled;
+    const showCancelButton = !['Out for Delivery', 'Delivered', 'Return Initiated', 'Return package picked up', 'Returned', 'Cancelled by user'].includes(currentStatus) && !isCancelled;
 
     const handleReviewSubmit = (review: Review) => {
         if (myReview) {
