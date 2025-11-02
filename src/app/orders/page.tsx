@@ -16,7 +16,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { InputOTP, InputOTPGroup, InputOTPSeparator, InputOTPSlot } from "@/components/ui/input-otp";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { getOrderById, Order, saveAllOrders, getStatusFromTimeline, ORDERS_KEY } from '@/lib/order-data';
+import { getOrderById, Order, saveAllOrders, getStatusFromTimeline, ORDERS_KEY, allOrderData } from '@/lib/order-data';
 import { format, addDays, parse, differenceInDays, intervalToDuration, formatDuration, parseISO } from 'date-fns';
 import Image from "next/image";
 import Link from 'next/link';
@@ -825,7 +825,7 @@ function HelpBot({ orders, selectedOrder, onOpenReturn, onCancelOrder, onShowAdd
   return (
     <div className="fixed right-6 bottom-6 z-50">
       {open && (
-        <div className="w-60 bg-card border border-border rounded-xl shadow-lg overflow-hidden">
+        <div className="w-72 bg-card border border-border rounded-xl shadow-lg overflow-hidden">
           <div className="p-3 border-b border-border flex items-center justify-between">
             <div className="font-medium text-card-foreground">Help</div>
             <button onClick={() => setOpen(false)} className="text-xs text-muted-foreground">Close</button>
