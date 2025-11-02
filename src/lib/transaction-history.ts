@@ -1,3 +1,4 @@
+
 "use client";
 
 export interface Transaction {
@@ -40,10 +41,11 @@ export const getTransactions = (): Transaction[] => {
     }
 };
 
-export const addTransaction = (transaction: Transaction) => {
+export const addTransaction = (transaction: Omit<Transaction, 'id'>) => {
     if (typeof window === 'undefined') return;
     const items = getTransactions();
-    const newItems = [transaction, ...items];
+    const newTransaction = { ...transaction, id: Date.now() };
+    const newItems = [newTransaction, ...items];
     localStorage.setItem(TRANSACTIONS_KEY, JSON.stringify(newItems));
     window.dispatchEvent(new StorageEvent('storage', { key: TRANSACTIONS_KEY }));
 };

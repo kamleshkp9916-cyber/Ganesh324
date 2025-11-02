@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useEffect, useState, useRef, useCallback, useMemo } from "react";
@@ -15,7 +16,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { InputOTP, InputOTPGroup, InputOTPSeparator, InputOTPSlot } from "@/components/ui/input-otp";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { getOrderById, Order, saveAllOrders, getStatusFromTimeline, allOrderData, ORDERS_KEY } from '@/lib/order-data';
+import { Order, saveAllOrders, getStatusFromTimeline, ORDERS_KEY } from '@/lib/order-data';
 import { format, addDays, parse, differenceInDays, intervalToDuration, formatDuration, parseISO } from 'date-fns';
 import Image from "next/image";
 import Link from 'next/link';
@@ -62,7 +63,7 @@ function submitReturnRequestMock({ orderId, type, reason, contactPhone, pickup, 
         requestedAt: new Date().toISOString(),
       };
       // create a pending refund transaction (refund will be completed after pickup in mock)
-      const refundTx = addTransaction({ id: Date.now(), transactionId: `REF-${orderId}`, type: "Refund", description: `Refund for order ${orderId}`, date: new Date().toISOString(), time: new Date().toLocaleTimeString(), amount: 0, status: "Processing" });
+      const refundTx = addTransaction({ transactionId: `REF-${orderId}`, type: "Refund", description: `Refund for order ${orderId}`, date: new Date().toISOString(), time: new Date().toLocaleTimeString(), amount: 0, status: "Processing" });
       resp.refundTx = refundTx;
       res(resp);
     }, 900)
@@ -137,25 +138,18 @@ export default function OrdersPage() {
     if (typeof window === 'undefined') return;
 
     const storedOrdersJSON = localStorage.getItem(ORDERS_KEY);
-    // Use file data only if local storage is empty or invalid
-    let initialOrders: Order[] = Object.values(allOrderData);
-
-    if (storedOrdersJSON) {
-        try {
-            const parsed = JSON.parse(storedOrdersJSON);
-            if (Array.isArray(parsed) && parsed.length > 0) {
-                initialOrders = parsed;
-            } else {
-                localStorage.setItem(ORDERS_KEY, JSON.stringify(initialOrders));
-            }
-        } catch (e) {
-           console.error("Could not parse orders from localStorage, using file data.", e);
+    // Always start with the file data, then override with local storage if it exists
+    let allOrders: Order[] = [];
+    try {
+        const parsed = storedOrdersJSON ? JSON.parse(storedOrdersJSON) : [];
+        if (Array.isArray(parsed) && parsed.length > 0) {
+            allOrders = parsed;
         }
-    } else {
-        localStorage.setItem(ORDERS_KEY, JSON.stringify(initialOrders));
+    } catch (e) {
+       console.error("Could not parse orders from localStorage, using file data.", e);
     }
     
-    setOrders(initialOrders);
+    setOrders(allOrders);
     setTransactions(getTransactions());
 }, []);
   
@@ -302,7 +296,6 @@ export default function OrdersPage() {
             });
 
             addTransaction({
-                id: Date.now(),
                 transactionId: `REF-${selectedOrder.orderId.replace('#', '')}`,
                 type: 'Refund',
                 description: `For cancelled order ${selectedOrder.orderId}`,
