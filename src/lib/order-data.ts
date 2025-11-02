@@ -23,6 +23,7 @@ export type Order = {
 };
 
 // --- Mock Data ---
+// This object is now empty to clear the default orders.
 export const allOrderData: { [key: string]: Order } = {};
 // --- End Mock Data ---
 

@@ -132,8 +132,23 @@ export default function OrdersPage() {
   
   const loadData = useCallback(() => {
     const storedOrders = localStorage.getItem(ORDERS_KEY);
-    const allOrders = storedOrders ? JSON.parse(storedOrders) : Object.values(allOrderData);
-    setOrders(allOrders as Order[]);
+    // Always load from the file first to get a clean state, then check local storage.
+    let currentOrders = Object.values(allOrderData);
+    if (storedOrders) {
+        try {
+            const parsedOrders = JSON.parse(storedOrders);
+            // If local storage has orders, use them. Otherwise, we stick with the (now empty) file data.
+            if (Array.isArray(parsedOrders) && parsedOrders.length > 0) {
+                currentOrders = parsedOrders;
+            } else {
+                 // If local storage is empty, clear it to ensure it doesn't get used next time.
+                 localStorage.removeItem(ORDERS_KEY);
+            }
+        } catch (e) {
+            console.error("Could not parse orders from local storage, using default.", e);
+        }
+    }
+    setOrders(currentOrders as Order[]);
     setTransactions(getTransactions());
   }, []);
   
