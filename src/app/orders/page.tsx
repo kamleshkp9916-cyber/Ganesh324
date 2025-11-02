@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useEffect, useState, useRef, useCallback, useMemo } from "react";
@@ -45,35 +46,6 @@ const returnReasons = [
   "No longer need the item",
   "Other"
 ];
-
-// Helper: default mock fetchStatus (remove in production)
-async function fetchDeliveryStatusMock(orderId: any) {
-  // NOTE: keep this as a tiny local mock only for testing — replace with real fetch.
-  const ALL_STAGES = [
-    { key: "ordered", label: "Order placed" },
-    { key: "packed", label: "Packed" },
-    { key: "shipped", label: "Shipped" },
-    { key: "out_for_delivery", label: "Out for delivery" },
-    { key: "delivered", label: "Delivered" },
-  ];
-  // create deterministic completed count by orderId char
-  let completedCount = 1;
-  if (orderId.endsWith("1")) completedCount = 3;
-  if (orderId.endsWith("2")) completedCount = 5;
-  if (orderId.endsWith("3")) completedCount = 2; 
-  if (orderId.endsWith("4")) completedCount = 4;
-  
-  const base = Date.now() - 1000 * 60 * 60 * 24 * 2;
-  const stages = ALL_STAGES.map((s, i) => ({
-    key: s.key,
-    label: s.label,
-    completed: i <= completedCount - 1,
-    timestamp: i <= completedCount - 1 ? new Date(base + i * 1000 * 60 * 60 * 8).toISOString() : null,
-  }));
-  const updatedAt = new Date().toISOString();
-  return new Promise((res) => setTimeout(() => res({ orderId, stages, currentStatus: stages.slice().reverse().find((x) => x.completed)?.key ?? "ordered", updatedAt }), 300));
-}
-
 
 // Mock submit return request API function
 function submitReturnRequestMock({ orderId, type, reason, contactPhone, pickup, photos }: any) {
@@ -177,47 +149,6 @@ export default function OrdersPage() {
   }, [loadData]);
 
 
-const handleFetchStatus = useCallback(async () => {
-    if (!selectedOrder) return;
-    
-    const currentStatus = getStatusFromTimeline(selectedOrder.timeline);
-    if (currentStatus.toLowerCase().includes('cancelled') || currentStatus.toLowerCase().includes('delivered') || currentStatus.toLowerCase().includes('returned')) {
-        setStatusData(null); // Clear old status data if order is in a final state
-        return;
-    }
-
-    setLoadingStatus(true);
-    try {
-      const functionUrl = `https://us-central1-gcp-project-id.cloudfunctions.net/notifyDeliveryPartner`;
-      const response = await fetch(functionUrl, {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ orderId: selectedOrder.orderId, status: 'getStatus' }),
-      });
-      if (!response.ok) {
-        throw new Error('Failed to fetch status from delivery partner');
-      }
-      const data: any = await response.json();
-      setStatusData(data);
-    } catch (e) {
-      console.error('fetchDeliveryStatus error', e);
-      toast({ title: "Error", description: "Could not fetch latest order status." });
-    } finally {
-      setLoadingStatus(false);
-    }
-}, [selectedOrder, toast]);
-
-
-// Fetch status only when order is selected initially
-useEffect(() => {
-    if (selectedOrder) {
-        handleFetchStatus();
-    }
-}, [selectedOrder, handleFetchStatus]);
-
-
   // Helper: update order in orders state
   function updateOrder(orderId: any, patch: any) {
     const updatedOrders = orders.map((o) => (o.orderId === orderId ? { ...o, ...patch } : o));
@@ -298,12 +229,7 @@ useEffect(() => {
   async function handleCancelFromBot(orderId: any) {
     const order = orders.find((o) => o.orderId === orderId);
     if (!order) return;
-    const status: any = await fetchDeliveryStatusMock(orderId);
-    const outForDeliveryCompleted = status.stages.find((s: any) => (s.key === 'out_for_delivery' || s.status?.toLowerCase().includes('out for delivery')))?.completed;
-    if (outForDeliveryCompleted) {
-      alert('This order is already out for delivery and cannot be cancelled.');
-      return;
-    }
+    // In a real app, you would check status here before allowing cancellation.
     const resp: any = await submitReturnRequestMock({ orderId, type: 'cancel', reason: 'Cancelled via help', contactPhone: null, pickup: 'dropoff', photos: [] });
     updateOrder(orderId, { returnRequest: resp, status: 'cancel_requested' });
     alert('Cancel request submitted via Help Bot.');
@@ -321,18 +247,6 @@ useEffect(() => {
     }
     setIsVerifyingOtp(true);
     try {
-        const functionUrl = `https://us-central1-gcp-project-id.cloudfunctions.net/notifyDeliveryPartner`;
-        await fetch(functionUrl, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                orderId: selectedOrder.orderId,
-                status: 'cancelled',
-            }),
-        });
-        
         const allOrdersJSON = localStorage.getItem(ORDERS_KEY);
         let allOrders: Order[] = allOrdersJSON ? JSON.parse(allOrdersJSON) : [];
         
@@ -374,7 +288,7 @@ useEffect(() => {
         }
     } catch (error) {
         console.error("Cancellation error:", error);
-        toast({ title: "Cancellation Failed", description: "Could not notify delivery partner.", variant: "destructive" });
+        toast({ title: "Cancellation Failed", variant: "destructive" });
     } finally {
         setIsVerifyingOtp(false);
     }
@@ -450,7 +364,7 @@ useEffect(() => {
                 </div>
 
                 <div className="mt-4 text-xs text-muted-foreground">
-                  <div>Note: This frontend uses mock data. When you connect the backend, replace the mock fetch in the code with a real API call to your delivery service.</div>
+                  <div>Note: This frontend uses mock data.</div>
                 </div>
               </div>
 
@@ -464,10 +378,7 @@ useEffect(() => {
                   ) : (
                     <OrderDetail
                       order={selectedOrder}
-                      statusData={statusData}
-                      loading={loadingStatus}
                       onBack={() => setSelectedOrder(null)}
-                      onRefresh={handleFetchStatus}
                       onRequestReturn={(type: any) => {
                         if (type === 'cancel') {
                             setIsCancelFlowOpen(true);
@@ -653,7 +564,7 @@ useEffect(() => {
   );
 }
 
-function OrderDetail({ order, statusData, loading, onBack, onRefresh, onRequestReturn, onSimulatePickup }: any) {
+function OrderDetail({ order, onBack, onRequestReturn, onSimulatePickup }: any) {
     const { user } = useAuth();
     const [isReviewDialogOpen, setIsReviewDialogOpen] = useState(false);
     const [myReview, setMyReview] = useState<Review | null>(null);
@@ -674,10 +585,10 @@ function OrderDetail({ order, statusData, loading, onBack, onRefresh, onRequestR
     const isDelivered = currentStatus === 'Delivered';
 
     const timelineToShow = useMemo(() => {
-      const timeline = statusData?.stages || order.timeline;
+      const timeline = order.timeline;
       const cancelIndex = timeline.findIndex((item: any) => item && item.status && item.status.toLowerCase().includes('cancelled'));
       return cancelIndex > -1 ? timeline.slice(0, cancelIndex + 1) : timeline;
-    }, [order.timeline, statusData]);
+    }, [order.timeline]);
     
     const completedCount = useMemo(() => timelineToShow.filter((s: any) => s.completed).length, [timelineToShow]);
     
@@ -760,36 +671,15 @@ function OrderDetail({ order, statusData, loading, onBack, onRefresh, onRequestR
 
             <div className="flex items-center justify-between mb-3">
                 <div className="text-sm font-medium text-card-foreground">Delivery Timeline</div>
-                <div className="flex items-center flex-wrap gap-2 justify-end">
-                    {!isCancelled && <Button variant="ghost" size="sm" onClick={onRefresh} disabled={loading} className="text-xs text-muted-foreground">
-                        <RefreshCw className={cn("mr-2 h-3 w-3", loading && "animate-spin")} />
-                        Refresh
-                    </Button>}
-                    {showReturnButton && (
-                         <button onClick={() => onRequestReturn('return')} className="text-sm px-3 py-1 rounded-md border border-red-500/50 bg-red-500/10 text-red-400">Request return</button>
-                    )}
-                    {showReviewButton && (
-                        <Dialog open={isReviewDialogOpen} onOpenChange={setIsReviewDialogOpen}>
-                            <DialogTrigger asChild>
-                                <Button variant="outline" size="sm"><Star className="mr-2 h-4 w-4" /> {myReview ? "Edit Your Review" : "Write a Review"}</Button>
-                            </DialogTrigger>
-                             <ReviewDialog order={order} user={user} reviewToEdit={myReview || undefined} onReviewSubmit={handleReviewSubmit} closeDialog={() => setIsReviewDialogOpen(false)} />
-                        </Dialog>
-                    )}
-                </div>
+            </div>
+            
+            <div className="space-y-4">
+                {timelineToShow.map((s: any, idx: number) => (
+                    <TimelineStep key={s.key || idx} step={s} index={idx} total={timelineToShow.length} />
+                ))}
             </div>
 
-            {loading ? (
-                <div className="text-sm text-muted-foreground">Loading status…</div>
-            ) : (
-                <div className="space-y-4">
-                    {timelineToShow.map((s: any, idx: number) => (
-                        <TimelineStep key={s.key || idx} step={s} index={idx} total={timelineToShow.length} />
-                    ))}
-                </div>
-            )}
-
-            <div className="mt-6 text-xs text-muted-foreground">This timeline pulls data from the delivery API in production. Each stage shows its timestamp when completed.</div>
+            <div className="mt-6 text-xs text-muted-foreground">This timeline shows the journey of your order from confirmation to delivery.</div>
         </div>
     );
 }
@@ -869,7 +759,7 @@ function HelpBot({ orders, selectedOrder, onOpenReturn, onCancelOrder, onShowAdd
     } else if (msgLower.includes('address')) {
       handleShowAddress();
     } else {
-      pushBot("I can help with: [Request return], [Refund status], [Show address]. Or click the buttons below.");
+      pushBot("I can help with: [Request return], [Refund status], [Show address].");
     }
 
     setInput("");
@@ -908,3 +798,126 @@ function HelpBot({ orders, selectedOrder, onOpenReturn, onCancelOrder, onShowAdd
     </div>
   );
 }
+
+```
+```xml
+<change>
+    <file>src/lib/order-data.ts</file>
+    <description/>
+    <content><![CDATA[
+"use client";
+import { getFirestore, doc, getDoc, collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { getFirestoreDb } from './firebase';
+import { format } from 'date-fns';
+
+export const ORDERS_KEY = 'streamcart_orders';
+
+export type Order = {
+    orderId: string;
+    userId: string;
+    products: any[];
+    address: any;
+    total: number;
+    orderDate: string;
+    isReturnable: boolean;
+    timeline: {
+        status: string;
+        date: string | null;
+        time: string | null;
+        completed: boolean;
+    }[];
+};
+
+const mockOrders: Order[] = [
+    {
+        orderId: "#STREAM704587",
+        userId: "aDPVI1F2NAaKhvVi0Nq2BO5shqz1",
+        products: [{ id: 13, key: 'prod_13', name: 'Classic White Shirt', price: '₹1,999.00', imageUrl: 'https://images.unsplash.com/photo-1603252109303-2751441dd157?w=800&h=800&fit=crop', quantity: 2, size: "XXL" }],
+        address: { city: "RAMGARH", village: "saunda basti manda tand patratu", country: "India", state: "Jharkhand", district: "ssssss", name: "Ganesh Prajapati", id: 1761033198028, phone: "+91 9174798550", pincode: "829133" },
+        total: 4247.90,
+        orderDate: "2025-11-01T04:47:40.741Z",
+        isReturnable: true,
+        timeline: [
+            { status: "Order Confirmed", date: "Nov 01, 2025", time: "10:17 AM", completed: true },
+            { status: "Packed", date: "Nov 01, 2025", time: "01:00 PM", completed: true },
+            { status: "Shipped", date: "Nov 02, 2025", time: "09:00 AM", completed: false },
+            { status: "In Transit", date: null, time: null, completed: false },
+            { status: "Out for Delivery", date: null, time: null, completed: false },
+            { status: "Delivered", date: null, time: null, completed: false }
+        ]
+    }
+];
+
+export function getStatusFromTimeline(timeline: Order['timeline']): string {
+    if (!timeline || timeline.length === 0) {
+        return "Pending";
+    }
+    const lastCompletedStep = [...timeline].reverse().find(step => step && step.completed && typeof step.status === 'string');
+    if (lastCompletedStep) {
+        return lastCompletedStep.status.split(':')[0].trim();
+    }
+    return "Pending";
+}
+
+export async function getOrderById(orderId: string): Promise<Order | null> {
+    if (typeof window === 'undefined') return null;
+    try {
+        const storedOrders = localStorage.getItem(ORDERS_KEY);
+        const allOrders: Order[] = storedOrders ? JSON.parse(storedOrders) : mockOrders;
+        const order = allOrders.find((o: Order) => o.orderId === orderId);
+        if (!order && allOrders.length === 0) {
+            localStorage.setItem(ORDERS_KEY, JSON.stringify(mockOrders));
+            return mockOrders.find(o => o.orderId === orderId) || null;
+        }
+        return order || null;
+    } catch (error) {
+        console.error("Error fetching order from local storage:", error);
+        return null;
+    }
+}
+
+export const saveOrder = (order: Order) => {
+    if (typeof window === 'undefined') return;
+    try {
+        const storedOrders = localStorage.getItem(ORDERS_KEY);
+        const allOrders = storedOrders ? JSON.parse(storedOrders) : [];
+        const newOrders = [order, ...allOrders];
+        localStorage.setItem(ORDERS_KEY, JSON.stringify(newOrders));
+        window.dispatchEvent(new Event('storage'));
+    } catch (error) {
+        console.error("Error saving order to local storage:", error);
+    }
+};
+
+export const saveAllOrders = (orders: Order[]) => {
+    if (typeof window === 'undefined') return;
+    try {
+        localStorage.setItem(ORDERS_KEY, JSON.stringify(orders));
+        window.dispatchEvent(new Event('storage'));
+    } catch (error) {
+        console.error("Error saving all orders to local storage:", error);
+    }
+};
+
+export const updateOrderStatus = async (orderId: string, newStatus: string): Promise<void> => {
+     if (typeof window === 'undefined') return;
+     try {
+        const storedOrders = localStorage.getItem(ORDERS_KEY);
+        let allOrders: Order[] = storedOrders ? JSON.parse(storedOrders) : [];
+        const orderIndex = allOrders.findIndex(o => o.orderId === orderId);
+
+        if (orderIndex > -1) {
+            allOrders[orderIndex].timeline.push({
+                status: newStatus,
+                date: new Date().toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }),
+                time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }),
+                completed: true,
+            });
+            localStorage.setItem(ORDERS_KEY, JSON.stringify(allOrders));
+            window.dispatchEvent(new Event('storage'));
+        }
+     } catch (error) {
+         console.error("Error updating order status in local storage:", error);
+     }
+}
+
