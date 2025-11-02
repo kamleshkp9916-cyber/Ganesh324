@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useEffect, useState, useRef, useCallback, useMemo } from "react";
@@ -231,7 +232,7 @@ function OrderDetail({ order, onBack, onRequestReturn, onSimulatePickup }: any) 
                         <ReviewDialog order={order} user={user} reviewToEdit={myReview || undefined} onReviewSubmit={handleReviewSubmit} closeDialog={() => setIsReviewDialogOpen(false)} />
                     </Dialog>
                 )}
-                {order.returnRequest?.status === 'pickup_completed' && (
+                {order.returnRequest?.status === 'requested' && order.returnRequest?.type === 'return' && (
                     <Button size="sm" variant="secondary" onClick={onSimulatePickup}>Simulate Pickup</Button>
                 )}
             </div>
@@ -271,7 +272,6 @@ function OrdersPageContent() {
   const [isClient, setIsClient] = useState(false);
   const [orders, setOrders] = useState<Order[]>([]);
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
-  const [statusData, setStatusData] = useState<any>(null);
   const [loadingStatus, setLoadingStatus] = useState(false);
   const [returning, setReturning] = useState(false);
   const [returnReason, setReturnReason] = useState("");
@@ -427,7 +427,7 @@ function OrdersPageContent() {
 
             if (!updatedOrder.timeline.some(step => step && step.status && step.status.toLowerCase().includes('cancelled'))) {
                 updatedOrder.timeline.push({ status: 'Cancelled by user', date: format(new Date(), 'MMM dd, yyyy'), time: format(new Date(), 'p'), completed: true });
-                updatedOrder.timeline.push({ status: 'Refund Initiated: The amount will be credited to your original payment method within 5-7 business days.', date: format(new Date(), 'MMM dd, yyyy'), time: format(new Date(), 'p'), completed: false });
+                updatedOrder.timeline.push({ status: 'Refund Initiated: The amount will be credited in 5-7 business days.', date: format(new Date(), 'MMM dd, yyyy'), time: format(new Date(), 'p'), completed: false });
             }
             
             allOrders[orderIndex] = updatedOrder;
@@ -700,7 +700,7 @@ function OrdersPageContent() {
                             <Button onClick={() => setCancelStep('confirm')} className="mt-4 w-full">Next</Button>
                         </TabsContent>
                         <TabsContent value="confirm" className="py-4">
-                            <div className="flex flex-col items-center gap-4 text-center">
+                             <div className="flex flex-col items-center gap-4 text-center">
                                 <ShieldCheck className="h-12 w-12 text-primary" />
                                 {!otpSent ? (
                                     <>
