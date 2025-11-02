@@ -33,11 +33,12 @@ export const allOrderData: { [key: string]: Order } = {
       orderDate: "2025-11-01T04:47:40.741Z",
       isReturnable: true,
       timeline: [
-        { status: "Order Confirmed", date: "Nov 01, 2025", time: "10:17 AM", completed: true },
-        { status: "Packed", date: "Nov 02, 2025", time: "11:00 AM", completed: true },
-        { status: "Shipped", date: "Nov 02, 2025", time: "06:30 PM", completed: true },
-        { status: "In Transit: Arrived at local hub", date: "Nov 03, 2025", time: "08:00 AM", completed: true },
-        { status: "Out for Delivery", date: "Nov 04, 2025", time: "09:00 AM", completed: false },
+        { status: "Pending", date: "Nov 01, 2025", time: "10:17 AM", completed: true },
+        { status: "Order Confirmed", date: null, time: null, completed: false },
+        { status: "Packed", date: null, time: null, completed: false },
+        { status: "Shipped", date: null, time: null, completed: false },
+        { status: "In Transit", date: null, time: null, completed: false },
+        { status: "Out for Delivery", date: null, time: null, completed: false },
         { status: "Delivered", date: null, time: null, completed: false },
       ],
   },
@@ -50,7 +51,8 @@ export const allOrderData: { [key: string]: Order } = {
       orderDate: "2025-10-28T14:30:00.000Z",
       isReturnable: true,
       timeline: [
-        { status: "Order Confirmed", date: "Oct 28, 2025", time: "02:30 PM", completed: true },
+        { status: "Pending", date: "Oct 28, 2025", time: "02:30 PM", completed: true },
+        { status: "Order Confirmed", date: "Oct 28, 2025", time: "02:35 PM", completed: true },
         { status: "Packed", date: "Oct 29, 2025", time: "10:00 AM", completed: true },
         { status: "Shipped", date: "Oct 29, 2025", time: "05:00 PM", completed: true },
         { status: "In Transit: Arrived at local hub", date: "Oct 30, 2025", time: "08:00 AM", completed: true },
@@ -67,8 +69,9 @@ export const allOrderData: { [key: string]: Order } = {
       orderDate: "2025-10-25T11:00:00.000Z",
       isReturnable: true,
       timeline: [
-        { status: "Order Confirmed", date: "Oct 25, 2025", time: "11:00 AM", completed: true },
-        { status: "Cancelled by user", date: "Oct 25, 2025", time: "11:30 AM", completed: true },
+        { status: "Pending", date: "Oct 25, 2025", time: "11:00 AM", completed: true },
+        { status: "Order Confirmed", date: "Oct 25, 2025", time: "11:05 AM", completed: true },
+        { status: "Cancelled by seller", date: "Oct 25, 2025", time: "11:30 AM", completed: true },
       ],
   }
 };
@@ -159,5 +162,3 @@ export const updateOrderStatus = async (orderId: string, newStatus: string): Pro
          console.error("Error updating order status in local storage:", error);
      }
 }
-
-    

@@ -375,10 +375,6 @@ export default function OrdersPage() {
                         </Pagination>
                     )}
                 </div>
-
-                <div className="mt-4 text-xs text-muted-foreground">
-                  <div>Note: This frontend uses mock data.</div>
-                </div>
               </div>
 
               <div className="md:col-span-2">
@@ -631,7 +627,7 @@ function OrderDetail({ order, onBack, onRequestReturn, onSimulatePickup }: any) 
     
     const showReviewButton = isDelivered;
     
-     const showCancelButton = !['Out for Delivery', 'Delivered', 'Return Initiated', 'Return package picked up', 'Returned', 'Cancelled by user'].includes(currentStatus);
+    const showCancelButton = !['Out for Delivery', 'Delivered', 'Return Initiated', 'Return package picked up', 'Returned'].includes(currentStatus) && !isCancelled;
 
     const handleReviewSubmit = (review: Review) => {
         if (myReview) {
