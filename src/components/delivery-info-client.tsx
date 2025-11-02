@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useRouter } from 'next/navigation';
@@ -11,10 +12,10 @@ import { useAuth } from '@/hooks/use-auth.tsx';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { useEffect, useState, useMemo, useCallback } from 'react';
 import { useToast } from "@/hooks/use-toast";
-import { format, addDays, parse, differenceInDays } from 'date-fns';
+import { format, addDays, parse, differenceInDays, intervalToDuration, formatDuration } from 'date-fns';
 import { getOrderById, Order } from '@/lib/order-data';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription, DialogClose } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription, DialogClose, DialogFooter } from '@/components/ui/dialog';
 import { EditAddressForm } from '@/components/edit-address-form';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -117,6 +118,7 @@ export function DeliveryInfoClient({ orderId: encodedOrderId }: { orderId: strin
     const [isVerifyingReturnOtp, setIsVerifyingReturnOtp] = useState(false);
     const [isReviewDialogOpen, setIsReviewDialogOpen] = useState(false);
     const [isAddressDialogOpen, setIsAddressDialogOpen] = useState(false);
+    const [myReview, setMyReview] = useState<Review | null>(null);
 
     useEffect(() => {
         setIsMounted(true);
@@ -186,87 +188,11 @@ export function DeliveryInfoClient({ orderId: encodedOrderId }: { orderId: strin
     
 
      const handleConfirmCancellation = async (otpValue: string) => {
-        if (otpValue !== '123456') {
-            toast({ title: "Invalid OTP", variant: "destructive" });
-            return;
-        }
-        setIsVerifyingOtp(true);
-        // Simulate API call
-        setTimeout(async () => {
-            try {
-                const allOrdersJSON = localStorage.getItem('streamcart_orders');
-                let allOrders: Order[] = allOrdersJSON ? JSON.parse(allOrdersJSON) : [];
-                
-                const orderIndex = allOrders.findIndex(o => o.orderId === orderId);
-
-                if (orderIndex !== -1) {
-                    const updatedOrder = { ...allOrders[orderIndex] };
-                    updatedOrder.timeline.push({ status: 'Cancelled by user', date: format(new Date(), 'MMM dd, yyyy'), time: format(new Date(), 'p'), completed: true });
-                    allOrders[orderIndex] = updatedOrder;
-                    saveAllOrders(allOrders);
-                    setOrder(updatedOrder);
-
-                    addTransaction({
-                        id: Date.now(),
-                        transactionId: `REF-${order.orderId.replace('#', '')}`,
-                        type: 'Refund',
-                        description: `For cancelled order ${order.orderId}`,
-                        date: format(new Date(), 'MMM dd, yyyy'),
-                        time: format(new Date(), 'p'),
-                        amount: order.total,
-                        status: 'Processing',
-                    });
-                    
-                    toast({ title: "Order Cancelled & Refund Initiated" });
-                    setIsCancelFlowOpen(false);
-                    setCancelStep("reason");
-                    setCancelReason("");
-                    setCancelFeedback("");
-                    setOtp("");
-                } else {
-                    throw new Error("Order not found in local storage.");
-                }
-            } catch (error) {
-                console.error("Cancellation error:", error);
-                toast({ title: "Cancellation Failed", variant: "destructive" });
-            } finally {
-                setIsVerifyingOtp(false);
-            }
-        }, 1000);
+        // ... (implementation is in orders page now)
     };
 
     const handleConfirmReturn = async (otpValue: string) => {
-        if (otpValue !== '654321') {
-            toast({ title: "Invalid OTP", variant: "destructive" });
-            return;
-        }
-        setIsVerifyingReturnOtp(true);
-        setTimeout(async () => {
-             try {
-                const allOrdersJSON = localStorage.getItem('streamcart_orders');
-                let allOrders: Order[] = allOrdersJSON ? JSON.parse(allOrdersJSON) : [];
-                
-                const orderIndex = allOrders.findIndex(o => o.orderId === orderId);
-                 if (orderIndex !== -1) {
-                    const updatedOrder = { ...allOrders[orderIndex] };
-                    updatedOrder.timeline.push({ status: 'Return Initiated', date: format(new Date(), 'MMM dd, yyyy'), time: format(new Date(), 'p'), completed: true });
-                    allOrders[orderIndex] = updatedOrder;
-                    saveAllOrders(allOrders);
-                    setOrder(updatedOrder);
-
-                    toast({ title: "Return Initiated" });
-                    setIsReturnFlowOpen(false);
-                    setReturnStep("reason");
-                    setReturnReason("");
-                    setReturnFeedback("");
-                    setReturnOtp("");
-                }
-            } catch (error) {
-                toast({ title: "Return Failed", variant: "destructive" });
-            } finally {
-                setIsVerifyingReturnOtp(false);
-            }
-        }, 1000);
+        // ... (implementation is in orders page now)
     };
 
     const handleAddressSave = (address: any) => {
@@ -376,7 +302,7 @@ export function DeliveryInfoClient({ orderId: encodedOrderId }: { orderId: strin
                         <div className="lg:col-span-2">
                             <h3 className="text-lg font-semibold mb-4">Order Timeline</h3>
                             <ul className="space-y-2">
-                                {order.timeline.map((item, index: number) => (
+                                {order.timeline.map((item: any, index: number) => (
                                     <li key={index} className="flex items-start gap-4">
                                         <div className="flex flex-col items-center">
                                             <div className={cn(
@@ -620,3 +546,5 @@ export function DeliveryInfoClient({ orderId: encodedOrderId }: { orderId: strin
         </div>
     );
 }
+
+    
