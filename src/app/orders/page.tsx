@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import React, { useEffect, useState, useRef, useCallback, useMemo } from "react";
@@ -30,6 +29,7 @@ import { ReviewDialog } from '@/components/delivery-info-client';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const cancellationReasons = [
   "Changed my mind",
@@ -134,25 +134,25 @@ export default function OrdersPage() {
   const TRANSACTIONS_PER_PAGE = 10;
   
   const loadData = useCallback(() => {
-    if (typeof window !== 'undefined') {
-        const storedOrdersJSON = localStorage.getItem('streamcart_orders');
-        // Always start with the file data, then override with local storage if it exists
-        let allOrders: Order[] = Object.values(allOrderData);
+    if (typeof window === 'undefined') return;
 
-        if (storedOrdersJSON) {
-            try {
-                const localOrders = JSON.parse(storedOrdersJSON);
-                if (Array.isArray(localOrders) && localOrders.length > 0) {
-                    allOrders = localOrders;
-                }
-            } catch (e) {
-                console.error("Could not parse orders from localStorage, using file data.", e);
-            }
+    const storedOrdersJSON = localStorage.getItem(ORDERS_KEY);
+    // Use file data only if local storage is empty or invalid
+    let initialOrders: Order[] = [];
+    try {
+        const localOrders = storedOrdersJSON ? JSON.parse(storedOrdersJSON) : null;
+        if (Array.isArray(localOrders) && localOrders.length > 0) {
+            initialOrders = localOrders;
+        } else {
+            initialOrders = Object.values(allOrderData);
         }
-        
-        setOrders(allOrders);
-        setTransactions(getTransactions());
+    } catch (e) {
+        console.error("Could not parse orders from localStorage, using file data.", e);
+        initialOrders = Object.values(allOrderData);
     }
+    
+    setOrders(initialOrders);
+    setTransactions(getTransactions());
 }, []);
   
   useEffect(() => {
@@ -358,24 +358,36 @@ export default function OrdersPage() {
                 <div className="bg-card p-4 rounded-2xl shadow-lg">
                   <h2 className="font-medium mb-3 text-card-foreground">Orders</h2>
                   <div className="space-y-3">
-                    {paginatedOrders.map((o) => {
-                      const status = getStatusFromTimeline(o.timeline);
-                      return (
-                      <button
-                        key={o.orderId}
-                        onClick={() => setSelectedOrder(o)}
-                        className={cn(`w-full text-left p-3 rounded-xl border flex items-center gap-3 hover:shadow-lg transition`,
-                          selectedOrder?.orderId === o.orderId ? "border-primary bg-primary/10" : "border-border"
-                        )}
-                      >
-                        <Image src={o.products[0].imageUrl} alt={o.products[0].name} width={56} height={56} className="w-14 h-14 rounded-md object-cover" />
-                        <div className="flex-1 overflow-hidden">
-                           <div className="text-sm font-medium text-card-foreground">{o.products[0].name}{o.products.length > 1 ? ` + ${o.products.length - 1} more` : ''}</div>
-                           <div className="text-xs text-muted-foreground">{o.orderId} • {isClient ? new Date(o.orderDate).toLocaleString() : ''}</div>
-                          <div className="text-xs text-muted-foreground mt-1 truncate">{formatAddress(o.address)}</div>
-                        </div>
-                      </button>
-                    )})}
+                    {!isClient ? (
+                        Array.from({ length: 3 }).map((_, i) => (
+                           <div key={i} className="flex items-center gap-3 p-3">
+                                <Skeleton className="w-14 h-14 rounded-md" />
+                                <div className="flex-1 space-y-2">
+                                    <Skeleton className="h-4 w-3/4" />
+                                    <Skeleton className="h-3 w-1/2" />
+                                </div>
+                           </div>
+                        ))
+                    ) : (
+                        paginatedOrders.map((o) => {
+                          const status = getStatusFromTimeline(o.timeline);
+                          return (
+                          <button
+                            key={o.orderId}
+                            onClick={() => setSelectedOrder(o)}
+                            className={cn(`w-full text-left p-3 rounded-xl border flex items-center gap-3 hover:shadow-lg transition`,
+                              selectedOrder?.orderId === o.orderId ? "border-primary bg-primary/10" : "border-border"
+                            )}
+                          >
+                            <Image src={o.products[0].imageUrl} alt={o.products[0].name} width={56} height={56} className="w-14 h-14 rounded-md object-cover" />
+                            <div className="flex-1 overflow-hidden">
+                               <div className="text-sm font-medium text-card-foreground">{o.products[0].name}{o.products.length > 1 ? ` + ${o.products.length - 1} more` : ''}</div>
+                               <div className="text-xs text-muted-foreground">{o.orderId} • {isClient ? new Date(o.orderDate).toLocaleString() : ''}</div>
+                              <div className="text-xs text-muted-foreground mt-1 truncate">{formatAddress(o.address)}</div>
+                            </div>
+                          </button>
+                        )})
+                    )}
                   </div>
                    {totalOrderPages > 1 && (
                         <Pagination className="mt-4">
@@ -438,40 +450,53 @@ export default function OrdersPage() {
                             </tr>
                         </thead>
                         <tbody>
-                            {paginatedTransactions.map((t, index) => (
-                                <tr key={`${t.transactionId}-${index}`} className="border-t border-border">
-                                    <td className="py-2 font-mono">{t.transactionId}</td>
-                                    <td className="capitalize">{t.type}</td>
-                                    <td className={cn(t.amount > 0 ? "text-green-500" : "text-foreground")}>
-                                        {t.amount > 0 ? '+' : ''}₹{(t.amount ?? 0).toFixed(2)}
-                                    </td>
-                                    <td>
-                                        <Badge variant={t.status === 'Completed' ? 'success' : t.status === 'Processing' ? 'warning' : 'destructive'}>
-                                            {t.status}
-                                        </Badge>
-                                    </td>
-                                    <td className="text-xs text-muted-foreground">{new Date(t.date).toLocaleString()}</td>
-                                    <td className="text-right">
-                                         <DropdownMenu>
-                                            <DropdownMenuTrigger asChild>
-                                                <Button variant="ghost" size="icon" className="h-8 w-8">
-                                                    <MoreVertical className="h-4 w-4" />
-                                                </Button>
-                                            </DropdownMenuTrigger>
-                                            <DropdownMenuContent align="end">
-                                                <DropdownMenuLabel>Details</DropdownMenuLabel>
-                                                <DropdownMenuSeparator />
-                                                <DropdownMenuItem>
-                                                    <div className="text-xs space-y-1">
-                                                        <p><strong>Payment Method:</strong> {t.paymentMethod || 'N/A'}</p>
-                                                        <p><strong>Gateway ID:</strong> {t.gatewayTransactionId || 'N/A'}</p>
-                                                    </div>
-                                                </DropdownMenuItem>
-                                            </DropdownMenuContent>
-                                        </DropdownMenu>
-                                    </td>
-                                </tr>
-                            ))}
+                             {!isClient ? (
+                                Array.from({length: 5}).map((_, i) => (
+                                    <tr key={i} className="border-t border-border">
+                                        <td className="py-4"><Skeleton className="h-5 w-24" /></td>
+                                        <td><Skeleton className="h-5 w-16" /></td>
+                                        <td><Skeleton className="h-5 w-20" /></td>
+                                        <td><Skeleton className="h-5 w-24" /></td>
+                                        <td><Skeleton className="h-5 w-28" /></td>
+                                        <td className="text-right"><Skeleton className="h-8 w-8 rounded-full" /></td>
+                                    </tr>
+                                ))
+                            ) : (
+                                paginatedTransactions.map((t, index) => (
+                                    <tr key={`${t.transactionId}-${index}`} className="border-t border-border">
+                                        <td className="py-2 font-mono">{t.transactionId}</td>
+                                        <td className="capitalize">{t.type}</td>
+                                        <td className={cn(t.amount > 0 ? "text-green-500" : "text-foreground")}>
+                                            {t.amount > 0 ? '+' : ''}₹{(t.amount ?? 0).toFixed(2)}
+                                        </td>
+                                        <td>
+                                            <Badge variant={t.status === 'Completed' ? 'success' : t.status === 'Processing' ? 'warning' : 'destructive'}>
+                                                {t.status}
+                                            </Badge>
+                                        </td>
+                                        <td className="text-xs text-muted-foreground">{new Date(t.date).toLocaleString()}</td>
+                                        <td className="text-right">
+                                            <DropdownMenu>
+                                                <DropdownMenuTrigger asChild>
+                                                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                                                        <MoreVertical className="h-4 w-4" />
+                                                    </Button>
+                                                </DropdownMenuTrigger>
+                                                <DropdownMenuContent align="end">
+                                                    <DropdownMenuLabel>Details</DropdownMenuLabel>
+                                                    <DropdownMenuSeparator />
+                                                    <DropdownMenuItem>
+                                                        <div className="text-xs space-y-1">
+                                                            <p><strong>Payment Method:</strong> {t.paymentMethod || 'N/A'}</p>
+                                                            <p><strong>Gateway ID:</strong> {t.gatewayTransactionId || 'N/A'}</p>
+                                                        </div>
+                                                    </DropdownMenuItem>
+                                                </DropdownMenuContent>
+                                            </DropdownMenu>
+                                        </td>
+                                    </tr>
+                                ))
+                            )}
                         </tbody>
                     </table>
                 </div>
@@ -866,3 +891,5 @@ function HelpBot({ orders, selectedOrder, onOpenReturn, onCancelOrder, onShowAdd
   );
 }
 
+
+    
