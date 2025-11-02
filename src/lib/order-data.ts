@@ -25,22 +25,22 @@ export type Order = {
 // --- Mock Data ---
 // This object is now empty to clear the default orders.
 export const allOrderData: { [key: string]: Order } = {
-    '#MOCK1234': {
-        orderId: '#MOCK1234',
+    '#STREAM619732': {
+        orderId: '#STREAM619732',
         userId: 'mockUser1',
         products: [{ id: 1, key: 'prod_1', name: 'Vintage Camera', imageUrl: 'https://placehold.co/100x100.png', price: '₹12,500.00', quantity: 1, hint: "vintage camera" }],
         address: { name: 'Ganesh P', city: 'Pune', pincode: '411001' },
         total: 12500.00,
-        orderDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+        orderDate: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
         isReturnable: true,
         timeline: [
-            { status: 'Pending', date: 'Oct 29, 2025', time: '10:30 PM', completed: true },
-            { status: 'Order Confirmed', date: 'Oct 29, 2025', time: '10:31 PM', completed: true },
-            { status: 'Packed', date: 'Oct 30, 2025', time: '09:00 AM', completed: true },
-            { status: 'Shipped', date: 'Oct 30, 2025', time: '05:00 PM', completed: true },
-            { status: 'In Transit', date: 'Oct 31, 2025', time: 'Current status', completed: true },
-            { status: 'Out for Delivery', date: null, time: null, completed: false },
-            { status: 'Delivered', date: null, time: null, completed: false },
+            { status: 'Pending', date: 'Nov 01, 2025', time: '10:30 PM', completed: true },
+            { status: 'Order Confirmed', date: 'Nov 01, 2025', time: '10:31 PM', completed: true },
+            { status: 'Packed', date: 'Nov 02, 2025', time: '09:00 AM', completed: true },
+            { status: 'Shipped', date: 'Nov 02, 2025', time: '05:00 PM', completed: true },
+            { status: 'In Transit', date: 'Nov 03, 2025', time: '08:00 AM', completed: true },
+            { status: 'Out for Delivery', date: 'Nov 04, 2025', time: '09:00 AM', completed: true },
+            { status: 'Delivered', date: 'Nov 04, 2025', time: '01:00 PM', completed: true },
         ]
     },
     '#MOCK5678': {
@@ -49,7 +49,7 @@ export const allOrderData: { [key: string]: Order } = {
         products: [{ id: 2, key: 'prod_2', name: 'Wireless Headphones', imageUrl: 'https://placehold.co/100x100.png', price: '₹4,999.00', quantity: 1, hint: "wireless headphones" }],
         address: { name: 'Jane D', city: 'Mumbai', pincode: '400050' },
         total: 4999.00,
-        orderDate: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+        orderDate: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString(),
         isReturnable: true,
         timeline: [
              { status: 'Pending', date: 'Oct 26, 2025', time: '08:15 AM', completed: true },
@@ -86,15 +86,28 @@ export async function getOrderById(orderId: string): Promise<Order | null> {
     };
 
     try {
-        const storedOrders = localStorage.getItem(ORDERS_KEY);
-        if (storedOrders) {
-            const allOrders = JSON.parse(storedOrders);
-            const order = allOrders.find((o: Order) => o.orderId === orderId);
-            if (order) return order;
+        const storedOrdersJSON = localStorage.getItem(ORDERS_KEY);
+        let allOrders: Order[] = [];
+    
+        if (storedOrdersJSON) {
+            try {
+                const localOrders = JSON.parse(storedOrdersJSON);
+                if (Array.isArray(localOrders)) {
+                    allOrders = localOrders;
+                }
+            } catch (e) {
+                console.error("Could not parse orders from localStorage, using file data.", e);
+            }
         }
-        // Fallback to mock data if not found in local storage
-        const mockOrder = allOrderData[orderId];
-        return mockOrder || null;
+    
+        // If local storage is empty or invalid, initialize it with mock data
+        if (allOrders.length === 0) {
+            allOrders = Object.values(allOrderData);
+            localStorage.setItem(ORDERS_KEY, JSON.stringify(allOrders));
+        }
+
+        const order = allOrders.find((o: Order) => o.orderId === orderId);
+        return order || null;
     } catch (error) {
         console.error("Error fetching order from local storage:", error);
         return null;
@@ -145,5 +158,3 @@ export const updateOrderStatus = async (orderId: string, newStatus: string): Pro
          console.error("Error updating order status in local storage:", error);
      }
 }
-
-
