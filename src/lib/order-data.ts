@@ -53,6 +53,8 @@ export const allOrderData: { [key: string]: Order } = {
         { status: "Order Confirmed", date: "Oct 28, 2025", time: "02:30 PM", completed: true },
         { status: "Packed", date: "Oct 29, 2025", time: "10:00 AM", completed: true },
         { status: "Shipped", date: "Oct 29, 2025", time: "05:00 PM", completed: true },
+        { status: "In Transit: Arrived at local hub", date: "Oct 30, 2025", time: "08:00 AM", completed: true },
+        { status: "Out for Delivery", date: "Oct 31, 2025", time: "09:00 AM", completed: true },
         { status: "Delivered", date: "Oct 31, 2025", time: "01:00 PM", completed: true },
       ],
   },
@@ -157,3 +159,5 @@ export const updateOrderStatus = async (orderId: string, newStatus: string): Pro
          console.error("Error updating order status in local storage:", error);
      }
 }
+
+    
