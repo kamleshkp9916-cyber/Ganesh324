@@ -186,7 +186,7 @@ export function HelpChat({ order, onClose, initialOptions, onExecuteAction }: { 
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
-            <Card className="w-72 h-[450px] flex flex-col shadow-2xl rounded-xl">
+            <Card className="w-64 h-[450px] flex flex-col shadow-2xl rounded-xl">
                 <CardHeader className="flex flex-row items-center justify-between p-3 border-b bg-card">
                     <div className="flex items-center gap-3">
                          <Avatar>
