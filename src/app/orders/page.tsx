@@ -131,9 +131,9 @@ export default function OrdersPage() {
   const TRANSACTIONS_PER_PAGE = 10;
   
   const loadData = useCallback(() => {
-    // Force reset of orders to clear localStorage cache
-    saveAllOrders([]);
-    setOrders([]);
+    const storedOrders = localStorage.getItem(ORDERS_KEY);
+    const allOrders = storedOrders ? JSON.parse(storedOrders) : Object.values(allOrderData);
+    setOrders(allOrders);
     setTransactions(getTransactions());
   }, []);
   
@@ -817,3 +817,4 @@ function HelpBot({ orders, selectedOrder, onOpenReturn, onCancelOrder, onShowAdd
     </div>
   );
 }
+
