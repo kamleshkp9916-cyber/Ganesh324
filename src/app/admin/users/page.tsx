@@ -1,5 +1,3 @@
-
-
 "use client"
 
 import {
@@ -77,6 +75,7 @@ import { getFirestoreDb } from "@/lib/firebase";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
 import { useDebounce } from "@/hooks/use-debounce";
+import { createImpersonationToken } from "@/ai/flows/impersonation-flow";
 
 const mockPayments = [
     { orderId: "#ORD5896", customer: { name: "Ganesh Prajapati" }, amount: 12500.00, status: 'holding' },
@@ -85,9 +84,11 @@ const mockPayments = [
 ];
 
 const mockPayouts = [
-    { sellerId: 'seller1', name: 'FashionFinds', available: 52340.50, status: 'pending' },
-    { sellerId: 'seller2', name: 'GadgetGuru', available: 128900.00, status: 'paid' },
+    { id: 1, sellerId: 'fashionfinds-uid', sellerName: 'FashionFinds', amount: 52340.50, status: 'pending', requestedAt: new Date().toISOString() },
+    { id: 2, sellerId: 'gadgetguru-uid', sellerName: 'GadgetGuru', amount: 128900.00, status: 'paid', requestedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString() },
 ];
+
+export const PAYOUT_REQUESTS_KEY = 'streamcart_payout_requests';
 
 const UserTable = ({ users, onViewDetails, onDelete, onMakeAdmin, onImpersonate }: { users: any[], onViewDetails: (user: any) => void, onDelete: (user: any) => void, onMakeAdmin: (user: any) => void, onImpersonate: (user: any) => void }) => {
     const [isMounted, setIsMounted] = useState(false);
@@ -170,6 +171,14 @@ export default function AdminUsersPage() {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || "");
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
+  const [payoutRequests, setPayoutRequests] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+        const storedRequests = localStorage.getItem(PAYOUT_REQUESTS_KEY);
+        setPayoutRequests(storedRequests ? JSON.parse(storedRequests) : mockPayouts);
+    }
+  }, []);
 
   const fetchUsers = async () => {
     const db = getFirestoreDb();
@@ -212,7 +221,28 @@ export default function AdminUsersPage() {
   };
 
   const handleImpersonateUser = async (userToImpersonate: any) => {
-    toast({ variant: 'destructive', title: "Impersonation Disabled", description: "This feature is temporarily unavailable." });
+    if (!user || user.uid === userToImpersonate.uid) {
+        toast({ variant: 'destructive', title: "Cannot impersonate yourself."});
+        return;
+    }
+    
+    try {
+        toast({ title: "Generating login token..." });
+        const { token } = await createImpersonationToken(userToImpersonate.uid);
+        
+        localStorage.setItem('impersonationToken', token);
+        localStorage.setItem('adminToken', await user.getIdToken()); 
+
+        const newTab = window.open('/', '_blank');
+        if (newTab) {
+            newTab.focus();
+        } else {
+             toast({ variant: 'destructive', title: "Popup blocked", description: "Please allow popups for this site."});
+        }
+    } catch (error) {
+        console.error("Impersonation error:", error);
+        toast({ variant: 'destructive', title: "Impersonation Failed", description: "Could not log in as the selected user." });
+    }
   }
 
   const confirmDeleteUser = async () => {
@@ -237,6 +267,18 @@ export default function AdminUsersPage() {
   
   const handleViewDetails = (userToShow: any) => {
     router.push(`/admin/users/${userToShow.uid}`);
+  };
+
+  const handlePayoutStatusChange = (requestId: number, newStatus: 'paid' | 'rejected') => {
+    const updatedRequests = payoutRequests.map(req => 
+        req.id === requestId ? { ...req, status: newStatus } : req
+    );
+    setPayoutRequests(updatedRequests);
+    localStorage.setItem(PAYOUT_REQUESTS_KEY, JSON.stringify(updatedRequests));
+    toast({
+        title: `Request ${newStatus === 'paid' ? 'Approved' : 'Rejected'}`,
+        description: `The payout request has been updated.`,
+    });
   };
 
   const customers = filteredUsers.filter(u => u.role === 'customer');
@@ -525,18 +567,18 @@ export default function AdminUsersPage() {
                     </CardHeader>
                     <CardContent>
                          <Table>
-                            <TableHeader><TableRow><TableHead>Seller</TableHead><TableHead>Amount Available</TableHead><TableHead>Status</TableHead><TableHead>Action</TableHead></TableRow></TableHeader>
+                            <TableHeader><TableRow><TableHead>Seller</TableHead><TableHead>Amount Requested</TableHead><TableHead>Status</TableHead><TableHead>Action</TableHead></TableRow></TableHeader>
                             <TableBody>
-                                {mockPayouts.map(p => (
-                                    <TableRow key={p.sellerId}>
-                                        <TableCell>{p.name}</TableCell>
-                                        <TableCell>₹{p.available.toFixed(2)}</TableCell>
-                                        <TableCell><Badge variant={p.status === 'pending' ? 'warning' : 'success'}>{p.status}</Badge></TableCell>
+                                {payoutRequests.map(p => (
+                                    <TableRow key={p.id}>
+                                        <TableCell>{p.sellerName}</TableCell>
+                                        <TableCell>₹{p.amount.toFixed(2)}</TableCell>
+                                        <TableCell><Badge variant={p.status === 'pending' ? 'warning' : p.status === 'paid' ? 'success' : 'destructive'}>{p.status}</Badge></TableCell>
                                         <TableCell>
                                             {p.status === 'pending' && (
                                                 <div className="flex gap-2">
-                                                    <Button variant="default" size="sm"><CheckCircle className="mr-2 h-4 w-4" />Approve</Button>
-                                                    <Button variant="destructive" size="sm"><XCircle className="mr-2 h-4 w-4" />Deny</Button>
+                                                    <Button variant="default" size="sm" onClick={() => handlePayoutStatusChange(p.id, 'paid')}><CheckCircle className="mr-2 h-4 w-4" />Approve</Button>
+                                                    <Button variant="destructive" size="sm" onClick={() => handlePayoutStatusChange(p.id, 'rejected')}><XCircle className="mr-2 h-4 w-4" />Deny</Button>
                                                 </div>
                                             )}
                                         </TableCell>
