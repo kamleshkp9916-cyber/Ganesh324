@@ -32,6 +32,29 @@ const revenueKPI = {
   nextPayoutDate: new Date(2025, 10, 12), // 12 Nov 2025 (Month is 0-indexed)
 };
 
+const mockSellerOrdersForDisplay: Order[] = [
+    {
+        orderId: "#MOCK-001",
+        userId: "mockCustomer1",
+        products: [{ name: "Mock Product A", price: "1500.00", quantity: 1, key: "mock-a" }],
+        address: {},
+        total: 1500.00,
+        orderDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+        timeline: [{ status: "Delivered", date: format(new Date(Date.now() - 1 * 24 * 60 * 60 * 1000), 'dd MMM yyyy'), time: "2:00 PM", completed: true }],
+        isReturnable: true
+    },
+    {
+        orderId: "#MOCK-002",
+        userId: "mockCustomer2",
+        products: [{ name: "Mock Product B", price: "3250.50", quantity: 2, key: "mock-b" }],
+        address: {},
+        total: 6501.00,
+        orderDate: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+        timeline: [{ status: "Delivered", date: format(new Date(Date.now() - 3 * 24 * 60 * 60 * 1000), 'dd MMM yyyy'), time: "11:30 AM", completed: true }],
+        isReturnable: true
+    }
+];
+
 // ---------- Utilities (plain JS) ----------
 const inr = (n: number) => new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 2 }).format(n);
 const pctColor = (n: number) => (n >= 0 ? "text-green-600" : "text-red-600");
@@ -54,7 +77,7 @@ export default function SellerRevenueDashboard() {
       if (!user || !userData) return;
       setIsLoading(true);
       const db = getFirestoreDb();
-      const allOrders: Order[] = [];
+      let allOrders: Order[] = [...mockSellerOrdersForDisplay];
 
       // Find all products belonging to this seller
       const sellerProductKeys = Object.entries(productToSellerMapping)
@@ -62,21 +85,28 @@ export default function SellerRevenueDashboard() {
         .map(([key]) => key);
 
       if (sellerProductKeys.length === 0) {
+        setSellerOrders(allOrders);
         setIsLoading(false);
         return;
       }
       
       const ordersRef = collection(db, "orders");
+      // Firestore 'in' queries are limited to 10 items. We need to chunk.
       const productChunks: string[][] = [];
       for (let i = 0; i < sellerProductKeys.length; i += 10) {
           productChunks.push(sellerProductKeys.slice(i, i + 10));
       }
 
       for (const chunk of productChunks) {
+          // Query for orders containing any of the seller's products in the chunk
           const q = query(ordersRef, where("products.key", "in", chunk));
           const querySnapshot = await getDocs(q);
           querySnapshot.forEach((doc) => {
-              allOrders.push({ ...doc.data(), orderId: doc.id } as Order);
+              // We need to double check as an order might have products from multiple sellers
+              const orderData = doc.data() as Order;
+              if(orderData.products.some(p => sellerProductKeys.includes(p.key))) {
+                allOrders.push({ ...orderData, orderId: doc.id });
+              }
           });
       }
 
@@ -90,7 +120,9 @@ export default function SellerRevenueDashboard() {
   }, [user, userData]);
 
   const revenueInsights = useMemo(() => {
-    if (isLoading || sellerOrders.length === 0) {
+    const PLATFORM_FEE_RATE = 0.05; // 5% platform fee
+    
+    if (isLoading) {
       return { 
         totalRevenue: 0,
         otherCharges: 0,
@@ -101,16 +133,12 @@ export default function SellerRevenueDashboard() {
     }
     const deliveredOrders = sellerOrders.filter(o => getStatusFromTimeline(o.timeline) === 'Delivered');
 
-    const PLATFORM_FEE_RATE = 0.05; // 5% platform fee
-
     const orderRevenue = deliveredOrders.reduce((sum, o) => {
-      // Assuming order total includes product price, shipping, etc.
-      // We take the sum of product prices as the basis for revenue.
       const productTotal = o.products.reduce((prodSum, p) => prodSum + (parseFloat(p.price.replace(/[^0-9.-]+/g, '')) * p.quantity), 0);
       return sum + productTotal;
     }, 0);
 
-    const otherCharges = orderRevenue * PLATFORM_FEE_RATE; // Platform fee is the only "other charge"
+    const otherCharges = orderRevenue * PLATFORM_FEE_RATE;
 
     const transactions = deliveredOrders.map(order => {
         const gross = order.products.reduce((prodSum, p) => prodSum + (parseFloat(p.price.replace(/[^0-9.-]+/g, '')) * p.quantity), 0);
@@ -127,9 +155,9 @@ export default function SellerRevenueDashboard() {
     });
 
     return {
-      totalRevenue: orderRevenue - otherCharges, // Refined to seller net revenue
-      orderRevenue, // This is the gross product value
-      otherCharges, // This is the 5% platform fee
+      totalRevenue: orderRevenue - otherCharges,
+      orderRevenue,
+      otherCharges,
       growthPct: 20.1, // Mock growth
       transactions
     };
@@ -139,7 +167,6 @@ export default function SellerRevenueDashboard() {
     const months: Record<string, number> = {};
     const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
-    // Initialize last 6 months with 0 revenue
     for (let i = 5; i >= 0; i--) {
       const d = new Date();
       d.setMonth(d.getMonth() - i);
@@ -155,7 +182,7 @@ export default function SellerRevenueDashboard() {
         const monthKey = `${orderDate.getFullYear()}-${orderDate.getMonth()}`;
         if (monthKey in months) {
           const productTotal = order.products.reduce((prodSum, p) => prodSum + (parseFloat(p.price.replace(/[^0-9.-]+/g, '')) * p.quantity), 0);
-          const netRevenue = productTotal * (1 - 0.05); // Subtract 5% platform fee
+          const netRevenue = productTotal * (1 - 0.05);
           months[monthKey] += netRevenue;
         }
       });
@@ -225,15 +252,6 @@ export default function SellerRevenueDashboard() {
       return matchesQ && matchesType;
     });
   }, [query, typeFilter, revenueInsights.transactions]);
-
-  const examplePaths = {
-    revenueSummary: "shops/{sellerId}/revenueSummary",
-    transactions: "shops/{sellerId}/transactions",
-    products: "shops/{sellerId}/products",
-    monthlyMetrics: "shops/{sellerId}/metrics/monthly/{YYYY-MM}",
-    rules: "request.auth.uid == resource.data.sellerId",
-    currency: "Intl.NumberFormat('en-IN',{ currency:'INR' })",
-  };
 
   return (
     <div className="flex min-h-screen w-full flex-col">
@@ -517,38 +535,6 @@ export default function SellerRevenueDashboard() {
               <Button variant="outline" size="sm">Next</Button>
             </div>
           </CardFooter>
-        </Card>
-
-        {/* Developer Notes / Integration Hints */}
-        <Card className="shadow-sm">
-          <CardHeader>
-            <CardTitle className="text-base">Integration Notes</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3 text-sm">
-            <ul className="list-disc pl-5 space-y-2 text-muted-foreground">
-              <li>
-                Replace mock data with Firestore using a revenue collection:
-                <span className="block mt-1"><code>{examplePaths.revenueSummary}</code></span>
-                <span className="block"><code>{examplePaths.transactions}</code></span>
-                <span className="block"><code>{examplePaths.products}</code></span>
-              </li>
-              <li>
-                Compute KPIs via a Cloud Function on order write, store a denormalized monthly doc:
-                <span className="block mt-1"><code>{examplePaths.monthlyMetrics}</code></span>
-              </li>
-              <li>
-                Export CSV: build from <code>transactions</code> query and trigger a file download in the browser.
-              </li>
-              <li>
-                Security: scope reads/writes with rules checking
-                <span className="block mt-1"><code>{examplePaths.rules}</code></span>
-              </li>
-              <li>
-                Currency: using
-                <span className="block mt-1"><code>{examplePaths.currency}</code></span>
-              </li>
-            </ul>
-          </CardContent>
         </Card>
       </main>
     </div>
