@@ -163,10 +163,9 @@ type SellerOrder = (typeof mockSellerOrdersData)[0];
 function OrderDetailCard({ order }: { order: SellerOrder }) {
     const { toast } = useToast();
     const deliveryCharge = 50.00;
-    const convenienceFee = 20.00;
-    const gstRate = 0.12;
-    const gstAmount = order.price * gstRate;
-    const totalAmount = order.price + deliveryCharge + convenienceFee + gstAmount;
+    const taxRate = 0.05; // 5%
+    const taxes = order.price * taxRate;
+    const totalAmount = order.price + deliveryCharge + taxes;
 
     const copyToClipboard = (text: string, label: string) => {
         navigator.clipboard.writeText(text);
@@ -263,13 +262,9 @@ function OrderDetailCard({ order }: { order: SellerOrder }) {
                             <span className="text-muted-foreground">Delivery Charges:</span>
                             <span>₹{deliveryCharge.toFixed(2)}</span>
                         </div>
-                         <div className="flex justify-between">
-                            <span className="text-muted-foreground">Convenience Fee:</span>
-                            <span>₹{convenienceFee.toFixed(2)}</span>
-                        </div>
                         <div className="flex justify-between">
-                            <span className="text-muted-foreground">GST (12%):</span>
-                            <span>₹{gstAmount.toFixed(2)}</span>
+                            <span className="text-muted-foreground">Taxes (5%):</span>
+                            <span>₹{taxes.toFixed(2)}</span>
                         </div>
                         <Separator />
                         <div className="flex justify-between font-bold text-base">
@@ -552,3 +547,4 @@ export default function SellerOrdersPage() {
     </Dialog>
   )
 }
+```
