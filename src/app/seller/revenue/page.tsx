@@ -10,6 +10,7 @@ import {
   CreditCard,
   Activity,
   CircleUser,
+  ShoppingBag,
 } from "lucide-react"
 import {
   Avatar,
