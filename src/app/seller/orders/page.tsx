@@ -401,56 +401,56 @@ export default function SellerOrdersPage() {
     <Dialog open={!!selectedOrder} onOpenChange={(isOpen) => !isOpen && setSelectedOrder(null)}>
         <div className="flex min-h-screen w-full flex-col bg-muted/40">
            <header className="sticky top-0 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6">
-                <nav className="hidden flex-col gap-6 text-lg font-medium md:flex md:flex-row md:items-center md:gap-5 md:text-sm lg:gap-6">
-                  <Link
-                    href="/seller/dashboard"
-                    className="flex items-center gap-2 text-lg font-semibold md:text-base"
-                  >
-                    <Package2 className="h-6 w-6" />
-                    <span className="sr-only">StreamCart Seller</span>
-                  </Link>
-                  <Link
-                    href="/seller/dashboard"
-                    className="text-muted-foreground transition-colors hover:text-foreground"
-                  >
-                    Dashboard
-                  </Link>
-                  <Link
-                    href="/seller/revenue"
-                    className="text-muted-foreground transition-colors hover:text-foreground"
-                  >
-                    Revenue
-                  </Link>
-                  <Link
-                    href="/seller/orders"
-                    className="text-foreground transition-colors hover:text-foreground"
-                  >
-                    Orders
-                  </Link>
-                  <Link
-                    href="/seller/products"
-                    className="text-muted-foreground transition-colors hover:text-foreground"
-                  >
-                    Products
-                  </Link>
-                   <Link
-                    href="/seller/promotions"
-                    className="text-muted-foreground transition-colors hover:text-foreground"
-                  >
-                    Promotions
-                  </Link>
-                  <Link
-                    href="/seller/feed"
-                    className="text-muted-foreground transition-colors hover:text-foreground"
-                  >
-                    Feed
-                  </Link>
-                  <Link
-                    href="#"
-                    className="text-muted-foreground transition-colors hover:text-foreground"
-                  >
-                    Analytics
-                  </Link>
+                 <nav className="hidden flex-col gap-6 text-lg font-medium md:flex md:flex-row md:items-center md:gap-5 md:text-sm lg:gap-6">
+                    <Link
+                        href="/seller/dashboard"
+                        className="flex items-center gap-2 text-lg font-semibold md:text-base"
+                    >
+                        <Package2 className="h-6 w-6" />
+                        <span className="sr-only">StreamCart Seller</span>
+                    </Link>
+                    <Link
+                        href="/seller/dashboard"
+                        className="text-muted-foreground transition-colors hover:text-foreground"
+                    >
+                        Dashboard
+                    </Link>
+                     <Link
+                        href="/seller/revenue"
+                        className="text-muted-foreground transition-colors hover:text-foreground"
+                    >
+                        Revenue
+                    </Link>
+                    <Link
+                        href="/seller/orders"
+                        className="text-foreground transition-colors hover:text-foreground"
+                    >
+                        Orders
+                    </Link>
+                    <Link
+                        href="/seller/products"
+                        className="text-muted-foreground transition-colors hover:text-foreground"
+                    >
+                        Products
+                    </Link>
+                     <Link
+                        href="/seller/promotions"
+                        className="text-muted-foreground transition-colors hover:text-foreground"
+                    >
+                        Promotions
+                    </Link>
+                    <Link
+                        href="/seller/feed"
+                        className="text-muted-foreground transition-colors hover:text-foreground"
+                    >
+                        Feed
+                    </Link>
+                    <Link
+                        href="#"
+                        className="text-muted-foreground transition-colors hover:text-foreground"
+                    >
+                        Analytics
+                    </Link>
                 </nav>
                  <Sheet>
                   <SheetTrigger asChild>
@@ -475,7 +475,7 @@ export default function SellerOrdersPage() {
                       <Link href="/seller/dashboard" className="text-muted-foreground hover:text-foreground">
                         Dashboard
                       </Link>
-                      <Link href="/seller/revenue" className="text-muted-foreground hover:text-foreground">
+                       <Link href="/seller/revenue" className="text-muted-foreground hover:text-foreground">
                         Revenue
                       </Link>
                       <Link
@@ -547,7 +547,7 @@ export default function SellerOrdersPage() {
             </header>
             <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8">
                 <Card>
-                <CardHeader>
+                 <CardHeader>
                     <div className="flex items-center justify-between">
                         <div>
                             <CardTitle>Orders</CardTitle>
@@ -682,4 +682,3 @@ export default function SellerOrdersPage() {
     </Dialog>
   )
 }
-```
