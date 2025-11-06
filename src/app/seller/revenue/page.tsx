@@ -31,29 +31,6 @@ const mockRevenueKPI = {
   nextPayoutDate: new Date(2025, 10, 12), // 12 Nov 2025 (Month is 0-indexed)
 };
 
-const mockSellerOrdersForDisplay: Order[] = [
-    {
-        orderId: "#MOCK-001",
-        userId: "mockCustomer1",
-        products: [{ name: "Mock Product A", price: "1500.00", quantity: 1, key: "mock-a" }],
-        address: {},
-        total: 1500.00,
-        orderDate: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
-        timeline: [{ status: "Delivered", date: format(new Date(Date.now() - 8 * 24 * 60 * 60 * 1000), 'dd MMM yyyy'), time: "2:00 PM", completed: true }],
-        isReturnable: true
-    },
-    {
-        orderId: "#MOCK-002",
-        userId: "mockCustomer2",
-        products: [{ name: "Mock Product B", price: "3250.50", quantity: 2, key: "mock-b" }],
-        address: {},
-        total: 6501.00,
-        orderDate: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-        timeline: [{ status: "Delivered", date: format(new Date(Date.now() - 3 * 24 * 60 * 60 * 1000), 'dd MMM yyyy'), time: "11:30 AM", completed: true }],
-        isReturnable: true
-    }
-];
-
 // ---------- Utilities (plain JS) ----------
 const inr = (n: number) => new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 2 }).format(n);
 const pctColor = (n: number) => (n >= 0 ? "text-green-600" : "text-red-600");
@@ -319,7 +296,7 @@ export default function SellerRevenueDashboard() {
             <Button variant="outline" className="gap-2" onClick={fetchSellerOrders} disabled={isLoading}>
                 {isLoading && <Loader2 className="h-4 w-4 animate-spin" />}
                 <RefreshCcw className="h-4 w-4"/>
-                Refresh
+                Try to fetch latest data from backend
             </Button>
             <Button className="gap-2" onClick={handleExportCSV} disabled={revenueInsights.transactions.length === 0}><Download className="h-4 w-4"/>Export CSV</Button>
           </div>
