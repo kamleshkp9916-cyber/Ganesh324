@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
@@ -140,7 +141,7 @@ export default function SellerRevenueDashboard() {
         const deliveryStep = order.timeline.find(step => step.status === 'Delivered');
         if (deliveryStep && deliveryStep.date) {
             try {
-                const deliveryDate = parseISO(order.orderDate); // Assuming orderDate is when delivery happened for simplicity
+                const deliveryDate = parseISO(order.orderDate); 
                 if (differenceInDays(now, deliveryDate) > 7) {
                     const productTotal = order.products.reduce((prodSum, p) => prodSum + (parseFloat(p.price.replace(/[^0-9.-]+/g, '')) * p.quantity), 0);
                     withdrawablePayout += productTotal * (1 - PLATFORM_FEE_RATE);
@@ -366,7 +367,7 @@ export default function SellerRevenueDashboard() {
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
                     <DropdownMenuItem onClick={() => setRange("month")}>Monthly</DropdownMenuItem>
-                    <DropdownMenuItem onClick={()={() => setRange("week")}}>Weekly</DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setRange("week")}>Weekly</DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>
