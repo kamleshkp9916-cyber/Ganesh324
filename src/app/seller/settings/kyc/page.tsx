@@ -7,16 +7,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
 import { Loader2 } from "lucide-react";
-import { getAuth, onAuthStateChanged, User } from "firebase/auth";
-import { getFirestore, doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
-import { getFirebaseAuth, getFirestoreDb } from "@/lib/firebase";
 import { useAuth } from "@/hooks/use-auth";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
-import { updateUserData } from "@/lib/follow-data";
+import { updateUserData, UserData } from "@/lib/follow-data";
 import { useToast } from "@/hooks/use-toast";
 import { SellerHeader } from "@/components/seller/seller-header";
-import { Separator } from "@/components/ui/separator";
 
 function statusVariant(s: string | undefined) {
   switch (s) {
@@ -78,26 +75,32 @@ export default function KycSettingsPage() {
     setOk("");
     try {
       const payload: any = {
-        kycStatus: status || "pending",
+        kycStatus: "pending", // Always set to pending on save/update for re-verification
         kycType: upiId ? 'upi' : 'bank',
+        bank: null, // Clear out old data before setting new
+        upi: null,
       };
-      if (upiId) payload.upi = { id: upiId.trim() };
-      if (ifsc || acct || holder)
+      if (upiId) {
+        payload.upi = { id: upiId.trim() };
+      }
+      if (ifsc || acct || holder){
         payload.bank = { ifsc: ifsc.trim().toUpperCase(), acct: acct.trim(), name: holder.trim() };
-
+      }
+        
       await updateUserData(user.uid, payload);
       
       toast({
-        title: "KYC Information Saved",
+        title: "KYC Information Submitted",
         description: "Your details have been submitted for verification.",
       });
-      setOk("KYC saved. You can request payouts once verified or as per policy.");
+      setOk("Your KYC details have been saved and are pending review.");
+      setStatus("pending");
     } catch (e: any) {
       setErr(e.message || "Save failed");
       toast({
         variant: "destructive",
         title: "Save Failed",
-        description: e.message || "Could not save KYC details.",
+        description: e.message || "Could not save KYC details. Please check permissions.",
       });
     }
     setSaving(false);
@@ -115,17 +118,6 @@ export default function KycSettingsPage() {
                 <h1 className="text-2xl font-semibold tracking-tight">KYC Settings</h1>
                 <Badge variant={statusVariant(status)}>{statusLabel(status)}</Badge>
             </div>
-
-            {!user && (
-                <Card>
-                <CardHeader>
-                    <CardTitle className="text-base">Sign in required</CardTitle>
-                </CardHeader>
-                <CardContent className="text-sm text-muted-foreground">
-                    Please sign in to manage your payout settings.
-                </CardContent>
-                </Card>
-            )}
 
             <Card>
                 <CardHeader>
