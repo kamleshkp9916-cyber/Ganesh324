@@ -42,7 +42,7 @@ service cloud.firestore {
       // Allows a user to create their own document if the userId matches their auth.uid
       allow create: if isOwner(userId) && request.resource.data.id == request.auth.uid;
 
-      // Allows a user to read their own document.
+      // Allows a user (customer, seller, or admin) to read their own document.
       allow get: if isOwner(userId);
 
       // Allows a user to update their own document.
