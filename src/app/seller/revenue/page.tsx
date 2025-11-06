@@ -325,8 +325,9 @@ export default function SellerRevenueDashboard() {
               <p className="text-xs text-muted-foreground">{PLATFORM_FEE_RATE * 100}% platform fees</p>
             </CardContent>
           </Card>
-
-          <Card className="shadow-sm h-full">
+          
+          <Link href="/seller/settings">
+            <Card className="shadow-sm h-full hover:bg-muted/50 transition-colors cursor-pointer">
               <CardHeader className="pb-2 flex-row items-center justify-between">
                 <CardTitle className="text-sm font-medium">Payouts</CardTitle>
                 <Wallet className="h-4 w-4 text-muted-foreground"/>
@@ -345,6 +346,7 @@ export default function SellerRevenueDashboard() {
                 <p className="text-xs text-muted-foreground w-full text-right">Next payout: {format(revenueKPI.nextPayoutDate, "dd MMM yyyy")}</p>
               </CardFooter>
             </Card>
+          </Link>
         </div>
 
         {/* Graph + Controls */}
