@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { doc, getDoc, setDoc, updateDoc, collection, query, where, getDocs, writeBatch, increment, limit } from "firebase/firestore";
@@ -30,6 +29,14 @@ export interface UserData {
     facebook?: string;
     twitch?: string;
     // KYC fields
+    bank?: {
+      ifsc: string;
+      acct: string;
+      name: string;
+    };
+    upi?: {
+      id: string;
+    };
     kycStatus?: 'verified' | 'pending' | 'rejected';
     kycType?: string;
     verifiedAt?: string;

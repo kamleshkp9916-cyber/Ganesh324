@@ -790,29 +790,48 @@ export default function SellerSettingsPage() {
   }, [setCoupons, setSlides, setCategoryBanners, setFeaturedProducts]);
   
   const handleWithdraw = (amount: number, bankAccountId: string) => {
-     const selectedAccount = bankAccounts.find(acc => String(acc.id) === bankAccountId);
-     if (!selectedAccount || !user || !userData) return;
+    const selectedAccount = bankAccounts.find(acc => String(acc.id) === bankAccountId);
+    if (!selectedAccount || !user || !userData) {
+      toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Could not process withdrawal request. User or account not found.",
+      });
+      return;
+    }
 
-      const newRequest = {
-        id: Date.now(),
-        sellerId: user.uid,
-        sellerName: userData.displayName,
-        amount: amount,
-        bankAccountId: bankAccountId,
-        bankName: selectedAccount.bankName,
-        accountNumber: selectedAccount.accountNumber,
-        status: 'pending',
-        requestedAt: new Date().toISOString(),
-      };
+    // KYC Check
+    if (!userData.bank || !userData.bank.ifsc || !userData.bank.acct || !userData.bank.name) {
+        toast({
+            variant: "destructive",
+            title: "KYC Incomplete",
+            description: "Please complete your bank details in your profile before requesting a payout.",
+        });
+        // Optionally, redirect to KYC page
+        // router.push('/seller/kyc'); 
+        return;
+    }
 
-      setPayoutRequests(prev => [newRequest, ...prev]);
+     const newRequest = {
+       id: Date.now(),
+       sellerId: user.uid,
+       sellerName: userData.displayName,
+       amount: amount,
+       bankAccountId: bankAccountId,
+       bankName: selectedAccount.bankName,
+       accountNumber: selectedAccount.accountNumber,
+       status: 'pending',
+       requestedAt: new Date().toISOString(),
+     };
 
-     toast({
-        title: "Withdrawal Request Submitted",
-        description: `Your request for ₹${amount} has been sent for admin approval.`,
-    });
-     setIsWithdrawOpen(false);
-  };
+     setPayoutRequests(prev => [newRequest, ...prev]);
+
+    toast({
+       title: "Withdrawal Request Submitted",
+       description: `Your request for ₹${amount} has been sent for admin approval.`,
+   });
+    setIsWithdrawOpen(false);
+ };
   
    const handleAddBankAccount = (data: any) => {
     const newAccount = {
