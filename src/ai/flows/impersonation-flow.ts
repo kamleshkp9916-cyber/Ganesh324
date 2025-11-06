@@ -6,8 +6,16 @@
 
 import { getFirebaseAdminApp } from '@/lib/firebase-server';
 import { getAuth } from 'firebase-admin/auth';
-import { ai } from '@/ai/genkit';
+import { genkit } from 'genkit';
 import { z } from 'zod';
+import { googleAI } from '@genkit-ai/google-genai';
+
+const ai = genkit({
+    plugins: [googleAI()],
+    logLevel: 'debug',
+    enableTracing: true,
+});
+
 
 export const createImpersonationToken = ai.defineFlow(
   {
@@ -22,3 +30,4 @@ export const createImpersonationToken = ai.defineFlow(
     return { token };
   }
 );
+
