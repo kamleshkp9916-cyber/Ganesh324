@@ -33,6 +33,8 @@ import { updateUserData } from '@/lib/follow-data';
 import { format, addDays } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { collection, doc, writeBatch, serverTimestamp } from 'firebase/firestore';
+import { getFirestoreDb } from '@/lib/firebase';
 
 
 const defaultShippingSettings: ShippingSettings = {
@@ -307,8 +309,9 @@ export default function PaymentPage() {
   }, [isProcessing, paymentMethod, newUpiId, selectedUpi, cardDetails]);
 
 
-  const handlePlaceOrder = (e?: React.FormEvent) => {
+  const handlePlaceOrder = async (e?: React.FormEvent) => {
     if(e) e.preventDefault();
+    if (!user) return;
     setUpiError('');
 
     if (paymentMethod === 'upi' && newUpiId.trim()) {
@@ -338,18 +341,25 @@ export default function PaymentPage() {
     const paymentSuccess = Math.random() > 0.2; // 80% success rate
     
     setIsProcessing(true);
-    setTimeout(() => {
-        setIsProcessing(false);
-        const transactionId = `#STREAM${Math.floor(100000 + Math.random() * 900000)}`;
-        
+    const transactionId = `#STREAM${Math.floor(100000 + Math.random() * 900000)}`;
+
+    try {
         if (paymentSuccess) {
-             const newOrder: Order = {
-                orderId: transactionId,
-                userId: user!.uid,
-                products: cartItems.map(item => ({...item, productId: item.key, sellerId: productToSellerMapping[item.key as keyof typeof productToSellerMapping]?.uid || null})),
+            const db = getFirestoreDb();
+            const batch = writeBatch(db);
+
+            // 1. Create the main order document
+            const newOrderRef = doc(collection(db, "orders"));
+            const orderData = {
+                userId: user.uid,
+                products: cartItems.map(item => ({
+                    ...item,
+                    productId: item.key, 
+                    sellerId: productToSellerMapping[item.key as keyof typeof productToSellerMapping]?.uid || null
+                })),
                 address: address,
                 total: total,
-                orderDate: new Date().toISOString(),
+                orderDate: serverTimestamp(),
                 isReturnable: true,
                 timeline: [
                     { status: "Pending", date: format(new Date(), 'MMM dd, yyyy'), time: format(new Date(), 'p'), completed: true },
@@ -361,11 +371,37 @@ export default function PaymentPage() {
                     { status: "Delivered", date: null, time: null, completed: false },
                 ],
             };
-            saveOrder(newOrder); // Save to local storage
+            batch.set(newOrderRef, orderData);
+
+            // 2. Create order documents for each seller involved
+            const ordersBySeller: { [sellerId: string]: any } = {};
+            cartItems.forEach(item => {
+                const sellerId = productToSellerMapping[item.key as keyof typeof productToSellerMapping]?.uid;
+                if (sellerId) {
+                    if (!ordersBySeller[sellerId]) {
+                        ordersBySeller[sellerId] = [];
+                    }
+                    ordersBySeller[sellerId].push({ ...item, productId: item.key });
+                }
+            });
+
+            for (const sellerId in ordersBySeller) {
+                const sellerOrderRef = doc(db, `users/${sellerId}/orders`, newOrderRef.id);
+                const sellerOrderData = {
+                    ...orderData,
+                    orderId: newOrderRef.id,
+                    products: ordersBySeller[sellerId],
+                    sellerId: sellerId,
+                    total: ordersBySeller[sellerId].reduce((sum: number, item: any) => sum + parseFloat(item.price.replace(/[^0-9.-]+/g, '')) * item.quantity, 0)
+                };
+                batch.set(sellerOrderRef, sellerOrderData);
+            }
             
+            await batch.commit();
+
             addTransaction({
                 id: Date.now(),
-                transactionId: transactionId,
+                transactionId: newOrderRef.id,
                 type: 'Order',
                 description: `Paid via ${paymentMethod}`,
                 date: format(new Date(), 'MMM dd, yyyy'),
@@ -373,24 +409,30 @@ export default function PaymentPage() {
                 amount: -total,
                 status: 'Completed',
             });
+            
             localStorage.removeItem('streamcart_cart');
             localStorage.removeItem('appliedCoupon');
             window.dispatchEvent(new Event('storage'));
             setIsSuccessModalOpen(true);
         } else {
-            addTransaction({
-                id: Date.now(),
-                transactionId: transactionId,
-                type: 'Order',
-                description: `Paid via ${paymentMethod}`,
-                date: format(new Date(), 'MMM dd, yyyy'),
-                time: format(new Date(), 'p'),
-                amount: -total,
-                status: 'Failed',
-            });
-            setIsFailureAlertOpen(true);
+            throw new Error("Simulated payment failure.");
         }
-    }, 3000);
+    } catch (error) {
+        console.error("Error placing order:", error);
+        addTransaction({
+            id: Date.now(),
+            transactionId: transactionId,
+            type: 'Order',
+            description: `Paid via ${paymentMethod}`,
+            date: format(new Date(), 'MMM dd, yyyy'),
+            time: format(new Date(), 'p'),
+            amount: -total,
+            status: 'Failed',
+        });
+        setIsFailureAlertOpen(true);
+    } finally {
+        setIsProcessing(false);
+    }
   }
   
   const handleApplyCoupon = (code: string) => {

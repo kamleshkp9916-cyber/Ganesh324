@@ -53,6 +53,15 @@ service cloud.firestore {
 
       // Prevents listing of user documents by non-admins.
       allow list: if isAdmin();
+
+       /**
+       * @description Enforces access control for a seller's orders subcollection.
+       * @path /users/{userId}/orders/{orderId}
+       */
+      match /orders/{orderId} {
+        // Only the seller (owner of the user document) or an admin can manage orders in this subcollection.
+        allow read, write: if isOwner(userId) || isAdmin();
+      }
     }
 
     /**
@@ -74,7 +83,8 @@ service cloud.firestore {
                      (request.query.where.sellerId != null && request.query.where.sellerId == request.auth.uid))) || isAdmin();
 
       // Users should not be able to update or delete orders directly.
-      allow update, delete: if false;
+      // Updates should happen via Cloud Functions for status changes.
+      allow update, delete: if isAdmin();
     }
   }
 }

@@ -85,80 +85,18 @@ import {
 } from "@/components/ui/table"
 import { Input } from "@/components/ui/input"
 import { useDebounce } from "@/hooks/use-debounce"
+import { getFirestoreDb } from "@/lib/firebase"
+import { collection, query, where, getDocs, orderBy } from 'firebase/firestore'
 
-const mockSellerOrdersData = [
-    {
-        orderId: "#ORD5896",
-        productId: "prod_1",
-        customer: { name: "Ganesh Prajapati", email: "ganesh@example.com", phone: "+91 98765 43210", address: "123 Sunshine Apartments, Koregaon Park, Pune, Maharashtra - 411001" },
-        product: { name: "Vintage Camera", imageUrl: "https://placehold.co/80x80.png", hint: "vintage camera" },
-        date: "July 27, 2024",
-        time: "10:31 PM",
-        status: "Fulfilled",
-        price: 12500.00,
-        type: "Listed Product"
-    },
-    {
-        orderId: "#ORD5897",
-        productId: "prod_2",
-        customer: { name: "Jane Doe", email: "jane.d@example.com", phone: "+91 98765 43211", address: "456 Moonbeam Towers, Bandra West, Mumbai, Maharashtra - 400050" },
-        product: { name: "Wireless Headphones", imageUrl: "https://placehold.co/80x80.png", hint: "headphones" },
-        date: "July 26, 2024",
-        time: "08:16 AM",
-        status: "Fulfilled",
-        price: 4999.00,
-        type: "Live Stream"
-    },
-    {
-        orderId: "#ORD5902",
-        productId: "prod_3",
-        customer: { name: "David Garcia", email: "david.g@example.com", phone: "+91 98765 43212", address: "789 Starlight Plaza, Indiranagar, Bengaluru, Karnataka - 560038" },
-        product: { name: "Bluetooth Speaker", imageUrl: "https://placehold.co/80x80.png", hint: "bluetooth speaker" },
-        date: "July 22, 2024",
-        time: "07:00 PM",
-        status: "Processing",
-        price: 3200.00,
-        type: "Live Stream"
-    },
-     {
-        orderId: "#ORD5905",
-        productId: "prod_4",
-        customer: { name: "Peter Jones", email: "peter.j@example.com", phone: "+91 98765 43213", address: "101 Galaxy Heights, Malviya Nagar, Jaipur, Rajasthan - 302017" },
-        product: { name: "Designer Sunglasses", imageUrl: "https://placehold.co/80x80.png", hint: "sunglasses" },
-        date: "July 28, 2024",
-        time: "02:30 PM",
-        status: "Pending",
-        price: 7800.00,
-        type: "Listed Product"
-    },
-    {
-        orderId: "#ORD5903",
-        productId: "prod_5",
-        customer: { name: "Jessica Rodriguez", email: "jessica.r@example.com", phone: "+91 98765 43214", address: "222 Ocean View, Besant Nagar, Chennai, Tamil Nadu - 600090" },
-        product: { name: "Coffee Maker", imageUrl: "https://placehold.co/80x80.png", hint: "coffee maker" },
-        date: "July 21, 2024",
-        time: "11:00 AM",
-        status: "Cancelled",
-        price: 4500.00,
-        type: "Listed Product"
-    }
-].map(order => {
-    const details = productDetails[order.productId as keyof typeof productDetails];
-    if (details) {
-        return {
-            ...order,
-            product: {
-                name: details.name,
-                imageUrl: details.images[0],
-                hint: details.hint
-            },
-            price: parseFloat(details.price.replace('₹', '').replace(',', ''))
-        }
-    }
-    return order;
-});
-
-type SellerOrder = (typeof mockSellerOrdersData)[0];
+type SellerOrder = Order & {
+    product: any,
+    customer: any,
+    date: string,
+    time: string,
+    status: string,
+    price: number,
+    type: string,
+};
 
 function OrderDetailCard({ order }: { order: SellerOrder }) {
     const { toast } = useToast();
@@ -287,7 +225,7 @@ export default function SellerOrdersPage() {
     const { user, loading } = useAuth();
     const router = useRouter();
     const [isMounted, setIsMounted] = useState(false);
-    const [orders, setOrders] = useState<SellerOrder[]>(mockSellerOrdersData);
+    const [orders, setOrders] = useState<SellerOrder[]>([]);
     const [selectedOrder, setSelectedOrder] = useState<SellerOrder | null>(null);
     const { toast } = useToast();
     const [statusFilter, setStatusFilter] = useState("All");
@@ -296,7 +234,34 @@ export default function SellerOrdersPage() {
 
     useEffect(() => {
         setIsMounted(true);
-    }, []);
+        if (user) {
+            const db = getFirestoreDb();
+            const sellerOrdersRef = collection(db, 'users', user.uid, 'orders');
+            const q = query(sellerOrdersRef, orderBy('orderDate', 'desc'));
+
+            const unsubscribe = onSnapshot(q, (snapshot) => {
+                const fetchedOrders = snapshot.docs.map(doc => {
+                    const data = doc.data() as Order;
+                    const status = getStatusFromTimeline(data.timeline);
+                    const product = data.products[0] || {};
+                    return {
+                        ...data,
+                        orderId: doc.id,
+                        productId: product.key,
+                        customer: { name: data.address.name, address: `${data.address.village}, ${data.address.city}`, email: 'customer@example.com', phone: data.address.phone },
+                        product: { name: product.name, imageUrl: product.imageUrl, hint: product.hint },
+                        date: format(data.orderDate ? new Date(data.orderDate) : new Date(), "MMMM d, yyyy"),
+                        time: format(data.orderDate ? new Date(data.orderDate) : new Date(), "h:mm aa"),
+                        status: status,
+                        price: data.total,
+                        type: data.products[0]?.isFromStream ? 'Live Stream' : 'Listed Product'
+                    } as SellerOrder
+                });
+                setOrders(fetchedOrders);
+            });
+            return () => unsubscribe();
+        }
+    }, [user]);
 
     const filteredOrders = useMemo(() => {
         let tempOrders = orders;
@@ -318,48 +283,31 @@ export default function SellerOrdersPage() {
     }, [orders, statusFilter, debouncedSearchTerm]);
 
     const handleUpdateStatus = async (orderId: string, newStatus: 'Order Confirmed' | 'Cancelled by seller') => {
+        // This function will now update both the user's order and the seller's order copy
         const orderToUpdate = orders.find(o => o.orderId === orderId);
-        if (!orderToUpdate) return;
+        if (!orderToUpdate || !user) return;
     
-        const allOrdersJSON = localStorage.getItem('streamcart_orders');
-        let allOrders: Order[] = allOrdersJSON ? JSON.parse(allOrdersJSON) : [];
-        const orderIndex = allOrders.findIndex(o => o.orderId === orderId);
-    
-        if (orderIndex !== -1) {
-            const updatedOrder = { ...allOrders[orderIndex] };
-    
-            if (newStatus === 'Order Confirmed') {
-                const pendingIndex = updatedOrder.timeline.findIndex(item => item.status === 'Pending');
-                if (pendingIndex !== -1) {
-                    updatedOrder.timeline[pendingIndex] = {
-                      ...updatedOrder.timeline[pendingIndex],
-                      status: 'Order Confirmed',
-                      completed: true,
-                      date: format(new Date(), 'MMM dd, yyyy'),
-                      time: format(new Date(), 'p')
-                    };
-                }
-                 // Call the delivery partner notification function
-                try {
-                    const functionUrl = `https://us-central1-gcp-project-id.cloudfunctions.net/notifyDeliveryPartner`;
-                    await fetch(functionUrl, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ orderId: orderId, status: 'confirmed' }),
-                    });
-                    toast({ title: "Delivery Partner Notified", description: "The delivery process has been initiated." });
-                } catch (error) {
-                    console.error("Error notifying delivery partner:", error);
-                    toast({ variant: "destructive", title: "API Error", description: "Could not notify delivery partner." });
-                }
+        const db = getFirestoreDb();
+        const mainOrderRef = doc(db, 'orders', orderId);
+        const sellerOrderRef = doc(db, 'users', user.uid, 'orders', orderId);
 
+        try {
+            const mainOrderSnap = await getDoc(mainOrderRef);
+            if (!mainOrderSnap.exists()) {
+                toast({ variant: 'destructive', title: "Error", description: "Original order not found." });
+                return;
+            }
+            const mainOrderData = mainOrderSnap.data() as Order;
+            const updatedTimeline = [...mainOrderData.timeline];
+
+            if (newStatus === 'Order Confirmed') {
+                const pendingIndex = updatedTimeline.findIndex(item => item.status === 'Pending');
+                if (pendingIndex !== -1) {
+                    updatedTimeline[pendingIndex] = { ...updatedTimeline[pendingIndex], status: 'Order Confirmed', completed: true, date: format(new Date(), 'MMM dd, yyyy'), time: format(new Date(), 'p') };
+                    updatedTimeline[pendingIndex+1] = {...updatedTimeline[pendingIndex+1], date: format(new Date(), 'MMM dd, yyyy'), time: format(new Date(), 'p'), completed: true }; // Pack immediately
+                }
             } else if (newStatus === 'Cancelled by seller') {
-                updatedOrder.timeline.push({
-                    status: newStatus,
-                    date: format(new Date(), 'MMM dd, yyyy'),
-                    time: format(new Date(), 'p'),
-                    completed: true
-                });
+                updatedTimeline.push({ status: newStatus, date: format(new Date(), 'MMM dd, yyyy'), time: format(new Date(), 'p'), completed: true });
                 addTransaction({
                     id: Date.now(),
                     transactionId: `REF-${orderId.replace('#', '')}`,
@@ -371,16 +319,14 @@ export default function SellerOrdersPage() {
                     status: 'Processing',
                 });
             }
-    
-            allOrders[orderIndex] = updatedOrder;
-            saveAllOrders(allOrders);
 
-             setOrders(prevOrders => prevOrders.map(o => o.orderId === orderId ? { ...o, status: newStatus === 'Order Confirmed' ? 'Processing' : 'Cancelled' } : o));
-            
-             toast({
-                title: `Order ${newStatus === 'Order Confirmed' ? 'Accepted' : 'Declined'}`,
-                description: `Order ${orderId} has been updated.`,
-            });
+            await updateDoc(mainOrderRef, { timeline: updatedTimeline });
+            await updateDoc(sellerOrderRef, { timeline: updatedTimeline });
+
+            toast({ title: `Order ${newStatus === 'Order Confirmed' ? 'Accepted' : 'Declined'}` });
+        } catch (error) {
+            console.error("Error updating order status:", error);
+            toast({ variant: 'destructive', title: 'Error', description: 'Could not update order status.' });
         }
     };
     
@@ -562,5 +508,3 @@ export default function SellerOrdersPage() {
     </Dialog>
   )
 }
-
-    
