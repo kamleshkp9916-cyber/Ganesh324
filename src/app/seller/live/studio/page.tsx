@@ -20,10 +20,12 @@ import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
-import { Search, Mic, MicOff, Video, VideoOff, Settings2, Play, Pause, CheckCircle2, AlertTriangle, Upload, Plus, Trash2, MoveHorizontal } from "lucide-react";
+import { Search, Mic, MicOff, Video, VideoOff, Settings2, Play, Pause, CheckCircle2, AlertTriangle, Upload, Plus, Trash2, MoveHorizontal, PlusCircle } from "lucide-react";
+import { useAuth } from "@/hooks/use-auth";
+import Link from "next/link";
 
 // Types
-type Product = { id: string; title: string; price: number; image?: string; stock?: number; };
+type Product = { id: string; title: string; price: number; image?: string; stock?: number; status?: "active" | "draft" | "archived" };
 
 // Props for future wiring
 type GoLiveProps = {
@@ -51,15 +53,23 @@ type GoLiveProps = {
 
 const currency = (n:number)=> new Intl.NumberFormat("en-IN",{style:"currency",currency:"INR"}).format(n);
 
-const DEMO_PRODUCTS: Product[] = [
-  { id: "p1", title: "Cotton T‑Shirt", price: 499, image: "https://picsum.photos/seed/p1/120/120", stock: 24 },
-  { id: "p2", title: "Denim Jacket", price: 1999, image: "https://picsum.photos/seed/p2/120/120", stock: 8 },
-  { id: "p3", title: "Sneakers", price: 2999, image: "https://picsum.photos/seed/p3/120/120", stock: 15 },
-  { id: "p4", title: "Silk Saree", price: 4599, image: "https://picsum.photos/seed/p4/120/120", stock: 5 },
-];
+export default function GoLiveStudio({ defaultTitle = "New Live Show", onStart }: GoLiveProps){
+  const { user } = useAuth();
+  const [sellerProducts, setSellerProducts] = useState<Product[]>([]);
 
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+        const storedProducts = localStorage.getItem('sellerProducts');
+        if (storedProducts) {
+            setSellerProducts(JSON.parse(storedProducts));
+        }
+    }
+  }, []);
 
-export default function GoLiveStudio({ products = DEMO_PRODUCTS, defaultTitle = "New Live Show", onStart }: GoLiveProps){
+  const products = useMemo(() => {
+    return sellerProducts.filter(p => p.status === 'active');
+  }, [sellerProducts]);
+
   // Step logic
   const [step, setStep] = useState<1|2|3>(1);
 
@@ -321,28 +331,39 @@ export default function GoLiveStudio({ products = DEMO_PRODUCTS, defaultTitle = 
               <div className="text-xs text-muted-foreground">Selected: {selectedIds.length}</div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-              {filtered.map(p=> (
-                <div key={p.id} className={`border rounded-2xl p-3 flex gap-3 items-center ${selectedIds.includes(p.id)?'border-primary shadow-sm':''}`}>
-                  <div className="w-16 h-16 rounded-lg bg-muted overflow-hidden flex items-center justify-center">
-                    {p.image ? (<img src={p.image} className="w-full h-full object-cover" alt={p.title}/>) : (
-                      <span className="text-xs text-muted-foreground">No image</span>
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="truncate text-sm font-medium">{p.title}</div>
-                    <div className="text-xs text-muted-foreground">{currency(p.price)}{p.stock!=null && <span> • Stock {p.stock}</span>}</div>
-                    <div className="flex items-center gap-2 mt-2">
-                      <Checkbox id={`sel-${p.id}`} checked={selectedIds.includes(p.id)} onCheckedChange={()=>toggleProduct(p.id)}/>
-                      <Label htmlFor={`sel-${p.id}`} className="text-xs">Include</Label>
-                      <Button size="sm" variant={featuredId===p.id?"default":"outline"} onClick={()=>setFeaturedId(p.id)} className="ml-auto">
-                        {featuredId===p.id ? <><CheckCircle2 className="w-4 h-4 mr-1"/> Featured</> : "Set featured"}
-                      </Button>
+            {filtered.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                {filtered.map(p=> (
+                    <div key={p.id} className={`border rounded-2xl p-3 flex gap-3 items-center ${selectedIds.includes(p.id)?'border-primary shadow-sm':''}`}>
+                    <div className="w-16 h-16 rounded-lg bg-muted overflow-hidden flex items-center justify-center">
+                        {p.image ? (<img src={p.image} className="w-full h-full object-cover" alt={p.title}/>) : (
+                        <span className="text-xs text-muted-foreground">No image</span>
+                        )}
                     </div>
-                  </div>
+                    <div className="flex-1 min-w-0">
+                        <div className="truncate text-sm font-medium">{p.title}</div>
+                        <div className="text-xs text-muted-foreground">{currency(p.price)}{p.stock!=null && <span> • Stock {p.stock}</span>}</div>
+                        <div className="flex items-center gap-2 mt-2">
+                        <Checkbox id={`sel-${p.id}`} checked={selectedIds.includes(p.id)} onCheckedChange={()=>toggleProduct(p.id)}/>
+                        <Label htmlFor={`sel-${p.id}`} className="text-xs">Include</Label>
+                        <Button size="sm" variant={featuredId===p.id?"default":"outline"} onClick={()=>setFeaturedId(p.id)} className="ml-auto">
+                            {featuredId===p.id ? <><CheckCircle2 className="w-4 h-4 mr-1"/> Featured</> : "Set featured"}
+                        </Button>
+                        </div>
+                    </div>
+                    </div>
+                ))}
                 </div>
-              ))}
-            </div>
+            ) : (
+                <div className="text-center py-10 text-muted-foreground">
+                    <p>You have no active products.</p>
+                    <Button asChild variant="link" className="mt-2">
+                        <Link href="/seller/products">
+                            <PlusCircle className="mr-2 h-4 w-4" /> Add a Product
+                        </Link>
+                    </Button>
+                </div>
+            )}
           </CardContent>
           <CardFooter className="justify-between">
             <Button variant="outline" onClick={()=>setStep(1)}>Back</Button>
