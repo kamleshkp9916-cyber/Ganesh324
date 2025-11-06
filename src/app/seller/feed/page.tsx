@@ -58,7 +58,7 @@ import { getSavedPosts, isPostSaved, toggleSavePost } from '@/lib/post-history';
 import { CommentColumn } from '@/components/feed/comment-column';
 import { useSidebar, SidebarProvider } from '@/components/ui/sidebar';
 import { useToast } from '@/hooks/use-toast';
-import { Dialog } from '@radix-ui/react-dialog';
+import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
 
 
 function FeedPostSkeleton() {
@@ -244,7 +244,7 @@ const FeedPost = ({
                                                  {product.stock > 0 ? (
                                                     <>
                                                         <Button variant="outline" size="icon" className="h-9 w-9" onClick={() => onAddToCart(product)}>
-                                                            <ShoppingCart className="h-4 w-4" />
+                                                            <ShoppingBag className="h-4 w-4" />
                                                         </Button>
                                                         <Button size="sm" className="h-9" onClick={() => onBuyNow(product)}>
                                                             Buy Now
@@ -338,6 +338,7 @@ function SellerFeedPage() {
   
   const userPosts = useMemo(() => {
     if (!user) return [];
+    // For now, show all posts on the seller feed page
     return feed;
   }, [feed, user]);
 
