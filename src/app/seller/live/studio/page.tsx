@@ -23,6 +23,7 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@
 import { Search, Mic, MicOff, Video, VideoOff, Settings2, Play, Pause, CheckCircle2, AlertTriangle, Upload, Plus, Trash2, MoveHorizontal, PlusCircle } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import Link from "next/link";
+import { useToast } from "@/hooks/use-toast";
 
 // Types
 type Product = { id: string; title: string; price: number; image?: string; stock?: number; status?: "active" | "draft" | "archived" };
@@ -56,6 +57,7 @@ const currency = (n:number)=> new Intl.NumberFormat("en-IN",{style:"currency",cu
 export default function GoLiveStudio({ defaultTitle = "New Live Show", onStart }: GoLiveProps){
   const { user } = useAuth();
   const [sellerProducts, setSellerProducts] = useState<Product[]>([]);
+  const { toast } = useToast();
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -135,31 +137,39 @@ export default function GoLiveStudio({ defaultTitle = "New Live Show", onStart }
   const addSelectedToOverlay = () => {
     const newItems: OverlayItem[] = selectedIds.map(id => ({ type: "product", id }));
     setOverlayItems(prev => [...prev, ...newItems]);
+    toast({ title: `${newItems.length} product(s) added to overlay.`})
   };
   const addCustomText = () => setOverlayItems(prev => [...prev, { type: "text", text: "New drop! Flat 10% today" }]);
   const removeOverlayItem = (idx:number) => setOverlayItems(prev => prev.filter((_,i)=>i!==idx));
 
   // Media: enumerate devices
   const refreshDevices = useCallback(async()=>{
-    const devs = await navigator.mediaDevices.enumerateDevices();
-    setDevices(devs);
-    if(!videoDeviceId){
-      const cam = devs.find(d=> d.kind === "videoinput");
-      if (cam) setVideoDeviceId(cam.deviceId);
-    }
-    if(!audioDeviceId){
-      const mic = devs.find(d=> d.kind === "audioinput");
-      if (mic) setAudioDeviceId(mic.deviceId);
+    try {
+        await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+        const devs = await navigator.mediaDevices.enumerateDevices();
+        setDevices(devs);
+        if(!videoDeviceId){
+          const cam = devs.find(d=> d.kind === "videoinput");
+          if (cam) setVideoDeviceId(cam.deviceId);
+        }
+        if(!audioDeviceId){
+          const mic = devs.find(d=> d.kind === "audioinput");
+          if (mic) setAudioDeviceId(mic.deviceId);
+        }
+    } catch(e:any) {
+        console.error("Permission error:", e);
+        setPermissionsError("Camera and microphone permissions are required to go live. Please enable them in your browser settings and refresh the page.");
     }
   },[videoDeviceId, audioDeviceId]);
 
   // Start/replace local preview stream
   const startPreview = useCallback(async()=>{
+    if (!videoDeviceId || !audioDeviceId) return;
     try{
       setPermissionsError("");
       const newStream = await navigator.mediaDevices.getUserMedia({
-        video: videoDeviceId ? { deviceId: { exact: videoDeviceId } } : true,
-        audio: audioDeviceId ? { deviceId: { exact: audioDeviceId } } : true,
+        video: { deviceId: { exact: videoDeviceId } },
+        audio: { deviceId: { exact: audioDeviceId } },
       });
       if (stream) stream.getTracks().forEach(t=>t.stop());
       setStream(newStream);
@@ -170,7 +180,7 @@ export default function GoLiveStudio({ defaultTitle = "New Live Show", onStart }
       setupAudioLevel(newStream);
     }catch(e:any){
       console.error(e);
-      setPermissionsError(e?.message || "Camera/Mic permission denied");
+      setPermissionsError(e?.message || "Could not start camera/mic. It might be in use by another application.");
     }
   },[videoDeviceId, audioDeviceId, stream]);
 
@@ -220,9 +230,20 @@ export default function GoLiveStudio({ defaultTitle = "New Live Show", onStart }
   useEffect(()=>{ if(stream) setTrackEnabled('video', camOn); }, [camOn, stream]);
   useEffect(()=>{ if(stream) setTrackEnabled('audio', micOn); }, [micOn, stream]);
 
-  // Refresh devices once
-  useEffect(()=>{ (async()=>{ await refreshDevices(); })(); },[refreshDevices]);
-  useEffect(()=>{ startPreview(); }, [videoDeviceId, audioDeviceId, startPreview]);
+  // Refresh devices once and start preview
+  useEffect(()=>{
+    if (step === 3) {
+      refreshDevices();
+    } else {
+      stopPreview();
+    }
+  },[step, refreshDevices, stopPreview]);
+
+  useEffect(()=> {
+    if (step === 3 && videoDeviceId && audioDeviceId) {
+        startPreview();
+    }
+  }, [step, videoDeviceId, audioDeviceId, startPreview]);
 
   // Cleanup on unmount
   useEffect(()=>()=>{ stopPreview(); },[stopPreview]);
@@ -355,7 +376,7 @@ export default function GoLiveStudio({ defaultTitle = "New Live Show", onStart }
                 ))}
                 </div>
             ) : (
-                <div className="text-center py-10 text-muted-foreground">
+                 <div className="text-center py-10 text-muted-foreground">
                     <p>You have no active products.</p>
                     <Button asChild variant="link" className="mt-2">
                         <Link href="/seller/products">
@@ -384,12 +405,15 @@ export default function GoLiveStudio({ defaultTitle = "New Live Show", onStart }
               <video ref={videoRef} className="w-full h-full object-cover" playsInline muted />
               {!stream && (
                 <div className="absolute inset-0 flex items-center justify-center text-muted-foreground text-sm">
-                  <span>Grant camera & mic permissions to preview</span>
-                </div>
-              )}
-              {permissionsError && (
-                <div className="absolute bottom-2 left-2 right-2 text-xs bg-red-500/90 text-white px-2 py-1 rounded">
-                  <AlertTriangle className="w-3 h-3 inline mr-1"/> {permissionsError}
+                  {permissionsError ? (
+                       <div className="text-center max-w-sm p-4">
+                           <AlertTriangle className="mx-auto w-8 h-8 text-destructive mb-2" />
+                           <p className="font-semibold text-destructive">Permissions Required</p>
+                           <p>{permissionsError}</p>
+                       </div>
+                  ) : (
+                    <span>Requesting permissions...</span>
+                  )}
                 </div>
               )}
 
@@ -411,7 +435,7 @@ export default function GoLiveStudio({ defaultTitle = "New Live Show", onStart }
 
             {/* Controls */}
             <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-3">
+               <div className="grid grid-cols-2 gap-3">
                 <Button variant={camOn?"default":"secondary"} onClick={()=>setCamOn(v=>!v)}>
                   {camOn ? <Video className="w-4 h-4 mr-1"/> : <VideoOff className="w-4 h-4 mr-1"/>}
                   {camOn ? "Camera on" : "Camera off"}
@@ -422,6 +446,27 @@ export default function GoLiveStudio({ defaultTitle = "New Live Show", onStart }
                 </Button>
               </div>
 
+               <div className="space-y-2">
+                 <Label>Camera</Label>
+                 <Select value={videoDeviceId} onValueChange={setVideoDeviceId} disabled={!devices.find(d=>d.kind==='videoinput')}>
+                    <SelectTrigger><SelectValue placeholder="Select camera"/></SelectTrigger>
+                    <SelectContent>
+                        {devices.filter(d=>d.kind==='videoinput').map(d=> <SelectItem key={d.deviceId} value={d.deviceId}>{d.label}</SelectItem>)}
+                    </SelectContent>
+                 </Select>
+               </div>
+
+                <div className="space-y-2">
+                 <Label>Microphone</Label>
+                 <Select value={audioDeviceId} onValueChange={setAudioDeviceId} disabled={!devices.find(d=>d.kind==='audioinput')}>
+                    <SelectTrigger><SelectValue placeholder="Select microphone"/></SelectTrigger>
+                    <SelectContent>
+                        {devices.filter(d=>d.kind==='audioinput').map(d=> <SelectItem key={d.deviceId} value={d.deviceId}>{d.label}</SelectItem>)}
+                    </SelectContent>
+                 </Select>
+                 {micOn && <LevelMeter value={level} />}
+               </div>
+               
               {/* Super Chat controls */}
               <div className="space-y-2">
                 <Label>Super Chat</Label>
@@ -477,20 +522,12 @@ export default function GoLiveStudio({ defaultTitle = "New Live Show", onStart }
                 </div>
               </div>
 
-              <Separator/>
-
-              <div className="grid grid-cols-2 gap-3">
-                <Button variant="outline" onClick={startPreview}><Play className="w-4 h-4 mr-1"/> Refresh preview</Button>
-                <Button variant="outline" onClick={stopPreview}><Pause className="w-4 h-4 mr-1"/> Stop preview</Button>
-              </div>
-
-              <div className="text-xs text-muted-foreground">Tip: Screen share can be added later via LiveKit.</div>
             </div>
           </CardContent>
           <CardFooter className="justify-between">
             <Button variant="outline" onClick={()=>setStep(2)}>Back</Button>
             <div className="flex items-center gap-2">
-              <Button onClick={handleStart} className="bg-red-600 hover:bg-red-700">Go Live</Button>
+               <Button onClick={handleStart} className="bg-red-600 hover:bg-red-700" disabled={!stream}>Go Live</Button>
             </div>
           </CardFooter>
         </Card>
