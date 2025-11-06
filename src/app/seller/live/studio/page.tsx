@@ -160,22 +160,22 @@ export default function GoLiveStudio({ defaultTitle = "New Live Show", onStart }
 
   // Start/replace local preview stream
   const startPreview = useCallback(async () => {
-    stopPreview(); // Stop any existing stream first
-    
-    // Build flexible constraints
+    stopPreview();
+  
     const audioConstraints: MediaTrackConstraints = {};
     if (state.audioDeviceId) {
-        audioConstraints.deviceId = state.audioDeviceId;
+      // Use the stored device ID as a preference, not a strict requirement.
+      audioConstraints.deviceId = state.audioDeviceId;
     }
-
+  
     const videoConstraints: MediaTrackConstraints = {
-        // Prioritize front camera on mobile
-        facingMode: 'user'
+      // Prioritize front camera on mobile, but allow browser to choose if needed.
+      facingMode: "user"
     };
     if (state.videoDeviceId) {
-        videoConstraints.deviceId = state.videoDeviceId;
+      videoConstraints.deviceId = state.videoDeviceId;
     }
-
+  
     try {
       setPermissionsError("");
       const newStream = await navigator.mediaDevices.getUserMedia({
@@ -190,7 +190,13 @@ export default function GoLiveStudio({ defaultTitle = "New Live Show", onStart }
       setupAudioLevel(newStream);
     } catch (e: any) {
       console.error("Error starting media preview:", e);
-      setPermissionsError("Could not start camera/mic. It might be in use or permissions were denied.");
+       if (e.name === 'NotFoundError' || e.name === 'DevicesNotFoundError') {
+        setPermissionsError("Requested device not found. It might be unplugged or unavailable.");
+      } else if (e.name === 'NotAllowedError' || e.name === 'PermissionDeniedError') {
+        setPermissionsError("Camera/Mic permissions were denied. Please enable them in your browser settings.");
+      } else {
+        setPermissionsError("Could not start camera/mic. It might be in use by another application.");
+      }
       stopPreview();
     }
   }, [state.videoDeviceId, state.audioDeviceId, stopPreview]);
@@ -199,6 +205,7 @@ export default function GoLiveStudio({ defaultTitle = "New Live Show", onStart }
   const refreshDevices = useCallback(async()=>{
     try {
         setPermissionsError("");
+        // Request permissions first to ensure devices are listed
         const tempStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
         
         const devs = await navigator.mediaDevices.enumerateDevices();
@@ -207,15 +214,23 @@ export default function GoLiveStudio({ defaultTitle = "New Live Show", onStart }
         const videoDevice = devs.find(d => d.kind === 'videoinput');
         const audioDevice = devs.find(d => d.kind === 'audioinput');
 
-        updateState({
-            videoDeviceId: state.videoDeviceId || videoDevice?.deviceId,
-            audioDeviceId: state.audioDeviceId || audioDevice?.deviceId,
-        });
+        // Only update state if it's not already set, to respect user choice
+        if (!state.videoDeviceId && videoDevice) {
+            updateState({ videoDeviceId: videoDevice.deviceId });
+        }
+        if (!state.audioDeviceId && audioDevice) {
+            updateState({ audioDeviceId: audioDevice.deviceId });
+        }
 
+        // Immediately stop the temporary stream
         tempStream.getTracks().forEach(track => track.stop());
     } catch (e: any) {
         console.error("Permission error:", e);
-        setPermissionsError("Camera and microphone permissions are required to go live. Please enable them in your browser settings and refresh the page.");
+        if (e.name === 'NotAllowedError' || e.name === 'PermissionDeniedError') {
+             setPermissionsError("Camera and microphone permissions are required to go live. Please enable them in your browser settings and refresh the page.");
+        } else {
+             setPermissionsError("Could not access camera or microphone. They may be in use by another app.");
+        }
     }
   }, [state.videoDeviceId, state.audioDeviceId, updateState]);
 
@@ -274,10 +289,11 @@ export default function GoLiveStudio({ defaultTitle = "New Live Show", onStart }
 
   // Start preview when devices are selected
   useEffect(()=> {
-    if (state.step === 3 && state.videoDeviceId && state.audioDeviceId) {
+    if (state.step === 3 && (state.videoDeviceId || state.audioDeviceId)) {
         startPreview();
     }
-  }, [state.step, state.videoDeviceId, state.audioDeviceId, startPreview]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.step, state.videoDeviceId, state.audioDeviceId]);
 
   // Cleanup on unmount
   useEffect(()=>()=>{ stopPreview(); },[stopPreview]);
