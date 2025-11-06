@@ -61,6 +61,7 @@ import {
   ArrowLeft,
   Package2,
   CircleUser,
+  ShieldCheck,
 } from 'lucide-react';
 import { Button, buttonVariants } from '@/components/ui/button';
 import Image from 'next/image';
@@ -620,10 +621,7 @@ function SellerFeedPage() {
               <Link href="/seller/dashboard" className="text-muted-foreground hover:text-foreground">
                 Dashboard
               </Link>
-              <Link
-                href="/seller/revenue"
-                className="text-muted-foreground hover:text-foreground"
-              >
+              <Link href="/seller/revenue" className="text-muted-foreground hover:text-foreground">
                 Revenue
               </Link>
               <Link
@@ -704,9 +702,9 @@ function SellerFeedPage() {
             />
             {isLoadingFeed ? (
                  <div className="space-y-4"><FeedPostSkeleton /><FeedPostSkeleton /></div>
-            ) : userPosts.length > 0 ? (
+            ) : feed.length > 0 ? (
                  <div className="divide-y">
-                     {userPosts.map(post => (
+                     {feed.map(post => (
                         <FeedPost 
                             key={post.id}
                             post={post}
@@ -728,8 +726,8 @@ function SellerFeedPage() {
                  </div>
             ) : (
                 <Card className="text-center py-12 text-muted-foreground flex flex-col items-center gap-4">
-                    <h3 className="text-xl font-semibold">Your Feed is Empty</h3>
-                    <p>Create your first post above to engage with your followers!</p>
+                    <h3 className="text-xl font-semibold">The Feed is Empty</h3>
+                    <p>Create the first post to engage with the community!</p>
                 </Card>
             )}
         </div>
