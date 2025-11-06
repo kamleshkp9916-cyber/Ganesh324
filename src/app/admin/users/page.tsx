@@ -76,6 +76,8 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { cn } from "@/lib/utils";
 import { useDebounce } from "@/hooks/use-debounce";
 import { createImpersonationToken } from "@/ai/flows/impersonation-flow";
+import { useLocalStorage } from "@/hooks/use-local-storage";
+import { PAYOUT_REQUESTS_KEY } from "@/app/admin/settings/page";
 
 const mockPayments = [
     { orderId: "#ORD5896", customer: { name: "Ganesh Prajapati" }, amount: 12500.00, status: 'holding' },
@@ -87,8 +89,6 @@ const mockPayouts = [
     { id: 1, sellerId: 'fashionfinds-uid', sellerName: 'FashionFinds', amount: 52340.50, status: 'pending', requestedAt: new Date().toISOString() },
     { id: 2, sellerId: 'gadgetguru-uid', sellerName: 'GadgetGuru', amount: 128900.00, status: 'paid', requestedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString() },
 ];
-
-export const PAYOUT_REQUESTS_KEY = 'streamcart_payout_requests';
 
 const UserTable = ({ users, onViewDetails, onDelete, onMakeAdmin, onImpersonate }: { users: any[], onViewDetails: (user: any) => void, onDelete: (user: any) => void, onMakeAdmin: (user: any) => void, onImpersonate: (user: any) => void }) => {
     const [isMounted, setIsMounted] = useState(false);
@@ -171,14 +171,13 @@ export default function AdminUsersPage() {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || "");
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
-  const [payoutRequests, setPayoutRequests] = useState<any[]>([]);
+  const [payoutRequests, setPayoutRequests] = useLocalStorage<any[]>(PAYOUT_REQUESTS_KEY, []);
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-        const storedRequests = localStorage.getItem(PAYOUT_REQUESTS_KEY);
-        setPayoutRequests(storedRequests ? JSON.parse(storedRequests) : mockPayouts);
+    if (typeof window !== 'undefined' && payoutRequests.length === 0) {
+        setPayoutRequests(mockPayouts);
     }
-  }, []);
+  }, [payoutRequests, setPayoutRequests]);
 
   const fetchUsers = async () => {
     const db = getFirestoreDb();
@@ -274,7 +273,6 @@ export default function AdminUsersPage() {
         req.id === requestId ? { ...req, status: newStatus } : req
     );
     setPayoutRequests(updatedRequests);
-    localStorage.setItem(PAYOUT_REQUESTS_KEY, JSON.stringify(updatedRequests));
     toast({
         title: `Request ${newStatus === 'paid' ? 'Approved' : 'Rejected'}`,
         description: `The payout request has been updated.`,
@@ -390,9 +388,6 @@ export default function AdminUsersPage() {
             </Button>
           </SheetTrigger>
           <SheetContent side="left">
-            <SheetHeader>
-                <SheetTitle className="sr-only">Admin Navigation Menu</SheetTitle>
-            </SheetHeader>
             <nav className="grid gap-6 text-lg font-medium">
               <Link
                 href="/admin/dashboard"

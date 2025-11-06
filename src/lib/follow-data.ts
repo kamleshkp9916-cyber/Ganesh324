@@ -215,3 +215,5 @@ export const getUserByDisplayName = async (displayName: string): Promise<UserDat
     }
     return querySnapshot.docs[0].data() as UserData;
 };
+
+export { getOrCreateConversation } from '@/ai/flows/chat-flow';
