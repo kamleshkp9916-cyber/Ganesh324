@@ -84,7 +84,6 @@ const mockSellers: Record<string, UserData> = {
 export const getUserData = async (uid: string): Promise<UserData | null> => {
     if (!uid) return null;
     
-    // First, check for mock seller data
     if (mockSellers[uid]) {
         return mockSellers[uid];
     }
@@ -110,14 +109,13 @@ export const updateUserData = async (uid: string, updates: Partial<UserData>): P
     if (!uid) return;
     const db = getFirestoreDb();
     const userDocRef = doc(db, "users", uid);
-    await updateDoc(userDocRef, updates);
+    await setDoc(userDocRef, updates, { merge: true });
 };
 
 export const createUserData = async (user: User, role: 'customer' | 'seller' | 'admin', additionalData: Partial<UserData> = {}): Promise<void> => {
     const db = getFirestoreDb();
     const userDocRef = doc(db, "users", user.uid);
     
-    // Predefined list of admin emails
     const ADMIN_EMAILS = ["kamleshkp9916@gmail.com"];
 
     let userRole = role;
@@ -131,7 +129,6 @@ export const createUserData = async (user: User, role: 'customer' | 'seller' | '
         ...additionalData,
     } as UserData;
     
-    // Explicitly remove sensitive fields before saving to Firestore
     delete (userData as any).password;
     delete (userData as any).confirmPassword;
     delete (userData as any).aadharOtp;
@@ -140,7 +137,7 @@ export const createUserData = async (user: User, role: 'customer' | 'seller' | '
     delete (userData as any).aadhar;
     delete (userData as any).pan;
 
-    await setDoc(userDocRef, userData);
+    await setDoc(userDocRef, userData, { merge: true });
 };
 
 
@@ -154,12 +151,10 @@ export const toggleFollow = async (currentUserId: string, targetUserId: string) 
     const batch = writeBatch(db);
 
     if (followDoc.exists()) {
-        // Unfollow
         batch.delete(followDocRef);
         batch.update(currentUserRef, { following: increment(-1) });
         batch.update(targetUserRef, { followers: increment(-1) });
     } else {
-        // Follow
         batch.set(followDocRef, { followedAt: new Date() });
         batch.update(currentUserRef, { following: increment(1) });
         batch.update(targetUserRef, { followers: increment(1) });
@@ -170,15 +165,13 @@ export const toggleFollow = async (currentUserId: string, targetUserId: string) 
 
 export const getFollowers = async (targetUserId: string): Promise<UserData[]> => {
     const db = getFirestoreDb();
-    // This is not efficient for large scale, but works for a demo.
-    // A real app would use a subcollection on the target user listing their followers.
     const usersCollection = collection(db, 'users');
     const allUsersSnapshot = await getDocs(usersCollection);
     const followers: UserData[] = [];
 
     for (const userDoc of allUsersSnapshot.docs) {
         const userId = userDoc.id;
-        if (userId === targetUserId) continue; // A user can't follow themselves in this logic
+        if (userId === targetUserId) continue;
         const followingRef = doc(db, `users/${userId}/following`, targetUserId);
         const followingDoc = await getDoc(followingRef);
         if (followingDoc.exists()) {
@@ -217,7 +210,6 @@ export const getUserByDisplayName = async (displayName: string): Promise<UserDat
     const q = query(usersRef, where("displayName", "==", displayName), limit(1));
     const querySnapshot = await getDocs(q);
     if (querySnapshot.empty) {
-        // Fallback to check mock data
         const mockUser = Object.values(mockSellers).find(u => u.displayName === displayName);
         return mockUser || null;
     }
