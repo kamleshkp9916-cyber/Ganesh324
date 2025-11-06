@@ -2,7 +2,7 @@
 "use client"
 
 import * as React from "react"
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   ChevronLeft,
   ChevronRight,
@@ -54,6 +54,8 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
 } from "@/components/ui/dropdown-menu"
 import {
   Pagination,
@@ -289,10 +291,18 @@ export default function SellerOrdersPage() {
     const [orders, setOrders] = useState<SellerOrder[]>(mockSellerOrdersData);
     const [selectedOrder, setSelectedOrder] = useState<SellerOrder | null>(null);
     const { toast } = useToast();
+    const [statusFilter, setStatusFilter] = useState("All");
 
     useEffect(() => {
         setIsMounted(true);
     }, []);
+
+    const filteredOrders = useMemo(() => {
+        if (statusFilter === "All") {
+            return orders;
+        }
+        return orders.filter(order => order.status === statusFilter);
+    }, [orders, statusFilter]);
 
     const handleUpdateStatus = (orderId: string, newStatus: 'Order Confirmed' | 'Cancelled by seller') => {
         const orderToUpdate = orders.find(o => o.orderId === orderId);
@@ -350,6 +360,33 @@ export default function SellerOrdersPage() {
         }
     };
     
+    const handleExport = () => {
+        if (filteredOrders.length === 0) {
+            toast({ title: "No data to export", variant: "destructive" });
+            return;
+        }
+
+        const headers = ["Order ID", "Customer", "Product", "Type", "Status", "Amount", "Date"];
+        const rows = filteredOrders.map(order => [
+            order.orderId,
+            order.customer.name,
+            order.product.name,
+            order.type,
+            order.status,
+            order.price.toFixed(2),
+            order.date
+        ]);
+
+        const csvContent = "data:text/csv;charset=utf-8," 
+            + [headers.join(","), ...rows.map(e => e.join(","))].join("\n");
+
+        const link = document.createElement("a");
+        link.setAttribute("href", encodeURI(csvContent));
+        link.setAttribute("download", `seller_orders_${new Date().toISOString()}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
 
     if (!isMounted || loading) {
         return <div className="flex h-screen items-center justify-center"><LoadingSpinner /></div>
@@ -531,21 +568,16 @@ export default function SellerOrdersPage() {
                                 <DropdownMenuContent align="end">
                                     <DropdownMenuLabel>Filter by Status</DropdownMenuLabel>
                                     <DropdownMenuSeparator />
-                                    <DropdownMenuCheckboxItem checked>
-                                        All
-                                    </DropdownMenuCheckboxItem>
-                                     <DropdownMenuCheckboxItem>
-                                        Pending
-                                    </DropdownMenuCheckboxItem>
-                                    <DropdownMenuCheckboxItem>
-                                        Fulfilled
-                                    </DropdownMenuCheckboxItem>
-                                    <DropdownMenuCheckboxItem>
-                                        Cancelled
-                                    </DropdownMenuCheckboxItem>
+                                    <DropdownMenuRadioGroup value={statusFilter} onValueChange={setStatusFilter}>
+                                        <DropdownMenuRadioItem value="All">All</DropdownMenuRadioItem>
+                                        <DropdownMenuRadioItem value="Pending">Pending</DropdownMenuRadioItem>
+                                        <DropdownMenuRadioItem value="Processing">Processing</DropdownMenuRadioItem>
+                                        <DropdownMenuRadioItem value="Fulfilled">Fulfilled</DropdownMenuRadioItem>
+                                        <DropdownMenuRadioItem value="Cancelled">Cancelled</DropdownMenuRadioItem>
+                                    </DropdownMenuRadioGroup>
                                 </DropdownMenuContent>
                             </DropdownMenu>
-                            <Button size="sm" variant="outline" className="h-8 gap-1">
+                            <Button size="sm" variant="outline" className="h-8 gap-1" onClick={handleExport}>
                                 <File className="h-3.5 w-3.5" />
                                 <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
                                 Export
@@ -568,7 +600,7 @@ export default function SellerOrdersPage() {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {orders.map((order) => (
+                            {filteredOrders.map((order) => (
                                 <TableRow key={order.orderId}>
                                     <TableCell>
                                         <div className="font-medium cursor-pointer hover:underline" onClick={() => setSelectedOrder(order)}>{order.orderId}</div>
@@ -624,7 +656,7 @@ export default function SellerOrdersPage() {
                 </CardContent>
                 <CardFooter>
                     <div className="text-xs text-muted-foreground">
-                    Showing <strong>1-5</strong> of <strong>{orders.length}</strong> orders
+                    Showing <strong>1-{filteredOrders.length > 5 ? 5 : filteredOrders.length}</strong> of <strong>{filteredOrders.length}</strong> orders
                     </div>
                     <Pagination className="ml-auto mr-0 w-auto">
                         <PaginationContent>
@@ -650,3 +682,4 @@ export default function SellerOrdersPage() {
     </Dialog>
   )
 }
+```
