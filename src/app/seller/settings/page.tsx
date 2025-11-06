@@ -127,12 +127,12 @@ export default function SellerSettingsPage() {
         }
     });
 
-    const totalWithdrawn = payouts.filter(p => p.status === 'paid').reduce((sum, p) => sum + p.amount, 0);
+    const totalWithdrawn = payoutRequests.filter(p => p.status === 'paid').reduce((sum, p) => sum + p.amount, 0);
 
     return {
       withdrawableBalance: withdrawablePayout - totalWithdrawn,
     };
-  }, [sellerOrders, payouts]);
+  }, [sellerOrders, payoutRequests]);
 
 
   const handleRequestPayout = async () => {
@@ -276,7 +276,7 @@ export default function SellerSettingsPage() {
                   </Card>
             </main>
         </div>
-         <DialogContent>
+        <DialogContent>
             <DialogHeader>
                 <DialogTitle>Request Payout</DialogTitle>
                 <DialogDescription>Enter the amount you wish to withdraw from your available balance.</DialogDescription>
@@ -317,4 +317,3 @@ export default function SellerSettingsPage() {
         </Dialog>
   );
 }
-
