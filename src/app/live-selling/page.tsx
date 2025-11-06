@@ -794,14 +794,11 @@ export default function LiveSellingPage() {
                         </DropdownMenu>
                     
                     {(userData?.role === 'seller' || userData?.role === 'admin') && (
-                            <Dialog>
-                            <DialogTrigger asChild>
-                                <Button size="sm" className="hidden lg:flex">
-                                    <RadioTower className="mr-2 h-4 w-4"/> Go Live
-                                </Button>
-                            </DialogTrigger>
-                            <GoLiveDialog />
-                        </Dialog>
+                        <Button asChild size="sm" className="hidden lg:flex">
+                           <Link href="/seller/live/studio">
+                                <RadioTower className="mr-2 h-4 w-4"/> Go Live
+                           </Link>
+                        </Button>
                     )}
                 </div>
             </div>
