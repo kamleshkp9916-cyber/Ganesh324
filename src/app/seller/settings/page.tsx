@@ -39,7 +39,7 @@ import {
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import React, { useState, useEffect, useRef, useMemo } from "react"
-import { useForm } from "react-hook-form"
+import { useForm, useFieldArray } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
 import { format, parseISO } from "date-fns"
@@ -263,7 +263,7 @@ const CategoryForm = ({ category, onSave, onCancel }: { category: Category | nul
         defaultValues: category || { id: '', name: '', subcategories: [] }
     });
 
-    const { fields, append, remove } = useForm({
+    const { fields, append, remove } = useFieldArray({
         control: form.control,
         name: "subcategories",
     });
@@ -289,7 +289,7 @@ const CategoryForm = ({ category, onSave, onCancel }: { category: Category | nul
                     
                     <h4 className="font-semibold text-sm pt-2">Subcategories</h4>
                     <div className="space-y-3 max-h-60 overflow-y-auto pr-2">
-                    {(fields as any[]).map((field, index) => (
+                    {(fields || []).map((field, index) => (
                         <div key={field.id} className="grid grid-cols-[1fr,1fr,auto] gap-2 items-start border p-3 rounded-lg">
                             <FormField control={form.control} name={`subcategories.${index}.name`} render={({ field }) => (
                                 <FormItem><FormLabel className="text-xs">Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
@@ -725,7 +725,7 @@ const mockBankAccounts = [
 ];
 
 
-export default function AdminSettingsPage() {
+export default function SellerSettingsPage() {
   const { user, userData, loading } = useAuth();
   const { signOut } = useAuthActions();
   const router = useRouter();
@@ -1027,7 +1027,7 @@ export default function AdminSettingsPage() {
                             <Link href="/seller/products" className="text-muted-foreground transition-colors hover:text-foreground">Products</Link>
                             <Link href="/seller/promotions" className="text-muted-foreground transition-colors hover:text-foreground">Promotions</Link>
                             <Link href="/seller/messages" className="text-muted-foreground transition-colors hover:text-foreground">Messages</Link>
-                            <Link href="/seller/feed" className="text-muted-foreground hover:text-foreground">Feed</Link>
+                            <Link href="/seller/feed" className="text-muted-foreground transition-colors hover:text-foreground">Feed</Link>
                             <Link href="/seller/settings" className="text-foreground transition-colors hover:text-foreground">Settings</Link>
                         </>
                     )}
@@ -1349,7 +1349,7 @@ export default function AdminSettingsPage() {
 
                         <Card>
                             <CardHeader>
-                                <CardTitle className="flex items-center gap-2"><Truck /> Shipping &amp; Delivery</CardTitle>
+                                <CardTitle className="flex items-center gap-2"><Truck /> Shipping & Delivery</CardTitle>
                                 <CardDescription>Manage shipping costs and other delivery settings.</CardDescription>
                             </CardHeader>
                             <CardContent>
@@ -1399,9 +1399,9 @@ export default function AdminSettingsPage() {
                         </Card>
 
                         <Card>
-                            <CardHeader><CardTitle>Content &amp; Policy Management</CardTitle><CardDescription>View and manage important site-wide documents.</CardDescription></CardHeader>
+                            <CardHeader><CardTitle>Content & Policy Management</CardTitle><CardDescription>View and manage important site-wide documents.</CardDescription></CardHeader>
                             <CardContent className="space-y-4">
-                                <div className="flex items-center justify-between rounded-lg border p-4"><div className="flex items-center gap-3"><FileText className="h-6 w-6 text-muted-foreground" /><div><h4 className="font-semibold">Terms &amp; Conditions</h4><p className="text-xs text-muted-foreground">Last updated: 26 Aug, 2025</p></div></div><div className="flex items-center gap-2"><Button asChild variant="outline" size="sm"><Link href="/terms-and-conditions">View</Link></Button><Button asChild size="sm"><Link href="/admin/edit/terms">Edit</Link></Button></div></div>
+                                <div className="flex items-center justify-between rounded-lg border p-4"><div className="flex items-center gap-3"><FileText className="h-6 w-6 text-muted-foreground" /><div><h4 className="font-semibold">Terms & Conditions</h4><p className="text-xs text-muted-foreground">Last updated: 26 Aug, 2025</p></div></div><div className="flex items-center gap-2"><Button asChild variant="outline" size="sm"><Link href="/terms-and-conditions">View</Link></Button><Button asChild size="sm"><Link href="/admin/edit/terms">Edit</Link></Button></div></div>
                                 <div className="flex items-center justify-between rounded-lg border p-4"><div className="flex items-center gap-3"><Shield className="h-6 w-6 text-muted-foreground" /><div><h4 className="font-semibold">Privacy Policy</h4><p className="text-xs text-muted-foreground">Last updated: 26 Aug, 2025</p></div></div><div className="flex items-center gap-2"><Button asChild variant="outline" size="sm"><Link href="/privacy-and-security">View</Link></Button><Button asChild size="sm"><Link href="/admin/edit/privacy">Edit</Link></Button></div></div>
                                 
                                  <Tabs defaultValue="footer-content" className="pt-4">
@@ -1438,5 +1438,3 @@ export default function AdminSettingsPage() {
     </>
   )
 }
-
-    
