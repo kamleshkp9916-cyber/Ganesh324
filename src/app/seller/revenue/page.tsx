@@ -5,7 +5,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"; // TabsContent not used
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { Table, TableHeader, TableHead, TableRow, TableBody, TableCell } from "@/components/ui/table";
@@ -25,12 +25,8 @@ import { getFirestoreDb } from '@/lib/firebase';
 import { Order, getStatusFromTimeline } from '@/lib/order-data';
 
 
-// ---------- Mock Data (replace with Firestore/API later) ----------
+// ---------- Mock Data (to be fully replaced) ----------
 const revenueKPI = {
-  totalRevenue: 45231.89,
-  growthPct: 20.1,
-  orderRevenue: 44881.89,
-  otherCharges: 350.0,
   pendingPayout: 15231.0,
   withdrawn: 30000.0,
   nextPayoutDate: new Date(2025, 10, 12), // 12 Nov 2025 (Month is 0-indexed)
@@ -45,12 +41,6 @@ const revenueSeriesMonthly = [
   { name: "Jun", revenue: 5900 },
 ];
 
-const txns = [
-  { id: "#ORD5896", type: "Order", gross: 12500, fees: -250, net: 12250, ts: new Date(2025, 9, 29) },
-  { id: "#ORD5897", type: "Order", gross: 4999, fees: -100, net: 4899, ts: new Date(2025, 9, 30) },
-  { id: "charge_123", type: "Shipping Fee", gross: 150, fees: -5, net: 145, ts: new Date(2025, 10, 2) },
-  { id: "charge_456", type: "Convenience Fee", gross: 50, fees: -2, net: 48, ts: new Date(2025, 10, 3) },
-];
 
 // ---------- Utilities (plain JS) ----------
 const inr = (n: number) => new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 2 }).format(n);
@@ -87,8 +77,6 @@ export default function SellerRevenueDashboard() {
       }
       
       const ordersRef = collection(db, "orders");
-      // Firestore 'in' queries are limited to 30 items. 
-      // For a real app, you might need to batch this or denormalize seller ID on the order.
       const productChunks: string[][] = [];
       for (let i = 0; i < sellerProductKeys.length; i += 10) {
           productChunks.push(sellerProductKeys.slice(i, i + 10));
@@ -106,8 +94,57 @@ export default function SellerRevenueDashboard() {
       setIsLoading(false);
     };
 
-    fetchSellerOrders();
+    if (user && userData) {
+      fetchSellerOrders();
+    }
   }, [user, userData]);
+
+  const revenueInsights = useMemo(() => {
+    if (isLoading || sellerOrders.length === 0) {
+      return { 
+        totalRevenue: 0,
+        otherCharges: 0,
+        orderRevenue: 0,
+        growthPct: 0,
+        transactions: []
+      };
+    }
+    const deliveredOrders = sellerOrders.filter(o => getStatusFromTimeline(o.timeline) === 'Delivered');
+
+    const PLATFORM_FEE_RATE = 0.02; // 2%
+
+    const totalRevenue = deliveredOrders.reduce((sum, o) => sum + o.total, 0);
+    const orderRevenue = deliveredOrders.reduce((sum, o) => {
+      // Assuming order total includes product price, shipping, etc.
+      // We take the sum of product prices as the basis for revenue.
+      const productTotal = o.products.reduce((prodSum, p) => prodSum + (parseFloat(p.price.replace(/[^0-9.-]+/g, '')) * p.quantity), 0);
+      return sum + productTotal;
+    }, 0);
+
+    const otherCharges = orderRevenue * PLATFORM_FEE_RATE; // Platform fee is the only "other charge"
+
+    const transactions = deliveredOrders.map(order => {
+        const gross = order.products.reduce((prodSum, p) => prodSum + (parseFloat(p.price.replace(/[^0-9.-]+/g, '')) * p.quantity), 0);
+        const fees = gross * PLATFORM_FEE_RATE;
+        return {
+            id: order.orderId,
+            type: "Order",
+            gross: gross,
+            fees: -fees,
+            net: gross - fees,
+            ts: new Date(order.orderDate)
+        };
+    });
+
+    return {
+      totalRevenue, // This is customer-paid total, let's refine this to seller revenue
+      orderRevenue, // This is the gross product value
+      otherCharges, // This is the 2% platform fee
+      growthPct: 20.1, // Mock growth
+      transactions
+    };
+  }, [sellerOrders, isLoading]);
+
 
   const orderInsights = useMemo(() => {
     if (isLoading || sellerOrders.length === 0) {
@@ -156,13 +193,13 @@ export default function SellerRevenueDashboard() {
   };
 
   const filteredTxns = useMemo(() => {
-    return txns.filter((t) => {
+    return revenueInsights.transactions.filter((t) => {
       const hay = (t.id + " " + t.type).toLowerCase();
       const matchesQ = query ? hay.includes(query.toLowerCase()) : true;
       const matchesType = typeFilter ? t.type === typeFilter : true;
       return matchesQ && matchesType;
     });
-  }, [query, typeFilter]);
+  }, [query, typeFilter, revenueInsights.transactions]);
 
   const examplePaths = {
     revenueSummary: "shops/{sellerId}/revenueSummary",
@@ -197,9 +234,9 @@ export default function SellerRevenueDashboard() {
               <CircleDollarSign className="h-4 w-4 text-muted-foreground"/>
             </CardHeader>
             <CardContent className="pt-0">
-              <div className="text-2xl font-semibold">{inr(revenueKPI.totalRevenue)}</div>
-              <div className={["mt-1","text-xs","flex","items-center","gap-1", pctColor(revenueKPI.growthPct)].join(" ")}>
-                {pctIcon(revenueKPI.growthPct)} {revenueKPI.growthPct}% from last month
+              <div className="text-2xl font-semibold">{inr(revenueInsights.orderRevenue)}</div>
+              <div className={["mt-1","text-xs","flex","items-center","gap-1", pctColor(revenueInsights.growthPct)].join(" ")}>
+                {pctIcon(revenueInsights.growthPct)} {revenueInsights.growthPct}% from last month
               </div>
             </CardContent>
           </Card>
@@ -210,7 +247,7 @@ export default function SellerRevenueDashboard() {
               <ShoppingBag className="h-4 w-4 text-muted-foreground"/>
             </CardHeader>
             <CardContent className="pt-0">
-              <div className="text-2xl font-semibold">{inr(revenueKPI.orderRevenue)}</div>
+              <div className="text-2xl font-semibold">{inr(revenueInsights.orderRevenue)}</div>
               <p className="text-xs text-muted-foreground">From product sales</p>
             </CardContent>
           </Card>
@@ -221,8 +258,8 @@ export default function SellerRevenueDashboard() {
               <Undo2 className="h-4 w-4 text-muted-foreground"/>
             </CardHeader>
             <CardContent className="pt-0">
-              <div className="text-2xl font-semibold">{inr(revenueKPI.otherCharges)}</div>
-              <p className="text-xs text-muted-foreground">Shipping, fees, etc.</p>
+              <div className="text-2xl font-semibold">{inr(revenueInsights.otherCharges)}</div>
+              <p className="text-xs text-muted-foreground">2% platform fees</p>
             </CardContent>
           </Card>
 
@@ -410,8 +447,7 @@ export default function SellerRevenueDashboard() {
                 <DropdownMenuContent align="end">
                   <DropdownMenuItem onClick={() => setTypeFilter(null)}>All</DropdownMenuItem>
                   <DropdownMenuItem onClick={() => setTypeFilter("Order")}>Order</DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setTypeFilter("Shipping Fee")}>Shipping Fee</DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setTypeFilter("Convenience Fee")}>Convenience Fee</DropdownMenuItem>
+                  
                 </DropdownMenuContent>
               </DropdownMenu>
               <Button variant="outline" className="gap-2"><Plus className="h-4 w-4" />Add Manual</Button>
@@ -439,7 +475,7 @@ export default function SellerRevenueDashboard() {
                       </div>
                     </TableCell>
                     <TableCell className="text-right">{inr(t.gross)}</TableCell>
-                    <TableCell className="text-right">{inr(t.fees)}</TableCell>
+                    <TableCell className="text-right text-destructive">{inr(t.fees)}</TableCell>
                     <TableCell className="text-right font-medium">{inr(t.net)}</TableCell>
                     <TableCell className="text-right text-muted-foreground">{format(t.ts, "dd MMM yyyy")}</TableCell>
                   </TableRow>
@@ -448,7 +484,7 @@ export default function SellerRevenueDashboard() {
             </Table>
           </CardContent>
           <CardFooter className="justify-between">
-            <div className="text-xs text-muted-foreground">Showing {filteredTxns.length} of {txns.length}</div>
+            <div className="text-xs text-muted-foreground">Showing {filteredTxns.length} of {revenueInsights.transactions.length}</div>
             <div className="flex items-center gap-2">
               <Button variant="outline" size="sm">Previous</Button>
               <Button variant="outline" size="sm">Next</Button>
@@ -491,3 +527,5 @@ export default function SellerRevenueDashboard() {
     </div>
   );
 }
+
+    
