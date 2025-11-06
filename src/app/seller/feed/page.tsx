@@ -56,7 +56,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { getSavedPosts, isPostSaved, toggleSavePost } from '@/lib/post-history';
 import { CommentColumn } from '@/components/feed/comment-column';
-import { useSidebar } from '@/components/ui/sidebar';
+import { useSidebar, SidebarProvider } from '@/components/ui/sidebar';
 import { useToast } from '@/hooks/use-toast';
 import { Dialog } from '@radix-ui/react-dialog';
 
