@@ -16,7 +16,7 @@ import {
   RadioTower,
   Ticket,
 } from "lucide-react"
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import {
   Avatar,
@@ -75,49 +75,10 @@ import { useRouter } from "next/navigation"
 import { useAuthActions } from "@/lib/auth";
 import { GoLiveDialog } from "@/components/go-live-dialog";
 import { SellerHeader } from "@/components/seller/seller-header";
+import { getFirestore, collection, query, where, getDocs, orderBy } from 'firebase/firestore';
+import { getFirestoreDb } from '@/lib/firebase';
+import { getStatusFromTimeline, Order } from '@/lib/order-data';
 
-
-const salesData = [
-  { name: "Jan", sales: 4000 },
-  { name: "Feb", sales: 3000 },
-  { name: "Mar", sales: 5000 },
-  { name: "Apr", sales: 4500 },
-  { name: "May", sales: 6000 },
-  { name: "Jun", sales: 5500 },
-]
-
-const recentSales = [
-  {
-    name: "Olivia Martin",
-    email: "olivia.martin@email.com",
-    amount: "+$1,999.00",
-    avatar: "https://placehold.co/40x40.png"
-  },
-  {
-    name: "Jackson Lee",
-    email: "jackson.lee@email.com",
-    amount: "+$39.00",
-    avatar: "https://placehold.co/40x40.png"
-  },
-  {
-    name: "Isabella Nguyen",
-    email: "isabella.nguyen@email.com",
-    amount: "+$299.00",
-    avatar: "https://placehold.co/40x40.png"
-  },
-  {
-    name: "William Kim",
-    email: "will@email.com",
-    amount: "+$99.00",
-    avatar: "https://placehold.co/40x40.png"
-  },
-  {
-    name: "Sofia Davis",
-    email: "sofia.davis@email.com",
-    amount: "+$39.00",
-    avatar: "https://placehold.co/40x40.png"
-  },
-]
 
 const SELLER_WELCOME_KEY = 'streamcart_seller_welcome_shown';
 
@@ -127,6 +88,8 @@ export default function SellerDashboard() {
   const router = useRouter();
   const [showWelcomeDialog, setShowWelcomeDialog] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
+  const [sellerOrders, setSellerOrders] = useState<Order[]>([]);
+  const [isLoadingMetrics, setIsLoadingMetrics] = useState(true);
 
   useEffect(() => {
     setIsMounted(true);
@@ -144,6 +107,65 @@ export default function SellerDashboard() {
     }
   }, [userData, loading, isMounted]);
 
+  useEffect(() => {
+    const fetchSellerData = async () => {
+        if (user?.uid) {
+            setIsLoadingMetrics(true);
+            const db = getFirestoreDb();
+            const ordersRef = collection(db, "orders");
+            const q = query(ordersRef, where("sellerId", "==", user.uid));
+            const querySnapshot = await getDocs(q);
+            const fetchedOrders = querySnapshot.docs.map(doc => doc.data() as Order);
+            setSellerOrders(fetchedOrders);
+            setIsLoadingMetrics(false);
+        }
+    };
+    if (user) {
+        fetchSellerData();
+    }
+  }, [user]);
+
+  const deliveredOrders = useMemo(() => {
+    return sellerOrders.filter(order => getStatusFromTimeline(order.timeline) === 'Delivered');
+  }, [sellerOrders]);
+
+  const totalRevenue = useMemo(() => {
+    return deliveredOrders.reduce((acc, order) => acc + order.total, 0);
+  }, [deliveredOrders]);
+
+  const totalSales = useMemo(() => {
+    return deliveredOrders.length;
+  }, [deliveredOrders]);
+  
+  const recentSales = useMemo(() => {
+    return deliveredOrders
+        .sort((a, b) => new Date(b.orderDate).getTime() - new Date(a.orderDate).getTime())
+        .slice(0, 5)
+        .map(order => ({
+            name: order.address.name,
+            email: `Order: ${order.orderId}`, // Displaying order ID instead of email for privacy
+            amount: `+${new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(order.total)}`,
+            avatar: "https://placehold.co/40x40.png" // Placeholder avatar
+        }));
+  }, [deliveredOrders]);
+  
+  const salesData = useMemo(() => {
+    const months = Array(6).fill(0).map((_, i) => {
+        const d = new Date();
+        d.setMonth(d.getMonth() - i);
+        return { name: d.toLocaleString('default', { month: 'short' }), sales: 0, year: d.getFullYear(), month: d.getMonth() };
+    }).reverse();
+
+    deliveredOrders.forEach(order => {
+        const orderDate = new Date(order.orderDate);
+        const monthIndex = months.findIndex(m => m.year === orderDate.getFullYear() && m.month === orderDate.getMonth());
+        if (monthIndex !== -1) {
+            months[monthIndex].sales += order.total;
+        }
+    });
+
+    return months.map(m => ({name: m.name, sales: Math.round(m.sales)}));
+  }, [deliveredOrders]);
 
   if (!isMounted || loading || !user || !userData) {
     return (
@@ -195,9 +217,9 @@ export default function SellerDashboard() {
                 <DollarSign className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">$45,231.89</div>
+                <div className="text-2xl font-bold">₹{totalRevenue.toLocaleString('en-IN')}</div>
                 <p className="text-xs text-muted-foreground">
-                  +20.1% from last month
+                  Based on all delivered orders.
                 </p>
               </CardContent>
             </Card>
@@ -210,9 +232,9 @@ export default function SellerDashboard() {
               <CreditCard className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">+12,234</div>
+              <div className="text-2xl font-bold">+{totalSales}</div>
               <p className="text-xs text-muted-foreground">
-                +19% from last month
+                Total delivered orders.
               </p>
             </CardContent>
           </Card>
@@ -222,9 +244,9 @@ export default function SellerDashboard() {
                 <Activity className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">12</div>
+                <div className="text-2xl font-bold">0</div>
                 <p className="text-xs text-muted-foreground">
-                  +2 this month
+                  You haven't streamed yet.
                 </p>
               </CardContent>
             </Card>
@@ -236,9 +258,9 @@ export default function SellerDashboard() {
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">+2350</div>
+              <div className="text-2xl font-bold">+{userData.followers || 0}</div>
               <p className="text-xs text-muted-foreground">
-                +180.1% from last month
+                Total followers on your profile.
               </p>
             </CardContent>
           </Card>
@@ -248,30 +270,31 @@ export default function SellerDashboard() {
             <CardHeader>
               <CardTitle>Sales Overview</CardTitle>
               <CardDescription>
-                An overview of your sales performance.
+                Your sales revenue over the last 6 months.
               </CardDescription>
             </CardHeader>
             <CardContent>
+              {isLoadingMetrics ? <div className="h-[300px] flex items-center justify-center"><LoadingSpinner /></div> : (
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={salesData}>
-                  <XAxis dataKey="name" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
+                  <XAxis dataKey="name" stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
+                  <YAxis stroke="#888888" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `₹${value/1000}k`} />
+                  <Tooltip formatter={(value: number) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(value)} />
                   <Bar dataKey="sales" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
+              )}
             </CardContent>
           </Card>
           <Card>
             <CardHeader>
               <CardTitle>Recent Sales</CardTitle>
               <CardDescription>
-                You made 265 sales this month.
+                Your most recent completed sales.
               </CardDescription>
             </CardHeader>
             <CardContent className="grid gap-8">
-               {recentSales.map((sale, index) => (
+               {recentSales.length > 0 ? recentSales.map((sale, index) => (
                 <div key={index} className="flex items-center gap-4">
                     <Avatar className="hidden h-9 w-9 sm:flex">
                     <AvatarImage src={sale.avatar} alt="Avatar" />
@@ -285,7 +308,9 @@ export default function SellerDashboard() {
                     </div>
                     <div className="ml-auto font-medium">{sale.amount}</div>
                 </div>
-              ))}
+              )) : (
+                <p className="text-sm text-muted-foreground text-center py-10">No recent sales to display.</p>
+              )}
             </CardContent>
           </Card>
         </div>
