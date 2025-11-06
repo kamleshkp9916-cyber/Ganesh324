@@ -2,7 +2,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Video, MapPin, Smile, X, Image as ImageIcon, Loader2, Tag, FileEdit, ListPlus, Trash2 } from "lucide-react";
+import { Video, MapPin, Smile, X, Image as ImageIcon, Loader2, Tag, FileEdit, ListPlus, Trash2, PlusCircle } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "./ui/avatar";
 import { useAuth } from '@/hooks/use-auth';
 import React, { useEffect, useState, forwardRef, useRef, useCallback } from "react";
