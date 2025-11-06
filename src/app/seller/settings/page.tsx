@@ -1,3 +1,4 @@
+
 "use client"
 
 import {
@@ -92,6 +93,7 @@ import { CATEGORIES_KEY, defaultCategories, Category, Subcategory } from "@/lib/
 import { Checkbox } from "@/components/ui/checkbox"
 import { Separator } from "@/components/ui/separator"
 import { AddBankForm, WithdrawForm } from "@/components/settings-forms"
+import { SellerHeader } from "@/components/seller/seller-header"
 
 const FLAGGED_COMMENTS_KEY = 'streamcart_flagged_comments';
 export const COUPONS_KEY = 'streamcart_coupons';
@@ -126,7 +128,7 @@ const couponSchema = z.object({
   maxDiscount: z.number().optional(),
   sellerId: z.string().optional(),
   sellerName: z.string().optional(),
-  status: z.enum(['pending', 'active', 'rejected', 'archived']).default('active'),
+  status: z.enum(['pending', 'active', 'rejected', 'archived']).default('pending'),
   terms: z.string().optional(),
   applicableProducts: z.array(z.string()).optional(),
 });
@@ -1025,7 +1027,7 @@ export default function SellerSettingsPage() {
                  {isSeller && (
                     <Card>
                         <CardHeader>
-                            <CardTitle className="flex items-center gap-2"><Wallet /> Payouts &amp; Bank Details</CardTitle>
+                            <CardTitle className="flex items-center gap-2"><Wallet /> Payouts & Bank Details</CardTitle>
                             <CardDescription>Manage your bank accounts and request withdrawals.</CardDescription>
                         </CardHeader>
                         <CardContent>
@@ -1296,7 +1298,7 @@ export default function SellerSettingsPage() {
 
                         <Card>
                             <CardHeader>
-                                <CardTitle className="flex items-center gap-2"><Truck /> Shipping &amp; Delivery</CardTitle>
+                                <CardTitle className="flex items-center gap-2"><Truck /> Shipping & Delivery</CardTitle>
                                 <CardDescription>Manage shipping costs and other delivery settings.</CardDescription>
                             </CardHeader>
                             <CardContent>
@@ -1346,9 +1348,9 @@ export default function SellerSettingsPage() {
                         </Card>
 
                         <Card>
-                            <CardHeader><CardTitle>Content &amp; Policy Management</CardTitle><CardDescription>View and manage important site-wide documents.</CardDescription></CardHeader>
+                            <CardHeader><CardTitle>Content & Policy Management</CardTitle><CardDescription>View and manage important site-wide documents.</CardDescription></CardHeader>
                             <CardContent className="space-y-4">
-                                <div className="flex items-center justify-between rounded-lg border p-4"><div className="flex items-center gap-3"><FileText className="h-6 w-6 text-muted-foreground" /><div><h4 className="font-semibold">Terms &amp; Conditions</h4><p className="text-xs text-muted-foreground">Last updated: 26 Aug, 2025</p></div></div><div className="flex items-center gap-2"><Button asChild variant="outline" size="sm"><Link href="/terms-and-conditions">View</Link></Button><Button asChild size="sm"><Link href="/admin/edit/terms">Edit</Link></Button></div></div>
+                                <div className="flex items-center justify-between rounded-lg border p-4"><div className="flex items-center gap-3"><FileText className="h-6 w-6 text-muted-foreground" /><div><h4 className="font-semibold">Terms & Conditions</h4><p className="text-xs text-muted-foreground">Last updated: 26 Aug, 2025</p></div></div><div className="flex items-center gap-2"><Button asChild variant="outline" size="sm"><Link href="/terms-and-conditions">View</Link></Button><Button asChild size="sm"><Link href="/admin/edit/terms">Edit</Link></Button></div></div>
                                 <div className="flex items-center justify-between rounded-lg border p-4"><div className="flex items-center gap-3"><Shield className="h-6 w-6 text-muted-foreground" /><div><h4 className="font-semibold">Privacy Policy</h4><p className="text-xs text-muted-foreground">Last updated: 26 Aug, 2025</p></div></div><div className="flex items-center gap-2"><Button asChild variant="outline" size="sm"><Link href="/privacy-and-security">View</Link></Button><Button asChild size="sm"><Link href="/admin/edit/privacy">Edit</Link></Button></div></div>
                                 
                                  <Tabs defaultValue="footer-content" className="pt-4">
