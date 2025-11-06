@@ -389,7 +389,7 @@ export default function AdminDashboard() {
               </Link>
                <Link
                 href="/admin/products"
-                className="text-muted-foreground hover:text-foreground"
+                className="text-muted-foreground transition-colors hover:text-foreground"
               >
                 Products
               </Link>
