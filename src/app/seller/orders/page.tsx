@@ -262,8 +262,8 @@ function OrderDetailCard({ order }: { order: SellerOrder }) {
                             <span className="text-muted-foreground">Delivery Charges:</span>
                             <span>₹{deliveryCharge.toFixed(2)}</span>
                         </div>
-                        <div className="flex justify-between">
-                            <span className="text-muted-foreground">Taxes (5%):</span>
+                         <div className="flex justify-between">
+                            <span className="text-muted-foreground">GST (5%):</span>
                             <span>₹{taxes.toFixed(2)}</span>
                         </div>
                         <Separator />
@@ -547,4 +547,5 @@ export default function SellerOrdersPage() {
     </Dialog>
   )
 }
-```
+
+    
