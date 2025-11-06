@@ -205,12 +205,19 @@ export default function SellerSettingsPage() {
                                           <TableCell>{format(new Date(request.requestedAt), "dd MMM, yyyy")}</TableCell>
                                           <TableCell>₹{request.amount.toFixed(2)}</TableCell>
                                           <TableCell>
+                                            <div className="flex flex-col">
                                               <Badge variant={
                                                   request.status === 'paid' ? 'success' :
                                                   request.status === 'pending' ? 'warning' : 'destructive'
                                               }>
                                                   {request.status}
                                               </Badge>
+                                               {request.status === 'paid' && request.payoutDate && (
+                                                    <span className="text-xs text-muted-foreground mt-1">
+                                                        {format(new Date(request.payoutDate), "dd MMM, yyyy, p")}
+                                                    </span>
+                                                )}
+                                            </div>
                                           </TableCell>
                                       </TableRow>
                                   ))}
