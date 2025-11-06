@@ -62,7 +62,7 @@ const pctIcon = (n: number) => (n >= 0 ? <TrendingUp className="h-4 w-4" /> : <T
 export default function SellerRevenueDashboard() {
   const [range, setRange] = useState("month"); // "month" | "week"
   const [chartType, setChartType] = useState("area"); // "area" | "bar"
-  const [query, setQuery] = useState("");
+  const [queryValue, setQueryValue] = useState("");
   const [typeFilter, setTypeFilter] = useState<string | null>(null);
   const router = useRouter();
   const { user, userData } = useAuth();
@@ -287,11 +287,11 @@ export default function SellerRevenueDashboard() {
   const filteredTxns = useMemo(() => {
     return revenueInsights.transactions.filter((t) => {
       const hay = (t.id + " " + t.type + " " + t.productName).toLowerCase();
-      const matchesQ = query ? hay.includes(query.toLowerCase()) : true;
+      const matchesQ = queryValue ? hay.includes(queryValue.toLowerCase()) : true;
       const matchesType = typeFilter ? t.type === typeFilter : true;
       return matchesQ && matchesType;
     });
-  }, [query, typeFilter, revenueInsights.transactions]);
+  }, [queryValue, typeFilter, revenueInsights.transactions]);
 
   return (
     <div className="flex min-h-screen w-full flex-col">
@@ -523,7 +523,7 @@ export default function SellerRevenueDashboard() {
             <div className="flex items-center gap-2 w-full sm:w-auto">
               <div className="relative w-full sm:w-64">
                 <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input placeholder="Search by ID or type" className="pl-8" value={query} onChange={(e) => setQuery(e.target.value)} />
+                <Input placeholder="Search by ID or type" className="pl-8" value={queryValue} onChange={(e) => setQueryValue(e.target.value)} />
               </div>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
