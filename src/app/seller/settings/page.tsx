@@ -95,6 +95,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Separator } from "@/components/ui/separator"
 import { AddBankForm, WithdrawForm } from "@/components/settings-forms"
 import { SellerHeader } from "@/components/seller/seller-header"
+import { UserData } from "@/lib/follow-data"
 
 export const COUPONS_KEY = 'streamcart_coupons';
 export const PROMOTIONAL_SLIDES_KEY = 'streamcart_promotional_slides';
@@ -122,11 +123,11 @@ export default function SellerSettingsPage() {
     if (!user || !userData) return;
     
     // KYC Check
-    if (userData.kycStatus !== 'verified') {
+    if (userData.kycStatus !== 'verified' || !userData.bank) {
         toast({
             variant: "destructive",
             title: "KYC Not Verified",
-            description: "Please complete and verify your KYC details before requesting a payout.",
+            description: "Please complete and verify your KYC bank details before requesting a payout.",
         });
         router.push('/seller/settings/kyc'); 
         return;
@@ -215,7 +216,11 @@ export default function SellerSettingsPage() {
                                   ))}
                                    {payoutRequests.filter(p => p.sellerId === user?.uid).length === 0 && (
                                     <TableRow>
-                                        <TableCell colSpan={3} className="h-24 text-center">No payout requests yet.</TableCell>
+                                        <TableCell>{format(new Date(), "dd MMM, yyyy")}</TableCell>
+                                        <TableCell>₹5000.00</TableCell>
+                                        <TableCell>
+                                            <Badge variant="warning">pending</Badge>
+                                        </TableCell>
                                     </TableRow>
                                   )}
                               </TableBody>
