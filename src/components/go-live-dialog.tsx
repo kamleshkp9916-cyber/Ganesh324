@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useMemo } from "react";
@@ -16,9 +15,9 @@ import { Gavel, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 const mockProducts = [
-    { id: 'prod_1', name: 'Vintage Camera', price: 12500, stock: 15, image: { preview: 'https://placehold.co/100x100.png' } },
-    { id: 'prod_2', name: 'Wireless Headphones', price: 4999, stock: 50, image: { preview: 'https://placehold.co/100x100.png' } },
-    { id: 'prod_3', name: 'Leather Backpack', price: 6200, stock: 8, image: { preview: 'https://placehold.co/100x100.png' } },
+    { id: 'prod_1', name: 'Vintage Camera', price: 12500, stock: 15, images: [{ preview: 'https://placehold.co/100x100.png' }] },
+    { id: 'prod_2', name: 'Wireless Headphones', price: 4999, stock: 50, images: [{ preview: 'https://placehold.co/100x100.png' }] },
+    { id: 'prod_3', name: 'Leather Backpack', price: 6200, stock: 8, images: [{ preview: 'https://placehold.co/100x100.png' }] },
 ];
 
 export function GoLiveDialog() {
@@ -94,19 +93,21 @@ export function GoLiveDialog() {
                     <Label>Your Products</Label>
                     <ScrollArea className="h-64 border rounded-md">
                         <div className="p-4 space-y-2">
-                            {sellerProducts.map((product: any) => (
+                            {sellerProducts.map((product: any) => {
+                                const image = product.images?.[0] || product.image;
+                                return (
                                 <button
                                     key={product.id}
                                     className={`w-full text-left p-2 rounded-md flex items-center gap-3 border ${selectedProduct?.id === product.id ? 'bg-primary/10 border-primary' : 'hover:bg-muted'}`}
                                     onClick={() => setSelectedProduct(product)}
                                 >
-                                    <Image src={product.images[0].preview} alt={product.name} width={40} height={40} className="rounded-md" />
+                                    {image && <Image src={image.preview} alt={product.name} width={40} height={40} className="rounded-md" />}
                                     <div>
                                         <p className="font-semibold text-sm">{product.name}</p>
                                         <p className="text-xs text-muted-foreground">Stock: {product.stock}</p>
                                     </div>
                                 </button>
-                            ))}
+                            )})}
                         </div>
                     </ScrollArea>
                 </div>
