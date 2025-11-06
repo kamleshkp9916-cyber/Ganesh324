@@ -23,6 +23,7 @@ import { productDetails, productToSellerMapping } from "@/lib/product-data";
 import { getFirestore, collection, query, where, getDocs, orderBy, onSnapshot } from 'firebase/firestore';
 import { getFirestoreDb } from '@/lib/firebase';
 import { Order, getStatusFromTimeline } from '@/lib/order-data';
+import { useToast } from "@/hooks/use-toast";
 
 
 // ---------- Mock Data (to be fully replaced) ----------
@@ -70,6 +71,7 @@ export default function SellerRevenueDashboard() {
   const [sellerOrders, setSellerOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [payouts, setPayouts] = useState<any[]>([]);
+  const { toast } = useToast();
 
   const fetchSellerOrders = useCallback(async () => {
     if (!user || !userData) return;
@@ -109,12 +111,14 @@ export default function SellerRevenueDashboard() {
         }
 
         setSellerOrders(allOrders);
+        toast({ title: "Data Refreshed", description: "Your revenue data is up to date." });
     } catch (error) {
         console.error("Error fetching seller orders:", error);
+        toast({ variant: 'destructive', title: "Refresh Failed", description: "Could not fetch the latest data." });
     } finally {
         setIsLoading(false);
     }
-  }, [user, userData]);
+  }, [user, userData, toast]);
 
 
   useEffect(() => {
@@ -297,6 +301,10 @@ export default function SellerRevenueDashboard() {
   }, [queryValue, typeFilter, revenueInsights.transactions]);
 
   const handleExportCSV = () => {
+    if (revenueInsights.transactions.length === 0) {
+        toast({ title: "No data to export", description: "There are no completed transactions to export yet.", variant: "destructive" });
+        return;
+    }
     const headers = ["Date", "Order ID", "Product", "Gross Revenue", "Platform Fees", "Net Revenue"];
     const rows = revenueInsights.transactions.map(t => [
       format(t.ts, "yyyy-MM-dd"),
@@ -305,9 +313,10 @@ export default function SellerRevenueDashboard() {
       t.gross.toFixed(2),
       t.fees.toFixed(2),
       t.net.toFixed(2)
-    ].join(","));
+    ]);
 
-    const csvContent = "data:text/csv;charset=utf-8," + [headers.join(","), ...rows].join("\n");
+    const csvContent = "data:text/csv;charset=utf-8," + [headers.join(","), ...rows.map(row => row.join(","))].join("\n");
+    
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);
@@ -315,6 +324,7 @@ export default function SellerRevenueDashboard() {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    toast({ title: "Export Successful", description: "Your revenue data has been downloaded." });
   };
 
   return (
@@ -605,5 +615,3 @@ export default function SellerRevenueDashboard() {
     </div>
   );
 }
-
-    
