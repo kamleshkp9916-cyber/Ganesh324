@@ -118,6 +118,7 @@ export default function SellerRevenueDashboard() {
         return {
             id: order.orderId,
             type: "Order",
+            productName: order.products.map(p => p.name).join(', '),
             gross: gross,
             fees: -fees,
             net: gross - fees,
@@ -218,7 +219,7 @@ export default function SellerRevenueDashboard() {
 
   const filteredTxns = useMemo(() => {
     return revenueInsights.transactions.filter((t) => {
-      const hay = (t.id + " " + t.type).toLowerCase();
+      const hay = (t.id + " " + t.type + " " + t.productName).toLowerCase();
       const matchesQ = query ? hay.includes(query.toLowerCase()) : true;
       const matchesType = typeFilter ? t.type === typeFilter : true;
       return matchesQ && matchesType;
@@ -482,6 +483,7 @@ export default function SellerRevenueDashboard() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Order/Transaction ID</TableHead>
+                  <TableHead>Product</TableHead>
                   <TableHead>Type</TableHead>
                   <TableHead className="text-right">Gross</TableHead>
                   <TableHead className="text-right">Fees</TableHead>
@@ -493,6 +495,7 @@ export default function SellerRevenueDashboard() {
                 {filteredTxns.map((t) => (
                   <TableRow key={t.id}>
                     <TableCell className="font-medium">{t.id}</TableCell>
+                    <TableCell>{t.productName}</TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <Badge variant="outline">{t.type}</Badge>
@@ -551,4 +554,3 @@ export default function SellerRevenueDashboard() {
     </div>
   );
 }
-
