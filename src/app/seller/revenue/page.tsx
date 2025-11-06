@@ -32,16 +32,6 @@ const revenueKPI = {
   nextPayoutDate: new Date(2025, 10, 12), // 12 Nov 2025 (Month is 0-indexed)
 };
 
-const revenueSeriesMonthly = [
-  { name: "Jan", revenue: 1200 },
-  { name: "Feb", revenue: 1800 },
-  { name: "Mar", revenue: 2600 },
-  { name: "Apr", revenue: 3100 },
-  { name: "May", revenue: 4800 },
-  { name: "Jun", revenue: 5900 },
-];
-
-
 // ---------- Utilities (plain JS) ----------
 const inr = (n: number) => new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 2 }).format(n);
 const pctColor = (n: number) => (n >= 0 ? "text-green-600" : "text-red-600");
@@ -143,6 +133,41 @@ export default function SellerRevenueDashboard() {
       growthPct: 20.1, // Mock growth
       transactions
     };
+  }, [sellerOrders, isLoading]);
+
+  const monthlyRevenueData = useMemo(() => {
+    const months: Record<string, number> = {};
+    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+    // Initialize last 6 months with 0 revenue
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date();
+      d.setMonth(d.getMonth() - i);
+      const monthKey = `${d.getFullYear()}-${d.getMonth()}`;
+      months[monthKey] = 0;
+    }
+
+    if (!isLoading && sellerOrders.length > 0) {
+      const deliveredOrders = sellerOrders.filter(o => getStatusFromTimeline(o.timeline) === 'Delivered');
+      
+      deliveredOrders.forEach(order => {
+        const orderDate = new Date(order.orderDate);
+        const monthKey = `${orderDate.getFullYear()}-${orderDate.getMonth()}`;
+        if (monthKey in months) {
+          const productTotal = order.products.reduce((prodSum, p) => prodSum + (parseFloat(p.price.replace(/[^0-9.-]+/g, '')) * p.quantity), 0);
+          const netRevenue = productTotal * (1 - 0.02); // Subtract 2% platform fee
+          months[monthKey] += netRevenue;
+        }
+      });
+    }
+
+    return Object.entries(months).map(([key, revenue]) => {
+      const [, monthIndex] = key.split('-').map(Number);
+      return {
+        name: monthNames[monthIndex],
+        revenue: Math.round(revenue)
+      };
+    });
   }, [sellerOrders, isLoading]);
 
 
@@ -312,7 +337,7 @@ export default function SellerRevenueDashboard() {
             <div className="h-[280px] w-full">
               <ResponsiveContainer width="100%" height="100%">
                 {chartType === "area" ? (
-                  <AreaChart data={revenueSeriesMonthly} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
+                  <AreaChart data={monthlyRevenueData} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
                     <defs>
                       <linearGradient id="rev" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
@@ -326,7 +351,7 @@ export default function SellerRevenueDashboard() {
                     <Area type="monotone" dataKey="revenue" stroke="hsl(var(--primary))" fillOpacity={1} fill="url(#rev)" />
                   </AreaChart>
                 ) : (
-                  <BarChart data={revenueSeriesMonthly} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
+                  <BarChart data={monthlyRevenueData} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
                     <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
                     <XAxis dataKey="name" />
                     <YAxis tickFormatter={(v) => "₹" + v} />
