@@ -22,6 +22,7 @@ import {
   CircleUser,
   ShieldCheck,
   RadioTower,
+  Search, // Added Search icon
 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import Link from "next/link";
@@ -84,6 +85,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { Input } from "@/components/ui/input" // Added Input import
+import { useDebounce } from "@/hooks/use-debounce" // Added useDebounce import
 
 const mockSellerOrdersData = [
     {
@@ -292,17 +295,31 @@ export default function SellerOrdersPage() {
     const [selectedOrder, setSelectedOrder] = useState<SellerOrder | null>(null);
     const { toast } = useToast();
     const [statusFilter, setStatusFilter] = useState("All");
+    const [searchTerm, setSearchTerm] = useState("");
+    const debouncedSearchTerm = useDebounce(searchTerm, 300);
 
     useEffect(() => {
         setIsMounted(true);
     }, []);
 
     const filteredOrders = useMemo(() => {
-        if (statusFilter === "All") {
-            return orders;
+        let tempOrders = orders;
+
+        if (statusFilter !== "All") {
+            tempOrders = tempOrders.filter(order => order.status === statusFilter);
         }
-        return orders.filter(order => order.status === statusFilter);
-    }, [orders, statusFilter]);
+
+        if (debouncedSearchTerm) {
+            const lowercasedQuery = debouncedSearchTerm.toLowerCase();
+            tempOrders = tempOrders.filter(order =>
+                order.orderId.toLowerCase().includes(lowercasedQuery) ||
+                order.customer.name.toLowerCase().includes(lowercasedQuery) ||
+                order.product.name.toLowerCase().includes(lowercasedQuery)
+            );
+        }
+
+        return tempOrders;
+    }, [orders, statusFilter, debouncedSearchTerm]);
 
     const handleUpdateStatus = (orderId: string, newStatus: 'Order Confirmed' | 'Cancelled by seller') => {
         const orderToUpdate = orders.find(o => o.orderId === orderId);
@@ -512,6 +529,18 @@ export default function SellerOrdersPage() {
                   </SheetContent>
                 </Sheet>
                  <div className="flex w-full items-center gap-4 md:ml-auto md:gap-2 lg:gap-4">
+                    <form className="ml-auto flex-1 sm:flex-initial" onSubmit={(e) => e.preventDefault()}>
+                        <div className="relative">
+                            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                            <Input
+                                type="search"
+                                placeholder="Search orders..."
+                                className="pl-8 sm:w-[300px] md:w-[200px] lg:w-[300px]"
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                            />
+                        </div>
+                    </form>
                     <Dialog>
                         <DialogTrigger asChild>
                             <Button className="ml-auto">
@@ -682,3 +711,4 @@ export default function SellerOrdersPage() {
     </Dialog>
   )
 }
+```
