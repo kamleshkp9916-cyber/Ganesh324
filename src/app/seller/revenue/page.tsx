@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, useCallback } from "react";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -71,6 +71,51 @@ export default function SellerRevenueDashboard() {
   const [isLoading, setIsLoading] = useState(true);
   const [payouts, setPayouts] = useState<any[]>([]);
 
+  const fetchSellerOrders = useCallback(async () => {
+    if (!user || !userData) return;
+    setIsLoading(true);
+    try {
+        const db = getFirestoreDb();
+        let allOrders: Order[] = [];
+
+        const sellerProductKeys = Object.entries(productToSellerMapping)
+            .filter(([, sellerInfo]) => sellerInfo.uid === user.uid)
+            .map(([key]) => key);
+
+        if (sellerProductKeys.length === 0) {
+            setSellerOrders(mockSellerOrdersForDisplay);
+            return;
+        }
+        
+        const productChunks: string[][] = [];
+        for (let i = 0; i < sellerProductKeys.length; i += 10) {
+            productChunks.push(sellerProductKeys.slice(i, i + 10));
+        }
+
+        const ordersRef = collection(db, "orders");
+        for (const chunk of productChunks) {
+            const q = query(ordersRef, where("products.key", "in", chunk));
+            const querySnapshot = await getDocs(q);
+            querySnapshot.forEach((doc) => {
+                const orderData = doc.data() as Order;
+                if(orderData.products.some(p => sellerProductKeys.includes(p.key))) {
+                    allOrders.push({ ...orderData, orderId: doc.id });
+                }
+            });
+        }
+
+        if(allOrders.length === 0) {
+            allOrders.push(...mockSellerOrdersForDisplay);
+        }
+
+        setSellerOrders(allOrders);
+    } catch (error) {
+        console.error("Error fetching seller orders:", error);
+    } finally {
+        setIsLoading(false);
+    }
+  }, [user, userData]);
+
 
   useEffect(() => {
     if (!user) return;
@@ -87,57 +132,15 @@ export default function SellerRevenueDashboard() {
     return () => unsubscribe();
   }, [user]);
 
-  const totalWithdrawn = useMemo(() => {
-    return payouts.reduce((sum, p) => sum + p.amount, 0);
-  }, [payouts]);
-
   useEffect(() => {
-    const fetchSellerOrders = async () => {
-      if (!user || !userData) return;
-      setIsLoading(true);
-      const db = getFirestoreDb();
-      let allOrders: Order[] = [];
-
-      const sellerProductKeys = Object.entries(productToSellerMapping)
-        .filter(([, sellerInfo]) => sellerInfo.uid === user.uid)
-        .map(([key]) => key);
-
-      if (sellerProductKeys.length === 0) {
-        setSellerOrders(mockSellerOrdersForDisplay);
-        setIsLoading(false);
-        return;
-      }
-      
-      const productChunks: string[][] = [];
-      for (let i = 0; i < sellerProductKeys.length; i += 10) {
-          productChunks.push(sellerProductKeys.slice(i, i + 10));
-      }
-
-      const ordersRef = collection(db, "orders");
-      for (const chunk of productChunks) {
-          const q = query(ordersRef, where("products.key", "in", chunk));
-          const querySnapshot = await getDocs(q);
-          querySnapshot.forEach((doc) => {
-              const orderData = doc.data() as Order;
-              if(orderData.products.some(p => sellerProductKeys.includes(p.key))) {
-                allOrders.push({ ...orderData, orderId: doc.id });
-              }
-          });
-      }
-
-      // Add mock data for demonstration if no real orders are found
-      if(allOrders.length === 0) {
-        allOrders.push(...mockSellerOrdersForDisplay);
-      }
-
-      setSellerOrders(allOrders);
-      setIsLoading(false);
-    };
-
     if (user && userData) {
       fetchSellerOrders();
     }
-  }, [user, userData]);
+  }, [user, userData, fetchSellerOrders]);
+
+  const totalWithdrawn = useMemo(() => {
+    return payouts.reduce((sum, p) => sum + p.amount, 0);
+  }, [payouts]);
 
   const PLATFORM_FEE_RATE = 0.05;
 
@@ -293,6 +296,27 @@ export default function SellerRevenueDashboard() {
     });
   }, [queryValue, typeFilter, revenueInsights.transactions]);
 
+  const handleExportCSV = () => {
+    const headers = ["Date", "Order ID", "Product", "Gross Revenue", "Platform Fees", "Net Revenue"];
+    const rows = revenueInsights.transactions.map(t => [
+      format(t.ts, "yyyy-MM-dd"),
+      t.id,
+      `"${t.productName.replace(/"/g, '""')}"`, // Escape double quotes
+      t.gross.toFixed(2),
+      t.fees.toFixed(2),
+      t.net.toFixed(2)
+    ].join(","));
+
+    const csvContent = "data:text/csv;charset=utf-8," + [headers.join(","), ...rows].join("\n");
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `revenue_export_${format(new Date(), "yyyy-MM-dd")}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <div className="flex min-h-screen w-full flex-col">
        <SellerHeader />
@@ -304,8 +328,8 @@ export default function SellerRevenueDashboard() {
             <p className="text-sm text-muted-foreground">Track revenue, payouts, and transaction health at a glance.</p>
           </div>
           <div className="flex items-center gap-2">
-            <Button variant="outline" className="gap-2"><RefreshCcw className="h-4 w-4"/>Refresh</Button>
-            <Button className="gap-2"><Download className="h-4 w-4"/>Export CSV</Button>
+            <Button variant="outline" className="gap-2" onClick={fetchSellerOrders} disabled={isLoading}><RefreshCcw className="h-4 w-4"/>Refresh</Button>
+            <Button className="gap-2" onClick={handleExportCSV} disabled={revenueInsights.transactions.length === 0}><Download className="h-4 w-4"/>Export CSV</Button>
           </div>
         </div>
 
@@ -581,3 +605,5 @@ export default function SellerRevenueDashboard() {
     </div>
   );
 }
+
+    
