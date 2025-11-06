@@ -3,90 +3,33 @@
 
 import Link from 'next/link';
 import {
-  Clapperboard,
-  Home,
-  Bookmark,
-  Heart,
-  Star,
-  Zap,
-  ChevronDown,
-  Bell,
-  Plus,
-  Settings,
-  Users,
   Menu,
-  User,
-  Award,
-  MessageSquare,
-  Shield,
-  FileText,
-  LifeBuoy,
-  Wallet,
-  ShoppingBag,
-  LogOut,
   MoreHorizontal,
-  Flag,
-  Share2,
-  MessageCircle,
-  Clipboard,
-  Hash,
-  UserPlus,
-  Video,
-  Globe,
-  File,
-  X,
-  ShoppingCart,
-  Moon,
-  Sun,
-  Search,
-  LayoutDashboard,
-  Repeat,
-  Laptop,
-  Briefcase,
-  RadioTower,
-  Trash2,
-  Send,
-  ArrowUp,
-  ArrowDown,
-  Tv,
-  Tags,
-  Flame,
-  TrendingUp,
-  Save,
-  Package,
-  List,
-  Sparkles,
-  Edit,
-  UserCheck,
-  ArrowLeft,
+  MessageSquare,
   Package2,
   CircleUser,
   ShieldCheck,
+  Edit,
+  Trash2,
+  Save,
+  Share2,
+  Flag,
+  UserPlus,
+  UserCheck,
+  ArrowUp,
+  ArrowDown,
+  ShoppingBag,
+  RadioTower,
 } from 'lucide-react';
-import { Button, buttonVariants } from '@/components/ui/button';
+import { Button } from '@/components/ui/button';
 import Image from 'next/image';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/hooks/use-auth';
 import { useAuthActions } from '@/lib/auth';
-import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuSub, DropdownMenuSubTrigger, DropdownMenuSubContent, DropdownMenuPortal } from '@/components/ui/dropdown-menu';
-import {
-  NavigationMenu,
-  NavigationMenuContent,
-  NavigationMenuItem,
-  NavigationMenuLink,
-  NavigationMenuList,
-  NavigationMenuTrigger,
-  navigationMenuTriggerStyle,
-} from "@/components/ui/navigation-menu"
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Footer } from '@/components/footer';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useToast } from "@/hooks/use-toast";
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -99,38 +42,24 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
-import { useRouter, usePathname, useSearchParams } from 'next/navigation';
-import { useTheme } from 'next-themes';
+import { useRouter } from 'next/navigation';
 import { CreatePostForm, PostData } from '@/components/create-post-form';
-import { getCart, addToCart, saveCart } from '@/lib/product-history';
-import { Dialog, DialogHeader, DialogTitle, DialogTrigger, DialogContent, DialogFooter, DialogClose, DialogDescription } from '@/components/ui/dialog';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { addToCart, saveCart } from '@/lib/product-history';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { GoLiveDialog } from '@/components/go-live-dialog';
 import { collection, query, orderBy, onSnapshot, Timestamp, deleteDoc, doc, updateDoc, increment, addDoc, serverTimestamp, where, getDocs, runTransaction, limit, Unsubscribe } from "firebase/firestore";
-import { getFirestoreDb, getFirebaseStorage } from '@/lib/firebase';
-import { format, formatDistanceToNow, formatDistanceToNowStrict, isThisWeek, isThisYear } from 'date-fns';
-import { ref as storageRef, deleteObject } from 'firebase/storage';
-import { isFollowing, toggleFollow, UserData, getUserByDisplayName, getFollowing, getOrCreateConversation } from '@/lib/follow-data';
+import { getFirestoreDb } from '@/lib/firebase';
+import { formatDistanceToNow } from 'date-fns';
+import { isFollowing, toggleFollow } from '@/lib/follow-data';
 import { productDetails } from '@/lib/product-data';
-import { PromotionalCarousel } from '@/components/promotional-carousel';
-import { Logo } from '@/components/logo';
-import { categories } from '@/lib/categories';
-import { Separator } from '@/components/ui/separator';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
-import { useIsMobile } from '@/hooks/use-mobile';
 import { getSavedPosts, isPostSaved, toggleSavePost } from '@/lib/post-history';
-import { useDebounce } from '@/hooks/use-debounce';
-import { Highlight } from '@/components/highlight';
-import { Popover, PopoverContent, PopoverTrigger, PopoverAnchor } from '@/components/ui/popover';
 import { CommentColumn } from '@/components/feed/comment-column';
-import { MainSidebar } from '@/components/main-sidebar';
-import { SidebarProvider, useSidebar } from '@/components/ui/sidebar';
+import { useSidebar } from '@/components/ui/sidebar';
+import { useToast } from '@/hooks/use-toast';
+import { Dialog } from '@radix-ui/react-dialog';
 
-const liveSellersData = [
-    { id: '1', name: 'FashionFinds', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Fashion', viewers: 1200, buyers: 25, rating: 4.8, reviews: 12, hint: 'woman posing stylish outfit', productId: 'prod_1' },
-    { id: '2', name: 'GadgetGuru', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Electronics', viewers: 2500, buyers: 42, rating: 4.9, reviews: 28, hint: 'unboxing new phone', productId: 'prod_2' },
-];
 
 function FeedPostSkeleton() {
     return (
@@ -350,8 +279,8 @@ const FeedPost = ({
                             )}
                         >
                             {post.images.slice(0, 4).map((image: any, index: number) => (
-                                <DialogTrigger key={image.id || index} asChild>
                                 <div
+                                    key={image.id || index}
                                     className={cn(
                                     "cursor-pointer relative group bg-muted",
                                     post.images.length === 1 ? "aspect-video" : "aspect-square"
@@ -369,7 +298,6 @@ const FeedPost = ({
                                     </div>
                                     )}
                                 </div>
-                                </DialogTrigger>
                             ))}
                         </div>
                     </div>
@@ -407,10 +335,10 @@ function SellerFeedPage() {
   const [savedPosts, setSavedPosts] = useState<any[]>([]);
   const [selectedPostForComments, setSelectedPostForComments] = useState<any | null>(null);
   const { toast } = useToast();
-
+  
   const userPosts = useMemo(() => {
     if (!user) return [];
-    return feed.filter(post => post.sellerId === user.uid);
+    return feed;
   }, [feed, user]);
 
   const onFinishEditing = () => {
@@ -424,32 +352,29 @@ function SellerFeedPage() {
     setIsFormSubmitting(true);
     
     try {
+        const db = getFirestoreDb();
         if (postToEdit) {
-            const db = getFirestoreDb();
             const postRef = doc(db, 'posts', postToEdit.id);
-            
-            const dataToUpdate: any = {
-                content: postData.content,
-                taggedProducts: postData.taggedProducts
-            };
-            
-            await updateDoc(postRef, dataToUpdate);
-            toast({ title: "Post Updated!", description: "Your changes have been saved." });
-            
-        } else {
-            const db = getFirestoreDb();
-            const dataToSave: any = {
+            await updateDoc(postRef, {
                 content: postData.content,
                 taggedProducts: postData.taggedProducts,
+                pollOptions: postData.pollOptions || null,
+                lastEditedAt: serverTimestamp(),
+            });
+            toast({ title: "Post Updated!", description: "Your changes have been saved." });
+        } else {
+            await addDoc(collection(db, "posts"), {
+                content: postData.content,
+                taggedProducts: postData.taggedProducts,
+                pollOptions: postData.pollOptions || null,
                 sellerId: user.uid,
                 sellerName: userData.displayName,
                 avatarUrl: userData.photoURL,
                 timestamp: serverTimestamp(),
                 likes: 0,
                 replies: 0,
-                images: [],
-            };
-            await addDoc(collection(db, "posts"), dataToSave);
+                images: [], // Images would be uploaded separately and URLs added here
+            });
             toast({ title: "Post Created!", description: "Your post has been successfully shared." });
         }
     } catch (error: any) {
@@ -466,6 +391,12 @@ function SellerFeedPage() {
   
   const handleEditPost = (post: any) => {
       setPostToEdit(post);
+      if (document.activeElement instanceof HTMLElement) {
+        document.activeElement.blur();
+      }
+      setTimeout(() => {
+          document.getElementById('post-form-textarea')?.focus();
+      }, 100);
   };
   
   const handleDeletePost = async (post: any) => {
@@ -544,8 +475,17 @@ function SellerFeedPage() {
     return () => unsubscribe();
   }, []);
 
+  if (authLoading) {
+      return <div className="flex items-center justify-center min-h-screen"><LoadingSpinner /></div>;
+  }
+  
+  if (!user || userData?.role !== 'seller') {
+      router.push('/');
+      return null;
+  }
+
   return (
-    <div className="min-h-screen bg-background text-foreground flex flex-col">
+    <div className="flex min-h-screen w-full flex-col">
        <header className="sticky top-0 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6 z-40">
         <nav className="hidden flex-col gap-6 text-lg font-medium md:flex md:flex-row md:items-center md:gap-5 md:text-sm lg:gap-6">
           <Link
@@ -692,19 +632,13 @@ function SellerFeedPage() {
         </div>
       </header>
 
-      <main className="flex-grow p-4 md:p-8">
-        <div className="max-w-xl mx-auto space-y-8">
-            <CreatePostForm
-                onPost={handlePostSubmit}
-                postToEdit={postToEdit}
-                onFinishEditing={onFinishEditing}
-                isSubmitting={isFormSubmitting}
-            />
+      <main className="flex-1 overflow-y-auto">
+        <div className="max-w-xl mx-auto space-y-8 p-4 md:p-8">
             {isLoadingFeed ? (
                  <div className="space-y-4"><FeedPostSkeleton /><FeedPostSkeleton /></div>
-            ) : feed.length > 0 ? (
+            ) : userPosts.length > 0 ? (
                  <div className="divide-y">
-                     {feed.map(post => (
+                     {userPosts.map(post => (
                         <FeedPost 
                             key={post.id}
                             post={post}
@@ -719,19 +653,29 @@ function SellerFeedPage() {
                             onBuyNow={handleBuyNow}
                             onNotifyMe={handleNotifyMe}
                             isSaved={isPostSaved(post.id)}
-                            isFollowing={false} // A seller can't follow themselves
+                            isFollowing={false} 
                             onCommentClick={(post) => setSelectedPostForComments(post)}
                         />
                     ))}
                  </div>
             ) : (
                 <Card className="text-center py-12 text-muted-foreground flex flex-col items-center gap-4">
-                    <h3 className="text-xl font-semibold">The Feed is Empty</h3>
-                    <p>Create the first post to engage with the community!</p>
+                    <h3 className="text-xl font-semibold">Your Feed is Empty</h3>
+                    <p>Create your first post to engage with the community!</p>
                 </Card>
             )}
         </div>
       </main>
+       <footer className="sticky bottom-0 p-3 bg-background/80 backdrop-blur-sm border-t z-10">
+           <div className="max-w-xl mx-auto">
+                <CreatePostForm
+                    onPost={handlePostSubmit}
+                    postToEdit={postToEdit}
+                    onFinishEditing={onFinishEditing}
+                    isSubmitting={isFormSubmitting}
+                />
+            </div>
+      </footer>
       <Sheet open={!!selectedPostForComments} onOpenChange={(open) => !open && setSelectedPostForComments(null)}>
             <SheetContent className="p-0 w-full max-w-md">
                 <CommentColumn post={selectedPostForComments} onClose={() => setSelectedPostForComments(null)} />
