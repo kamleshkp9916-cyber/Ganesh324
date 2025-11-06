@@ -12,7 +12,7 @@ import { useState, useEffect, useRef, useMemo } from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { cn } from '@/lib/utils';
-import { Skeleton } from '@/components/ui/skeleton';
+import { Skeleton } from '../ui/skeleton';
 import Link from 'next/link';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
@@ -31,13 +31,13 @@ const ScreenshotDialog = ({ messages, conversation, trigger, currentUserIsSeller
     const [selectedDate, setSelectedDate] = useState('all');
 
     const uniqueDates = useMemo(() => {
-        const dates = new Set(messages.map(msg => new Date(msg.timestamp).toDateString()));
+        const dates = new Set(messages.map(msg => new Date(msg.timestamp as string).toDateString()));
         return Array.from(dates);
     }, [messages]);
 
     const filteredMessages = useMemo(() => {
         if (selectedDate === 'all') return messages;
-        return messages.filter(msg => new Date(msg.timestamp).toDateString() === selectedDate);
+        return messages.filter(msg => new Date(msg.timestamp as string).toDateString() === selectedDate);
     }, [messages, selectedDate]);
 
     const handleDownload = async () => {
@@ -76,7 +76,7 @@ const ScreenshotDialog = ({ messages, conversation, trigger, currentUserIsSeller
                     </Select>
                 </div>
                 <div className="h-64 overflow-y-auto border rounded-md p-4 bg-muted/30" ref={screenshotRef}>
-                    {filteredMessages.map(msg => <ChatMessage key={msg.id} msg={msg} currentUserName={currentUserIsSeller ? 'seller' : 'customer'} />)}
+                    {filteredMessages.map(msg => <ChatMessage key={msg.id} msg={msg} currentUserId={currentUserIsSeller ? 'seller' : 'customer'} />)}
                 </div>
                 <DialogFooter>
                     <Button onClick={handleDownload}><Download className="mr-2 h-4 w-4" /> Download</Button>
@@ -118,7 +118,7 @@ export default function SellerMessagePage() {
                     const userId = searchParams.get('userId');
                     const userName = searchParams.get('userName');
                     if (userId && userName) {
-                        const executiveConvo = {
+                        const executiveConvo: Conversation = {
                             userId: userId,
                             userName: userName,
                             avatarUrl: 'https://placehold.co/40x40/000000/FFFFFF?text=SC',
@@ -126,6 +126,7 @@ export default function SellerMessagePage() {
                             lastMessageTimestamp: '',
                             unreadCount: 1,
                             isExecutive: true,
+                            conversationId: `exec_${userId}`
                         };
                         
                         setConversations(prev => {
@@ -164,7 +165,7 @@ export default function SellerMessagePage() {
             // This case would be for a seller messaging an executive, not implemented in flows
             chatHistory = [];
         } else {
-            chatHistory = await getMessages(convo.userId);
+            chatHistory = await getMessages(convo.conversationId);
         }
         setMessages(chatHistory);
     } catch (error) {
@@ -176,10 +177,8 @@ export default function SellerMessagePage() {
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newMessage.trim() || !selectedConversation || !userData) return;
+    if (!newMessage.trim() || !selectedConversation || !user) return;
     
-    const from = 'seller';
-
     const optimisticMessage: Message = {
         id: Math.random(),
         text: newMessage,
@@ -191,9 +190,8 @@ export default function SellerMessagePage() {
     setNewMessage("");
 
     try {
-        let updatedMessages = await sendMessage(selectedConversation.conversationId, user!.uid, { text: currentMessage });
+        await sendMessage(selectedConversation.conversationId, user.uid, { text: currentMessage });
         // The flow does not return messages, so we'll rely on the optimistic update
-        // setMessages(updatedMessages); 
     } catch (error) {
         console.error("Failed to send message", error);
          setMessages(prev => prev.filter(m => m.id !== optimisticMessage.id)); // Revert on error
@@ -230,10 +228,10 @@ export default function SellerMessagePage() {
                     <div className="p-2 space-y-1">
                         {filteredConversations.map(convo => (
                             <ConversationItem 
-                                key={convo.isExecutive ? `exec-${convo.userId}` : convo.userId} 
+                                key={convo.isExecutive ? `exec-${convo.userId}` : convo.conversationId} 
                                 convo={convo} 
                                 onClick={() => handleSelectConversation(convo)}
-                                isSelected={selectedConversation?.userId === convo.userId}
+                                isSelected={selectedConversation?.conversationId === convo.conversationId}
                             />
                         ))}
                     </div>
@@ -319,5 +317,3 @@ export default function SellerMessagePage() {
     </div>
   );
 }
-```]} />
-```
