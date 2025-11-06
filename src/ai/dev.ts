@@ -13,6 +13,7 @@ export default defineDevApp({
     nextDev({
       appPath: '.',
       watch: ['.'],
+      ignore: ['.next/**'],
     }),
   ],
 });
