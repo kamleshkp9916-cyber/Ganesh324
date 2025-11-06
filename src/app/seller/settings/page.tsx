@@ -1,3 +1,4 @@
+
 "use client"
 
 import {
@@ -10,7 +11,7 @@ import {
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import React, { useState, useEffect, useMemo } from "react"
-import { format } from "date-fns"
+import { format, differenceInDays, parseISO } from "date-fns"
 import { collection, query, where, onSnapshot, addDoc, serverTimestamp, orderBy, getDocs, runTransaction } from "firebase/firestore";
 
 import { Badge } from "@/components/ui/badge"
@@ -41,6 +42,7 @@ import { getFirestoreDb } from "@/lib/firebase"
 import { Order, getStatusFromTimeline } from "@/lib/order-data"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { DialogClose, DialogFooter } from "@/components/ui/dialog"
 
 
 export default function SellerSettingsPage() {
@@ -259,8 +261,7 @@ export default function SellerSettingsPage() {
                                                 <span className="text-xs text-muted-foreground">
                                                     {format(request.payoutDate.toDate(), "dd MMM, yyyy, p")}
                                                 </span>
-                                            ) : '-'}
-                                          </TableCell>
+                                            ) : '-'}</TableCell>
                                       </TableRow>
                                   )) : (
                                     <TableRow>
@@ -304,7 +305,9 @@ export default function SellerSettingsPage() {
                 </p>
             </div>
             <DialogFooter>
-                 <Button type="button" variant="ghost" onClick={() => setIsWithdrawDialogOpen(false)}>Cancel</Button>
+                 <DialogClose asChild>
+                    <Button type="button" variant="ghost">Cancel</Button>
+                </DialogClose>
                 <Button onClick={handleRequestPayout} disabled={isSubmitting}>
                     {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     Submit Request
@@ -312,4 +315,6 @@ export default function SellerSettingsPage() {
             </DialogFooter>
         </DialogContent>
         </Dialog>
-  
+  );
+}
+
