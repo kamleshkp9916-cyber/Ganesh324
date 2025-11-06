@@ -69,7 +69,7 @@ import { LoadingSpinner } from "@/components/ui/loading-spinner"
 import Image from "next/image"
 import { useToast } from "@/hooks/use-toast"
 import { productDetails } from "@/lib/product-data";
-import { updateOrderStatus, getOrderStatus } from "@/ai/flows/chat-flow";
+import { updateOrderStatus } from "@/ai/flows/chat-flow";
 import { getStatusFromTimeline, Order, saveAllOrders } from "@/lib/order-data";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
 import { format } from "date-fns";
@@ -86,7 +86,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { useDebounce } from "@/hooks/use-debounce"
 import { getFirestoreDb } from "@/lib/firebase"
-import { collection, query, where, getDocs, orderBy } from 'firebase/firestore'
+import { collection, query, where, getDocs, orderBy, onSnapshot, doc, updateDoc } from 'firebase/firestore'
 
 type SellerOrder = Order & {
     product: any,
@@ -283,7 +283,6 @@ export default function SellerOrdersPage() {
     }, [orders, statusFilter, debouncedSearchTerm]);
 
     const handleUpdateStatus = async (orderId: string, newStatus: 'Order Confirmed' | 'Cancelled by seller') => {
-        // This function will now update both the user's order and the seller's order copy
         const orderToUpdate = orders.find(o => o.orderId === orderId);
         if (!orderToUpdate || !user) return;
     
@@ -292,19 +291,16 @@ export default function SellerOrdersPage() {
         const sellerOrderRef = doc(db, 'users', user.uid, 'orders', orderId);
 
         try {
-            const mainOrderSnap = await getDoc(mainOrderRef);
-            if (!mainOrderSnap.exists()) {
-                toast({ variant: 'destructive', title: "Error", description: "Original order not found." });
-                return;
-            }
-            const mainOrderData = mainOrderSnap.data() as Order;
+            const mainOrderData = orderToUpdate; // We have the data already in state
             const updatedTimeline = [...mainOrderData.timeline];
 
             if (newStatus === 'Order Confirmed') {
                 const pendingIndex = updatedTimeline.findIndex(item => item.status === 'Pending');
                 if (pendingIndex !== -1) {
                     updatedTimeline[pendingIndex] = { ...updatedTimeline[pendingIndex], status: 'Order Confirmed', completed: true, date: format(new Date(), 'MMM dd, yyyy'), time: format(new Date(), 'p') };
-                    updatedTimeline[pendingIndex+1] = {...updatedTimeline[pendingIndex+1], date: format(new Date(), 'MMM dd, yyyy'), time: format(new Date(), 'p'), completed: true }; // Pack immediately
+                    if(updatedTimeline[pendingIndex+1]){
+                       updatedTimeline[pendingIndex+1] = {...updatedTimeline[pendingIndex+1], date: format(new Date(), 'MMM dd, yyyy'), time: format(new Date(), 'p'), completed: true }; // Pack immediately
+                    }
                 }
             } else if (newStatus === 'Cancelled by seller') {
                 updatedTimeline.push({ status: newStatus, date: format(new Date(), 'MMM dd, yyyy'), time: format(new Date(), 'p'), completed: true });
@@ -322,6 +318,16 @@ export default function SellerOrdersPage() {
 
             await updateDoc(mainOrderRef, { timeline: updatedTimeline });
             await updateDoc(sellerOrderRef, { timeline: updatedTimeline });
+
+             // Notify delivery partner
+            if (newStatus === 'Order Confirmed') {
+                const functionUrl = `https://us-central1-gcp-project-id.cloudfunctions.net/notifyDeliveryPartner`;
+                 await fetch(functionUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ orderId: orderId, status: 'packed' }),
+                });
+            }
 
             toast({ title: `Order ${newStatus === 'Order Confirmed' ? 'Accepted' : 'Declined'}` });
         } catch (error) {
