@@ -366,15 +366,15 @@ export default function SellerDashboard() {
           </Link>
           <Dialog>
             <DialogTrigger asChild>
-              <Card className="hover:bg-muted/50 transition-colors cursor-pointer">
+               <Card className="hover:bg-muted/50 transition-colors cursor-pointer">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Active Streams</CardTitle>
+                  <CardTitle className="text-sm font-medium">Total Streams</CardTitle>
                   <Activity className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">+573</div>
+                  <div className="text-2xl font-bold">12</div>
                   <p className="text-xs text-muted-foreground">
-                    +201 since last hour
+                    +2 this month
                   </p>
                 </CardContent>
               </Card>
