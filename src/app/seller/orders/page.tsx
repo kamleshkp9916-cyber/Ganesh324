@@ -42,6 +42,9 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogDescription,
+  DialogFooter,
+  DialogClose,
 } from "@/components/ui/dialog"
 import {
   DropdownMenu,
@@ -68,7 +71,7 @@ import { getStatusFromTimeline, Order, saveAllOrders } from "@/lib/order-data";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
 import { format } from "date-fns";
 import { addTransaction } from "@/lib/transaction-history";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { GoLiveDialog } from "@/components/go-live-dialog";
 import { useAuthActions } from "@/lib/auth";
 
@@ -500,10 +503,48 @@ export default function SellerOrdersPage() {
             <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8">
                 <Card>
                 <CardHeader>
-                    <CardTitle>Orders</CardTitle>
-                    <CardDescription>
-                    A list of all orders from your live streams and product listings.
-                    </CardDescription>
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <CardTitle>Orders</CardTitle>
+                            <CardDescription>
+                            A list of all orders from your live streams and product listings.
+                            </CardDescription>
+                        </div>
+                        <div className="flex items-center gap-2">
+                             <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button variant="outline" size="sm" className="h-8 gap-1">
+                                        <ListFilter className="h-3.5 w-3.5" />
+                                        <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+                                        Filter
+                                        </span>
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                    <DropdownMenuLabel>Filter by Status</DropdownMenuLabel>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuCheckboxItem checked>
+                                        All
+                                    </DropdownMenuCheckboxItem>
+                                     <DropdownMenuCheckboxItem>
+                                        Pending
+                                    </DropdownMenuCheckboxItem>
+                                    <DropdownMenuCheckboxItem>
+                                        Fulfilled
+                                    </DropdownMenuCheckboxItem>
+                                    <DropdownMenuCheckboxItem>
+                                        Cancelled
+                                    </DropdownMenuCheckboxItem>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                            <Button size="sm" variant="outline" className="h-8 gap-1">
+                                <File className="h-3.5 w-3.5" />
+                                <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+                                Export
+                                </span>
+                            </Button>
+                        </div>
+                    </div>
                 </CardHeader>
                 <CardContent>
                     <div className="divide-y divide-border">
@@ -588,5 +629,3 @@ export default function SellerOrdersPage() {
     </Dialog>
   )
 }
-
-    
