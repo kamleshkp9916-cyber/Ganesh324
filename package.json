@@ -5,7 +5,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
-    "genkit:dev": "genkit start",
+    "genkit:dev": "next dev",
     "genkit:watch": "genkit start --watch",
     "build": "next build",
     "start": "next start",
