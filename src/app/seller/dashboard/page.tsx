@@ -197,6 +197,12 @@ export default function SellerDashboard() {
             Dashboard
           </Link>
           <Link
+            href="/seller/revenue"
+            className="text-muted-foreground transition-colors hover:text-foreground"
+          >
+            Revenue
+          </Link>
+          <Link
             href="/seller/orders"
             className="text-muted-foreground transition-colors hover:text-foreground"
           >
@@ -251,6 +257,12 @@ export default function SellerDashboard() {
                 Dashboard
               </Link>
               <Link
+                href="/seller/revenue"
+                className="text-muted-foreground hover:text-foreground"
+              >
+                Revenue
+              </Link>
+              <Link
                 href="/seller/orders"
                 className="text-muted-foreground hover:text-foreground"
               >
@@ -268,7 +280,7 @@ export default function SellerDashboard() {
               >
                 Promotions
               </Link>
-              <Link
+               <Link
                 href="/seller/feed"
                 className="text-muted-foreground hover:text-foreground"
               >
@@ -369,22 +381,20 @@ export default function SellerDashboard() {
             </DialogTrigger>
             <GoLiveDialog />
           </Dialog>
-           <Link href="/profile">
-            <Card className="hover:bg-muted/50 transition-colors cursor-pointer">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  New Followers
-                </CardTitle>
-                <Users className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">+2350</div>
-                <p className="text-xs text-muted-foreground">
-                  +180.1% from last month
-                </p>
-              </CardContent>
-            </Card>
-           </Link>
+           <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                New Followers
+              </CardTitle>
+              <Users className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">+2350</div>
+              <p className="text-xs text-muted-foreground">
+                +180.1% from last month
+              </p>
+            </CardContent>
+          </Card>
         </div>
         <div className="grid gap-4 md:gap-8 lg:grid-cols-2 xl:grid-cols-3">
           <Card className="xl:col-span-2">
