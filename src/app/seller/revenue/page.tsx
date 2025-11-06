@@ -101,9 +101,8 @@ export default function SellerRevenueDashboard() {
     }
     const deliveredOrders = sellerOrders.filter(o => getStatusFromTimeline(o.timeline) === 'Delivered');
 
-    const PLATFORM_FEE_RATE = 0.02; // 2%
+    const PLATFORM_FEE_RATE = 0.05; // 5% platform fee
 
-    const totalRevenue = deliveredOrders.reduce((sum, o) => sum + o.total, 0);
     const orderRevenue = deliveredOrders.reduce((sum, o) => {
       // Assuming order total includes product price, shipping, etc.
       // We take the sum of product prices as the basis for revenue.
@@ -127,9 +126,9 @@ export default function SellerRevenueDashboard() {
     });
 
     return {
-      totalRevenue, // This is customer-paid total, let's refine this to seller revenue
+      totalRevenue: orderRevenue - otherCharges, // Refined to seller net revenue
       orderRevenue, // This is the gross product value
-      otherCharges, // This is the 2% platform fee
+      otherCharges, // This is the 5% platform fee
       growthPct: 20.1, // Mock growth
       transactions
     };
@@ -155,7 +154,7 @@ export default function SellerRevenueDashboard() {
         const monthKey = `${orderDate.getFullYear()}-${orderDate.getMonth()}`;
         if (monthKey in months) {
           const productTotal = order.products.reduce((prodSum, p) => prodSum + (parseFloat(p.price.replace(/[^0-9.-]+/g, '')) * p.quantity), 0);
-          const netRevenue = productTotal * (1 - 0.02); // Subtract 2% platform fee
+          const netRevenue = productTotal * (1 - 0.05); // Subtract 5% platform fee
           months[monthKey] += netRevenue;
         }
       });
@@ -259,7 +258,7 @@ export default function SellerRevenueDashboard() {
               <CircleDollarSign className="h-4 w-4 text-muted-foreground"/>
             </CardHeader>
             <CardContent className="pt-0">
-              <div className="text-2xl font-semibold">{inr(revenueInsights.orderRevenue)}</div>
+              <div className="text-2xl font-semibold">{inr(revenueInsights.totalRevenue)}</div>
               <div className={["mt-1","text-xs","flex","items-center","gap-1", pctColor(revenueInsights.growthPct)].join(" ")}>
                 {pctIcon(revenueInsights.growthPct)} {revenueInsights.growthPct}% from last month
               </div>
@@ -284,7 +283,7 @@ export default function SellerRevenueDashboard() {
             </CardHeader>
             <CardContent className="pt-0">
               <div className="text-2xl font-semibold">{inr(revenueInsights.otherCharges)}</div>
-              <p className="text-xs text-muted-foreground">2% platform fees</p>
+              <p className="text-xs text-muted-foreground">5% platform fees</p>
             </CardContent>
           </Card>
 
@@ -553,4 +552,3 @@ export default function SellerRevenueDashboard() {
   );
 }
 
-    
