@@ -220,6 +220,12 @@ export default function SellerDashboard() {
           >
             Promotions
           </Link>
+           <Link
+            href="/seller/messages"
+            className="text-muted-foreground transition-colors hover:text-foreground"
+          >
+            Messages
+          </Link>
           <Link
             href="/seller/feed"
             className="text-muted-foreground transition-colors hover:text-foreground"
@@ -281,6 +287,12 @@ export default function SellerDashboard() {
                 Promotions
               </Link>
                <Link
+                href="/seller/messages"
+                className="text-muted-foreground hover:text-foreground"
+              >
+                Messages
+              </Link>
+               <Link
                 href="/seller/feed"
                 className="text-muted-foreground hover:text-foreground"
               >
@@ -296,9 +308,19 @@ export default function SellerDashboard() {
           </SheetContent>
         </Sheet>
         <div className="flex w-full items-center gap-4 md:ml-auto md:gap-2 lg:gap-4">
+            <form className="ml-auto flex-1 sm:flex-initial">
+              <div className="relative">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  type="search"
+                  placeholder="Search..."
+                  className="pl-8 sm:w-[300px] md:w-[200px] lg:w-[300px]"
+                />
+              </div>
+            </form>
             <Dialog>
                 <DialogTrigger asChild>
-                    <Button className="ml-auto">
+                    <Button>
                         <RadioTower className="mr-2 h-4 w-4" /> Go Live
                     </Button>
                 </DialogTrigger>
@@ -440,3 +462,5 @@ export default function SellerDashboard() {
     </>
   )
 }
+
+    
