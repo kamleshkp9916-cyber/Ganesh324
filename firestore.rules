@@ -20,18 +20,23 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == userId;
     }
 
+    // Helper function to check if the user has an 'admin' role.
+    function isAdmin() {
+      return isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
     /**
      * @description Enforces access control for individual user documents.
      * @path /users/{userId}
      * @allow (create) User with UID 'user_abc' can create their own document at /users/user_abc.
-     * @allow (get) User with UID 'user_abc' can read their own document at /users/user_abc.
+     * @allow (get) User with UID 'user_abc' can read their own document at /users/user_abc. An admin can also read any user's document.
      * @allow (update) User with UID 'user_abc' can update their own document at /users/user_abc.
      * @allow (delete) User with UID 'user_abc' can delete their own document at /users/user_abc.
      * @deny (create) User with UID 'user_xyz' cannot create a document at /users/user_abc.
      * @deny (get) User with UID 'user_xyz' cannot read document at /users/user_abc.
      * @deny (update) User with UID 'user_xyz' cannot update document at /users/user_abc.
      * @deny (delete) User with UID 'user_xyz' cannot delete document at /users/user_abc.
-     * @principle Enforces document ownership for all operations.
+     * @principle Enforces document ownership for all operations, with admin read access.
      */
     match /users/{userId} {
       // Helper function to check if the user is the owner and the document exists
@@ -42,8 +47,8 @@ service cloud.firestore {
       // Allows a user to create their own document if the userId matches their auth.uid
       allow create: if isOwner(userId) && request.resource.data.id == request.auth.uid;
 
-      // Allows a user (customer, seller, or admin) to read their own document.
-      allow get: if isOwner(userId);
+      // A user can read their own document, or an admin can read any user document.
+      allow get: if isOwner(userId) || isAdmin();
 
       // Allows a user to update their own document.
       allow update: if isOwner(userId);
@@ -51,8 +56,8 @@ service cloud.firestore {
       // Allows a user to delete their own document, ensuring that it exists first.
       allow delete: if isExistingOwner(userId);
 
-      // Prevents listing of user documents.
-      allow list: if false;
+      // Prevents listing of user documents by non-admins.
+      allow list: if isAdmin();
     }
 
     /**
@@ -63,14 +68,15 @@ service cloud.firestore {
       // Users can create orders for themselves.
       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
 
-      // A user can read an order if they are the customer OR the seller.
-      allow get: if isSignedIn() && (resource.data.userId == request.auth.uid || resource.data.sellerId == request.auth.uid);
+      // A user can read an order if they are the customer, the seller, OR an admin.
+      allow get: if isSignedIn() && (resource.data.userId == request.auth.uid || resource.data.sellerId == request.auth.uid || isAdmin());
       
       // Customers can query their own orders.
       // Sellers can query orders they are the seller for.
-      allow list: if isSignedIn() && 
+      // Admins can list all orders.
+      allow list: if (isSignedIn() && 
                     (request.query.where.userId == request.auth.uid || 
-                     request.query.where.sellerId == request.auth.uid);
+                     request.query.where.sellerId == request.auth.uid)) || isAdmin();
 
       // Users should not be able to update or delete orders directly.
       allow update, delete: if false;
