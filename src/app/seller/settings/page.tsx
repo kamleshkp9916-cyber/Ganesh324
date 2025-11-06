@@ -1,5 +1,3 @@
-
-
 "use client"
 
 import {
@@ -95,7 +93,6 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Separator } from "@/components/ui/separator"
 import { AddBankForm, WithdrawForm } from "@/components/settings-forms"
 
-
 const FLAGGED_COMMENTS_KEY = 'streamcart_flagged_comments';
 export const COUPONS_KEY = 'streamcart_coupons';
 export const PROMOTIONAL_SLIDES_KEY = 'streamcart_promotional_slides';
@@ -104,6 +101,7 @@ export const FOOTER_CONTENT_KEY = 'streamcart_footer_content';
 export const HUB_BANNER_KEY = 'streamcart_hub_banner';
 export const HUB_FEATURED_PRODUCTS_KEY = 'streamcart_hub_featured_products';
 export const SHIPPING_SETTINGS_KEY = 'streamcart_shipping_settings';
+export const PAYOUT_REQUESTS_KEY = 'streamcart_payout_requests';
 
 
 const announcementSchema = z.object({
@@ -350,7 +348,7 @@ const CouponForm = ({ onSave, existingCoupon, closeDialog, allCategories }: { on
     return (
         <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <FormField control={form.control} name="code" render={({ field }) => (
                         <FormItem><FormLabel>Coupon Code</FormLabel><FormControl><Input placeholder="e.g., SALE10" {...field} onChange={(e) => field.onChange(e.target.value.toUpperCase())} /></FormControl><FormMessage /></FormItem>
                     )} />
@@ -738,6 +736,8 @@ export default function SellerSettingsPage() {
   const [isMounted, setIsMounted] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string>("Women");
 
+  const [payoutRequests, setPayoutRequests] = useLocalStorage<any[]>(PAYOUT_REQUESTS_KEY, []);
+
   // useLocalStorage will be initialized with default values, and then updated in useEffect
   const [coupons, setCoupons] = useLocalStorage<Coupon[]>(COUPONS_KEY, []);
   const [slides, setSlides] = useLocalStorage<Slide[]>(PROMOTIONAL_SLIDES_KEY, []);
@@ -789,10 +789,25 @@ export default function SellerSettingsPage() {
   
   const handleWithdraw = (amount: number, bankAccountId: string) => {
      const selectedAccount = bankAccounts.find(acc => String(acc.id) === bankAccountId);
-     // Simulate API call to process withdrawal
+     if (!selectedAccount || !user || !userData) return;
+
+      const newRequest = {
+        id: Date.now(),
+        sellerId: user.uid,
+        sellerName: userData.displayName,
+        amount: amount,
+        bankAccountId: bankAccountId,
+        bankName: selectedAccount.bankName,
+        accountNumber: selectedAccount.accountNumber,
+        status: 'pending',
+        requestedAt: new Date().toISOString(),
+      };
+
+      setPayoutRequests(prev => [newRequest, ...prev]);
+
      toast({
-        title: "Withdrawal Initiated!",
-        description: `₹${amount} is on its way to ${selectedAccount?.bankName}.`,
+        title: "Withdrawal Request Submitted",
+        description: `Your request for ₹${amount} has been sent for admin approval.`,
     });
      setIsWithdrawOpen(false);
   };
@@ -1005,81 +1020,13 @@ export default function SellerSettingsPage() {
             </DialogContent>
         </Dialog>
         <div className="flex min-h-screen w-full flex-col bg-muted/40">
-            <header className="sticky top-0 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6 z-40">
-                <nav className="hidden flex-col gap-6 text-lg font-medium md:flex md:flex-row md:items-center md:gap-5 md:text-sm lg:gap-6">
-                    <Link href={isAdmin ? "/admin/dashboard" : "/seller/dashboard"} className="flex items-center gap-2 text-lg font-semibold md:text-base"><ShieldCheck className="h-6 w-6" /><span className="sr-only">Admin</span></Link>
-                     {isAdmin ? (
-                        <>
-                            <Link href="/admin/dashboard" className="text-muted-foreground transition-colors hover:text-foreground">Dashboard</Link>
-                            <Link href="/admin/orders" className="text-muted-foreground transition-colors hover:text-foreground">Orders</Link>
-                            <Link href="/admin/users" className="text-muted-foreground transition-colors hover:text-foreground">Users</Link>
-                            <Link href="/admin/inquiries" className="text-muted-foreground transition-colors hover:text-foreground">Inquiries</Link>
-                            <Link href="/admin/messages" className="text-muted-foreground transition-colors hover:text-foreground">Messages</Link>
-                            <Link href="/admin/products" className="text-muted-foreground transition-colors hover:text-foreground">Products</Link>
-                            <Link href="/admin/live-control" className="text-muted-foreground transition-colors hover:text-foreground">Live Control</Link>
-                            <Link href="/admin/settings" className="text-foreground transition-colors hover:text-foreground">Settings</Link>
-                        </>
-                    ) : (
-                         <>
-                            <Link href="/seller/dashboard" className="text-muted-foreground transition-colors hover:text-foreground">Dashboard</Link>
-                            <Link href="/seller/revenue" className="text-muted-foreground transition-colors hover:text-foreground">Revenue</Link>
-                            <Link href="/seller/orders" className="text-muted-foreground transition-colors hover:text-foreground">Orders</Link>
-                            <Link href="/seller/products" className="text-muted-foreground transition-colors hover:text-foreground">Products</Link>
-                            <Link href="/seller/promotions" className="text-muted-foreground transition-colors hover:text-foreground">Promotions</Link>
-                            <Link href="/seller/messages" className="text-muted-foreground transition-colors hover:text-foreground">Messages</Link>
-                            <Link href="/seller/feed" className="text-muted-foreground transition-colors hover:text-foreground">Feed</Link>
-                            <Link href="/seller/settings" className="text-foreground transition-colors hover:text-foreground">Settings</Link>
-                        </>
-                    )}
-                </nav>
-                <Sheet>
-                    <SheetTrigger asChild><Button variant="outline" size="icon" className="shrink-0 md:hidden"><Menu className="h-5 w-5" /><span className="sr-only">Menu</span></Button></SheetTrigger>
-                    <SheetContent side="left">
-                         <SheetHeader>
-                            <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
-                        </SheetHeader>
-                        <nav className="grid gap-6 text-lg font-medium">
-                            <Link href={isAdmin ? "/admin/dashboard" : "/seller/dashboard"} className="flex items-center gap-2 text-lg font-semibold"><ShieldCheck className="h-6 w-6" /><span>{isAdmin ? 'Admin' : 'Seller'} Panel</span></Link>
-                             {isAdmin ? (
-                                <>
-                                    <Link href="/admin/dashboard" className="text-muted-foreground hover:text-foreground">Dashboard</Link>
-                                    <Link href="/admin/orders" className="text-muted-foreground hover:text-foreground">Orders</Link>
-                                    <Link href="/admin/users" className="text-muted-foreground hover:text-foreground">Users</Link>
-                                    <Link href="/admin/inquiries" className="text-muted-foreground hover:text-foreground">Inquiries</Link>
-                                    <Link href="/admin/messages" className="text-muted-foreground hover:text-foreground">Messages</Link>
-                                    <Link href="/admin/products" className="text-muted-foreground hover:text-foreground">Products</Link>
-                                    <Link href="/admin/live-control" className="text-muted-foreground hover:text-foreground">Live Control</Link>
-                                    <Link href="/admin/settings" className="hover:text-foreground">Settings</Link>
-                                </>
-                            ) : (
-                                <>
-                                    <Link href="/seller/dashboard" className="text-muted-foreground hover:text-foreground">Dashboard</Link>
-                                    <Link href="/seller/revenue" className="text-muted-foreground hover:text-foreground">Revenue</Link>
-                                    <Link href="/seller/orders" className="text-muted-foreground hover:text-foreground">Orders</Link>
-                                    <Link href="/seller/products" className="text-muted-foreground hover:text-foreground">Products</Link>
-                                    <Link href="/seller/promotions" className="text-muted-foreground hover:text-foreground">Promotions</Link>
-                                    <Link href="/seller/messages" className="text-muted-foreground hover:text-foreground">Messages</Link>
-                                    <Link href="/seller/feed" className="text-muted-foreground hover:text-foreground">Feed</Link>
-                                    <Link href="/seller/settings" className="hover:text-foreground">Settings</Link>
-                                </>
-                            )}
-                        </nav>
-                    </SheetContent>
-                </Sheet>
-                <div className="flex w-full items-center gap-4 md:ml-auto md:gap-2 lg:gap-4">
-                    <div className="ml-auto"></div>
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild><Button variant="secondary" size="icon" className="rounded-full"><Avatar className="h-9 w-9"><AvatarImage src={user?.photoURL || 'https://placehold.co/40x40.png'} /><AvatarFallback>{user?.displayName?.charAt(0)}</AvatarFallback></Avatar></Button></DropdownMenuTrigger>
-                        <DropdownMenuContent align="end"><DropdownMenuLabel>Account</DropdownMenuLabel><DropdownMenuSeparator /><DropdownMenuItem onSelect={() => router.push('/profile')}>Profile</DropdownMenuItem><DropdownMenuItem onSelect={() => router.push('/setting')}>Settings</DropdownMenuItem><DropdownMenuSeparator /><DropdownMenuItem onClick={() => signOut(isSeller)}>Logout</DropdownMenuItem></DropdownMenuContent>
-                    </DropdownMenu>
-                </div>
-            </header>
+            <SellerHeader />
             <main className="grid flex-1 items-start gap-8 p-4 sm:px-6 md:p-8">
                  {isSeller && (
                     <Card>
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2"><Wallet /> Payouts &amp; Bank Details</CardTitle>
-                            <CardDescription>Manage your bank accounts for withdrawals.</CardDescription>
+                            <CardDescription>Manage your bank accounts and request withdrawals.</CardDescription>
                         </CardHeader>
                         <CardContent>
                              <Table>
@@ -1349,7 +1296,7 @@ export default function SellerSettingsPage() {
 
                         <Card>
                             <CardHeader>
-                                <CardTitle className="flex items-center gap-2"><Truck /> Shipping & Delivery</CardTitle>
+                                <CardTitle className="flex items-center gap-2"><Truck /> Shipping &amp; Delivery</CardTitle>
                                 <CardDescription>Manage shipping costs and other delivery settings.</CardDescription>
                             </CardHeader>
                             <CardContent>
@@ -1399,9 +1346,9 @@ export default function SellerSettingsPage() {
                         </Card>
 
                         <Card>
-                            <CardHeader><CardTitle>Content & Policy Management</CardTitle><CardDescription>View and manage important site-wide documents.</CardDescription></CardHeader>
+                            <CardHeader><CardTitle>Content &amp; Policy Management</CardTitle><CardDescription>View and manage important site-wide documents.</CardDescription></CardHeader>
                             <CardContent className="space-y-4">
-                                <div className="flex items-center justify-between rounded-lg border p-4"><div className="flex items-center gap-3"><FileText className="h-6 w-6 text-muted-foreground" /><div><h4 className="font-semibold">Terms & Conditions</h4><p className="text-xs text-muted-foreground">Last updated: 26 Aug, 2025</p></div></div><div className="flex items-center gap-2"><Button asChild variant="outline" size="sm"><Link href="/terms-and-conditions">View</Link></Button><Button asChild size="sm"><Link href="/admin/edit/terms">Edit</Link></Button></div></div>
+                                <div className="flex items-center justify-between rounded-lg border p-4"><div className="flex items-center gap-3"><FileText className="h-6 w-6 text-muted-foreground" /><div><h4 className="font-semibold">Terms &amp; Conditions</h4><p className="text-xs text-muted-foreground">Last updated: 26 Aug, 2025</p></div></div><div className="flex items-center gap-2"><Button asChild variant="outline" size="sm"><Link href="/terms-and-conditions">View</Link></Button><Button asChild size="sm"><Link href="/admin/edit/terms">Edit</Link></Button></div></div>
                                 <div className="flex items-center justify-between rounded-lg border p-4"><div className="flex items-center gap-3"><Shield className="h-6 w-6 text-muted-foreground" /><div><h4 className="font-semibold">Privacy Policy</h4><p className="text-xs text-muted-foreground">Last updated: 26 Aug, 2025</p></div></div><div className="flex items-center gap-2"><Button asChild variant="outline" size="sm"><Link href="/privacy-and-security">View</Link></Button><Button asChild size="sm"><Link href="/admin/edit/privacy">Edit</Link></Button></div></div>
                                 
                                  <Tabs defaultValue="footer-content" className="pt-4">
