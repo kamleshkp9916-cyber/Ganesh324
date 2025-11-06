@@ -24,40 +24,68 @@ import { Search, Mic, MicOff, Video, VideoOff, Settings2, Play, Pause, CheckCirc
 import { useAuth } from "@/hooks/use-auth";
 import Link from "next/link";
 import { useToast } from "@/hooks/use-toast";
+import { useLocalStorage } from "@/hooks/use-local-storage";
+
 
 // Types
 type Product = { id: string; title: string; price: number; image?: string; stock?: number; status?: "active" | "draft" | "archived" };
+type OverlayItem = { type: "product" | "text"; id?: string; text?: string };
+
+interface GoLiveState {
+  step: 1 | 2 | 3;
+  title: string;
+  description: string;
+  visibility: "public" | "unlisted" | "private";
+  enableChat: boolean;
+  recordVOD: boolean;
+  thumbDataUrl?: string;
+  selectedIds: string[];
+  featuredId?: string;
+  superChatEnabled: boolean;
+  superChatOnScreen: boolean;
+  overlayEnabled: boolean;
+  overlayPosition: "top" | "bottom";
+  overlayAutoMs: number;
+  overlayItems: OverlayItem[];
+  videoDeviceId?: string;
+  audioDeviceId?: string;
+}
 
 // Props for future wiring
 type GoLiveProps = {
   products?: Product[];              // pass fetched products for the seller
   defaultTitle?: string;
-  onStart?: (payload: {
-    title: string;
-    description: string;
-    visibility: "public" | "unlisted" | "private";
-    thumbnail?: { url?: string; fileName?: string };
-    selectedProductIds: string[];
-    featuredProductId?: string;
-    enableChat: boolean;
-    recordVOD: boolean;
-    superChat: { enabled: boolean; onScreen: boolean };
-    overlay: {
-      enabled: boolean;
-      position: "top" | "bottom";
-      autoSlideMs: number;
-      items: Array<{ type: "product" | "text"; id?: string; text?: string }>;
-    };
-    // livekit token, room, etc. can be injected later
-  }) => void;
+  onStart?: (payload: any) => void;
 };
 
 const currency = (n:number)=> new Intl.NumberFormat("en-IN",{style:"currency",currency:"INR"}).format(n);
+
+const GO_LIVE_STORAGE_KEY = 'goLiveStudioState';
 
 export default function GoLiveStudio({ defaultTitle = "New Live Show", onStart }: GoLiveProps){
   const { user } = useAuth();
   const [sellerProducts, setSellerProducts] = useState<Product[]>([]);
   const { toast } = useToast();
+
+  const [state, setState] = useLocalStorage<GoLiveState>(GO_LIVE_STORAGE_KEY, {
+    step: 1,
+    title: defaultTitle,
+    description: "",
+    visibility: "public",
+    enableChat: true,
+    recordVOD: true,
+    selectedIds: [],
+    superChatEnabled: true,
+    superChatOnScreen: true,
+    overlayEnabled: true,
+    overlayPosition: "top",
+    overlayAutoMs: 2500,
+    overlayItems: [],
+  });
+
+  const updateState = (updates: Partial<GoLiveState>) => {
+    setState(prev => ({ ...prev, ...updates }));
+  };
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -72,41 +100,20 @@ export default function GoLiveStudio({ defaultTitle = "New Live Show", onStart }
     return sellerProducts.filter(p => p.status === 'active');
   }, [sellerProducts]);
 
-  // Step logic
-  const [step, setStep] = useState<1|2|3>(1);
-
-  // Details
-  const [title, setTitle] = useState(defaultTitle);
-  const [description, setDescription] = useState("");
-  const [visibility, setVisibility] = useState<"public"|"unlisted"|"private">("public");
-  const [enableChat, setEnableChat] = useState(true);
-  const [recordVOD, setRecordVOD] = useState(true);
-
   // Thumbnail
-  const [thumbUrl, setThumbUrl] = useState<string | undefined>();
   const thumbInputRef = useRef<HTMLInputElement>(null);
   const onPickThumb = (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0];
     if (!f) return;
-    const url = URL.createObjectURL(f);
-    setThumbUrl(url);
+    const reader = new FileReader();
+    reader.onload = (event) => {
+        updateState({ thumbDataUrl: event.target?.result as string });
+    };
+    reader.readAsDataURL(f);
   };
 
   // Products
   const [query, setQuery] = useState("");
-  const [selectedIds, setSelectedIds] = useState<string[]>([]);
-  const [featuredId, setFeaturedId] = useState<string|undefined>(undefined);
-
-  // Super Chat
-  const [superChatEnabled, setSuperChatEnabled] = useState(true);
-  const [superChatOnScreen, setSuperChatOnScreen] = useState(true);
-
-  // Overlay designer
-  const [overlayEnabled, setOverlayEnabled] = useState(true);
-  const [overlayPosition, setOverlayPosition] = useState<"top"|"bottom">("top");
-  const [overlayAutoMs, setOverlayAutoMs] = useState(2500);
-  type OverlayItem = { type: "product" | "text"; id?: string; text?: string };
-  const [overlayItems, setOverlayItems] = useState<OverlayItem[]>([]);
 
   // Media
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -114,8 +121,6 @@ export default function GoLiveStudio({ defaultTitle = "New Live Show", onStart }
   const [camOn, setCamOn] = useState(true);
   const [micOn, setMicOn] = useState(true);
   const [devices, setDevices] = useState<MediaDeviceInfo[]>([]);
-  const [videoDeviceId, setVideoDeviceId] = useState<string|undefined>();
-  const [audioDeviceId, setAudioDeviceId] = useState<string|undefined>();
   const [permissionsError, setPermissionsError] = useState<string>("");
   const [level, setLevel] = useState<number>(0);
   const levelNodeRef = useRef<MediaStreamAudioSourceNode|null>(null);
@@ -130,17 +135,21 @@ export default function GoLiveStudio({ defaultTitle = "New Live Show", onStart }
 
   // Toggle selection
   const toggleProduct = (id:string)=>{
-    setSelectedIds(prev => prev.includes(id) ? prev.filter(x=>x!==id) : [...prev, id]);
+    updateState({
+        selectedIds: state.selectedIds.includes(id) 
+            ? state.selectedIds.filter(x => x !== id) 
+            : [...state.selectedIds, id]
+    });
   };
 
   // Overlay: add from selected products
   const addSelectedToOverlay = () => {
-    const newItems: OverlayItem[] = selectedIds.map(id => ({ type: "product", id }));
-    setOverlayItems(prev => [...prev, ...newItems]);
+    const newItems: OverlayItem[] = state.selectedIds.map(id => ({ type: "product", id }));
+    updateState({ overlayItems: [...state.overlayItems, ...newItems]});
     toast({ title: `${newItems.length} product(s) added to overlay.`})
   };
-  const addCustomText = () => setOverlayItems(prev => [...prev, { type: "text", text: "New drop! Flat 10% today" }]);
-  const removeOverlayItem = (idx:number) => setOverlayItems(prev => prev.filter((_,i)=>i!==idx));
+  const addCustomText = () => updateState({ overlayItems: [...state.overlayItems, { type: "text", text: "New drop! Flat 10% today" }] });
+  const removeOverlayItem = (idx:number) => updateState({ overlayItems: state.overlayItems.filter((_,i)=>i!==idx) });
 
   // Media: enumerate devices
   const refreshDevices = useCallback(async()=>{
@@ -148,28 +157,28 @@ export default function GoLiveStudio({ defaultTitle = "New Live Show", onStart }
         await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
         const devs = await navigator.mediaDevices.enumerateDevices();
         setDevices(devs);
-        if(!videoDeviceId){
+        if(!state.videoDeviceId){
           const cam = devs.find(d=> d.kind === "videoinput");
-          if (cam) setVideoDeviceId(cam.deviceId);
+          if (cam) updateState({ videoDeviceId: cam.deviceId });
         }
-        if(!audioDeviceId){
+        if(!state.audioDeviceId){
           const mic = devs.find(d=> d.kind === "audioinput");
-          if (mic) setAudioDeviceId(mic.deviceId);
+          if (mic) updateState({ audioDeviceId: mic.deviceId });
         }
     } catch(e:any) {
         console.error("Permission error:", e);
         setPermissionsError("Camera and microphone permissions are required to go live. Please enable them in your browser settings and refresh the page.");
     }
-  },[videoDeviceId, audioDeviceId]);
+  },[state.videoDeviceId, state.audioDeviceId, updateState]);
 
   // Start/replace local preview stream
   const startPreview = useCallback(async()=>{
-    if (!videoDeviceId || !audioDeviceId) return;
+    if (!state.videoDeviceId || !state.audioDeviceId) return;
     try{
       setPermissionsError("");
       const newStream = await navigator.mediaDevices.getUserMedia({
-        video: { deviceId: { exact: videoDeviceId } },
-        audio: { deviceId: { exact: audioDeviceId } },
+        video: { deviceId: { exact: state.videoDeviceId } },
+        audio: { deviceId: { exact: state.audioDeviceId } },
       });
       if (stream) stream.getTracks().forEach(t=>t.stop());
       setStream(newStream);
@@ -182,7 +191,7 @@ export default function GoLiveStudio({ defaultTitle = "New Live Show", onStart }
       console.error(e);
       setPermissionsError(e?.message || "Could not start camera/mic. It might be in use by another application.");
     }
-  },[videoDeviceId, audioDeviceId, stream]);
+  },[state.videoDeviceId, state.audioDeviceId, stream]);
 
   const stopPreview = useCallback(()=>{
     if(stream){
@@ -230,45 +239,39 @@ export default function GoLiveStudio({ defaultTitle = "New Live Show", onStart }
   useEffect(()=>{ if(stream) setTrackEnabled('video', camOn); }, [camOn, stream]);
   useEffect(()=>{ if(stream) setTrackEnabled('audio', micOn); }, [micOn, stream]);
 
-  // Refresh devices once and start preview
+  // Refresh devices on step 3 load
   useEffect(()=>{
-    if (step === 3) {
+    if (state.step === 3) {
       refreshDevices();
     } else {
       stopPreview();
     }
-  },[step, refreshDevices, stopPreview]);
+  },[state.step, refreshDevices, stopPreview]);
 
+  // Start preview when devices are selected
   useEffect(()=> {
-    if (step === 3 && videoDeviceId && audioDeviceId) {
+    if (state.step === 3 && state.videoDeviceId && state.audioDeviceId) {
         startPreview();
     }
-  }, [step, videoDeviceId, audioDeviceId, startPreview]);
+  }, [state.step, state.videoDeviceId, state.audioDeviceId, startPreview]);
 
   // Cleanup on unmount
   useEffect(()=>()=>{ stopPreview(); },[stopPreview]);
 
   const handleStart = ()=>{
-    onStart?.({
-      title, description, visibility,
-      thumbnail: thumbUrl ? { url: thumbUrl, fileName: thumbInputRef.current?.files?.[0]?.name } : undefined,
-      selectedProductIds: selectedIds,
-      featuredProductId: featuredId,
-      enableChat, recordVOD,
-      superChat: { enabled: superChatEnabled, onScreen: superChatOnScreen },
-      overlay: { enabled: overlayEnabled, position: overlayPosition, autoSlideMs: overlayAutoMs, items: overlayItems },
-    });
+    const { step, ...payload } = state;
+    onStart?.(payload);
   };
 
   // Auto slide state (preview only)
   const [activeOverlayIndex, setActiveOverlayIndex] = useState(0);
   useEffect(()=>{
-    if(!overlayEnabled || overlayItems.length===0) return;
+    if(!state.overlayEnabled || state.overlayItems.length===0) return;
     const id = setInterval(()=>{
-      setActiveOverlayIndex(i => (i+1) % overlayItems.length);
-    }, Math.max(1000, overlayAutoMs));
+      setActiveOverlayIndex(i => (i+1) % state.overlayItems.length);
+    }, Math.max(1000, state.overlayAutoMs));
     return ()=> clearInterval(id);
-  }, [overlayEnabled, overlayItems, overlayAutoMs]);
+  }, [state.overlayEnabled, state.overlayItems, state.overlayAutoMs]);
 
   return (
     <div className="p-4 md:p-6 space-y-6">
@@ -281,24 +284,24 @@ export default function GoLiveStudio({ defaultTitle = "New Live Show", onStart }
 
       {/* Steps */}
       <div className="grid md:grid-cols-4 gap-4">
-        <StepBadge n={1} active={step===1} title="Details"/>
-        <StepBadge n={2} active={step===2} title="Products"/>
-        <StepBadge n={3} active={step===3} title="Camera & Mic"/>
+        <StepBadge n={1} active={state.step===1} title="Details"/>
+        <StepBadge n={2} active={state.step===2} title="Products"/>
+        <StepBadge n={3} active={state.step===3} title="Camera & Mic"/>
         <StepBadge n={4} active={false} title="Overlays & Super Chat"/>
       </div>
 
-      {step===1 && (
+      {state.step===1 && (
         <Card>
           <CardHeader><CardTitle className="text-base">Stream details</CardTitle></CardHeader>
           <CardContent className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
               <Label>Title</Label>
-              <Input value={title} onChange={(e)=>setTitle(e.target.value)} maxLength={80}/>
+              <Input value={state.title} onChange={(e)=>updateState({title: e.target.value})} maxLength={80}/>
               <div className="text-xs text-muted-foreground">Max 80 characters</div>
             </div>
             <div className="space-y-2">
               <Label>Visibility</Label>
-              <Select value={visibility} onValueChange={(v:any)=>setVisibility(v)}>
+              <Select value={state.visibility} onValueChange={(v:any)=>updateState({visibility: v})}>
                 <SelectTrigger><SelectValue placeholder="public"/></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="public">Public</SelectItem>
@@ -308,39 +311,38 @@ export default function GoLiveStudio({ defaultTitle = "New Live Show", onStart }
               </Select>
             </div>
 
-            {/* Thumbnail */}
             <div className="md:col-span-2 space-y-2">
               <Label>Thumbnail</Label>
               <div className="flex items-center gap-3">
-                <Input ref={thumbInputRef} type="file" accept="image/*" onChange={onPickThumb} />
-                <Button type="button" variant="outline" onClick={()=>thumbInputRef.current?.click()}><Upload className="w-4 h-4 mr-1"/>Upload</Button>
+                <Button type="button" variant="outline" onClick={()=>thumbInputRef.current?.click()}><Upload className="w-4 h-4 mr-1"/>Upload Image</Button>
+                <input ref={thumbInputRef} type="file" accept="image/*" className="hidden" onChange={onPickThumb} />
               </div>
               <div className="h-32 border rounded-2xl overflow-hidden bg-muted flex items-center justify-center">
-                {thumbUrl ? <img src={thumbUrl} className="h-full object-contain" alt="thumbnail"/> : <span className="text-xs text-muted-foreground">No thumbnail selected</span>}
+                {state.thumbDataUrl ? <img src={state.thumbDataUrl} className="h-full object-contain" alt="thumbnail"/> : <span className="text-xs text-muted-foreground">No thumbnail selected</span>}
               </div>
             </div>
 
             <div className="md:col-span-2 space-y-2">
               <Label>Description</Label>
-              <Textarea value={description} onChange={(e)=>setDescription(e.target.value)} rows={3} placeholder="Tell viewers what this live is about..."/>
+              <Textarea value={state.description} onChange={(e)=>updateState({description: e.target.value})} rows={3} placeholder="Tell viewers what this live is about..."/>
             </div>
             <div className="flex items-center gap-3">
-              <Switch checked={enableChat} onCheckedChange={setEnableChat}/>
+              <Switch checked={state.enableChat} onCheckedChange={(checked) => updateState({enableChat: checked})}/>
               <span className="text-sm">Enable live chat</span>
             </div>
             <div className="flex items-center gap-3">
-              <Switch checked={recordVOD} onCheckedChange={setRecordVOD}/>
+              <Switch checked={state.recordVOD} onCheckedChange={(checked) => updateState({recordVOD: checked})}/>
               <span className="text-sm">Record a VOD</span>
             </div>
           </CardContent>
           <CardFooter className="justify-between">
             <div className="text-xs text-muted-foreground">You can change these later.</div>
-            <Button onClick={()=>setStep(2)}>Next</Button>
+            <Button onClick={()=>updateState({step: 2})}>Next</Button>
           </CardFooter>
         </Card>
       )}
 
-      {step===2 && (
+      {state.step===2 && (
         <Card>
           <CardHeader><CardTitle className="text-base">Select products</CardTitle></CardHeader>
           <CardContent className="space-y-4">
@@ -349,13 +351,13 @@ export default function GoLiveStudio({ defaultTitle = "New Live Show", onStart }
                 <Search className="w-4 h-4 absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground"/>
                 <Input className="pl-8" placeholder="Search products" value={query} onChange={(e)=>setQuery(e.target.value)} />
               </div>
-              <div className="text-xs text-muted-foreground">Selected: {selectedIds.length}</div>
+              <div className="text-xs text-muted-foreground">Selected: {state.selectedIds.length}</div>
             </div>
 
             {filtered.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                 {filtered.map(p=> (
-                    <div key={p.id} className={`border rounded-2xl p-3 flex gap-3 items-center ${selectedIds.includes(p.id)?'border-primary shadow-sm':''}`}>
+                    <div key={p.id} className={`border rounded-2xl p-3 flex gap-3 items-center ${state.selectedIds.includes(p.id)?'border-primary shadow-sm':''}`}>
                     <div className="w-16 h-16 rounded-lg bg-muted overflow-hidden flex items-center justify-center">
                         {p.image ? (<img src={p.image} className="w-full h-full object-cover" alt={p.title}/>) : (
                         <span className="text-xs text-muted-foreground">No image</span>
@@ -365,10 +367,10 @@ export default function GoLiveStudio({ defaultTitle = "New Live Show", onStart }
                         <div className="truncate text-sm font-medium">{p.title}</div>
                         <div className="text-xs text-muted-foreground">{currency(p.price)}{p.stock!=null && <span> • Stock {p.stock}</span>}</div>
                         <div className="flex items-center gap-2 mt-2">
-                        <Checkbox id={`sel-${p.id}`} checked={selectedIds.includes(p.id)} onCheckedChange={()=>toggleProduct(p.id)}/>
+                        <Checkbox id={`sel-${p.id}`} checked={state.selectedIds.includes(p.id)} onCheckedChange={()=>toggleProduct(p.id)}/>
                         <Label htmlFor={`sel-${p.id}`} className="text-xs">Include</Label>
-                        <Button size="sm" variant={featuredId===p.id?"default":"outline"} onClick={()=>setFeaturedId(p.id)} className="ml-auto">
-                            {featuredId===p.id ? <><CheckCircle2 className="w-4 h-4 mr-1"/> Featured</> : "Set featured"}
+                        <Button size="sm" variant={state.featuredId===p.id?"default":"outline"} onClick={()=>updateState({featuredId: p.id})} className="ml-auto">
+                            {state.featuredId===p.id ? <><CheckCircle2 className="w-4 h-4 mr-1"/> Featured</> : "Set featured"}
                         </Button>
                         </div>
                     </div>
@@ -387,20 +389,19 @@ export default function GoLiveStudio({ defaultTitle = "New Live Show", onStart }
             )}
           </CardContent>
           <CardFooter className="justify-between">
-            <Button variant="outline" onClick={()=>setStep(1)}>Back</Button>
+            <Button variant="outline" onClick={()=>updateState({step: 1})}>Back</Button>
             <div className="flex gap-2">
-              <Button variant="outline" onClick={addSelectedToOverlay}><MoveHorizontal className="w-4 h-4 mr-1"/>Add to overlay</Button>
-              <Button onClick={()=>setStep(3)} disabled={selectedIds.length===0}>Next</Button>
+              <Button variant="outline" onClick={addSelectedToOverlay} disabled={state.selectedIds.length === 0}><MoveHorizontal className="w-4 h-4 mr-1"/>Add to overlay</Button>
+              <Button onClick={()=>updateState({step: 3})} disabled={state.selectedIds.length===0}>Next</Button>
             </div>
           </CardFooter>
         </Card>
       )}
 
-      {step===3 && (
+      {state.step===3 && (
         <Card>
           <CardHeader><CardTitle className="text-base">Camera & microphone</CardTitle></CardHeader>
           <CardContent className="grid md:grid-cols-[2fr,1fr] gap-4">
-            {/* Preview with overlay */}
             <div className="rounded-2xl overflow-hidden bg-black aspect-video relative">
               <video ref={videoRef} className="w-full h-full object-cover" playsInline muted />
               {!stream && (
@@ -417,23 +418,20 @@ export default function GoLiveStudio({ defaultTitle = "New Live Show", onStart }
                 </div>
               )}
 
-              {/* Overlay strip (preview only) */}
-              {overlayEnabled && overlayItems.length>0 && (
+              {state.overlayEnabled && state.overlayItems.length>0 && (
                 <OverlayStrip
                   products={products}
-                  items={overlayItems}
+                  items={state.overlayItems}
                   activeIndex={activeOverlayIndex}
-                  position={overlayPosition}
+                  position={state.overlayPosition}
                 />
               )}
 
-              {/* Super Chat badge (preview only) */}
-              {superChatEnabled && superChatOnScreen && (
+              {state.superChatEnabled && state.superChatOnScreen && (
                 <div className="absolute top-2 right-2 bg-white/90 text-xs rounded-full px-2 py-1 shadow">Super Chat ON</div>
               )}
             </div>
 
-            {/* Controls */}
             <div className="space-y-4">
                <div className="grid grid-cols-2 gap-3">
                 <Button variant={camOn?"default":"secondary"} onClick={()=>setCamOn(v=>!v)}>
@@ -448,7 +446,7 @@ export default function GoLiveStudio({ defaultTitle = "New Live Show", onStart }
 
                <div className="space-y-2">
                  <Label>Camera</Label>
-                 <Select value={videoDeviceId} onValueChange={setVideoDeviceId} disabled={!devices.find(d=>d.kind==='videoinput')}>
+                 <Select value={state.videoDeviceId} onValueChange={(v) => updateState({videoDeviceId: v})} disabled={!devices.find(d=>d.kind==='videoinput')}>
                     <SelectTrigger><SelectValue placeholder="Select camera"/></SelectTrigger>
                     <SelectContent>
                         {devices.filter(d=>d.kind==='videoinput').map(d=> <SelectItem key={d.deviceId} value={d.deviceId}>{d.label}</SelectItem>)}
@@ -458,7 +456,7 @@ export default function GoLiveStudio({ defaultTitle = "New Live Show", onStart }
 
                 <div className="space-y-2">
                  <Label>Microphone</Label>
-                 <Select value={audioDeviceId} onValueChange={setAudioDeviceId} disabled={!devices.find(d=>d.kind==='audioinput')}>
+                 <Select value={state.audioDeviceId} onValueChange={(v) => updateState({audioDeviceId: v})} disabled={!devices.find(d=>d.kind==='audioinput')}>
                     <SelectTrigger><SelectValue placeholder="Select microphone"/></SelectTrigger>
                     <SelectContent>
                         {devices.filter(d=>d.kind==='audioinput').map(d=> <SelectItem key={d.deviceId} value={d.deviceId}>{d.label}</SelectItem>)}
@@ -467,30 +465,28 @@ export default function GoLiveStudio({ defaultTitle = "New Live Show", onStart }
                  {micOn && <LevelMeter value={level} />}
                </div>
                
-              {/* Super Chat controls */}
               <div className="space-y-2">
                 <Label>Super Chat</Label>
                 <div className="flex items-center gap-3">
-                  <Switch checked={superChatEnabled} onCheckedChange={setSuperChatEnabled}/>
+                  <Switch checked={state.superChatEnabled} onCheckedChange={(checked) => updateState({superChatEnabled: checked})}/>
                   <span className="text-sm">Enable Super Chat</span>
                 </div>
                 <div className="flex items-center gap-3">
-                  <Switch checked={superChatOnScreen} onCheckedChange={setSuperChatOnScreen} disabled={!superChatEnabled}/>
+                  <Switch checked={state.superChatOnScreen} onCheckedChange={(checked) => updateState({superChatOnScreen: checked})} disabled={!state.superChatEnabled}/>
                   <span className="text-sm">Show Super Chat badge on screen</span>
                 </div>
               </div>
 
-              {/* Overlay designer controls */}
               <Separator/>
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <Switch checked={overlayEnabled} onCheckedChange={setOverlayEnabled}/>
+                    <Switch checked={state.overlayEnabled} onCheckedChange={(checked) => updateState({overlayEnabled: checked})}/>
                     <span className="text-sm">Enable overlay strip</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <Label className="text-xs">Position</Label>
-                    <Select value={overlayPosition} onValueChange={(v:any)=>setOverlayPosition(v)}>
+                    <Select value={state.overlayPosition} onValueChange={(v:any)=>updateState({overlayPosition: v})}>
                       <SelectTrigger className="w-28"><SelectValue placeholder="pos"/></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="top">Top</SelectItem>
@@ -501,13 +497,13 @@ export default function GoLiveStudio({ defaultTitle = "New Live Show", onStart }
                 </div>
 
                 <div className="grid grid-cols-[1fr,auto] gap-2 items-end">
-                  <Input type="number" min={1000} step={500} value={overlayAutoMs} onChange={(e)=>setOverlayAutoMs(parseInt(e.target.value||'0')||2500)} placeholder="Auto slide (ms)" />
+                  <Input type="number" min={1000} step={500} value={state.overlayAutoMs} onChange={(e)=>updateState({overlayAutoMs: parseInt(e.target.value||'0')||2500})} placeholder="Auto slide (ms)" />
                   <Button variant="outline" onClick={addCustomText}><Plus className="w-4 h-4 mr-1"/>Add custom text</Button>
                 </div>
 
                 <div className="space-y-2">
-                  {overlayItems.length===0 && <div className="text-xs text-muted-foreground">No overlay items yet. Add selected products or custom texts.</div>}
-                  {overlayItems.map((it, idx)=> (
+                  {state.overlayItems.length===0 && <div className="text-xs text-muted-foreground">No overlay items yet. Add selected products or custom texts.</div>}
+                  {state.overlayItems.map((it, idx)=> (
                     <div key={idx} className="flex items-center justify-between border rounded-xl px-3 py-2">
                       <div className="text-sm">
                         {it.type === 'product' ? (
@@ -521,11 +517,10 @@ export default function GoLiveStudio({ defaultTitle = "New Live Show", onStart }
                   ))}
                 </div>
               </div>
-
             </div>
           </CardContent>
           <CardFooter className="justify-between">
-            <Button variant="outline" onClick={()=>setStep(2)}>Back</Button>
+            <Button variant="outline" onClick={()=>updateState({step: 2})}>Back</Button>
             <div className="flex items-center gap-2">
                <Button onClick={handleStart} className="bg-red-600 hover:bg-red-700" disabled={!stream}>Go Live</Button>
             </div>
@@ -536,17 +531,17 @@ export default function GoLiveStudio({ defaultTitle = "New Live Show", onStart }
       {/* Summary footer */}
       <Card>
         <CardContent className="flex flex-wrap items-center gap-2 text-xs py-3">
-          <Badge variant="outline">{visibility}</Badge>
+          <Badge variant="outline">{state.visibility}</Badge>
           <span>•</span>
-          <span>{selectedIds.length} products</span>
-          {featuredId && (<><span>•</span><span>Featured: {featuredId}</span></>)}
+          <span>{state.selectedIds.length} products</span>
+          {state.featuredId && (<><span>•</span><span>Featured: {state.featuredId}</span></>)}
           <span>•</span>
-          <span>{enableChat?"Chat on":"Chat off"}</span>
+          <span>{state.enableChat?"Chat on":"Chat off"}</span>
           <span>•</span>
-          <span>{recordVOD?"Record on":"Record off"}</span>
+          <span>{state.recordVOD?"Record on":"Record off"}</span>
           <span>•</span>
-          <span>{superChatEnabled?"Super Chat on":"Super Chat off"}</span>
-          {overlayEnabled && <><span>•</span><span>Overlay {overlayPosition} ({overlayItems.length} items)</span></>}
+          <span>{state.superChatEnabled?"Super Chat on":"Super Chat off"}</span>
+          {state.overlayEnabled && <><span>•</span><span>Overlay {state.overlayPosition} ({state.overlayItems.length} items)</span></>}
         </CardContent>
       </Card>
     </div>
@@ -589,3 +584,5 @@ function OverlayStrip({ products, items, activeIndex, position }:{ products: Pro
     </div>
   );
 }
+
+    
