@@ -19,6 +19,9 @@ import {
   Video,
   XCircle,
   Check,
+  CircleUser,
+  ShieldCheck,
+  RadioTower,
 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import Link from "next/link";
@@ -64,6 +67,9 @@ import { getStatusFromTimeline, Order, saveAllOrders } from "@/lib/order-data";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
 import { format } from "date-fns";
 import { addTransaction } from "@/lib/transaction-history";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { GoLiveDialog } from "@/components/go-live-dialog";
+import { useAuthActions } from "@/lib/auth";
 
 const mockSellerOrdersData = [
     {
@@ -264,7 +270,8 @@ function OrderDetailCard({ order }: { order: SellerOrder }) {
 }
 
 export default function SellerOrdersPage() {
-    const { user, loading } = useAuth();
+    const { user, userData, loading } = useAuth();
+    const { signOut } = useAuthActions();
     const router = useRouter();
     const [isMounted, setIsMounted] = useState(false);
     const [orders, setOrders] = useState<SellerOrder[]>(mockSellerOrdersData);
@@ -344,47 +351,149 @@ export default function SellerOrdersPage() {
   return (
     <Dialog open={!!selectedOrder} onOpenChange={(isOpen) => !isOpen && setSelectedOrder(null)}>
         <div className="flex min-h-screen w-full flex-col bg-muted/40">
-            <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6 py-4">
-                 <Link
+            <header className="sticky top-0 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6">
+                 <nav className="hidden flex-col gap-6 text-lg font-medium md:flex md:flex-row md:items-center md:gap-5 md:text-sm lg:gap-6">
+                  <Link
                     href="/seller/dashboard"
-                    className="flex items-center gap-2 text-lg font-semibold md:text-base mr-4"
+                    className="flex items-center gap-2 text-lg font-semibold md:text-base"
                   >
                     <Package2 className="h-6 w-6" />
                     <span className="sr-only">StreamCart Seller</span>
                   </Link>
-                <div className="relative ml-auto flex-1 md:grow-0">
-                    <h1 className="flex-1 shrink-0 whitespace-nowrap text-xl font-semibold tracking-tight sm:grow-0">
-                        All Orders
-                    </h1>
-                </div>
-                <div className="ml-auto flex items-center gap-2">
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                        <Button variant="outline" size="sm" className="h-8 gap-1">
-                            <ListFilter className="h-3.5 w-3.5" />
-                            <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                            Filter
-                            </span>
-                        </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Filter by</DropdownMenuLabel>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuCheckboxItem checked>
-                            Fulfilled
-                        </DropdownMenuCheckboxItem>
-                        <DropdownMenuCheckboxItem>Processing</DropdownMenuCheckboxItem>
-                        <DropdownMenuCheckboxItem>
-                            Cancelled
-                        </DropdownMenuCheckboxItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                    <Button size="sm" variant="outline" className="h-8 gap-1">
-                        <File className="h-3.5 w-3.5" />
-                        <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                        Export
-                        </span>
+                  <Link
+                    href="/seller/dashboard"
+                    className="text-muted-foreground transition-colors hover:text-foreground"
+                  >
+                    Dashboard
+                  </Link>
+                  <Link
+                    href="/seller/revenue"
+                    className="text-muted-foreground transition-colors hover:text-foreground"
+                  >
+                    Revenue
+                  </Link>
+                  <Link
+                    href="/seller/orders"
+                    className="text-foreground transition-colors hover:text-foreground"
+                  >
+                    Orders
+                  </Link>
+                  <Link
+                    href="/seller/products"
+                    className="text-muted-foreground transition-colors hover:text-foreground"
+                  >
+                    Products
+                  </Link>
+                   <Link
+                    href="/seller/promotions"
+                    className="text-muted-foreground transition-colors hover:text-foreground"
+                  >
+                    Promotions
+                  </Link>
+                  <Link
+                    href="/seller/feed"
+                    className="text-muted-foreground transition-colors hover:text-foreground"
+                  >
+                    Feed
+                  </Link>
+                  <Link
+                    href="#"
+                    className="text-muted-foreground transition-colors hover:text-foreground"
+                  >
+                    Analytics
+                  </Link>
+                </nav>
+                 <Sheet>
+                  <SheetTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="shrink-0 md:hidden"
+                    >
+                      <Menu className="h-5 w-5" />
+                      <span className="sr-only">Toggle navigation menu</span>
                     </Button>
+                  </SheetTrigger>
+                  <SheetContent side="left">
+                    <nav className="grid gap-6 text-lg font-medium">
+                      <Link
+                        href="#"
+                        className="flex items-center gap-2 text-lg font-semibold"
+                      >
+                        <Package2 className="h-6 w-6" />
+                        <span className="sr-only">StreamCart</span>
+                      </Link>
+                      <Link href="/seller/dashboard" className="text-muted-foreground hover:text-foreground">
+                        Dashboard
+                      </Link>
+                      <Link href="/seller/revenue" className="text-muted-foreground hover:text-foreground">
+                        Revenue
+                      </Link>
+                      <Link
+                        href="/seller/orders"
+                        className="hover:text-foreground"
+                      >
+                        Orders
+                      </Link>
+                      <Link
+                        href="/seller/products"
+                        className="text-muted-foreground hover:text-foreground"
+                      >
+                        Products
+                      </Link>
+                       <Link
+                        href="/seller/promotions"
+                        className="text-muted-foreground hover:text-foreground"
+                      >
+                        Promotions
+                      </Link>
+                       <Link
+                        href="/seller/feed"
+                        className="text-muted-foreground hover:text-foreground"
+                      >
+                        Feed
+                      </Link>
+                      <Link
+                        href="#"
+                        className="text-muted-foreground hover:text-foreground"
+                      >
+                        Analytics
+                      </Link>
+                    </nav>
+                  </SheetContent>
+                </Sheet>
+                 <div className="flex w-full items-center gap-4 md:ml-auto md:gap-2 lg:gap-4">
+                    <Dialog>
+                        <DialogTrigger asChild>
+                            <Button className="ml-auto">
+                                <RadioTower className="mr-2 h-4 w-4" /> Go Live
+                            </Button>
+                        </DialogTrigger>
+                        <GoLiveDialog />
+                    </Dialog>
+
+                  {userData?.verificationStatus === 'verified' && (
+                    <Badge variant="success" className="items-center gap-1">
+                      <ShieldCheck className="h-4 w-4" />
+                      KYC Verified
+                    </Badge>
+                  )}
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="secondary" size="icon" className="rounded-full">
+                        <CircleUser className="h-5 w-5" />
+                        <span className="sr-only">Toggle user menu</span>
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem>Settings</DropdownMenuItem>
+                      <DropdownMenuItem>Support</DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={() => signOut(true)}>Logout</DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
             </header>
             <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8">
