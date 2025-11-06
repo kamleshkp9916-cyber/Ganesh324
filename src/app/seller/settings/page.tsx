@@ -1,48 +1,15 @@
-
 "use client"
 
 import {
   ShieldCheck,
   Menu,
-  MessageSquare,
-  Mail,
-  MoreHorizontal,
-  Eye,
-  Archive,
-  ChevronLeft,
-  ChevronRight,
-  Annoyed,
-  Send,
-  Loader2,
-  FileText,
-  Shield,
-  Flag,
-  Trash2,
-  Edit,
-  PlusCircle,
-  UploadCloud,
-  Image as ImageIcon,
-  CalendarIcon,
-  Ticket,
-  Contact,
-  Info,
-  Link2,
-  Truck,
-  GanttChart,
-  Check,
-  X,
-  Clock,
-  LayoutGrid,
-  Wallet,
   Banknote,
 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import React, { useState, useEffect, useRef, useMemo } from "react"
-import { useForm, useFieldArray } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import * as z from "zod"
-import { format, parseISO } from "date-fns"
+import React, { useState, useEffect } from "react"
+import { format } from "date-fns"
+import { collection, query, where, onSnapshot, addDoc, serverTimestamp, orderBy } from "firebase/firestore";
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -54,57 +21,14 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+
 import { useAuth } from "@/hooks/use-auth"
 import { LoadingSpinner } from "@/components/ui/loading-spinner"
-import { useAuthActions } from "@/lib/auth"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
-import { cn } from "@/lib/utils"
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
 import { useToast } from "@/hooks/use-toast"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import Image from "next/image"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  DialogFooter,
-  DialogClose,
-} from "@/components/ui/dialog"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { Calendar } from "@/components/ui/calendar"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Skeleton } from "@/components/ui/skeleton"
-import { useLocalStorage } from "@/hooks/use-local-storage"
-import { CATEGORIES_KEY, defaultCategories, Category, Subcategory } from "@/lib/categories";
-import { Checkbox } from "@/components/ui/checkbox"
-import { Separator } from "@/components/ui/separator"
-import { AddBankForm, WithdrawForm } from "@/components/settings-forms"
 import { SellerHeader } from "@/components/seller/seller-header"
-import { UserData } from "@/lib/follow-data"
+import { getFirestoreDb } from "@/lib/firebase"
 
-export const COUPONS_KEY = 'streamcart_coupons';
-export const PROMOTIONAL_SLIDES_KEY = 'streamcart_promotional_slides';
-export const CATEGORY_BANNERS_KEY = 'streamcart_category_banners';
-export const FOOTER_CONTENT_KEY = 'streamcart_footer_content';
-export const HUB_BANNER_KEY = 'streamcart_hub_banner';
-export const HUB_FEATURED_PRODUCTS_KEY = 'streamcart_hub_featured_products';
-export const SHIPPING_SETTINGS_KEY = 'streamcart_shipping_settings';
-export const PAYOUT_REQUESTS_KEY = 'streamcart_payout_requests';
 
 export default function SellerSettingsPage() {
   const { user, userData, loading } = useAuth();
@@ -112,44 +36,37 @@ export default function SellerSettingsPage() {
   const { toast } = useToast()
   
   const [isMounted, setIsMounted] = useState(false);
-  const [isWithdrawOpen, setIsWithdrawOpen] = useState(false);
-  const [payoutRequests, setPayoutRequests] = useLocalStorage<any[]>(PAYOUT_REQUESTS_KEY, []);
+  const [payoutRequests, setPayoutRequests] = useState<any[]>([]);
+  const [isLoadingPayouts, setIsLoadingPayouts] = useState(true);
 
   useEffect(() => {
     setIsMounted(true);
   }, []);
 
-  const handleWithdraw = (amount: number, bankAccountId: string) => {
-    if (!user || !userData) return;
-    
-    // KYC Check
-    if (userData.kycStatus !== 'verified' || !userData.bank) {
-        toast({
-            variant: "destructive",
-            title: "KYC Not Verified",
-            description: "Please complete and verify your KYC bank details before requesting a payout.",
-        });
-        router.push('/seller/settings/kyc'); 
-        return;
-    }
+  useEffect(() => {
+    if (!user) return;
 
-     const newRequest = {
-       id: Date.now(),
-       sellerId: user.uid,
-       sellerName: userData.displayName,
-       amount: amount,
-       status: 'pending',
-       requestedAt: new Date().toISOString(),
-     };
+    setIsLoadingPayouts(true);
+    const db = getFirestoreDb();
+    const q = query(
+      collection(db, "payouts"), 
+      where("sellerId", "==", user.uid),
+      orderBy("requestedAt", "desc")
+    );
 
-     setPayoutRequests(prev => [newRequest, ...prev]);
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+      const requests = querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+        requestedAt: doc.data().requestedAt.toDate()
+      }));
+      setPayoutRequests(requests);
+      setIsLoadingPayouts(false);
+    });
 
-    toast({
-       title: "Withdrawal Request Submitted",
-       description: `Your request for ₹${amount} has been sent for admin approval.`,
-   });
-    setIsWithdrawOpen(false);
- };
+    return () => unsubscribe();
+  }, [user]);
+
   
   if (!isMounted || loading || !userData) {
     return <div className="flex items-center justify-center min-h-screen"><LoadingSpinner /></div>
@@ -197,36 +114,40 @@ export default function SellerSettingsPage() {
                                       <TableHead>Date</TableHead>
                                       <TableHead>Amount</TableHead>
                                       <TableHead>Status</TableHead>
+                                      <TableHead>Payout Date</TableHead>
                                   </TableRow>
                               </TableHeader>
                               <TableBody>
-                                  {payoutRequests.filter(p => p.sellerId === user?.uid).map(request => (
+                                  {isLoadingPayouts ? (
+                                    <TableRow>
+                                        <TableCell colSpan={4} className="h-24 text-center">
+                                            <LoadingSpinner />
+                                        </TableCell>
+                                    </TableRow>
+                                  ) : payoutRequests.length > 0 ? payoutRequests.map(request => (
                                       <TableRow key={request.id}>
                                           <TableCell>{format(new Date(request.requestedAt), "dd MMM, yyyy")}</TableCell>
                                           <TableCell>₹{request.amount.toFixed(2)}</TableCell>
                                           <TableCell>
-                                            <div className="flex flex-col">
-                                              <Badge variant={
-                                                  request.status === 'paid' ? 'success' :
-                                                  request.status === 'pending' ? 'warning' : 'destructive'
-                                              }>
-                                                  {request.status}
-                                              </Badge>
-                                               {request.status === 'paid' && request.payoutDate && (
-                                                    <span className="text-xs text-muted-foreground mt-1">
-                                                        {format(new Date(request.payoutDate), "dd MMM, yyyy, p")}
-                                                    </span>
-                                                )}
-                                            </div>
+                                            <Badge variant={
+                                                request.status === 'paid' ? 'success' :
+                                                request.status === 'pending' ? 'warning' : 'destructive'
+                                            }>
+                                                {request.status}
+                                            </Badge>
+                                          </TableCell>
+                                          <TableCell>
+                                            {request.status === 'paid' && request.payoutDate ? (
+                                                <span className="text-xs text-muted-foreground">
+                                                    {format(request.payoutDate.toDate(), "dd MMM, yyyy, p")}
+                                                </span>
+                                            ) : '-'}
                                           </TableCell>
                                       </TableRow>
-                                  ))}
-                                   {payoutRequests.filter(p => p.sellerId === user?.uid).length === 0 && (
+                                  )) : (
                                     <TableRow>
-                                        <TableCell>{format(new Date(), "dd MMM, yyyy")}</TableCell>
-                                        <TableCell>₹5000.00</TableCell>
-                                        <TableCell>
-                                            <Badge variant="warning">pending</Badge>
+                                        <TableCell colSpan={4} className="h-24 text-center">
+                                            No payout requests yet.
                                         </TableCell>
                                     </TableRow>
                                   )}
