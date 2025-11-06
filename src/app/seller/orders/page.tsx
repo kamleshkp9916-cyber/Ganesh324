@@ -61,7 +61,7 @@ import {
   PaginationItem,
 } from "@/components/ui/pagination"
 import { Separator } from "@/components/ui/separator"
-import { useAuth } from "@/hooks/use-auth.tsx"
+import { useAuth } from "@/hooks/use-auth"
 import { LoadingSpinner } from "@/components/ui/loading-spinner"
 import Image from "next/image"
 import { useToast } from "@/hooks/use-toast"
@@ -74,6 +74,14 @@ import { addTransaction } from "@/lib/transaction-history";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { GoLiveDialog } from "@/components/go-live-dialog";
 import { useAuthActions } from "@/lib/auth";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
 
 const mockSellerOrdersData = [
     {
@@ -355,8 +363,8 @@ export default function SellerOrdersPage() {
   return (
     <Dialog open={!!selectedOrder} onOpenChange={(isOpen) => !isOpen && setSelectedOrder(null)}>
         <div className="flex min-h-screen w-full flex-col bg-muted/40">
-            <header className="sticky top-0 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6">
-                 <nav className="hidden flex-col gap-6 text-lg font-medium md:flex md:flex-row md:items-center md:gap-5 md:text-sm lg:gap-6">
+           <header className="sticky top-0 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6">
+                <nav className="hidden flex-col gap-6 text-lg font-medium md:flex md:flex-row md:items-center md:gap-5 md:text-sm lg:gap-6">
                   <Link
                     href="/seller/dashboard"
                     className="flex items-center gap-2 text-lg font-semibold md:text-base"
@@ -547,59 +555,72 @@ export default function SellerOrdersPage() {
                     </div>
                 </CardHeader>
                 <CardContent>
-                    <div className="divide-y divide-border">
-                    {orders.map((order) => (
-                        <div key={order.orderId} className="grid grid-cols-1 md:grid-cols-6 items-center gap-4 py-4">
-                            <div className="font-medium col-span-1">
-                                <p className="cursor-pointer hover:underline" onClick={() => setSelectedOrder(order)}>{order.orderId}</p>
-                                <p className="text-xs text-muted-foreground">{order.date}</p>
-                            </div>
-                            <div className="col-span-1">
-                                <p className="font-medium">{order.customer.name}</p>
-                                <p className="text-xs text-muted-foreground">{order.customer.email}</p>
-                            </div>
-                            <div className="col-span-2">
-                                <p className="font-medium hover:underline cursor-pointer" onClick={() => setSelectedOrder(order)}>{order.product.name}</p>
-                            </div>
-                            <div className="text-left md:text-center col-span-1">
-                                <Badge variant={order.status === 'Fulfilled' ? "success" : order.status === 'Cancelled' ? 'destructive' : "outline"} className="capitalize">
-                                    {order.status}
-                                </Badge>
-                            </div>
-                            <div className="font-medium text-right col-span-1 flex items-center justify-end gap-2">
-                                <span>₹{order.price.toFixed(2)}</span>
-                                {order.status === 'Pending' ? (
-                                    <div className="flex items-center justify-end gap-2">
-                                        <Button size="sm" onClick={() => handleUpdateStatus(order.orderId, 'Order Confirmed')}>
-                                            <Check className="mr-2 h-4 w-4" /> Accept
-                                        </Button>
-                                         <AlertDialog>
-                                            <AlertDialogTrigger asChild>
-                                                <Button size="sm" variant="destructive">
-                                                    <XCircle className="mr-2 h-4 w-4" /> Decline
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead className="w-[120px]">Order</TableHead>
+                                <TableHead>Customer</TableHead>
+                                <TableHead className="hidden md:table-cell">Product</TableHead>
+                                <TableHead className="hidden md:table-cell">Type</TableHead>
+                                <TableHead className="hidden sm:table-cell">Status</TableHead>
+                                <TableHead className="text-right">Amount</TableHead>
+                                <TableHead className="text-right w-[160px]">Actions</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {orders.map((order) => (
+                                <TableRow key={order.orderId}>
+                                    <TableCell>
+                                        <div className="font-medium cursor-pointer hover:underline" onClick={() => setSelectedOrder(order)}>{order.orderId}</div>
+                                        <div className="text-xs text-muted-foreground">{order.date}</div>
+                                    </TableCell>
+                                    <TableCell>
+                                        <div className="font-medium">{order.customer.name}</div>
+                                    </TableCell>
+                                    <TableCell className="hidden md:table-cell">
+                                        <div className="font-medium cursor-pointer hover:underline" onClick={() => setSelectedOrder(order)}>{order.product.name}</div>
+                                    </TableCell>
+                                    <TableCell className="hidden md:table-cell">
+                                        <Badge variant={order.type === 'Live Stream' ? "destructive" : "secondary"}>{order.type}</Badge>
+                                    </TableCell>
+                                    <TableCell className="hidden sm:table-cell">
+                                        <Badge variant={order.status === 'Fulfilled' ? "success" : order.status === 'Cancelled' ? 'destructive' : "outline"} className="capitalize">{order.status}</Badge>
+                                    </TableCell>
+                                    <TableCell className="text-right font-medium">₹{order.price.toFixed(2)}</TableCell>
+                                    <TableCell className="text-right">
+                                        {order.status === 'Pending' ? (
+                                            <div className="flex items-center justify-end gap-2">
+                                                <Button size="sm" onClick={() => handleUpdateStatus(order.orderId, 'Order Confirmed')} className="h-8">
+                                                    <Check className="mr-2 h-4 w-4" /> Accept
                                                 </Button>
-                                            </AlertDialogTrigger>
-                                            <AlertDialogContent>
-                                                <AlertDialogHeader>
-                                                    <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                                                    <AlertDialogDescription>
-                                                        This will cancel the order for the customer and cannot be undone.
-                                                    </AlertDialogDescription>
-                                                </AlertDialogHeader>
-                                                <AlertDialogFooter>
-                                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                                    <AlertDialogAction onClick={() => handleUpdateStatus(order.orderId, 'Cancelled by seller')}>Confirm</AlertDialogAction>
-                                                </AlertDialogFooter>
-                                            </AlertDialogContent>
-                                        </AlertDialog>
-                                    </div>
-                                ) : (
-                                    <Button variant="ghost" size="sm" onClick={() => setSelectedOrder(order)}>View Details</Button>
-                                )}
-                            </div>
-                        </div>
-                    ))}
-                    </div>
+                                                <AlertDialog>
+                                                    <AlertDialogTrigger asChild>
+                                                        <Button size="sm" variant="destructive" className="h-8">
+                                                            <XCircle className="mr-2 h-4 w-4" /> Decline
+                                                        </Button>
+                                                    </AlertDialogTrigger>
+                                                    <AlertDialogContent>
+                                                        <AlertDialogHeader>
+                                                            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                                            <AlertDialogDescription>
+                                                                This will cancel the order for the customer and cannot be undone.
+                                                            </AlertDialogDescription>
+                                                        </AlertDialogHeader>
+                                                        <AlertDialogFooter>
+                                                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                            <AlertDialogAction onClick={() => handleUpdateStatus(order.orderId, 'Cancelled by seller')}>Confirm</AlertDialogAction>
+                                                        </AlertDialogFooter>
+                                                    </AlertDialogContent>
+                                                </AlertDialog>
+                                            </div>
+                                        ) : (
+                                            <Button variant="outline" size="sm" onClick={() => setSelectedOrder(order)}>View Details</Button>
+                                        )}
+                                    </TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
                 </CardContent>
                 <CardFooter>
                     <div className="text-xs text-muted-foreground">
