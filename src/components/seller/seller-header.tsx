@@ -116,14 +116,11 @@ export function SellerHeader() {
             />
           </div>
         </form>
-        <Dialog>
-            <DialogTrigger asChild>
-                <Button>
-                    <RadioTower className="mr-2 h-4 w-4" /> Go Live
-                </Button>
-            </DialogTrigger>
-            <GoLiveDialog />
-        </Dialog>
+         <Button asChild>
+            <Link href="/seller/live/studio">
+                <RadioTower className="mr-2 h-4 w-4" /> Go Live
+            </Link>
+        </Button>
         {userData?.verificationStatus === 'verified' && (
           <Badge variant="success" className="items-center gap-1">
             <ShieldCheck className="h-4 w-4" />
