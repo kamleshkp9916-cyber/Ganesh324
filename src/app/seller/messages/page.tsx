@@ -3,7 +3,7 @@
 
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Send, Search, MoreVertical, Smile, Paperclip, MessageSquare, Share2, MessageCircle, LifeBuoy, Download } from 'lucide-react';
+import { ArrowLeft, Send, Search, MoreVertical, Smile, Paperclip, MessageSquare, Share2, MessageCircle, LifeBuoy, Download, ShieldCheck, Menu } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import Image from 'next/image';
@@ -12,18 +12,21 @@ import { useState, useEffect, useRef, useMemo } from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { cn } from '@/lib/utils';
-import { Skeleton } from '../ui/skeleton';
+import { Skeleton } from '@/components/ui/skeleton';
 import Link from 'next/link';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { toPng } from 'html-to-image';
-import { useToast } from '@/hooks/use-toast';
-import { useIsMobile } from '@/hooks/use-mobile';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Sheet, SheetTrigger, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import { useAuthActions } from '@/lib/auth';
+import { useDebounce } from '@/hooks/use-debounce';
 import { ChatMessage, ConversationItem, Message, Conversation } from '@/components/messaging/common';
 import { SellerHeader } from '@/components/seller/seller-header';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { useDebounce } from '@/hooks/use-debounce';
+import { useSidebar } from '@/components/ui/sidebar';
+import { toPng } from 'html-to-image';
+import { useToast } from '@/hooks/use-toast';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
 
 const ScreenshotDialog = ({ messages, conversation, trigger, currentUserIsSeller }: { messages: Message[], conversation: Conversation, trigger: React.ReactNode, currentUserIsSeller: boolean }) => {
     const screenshotRef = useRef<HTMLDivElement>(null);
@@ -90,6 +93,7 @@ export default function SellerMessagePage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user, userData, loading } = useAuth();
+  const { signOut } = useAuthActions();
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
