@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
-import { Card, CardHeader, CardTitle, CardContent, CardFooter, CardDescription } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -16,6 +16,7 @@ import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { updateUserData } from "@/lib/follow-data";
 import { useToast } from "@/hooks/use-toast";
 import { SellerHeader } from "@/components/seller/seller-header";
+import { Separator } from "@/components/ui/separator";
 
 function statusVariant(s: string | undefined) {
   switch (s) {
@@ -115,6 +116,17 @@ export default function KycSettingsPage() {
                 <Badge variant={statusVariant(status)}>{statusLabel(status)}</Badge>
             </div>
 
+            {!user && (
+                <Card>
+                <CardHeader>
+                    <CardTitle className="text-base">Sign in required</CardTitle>
+                </CardHeader>
+                <CardContent className="text-sm text-muted-foreground">
+                    Please sign in to manage your payout settings.
+                </CardContent>
+                </Card>
+            )}
+
             <Card>
                 <CardHeader>
                 <CardTitle className="text-base">UPI (Recommended)</CardTitle>
@@ -170,8 +182,8 @@ export default function KycSettingsPage() {
             </Card>
 
             {err && <div className="text-sm text-destructive">{err}</div>}
+            {ok && <div className="text-sm text-green-600">{ok}</div>}
         </main>
     </div>
   );
 }
-
