@@ -38,7 +38,7 @@ import {
 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import React, { useState, useEffect, useRef } from "react"
+import React, { useState, useEffect, useRef, useMemo } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
@@ -1008,7 +1008,7 @@ export default function AdminSettingsPage() {
             <header className="sticky top-0 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6 z-40">
                 <nav className="hidden flex-col gap-6 text-lg font-medium md:flex md:flex-row md:items-center md:gap-5 md:text-sm lg:gap-6">
                     <Link href={isAdmin ? "/admin/dashboard" : "/seller/dashboard"} className="flex items-center gap-2 text-lg font-semibold md:text-base"><ShieldCheck className="h-6 w-6" /><span className="sr-only">Admin</span></Link>
-                     {isAdmin && (
+                     {isAdmin ? (
                         <>
                             <Link href="/admin/dashboard" className="text-muted-foreground transition-colors hover:text-foreground">Dashboard</Link>
                             <Link href="/admin/orders" className="text-muted-foreground transition-colors hover:text-foreground">Orders</Link>
@@ -1017,9 +1017,20 @@ export default function AdminSettingsPage() {
                             <Link href="/admin/messages" className="text-muted-foreground transition-colors hover:text-foreground">Messages</Link>
                             <Link href="/admin/products" className="text-muted-foreground transition-colors hover:text-foreground">Products</Link>
                             <Link href="/admin/live-control" className="text-muted-foreground transition-colors hover:text-foreground">Live Control</Link>
+                            <Link href="/admin/settings" className="text-foreground transition-colors hover:text-foreground">Settings</Link>
+                        </>
+                    ) : (
+                         <>
+                            <Link href="/seller/dashboard" className="text-muted-foreground transition-colors hover:text-foreground">Dashboard</Link>
+                            <Link href="/seller/revenue" className="text-muted-foreground transition-colors hover:text-foreground">Revenue</Link>
+                            <Link href="/seller/orders" className="text-muted-foreground transition-colors hover:text-foreground">Orders</Link>
+                            <Link href="/seller/products" className="text-muted-foreground transition-colors hover:text-foreground">Products</Link>
+                            <Link href="/seller/promotions" className="text-muted-foreground transition-colors hover:text-foreground">Promotions</Link>
+                            <Link href="/seller/messages" className="text-muted-foreground transition-colors hover:text-foreground">Messages</Link>
+                            <Link href="/seller/feed" className="text-muted-foreground hover:text-foreground">Feed</Link>
+                            <Link href="/seller/settings" className="text-foreground transition-colors hover:text-foreground">Settings</Link>
                         </>
                     )}
-                    <Link href={isAdmin ? "/admin/settings" : "/seller/settings"} className="text-foreground transition-colors hover:text-foreground">Settings</Link>
                 </nav>
                 <Sheet>
                     <SheetTrigger asChild><Button variant="outline" size="icon" className="shrink-0 md:hidden"><Menu className="h-5 w-5" /><span className="sr-only">Menu</span></Button></SheetTrigger>
@@ -1098,9 +1109,18 @@ export default function AdminSettingsPage() {
                             </Table>
                         </CardContent>
                          <CardFooter className="border-t pt-6 flex-wrap gap-2 justify-between">
-                            <DialogTrigger asChild>
-                                <Button size="sm"><PlusCircle className="mr-2 h-4 w-4" /> Add Bank Account</Button>
-                            </DialogTrigger>
+                            <Dialog>
+                                <DialogTrigger asChild>
+                                    <Button size="sm"><PlusCircle className="mr-2 h-4 w-4" /> Add Bank Account</Button>
+                                </DialogTrigger>
+                                <DialogContent>
+                                    <DialogHeader>
+                                        <DialogTitle>Add New Bank Account</DialogTitle>
+                                        <DialogDescription>Link your bank account to receive payouts.</DialogDescription>
+                                    </DialogHeader>
+                                    <AddBankForm onSave={handleAddBankAccount} />
+                                </DialogContent>
+                            </Dialog>
                              <Button size="sm" variant="secondary" onClick={() => setIsWithdrawOpen(true)}>
                                 Withdraw Funds
                             </Button>
@@ -1418,3 +1438,5 @@ export default function AdminSettingsPage() {
     </>
   )
 }
+
+    
