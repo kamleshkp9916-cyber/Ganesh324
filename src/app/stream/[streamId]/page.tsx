@@ -936,7 +936,7 @@ const ChatPanel = ({
                                 value={newMessage}
                                 onChange={(e) => setNewMessage(e.target.value)}
                                 rows={1}
-                                className="flex-grow resize-none pr-10 min-h-[40px] rounded-md"
+                                className="flex-grow resize-none pr-10 min-h-[40px] rounded-full"
                                 onKeyDown={(e) => {
                                     if (e.key === 'Enter' && !e.shiftKey) {
                                         e.preventDefault();
@@ -1877,6 +1877,7 @@ export default StreamPage;
 
     
     
+
 
 
 
