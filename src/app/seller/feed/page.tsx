@@ -337,10 +337,8 @@ function SellerFeedPage() {
   const { toast } = useToast();
   
   const userPosts = useMemo(() => {
-    if (!user) return [];
-    // For now, show all posts on the seller feed page
     return feed;
-  }, [feed, user]);
+  }, [feed]);
 
   const onFinishEditing = () => {
       setPostToEdit(null);
@@ -634,7 +632,7 @@ function SellerFeedPage() {
       </header>
 
       <main className="flex-1 overflow-y-auto">
-        <div className="max-w-xl mx-auto space-y-8 p-4 md:p-8">
+        <div className="max-w-2xl mx-auto space-y-8 p-4 md:p-8">
             {isLoadingFeed ? (
                  <div className="space-y-4"><FeedPostSkeleton /><FeedPostSkeleton /></div>
             ) : userPosts.length > 0 ? (
