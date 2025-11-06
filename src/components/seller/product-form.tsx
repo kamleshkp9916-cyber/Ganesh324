@@ -30,7 +30,7 @@ import Image from "next/image"
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
-import { categories } from "@/lib/categories";
+import { defaultCategories as categories } from "@/lib/categories";
 import { Separator } from "../ui/separator";
 import { generateKeywords } from "@/lib/generateKeywords";
 
