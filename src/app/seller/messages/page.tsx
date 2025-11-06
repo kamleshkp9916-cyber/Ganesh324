@@ -21,6 +21,7 @@ import { toPng } from 'html-to-image';
 import { useToast } from '@/hooks/use-toast';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { ChatMessage, ConversationItem, Message, Conversation } from '@/components/messaging/common';
+import { SellerHeader } from '@/components/seller/seller-header';
 
 const ScreenshotDialog = ({ messages, conversation, trigger, currentUserIsSeller }: { messages: Message[], conversation: Conversation, trigger: React.ReactNode, currentUserIsSeller: boolean }) => {
     const screenshotRef = useRef<HTMLDivElement>(null);
@@ -208,17 +209,7 @@ export default function SellerMessagePage() {
   return (
     <div className="h-screen w-full flex bg-background text-foreground">
         <aside className="w-full md:w-1/3 lg:w-1/4 h-full border-r flex flex-col">
-            <header className="p-4 border-b flex items-center justify-between sticky top-0 bg-background z-10 shrink-0">
-                <div className="flex items-center gap-2">
-                    <Button variant="ghost" size="icon" className="md:hidden" onClick={() => router.back()}>
-                        <ArrowLeft className="h-6 w-6" />
-                    </Button>
-                     <Button variant="ghost" size="icon" className="hidden md:flex" onClick={() => router.push('/seller/dashboard')}>
-                        <ArrowLeft className="h-6 w-6" />
-                    </Button>
-                    <h1 className="text-xl font-bold">Chats</h1>
-                </div>
-            </header>
+           <SellerHeader />
             <div className="p-4 border-b">
                  <div className="relative">
                     <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
