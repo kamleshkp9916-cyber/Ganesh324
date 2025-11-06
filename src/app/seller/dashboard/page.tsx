@@ -1,5 +1,4 @@
 
-
 "use client"
 
 import {
@@ -321,8 +320,8 @@ export default function SellerDashboard() {
       <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
         
         <div className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-4">
-          <Link href="/seller/orders">
-            <Card className="hover:bg-muted/50 transition-colors">
+          <Link href="/seller/revenue">
+            <Card className="hover:bg-muted/50 transition-colors cursor-pointer">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
                   Total Revenue
@@ -338,7 +337,7 @@ export default function SellerDashboard() {
             </Card>
           </Link>
           <Link href="/seller/orders">
-            <Card className="hover:bg-muted/50 transition-colors">
+            <Card className="hover:bg-muted/50 transition-colors cursor-pointer">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
                   Sales
@@ -370,8 +369,8 @@ export default function SellerDashboard() {
             </DialogTrigger>
             <GoLiveDialog />
           </Dialog>
-           <Link href="/seller/profile">
-            <Card className="hover:bg-muted/50 transition-colors">
+           <Link href="/profile">
+            <Card className="hover:bg-muted/50 transition-colors cursor-pointer">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
                   New Followers
