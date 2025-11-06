@@ -5,13 +5,14 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"; // TabsContent not used
 import { Badge } from "@/components/ui/badge";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import { Table, TableHeader, TableHead, TableRow, TableBody, TableCell } from "@/components/ui/table";
-import { Calendar as CalendarIcon, Download, Filter, TrendingUp, TrendingDown, RefreshCcw, CircleDollarSign, PackageCheck, Undo2, Wallet, Search, ChevronDown, Plus } from "lucide-react";
+import { ArrowLeft, Calendar as CalendarIcon, Download, Filter, TrendingUp, TrendingDown, RefreshCcw, CircleDollarSign, PackageCheck, Undo2, Wallet, Search, ChevronDown, Plus, ShoppingBag } from "lucide-react";
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, BarChart, Bar, CartesianGrid, Legend } from "recharts";
 import { format } from "date-fns";
+import { useRouter } from "next/navigation";
 
 // ---------- Mock Data (replace with Firestore/API later) ----------
 const revenueKPI = {
@@ -64,6 +65,7 @@ export default function SellerRevenueDashboard() {
   const [chartType, setChartType] = useState("area"); // "area" | "bar"
   const [query, setQuery] = useState("");
   const [typeFilter, setTypeFilter] = useState<string | null>(null);
+  const router = useRouter();
 
   const handleChartTypeChange = (v: string) => {
     setChartType(v === "bar" ? "bar" : "area");
@@ -90,8 +92,12 @@ export default function SellerRevenueDashboard() {
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between gap-2">
-        <div>
+       <div className="flex items-center justify-between gap-2">
+        <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => router.back()}>
+          <ArrowLeft className="h-4 w-4" />
+          <span className="sr-only">Back</span>
+        </Button>
+        <div className="flex-1">
           <h1 className="text-2xl font-semibold tracking-tight">Seller Revenue Details</h1>
           <p className="text-sm text-muted-foreground">Track revenue, payouts, and transaction health at a glance.</p>
         </div>
@@ -119,7 +125,7 @@ export default function SellerRevenueDashboard() {
         <Card className="shadow-sm">
           <CardHeader className="pb-2 flex-row items-center justify-between">
             <CardTitle className="text-sm font-medium">Order Revenue</CardTitle>
-            <PackageCheck className="h-4 w-4"/>
+            <ShoppingBag className="h-4 w-4"/>
           </CardHeader>
           <CardContent className="pt-0">
             <div className="text-2xl font-semibold">{inr(revenueKPI.orderRevenue)}</div>
@@ -386,3 +392,5 @@ export default function SellerRevenueDashboard() {
     </div>
   );
 }
+
+    
