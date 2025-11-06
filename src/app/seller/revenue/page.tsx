@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
@@ -11,7 +10,7 @@ import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuIte
 import { Table, TableHeader, TableHead, TableRow, TableBody, TableCell } from "@/components/ui/table";
 import { ArrowLeft, Calendar as CalendarIcon, Download, Filter, TrendingUp, TrendingDown, RefreshCcw, CircleDollarSign, PackageCheck, Undo2, Wallet, Search, ChevronDown, Plus, ShoppingBag, Menu, Package2, CircleUser, Loader2 } from "lucide-react";
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, BarChart, Bar, CartesianGrid, Legend } from "recharts";
-import { format } from "date-fns";
+import { format, differenceInDays, parseISO } from "date-fns";
 import { useRouter } from "next/navigation";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import Link from "next/link";
@@ -27,7 +26,6 @@ import { Order, getStatusFromTimeline } from '@/lib/order-data';
 
 // ---------- Mock Data (to be fully replaced) ----------
 const revenueKPI = {
-  pendingPayout: 15231.0,
   withdrawn: 30000.0,
   nextPayoutDate: new Date(2025, 10, 12), // 12 Nov 2025 (Month is 0-indexed)
 };
@@ -39,8 +37,8 @@ const mockSellerOrdersForDisplay: Order[] = [
         products: [{ name: "Mock Product A", price: "1500.00", quantity: 1, key: "mock-a" }],
         address: {},
         total: 1500.00,
-        orderDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-        timeline: [{ status: "Delivered", date: format(new Date(Date.now() - 1 * 24 * 60 * 60 * 1000), 'dd MMM yyyy'), time: "2:00 PM", completed: true }],
+        orderDate: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
+        timeline: [{ status: "Delivered", date: format(new Date(Date.now() - 8 * 24 * 60 * 60 * 1000), 'dd MMM yyyy'), time: "2:00 PM", completed: true }],
         isReturnable: true
     },
     {
@@ -77,37 +75,38 @@ export default function SellerRevenueDashboard() {
       if (!user || !userData) return;
       setIsLoading(true);
       const db = getFirestoreDb();
-      let allOrders: Order[] = [...mockSellerOrdersForDisplay];
+      let allOrders: Order[] = [];
 
-      // Find all products belonging to this seller
       const sellerProductKeys = Object.entries(productToSellerMapping)
         .filter(([, sellerInfo]) => sellerInfo.uid === user.uid)
         .map(([key]) => key);
 
       if (sellerProductKeys.length === 0) {
-        setSellerOrders(allOrders);
+        setSellerOrders(mockSellerOrdersForDisplay);
         setIsLoading(false);
         return;
       }
       
-      const ordersRef = collection(db, "orders");
-      // Firestore 'in' queries are limited to 10 items. We need to chunk.
       const productChunks: string[][] = [];
       for (let i = 0; i < sellerProductKeys.length; i += 10) {
           productChunks.push(sellerProductKeys.slice(i, i + 10));
       }
 
+      const ordersRef = collection(db, "orders");
       for (const chunk of productChunks) {
-          // Query for orders containing any of the seller's products in the chunk
           const q = query(ordersRef, where("products.key", "in", chunk));
           const querySnapshot = await getDocs(q);
           querySnapshot.forEach((doc) => {
-              // We need to double check as an order might have products from multiple sellers
               const orderData = doc.data() as Order;
               if(orderData.products.some(p => sellerProductKeys.includes(p.key))) {
                 allOrders.push({ ...orderData, orderId: doc.id });
               }
           });
+      }
+
+      // Add mock data for demonstration if no real orders are found
+      if(allOrders.length === 0) {
+        allOrders.push(...mockSellerOrdersForDisplay);
       }
 
       setSellerOrders(allOrders);
@@ -119,19 +118,38 @@ export default function SellerRevenueDashboard() {
     }
   }, [user, userData]);
 
+  const PLATFORM_FEE_RATE = 0.05;
+
   const revenueInsights = useMemo(() => {
-    const PLATFORM_FEE_RATE = 0.05; // 5% platform fee
-    
     if (isLoading) {
       return { 
         totalRevenue: 0,
         otherCharges: 0,
         orderRevenue: 0,
         growthPct: 0,
-        transactions: []
+        transactions: [],
+        withdrawablePayout: 0,
       };
     }
     const deliveredOrders = sellerOrders.filter(o => getStatusFromTimeline(o.timeline) === 'Delivered');
+
+    let withdrawablePayout = 0;
+    const now = new Date();
+
+    deliveredOrders.forEach(order => {
+        const deliveryStep = order.timeline.find(step => step.status === 'Delivered');
+        if (deliveryStep && deliveryStep.date) {
+            try {
+                const deliveryDate = parseISO(order.orderDate); // Assuming orderDate is when delivery happened for simplicity
+                if (differenceInDays(now, deliveryDate) > 7) {
+                    const productTotal = order.products.reduce((prodSum, p) => prodSum + (parseFloat(p.price.replace(/[^0-9.-]+/g, '')) * p.quantity), 0);
+                    withdrawablePayout += productTotal * (1 - PLATFORM_FEE_RATE);
+                }
+            } catch(e) {
+                console.error("Could not parse order date for payout calculation", e);
+            }
+        }
+    });
 
     const orderRevenue = deliveredOrders.reduce((sum, o) => {
       const productTotal = o.products.reduce((prodSum, p) => prodSum + (parseFloat(p.price.replace(/[^0-9.-]+/g, '')) * p.quantity), 0);
@@ -159,7 +177,8 @@ export default function SellerRevenueDashboard() {
       orderRevenue,
       otherCharges,
       growthPct: 20.1, // Mock growth
-      transactions
+      transactions,
+      withdrawablePayout,
     };
   }, [sellerOrders, isLoading]);
 
@@ -182,7 +201,7 @@ export default function SellerRevenueDashboard() {
         const monthKey = `${orderDate.getFullYear()}-${orderDate.getMonth()}`;
         if (monthKey in months) {
           const productTotal = order.products.reduce((prodSum, p) => prodSum + (parseFloat(p.price.replace(/[^0-9.-]+/g, '')) * p.quantity), 0);
-          const netRevenue = productTotal * (1 - 0.05);
+          const netRevenue = productTotal * (1 - PLATFORM_FEE_RATE);
           months[monthKey] += netRevenue;
         }
       });
@@ -302,29 +321,31 @@ export default function SellerRevenueDashboard() {
             </CardHeader>
             <CardContent className="pt-0">
               <div className="text-2xl font-semibold">{inr(revenueInsights.otherCharges)}</div>
-              <p className="text-xs text-muted-foreground">5% platform fees</p>
+              <p className="text-xs text-muted-foreground">{PLATFORM_FEE_RATE * 100}% platform fees</p>
             </CardContent>
           </Card>
 
-          <Card className="shadow-sm">
-            <CardHeader className="pb-2 flex-row items-center justify-between">
-              <CardTitle className="text-sm font-medium">Payouts</CardTitle>
-              <Wallet className="h-4 w-4 text-muted-foreground"/>
-            </CardHeader>
-            <CardContent className="pt-0 space-y-1">
-              <div className="flex items-center justify-between text-sm">
-                <span>Pending</span>
-                <span className="font-medium">{inr(revenueKPI.pendingPayout)}</span>
-              </div>
-              <div className="flex items-center justify-between text-sm">
-                <span>Withdrawn</span>
-                <span>{inr(revenueKPI.withdrawn)}</span>
-              </div>
-            </CardContent>
-            <CardFooter className="pt-0">
-              <p className="text-xs text-muted-foreground w-full text-right">Next payout: {format(revenueKPI.nextPayoutDate, "dd MMM yyyy")}</p>
-            </CardFooter>
-          </Card>
+          <Link href="/setting">
+            <Card className="shadow-sm h-full hover:bg-muted/50 transition-colors">
+              <CardHeader className="pb-2 flex-row items-center justify-between">
+                <CardTitle className="text-sm font-medium">Payouts</CardTitle>
+                <Wallet className="h-4 w-4 text-muted-foreground"/>
+              </CardHeader>
+              <CardContent className="pt-0 space-y-1">
+                <div className="flex items-center justify-between text-sm">
+                  <span>Withdrawable</span>
+                  <span className="font-medium">{inr(revenueInsights.withdrawablePayout)}</span>
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <span>Withdrawn</span>
+                  <span>{inr(revenueKPI.withdrawn)}</span>
+                </div>
+              </CardContent>
+              <CardFooter className="pt-0">
+                <p className="text-xs text-muted-foreground w-full text-right">Next payout: {format(revenueKPI.nextPayoutDate, "dd MMM yyyy")}</p>
+              </CardFooter>
+            </Card>
+          </Link>
         </div>
 
         {/* Graph + Controls */}
@@ -345,7 +366,7 @@ export default function SellerRevenueDashboard() {
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
                     <DropdownMenuItem onClick={() => setRange("month")}>Monthly</DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setRange("week")}>Weekly</DropdownMenuItem>
+                    <DropdownMenuItem onClick={()={() => setRange("week")}}>Weekly</DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>
