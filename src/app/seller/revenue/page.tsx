@@ -19,6 +19,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useAuthActions } from "@/lib/auth";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { SellerHeader } from "@/components/seller/seller-header";
+import { productDetails } from "@/lib/product-data";
 
 
 // ---------- Mock Data (replace with Firestore/API later) ----------
@@ -29,8 +30,6 @@ const revenueKPI = {
   otherCharges: 350.0,
   pendingPayout: 15231.0,
   withdrawn: 30000.0,
-  avgOrderValue: 1950.0,
-  totals: { orders: 230, delivered: 220, returns: 6, refunds: 4 },
   nextPayoutDate: new Date(2025, 10, 12), // 12 Nov 2025 (Month is 0-indexed)
 };
 
@@ -43,16 +42,66 @@ const revenueSeriesMonthly = [
   { name: "Jun", revenue: 5900 },
 ];
 
-const topProducts = [
-  { product: "Hoodie A", revenue: 22300, sales: 45, conv: 4.2 },
-  { product: "T-Shirt B", revenue: 18900, sales: 64, conv: 5.6 },
-  { product: "Cap C", revenue: 5020, sales: 37, conv: 3.9 },
-];
+const mockSellerOrdersData = [
+    {
+        orderId: "#ORD5896",
+        productId: "prod_1",
+        customer: { name: "Ganesh Prajapati", email: "ganesh@example.com", phone: "+91 98765 43210", address: "123 Sunshine Apartments, Koregaon Park, Pune, Maharashtra - 411001" },
+        date: "July 27, 2024",
+        time: "10:31 PM",
+        status: "Fulfilled",
+        type: "Listed Product"
+    },
+    {
+        orderId: "#ORD5897",
+        productId: "prod_2",
+        customer: { name: "Jane Doe", email: "jane.d@example.com", phone: "+91 98765 43211", address: "456 Moonbeam Towers, Bandra West, Mumbai, Maharashtra - 400050" },
+        date: "July 26, 2024",
+        time: "08:16 AM",
+        status: "Fulfilled",
+        type: "Live Stream"
+    },
+    {
+        orderId: "#ORD5902",
+        productId: "prod_3",
+        customer: { name: "David Garcia", email: "david.g@example.com", phone: "+91 98765 43212", address: "789 Starlight Plaza, Indiranagar, Bengaluru, Karnataka - 560038" },
+        date: "July 22, 2024",
+        time: "07:00 PM",
+        status: "Processing",
+        type: "Live Stream"
+    },
+     {
+        orderId: "#ORD5905",
+        productId: "prod_4",
+        customer: { name: "Peter Jones", email: "peter.j@example.com", phone: "+91 98765 43213", address: "101 Galaxy Heights, Malviya Nagar, Jaipur, Rajasthan - 302017" },
+        date: "July 28, 2024",
+        time: "02:30 PM",
+        status: "Pending",
+        type: "Listed Product"
+    },
+    {
+        orderId: "#ORD5903",
+        productId: "prod_5",
+        customer: { name: "Jessica Rodriguez", email: "jessica.r@example.com", phone: "+91 98765 43214", address: "222 Ocean View, Besant Nagar, Chennai, Tamil Nadu - 600090" },
+        date: "July 21, 2024",
+        time: "11:00 AM",
+        status: "Cancelled",
+        type: "Listed Product"
+    }
+].map(order => {
+    const details = productDetails[order.productId as keyof typeof productDetails];
+    return {
+        ...order,
+        product: {
+            name: details?.name || 'Unknown Product',
+            imageUrl: details?.images[0] || 'https://placehold.co/80x80.png',
+            hint: details?.hint || 'product image'
+        },
+        price: details ? parseFloat(details.price.replace('₹', '').replace(',', '')) : 0,
+        isReturned: order.status === 'Cancelled' // simple logic for demo
+    }
+});
 
-const returnRefundSummary = [
-  { type: "Return", count: 4, amount: 1200 },
-  { type: "Refund", count: 2, amount: 650 },
-];
 
 const txns = [
   { id: "#ORD5896", type: "Order", gross: 12500, fees: -250, net: 12250, ts: new Date(2025, 9, 29) },
@@ -75,6 +124,39 @@ export default function SellerRevenueDashboard() {
   const router = useRouter();
   const { user, userData } = useAuth();
   const { signOut } = useAuthActions();
+
+  const orderInsights = useMemo(() => {
+    const totalOrders = mockSellerOrdersData.length;
+    const delivered = mockSellerOrdersData.filter(o => o.status === 'Fulfilled' && !o.isReturned).length;
+    const returnsAndRefunds = mockSellerOrdersData.filter(o => o.isReturned || o.status === 'Cancelled').length;
+    const totalSalesValue = mockSellerOrdersData.reduce((sum, o) => sum + (o.price || 0), 0);
+    const avgOrderValue = totalOrders > 0 ? totalSalesValue / totalOrders : 0;
+    
+    const topProductsData = mockSellerOrdersData.reduce((acc, order) => {
+        if(order.status !== 'Cancelled' && !order.isReturned) {
+            acc[order.product.name] = (acc[order.product.name] || 0) + 1;
+        }
+        return acc;
+    }, {} as Record<string, number>);
+
+    const topSellingProducts = Object.entries(topProductsData)
+        .sort(([, a], [, b]) => b - a)
+        .slice(0, 3)
+        .map(([name, sales]) => {
+            const productRevenue = mockSellerOrdersData
+                .filter(o => o.product.name === name && o.status !== 'Cancelled' && !o.isReturned)
+                .reduce((sum, o) => sum + (o.price || 0), 0);
+            return { product: name, revenue: productRevenue, sales };
+        });
+
+    return {
+      totalOrders,
+      delivered,
+      returnsAndRefunds,
+      avgOrderValue,
+      topSellingProducts,
+    };
+  }, []);
 
 
   const handleChartTypeChange = (v: string) => {
@@ -238,23 +320,19 @@ export default function SellerRevenueDashboard() {
             <CardContent className="pt-0 space-y-2">
               <div className="flex items-center justify-between text-sm">
                 <span>Total Orders</span>
-                <span className="font-medium">{revenueKPI.totals.orders}</span>
+                <span className="font-medium">{orderInsights.totalOrders}</span>
               </div>
               <div className="flex items-center justify-between text-sm">
                 <span>Delivered</span>
-                <span>{revenueKPI.totals.delivered}</span>
+                <span>{orderInsights.delivered}</span>
               </div>
               <div className="flex items-center justify-between text-sm">
                 <span>Average Order Value</span>
-                <span>{inr(revenueKPI.avgOrderValue)}</span>
+                <span>{inr(orderInsights.avgOrderValue)}</span>
               </div>
               <div className="flex items-center justify-between text-sm">
-                <span>Returns</span>
-                <span className="text-amber-600">{revenueKPI.totals.returns}</span>
-              </div>
-              <div className="flex items-center justify-between text-sm">
-                <span>Refunds</span>
-                <span className="text-amber-600">{revenueKPI.totals.refunds}</span>
+                <span>Returns & Refunds</span>
+                <span className="text-amber-600">{orderInsights.returnsAndRefunds}</span>
               </div>
             </CardContent>
           </Card>
@@ -270,16 +348,14 @@ export default function SellerRevenueDashboard() {
                     <TableHead>Product</TableHead>
                     <TableHead className="text-right">Revenue</TableHead>
                     <TableHead className="text-right">Sales</TableHead>
-                    <TableHead className="text-right">Conv%</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {topProducts.map((p) => (
+                  {orderInsights.topSellingProducts.map((p) => (
                     <TableRow key={p.product}>
                       <TableCell className="font-medium">{p.product}</TableCell>
                       <TableCell className="text-right">{inr(p.revenue)}</TableCell>
                       <TableCell className="text-right">{p.sales}</TableCell>
-                      <TableCell className="text-right">{p.conv}%</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -288,18 +364,26 @@ export default function SellerRevenueDashboard() {
           </Card>
 
           <Card className="shadow-sm order-3">
-            <CardHeader className="pb-2">
+             <CardHeader className="pb-2">
               <CardTitle className="text-base">Returns & Refunds</CardTitle>
             </CardHeader>
             <CardContent className="pt-0 space-y-2">
-              {returnRefundSummary.map((r) => (
-                <div key={r.type} className="flex items-center justify-between text-sm">
-                  <span className="flex items-center gap-2">
-                    <Badge variant={r.type === "Return" ? "secondary" : "outline"}>{r.type}</Badge>
-                  </span>
-                  <span className="tabular-nums">{r.count} • {inr(r.amount)}</span>
-                </div>
-              ))}
+              <div className="flex items-center justify-between text-sm">
+                <span className="flex items-center gap-2">
+                    <Badge variant="secondary">Returns</Badge>
+                </span>
+                <span className="tabular-nums">
+                    {mockSellerOrdersData.filter(o => o.isReturned).length} • {inr(mockSellerOrdersData.filter(o => o.isReturned).reduce((sum, o) => sum + o.price, 0))}
+                </span>
+              </div>
+               <div className="flex items-center justify-between text-sm">
+                <span className="flex items-center gap-2">
+                    <Badge variant="outline">Refunds (Cancelled)</Badge>
+                </span>
+                <span className="tabular-nums">
+                    {mockSellerOrdersData.filter(o => o.status === 'Cancelled').length} • {inr(mockSellerOrdersData.filter(o => o.status === 'Cancelled').reduce((sum, o) => sum + o.price, 0))}
+                </span>
+              </div>
             </CardContent>
           </Card>
         </div>
