@@ -111,7 +111,9 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
         }
     }, [userData]);
 
-    // ... (rest of the effects for tagging and textarea resize)
+    const handleContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+        setContent(e.target.value);
+    };
 
     const handlePollOptionChange = (index: number, text: string) => {
         setPollOptions(prev => {
