@@ -151,55 +151,67 @@ export default function GoLiveStudio({ defaultTitle = "New Live Show", onStart }
   const addCustomText = () => updateState({ overlayItems: [...state.overlayItems, { type: "text", text: "New drop! Flat 10% today" }] });
   const removeOverlayItem = (idx:number) => updateState({ overlayItems: state.overlayItems.filter((_,i)=>i!==idx) });
 
-  // Media: enumerate devices
-  const refreshDevices = useCallback(async()=>{
-    try {
-        await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-        const devs = await navigator.mediaDevices.enumerateDevices();
-        setDevices(devs);
-        if(!state.videoDeviceId){
-          const cam = devs.find(d=> d.kind === "videoinput");
-          if (cam) updateState({ videoDeviceId: cam.deviceId });
-        }
-        if(!state.audioDeviceId){
-          const mic = devs.find(d=> d.kind === "audioinput");
-          if (mic) updateState({ audioDeviceId: mic.deviceId });
-        }
-    } catch(e:any) {
-        console.error("Permission error:", e);
-        setPermissionsError("Camera and microphone permissions are required to go live. Please enable them in your browser settings and refresh the page.");
+  const stopPreview = useCallback(() => {
+    if (stream) {
+      stream.getTracks().forEach(track => track.stop());
+      setStream(null);
     }
-  },[state.videoDeviceId, state.audioDeviceId, updateState]);
+  }, [stream]);
 
   // Start/replace local preview stream
-  const startPreview = useCallback(async()=>{
+  const startPreview = useCallback(async () => {
+    stopPreview(); // Stop any existing stream first
     if (!state.videoDeviceId || !state.audioDeviceId) return;
-    try{
+
+    try {
       setPermissionsError("");
       const newStream = await navigator.mediaDevices.getUserMedia({
         video: { deviceId: { exact: state.videoDeviceId } },
         audio: { deviceId: { exact: state.audioDeviceId } },
       });
-      if (stream) stream.getTracks().forEach(t=>t.stop());
       setStream(newStream);
-      if (videoRef.current){
+      if (videoRef.current) {
         videoRef.current.srcObject = newStream;
-        await videoRef.current.play().catch(()=>{});
+        await videoRef.current.play().catch(console.error);
       }
       setupAudioLevel(newStream);
-    }catch(e:any){
-      console.error(e);
-      setPermissionsError(e?.message || "Could not start camera/mic. It might be in use by another application.");
+    } catch (e: any) {
+      console.error("Error starting media preview:", e);
+      setPermissionsError("Could not start camera/mic. It might be in use or permissions were denied.");
+      stopPreview();
     }
-  },[state.videoDeviceId, state.audioDeviceId, stream]);
+  }, [state.videoDeviceId, state.audioDeviceId, stopPreview]);
+  
 
-  const stopPreview = useCallback(()=>{
-    if(stream){
-      stream.getTracks().forEach(t=>t.stop());
-      setStream(null);
+  const refreshDevices = useCallback(async () => {
+    try {
+        // This is the key change: request permissions first!
+        const tempStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+        
+        const devs = await navigator.mediaDevices.enumerateDevices();
+        setDevices(devs);
+
+        const currentVideoDevice = devs.find(d => d.deviceId === state.videoDeviceId && d.kind === 'videoinput');
+        if (!currentVideoDevice) {
+            const firstCam = devs.find(d => d.kind === 'videoinput');
+            if (firstCam) updateState({ videoDeviceId: firstCam.deviceId });
+        }
+
+        const currentAudioDevice = devs.find(d => d.deviceId === state.audioDeviceId && d.kind === 'audioinput');
+        if (!currentAudioDevice) {
+            const firstMic = devs.find(d => d.kind === 'audioinput');
+            if (firstMic) updateState({ audioDeviceId: firstMic.deviceId });
+        }
+        
+        // Stop the temporary stream used for getting permissions
+        tempStream.getTracks().forEach(track => track.stop());
+        setPermissionsError("");
+    } catch (e: any) {
+        console.error("Permission error:", e);
+        setPermissionsError("Camera and microphone permissions are required to go live. Please enable them in your browser settings and refresh the page.");
     }
-    teardownAudioLevel();
-  },[stream]);
+  }, [state.videoDeviceId, state.audioDeviceId, updateState]);
+
 
   // Audio level meter
   function setupAudioLevel(ms: MediaStream){
@@ -238,15 +250,20 @@ export default function GoLiveStudio({ defaultTitle = "New Live Show", onStart }
 
   useEffect(()=>{ if(stream) setTrackEnabled('video', camOn); }, [camOn, stream]);
   useEffect(()=>{ if(stream) setTrackEnabled('audio', micOn); }, [micOn, stream]);
-
-  // Refresh devices on step 3 load
-  useEffect(()=>{
+  
+  useEffect(() => {
     if (state.step === 3) {
-      refreshDevices();
+        refreshDevices();
     } else {
-      stopPreview();
+        stopPreview();
     }
-  },[state.step, refreshDevices, stopPreview]);
+    return () => {
+        if (state.step === 3) {
+            stopPreview();
+        }
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.step]);
 
   // Start preview when devices are selected
   useEffect(()=> {
@@ -585,4 +602,4 @@ function OverlayStrip({ products, items, activeIndex, position }:{ products: Pro
   );
 }
 
-    
+```
