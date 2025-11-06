@@ -1,3 +1,4 @@
+
 /**
  * @file Firestore Security Rules for StreamCart User Data
  *
@@ -53,8 +54,8 @@ service cloud.firestore {
       // Allows a user to read their own document.
       allow get: if isOwner(userId);
 
-      // Allows a user to update their own document. Enforces immutable ownership.
-      allow update: if isExistingOwner(userId) && request.resource.data.id == resource.data.id;
+      // Allows a user to update their own document.
+      allow update: if isOwner(userId);
 
       // Allows a user to delete their own document, ensuring that it exists first.
       allow delete: if isExistingOwner(userId);
