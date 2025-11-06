@@ -8,12 +8,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Loader2 } from "lucide-react";
+import { Loader2, ArrowLeft } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { updateUserData, UserData } from "@/lib/follow-data";
 import { useToast } from "@/hooks/use-toast";
 import { SellerHeader } from "@/components/seller/seller-header";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 function statusVariant(s: string | undefined) {
   switch (s) {
@@ -33,6 +35,7 @@ function statusLabel(s: string | undefined) {
 
 export default function KycSettingsPage() {
   const { user, userData, loading } = useAuth();
+  const router = useRouter();
   const { toast } = useToast();
   const [saving, setSaving] = useState(false);
   const [err, setErr] = useState<string>("");
@@ -75,9 +78,9 @@ export default function KycSettingsPage() {
     setOk("");
     try {
       const payload: any = {
-        kycStatus: "pending", // Always set to pending on save/update for re-verification
+        kycStatus: "pending", 
         kycType: upiId ? 'upi' : 'bank',
-        bank: null, // Clear out old data before setting new
+        bank: null, 
         upi: null,
       };
       if (upiId) {
@@ -114,6 +117,12 @@ export default function KycSettingsPage() {
     <div className="flex min-h-screen w-full flex-col">
         <SellerHeader />
         <main className="p-6 max-w-3xl mx-auto space-y-6 w-full">
+            <Button asChild variant="ghost" className="mb-4 -ml-4">
+              <Link href="/seller/settings">
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Back to Settings
+              </Link>
+            </Button>
             <div className="flex items-center justify-between">
                 <h1 className="text-2xl font-semibold tracking-tight">KYC Settings</h1>
                 <Badge variant={statusVariant(status)}>{statusLabel(status)}</Badge>
