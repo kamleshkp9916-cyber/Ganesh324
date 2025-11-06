@@ -78,39 +78,17 @@ export default function SellerRevenueDashboard() {
     setIsLoading(true);
     try {
         const db = getFirestoreDb();
-        let allOrders: Order[] = [];
-
-        const sellerProductKeys = Object.entries(productToSellerMapping)
-            .filter(([, sellerInfo]) => sellerInfo.uid === user.uid)
-            .map(([key]) => key);
-
-        if (sellerProductKeys.length === 0) {
-            setSellerOrders(mockSellerOrdersForDisplay);
-            return;
-        }
-        
-        const productChunks: string[][] = [];
-        for (let i = 0; i < sellerProductKeys.length; i += 10) {
-            productChunks.push(sellerProductKeys.slice(i, i + 10));
-        }
-
         const ordersRef = collection(db, "orders");
-        for (const chunk of productChunks) {
-            const q = query(ordersRef, where("products.key", "in", chunk));
-            const querySnapshot = await getDocs(q);
-            querySnapshot.forEach((doc) => {
-                const orderData = doc.data() as Order;
-                if(orderData.products.some(p => sellerProductKeys.includes(p.key))) {
-                    allOrders.push({ ...orderData, orderId: doc.id });
-                }
-            });
-        }
+        // Corrected query: Fetch orders where the current user is the seller.
+        const q = query(ordersRef, where("sellerId", "==", user.uid));
+        
+        const querySnapshot = await getDocs(q);
+        const fetchedOrders: Order[] = querySnapshot.docs.map(doc => ({
+            ...(doc.data() as Order),
+            orderId: doc.id
+        }));
 
-        if(allOrders.length === 0) {
-            allOrders.push(...mockSellerOrdersForDisplay);
-        }
-
-        setSellerOrders(allOrders);
+        setSellerOrders(fetchedOrders);
         toast({ title: "Data Refreshed", description: "Your revenue data is up to date." });
     } catch (error) {
         console.error("Error fetching seller orders:", error);
@@ -170,7 +148,7 @@ export default function SellerRevenueDashboard() {
             try {
                 const deliveryDate = parseISO(order.orderDate); 
                 if (differenceInDays(now, deliveryDate) > 7) {
-                    const productTotal = order.products.reduce((prodSum, p) => prodSum + (parseFloat(p.price.replace(/[^0-9.-]+/g, '')) * p.quantity), 0);
+                    const productTotal = order.products.reduce((prodSum, p) => prodSum + (parseFloat(String(p.price).replace(/[^0-9.-]+/g, '')) * p.quantity), 0);
                     withdrawablePayout += productTotal * (1 - PLATFORM_FEE_RATE);
                 }
             } catch(e) {
@@ -180,14 +158,14 @@ export default function SellerRevenueDashboard() {
     });
 
     const orderRevenue = deliveredOrders.reduce((sum, o) => {
-      const productTotal = o.products.reduce((prodSum, p) => prodSum + (parseFloat(p.price.replace(/[^0-9.-]+/g, '')) * p.quantity), 0);
+      const productTotal = o.products.reduce((prodSum, p) => prodSum + (parseFloat(String(p.price).replace(/[^0-9.-]+/g, '')) * p.quantity), 0);
       return sum + productTotal;
     }, 0);
 
     const otherCharges = orderRevenue * PLATFORM_FEE_RATE;
 
     const transactions = deliveredOrders.map(order => {
-        const gross = order.products.reduce((prodSum, p) => prodSum + (parseFloat(p.price.replace(/[^0-9.-]+/g, '')) * p.quantity), 0);
+        const gross = order.products.reduce((prodSum, p) => prodSum + (parseFloat(String(p.price).replace(/[^0-9.-]+/g, '')) * p.quantity), 0);
         const fees = gross * PLATFORM_FEE_RATE;
         return {
             id: order.orderId,
@@ -228,7 +206,7 @@ export default function SellerRevenueDashboard() {
         const orderDate = new Date(order.orderDate);
         const monthKey = `${orderDate.getFullYear()}-${orderDate.getMonth()}`;
         if (monthKey in months) {
-          const productTotal = order.products.reduce((prodSum, p) => prodSum + (parseFloat(p.price.replace(/[^0-9.-]+/g, '')) * p.quantity), 0);
+          const productTotal = order.products.reduce((prodSum, p) => prodSum + (parseFloat(String(p.price).replace(/[^0-9.-]+/g, '')) * p.quantity), 0);
           const netRevenue = productTotal * (1 - PLATFORM_FEE_RATE);
           months[monthKey] += netRevenue;
         }
@@ -273,7 +251,7 @@ export default function SellerRevenueDashboard() {
             const productRevenue = deliveredOrders
                 .flatMap(o => o.products)
                 .filter(p => p.name === name)
-                .reduce((sum, p) => sum + parseFloat(p.price.replace(/[^0-9.-]+/g, '')) * p.quantity, 0);
+                .reduce((sum, p) => sum + parseFloat(String(p.price).replace(/[^0-9.-]+/g, '')) * p.quantity, 0);
             return { product: name, revenue: productRevenue, sales };
         });
 
@@ -338,7 +316,11 @@ export default function SellerRevenueDashboard() {
             <p className="text-sm text-muted-foreground">Track revenue, payouts, and transaction health at a glance.</p>
           </div>
           <div className="flex items-center gap-2">
-            <Button variant="outline" className="gap-2" onClick={fetchSellerOrders} disabled={isLoading}><RefreshCcw className="h-4 w-4"/>Refresh</Button>
+            <Button variant="outline" className="gap-2" onClick={fetchSellerOrders} disabled={isLoading}>
+                {isLoading && <Loader2 className="h-4 w-4 animate-spin" />}
+                <RefreshCcw className="h-4 w-4"/>
+                Refresh
+            </Button>
             <Button className="gap-2" onClick={handleExportCSV} disabled={revenueInsights.transactions.length === 0}><Download className="h-4 w-4"/>Export CSV</Button>
           </div>
         </div>
