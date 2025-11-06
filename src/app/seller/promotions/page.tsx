@@ -1,5 +1,4 @@
 
-
 "use client"
 
 import {
@@ -40,7 +39,6 @@ import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { useToast } from "@/hooks/use-toast"
 import { cn } from "@/lib/utils"
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { useLocalStorage } from "@/hooks/use-local-storage"
 import { COUPONS_KEY, Coupon } from "@/app/admin/settings/page";
 import { format } from "date-fns"
@@ -77,6 +75,7 @@ import { Loader2 } from "lucide-react"
 import { categories } from "@/lib/categories"
 import { Badge } from "@/components/ui/badge"
 import { Textarea } from "@/components/ui/textarea"
+import { SellerHeader } from "@/components/seller/seller-header"
 
 const couponSchema = z.object({
   id: z.number().optional(),
@@ -262,24 +261,7 @@ export default function SellerPromotionsPage() {
     return (
         <Dialog open={isCouponFormOpen} onOpenChange={setIsCouponFormOpen}>
             <div className="flex min-h-screen w-full flex-col bg-muted/40">
-                <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6 py-4">
-                    <nav className="hidden flex-col gap-6 text-lg font-medium md:flex md:flex-row md:items-center md:gap-5 md:text-sm lg:gap-6">
-                        <Link href="/seller/dashboard" className="flex items-center gap-2 text-lg font-semibold md:text-base"><ShieldCheck className="h-6 w-6" /><span className="sr-only">Seller</span></Link>
-                        <Link href="/seller/dashboard" className="text-muted-foreground transition-colors hover:text-foreground">Dashboard</Link>
-                        <Link href="/seller/orders" className="text-muted-foreground transition-colors hover:text-foreground">Orders</Link>
-                        <Link href="/seller/products" className="text-muted-foreground transition-colors hover:text-foreground">Products</Link>
-                        <Link href="/seller/promotions" className="text-foreground transition-colors hover:text-foreground">Promotions</Link>
-                        <Link href="/seller/feed" className="text-muted-foreground transition-colors hover:text-foreground">Feed</Link>
-                    </nav>
-                     <div className="ml-auto flex items-center gap-2">
-                        <Button size="sm" className="h-8 gap-1" onClick={() => openCouponForm()}>
-                            <PlusCircle className="h-3.5 w-3.5" />
-                            <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                                Create Coupon
-                            </span>
-                        </Button>
-                    </div>
-                </header>
+                <SellerHeader />
                 <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8">
                      <Card>
                         <CardHeader>
@@ -314,6 +296,11 @@ export default function SellerPromotionsPage() {
                                 <p className="text-center text-muted-foreground py-8">You haven't created any coupons yet.</p>
                             )}
                         </CardContent>
+                          <CardFooter className="border-t pt-6">
+                            <Button size="sm" onClick={() => openCouponForm()}>
+                                <PlusCircle className="mr-2 h-4 w-4" /> Create Coupon
+                            </Button>
+                        </CardFooter>
                     </Card>
                 </main>
             </div>

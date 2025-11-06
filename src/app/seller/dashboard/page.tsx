@@ -74,6 +74,7 @@ import { LoadingSpinner } from "@/components/ui/loading-spinner"
 import { useRouter } from "next/navigation"
 import { useAuthActions } from "@/lib/auth";
 import { GoLiveDialog } from "@/components/go-live-dialog";
+import { SellerHeader } from "@/components/seller/seller-header";
 
 
 const salesData = [
@@ -181,176 +182,7 @@ export default function SellerDashboard() {
         </DialogContent>
       </Dialog>
     <div className="flex min-h-screen w-full flex-col">
-      <header className="sticky top-0 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6">
-        <nav className="hidden flex-col gap-6 text-lg font-medium md:flex md:flex-row md:items-center md:gap-5 md:text-sm lg:gap-6">
-          <Link
-            href="#"
-            className="flex items-center gap-2 text-lg font-semibold md:text-base"
-          >
-            <Package2 className="h-6 w-6" />
-            <span className="sr-only">StreamCart Seller</span>
-          </Link>
-          <Link
-            href="/seller/dashboard"
-            className="text-foreground transition-colors hover:text-foreground"
-          >
-            Dashboard
-          </Link>
-          <Link
-            href="/seller/revenue"
-            className="text-muted-foreground transition-colors hover:text-foreground"
-          >
-            Revenue
-          </Link>
-          <Link
-            href="/seller/orders"
-            className="text-muted-foreground transition-colors hover:text-foreground"
-          >
-            Orders
-          </Link>
-          <Link
-            href="/seller/products"
-            className="text-muted-foreground transition-colors hover:text-foreground"
-          >
-            Products
-          </Link>
-           <Link
-            href="/seller/promotions"
-            className="text-muted-foreground transition-colors hover:text-foreground"
-          >
-            Promotions
-          </Link>
-           <Link
-            href="/seller/messages"
-            className="text-muted-foreground transition-colors hover:text-foreground"
-          >
-            Messages
-          </Link>
-          <Link
-            href="/seller/feed"
-            className="text-muted-foreground transition-colors hover:text-foreground"
-          >
-            Feed
-          </Link>
-          <Link
-            href="#"
-            className="text-muted-foreground transition-colors hover:text-foreground"
-          >
-            Analytics
-          </Link>
-        </nav>
-        <Sheet>
-          <SheetTrigger asChild>
-            <Button
-              variant="outline"
-              size="icon"
-              className="shrink-0 md:hidden"
-            >
-              <Menu className="h-5 w-5" />
-              <span className="sr-only">Toggle navigation menu</span>
-            </Button>
-          </SheetTrigger>
-          <SheetContent side="left">
-            <nav className="grid gap-6 text-lg font-medium">
-              <Link
-                href="#"
-                className="flex items-center gap-2 text-lg font-semibold"
-              >
-                <Package2 className="h-6 w-6" />
-                <span className="sr-only">StreamCart</span>
-              </Link>
-              <Link href="/seller/dashboard" className="hover:text-foreground">
-                Dashboard
-              </Link>
-              <Link
-                href="/seller/revenue"
-                className="text-muted-foreground hover:text-foreground"
-              >
-                Revenue
-              </Link>
-              <Link
-                href="/seller/orders"
-                className="text-muted-foreground hover:text-foreground"
-              >
-                Orders
-              </Link>
-              <Link
-                href="/seller/products"
-                className="text-muted-foreground hover:text-foreground"
-              >
-                Products
-              </Link>
-              <Link
-                href="/seller/promotions"
-                className="text-muted-foreground hover:text-foreground"
-              >
-                Promotions
-              </Link>
-               <Link
-                href="/seller/messages"
-                className="text-muted-foreground hover:text-foreground"
-              >
-                Messages
-              </Link>
-               <Link
-                href="/seller/feed"
-                className="text-muted-foreground hover:text-foreground"
-              >
-                Feed
-              </Link>
-              <Link
-                href="#"
-                className="text-muted-foreground hover:text-foreground"
-              >
-                Analytics
-              </Link>
-            </nav>
-          </SheetContent>
-        </Sheet>
-        <div className="flex w-full items-center gap-4 md:ml-auto md:gap-2 lg:gap-4">
-            <form className="ml-auto flex-1 sm:flex-initial">
-              <div className="relative">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  type="search"
-                  placeholder="Search..."
-                  className="pl-8 sm:w-[300px] md:w-[200px] lg:w-[300px]"
-                />
-              </div>
-            </form>
-            <Dialog>
-                <DialogTrigger asChild>
-                    <Button>
-                        <RadioTower className="mr-2 h-4 w-4" /> Go Live
-                    </Button>
-                </DialogTrigger>
-                <GoLiveDialog />
-            </Dialog>
-
-          {userData?.verificationStatus === 'verified' && (
-            <Badge variant="success" className="items-center gap-1">
-              <ShieldCheck className="h-4 w-4" />
-              KYC Verified
-            </Badge>
-          )}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="secondary" size="icon" className="rounded-full">
-                <CircleUser className="h-5 w-5" />
-                <span className="sr-only">Toggle user menu</span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>My Account</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem>Settings</DropdownMenuItem>
-              <DropdownMenuItem>Support</DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => signOut(true)}>Logout</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      </header>
+      <SellerHeader />
       <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
         
         <div className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-4">
@@ -462,5 +294,3 @@ export default function SellerDashboard() {
     </>
   )
 }
-
-    
