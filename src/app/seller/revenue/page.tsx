@@ -19,7 +19,10 @@ import { useAuth } from "@/hooks/use-auth";
 import { useAuthActions } from "@/lib/auth";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { SellerHeader } from "@/components/seller/seller-header";
-import { productDetails } from "@/lib/product-data";
+import { productDetails, productToSellerMapping } from "@/lib/product-data";
+import { getFirestore, collection, query, where, getDocs, orderBy } from 'firebase/firestore';
+import { getFirestoreDb } from '@/lib/firebase';
+import { Order, getStatusFromTimeline } from '@/lib/order-data';
 
 
 // ---------- Mock Data (replace with Firestore/API later) ----------
@@ -42,67 +45,6 @@ const revenueSeriesMonthly = [
   { name: "Jun", revenue: 5900 },
 ];
 
-const mockSellerOrdersData = [
-    {
-        orderId: "#ORD5896",
-        productId: "prod_1",
-        customer: { name: "Ganesh Prajapati", email: "ganesh@example.com", phone: "+91 98765 43210", address: "123 Sunshine Apartments, Koregaon Park, Pune, Maharashtra - 411001" },
-        date: "July 27, 2024",
-        time: "10:31 PM",
-        status: "Fulfilled",
-        type: "Listed Product"
-    },
-    {
-        orderId: "#ORD5897",
-        productId: "prod_2",
-        customer: { name: "Jane Doe", email: "jane.d@example.com", phone: "+91 98765 43211", address: "456 Moonbeam Towers, Bandra West, Mumbai, Maharashtra - 400050" },
-        date: "July 26, 2024",
-        time: "08:16 AM",
-        status: "Fulfilled",
-        type: "Live Stream"
-    },
-    {
-        orderId: "#ORD5902",
-        productId: "prod_3",
-        customer: { name: "David Garcia", email: "david.g@example.com", phone: "+91 98765 43212", address: "789 Starlight Plaza, Indiranagar, Bengaluru, Karnataka - 560038" },
-        date: "July 22, 2024",
-        time: "07:00 PM",
-        status: "Processing",
-        type: "Live Stream"
-    },
-     {
-        orderId: "#ORD5905",
-        productId: "prod_4",
-        customer: { name: "Peter Jones", email: "peter.j@example.com", phone: "+91 98765 43213", address: "101 Galaxy Heights, Malviya Nagar, Jaipur, Rajasthan - 302017" },
-        date: "July 28, 2024",
-        time: "02:30 PM",
-        status: "Pending",
-        type: "Listed Product"
-    },
-    {
-        orderId: "#ORD5903",
-        productId: "prod_5",
-        customer: { name: "Jessica Rodriguez", email: "jessica.r@example.com", phone: "+91 98765 43214", address: "222 Ocean View, Besant Nagar, Chennai, Tamil Nadu - 600090" },
-        date: "July 21, 2024",
-        time: "11:00 AM",
-        status: "Cancelled",
-        type: "Listed Product"
-    }
-].map(order => {
-    const details = productDetails[order.productId as keyof typeof productDetails];
-    return {
-        ...order,
-        product: {
-            name: details?.name || 'Unknown Product',
-            imageUrl: details?.images[0] || 'https://placehold.co/80x80.png',
-            hint: details?.hint || 'product image'
-        },
-        price: details ? parseFloat(details.price.replace('₹', '').replace(',', '')) : 0,
-        isReturned: order.status === 'Cancelled' // simple logic for demo
-    }
-});
-
-
 const txns = [
   { id: "#ORD5896", type: "Order", gross: 12500, fees: -250, net: 12250, ts: new Date(2025, 9, 29) },
   { id: "#ORD5897", type: "Order", gross: 4999, fees: -100, net: 4899, ts: new Date(2025, 9, 30) },
@@ -124,18 +66,67 @@ export default function SellerRevenueDashboard() {
   const router = useRouter();
   const { user, userData } = useAuth();
   const { signOut } = useAuthActions();
+  const [sellerOrders, setSellerOrders] = useState<Order[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchSellerOrders = async () => {
+      if (!user || !userData) return;
+      setIsLoading(true);
+      const db = getFirestoreDb();
+      const allOrders: Order[] = [];
+
+      // Find all products belonging to this seller
+      const sellerProductKeys = Object.entries(productToSellerMapping)
+        .filter(([, sellerInfo]) => sellerInfo.uid === user.uid)
+        .map(([key]) => key);
+
+      if (sellerProductKeys.length === 0) {
+        setIsLoading(false);
+        return;
+      }
+      
+      const ordersRef = collection(db, "orders");
+      // Firestore 'in' queries are limited to 30 items. 
+      // For a real app, you might need to batch this or denormalize seller ID on the order.
+      const productChunks: string[][] = [];
+      for (let i = 0; i < sellerProductKeys.length; i += 10) {
+          productChunks.push(sellerProductKeys.slice(i, i + 10));
+      }
+
+      for (const chunk of productChunks) {
+          const q = query(ordersRef, where("products.key", "in", chunk));
+          const querySnapshot = await getDocs(q);
+          querySnapshot.forEach((doc) => {
+              allOrders.push({ ...doc.data(), orderId: doc.id } as Order);
+          });
+      }
+
+      setSellerOrders(allOrders);
+      setIsLoading(false);
+    };
+
+    fetchSellerOrders();
+  }, [user, userData]);
 
   const orderInsights = useMemo(() => {
-    const totalOrders = mockSellerOrdersData.length;
-    const delivered = mockSellerOrdersData.filter(o => o.status === 'Fulfilled' && !o.isReturned).length;
-    const returnsAndRefunds = mockSellerOrdersData.filter(o => o.isReturned || o.status === 'Cancelled').length;
-    const totalSalesValue = mockSellerOrdersData.reduce((sum, o) => sum + (o.price || 0), 0);
-    const avgOrderValue = totalOrders > 0 ? totalSalesValue / totalOrders : 0;
+    if (isLoading || sellerOrders.length === 0) {
+      return { totalOrders: 0, delivered: 0, returnsAndRefunds: 0, avgOrderValue: 0, topSellingProducts: [] };
+    }
+    const totalOrders = sellerOrders.length;
+    const deliveredOrders = sellerOrders.filter(o => getStatusFromTimeline(o.timeline) === 'Delivered');
+    const returnsAndRefunds = sellerOrders.filter(o => {
+        const status = getStatusFromTimeline(o.timeline);
+        return status === 'Cancelled by user' || status === 'Cancelled by admin' || status === 'Returned';
+    }).length;
+
+    const totalSalesValue = deliveredOrders.reduce((sum, o) => sum + o.total, 0);
+    const avgOrderValue = deliveredOrders.length > 0 ? totalSalesValue / deliveredOrders.length : 0;
     
-    const topProductsData = mockSellerOrdersData.reduce((acc, order) => {
-        if(order.status !== 'Cancelled' && !order.isReturned) {
-            acc[order.product.name] = (acc[order.product.name] || 0) + 1;
-        }
+    const topProductsData = deliveredOrders.reduce((acc, order) => {
+        order.products.forEach(p => {
+             acc[p.name] = (acc[p.name] || 0) + 1;
+        });
         return acc;
     }, {} as Record<string, number>);
 
@@ -143,20 +134,21 @@ export default function SellerRevenueDashboard() {
         .sort(([, a], [, b]) => b - a)
         .slice(0, 3)
         .map(([name, sales]) => {
-            const productRevenue = mockSellerOrdersData
-                .filter(o => o.product.name === name && o.status !== 'Cancelled' && !o.isReturned)
-                .reduce((sum, o) => sum + (o.price || 0), 0);
+            const productRevenue = deliveredOrders
+                .flatMap(o => o.products)
+                .filter(p => p.name === name)
+                .reduce((sum, p) => sum + parseFloat(p.price.replace(/[^0-9.-]+/g, '')) * p.quantity, 0);
             return { product: name, revenue: productRevenue, sales };
         });
 
     return {
       totalOrders,
-      delivered,
+      delivered: deliveredOrders.length,
       returnsAndRefunds,
       avgOrderValue,
       topSellingProducts,
     };
-  }, []);
+  }, [sellerOrders, isLoading]);
 
 
   const handleChartTypeChange = (v: string) => {
@@ -373,7 +365,7 @@ export default function SellerRevenueDashboard() {
                     <Badge variant="secondary">Returns</Badge>
                 </span>
                 <span className="tabular-nums">
-                    {mockSellerOrdersData.filter(o => o.isReturned).length} • {inr(mockSellerOrdersData.filter(o => o.isReturned).reduce((sum, o) => sum + o.price, 0))}
+                    {sellerOrders.filter(o => getStatusFromTimeline(o.timeline) === 'Returned').length} • {inr(sellerOrders.filter(o => getStatusFromTimeline(o.timeline) === 'Returned').reduce((sum, o) => sum + o.total, 0))}
                 </span>
               </div>
                <div className="flex items-center justify-between text-sm">
@@ -381,7 +373,7 @@ export default function SellerRevenueDashboard() {
                     <Badge variant="outline">Refunds (Cancelled)</Badge>
                 </span>
                 <span className="tabular-nums">
-                    {mockSellerOrdersData.filter(o => o.status === 'Cancelled').length} • {inr(mockSellerOrdersData.filter(o => o.status === 'Cancelled').reduce((sum, o) => sum + o.price, 0))}
+                    {sellerOrders.filter(o => getStatusFromTimeline(o.timeline).toLowerCase().includes('cancelled')).length} • {inr(sellerOrders.filter(o => getStatusFromTimeline(o.timeline).toLowerCase().includes('cancelled')).reduce((sum, o) => sum + o.total, 0))}
                 </span>
               </div>
             </CardContent>
