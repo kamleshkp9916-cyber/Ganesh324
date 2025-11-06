@@ -326,8 +326,7 @@ export default function SellerRevenueDashboard() {
             </CardContent>
           </Card>
 
-          <Link href="/setting">
-            <Card className="shadow-sm h-full hover:bg-muted/50 transition-colors">
+          <Card className="shadow-sm h-full">
               <CardHeader className="pb-2 flex-row items-center justify-between">
                 <CardTitle className="text-sm font-medium">Payouts</CardTitle>
                 <Wallet className="h-4 w-4 text-muted-foreground"/>
@@ -346,7 +345,6 @@ export default function SellerRevenueDashboard() {
                 <p className="text-xs text-muted-foreground w-full text-right">Next payout: {format(revenueKPI.nextPayoutDate, "dd MMM yyyy")}</p>
               </CardFooter>
             </Card>
-          </Link>
         </div>
 
         {/* Graph + Controls */}
