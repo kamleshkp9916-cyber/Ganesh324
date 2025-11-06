@@ -63,8 +63,8 @@ service cloud.firestore {
       // Users can create orders for themselves.
       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
 
-      // Users can read their own orders.
-      allow get: if isSignedIn() && resource.data.userId == request.auth.uid;
+      // A user can read an order if they are the customer OR the seller.
+      allow get: if isSignedIn() && (resource.data.userId == request.auth.uid || resource.data.sellerId == request.auth.uid);
       
       // Customers can query their own orders.
       // Sellers can query orders they are the seller for.
