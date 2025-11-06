@@ -350,6 +350,20 @@ export default function SellerRevenueDashboard() {
                       <TableCell className="text-right">{p.sales}</TableCell>
                     </TableRow>
                   ))}
+                   {orderInsights.topSellingProducts.length === 0 && !isLoading && (
+                    <TableRow>
+                      <TableCell colSpan={3} className="text-center h-24 text-muted-foreground">
+                        No delivered sales data yet.
+                      </TableCell>
+                    </TableRow>
+                  )}
+                  {isLoading && (
+                     <TableRow>
+                      <TableCell colSpan={3} className="text-center h-24 text-muted-foreground">
+                        <Loader2 className="mx-auto h-6 w-6 animate-spin" />
+                      </TableCell>
+                    </TableRow>
+                  )}
                 </TableBody>
               </Table>
             </CardContent>
@@ -477,3 +491,4 @@ export default function SellerRevenueDashboard() {
     </div>
   );
 }
+```)
