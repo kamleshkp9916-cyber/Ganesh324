@@ -7,7 +7,7 @@ import * as z from "zod";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { DialogFooter, DialogClose, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { DialogFooter, DialogClose } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { RadioGroup, RadioGroupItem } from "./ui/radio-group";
 import { Loader2 } from "lucide-react";
@@ -88,18 +88,22 @@ const createWithdrawFormSchema = (cashAvailable: number) => z.object({
 
 
 interface WithdrawFormProps {
-    cashAvailable: number;
-    bankAccounts: { id: number; bankName: string; accountNumber: string; }[];
     onWithdraw: (amount: number, bankAccountId: string) => void;
     onAddAccount: (account: z.infer<typeof addBankFormSchema>) => void;
 }
 
-export function WithdrawForm({ cashAvailable, bankAccounts, onWithdraw, onAddAccount }: WithdrawFormProps) {
+export function WithdrawForm({ onWithdraw, onAddAccount }: WithdrawFormProps) {
     const { toast } = useToast();
     const [isLoading, setIsLoading] = useState(false);
     const [activeTab, setActiveTab] = useState("withdraw");
     
-    const withdrawFormSchema = createWithdrawFormSchema(cashAvailable);
+    // This is mock data. In a real app, you'd fetch this from your backend.
+    const mockCashAvailable = 52340.50;
+    const mockBankAccounts = [
+      { id: 1, bankName: "HDFC Bank", accountNumber: "XXXX-XXXX-XX12-3456" }
+    ];
+    
+    const withdrawFormSchema = createWithdrawFormSchema(mockCashAvailable);
 
     const form = useForm<z.infer<typeof withdrawFormSchema>>({
         resolver: zodResolver(withdrawFormSchema),
@@ -126,7 +130,7 @@ export function WithdrawForm({ cashAvailable, bankAccounts, onWithdraw, onAddAcc
                     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 pt-4">
                         <FormField control={form.control} name="amount" render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Amount (Available: ₹{cashAvailable.toFixed(2)})</FormLabel>
+                                <FormLabel>Amount (Available: ₹{mockCashAvailable.toFixed(2)})</FormLabel>
                                 <FormControl>
                                     <div className="relative">
                                         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">₹</span>
@@ -139,10 +143,10 @@ export function WithdrawForm({ cashAvailable, bankAccounts, onWithdraw, onAddAcc
                         <FormField control={form.control} name="bankAccountId" render={({ field }) => (
                             <FormItem className="space-y-3">
                                 <FormLabel>Select Bank Account</FormLabel>
-                                {bankAccounts.length > 0 ? (
+                                {mockBankAccounts.length > 0 ? (
                                     <FormControl>
                                         <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex flex-col space-y-1">
-                                        {bankAccounts.map(account => (
+                                        {mockBankAccounts.map(account => (
                                             <FormItem key={account.id} className="flex items-center space-x-3 space-y-0 p-3 rounded-md border has-[:checked]:bg-primary/10">
                                                 <FormControl>
                                                     <RadioGroupItem value={String(account.id)} />
@@ -170,7 +174,7 @@ export function WithdrawForm({ cashAvailable, bankAccounts, onWithdraw, onAddAcc
                             <DialogClose asChild>
                                 <Button type="button" variant="secondary" id="closeWithdrawDialog">Cancel</Button>
                             </DialogClose>
-                            <Button type="submit" disabled={isLoading || bankAccounts.length === 0}>
+                            <Button type="submit" disabled={isLoading || mockBankAccounts.length === 0}>
                                 {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                                 Confirm Withdrawal
                             </Button>

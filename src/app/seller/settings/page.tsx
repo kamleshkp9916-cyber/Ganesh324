@@ -105,40 +105,13 @@ export const HUB_FEATURED_PRODUCTS_KEY = 'streamcart_hub_featured_products';
 export const SHIPPING_SETTINGS_KEY = 'streamcart_shipping_settings';
 export const PAYOUT_REQUESTS_KEY = 'streamcart_payout_requests';
 
-const announcementSchema = z.object({
-    title: z.string().min(5, "Title must be at least 5 characters."),
-    message: z.string().min(10, "Message must be at least 10 characters.")
-})
-
-const warningSchema = z.object({
-    userId: z.string().min(1, "User ID or Email is required."),
-    message: z.string().min(10, "Warning message must be at least 10 characters.")
-})
-
-const couponSchema = z.object({
-  id: z.number().optional(),
-  code: z.string().min(3, "Code must be at least 3 characters.").regex(/^[A-Z0-9]+$/, "Code can only contain uppercase letters and numbers."),
-  description: z.string().min(5, "Description is required."),
-  discountType: z.enum(['percentage', 'fixed']),
-  discountValue: z.number().positive("Discount must be a positive number."),
-  expiresAt: z.date().optional(),
-  minOrderValue: z.number().optional(),
-  applicableProducts: z.array(z.string()).optional(),
-  maxDiscount: z.number().optional(),
-  sellerId: z.string().optional(),
-  sellerName: z.string().optional(),
-  status: z.enum(['pending', 'active', 'rejected', 'archived']).default('pending'),
-  terms: z.string().optional(),
-});
-
-export type Coupon = z.infer<typeof couponSchema>;
-
 export default function SellerSettingsPage() {
   const { user, userData, loading } = useAuth();
   const router = useRouter();
   const { toast } = useToast()
   
   const [isMounted, setIsMounted] = useState(false);
+  const [isWithdrawOpen, setIsWithdrawOpen] = useState(false);
   const [payoutRequests, setPayoutRequests] = useLocalStorage<any[]>(PAYOUT_REQUESTS_KEY, []);
 
   useEffect(() => {
@@ -149,11 +122,11 @@ export default function SellerSettingsPage() {
     if (!user || !userData) return;
     
     // KYC Check
-    if (!userData.bank?.ifsc || !userData.bank?.acct || !userData.bank?.name) {
+    if (userData.kycStatus !== 'verified') {
         toast({
             variant: "destructive",
-            title: "KYC Incomplete",
-            description: "Please complete your bank details in your profile before requesting a payout.",
+            title: "KYC Not Verified",
+            description: "Please complete and verify your KYC details before requesting a payout.",
         });
         router.push('/seller/settings/kyc'); 
         return;
@@ -174,6 +147,7 @@ export default function SellerSettingsPage() {
        title: "Withdrawal Request Submitted",
        description: `Your request for ₹${amount} has been sent for admin approval.`,
    });
+    setIsWithdrawOpen(false);
  };
   
   if (!isMounted || loading || !userData) {
@@ -210,6 +184,44 @@ export default function SellerSettingsPage() {
                         </CardFooter>
                     </Card>
                  )}
+                 <Card>
+                      <CardHeader>
+                          <CardTitle>Payout History</CardTitle>
+                          <CardDescription>Review your past and pending withdrawal requests.</CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                          <Table>
+                              <TableHeader>
+                                  <TableRow>
+                                      <TableHead>Date</TableHead>
+                                      <TableHead>Amount</TableHead>
+                                      <TableHead>Status</TableHead>
+                                  </TableRow>
+                              </TableHeader>
+                              <TableBody>
+                                  {payoutRequests.filter(p => p.sellerId === user?.uid).map(request => (
+                                      <TableRow key={request.id}>
+                                          <TableCell>{format(new Date(request.requestedAt), "dd MMM, yyyy")}</TableCell>
+                                          <TableCell>₹{request.amount.toFixed(2)}</TableCell>
+                                          <TableCell>
+                                              <Badge variant={
+                                                  request.status === 'paid' ? 'success' :
+                                                  request.status === 'pending' ? 'warning' : 'destructive'
+                                              }>
+                                                  {request.status}
+                                              </Badge>
+                                          </TableCell>
+                                      </TableRow>
+                                  ))}
+                                   {payoutRequests.filter(p => p.sellerId === user?.uid).length === 0 && (
+                                    <TableRow>
+                                        <TableCell colSpan={3} className="h-24 text-center">No payout requests yet.</TableCell>
+                                    </TableRow>
+                                  )}
+                              </TableBody>
+                          </Table>
+                      </CardContent>
+                  </Card>
             </main>
         </div>
   )
