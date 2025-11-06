@@ -19,7 +19,7 @@ import { useAuth } from '@/hooks/use-auth';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { SHIPPING_SETTINGS_KEY, ShippingSettings, Coupon, COUPONS_KEY } from '@/app/admin/settings/page';
 import { useLocalStorage } from '@/hooks/use-local-storage';
-import { productDetails } from '@/lib/product-data';
+import { productDetails, productToSellerMapping } from '@/lib/product-data';
 import Link from 'next/link';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from "@/components/ui/alert-dialog";
@@ -346,7 +346,7 @@ export default function PaymentPage() {
              const newOrder: Order = {
                 orderId: transactionId,
                 userId: user!.uid,
-                products: cartItems.map(item => ({...item, productId: item.key})),
+                products: cartItems.map(item => ({...item, productId: item.key, sellerId: productToSellerMapping[item.key as keyof typeof productToSellerMapping]?.uid || null})),
                 address: address,
                 total: total,
                 orderDate: new Date().toISOString(),
