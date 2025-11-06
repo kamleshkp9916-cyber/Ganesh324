@@ -331,18 +331,15 @@ export default function SellerOrdersPage() {
             if (newStatus === 'Order Confirmed') {
                 const pendingIndex = updatedOrder.timeline.findIndex(item => item.status === 'Pending');
                 if (pendingIndex !== -1) {
-                    updatedOrder.timeline[pendingIndex].completed = true;
-                    updatedOrder.timeline[pendingIndex].date = format(new Date(), 'MMM dd, yyyy');
-                    updatedOrder.timeline[pendingIndex].time = format(new Date(), 'p');
+                    updatedOrder.timeline[pendingIndex] = {
+                      ...updatedOrder.timeline[pendingIndex],
+                      status: 'Order Confirmed',
+                      completed: true,
+                      date: format(new Date(), 'MMM dd, yyyy'),
+                      time: format(new Date(), 'p')
+                    };
                 }
-                 const confirmedIndex = updatedOrder.timeline.findIndex(item => item.status === 'Order Confirmed');
-                 if (confirmedIndex !== -1) {
-                    updatedOrder.timeline[confirmedIndex].completed = true;
-                    updatedOrder.timeline[confirmedIndex].date = format(new Date(), 'MMM dd, yyyy');
-                    updatedOrder.timeline[confirmedIndex].time = format(new Date(), 'p');
-                 }
-
-                // Call the delivery partner notification function
+                 // Call the delivery partner notification function
                 try {
                     const functionUrl = `https://us-central1-gcp-project-id.cloudfunctions.net/notifyDeliveryPartner`;
                     await fetch(functionUrl, {
