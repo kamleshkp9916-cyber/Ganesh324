@@ -20,14 +20,13 @@ import { useAuthActions } from "@/lib/auth";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { SellerHeader } from "@/components/seller/seller-header";
 import { productDetails, productToSellerMapping } from "@/lib/product-data";
-import { getFirestore, collection, query, where, getDocs, orderBy } from 'firebase/firestore';
+import { getFirestore, collection, query, where, getDocs, orderBy, onSnapshot } from 'firebase/firestore';
 import { getFirestoreDb } from '@/lib/firebase';
 import { Order, getStatusFromTimeline } from '@/lib/order-data';
 
 
 // ---------- Mock Data (to be fully replaced) ----------
-const revenueKPI = {
-  withdrawn: 30000.0,
+const mockRevenueKPI = {
   nextPayoutDate: new Date(2025, 10, 12), // 12 Nov 2025 (Month is 0-indexed)
 };
 
@@ -70,6 +69,27 @@ export default function SellerRevenueDashboard() {
   const { signOut } = useAuthActions();
   const [sellerOrders, setSellerOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [payouts, setPayouts] = useState<any[]>([]);
+
+
+  useEffect(() => {
+    if (!user) return;
+    const db = getFirestoreDb();
+    const q = query(
+      collection(db, "payouts"),
+      where("sellerId", "==", user.uid),
+      where("status", "==", "paid")
+    );
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+        const paidPayouts = snapshot.docs.map(doc => doc.data());
+        setPayouts(paidPayouts);
+    });
+    return () => unsubscribe();
+  }, [user]);
+
+  const totalWithdrawn = useMemo(() => {
+    return payouts.reduce((sum, p) => sum + p.amount, 0);
+  }, [payouts]);
 
   useEffect(() => {
     const fetchSellerOrders = async () => {
@@ -179,9 +199,9 @@ export default function SellerRevenueDashboard() {
       otherCharges,
       growthPct: 20.1, // Mock growth
       transactions,
-      withdrawablePayout,
+      withdrawablePayout: withdrawablePayout - totalWithdrawn, // Subtract already withdrawn amount
     };
-  }, [sellerOrders, isLoading]);
+  }, [sellerOrders, isLoading, totalWithdrawn]);
 
   const monthlyRevenueData = useMemo(() => {
     const months: Record<string, number> = {};
@@ -339,11 +359,11 @@ export default function SellerRevenueDashboard() {
                 </div>
                 <div className="flex items-center justify-between text-sm">
                   <span>Withdrawn</span>
-                  <span>{inr(revenueKPI.withdrawn)}</span>
+                  <span>{inr(totalWithdrawn)}</span>
                 </div>
               </CardContent>
               <CardFooter className="pt-0">
-                <p className="text-xs text-muted-foreground w-full text-right">Next payout: {format(revenueKPI.nextPayoutDate, "dd MMM yyyy")}</p>
+                <p className="text-xs text-muted-foreground w-full text-right">Next payout: {format(mockRevenueKPI.nextPayoutDate, "dd MMM yyyy")}</p>
               </CardFooter>
             </Card>
           </Link>
