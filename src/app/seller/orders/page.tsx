@@ -98,6 +98,47 @@ type SellerOrder = Order & {
     type: string,
 };
 
+const mockSellerOrders: SellerOrder[] = [
+    {
+        orderId: "#MOCK5905",
+        userId: "mockUser2",
+        products: [{ name: "Designer Sunglasses", key: 'prod_4', imageUrl: 'https://placehold.co/80x80.png?text=Sunnies', hint: 'sunglasses' }],
+        address: { name: "Peter Jones", village: "101 Galaxy Heights", city: "Jaipur", state: "RJ", pincode: "302017", phone: "9876543213" },
+        total: 7800.00,
+        price: 7800.00,
+        orderDate: "2024-07-28T14:30:00.000Z",
+        isReturnable: true,
+        timeline: [
+            { status: "Pending", date: "Jul 28, 2024", time: "02:30 PM", completed: true },
+        ],
+        product: { name: "Designer Sunglasses", imageUrl: 'https://placehold.co/80x80.png?text=Sunnies', hint: 'sunglasses' },
+        customer: { name: "Peter Jones", address: '101 Galaxy Heights, Jaipur', email: 'peter.j@example.com', phone: '9876543213' },
+        date: "July 28, 2024",
+        time: "02:30 PM",
+        status: "Pending",
+        type: "Live Stream",
+    },
+    {
+        orderId: "#MOCK5896",
+        userId: "mockUser1",
+        products: [{ name: "Vintage Camera", key: "prod_1", imageUrl: 'https://placehold.co/80x80.png?text=Cam', hint: 'vintage camera' }],
+        address: { name: "Ganesh Prajapati", village: "123 Sunshine Apts", city: "Pune", state: "MH", pincode: "411001", phone: "9876543210" },
+        total: 12500.00,
+        price: 12500.00,
+        orderDate: "2024-07-27T22:31:00.000Z",
+        isReturnable: true,
+        timeline: [
+            { status: "Delivered", date: "Jul 29, 2024", time: "01:00 PM", completed: true },
+        ],
+        product: { name: "Vintage Camera", imageUrl: 'https://placehold.co/80x80.png?text=Cam', hint: 'vintage camera' },
+        customer: { name: "Ganesh Prajapati", address: '123 Sunshine Apts, Pune', email: 'ganesh@example.com', phone: '9876543210' },
+        date: "July 27, 2024",
+        time: "10:31 PM",
+        status: "Fulfilled",
+        type: "Listed Product",
+    },
+];
+
 function OrderDetailCard({ order }: { order: SellerOrder }) {
     const { toast } = useToast();
     const deliveryCharge = 50.00;
@@ -257,11 +298,17 @@ export default function SellerOrdersPage() {
                         type: data.products[0]?.isFromStream ? 'Live Stream' : 'Listed Product'
                     } as SellerOrder
                 });
-                setOrders(fetchedOrders);
+                 if (fetchedOrders.length === 0) {
+                    setOrders(mockSellerOrders);
+                } else {
+                    setOrders(fetchedOrders);
+                }
             });
             return () => unsubscribe();
+        } else if (!loading) {
+            setOrders(mockSellerOrders);
         }
-    }, [user]);
+    }, [user, loading]);
 
     const filteredOrders = useMemo(() => {
         let tempOrders = orders;
@@ -282,24 +329,36 @@ export default function SellerOrdersPage() {
         return tempOrders;
     }, [orders, statusFilter, debouncedSearchTerm]);
 
-    const handleUpdateStatus = async (orderId: string, newStatus: 'Order Confirmed' | 'Cancelled by seller') => {
-        const orderToUpdate = orders.find(o => o.orderId === orderId);
-        if (!orderToUpdate || !user) return;
-    
+     const handleUpdateStatus = async (orderId: string, newStatus: 'Order Confirmed' | 'Cancelled by seller') => {
+        if (!user || orderId.startsWith('#MOCK')) {
+            toast({ title: "Demo Action", description: "This is a mock order. Status changes are not saved." });
+            // Optimistically update UI for demo
+            setOrders(prev => prev.map(o => {
+                if (o.orderId === orderId) {
+                    const newTimeline = [...o.timeline];
+                    newTimeline.push({ status: newStatus, date: format(new Date(), 'MMM dd, yyyy'), time: format(new Date(), 'p'), completed: true });
+                    return {...o, timeline: newTimeline, status: getStatusFromTimeline(newTimeline)};
+                }
+                return o;
+            }));
+            return;
+        }
+        
         const db = getFirestoreDb();
         const mainOrderRef = doc(db, 'orders', orderId);
         const sellerOrderRef = doc(db, 'users', user.uid, 'orders', orderId);
 
         try {
-            const mainOrderData = orderToUpdate; // We have the data already in state
-            const updatedTimeline = [...mainOrderData.timeline];
+            const orderToUpdate = orders.find(o => o.orderId === orderId);
+            if (!orderToUpdate) return;
+            const updatedTimeline = [...orderToUpdate.timeline];
 
             if (newStatus === 'Order Confirmed') {
                 const pendingIndex = updatedTimeline.findIndex(item => item.status === 'Pending');
                 if (pendingIndex !== -1) {
                     updatedTimeline[pendingIndex] = { ...updatedTimeline[pendingIndex], status: 'Order Confirmed', completed: true, date: format(new Date(), 'MMM dd, yyyy'), time: format(new Date(), 'p') };
                     if(updatedTimeline[pendingIndex+1]){
-                       updatedTimeline[pendingIndex+1] = {...updatedTimeline[pendingIndex+1], date: format(new Date(), 'MMM dd, yyyy'), time: format(new Date(), 'p'), completed: true }; // Pack immediately
+                       updatedTimeline[pendingIndex+1] = {...updatedTimeline[pendingIndex+1], status: 'Packed', date: format(new Date(), 'MMM dd, yyyy'), time: format(new Date(), 'p'), completed: true };
                     }
                 }
             } else if (newStatus === 'Cancelled by seller') {
@@ -319,7 +378,6 @@ export default function SellerOrdersPage() {
             await updateDoc(mainOrderRef, { timeline: updatedTimeline });
             await updateDoc(sellerOrderRef, { timeline: updatedTimeline });
 
-             // Notify delivery partner
             if (newStatus === 'Order Confirmed') {
                 const functionUrl = `https://us-central1-gcp-project-id.cloudfunctions.net/notifyDeliveryPartner`;
                  await fetch(functionUrl, {
@@ -403,7 +461,6 @@ export default function SellerOrdersPage() {
                                     <DropdownMenuRadioGroup value={statusFilter} onValueChange={setStatusFilter}>
                                         <DropdownMenuRadioItem value="All">All</DropdownMenuRadioItem>
                                         <DropdownMenuRadioItem value="Pending">Pending</DropdownMenuRadioItem>
-                                        <DropdownMenuRadioItem value="Processing">Processing</DropdownMenuRadioItem>
                                         <DropdownMenuRadioItem value="Fulfilled">Fulfilled</DropdownMenuRadioItem>
                                         <DropdownMenuRadioItem value="Cancelled">Cancelled</DropdownMenuRadioItem>
                                     </DropdownMenuRadioGroup>
@@ -514,3 +571,5 @@ export default function SellerOrdersPage() {
     </Dialog>
   )
 }
+
+    
