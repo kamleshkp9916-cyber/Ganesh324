@@ -183,7 +183,7 @@ export default function GoLiveStudio({ defaultTitle = "New Live Show", onStart }
   }, [state.videoDeviceId, state.audioDeviceId, stopPreview]);
   
 
-  const refreshDevices = useCallback(async () => {
+  const refreshDevices = useCallback(async()=>{
     try {
         // This is the key change: request permissions first!
         const tempStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
@@ -601,5 +601,3 @@ function OverlayStrip({ products, items, activeIndex, position }:{ products: Pro
     </div>
   );
 }
-
-```
