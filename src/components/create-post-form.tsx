@@ -23,6 +23,7 @@ import {
 import { useDebounce } from "@/hooks/use-debounce";
 import Image from "next/image";
 import { Textarea } from "./ui/textarea";
+import { Badge } from "./ui/badge";
 
 
 export interface PollOption {
@@ -285,3 +286,4 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
     );
 });
 CreatePostForm.displayName = 'CreatePostForm';
+
