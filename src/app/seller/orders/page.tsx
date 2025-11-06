@@ -273,8 +273,12 @@ function OrderDetailCard({ order }: { order: SellerOrder }) {
                         </div>
                      </div>
                 </div>
-
             </div>
+            <DialogFooter className="p-6 pt-0">
+                <DialogClose asChild>
+                    <Button variant="outline">Close</Button>
+                </DialogClose>
+            </DialogFooter>
         </DialogContent>
     );
 }
@@ -313,7 +317,7 @@ export default function SellerOrdersPage() {
         return tempOrders;
     }, [orders, statusFilter, debouncedSearchTerm]);
 
-    const handleUpdateStatus = (orderId: string, newStatus: 'Order Confirmed' | 'Cancelled by seller') => {
+    const handleUpdateStatus = async (orderId: string, newStatus: 'Order Confirmed' | 'Cancelled by seller') => {
         const orderToUpdate = orders.find(o => o.orderId === orderId);
         if (!orderToUpdate) return;
     
@@ -337,6 +341,20 @@ export default function SellerOrdersPage() {
                     updatedOrder.timeline[confirmedIndex].date = format(new Date(), 'MMM dd, yyyy');
                     updatedOrder.timeline[confirmedIndex].time = format(new Date(), 'p');
                  }
+
+                // Call the delivery partner notification function
+                try {
+                    const functionUrl = `https://us-central1-gcp-project-id.cloudfunctions.net/notifyDeliveryPartner`;
+                    await fetch(functionUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ orderId: orderId, status: 'confirmed' }),
+                    });
+                    toast({ title: "Delivery Partner Notified", description: "The delivery process has been initiated." });
+                } catch (error) {
+                    console.error("Error notifying delivery partner:", error);
+                    toast({ variant: "destructive", title: "API Error", description: "Could not notify delivery partner." });
+                }
 
             } else if (newStatus === 'Cancelled by seller') {
                 updatedOrder.timeline.push({
