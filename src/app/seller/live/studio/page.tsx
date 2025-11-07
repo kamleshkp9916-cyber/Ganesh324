@@ -83,9 +83,9 @@ export default function GoLiveStudio({ defaultTitle = "New Live Show", onStart }
     overlayItems: [],
   });
 
-  const updateState = (updates: Partial<GoLiveState>) => {
+  const updateState = useCallback((updates: Partial<GoLiveState>) => {
     setState(prev => ({ ...prev, ...updates }));
-  };
+  }, [setState]);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -169,18 +169,12 @@ export default function GoLiveStudio({ defaultTitle = "New Live Show", onStart }
 
   const startPreview = useCallback(async () => {
     stopPreview();
-  
-    const audioConstraints: MediaTrackConstraints = {};
-    if (state.audioDeviceId) {
-      audioConstraints.deviceId = { ideal: state.audioDeviceId };
-    }
-  
+
+    const audioConstraints: MediaTrackConstraints = state.audioDeviceId ? { deviceId: { ideal: state.audioDeviceId } } : {};
     const videoConstraints: MediaTrackConstraints = {
-      facingMode: "user"
+      facingMode: 'user',
+      ...(state.videoDeviceId && { deviceId: { ideal: state.videoDeviceId } })
     };
-    if (state.videoDeviceId) {
-      videoConstraints.deviceId = { ideal: state.videoDeviceId };
-    }
   
     try {
       setPermissionsError("");
@@ -196,10 +190,10 @@ export default function GoLiveStudio({ defaultTitle = "New Live Show", onStart }
       setupAudioLevel(newStream);
     } catch (e: any) {
       console.error("Error starting media preview:", e);
-       if (e.name === 'NotFoundError' || e.name === 'DevicesNotFoundError') {
-        setPermissionsError("Requested device not found. It might be unplugged or unavailable.");
+       if (e.name === 'NotFoundError' || e.name === 'DevicesNotFoundError' || e.name === 'OverconstrainedError') {
+        setPermissionsError("Requested device not found. It might be unplugged or unavailable. Please try refreshing or selecting another device.");
       } else if (e.name === 'NotAllowedError' || e.name === 'PermissionDeniedError') {
-        setPermissionsError("Camera/Mic permissions were denied. Please enable them in your browser settings.");
+        setPermissionsError("Camera/Mic permissions were denied. Please enable them in your browser settings and refresh.");
       } else {
         setPermissionsError("Could not start camera/mic. It might be in use by another application.");
       }
@@ -210,22 +204,31 @@ export default function GoLiveStudio({ defaultTitle = "New Live Show", onStart }
   const refreshDevices = useCallback(async()=>{
     try {
         setPermissionsError("");
+        // First, get permissions
         const tempStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
         
+        // Then, enumerate devices
         const devs = await navigator.mediaDevices.enumerateDevices();
         setDevices(devs);
 
         const videoDevice = devs.find(d => d.kind === 'videoinput');
         const audioDevice = devs.find(d => d.kind === 'audioinput');
 
+        let updates: Partial<GoLiveState> = {};
         if (!state.videoDeviceId && videoDevice) {
-            updateState({ videoDeviceId: videoDevice.deviceId });
+            updates.videoDeviceId = videoDevice.deviceId;
         }
         if (!state.audioDeviceId && audioDevice) {
-            updateState({ audioDeviceId: audioDevice.deviceId });
+            updates.audioDeviceId = audioDevice.deviceId;
+        }
+        if (Object.keys(updates).length > 0) {
+            updateState(updates);
         }
 
+        // Stop the temporary stream used for getting permissions
         tempStream.getTracks().forEach(track => track.stop());
+        
+        // Now start the preview with the selected (or default) devices
         startPreview();
     } catch (e: any) {
         console.error("Permission error:", e);
@@ -263,9 +266,6 @@ export default function GoLiveStudio({ defaultTitle = "New Live Show", onStart }
       console.warn("Audio meter not available", err);
     }
   }
-  function teardownAudioLevel(){
-    try{ analyserRef.current?.disconnect(); levelNodeRef.current?.disconnect(); }catch{}
-  }
 
   // Track enable/disable
   const setTrackEnabled = (kind: 'video'|'audio', on:boolean)=>{
@@ -282,7 +282,9 @@ export default function GoLiveStudio({ defaultTitle = "New Live Show", onStart }
     } else {
         stopPreview();
     }
+
     return () => {
+        // This cleanup will run when the component unmounts OR when the step changes away from 3
         if (state.step === 3) {
             stopPreview();
         }
@@ -626,4 +628,3 @@ function OverlayStrip({ products, items, activeIndex, position }:{ products: Pro
     </div>
   );
 }
-```
