@@ -114,6 +114,7 @@ export default function GoLiveStudio({ defaultTitle = "New Live Show", onStart }
 
   // Products
   const [query, setQuery] = useState("");
+  const [featuredId, setFeaturedId] = useState<string | undefined>(state.featuredId);
 
   // Media
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -150,6 +151,14 @@ export default function GoLiveStudio({ defaultTitle = "New Live Show", onStart }
   };
   const addCustomText = () => updateState({ overlayItems: [...state.overlayItems, { type: "text", text: "New drop! Flat 10% today" }] });
   const removeOverlayItem = (idx:number) => updateState({ overlayItems: state.overlayItems.filter((_,i)=>i!==idx) });
+  
+  const updateOverlayItemText = (index: number, newText: string) => {
+      const newItems = [...state.overlayItems];
+      if (newItems[index] && newItems[index].type === 'text') {
+          newItems[index].text = newText;
+          updateState({ overlayItems: newItems });
+      }
+  };
 
   const stopPreview = useCallback(() => {
     if (stream) {
@@ -158,22 +167,19 @@ export default function GoLiveStudio({ defaultTitle = "New Live Show", onStart }
     }
   }, [stream]);
 
-  // Start/replace local preview stream
   const startPreview = useCallback(async () => {
     stopPreview();
   
     const audioConstraints: MediaTrackConstraints = {};
     if (state.audioDeviceId) {
-      // Use the stored device ID as a preference, not a strict requirement.
-      audioConstraints.deviceId = state.audioDeviceId;
+      audioConstraints.deviceId = { ideal: state.audioDeviceId };
     }
   
     const videoConstraints: MediaTrackConstraints = {
-      // Prioritize front camera on mobile, but allow browser to choose if needed.
       facingMode: "user"
     };
     if (state.videoDeviceId) {
-      videoConstraints.deviceId = state.videoDeviceId;
+      videoConstraints.deviceId = { ideal: state.videoDeviceId };
     }
   
     try {
@@ -200,12 +206,10 @@ export default function GoLiveStudio({ defaultTitle = "New Live Show", onStart }
       stopPreview();
     }
   }, [state.videoDeviceId, state.audioDeviceId, stopPreview]);
-  
 
   const refreshDevices = useCallback(async()=>{
     try {
         setPermissionsError("");
-        // Request permissions first to ensure devices are listed
         const tempStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
         
         const devs = await navigator.mediaDevices.enumerateDevices();
@@ -214,7 +218,6 @@ export default function GoLiveStudio({ defaultTitle = "New Live Show", onStart }
         const videoDevice = devs.find(d => d.kind === 'videoinput');
         const audioDevice = devs.find(d => d.kind === 'audioinput');
 
-        // Only update state if it's not already set, to respect user choice
         if (!state.videoDeviceId && videoDevice) {
             updateState({ videoDeviceId: videoDevice.deviceId });
         }
@@ -222,8 +225,8 @@ export default function GoLiveStudio({ defaultTitle = "New Live Show", onStart }
             updateState({ audioDeviceId: audioDevice.deviceId });
         }
 
-        // Immediately stop the temporary stream
         tempStream.getTracks().forEach(track => track.stop());
+        startPreview();
     } catch (e: any) {
         console.error("Permission error:", e);
         if (e.name === 'NotAllowedError' || e.name === 'PermissionDeniedError') {
@@ -232,7 +235,7 @@ export default function GoLiveStudio({ defaultTitle = "New Live Show", onStart }
              setPermissionsError("Could not access camera or microphone. They may be in use by another app.");
         }
     }
-  }, [state.videoDeviceId, state.audioDeviceId, updateState]);
+  }, [state.videoDeviceId, state.audioDeviceId, updateState, startPreview]);
 
 
   // Audio level meter
@@ -286,14 +289,6 @@ export default function GoLiveStudio({ defaultTitle = "New Live Show", onStart }
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.step]);
-
-  // Start preview when devices are selected
-  useEffect(()=> {
-    if (state.step === 3 && (state.videoDeviceId || state.audioDeviceId)) {
-        startPreview();
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state.step, state.videoDeviceId, state.audioDeviceId]);
 
   // Cleanup on unmount
   useEffect(()=>()=>{ stopPreview(); },[stopPreview]);
@@ -409,8 +404,8 @@ export default function GoLiveStudio({ defaultTitle = "New Live Show", onStart }
                         <div className="flex items-center gap-2 mt-2">
                         <Checkbox id={`sel-${p.id}`} checked={state.selectedIds.includes(p.id)} onCheckedChange={()=>toggleProduct(p.id)}/>
                         <Label htmlFor={`sel-${p.id}`} className="text-xs">Include</Label>
-                        <Button size="sm" variant={state.featuredId===p.id?"default":"outline"} onClick={()=>updateState({featuredId: p.id})} className="ml-auto">
-                            {state.featuredId===p.id ? <><CheckCircle2 className="w-4 h-4 mr-1"/> Featured</> : "Set featured"}
+                        <Button size="sm" variant={featuredId===p.id?"default":"outline"} onClick={()=>setFeaturedId(p.id)} className="ml-auto">
+                            {featuredId===p.id ? <><CheckCircle2 className="w-4 h-4 mr-1"/> Featured</> : "Set featured"}
                         </Button>
                         </div>
                     </div>
@@ -544,15 +539,22 @@ export default function GoLiveStudio({ defaultTitle = "New Live Show", onStart }
                 <div className="space-y-2">
                   {state.overlayItems.length===0 && <div className="text-xs text-muted-foreground">No overlay items yet. Add selected products or custom texts.</div>}
                   {state.overlayItems.map((it, idx)=> (
-                    <div key={idx} className="flex items-center justify-between border rounded-xl px-3 py-2">
-                      <div className="text-sm">
-                        {it.type === 'product' ? (
-                          <span>Product • {products.find(p=>p.id===it.id)?.title || it.id}</span>
-                        ) : (
-                          <span>Text • {it.text}</span>
-                        )}
-                      </div>
-                      <Button size="icon" variant="ghost" onClick={()=>removeOverlayItem(idx)}><Trash2 className="w-4 h-4"/></Button>
+                    <div key={idx} className="flex items-center justify-between border rounded-xl px-3 py-2 gap-2">
+                        <div className="text-sm flex-grow">
+                            {it.type === 'product' ? (
+                                <span className="flex items-center gap-2">
+                                    <span className="font-semibold">Product:</span>
+                                    {products.find(p=>p.id===it.id)?.title || it.id}
+                                </span>
+                            ) : (
+                                <Input 
+                                    className="h-8 border-dashed"
+                                    value={it.text}
+                                    onChange={(e) => updateOverlayItemText(idx, e.target.value)}
+                                />
+                            )}
+                        </div>
+                        <Button size="icon" variant="ghost" onClick={()=>removeOverlayItem(idx)}><Trash2 className="w-4 h-4"/></Button>
                     </div>
                   ))}
                 </div>
@@ -574,7 +576,7 @@ export default function GoLiveStudio({ defaultTitle = "New Live Show", onStart }
           <Badge variant="outline">{state.visibility}</Badge>
           <span>•</span>
           <span>{state.selectedIds.length} products</span>
-          {state.featuredId && (<><span>•</span><span>Featured: {state.featuredId}</span></>)}
+          {featuredId && (<><span>•</span><span>Featured: {featuredId}</span></>)}
           <span>•</span>
           <span>{state.enableChat?"Chat on":"Chat off"}</span>
           <span>•</span>
@@ -624,3 +626,4 @@ function OverlayStrip({ products, items, activeIndex, position }:{ products: Pro
     </div>
   );
 }
+```
