@@ -58,7 +58,7 @@ import {
 import Image from "next/image"
 import { useState, useEffect, useMemo } from "react"
 import { ProductForm, Product } from "@/components/seller/product-form"
-import { useAuth } from "@/hooks/use-auth.tsx"
+import { useAuth } from "@/hooks/use-auth"
 import { LoadingSpinner } from "@/components/ui/loading-spinner"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
@@ -77,7 +77,8 @@ const initialProducts: Product[] = [
         price: 12500,
         stock: 15,
         images: [{ file: undefined, preview: "https://placehold.co/80x80.png" }],
-        status: "active"
+        status: "active",
+        category: 'Electronics',
     },
     {
         id: 'prod_2',
@@ -87,7 +88,8 @@ const initialProducts: Product[] = [
         price: 4999,
         stock: 50,
         images: [{ file: undefined, preview: "https://placehold.co/80x80.png" }],
-        status: "active"
+        status: "active",
+        category: 'Electronics',
     },
     {
         id: 'prod_3',
@@ -97,7 +99,8 @@ const initialProducts: Product[] = [
         price: 6200,
         stock: 0,
         images: [{ file: undefined, preview: "https://placehold.co/80x80.png" }],
-        status: "archived"
+        status: "archived",
+        category: 'Handbags',
     },
      {
         id: 'prod_4',
@@ -107,7 +110,8 @@ const initialProducts: Product[] = [
         price: 8750,
         stock: 30,
         images: [],
-        status: "draft"
+        status: "draft",
+        category: 'Electronics',
     },
 ];
 
@@ -195,12 +199,12 @@ const ProductTable = ({ products, onEdit, onDelete, onManageQna }: { products: P
               <TableRow key={product.id}>
                 <TableCell className="hidden sm:table-cell">
                   <Link href={`/product/${product.key}`}>
-                    {product.images && product.images.length > 0 ? (
+                    {product.media && product.media.length > 0 ? (
                       <Image
                         alt={product.name}
                         className="aspect-square rounded-md object-cover"
                         height="64"
-                        src={product.images[0].preview}
+                        src={product.media[0].preview}
                         width="64"
                       />
                     ) : (
@@ -249,7 +253,7 @@ const ProductTable = ({ products, onEdit, onDelete, onManageQna }: { products: P
             )) : (
               <TableRow>
                 <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
-                  No products found in this category.
+                  No products found.
                 </TableCell>
               </TableRow>
             )}
@@ -273,7 +277,9 @@ export default function SellerProductsPage() {
     const [editingProduct, setEditingProduct] = useState<Product | undefined>(undefined);
     const { user, loading } = useAuth();
     const router = useRouter();
-    
+    const [stockFilter, setStockFilter] = useState<('inStock' | 'outOfStock')[]>(['inStock', 'outOfStock']);
+    const { toast } = useToast();
+
     useEffect(() => {
         setIsMounted(true);
         if (typeof window !== 'undefined') {
@@ -292,9 +298,23 @@ export default function SellerProductsPage() {
         }
     }, [products, isMounted]);
 
-    const activeProducts = useMemo(() => products.filter(p => p.status === 'active'), [products]);
-    const draftProducts = useMemo(() => products.filter(p => p.status === 'draft'), [products]);
-    const archivedProducts = useMemo(() => products.filter(p => p.status === 'archived'), [products]);
+    const filterProductsByStock = (products: Product[]) => {
+        if (stockFilter.length === 2 || stockFilter.length === 0) {
+            return products;
+        }
+        if (stockFilter.includes('inStock')) {
+            return products.filter(p => p.stock > 0);
+        }
+        if (stockFilter.includes('outOfStock')) {
+            return products.filter(p => p.stock === 0);
+        }
+        return [];
+    };
+
+    const activeProducts = useMemo(() => filterProductsByStock(products.filter(p => p.status === 'active')), [products, stockFilter]);
+    const draftProducts = useMemo(() => filterProductsByStock(products.filter(p => p.status === 'draft')), [products, stockFilter]);
+    const archivedProducts = useMemo(() => filterProductsByStock(products.filter(p => p.status === 'archived')), [products, stockFilter]);
+    const allFilteredProducts = useMemo(() => filterProductsByStock(products), [products, stockFilter]);
 
     if (!isMounted || loading) {
         return <div className="flex h-screen items-center justify-center"><LoadingSpinner /></div>
@@ -335,6 +355,44 @@ export default function SellerProductsPage() {
         setSelectedProduct(product);
         setIsQnaOpen(true);
     };
+
+    const handleStockFilterChange = (filter: 'inStock' | 'outOfStock') => {
+        setStockFilter(prev => {
+            const newFilters = prev.includes(filter) ? prev.filter(f => f !== filter) : [...prev, filter];
+            // If both are removed, show all
+            return newFilters.length === 0 ? ['inStock', 'outOfStock'] : newFilters;
+        });
+    };
+    
+    const handleExport = () => {
+        if (allFilteredProducts.length === 0) {
+            toast({ title: "No data to export", variant: "destructive" });
+            return;
+        }
+
+        const headers = ["ID", "Name", "Status", "Price", "Stock", "Category", "Sub-category", "Brand"];
+        const rows = allFilteredProducts.map(p => [
+            p.id,
+            `"${p.name.replace(/"/g, '""')}"`,
+            p.status,
+            p.price,
+            p.stock,
+            p.category || "",
+            p.subcategory || "",
+            p.brand || ""
+        ]);
+
+        const csvContent = "data:text/csv;charset=utf-8," 
+            + [headers.join(","), ...rows.map(e => e.join(","))].join("\n");
+
+        const link = document.createElement("a");
+        link.setAttribute("href", encodeURI(csvContent));
+        link.setAttribute("download", `products_export_${new Date().toISOString()}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        toast({ title: "Export Started", description: "Your products CSV is downloading." });
+    };
   
   return (
     <>
@@ -371,17 +429,17 @@ export default function SellerProductsPage() {
                               </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end">
-                              <DropdownMenuLabel>Filter by</DropdownMenuLabel>
-                              <DropdownMenuSeparator />
-                              <DropdownMenuCheckboxItem checked>
-                                  Available
-                              </DropdownMenuCheckboxItem>
-                              <DropdownMenuCheckboxItem>
-                                  Out of Stock
-                              </DropdownMenuCheckboxItem>
+                                  <DropdownMenuLabel>Filter by Stock</DropdownMenuLabel>
+                                  <DropdownMenuSeparator />
+                                  <DropdownMenuCheckboxItem checked={stockFilter.includes('inStock')} onCheckedChange={() => handleStockFilterChange('inStock')}>
+                                      In Stock
+                                  </DropdownMenuCheckboxItem>
+                                  <DropdownMenuCheckboxItem checked={stockFilter.includes('outOfStock')} onCheckedChange={() => handleStockFilterChange('outOfStock')}>
+                                      Out of Stock
+                                  </DropdownMenuCheckboxItem>
                               </DropdownMenuContent>
                           </DropdownMenu>
-                          <Button size="sm" variant="outline" className="h-8 gap-1">
+                          <Button size="sm" variant="outline" className="h-8 gap-1" onClick={handleExport}>
                               <File className="h-3.5 w-3.5" />
                               <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
                               Export
@@ -399,7 +457,7 @@ export default function SellerProductsPage() {
                       </div>
                       <div className="mt-4">
                           <TabsContent value="all">
-                               <ProductTable products={products} onEdit={handleEditProduct} onDelete={handleDeleteProduct} onManageQna={handleManageQna} />
+                               <ProductTable products={allFilteredProducts} onEdit={handleEditProduct} onDelete={handleDeleteProduct} onManageQna={handleManageQna} />
                           </TabsContent>
                           <TabsContent value="active">
                               <ProductTable products={activeProducts} onEdit={handleEditProduct} onDelete={handleDeleteProduct} onManageQna={handleManageQna} />
@@ -432,3 +490,4 @@ export default function SellerProductsPage() {
     </>
   )
 }
+```
