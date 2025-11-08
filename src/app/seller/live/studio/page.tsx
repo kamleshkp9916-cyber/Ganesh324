@@ -306,18 +306,17 @@ export default function GoLiveStudio({ defaultTitle = "New Live Show", onStart }
   return (
     <div className="p-4 md:p-6 space-y-6">
       <header className="flex items-center justify-between">
-        <h1 className="text-2xl md:text-3xl font-semibold">Go Live</h1>
+        <h1 className="text-2xl md:text-3xl font-semibold">Go Live Studio</h1>
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
           <Settings2 className="w-4 h-4"/><span>LiveKit‑ready UI</span>
         </div>
       </header>
 
       {/* Steps */}
-      <div className="grid md:grid-cols-4 gap-4">
+      <div className="grid md:grid-cols-3 gap-4">
         <StepBadge n={1} active={state.step===1} title="Details"/>
         <StepBadge n={2} active={state.step===2} title="Products"/>
         <StepBadge n={3} active={state.step===3} title="Camera & Mic"/>
-        <StepBadge n={4} active={false} title="Overlays & Super Chat"/>
       </div>
 
       {state.step===1 && (
@@ -430,28 +429,75 @@ export default function GoLiveStudio({ defaultTitle = "New Live Show", onStart }
 
       {state.step===3 && (
         <Card>
-          <CardHeader><CardTitle className="text-base">Camera & microphone</CardTitle></CardHeader>
+          <CardHeader><CardTitle className="text-base">Camera & Microphone</CardTitle></CardHeader>
           <CardContent className="grid md:grid-cols-[2fr,1fr] gap-4">
-            <div className="rounded-2xl overflow-hidden bg-black aspect-video relative">
-              <video ref={videoRef} className="w-full h-full object-cover" playsInline muted />
-              {!stream && (
-                <div className="absolute inset-0 flex items-center justify-center text-muted-foreground text-sm">
-                    <span>Requesting permissions...</span>
+            <div className="space-y-4">
+              <div className="rounded-2xl overflow-hidden bg-black aspect-video relative">
+                <video ref={videoRef} className="w-full h-full object-cover" playsInline muted />
+                {!stream && (
+                  <div className="absolute inset-0 flex items-center justify-center text-muted-foreground text-sm">
+                      <span>Requesting permissions...</span>
+                  </div>
+                )}
+                {state.overlayEnabled && state.overlayItems.length > 0 && (
+                  <OverlayStrip
+                    products={products}
+                    items={state.overlayItems}
+                    activeIndex={activeOverlayIndex}
+                    position={state.overlayPosition}
+                  />
+                )}
+                {state.superChatEnabled && state.superChatOnScreen && (
+                  <div className="absolute top-2 right-2 bg-white/90 text-xs rounded-full px-2 py-1 shadow">Super Chat ON</div>
+                )}
+              </div>
+               <Separator/>
+               <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <Switch checked={state.overlayEnabled} onCheckedChange={(checked) => updateState({overlayEnabled: checked})}/>
+                    <span className="text-sm">Enable overlay strip</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Label className="text-xs">Position</Label>
+                    <Select value={state.overlayPosition} onValueChange={(v:any)=>updateState({overlayPosition: v})}>
+                      <SelectTrigger className="w-28"><SelectValue placeholder="pos"/></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="top">Top</SelectItem>
+                        <SelectItem value="bottom">Bottom</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
-              )}
 
-              {state.overlayEnabled && state.overlayItems.length>0 && (
-                <OverlayStrip
-                  products={products}
-                  items={state.overlayItems}
-                  activeIndex={activeOverlayIndex}
-                  position={state.overlayPosition}
-                />
-              )}
+                <div className="grid grid-cols-[1fr,auto] gap-2 items-end">
+                  <Input type="number" min={1000} step={500} value={state.overlayAutoMs} onChange={(e)=>updateState({overlayAutoMs: parseInt(e.target.value||'0')||2500})} placeholder="Auto slide (ms)" />
+                  <Button variant="outline" onClick={addCustomText}><Plus className="w-4 h-4 mr-1"/>Add custom text</Button>
+                </div>
 
-              {state.superChatEnabled && state.superChatOnScreen && (
-                <div className="absolute top-2 right-2 bg-white/90 text-xs rounded-full px-2 py-1 shadow">Super Chat ON</div>
-              )}
+                <div className="space-y-2">
+                  {state.overlayItems.length===0 && <div className="text-xs text-muted-foreground">No overlay items yet. Add selected products or custom texts.</div>}
+                  {state.overlayItems.map((it, idx)=> (
+                    <div key={idx} className="flex items-center justify-between border rounded-xl px-3 py-2 gap-2">
+                        <div className="text-sm flex-grow">
+                            {it.type === 'product' ? (
+                                <span className="flex items-center gap-2">
+                                    <span className="font-semibold">Product:</span>
+                                    {products.find(p=>p.id===it.id)?.title || it.id}
+                                </span>
+                            ) : (
+                                <Input 
+                                    className="h-8 border-dashed"
+                                    value={it.text}
+                                    onChange={(e) => updateOverlayItemText(idx, e.target.value)}
+                                />
+                            )}
+                        </div>
+                        <Button size="icon" variant="ghost" onClick={()=>removeOverlayItem(idx)}><Trash2 className="w-4 h-4"/></Button>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
 
             <div className="space-y-4">
@@ -496,54 +542,6 @@ export default function GoLiveStudio({ defaultTitle = "New Live Show", onStart }
                 <div className="flex items-center gap-3">
                   <Switch checked={state.superChatOnScreen} onCheckedChange={(checked) => updateState({superChatOnScreen: checked})} disabled={!state.superChatEnabled}/>
                   <span className="text-sm">Show Super Chat badge on screen</span>
-                </div>
-              </div>
-
-              <Separator/>
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <Switch checked={state.overlayEnabled} onCheckedChange={(checked) => updateState({overlayEnabled: checked})}/>
-                    <span className="text-sm">Enable overlay strip</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Label className="text-xs">Position</Label>
-                    <Select value={state.overlayPosition} onValueChange={(v:any)=>updateState({overlayPosition: v})}>
-                      <SelectTrigger className="w-28"><SelectValue placeholder="pos"/></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="top">Top</SelectItem>
-                        <SelectItem value="bottom">Bottom</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-[1fr,auto] gap-2 items-end">
-                  <Input type="number" min={1000} step={500} value={state.overlayAutoMs} onChange={(e)=>updateState({overlayAutoMs: parseInt(e.target.value||'0')||2500})} placeholder="Auto slide (ms)" />
-                  <Button variant="outline" onClick={addCustomText}><Plus className="w-4 h-4 mr-1"/>Add custom text</Button>
-                </div>
-
-                <div className="space-y-2">
-                  {state.overlayItems.length===0 && <div className="text-xs text-muted-foreground">No overlay items yet. Add selected products or custom texts.</div>}
-                  {state.overlayItems.map((it, idx)=> (
-                    <div key={idx} className="flex items-center justify-between border rounded-xl px-3 py-2 gap-2">
-                        <div className="text-sm flex-grow">
-                            {it.type === 'product' ? (
-                                <span className="flex items-center gap-2">
-                                    <span className="font-semibold">Product:</span>
-                                    {products.find(p=>p.id===it.id)?.title || it.id}
-                                </span>
-                            ) : (
-                                <Input 
-                                    className="h-8 border-dashed"
-                                    value={it.text}
-                                    onChange={(e) => updateOverlayItemText(idx, e.target.value)}
-                                />
-                            )}
-                        </div>
-                        <Button size="icon" variant="ghost" onClick={()=>removeOverlayItem(idx)}><Trash2 className="w-4 h-4"/></Button>
-                    </div>
-                  ))}
                 </div>
               </div>
             </div>
