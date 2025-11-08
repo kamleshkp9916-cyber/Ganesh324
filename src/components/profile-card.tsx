@@ -5,7 +5,7 @@ import React from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Mail, Phone, MapPin, Package, Video, UserPlus, UserCheck, Instagram, Twitter, Youtube, Facebook, Twitch, Award, Users, Home, Star } from 'lucide-react';
+import { Mail, Phone, MapPin, Package, Video, UserPlus, UserCheck, Instagram, Twitter, Youtube, Facebook, Twitch, Award, Users, Home, Star, Edit } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useEffect, useState, useMemo, useCallback } from 'react';
@@ -17,11 +17,13 @@ import Image from 'next/image';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from '@/hooks/use-toast';
 import { toggleFollow, isFollowing as isFollowingBackend, UserData } from '@/lib/follow-data';
-import { getFirestore, collection, query, where, onSnapshot, orderBy } from 'firebase/firestore';
 import { getFirestoreDb } from '@/lib/firebase';
+import { collection, query, where, onSnapshot, orderBy } from 'firebase/firestore';
 import { formatDistanceToNow } from 'date-fns';
 import { productDetails } from '@/lib/product-data';
 import Link from 'next/link';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog';
+import { EditAddressForm } from './edit-address-form';
 
 const liveSellers = [
     { id: 'fashionfinds-uid', name: 'FashionFinds', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Fashion', viewers: 1200, buyers: 25, rating: 4.8, reviews: 12, hint: 'woman posing stylish outfit', productId: 'prod_1', hasAuction: true },
@@ -46,12 +48,6 @@ const mockAchievements = [
     { id: 2, name: 'Community Pillar', icon: <Users className="h-6 w-6" />, description: 'Over 10,000 followers' },
     { id: 3, name: 'Power Streamer', icon: <Video className="h-6 w-6" />, description: 'Streamed for over 100 hours' },
 ];
-
-const mockUserOrders = [
-    { orderId: '#STREAM619732', date: 'Nov 01, 2025', timeline: [{ status: 'Delivered' }] },
-    { orderId: '#MOCK5678', date: 'Oct 26, 2025', timeline: [{ status: 'Cancelled by seller' }] },
-];
-
 
 function ProductSkeletonGrid() {
     return (
@@ -95,7 +91,7 @@ const RealtimeTimestamp = ({ date, isEdited }: { date: Date | string, isEdited?:
     return <>{relativeTime} {isEdited && <span className="text-muted-foreground/80">• Edited</span>}</>;
 };
 
-export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFollowToggle: onFollowToggleProp, handleAuthAction }: { profileData: UserData, isOwnProfile: boolean, onAddressesUpdate: (addresses: any[]) => void, onFollowToggle?: () => void, handleAuthAction: (callback: () => void) => void }) {
+export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFollowToggle: onFollowToggleProp, handleAuthAction }: { profileData: UserData, isOwnProfile: boolean, onAddressesUpdate: (addresses: any[]) => void, onFollowToggle?: () => void, handleAuthAction?: (callback: () => void) => void }) {
     const { user } = useAuth();
     const router = useRouter();
     const [isLoadingContent, setIsLoadingContent] = useState(true);
@@ -104,7 +100,8 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
     const [userPosts, setUserPosts] = useState<any[]>([]);
     const [isFollowed, setIsFollowed] = useState(false);
     const [activeCategory, setActiveCategory] = useState("All");
-    const [userOrders, setUserOrders] = useState<any[]>(mockUserOrders); // Mock for now
+    const [isAddressDialogOpen, setIsAddressDialogOpen] = useState(false);
+    const { toast } = useToast();
 
     useEffect(() => {
         if (user) {
@@ -157,15 +154,21 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
     }, [searchTerm, sellerProducts, activeCategory]);
 
     const handleFollowToggle = async () => {
+        if (!handleAuthAction) return;
         handleAuthAction(async () => {
             setIsFollowed(prev => !prev);
             await toggleFollow(user!.uid, profileData.uid);
             if (onFollowToggleProp) onFollowToggleProp();
         });
     };
+    
+    const handleAddressSave = () => {
+        toast({ title: 'Address updated' });
+        setIsAddressDialogOpen(false);
+    }
 
     return (
-        <>
+        <Dialog open={isAddressDialogOpen} onOpenChange={setIsAddressDialogOpen}>
             <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-6 relative p-4 sm:p-6">
                 <Avatar className="h-20 w-20 sm:h-24 sm:w-24 border-4 border-background shadow-lg">
                     <AvatarImage src={profileData.photoURL} alt={profileData.displayName} />
@@ -310,7 +313,16 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                                         <div className="flex items-start gap-2 pt-2">
                                             <Home className="h-4 w-4 text-muted-foreground mt-1" /> 
                                             <div>
-                                                <p className="font-semibold text-foreground">Address</p>
+                                                <div className="flex items-center gap-2">
+                                                    <p className="font-semibold text-foreground">Address</p>
+                                                    {isOwnProfile && (
+                                                         <DialogTrigger asChild>
+                                                            <Button variant="link" size="sm" className="h-auto p-0 text-xs" onClick={() => setIsAddressDialogOpen(true)}>
+                                                                <Edit className="mr-1 h-3 w-3" /> Manage
+                                                            </Button>
+                                                        </DialogTrigger>
+                                                    )}
+                                                </div>
                                                 <p>{profileData.addresses[0].village}, {profileData.addresses[0].district}</p>
                                                 <p>{profileData.addresses[0].city}, {profileData.addresses[0].state} - {profileData.addresses[0].pincode}</p>
                                             </div>
@@ -344,7 +356,18 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                     )}
                 </Tabs>
             </div>
-        </>
+             <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>Manage Delivery Addresses</DialogTitle>
+                    <DialogDescription>Add, edit, or remove your saved addresses.</DialogDescription>
+                </DialogHeader>
+                <EditAddressForm
+                    onSave={handleAddressSave}
+                    onCancel={() => setIsAddressDialogOpen(false)}
+                    onAddressesUpdate={onAddressesUpdate}
+                />
+            </DialogContent>
+        </Dialog>
     );
 }
 
