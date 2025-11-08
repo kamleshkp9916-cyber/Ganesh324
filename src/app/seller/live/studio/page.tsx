@@ -566,7 +566,7 @@ export default function GoLiveStudio({ defaultTitle = "New Live Show", onStart }
           <CardFooter className="justify-between">
             <Button variant="outline" onClick={()=>updateState({step: 2})}>Back</Button>
             <div className="flex items-center gap-2">
-               <Button onClick={handleStart} className="bg-red-600 hover:bg-red-700" disabled={!stream}>Go Live</Button>
+               <Button onClick={handleStart} className="bg-red-600 hover:bg-red-700">Go Live</Button>
             </div>
           </CardFooter>
         </Card>
