@@ -20,7 +20,7 @@ import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
-import { Search, Mic, MicOff, Video, VideoOff, Settings2, Play, Pause, CheckCircle2, AlertTriangle, Upload, Plus, Trash2, MoveHorizontal, PlusCircle } from "lucide-react";
+import { Search, Mic, MicOff, Video, VideoOff, Settings2, Play, Pause, CheckCircle2, AlertTriangle, Upload, Plus, Trash2, MoveHorizontal, PlusCircle, Tv } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import Link from "next/link";
 import { useToast } from "@/hooks/use-toast";
@@ -28,7 +28,7 @@ import { useLocalStorage } from "@/hooks/use-local-storage";
 
 
 // Types
-type Product = { id: string; title: string; price: number; image?: string; stock?: number; status?: "active" | "draft" | "archived" };
+type Product = { id: string; title: string; price: number; image?: string; stock?: number; status?: "active" | "draft" | "archived", category?: string; subcategory?: string; };
 type OverlayItem = { type: "product" | "text"; id?: string; text?: string };
 
 interface GoLiveState {
@@ -49,6 +49,7 @@ interface GoLiveState {
   overlayItems: OverlayItem[];
   videoDeviceId?: string;
   audioDeviceId?: string;
+  streamCategory?: string; // New field for stream category
 }
 
 // Props for future wiring
@@ -81,6 +82,7 @@ export default function GoLiveStudio({ defaultTitle = "New Live Show", onStart }
     overlayPosition: "top",
     overlayAutoMs: 2500,
     overlayItems: [],
+    streamCategory: undefined,
   });
 
   const updateState = useCallback((updates: Partial<GoLiveState>) => {
@@ -130,17 +132,49 @@ export default function GoLiveStudio({ defaultTitle = "New Live Show", onStart }
   // Filter products
   const filtered = useMemo(()=>{
     const q = query.trim().toLowerCase();
-    if(!q) return products;
-    return products.filter(p=> p.title.toLowerCase().includes(q));
-  },[products, query]);
+    let productList = products;
+    
+    // If a stream category is set, filter by that category
+    if (state.streamCategory) {
+      productList = productList.filter(p => p.category === state.streamCategory);
+    }
+    
+    if(!q) return productList;
+    return productList.filter(p=> p.title.toLowerCase().includes(q));
+  },[products, query, state.streamCategory]);
 
   // Toggle selection
   const toggleProduct = (id:string)=>{
-    updateState({
-        selectedIds: state.selectedIds.includes(id) 
-            ? state.selectedIds.filter(x => x !== id) 
-            : [...state.selectedIds, id]
-    });
+    const product = products.find(p => p.id === id);
+    if (!product) return;
+
+    const isSelected = state.selectedIds.includes(id);
+
+    if (isSelected) {
+        // Deselecting
+        const newSelectedIds = state.selectedIds.filter(x => x !== id);
+        updateState({ selectedIds: newSelectedIds });
+        
+        // If the last product is deselected, clear the stream category
+        if (newSelectedIds.length === 0) {
+            updateState({ streamCategory: undefined });
+        }
+    } else {
+        // Selecting
+        // If it's the first product, set the stream category
+        if (state.selectedIds.length === 0) {
+            updateState({ streamCategory: product.category, selectedIds: [id] });
+        } else if (product.category === state.streamCategory) {
+            // Only allow adding products of the same category
+            updateState({ selectedIds: [...state.selectedIds, id] });
+        } else {
+            toast({
+                variant: "destructive",
+                title: "Category Mismatch",
+                description: `You can only add products from the "${state.streamCategory}" category to this stream.`,
+            });
+        }
+    }
   };
 
   // Overlay: add from selected products
@@ -373,7 +407,15 @@ export default function GoLiveStudio({ defaultTitle = "New Live Show", onStart }
 
       {state.step===2 && (
         <Card>
-          <CardHeader><CardTitle className="text-base">Select products</CardTitle></CardHeader>
+          <CardHeader>
+            <CardTitle className="text-base">Select products</CardTitle>
+            {state.streamCategory && (
+                <CardDescription className="flex items-center gap-2">
+                    <Tv className="w-4 h-4"/>
+                    Streaming in category: <Badge>{state.streamCategory}</Badge>
+                </CardDescription>
+            )}
+            </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center gap-2">
               <div className="relative w-full md:w-80">
@@ -394,6 +436,7 @@ export default function GoLiveStudio({ defaultTitle = "New Live Show", onStart }
                     </div>
                     <div className="flex-1 min-w-0">
                         <div className="truncate text-sm font-medium">{p.title}</div>
+                        <div className="text-xs text-muted-foreground">{p.category} {p.subcategory && `> ${p.subcategory}`}</div>
                         <div className="text-xs text-muted-foreground">{currency(p.price)}{p.stock!=null && <span> • Stock {p.stock}</span>}</div>
                         <div className="flex items-center gap-2 mt-2">
                         <Checkbox id={`sel-${p.id}`} checked={state.selectedIds.includes(p.id)} onCheckedChange={()=>toggleProduct(p.id)}/>
@@ -408,7 +451,7 @@ export default function GoLiveStudio({ defaultTitle = "New Live Show", onStart }
                 </div>
             ) : (
                  <div className="text-center py-10 text-muted-foreground">
-                    <p>You have no active products.</p>
+                    <p>You have no active products {state.streamCategory ? `in the "${state.streamCategory}" category` : ""}.</p>
                     <Button asChild variant="link" className="mt-2">
                         <Link href="/seller/products">
                             <PlusCircle className="mr-2 h-4 w-4" /> Add a Product
@@ -430,7 +473,7 @@ export default function GoLiveStudio({ defaultTitle = "New Live Show", onStart }
       {state.step===3 && (
         <Card>
           <CardHeader><CardTitle className="text-base">Camera & Microphone</CardTitle></CardHeader>
-          <CardContent className="grid md:grid-cols-[2fr,1fr] gap-4">
+          <CardContent className="grid md:grid-cols-[2fr,1fr] gap-6">
             <div className="space-y-4">
               <div className="rounded-2xl overflow-hidden bg-black aspect-video relative">
                 <video ref={videoRef} className="w-full h-full object-cover" playsInline muted />
@@ -561,6 +604,7 @@ export default function GoLiveStudio({ defaultTitle = "New Live Show", onStart }
           <Badge variant="outline">{state.visibility}</Badge>
           <span>•</span>
           <span>{state.selectedIds.length} products</span>
+          {state.streamCategory && (<><span>•</span><span>Category: {state.streamCategory}</span></>)}
           {featuredId && (<><span>•</span><span>Featured: {featuredId}</span></>)}
           <span>•</span>
           <span>{state.enableChat?"Chat on":"Chat off"}</span>
