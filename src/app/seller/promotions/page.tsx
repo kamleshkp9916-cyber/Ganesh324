@@ -5,7 +5,7 @@ import { useState, useMemo, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { SellerHeader } from "@/components/seller/seller-header";
-import { BarChart, Flame, PlusCircle, Rocket, Sparkles, Star, Ticket } from "lucide-react";
+import { BarChart, Flame, PlusCircle, Rocket, Sparkles, Star, Ticket, Trash2, Edit } from "lucide-react";
 import Link from "next/link";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/use-auth";
@@ -28,6 +28,8 @@ import { Loader2 } from "lucide-react";
 import { useLocalStorage } from "@/hooks/use-local-storage";
 import { productDetails } from "@/lib/product-data";
 import { Separator } from "@/components/ui/separator";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { MoreHorizontal } from "lucide-react";
 
 export const COUPONS_KEY = 'streamcart_coupons';
 
@@ -87,7 +89,10 @@ const CouponForm = ({ onSave, existingCoupon, closeDialog }: { onSave: (coupon: 
 
     const form = useForm<z.infer<typeof couponSchema>>({
         resolver: zodResolver(couponSchema),
-        defaultValues: existingCoupon || {
+        defaultValues: existingCoupon ? {
+            ...existingCoupon,
+            expiresAt: existingCoupon.expiresAt ? new Date(existingCoupon.expiresAt) : undefined,
+        } : {
             code: "",
             description: "",
             discountType: "percentage",
@@ -134,7 +139,7 @@ const CouponForm = ({ onSave, existingCoupon, closeDialog }: { onSave: (coupon: 
                 <FormField
                     control={form.control}
                     name="applicableProducts"
-                    render={() => (
+                    render={({ field }) => (
                         <FormItem>
                             <div className="mb-4">
                                 <FormLabel className="text-base">Applicable Products</FormLabel>
@@ -211,12 +216,20 @@ export default function SellerPromotionsPage() {
         setIsCouponFormOpen(true);
     };
 
+    const getProductNames = (productIds: string[] | undefined) => {
+        if (!productIds || productIds.length === 0) return "All Products";
+        return productIds.map(id => {
+            const product = Object.values(productDetails).find(p => p.id.toString() === id);
+            return product ? product.name : 'Unknown Product';
+        }).join(', ');
+    };
+
     return (
         <Dialog open={isCouponFormOpen} onOpenChange={setIsCouponFormOpen}>
         <div className="flex min-h-screen w-full flex-col bg-muted/40">
             <SellerHeader />
             <main className="grid flex-1 items-start gap-8 p-4 sm:px-6 md:p-8">
-                 <Tabs defaultValue="sponsored">
+                 <Tabs defaultValue="coupons">
                     <TabsList className="grid w-full grid-cols-2">
                         <TabsTrigger value="coupons">Offers & Coupons</TabsTrigger>
                         <TabsTrigger value="sponsored">Sponsored Products</TabsTrigger>
@@ -240,11 +253,26 @@ export default function SellerPromotionsPage() {
                                             </div>
                                             <div>
                                                 <h4 className="font-semibold">{coupon.code}</h4>
-                                                <p className="text-xs text-muted-foreground">{coupon.description}</p>
+                                                <p className="text-sm text-muted-foreground">{coupon.description}</p>
+                                                <p className="text-xs text-muted-foreground mt-1">Applies to: <span className="font-medium">{getProductNames(coupon.applicableProducts)}</span></p>
                                                  {coupon.expiresAt && <p className="text-xs text-muted-foreground mt-1">Expires on: {format(new Date(coupon.expiresAt), 'PPP')}</p>}
                                             </div>
                                         </div>
-                                         <Button variant="outline" size="sm" onClick={() => openCouponForm(coupon)}>Manage</Button>
+                                         <DropdownMenu>
+                                            <DropdownMenuTrigger asChild>
+                                                <Button variant="ghost" size="icon" className="h-8 w-8">
+                                                    <MoreHorizontal className="h-4 w-4" />
+                                                </Button>
+                                            </DropdownMenuTrigger>
+                                            <DropdownMenuContent align="end">
+                                                <DropdownMenuItem onSelect={() => openCouponForm(coupon)}>
+                                                    <Edit className="mr-2 h-4 w-4" /> Edit
+                                                </DropdownMenuItem>
+                                                <DropdownMenuItem className="text-destructive" onSelect={() => handleDeleteCoupon(coupon.id!)}>
+                                                    <Trash2 className="mr-2 h-4 w-4" /> Delete
+                                                </DropdownMenuItem>
+                                            </DropdownMenuContent>
+                                        </DropdownMenu>
                                     </div>
                                 ))}
                                 {coupons.length === 0 && (
@@ -309,3 +337,4 @@ export default function SellerPromotionsPage() {
         </Dialog>
     );
 }
+
