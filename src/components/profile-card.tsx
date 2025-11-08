@@ -181,7 +181,6 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                         )}
                          {profileData.role === 'admin' && <Badge variant="destructive">Admin</Badge>}
                     </div>
-                    {profileData.bio && <p className="text-sm text-muted-foreground mt-2 max-w-lg">{profileData.bio}</p>}
                     <div className="flex gap-4 pt-2 sm:pt-4">
                         <div className="text-center">
                             <p className="text-xl sm:text-2xl font-bold">{profileData.following || 0}</p>
@@ -209,6 +208,7 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                         {profileData.role === 'seller' && <TabsTrigger value="products">Listed Products</TabsTrigger>}
                         <TabsTrigger value="posts">Posts</TabsTrigger>
                         {profileData.role === 'seller' && <TabsTrigger value="sessions">Sessions</TabsTrigger>}
+                        <TabsTrigger value="about">About</TabsTrigger>
                         {isOwnProfile && <TabsTrigger value="achievements">Achievements</TabsTrigger>}
                         {isOwnProfile && <TabsTrigger value="orders">Orders</TabsTrigger>}
                     </TabsList>
@@ -289,6 +289,29 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                              )}
                          </div>
                     </TabsContent>
+                     <TabsContent value="about" className="mt-4">
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>About {profileData.displayName}</CardTitle>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                {profileData.bio && <p className="text-sm text-muted-foreground">{profileData.bio}</p>}
+                                <Separator />
+                                <div className="space-y-2 text-sm">
+                                    {profileData.location && <div className="flex items-center gap-2"><MapPin className="h-4 w-4 text-muted-foreground" /> <span>{profileData.location}</span></div>}
+                                    {profileData.email && <div className="flex items-center gap-2"><Mail className="h-4 w-4 text-muted-foreground" /> <a href={`mailto:${profileData.email}`} className="hover:underline">{profileData.email}</a></div>}
+                                    {profileData.phone && <div className="flex items-center gap-2"><Phone className="h-4 w-4 text-muted-foreground" /> <span>{profileData.phone}</span></div>}
+                                </div>
+                                <div className="flex items-center gap-2 flex-wrap">
+                                    {profileData.instagram && <Button asChild variant="outline" size="sm"><Link href={profileData.instagram} target="_blank"><Instagram className="mr-2 h-4 w-4" /> Instagram</Link></Button>}
+                                    {profileData.twitter && <Button asChild variant="outline" size="sm"><Link href={profileData.twitter} target="_blank"><Twitter className="mr-2 h-4 w-4" /> Twitter</Link></Button>}
+                                    {profileData.youtube && <Button asChild variant="outline" size="sm"><Link href={profileData.youtube} target="_blank"><Youtube className="mr-2 h-4 w-4" /> YouTube</Link></Button>}
+                                    {profileData.facebook && <Button asChild variant="outline" size="sm"><Link href={profileData.facebook} target="_blank"><Facebook className="mr-2 h-4 w-4" /> Facebook</Link></Button>}
+                                    {profileData.twitch && <Button asChild variant="outline" size="sm"><Link href={profileData.twitch} target="_blank"><Twitch className="mr-2 h-4 w-4" /> Twitch</Link></Button>}
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </TabsContent>
                      {isOwnProfile && (
                         <>
                            <TabsContent value="achievements" className="mt-4">
@@ -331,5 +354,3 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
         </>
     );
 }
-
-    
