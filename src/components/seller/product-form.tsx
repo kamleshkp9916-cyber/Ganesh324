@@ -25,13 +25,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Loader2, Upload, Trash2, Camera, FileEdit } from "lucide-react";
+import { Loader2, Upload, Trash2, Camera, FileEdit, Video } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { getFirestoreDb } from "@/lib/firebase";
+import { getFirestoreDb, getFirebaseStorage } from "@/lib/firebase";
 import { collection, doc, setDoc, addDoc } from "firebase/firestore";
-import { getStorage, ref, uploadString, getDownloadURL } from "firebase/storage";
+import { ref, uploadString, getDownloadURL } from "firebase/storage";
 import { defaultCategories } from "@/lib/categories";
 import Image from "next/image";
 
@@ -205,7 +205,7 @@ export function ProductForm({ onSave, productToEdit }: ProductFormProps) {
 
     try {
         const db = getFirestoreDb();
-        const storage = getStorage();
+        const storage = getFirebaseStorage();
 
         const productData: any = { ...data, sellerId: user.uid, media: [] };
         
@@ -299,6 +299,7 @@ export function ProductForm({ onSave, productToEdit }: ProductFormProps) {
                   </div>
                   <div className="flex gap-2 pt-2">
                       <Button type="button" variant="outline" onClick={() => imageInputRef.current?.click()}><ImageIcon className="mr-2 h-4 w-4" /> Add Images</Button>
+                      <Button type="button" variant="outline" onClick={() => videoInputRef.current?.click()}><Video className="mr-2 h-4 w-4" /> Add Video</Button>
                   </div>
                   <FormMessage />
                 </FormItem>
