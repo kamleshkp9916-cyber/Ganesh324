@@ -190,13 +190,6 @@ export default function GoLiveStudio({ defaultTitle = "New Live Show", onStart }
       setupAudioLevel(newStream);
     } catch (e: any) {
       console.error("Error starting media preview:", e);
-       if (e.name === 'NotFoundError' || e.name === 'DevicesNotFoundError' || e.name === 'OverconstrainedError') {
-        setPermissionsError("Requested device not found. It might be unplugged or unavailable. Please try refreshing or selecting another device.");
-      } else if (e.name === 'NotAllowedError' || e.name === 'PermissionDeniedError') {
-        setPermissionsError("Camera/Mic permissions were denied. Please enable them in your browser settings and refresh.");
-      } else {
-        setPermissionsError("Could not start camera/mic. It might be in use by another application.");
-      }
       stopPreview();
     }
   }, [state.videoDeviceId, state.audioDeviceId, stopPreview]);
@@ -443,15 +436,7 @@ export default function GoLiveStudio({ defaultTitle = "New Live Show", onStart }
               <video ref={videoRef} className="w-full h-full object-cover" playsInline muted />
               {!stream && (
                 <div className="absolute inset-0 flex items-center justify-center text-muted-foreground text-sm">
-                  {permissionsError ? (
-                       <div className="text-center max-w-sm p-4">
-                           <AlertTriangle className="mx-auto w-8 h-8 text-destructive mb-2" />
-                           <p className="font-semibold text-destructive">Permissions Required</p>
-                           <p>{permissionsError}</p>
-                       </div>
-                  ) : (
                     <span>Requesting permissions...</span>
-                  )}
                 </div>
               )}
 
