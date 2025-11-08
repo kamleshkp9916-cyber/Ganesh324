@@ -361,21 +361,37 @@ export default function SellerProductsPage() {
     <>
       <Dialog open={isFormOpen} onOpenChange={handleOpenChange}>
         <div className="flex min-h-screen w-full flex-col bg-muted/40">
-           <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6 py-4">
-               <Button size="icon" variant="outline" className="sm:hidden h-8 w-8" onClick={() => router.back()}>
-                  <ArrowLeft className="h-4 w-4" />
-                  <span className="sr-only">Back</span>
-               </Button>
-              <div className="hidden sm:flex items-center gap-4">
-                   <Link href="/seller/dashboard" className="text-muted-foreground hover:text-foreground">Dashboard</Link>
-                   <Link href="/seller/orders" className="text-muted-foreground hover:text-foreground">Orders</Link>
-                   <Link href="/seller/products" className="font-semibold text-foreground">Products</Link>
-                   <Link href="/seller/messages" className="text-muted-foreground hover:text-foreground">Messages</Link>
-                   <Link href="#" className="text-muted-foreground hover:text-foreground">Analytics</Link>
-              </div>
-
-              <div className="ml-auto flex items-center gap-2">
-                  <DialogTrigger asChild>
+           <SellerHeader />
+          <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8">
+             <div className="flex items-center gap-4">
+                 <div className="ml-auto flex items-center gap-2">
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                        <Button variant="outline" size="sm" className="h-8 gap-1">
+                            <ListFilter className="h-3.5 w-3.5" />
+                            <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+                            Filter
+                            </span>
+                        </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                            <DropdownMenuLabel>Filter by Stock</DropdownMenuLabel>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuCheckboxItem checked={stockFilter.includes('inStock')} onCheckedChange={() => handleStockFilterChange('inStock')}>
+                                In Stock
+                            </DropdownMenuCheckboxItem>
+                            <DropdownMenuCheckboxItem checked={stockFilter.includes('outOfStock')} onCheckedChange={() => handleStockFilterChange('outOfStock')}>
+                                Out of Stock
+                            </DropdownMenuCheckboxItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                    <Button size="sm" variant="outline" className="h-8 gap-1" onClick={handleExport}>
+                        <File className="h-3.5 w-3.5" />
+                        <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+                        Export
+                        </span>
+                    </Button>
+                    <DialogTrigger asChild>
                       <Button size="sm" className="h-8 gap-1">
                           <PlusCircle className="h-3.5 w-3.5" />
                           <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
@@ -383,9 +399,8 @@ export default function SellerProductsPage() {
                           </span>
                       </Button>
                   </DialogTrigger>
-              </div>
-           </header>
-          <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8">
+                </div>
+            </div>
               <Card>
                   <CardHeader>
                       <CardTitle>Products</CardTitle>
@@ -404,34 +419,6 @@ export default function SellerProductsPage() {
                               Archived
                           </TabsTrigger>
                           </TabsList>
-                          <div className="ml-auto flex items-center gap-2">
-                          <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                              <Button variant="outline" size="sm" className="h-8 gap-1">
-                                  <ListFilter className="h-3.5 w-3.5" />
-                                  <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                                  Filter
-                                  </span>
-                              </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                  <DropdownMenuLabel>Filter by Stock</DropdownMenuLabel>
-                                  <DropdownMenuSeparator />
-                                  <DropdownMenuCheckboxItem checked={stockFilter.includes('inStock')} onCheckedChange={() => handleStockFilterChange('inStock')}>
-                                      In Stock
-                                  </DropdownMenuCheckboxItem>
-                                  <DropdownMenuCheckboxItem checked={stockFilter.includes('outOfStock')} onCheckedChange={() => handleStockFilterChange('outOfStock')}>
-                                      Out of Stock
-                                  </DropdownMenuCheckboxItem>
-                              </DropdownMenuContent>
-                          </DropdownMenu>
-                          <Button size="sm" variant="outline" className="h-8 gap-1" onClick={handleExport}>
-                              <File className="h-3.5 w-3.5" />
-                              <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                              Export
-                              </span>
-                          </Button>
-                          </div>
                       </div>
                       <div className="mt-4">
                           <TabsContent value="all">
@@ -453,8 +440,14 @@ export default function SellerProductsPage() {
           </main>
         </div>
         <DialogContent className="sm:max-w-3xl h-[90vh] flex flex-col">
-              <ProductForm onSave={handleSaveProduct} productToEdit={editingProduct} />
-          </DialogContent>
+          <DialogHeader>
+              <DialogTitle>{editingProduct ? "Edit Product" : "Add New Product"}</DialogTitle>
+              <DialogDescription>
+                  {editingProduct ? "Update the details of your product." : "Fill in the details to add a new product to your store."}
+              </DialogDescription>
+          </DialogHeader>
+          <ProductForm onSave={handleSaveProduct} productToEdit={editingProduct} />
+        </DialogContent>
       </Dialog>
       <Dialog open={isQnaOpen} onOpenChange={setIsQnaOpen}>
         {selectedProduct && <ManageQnaDialog product={selectedProduct} />}
