@@ -115,35 +115,36 @@ export default function SellerMessagePage() {
     if (user) {
         const fetchConversations = async () => {
             try {
-                const convos = await getConversations();
-                setConversations(convos);
+                const convos = await getConversations(user.uid);
+                let allConvos = [...convos];
+                let convoToSelect: Conversation | null = null;
 
                 if (isExecutiveReply) {
-                    const userId = searchParams.get('userId');
-                    const userName = searchParams.get('userName');
-                    if (userId && userName) {
-                        const executiveConvo: Conversation = {
-                            userId: userId,
-                            userName: userName,
-                            avatarUrl: 'https://placehold.co/40x40/000000/FFFFFF?text=SC',
-                            lastMessage: 'New inquiry',
-                            lastMessageTimestamp: '',
-                            unreadCount: 1,
-                            isExecutive: true,
-                            conversationId: `exec_${userId}`
-                        };
-                        
-                        setConversations(prev => {
-                            if (prev.some(c => c.userId === userId && c.isExecutive)) {
-                                return prev;
-                            }
-                            return [executiveConvo, ...prev];
-                        });
-                        handleSelectConversation(executiveConvo);
+                    const executiveConvo: Conversation = {
+                        userId: 'support-executive',
+                        userName: 'Support Executive',
+                        avatarUrl: 'https://placehold.co/40x40/000000/FFFFFF?text=SC',
+                        lastMessage: 'Ask us anything about selling on StreamCart.',
+                        lastMessageTimestamp: '',
+                        unreadCount: 0,
+                        isExecutive: true,
+                        conversationId: `seller_support_${user.uid}`
+                    };
+                    
+                    if (!allConvos.some(c => c.isExecutive)) {
+                         allConvos.unshift(executiveConvo);
                     }
-                } else if (convos.length > 0) {
-                    handleSelectConversation(convos[0]);
+                    convoToSelect = executiveConvo;
+                } else if (allConvos.length > 0) {
+                    convoToSelect = allConvos[0];
                 }
+                
+                setConversations(allConvos);
+
+                if (convoToSelect) {
+                    handleSelectConversation(convoToSelect);
+                }
+
             } catch (error) {
                 console.error("Failed to fetch conversations:", error);
             } finally {
@@ -152,8 +153,7 @@ export default function SellerMessagePage() {
         };
         fetchConversations();
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, isExecutiveReply, searchParams]);
+  }, [user, isExecutiveReply]);
   
   useEffect(() => {
     chatContainerRef.current?.scrollTo({ top: chatContainerRef.current.scrollHeight });
@@ -167,7 +167,7 @@ export default function SellerMessagePage() {
         let chatHistory;
         if(convo.isExecutive) {
             // This case would be for a seller messaging an executive, not implemented in flows
-            chatHistory = [];
+            chatHistory = [{ id: 1, sender: 'bot', text: "Hello! How can we help you with your seller account today?", timestamp: new Date().toLocaleTimeString() }];
         } else {
             chatHistory = await getMessages(convo.conversationId);
         }
@@ -192,6 +192,15 @@ export default function SellerMessagePage() {
     setMessages(prev => [...prev, optimisticMessage]);
     const currentMessage = newMessage;
     setNewMessage("");
+
+    if (selectedConversation.isExecutive) {
+        // Mock executive reply
+        setTimeout(() => {
+            const reply: Message = { id: Math.random(), text: "Thank you for your query. Our team will get back to you shortly.", senderId: 'support-executive', timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit'}) };
+            setMessages(prev => [...prev, reply]);
+        }, 1500);
+        return;
+    }
 
     try {
         await sendMessage(selectedConversation.conversationId, user.uid, { text: currentMessage });
