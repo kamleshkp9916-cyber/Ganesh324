@@ -28,7 +28,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Loader2, Upload, Trash2, Camera, FileEdit } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
-import { ScrollArea } from "./ui/scroll-area";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { getFirestoreDb } from "@/lib/firebase";
 import { collection, doc, setDoc, addDoc } from "firebase/firestore";
 import { getStorage, ref, uploadString, getDownloadURL } from "firebase/storage";
@@ -66,22 +66,22 @@ export interface Product {
 const productFormSchema = z.object({
   name: z.string().min(1, "Product name is required."),
   description: z.string().min(1, "Description is required."),
-  highlights: z.string().optional(),
+  highlights: z.string().optional().default(''),
   highlightsImage: z.any().optional(),
   category: z.string().min(1, "Please select a category."),
-  subcategory: z.string().optional(),
-  brand: z.string().optional(),
-  modelNumber: z.string().optional(),
-  availableSizes: z.string().optional(),
-  availableColors: z.string().optional(),
-  countryOfOrigin: z.string().optional(),
+  subcategory: z.string().optional().default(''),
+  brand: z.string().optional().default(''),
+  modelNumber: z.string().optional().default(''),
+  availableSizes: z.string().optional().default(''),
+  availableColors: z.string().optional().default(''),
+  countryOfOrigin: z.string().optional().default(''),
   price: z.coerce.number().min(0, "Price must be a positive number."),
   discountPercentage: z.coerce.number().optional(),
   stock: z.coerce.number().int().min(0, "Stock cannot be negative."),
   media: z.array(z.any()).min(1, "At least one image or video is required."),
   listingType: z.enum(['general', 'live-only']),
   status: z.enum(['active', 'draft', 'archived']),
-  keyDetails: z.string().optional(),
+  keyDetails: z.string().optional().default(''),
   weight: z.coerce.number().optional(),
   length: z.coerce.number().optional(),
   width: z.coerce.number().optional(),
@@ -130,7 +130,11 @@ export function ProductForm({ onSave, productToEdit }: ProductFormProps) {
         height: product.height ?? undefined,
       });
       setMedia(product.media || []);
-      setHighlightsImagePreview(product.highlightsImage?.preview || null);
+      if(typeof product.highlightsImage === 'string') {
+        setHighlightsImagePreview(product.highlightsImage);
+      } else {
+        setHighlightsImagePreview(product.highlightsImage?.preview || null);
+      }
     } else {
       form.reset({
         name: "", description: "", highlights: "", category: "", subcategory: "", brand: "", modelNumber: "",
