@@ -2,7 +2,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
+import { useForm, useFieldArray } from "react-hook-form";
 import * as z from "zod";
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { Button } from "@/components/ui/button";
@@ -25,7 +25,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Loader2, Upload, Trash2, Camera, FileEdit, Video, ImageIcon } from "lucide-react";
+import { Loader2, Upload, Trash2, Camera, FileEdit, Video, ImageIcon, PlusCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -34,6 +34,15 @@ import { collection, doc, setDoc, addDoc } from "firebase/firestore";
 import { ref, uploadString, getDownloadURL } from "firebase/storage";
 import { defaultCategories } from "@/lib/categories";
 import Image from "next/image";
+
+const variantSchema = z.object({
+    id: z.string().optional(),
+    size: z.string().optional(),
+    color: z.string().optional(),
+    price: z.coerce.number().min(0, "Price must be positive."),
+    stock: z.coerce.number().int().min(0, "Stock cannot be negative."),
+    image: z.any().optional(),
+});
 
 export interface Product {
     id?: string;
@@ -46,13 +55,10 @@ export interface Product {
     subcategory?: string;
     brand?: string;
     modelNumber?: string;
-    availableSizes?: string;
-    availableColors?: string;
-    countryOfOrigin?: string;
     price: number;
     discountPercentage?: number;
     stock: number;
-    variants?: any[];
+    variants: z.infer<typeof variantSchema>[];
     media: { type: 'video' | 'image', file?: File, url: string }[];
     status: 'active' | 'draft' | 'archived';
     listingType: 'general' | 'live-only';
@@ -72,13 +78,11 @@ const productFormSchema = z.object({
   subcategory: z.string().optional().default(''),
   brand: z.string().optional().default(''),
   modelNumber: z.string().optional().default(''),
-  availableSizes: z.string().optional().default(''),
-  availableColors: z.string().optional().default(''),
-  countryOfOrigin: z.string().optional().default(''),
   price: z.coerce.number().min(0, "Price must be a positive number."),
   discountPercentage: z.coerce.number().optional(),
   stock: z.coerce.number().int().min(0, "Stock cannot be negative."),
   media: z.array(z.any()).min(1, "At least one image or video is required."),
+  variants: z.array(variantSchema).optional().default([]),
   listingType: z.enum(['general', 'live-only']),
   status: z.enum(['active', 'draft', 'archived']),
   keyDetails: z.string().optional().default(''),
@@ -109,10 +113,15 @@ export function ProductForm({ onSave, productToEdit }: ProductFormProps) {
     resolver: zodResolver(productFormSchema),
     defaultValues: {
       name: "", description: "", highlights: "", category: "", subcategory: "", brand: "", modelNumber: "",
-      availableSizes: "", availableColors: "", countryOfOrigin: "", price: 0, stock: 0, media: [],
+      price: 0, stock: 0, media: [], variants: [],
       listingType: 'general', status: 'active', keyDetails: "", discountPercentage: undefined,
       weight: undefined, length: undefined, width: undefined, height: undefined,
     },
+  });
+
+  const { fields, append, remove } = useFieldArray({
+    control: form.control,
+    name: "variants",
   });
   
   const setInitialValues = useCallback((product: Product | undefined) => {
@@ -128,6 +137,7 @@ export function ProductForm({ onSave, productToEdit }: ProductFormProps) {
         length: product.length ?? undefined,
         width: product.width ?? undefined,
         height: product.height ?? undefined,
+        variants: product.variants || [],
       });
       setMedia(product.media || []);
       if(typeof product.highlightsImage === 'string') {
@@ -138,7 +148,7 @@ export function ProductForm({ onSave, productToEdit }: ProductFormProps) {
     } else {
       form.reset({
         name: "", description: "", highlights: "", category: "", subcategory: "", brand: "", modelNumber: "",
-        availableSizes: "", availableColors: "", countryOfOrigin: "", price: 0, stock: 0, media: [],
+        price: 0, stock: 0, media: [], variants: [],
         listingType: 'general', status: 'active', keyDetails: "", discountPercentage: undefined,
         weight: undefined, length: undefined, width: undefined, height: undefined,
       });
@@ -312,20 +322,41 @@ export function ProductForm({ onSave, productToEdit }: ProductFormProps) {
            <ScrollArea className="h-[60vh]">
             <div className="space-y-6 py-4 px-6">
                 <FormField control={form.control} name="price" render={({ field }) => (
-                    <FormItem><FormLabel>Selling Price</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>
+                    <FormItem><FormLabel>Default Selling Price</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormDescription>This will be used if no variant price is set.</FormDescription><FormMessage /></FormItem>
                 )}/>
                 <FormField control={form.control} name="discountPercentage" render={({ field }) => (
                     <FormItem><FormLabel>Discount Percentage (Optional)</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormDescription>Creates a "sale" effect by showing a higher original price.</FormDescription><FormMessage /></FormItem>
                 )}/>
                 <FormField control={form.control} name="stock" render={({ field }) => (
-                    <FormItem><FormLabel>Total Stock</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>
+                    <FormItem><FormLabel>Default Stock</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormDescription>This is the total stock if no variants are specified.</FormDescription><FormMessage /></FormItem>
                 )}/>
-                <FormField control={form.control} name="availableSizes" render={({ field }) => (
-                    <FormItem><FormLabel>Available Sizes (comma-separated)</FormLabel><FormControl><Input placeholder="e.g., S, M, L, XL" {...field} /></FormControl><FormMessage /></FormItem>
-                )} />
-                <FormField control={form.control} name="availableColors" render={({ field }) => (
-                    <FormItem><FormLabel>Available Colors (comma-separated)</FormLabel><FormControl><Input placeholder="e.g., Red, Blue, Green" {...field} /></FormControl><FormMessage /></FormItem>
-                )} />
+                <Separator />
+                <div>
+                  <h3 className="font-semibold text-lg">Product Variants</h3>
+                  <FormDescription>Add variants if your product comes in different sizes, colors, etc. This will override the default price and stock.</FormDescription>
+                </div>
+                <div className="space-y-4">
+                  {fields.map((field, index) => (
+                    <div key={field.id} className="grid grid-cols-[1fr,1fr,1fr,1fr,auto] gap-2 items-end border p-3 rounded-lg">
+                      <FormField control={form.control} name={`variants.${index}.size`} render={({ field }) => (
+                          <FormItem><FormLabel className="text-xs">Size</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                      )} />
+                      <FormField control={form.control} name={`variants.${index}.color`} render={({ field }) => (
+                          <FormItem><FormLabel className="text-xs">Color</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                      )} />
+                      <FormField control={form.control} name={`variants.${index}.price`} render={({ field }) => (
+                          <FormItem><FormLabel className="text-xs">Price</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>
+                      )} />
+                      <FormField control={form.control} name={`variants.${index}.stock`} render={({ field }) => (
+                          <FormItem><FormLabel className="text-xs">Stock</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>
+                      )} />
+                      <Button type="button" variant="ghost" size="icon" onClick={() => remove(index)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                    </div>
+                  ))}
+                  <Button type="button" variant="outline" size="sm" onClick={() => append({ size: '', color: '', price: 0, stock: 0 })}>
+                    <PlusCircle className="mr-2 h-4 w-4"/> Add Variant
+                  </Button>
+                </div>
             </div>
            </ScrollArea>
         );
