@@ -25,8 +25,8 @@ service cloud.firestore {
       return isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
     
-    function isSeller(userId) {
-      return get(/databases/$(database)/documents/users/$(userId)).data.role == 'seller';
+    function isSeller() {
+      return isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'seller';
     }
 
     /**
@@ -73,11 +73,11 @@ service cloud.firestore {
        */
       match /products/{productId} {
           // Products are publicly readable.
-          allow read: if true;
+          allow read, list: if true;
 
           // Only the owner of the user document (the seller) can create, update, or delete their own products.
-          // This rule now checks the incoming data, which is allowed.
-          allow write: if isOwner(userId) && isSeller(userId);
+          // This rule checks the role of the requesting user.
+          allow write: if isOwner(userId) && isSeller();
       }
     }
 
