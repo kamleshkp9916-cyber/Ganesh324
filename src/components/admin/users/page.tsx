@@ -1,5 +1,4 @@
 
-
 "use client"
 
 import {
@@ -52,7 +51,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import {
   Table,
   TableBody,
@@ -78,6 +77,8 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { cn } from "@/lib/utils";
 import { useDebounce } from "@/hooks/use-debounce";
 import { createImpersonationToken } from "@/ai/flows/impersonation-flow";
+import { PAYOUT_REQUESTS_KEY } from "@/app/admin/settings/page";
+import { useLocalStorage } from "@/hooks/use-local-storage";
 
 const mockPayments = [
     { orderId: "#ORD5896", customer: { name: "Ganesh Prajapati" }, amount: 12500.00, status: 'holding' },
@@ -86,8 +87,8 @@ const mockPayments = [
 ];
 
 const mockPayouts = [
-    { sellerId: 'seller1', name: 'FashionFinds', available: 52340.50, status: 'pending' },
-    { sellerId: 'seller2', name: 'GadgetGuru', available: 128900.00, status: 'paid' },
+    { id: 1, sellerId: 'fashionfinds-uid', sellerName: 'FashionFinds', amount: 52340.50, status: 'pending', requestedAt: new Date().toISOString() },
+    { id: 2, sellerId: 'gadgetguru-uid', sellerName: 'GadgetGuru', amount: 128900.00, status: 'paid', requestedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString() },
 ];
 
 const UserTable = ({ users, onViewDetails, onDelete, onMakeAdmin, onImpersonate }: { users: any[], onViewDetails: (user: any) => void, onDelete: (user: any) => void, onMakeAdmin: (user: any) => void, onImpersonate: (user: any) => void }) => {
@@ -171,6 +172,13 @@ export default function AdminUsersPage() {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || "");
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
+  const [payoutRequests, setPayoutRequests] = useLocalStorage<any[]>(PAYOUT_REQUESTS_KEY, []);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && payoutRequests.length === 0) {
+        setPayoutRequests(mockPayouts);
+    }
+  }, [payoutRequests, setPayoutRequests]);
 
   const fetchUsers = async () => {
     const db = getFirestoreDb();
@@ -222,11 +230,9 @@ export default function AdminUsersPage() {
         toast({ title: "Generating login token..." });
         const { token } = await createImpersonationToken(userToImpersonate.uid);
         
-        // Store the token and current admin's ID to allow returning
         localStorage.setItem('impersonationToken', token);
-        localStorage.setItem('adminToken', await user.getIdToken()); // Or some other way to re-authenticate as admin
+        localStorage.setItem('adminToken', await user.getIdToken()); 
 
-        // Open new tab and sign in with the custom token
         const newTab = window.open('/', '_blank');
         if (newTab) {
             newTab.focus();
@@ -243,7 +249,6 @@ export default function AdminUsersPage() {
       if (!userToDelete) return;
       toast({ title: `Deleting user ${userToDelete.displayName}...` });
       // In a real app, you would call a server function to delete the user
-      // from Firebase Auth and Firestore. For now, we'll just remove from state.
       console.log("Simulating deletion of user:", userToDelete.uid);
       setAllUsersState(prev => prev.filter(u => u.uid !== userToDelete.uid));
       toast({ title: "User Deleted", description: `${userToDelete.displayName} has been removed.` });
@@ -262,6 +267,17 @@ export default function AdminUsersPage() {
   
   const handleViewDetails = (userToShow: any) => {
     router.push(`/admin/users/${userToShow.uid}`);
+  };
+
+  const handlePayoutStatusChange = (requestId: number, newStatus: 'paid' | 'rejected') => {
+    const updatedRequests = payoutRequests.map(req => 
+        req.id === requestId ? { ...req, status: newStatus } : req
+    );
+    setPayoutRequests(updatedRequests);
+    toast({
+        title: `Request ${newStatus === 'paid' ? 'Approved' : 'Rejected'}`,
+        description: `The payout request has been updated.`,
+    });
   };
 
   const customers = filteredUsers.filter(u => u.role === 'customer');
@@ -331,6 +347,12 @@ export default function AdminUsersPage() {
             Users
           </Link>
            <Link
+            href="/admin/kyc"
+            className="text-muted-foreground transition-colors hover:text-foreground"
+          >
+            KYC
+          </Link>
+           <Link
             href="/admin/inquiries"
             className="text-muted-foreground transition-colors hover:text-foreground"
           >
@@ -395,6 +417,12 @@ export default function AdminUsersPage() {
                 className="hover:text-foreground"
               >
                 Users
+              </Link>
+               <Link
+                href="/admin/kyc"
+                className="text-muted-foreground hover:text-foreground"
+              >
+                KYC
               </Link>
               <Link
                 href="/admin/inquiries"
@@ -547,18 +575,18 @@ export default function AdminUsersPage() {
                     </CardHeader>
                     <CardContent>
                          <Table>
-                            <TableHeader><TableRow><TableHead>Seller</TableHead><TableHead>Amount Available</TableHead><TableHead>Status</TableHead><TableHead>Action</TableHead></TableRow></TableHeader>
+                            <TableHeader><TableRow><TableHead>Seller</TableHead><TableHead>Amount Requested</TableHead><TableHead>Status</TableHead><TableHead>Action</TableHead></TableRow></TableHeader>
                             <TableBody>
-                                {mockPayouts.map(p => (
-                                    <TableRow key={p.sellerId}>
-                                        <TableCell>{p.name}</TableCell>
-                                        <TableCell>₹{p.available.toFixed(2)}</TableCell>
-                                        <TableCell><Badge variant={p.status === 'pending' ? 'warning' : 'success'}>{p.status}</Badge></TableCell>
+                                {payoutRequests.map(p => (
+                                    <TableRow key={p.id}>
+                                        <TableCell>{p.sellerName}</TableCell>
+                                        <TableCell>₹{p.amount.toFixed(2)}</TableCell>
+                                        <TableCell><Badge variant={p.status === 'pending' ? 'warning' : p.status === 'paid' ? 'success' : 'destructive'}>{p.status}</Badge></TableCell>
                                         <TableCell>
                                             {p.status === 'pending' && (
                                                 <div className="flex gap-2">
-                                                    <Button variant="default" size="sm"><CheckCircle className="mr-2 h-4 w-4" />Approve</Button>
-                                                    <Button variant="destructive" size="sm"><XCircle className="mr-2 h-4 w-4" />Deny</Button>
+                                                    <Button variant="default" size="sm" onClick={() => handlePayoutStatusChange(p.id, 'paid')}><CheckCircle className="mr-2 h-4 w-4" />Approve</Button>
+                                                    <Button variant="destructive" size="sm" onClick={() => handlePayoutStatusChange(p.id, 'rejected')}><XCircle className="mr-2 h-4 w-4" />Deny</Button>
                                                 </div>
                                             )}
                                         </TableCell>

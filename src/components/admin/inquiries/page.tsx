@@ -61,7 +61,7 @@ import { useAuth } from "@/hooks/use-auth"
 import { LoadingSpinner } from "@/components/ui/loading-spinner"
 import { useAuthActions } from "@/lib/auth"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import { getInquiries, markInquiryRead, Inquiry } from "@/ai/flows/contact-flow"
 import { cn } from "@/lib/utils"
 
@@ -114,6 +114,7 @@ export default function AdminInquiriesPage() {
                     <Link href="/admin/dashboard" className="text-muted-foreground transition-colors hover:text-foreground">Dashboard</Link>
                     <Link href="/admin/orders" className="text-muted-foreground transition-colors hover:text-foreground">Orders</Link>
                     <Link href="/admin/users" className="text-muted-foreground transition-colors hover:text-foreground">Users</Link>
+                    <Link href="/admin/kyc" className="text-muted-foreground transition-colors hover:text-foreground">KYC</Link>
                     <Link href="/admin/inquiries" className="text-foreground transition-colors hover:text-foreground">Inquiries</Link>
                     <Link href="/admin/messages" className="text-muted-foreground transition-colors hover:text-foreground">Messages</Link>
                     <Link href="/admin/products" className="text-muted-foreground transition-colors hover:text-foreground">Products</Link>
@@ -123,11 +124,15 @@ export default function AdminInquiriesPage() {
                 <Sheet>
                     <SheetTrigger asChild><Button variant="outline" size="icon" className="shrink-0 md:hidden"><Menu className="h-5 w-5" /><span className="sr-only">Menu</span></Button></SheetTrigger>
                     <SheetContent side="left">
+                        <SheetHeader>
+                            <SheetTitle className="sr-only">Admin Navigation Menu</SheetTitle>
+                        </SheetHeader>
                         <nav className="grid gap-6 text-lg font-medium">
                             <Link href="/admin/dashboard" className="flex items-center gap-2 text-lg font-semibold"><ShieldCheck className="h-6 w-6" /><span>Admin Panel</span></Link>
                             <Link href="/admin/dashboard" className="text-muted-foreground hover:text-foreground">Dashboard</Link>
                             <Link href="/admin/orders" className="text-muted-foreground hover:text-foreground">Orders</Link>
                             <Link href="/admin/users" className="text-muted-foreground hover:text-foreground">Users</Link>
+                            <Link href="/admin/kyc" className="text-muted-foreground hover:text-foreground">KYC</Link>
                             <Link href="/admin/inquiries" className="hover:text-foreground">Inquiries</Link>
                             <Link href="/admin/messages" className="text-muted-foreground hover:text-foreground">Messages</Link>
                             <Link href="/admin/products" className="text-muted-foreground hover:text-foreground">Products</Link>
