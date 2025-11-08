@@ -2,7 +2,7 @@
 "use client"
 
 import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm, useFieldArray } from "react-hook-form"
+import { useForm, useFieldArray, useFormContext } from "react-hook-form"
 import * as z from "zod"
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { Button } from "@/components/ui/button"
@@ -83,9 +83,12 @@ interface ProductFormProps {
 
 const VariantImageInput = ({ control, index, getValues }: { control: any, index: number, getValues: any }) => {
     const fileInputRef = useRef<HTMLInputElement>(null);
-    const { field } = useForm({ control }).register(`variants.${index}.image`);
-
-    const [preview, setPreview] = useState(getValues(`variants.${index}.image`)?.preview || null);
+    
+    // Correctly get field state and update function from useFormContext
+    const { setValue } = useFormContext(); 
+    
+    const initialPreview = getValues(`variants.${index}.image`)?.preview || null;
+    const [preview, setPreview] = useState(initialPreview);
 
     const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
@@ -94,7 +97,8 @@ const VariantImageInput = ({ control, index, getValues }: { control: any, index:
             reader.onloadend = () => {
                 const result = reader.result as string;
                 setPreview(result);
-                control.setValue(`variants.${index}.image`, { file, preview: result });
+                // Use setValue from useFormContext to update the form state
+                setValue(`variants.${index}.image`, { file, preview: result });
             };
             reader.readAsDataURL(file);
         }
@@ -256,7 +260,7 @@ export function ProductForm({ onSave, productToEdit }: ProductFormProps) {
                       <FormControl>
                           <Input type="file" accept="image/*" onChange={e => field.onChange(e.target.files?.[0])} />
                       </FormControl>
-                      <FormDescription>An image to display prominently in the highlights section.</FormDescription>
+                      <FormDescription>An image to display prominently in the highlights section. Recommended size: 800x800 pixels.</FormDescription>
                       <FormMessage />
                   </FormItem>
               )}/>
@@ -322,7 +326,7 @@ export function ProductForm({ onSave, productToEdit }: ProductFormProps) {
                     {variantFields.length > 0 ? (
                         <div className="space-y-2">
                              {variantFields.map((field, index) => (
-                                <div key={field.id} className="grid grid-cols-[auto,1fr,1fr,1fr,auto] gap-2 items-center p-3 border rounded-lg">
+                                <div key={field.id} className="grid grid-cols-[auto,1fr,1fr,1fr,1fr,auto] gap-2 items-end p-3 border rounded-lg">
                                     <VariantImageInput control={form.control} index={index} getValues={form.getValues} />
                                     <FormField control={form.control} name={`variants.${index}.color`} render={({ field }) => (
                                         <FormItem><FormLabel className="text-xs">Color</FormLabel><FormControl><Input placeholder="e.g., Red" {...field} /></FormControl><FormMessage /></FormItem>
@@ -385,7 +389,7 @@ export function ProductForm({ onSave, productToEdit }: ProductFormProps) {
                                 </div>
                             </div>
                         </FormControl>
-                         <FormDescription>The first item will be the main display media. Max 5MB per file.</FormDescription>
+                         <FormDescription>The first item will be the main display media. Recommended size: 800x800 pixels. Max 5MB per file.</FormDescription>
                         <FormMessage />
                     </FormItem>
                 )}/>
