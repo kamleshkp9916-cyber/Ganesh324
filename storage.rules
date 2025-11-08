@@ -9,10 +9,10 @@ service firebase.storage {
     }
 
     // Product media: sellers can only write to their own folder.
-    // The application logic ensures that only users with the 'seller' role can trigger an upload.
+    // The rule now also checks that the user has the 'seller' role in Firestore.
     match /products/{userId}/{allPaths=**} {
       allow read: if true;
-      allow write: if request.auth != null && request.auth.uid == userId;
+      allow write: if request.auth != null && request.auth.uid == userId && get(/databases/(default)/documents/users/$(userId)).data.role == 'seller';
     }
 
     // Posts media: only the authenticated user may write into their own folder
@@ -34,3 +34,4 @@ service firebase.storage {
     }
   }
 }
+
