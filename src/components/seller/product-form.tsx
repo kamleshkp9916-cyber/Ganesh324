@@ -90,7 +90,7 @@ const productFormSchema = z.object({
   media: z.array(z.any()).min(1, "At least one image or video is required."),
   variants: z.array(variantSchema).optional().default([]),
   listingType: z.enum(['general', 'live-only']),
-  status: z.enum(['active', 'draft', 'archived']),
+  status: z.enum(['active', 'draft' | 'archived']),
   keyDetails: z.string().optional().default(''),
   weight: z.coerce.number().optional(),
   length: z.coerce.number().optional(),
@@ -300,6 +300,32 @@ export function ProductForm({ onSave, productToEdit }: ProductFormProps) {
               <FormField control={form.control} name="description" render={({ field }) => (
                 <FormItem><FormLabel>Description</FormLabel><FormControl><Textarea {...field} /></FormControl><FormMessage /></FormItem>
               )} />
+               <FormField control={form.control} name="highlights" render={({ field }) => (
+                    <FormItem>
+                        <FormLabel>Highlights</FormLabel>
+                        <FormControl><Textarea placeholder="Feature 1&#10;Feature 2&#10;Feature 3" {...field} /></FormControl>
+                        <FormDescription>Enter each highlight on a new line.</FormDescription>
+                        <FormMessage />
+                    </FormItem>
+                )} />
+
+                <FormField control={form.control} name="highlightsImage" render={({ field }) => (
+                    <FormItem>
+                        <FormLabel>Highlights Image (Optional)</FormLabel>
+                        <FormControl>
+                                <div className="w-full h-40 rounded-lg border-2 border-dashed flex items-center justify-center bg-muted text-muted-foreground hover:border-primary hover:text-primary cursor-pointer relative" onClick={() => highlightsImageInputRef.current?.click()}>
+                                {highlightsImagePreview ? (
+                                    <Image src={highlightsImagePreview} alt="Highlights Preview" fill sizes="100vw" className="object-contain" />
+                                ) : (
+                                    <div className="text-center"><Camera className="h-8 w-8 mx-auto" /><p className="text-xs mt-1">Click to Upload (e.g., a size chart)</p></div>
+                                )}
+                                <input id="highlights-image-upload" type="file" ref={highlightsImageInputRef} className="hidden" accept="image/*" onChange={handleHighlightsImageUpload}/>
+                            </div>
+                        </FormControl>
+                        <FormDescription>This image will be shown alongside product highlights.</FormDescription>
+                        <FormMessage />
+                    </FormItem>
+                )}/>
               <div className="grid grid-cols-2 gap-4">
                   <FormField control={form.control} name="category" render={({ field }) => (
                       <FormItem>
@@ -480,3 +506,5 @@ export function ProductForm({ onSave, productToEdit }: ProductFormProps) {
     </Form>
   );
 }
+
+    
