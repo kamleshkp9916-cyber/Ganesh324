@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
@@ -32,6 +31,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { MoreHorizontal } from "lucide-react";
 import { getFirestoreDb } from "@/lib/firebase";
 import { collection, query, where, getDocs } from "firebase/firestore";
+import Image from "next/image";
 
 export const COUPONS_KEY = 'streamcart_coupons';
 
@@ -46,7 +46,7 @@ const couponSchema = z.object({
   applicableProducts: z.array(z.string()).optional(),
 });
 
-export type Coupon = z.infer<typeof couponSchema> & { sellerId: string, sellerName?: string, status?: 'pending' | 'active' | 'rejected' };
+export type Coupon = z.infer<typeof couponSchema> & { sellerId: string, sellerName?: string, status?: 'pending' | 'active' | 'rejected' | 'archived' };
 
 const promotionTiers = [
     {
@@ -210,7 +210,7 @@ export default function SellerPromotionsPage() {
 
     const handleSaveCoupon = (coupon: Omit<Coupon, 'sellerId'>) => {
         if (!user) return;
-        const couponWithSeller = { ...coupon, sellerId: user.uid };
+        const couponWithSeller: Coupon = { ...coupon, sellerId: user.uid, status: 'active' };
         setAllCoupons(prev => {
             const newCoupons = [...prev];
             const existingIndex = newCoupons.findIndex(c => c.id === coupon.id);
@@ -234,13 +234,10 @@ export default function SellerPromotionsPage() {
         setIsCouponFormOpen(true);
     };
 
-    const getProductNames = (productIds: string[] | undefined) => {
-        if (!productIds || productIds.length === 0) return "All Products";
+    const getAppliedProducts = (productIds?: string[]): any[] => {
+        if (!productIds || productIds.length === 0) return [];
         const allProducts = Object.values(productDetails);
-        return productIds.map(id => {
-            const product = allProducts.find(p => p.id.toString() === id || p.key === id);
-            return product ? product.name : 'Unknown Product';
-        }).join(', ');
+        return productIds.map(id => allProducts.find(p => p.id.toString() === id || p.key === id)).filter(Boolean);
     };
 
     return (
@@ -264,36 +261,57 @@ export default function SellerPromotionsPage() {
                             </CardHeader>
                              <CardContent>
                                 <div className="space-y-4">
-                                {sellerCoupons.map(coupon => (
-                                    <div key={coupon.id} className="flex items-center justify-between rounded-lg border p-4">
-                                        <div className="flex items-center gap-4">
-                                            <div className="w-12 h-12 bg-muted rounded-md flex items-center justify-center">
-                                                <Ticket className="h-6 w-6 text-primary" />
+                                {sellerCoupons.map(coupon => {
+                                    const appliedProducts = getAppliedProducts(coupon.applicableProducts);
+                                    return (
+                                        <div key={coupon.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between rounded-lg border p-4 gap-4">
+                                            <div className="flex items-start gap-4">
+                                                <div className="w-12 h-12 bg-muted rounded-md flex items-center justify-center flex-shrink-0">
+                                                    <Ticket className="h-6 w-6 text-primary" />
+                                                </div>
+                                                <div>
+                                                    <h4 className="font-semibold">{coupon.code}</h4>
+                                                    <p className="text-sm text-muted-foreground">{coupon.description}</p>
+                                                     {coupon.expiresAt && <p className="text-xs text-muted-foreground mt-1">Expires on: {format(new Date(coupon.expiresAt), 'PPP')}</p>}
+                                                </div>
                                             </div>
-                                            <div>
-                                                <h4 className="font-semibold">{coupon.code}</h4>
-                                                <p className="text-sm text-muted-foreground">{coupon.description}</p>
-                                                <p className="text-xs text-muted-foreground mt-1">Applies to: <span className="font-medium">{getProductNames(coupon.applicableProducts)}</span></p>
-                                                 {coupon.expiresAt && <p className="text-xs text-muted-foreground mt-1">Expires on: {format(new Date(coupon.expiresAt), 'PPP')}</p>}
+                                             <div className="flex flex-col sm:items-end gap-2 w-full sm:w-auto">
+                                                <div className="flex items-center gap-2">
+                                                    {appliedProducts.length > 0 ? (
+                                                        appliedProducts.slice(0,3).map(p => (
+                                                            <div key={p.key} className="w-10 h-10 rounded-md border overflow-hidden">
+                                                                <Image src={p.images[0]} alt={p.name} width={40} height={40} className="object-cover"/>
+                                                            </div>
+                                                        ))
+                                                    ) : (
+                                                        <Badge variant="outline">All Products</Badge>
+                                                    )}
+                                                     {appliedProducts.length > 3 && (
+                                                         <div className="w-10 h-10 rounded-md border bg-muted flex items-center justify-center text-xs font-medium">
+                                                            +{appliedProducts.length - 3}
+                                                         </div>
+                                                     )}
+                                                </div>
+                                                <DropdownMenu>
+                                                    <DropdownMenuTrigger asChild>
+                                                        <Button variant="ghost" size="sm" className="w-fit self-end">
+                                                            <MoreHorizontal className="h-4 w-4 mr-2" />
+                                                            Manage
+                                                        </Button>
+                                                    </DropdownMenuTrigger>
+                                                    <DropdownMenuContent align="end">
+                                                        <DropdownMenuItem onSelect={() => openCouponForm(coupon)}>
+                                                            <Edit className="mr-2 h-4 w-4" /> Edit
+                                                        </DropdownMenuItem>
+                                                        <DropdownMenuItem className="text-destructive" onSelect={() => handleDeleteCoupon(coupon.id!)}>
+                                                            <Trash2 className="mr-2 h-4 w-4" /> Delete
+                                                        </DropdownMenuItem>
+                                                    </DropdownMenuContent>
+                                                </DropdownMenu>
                                             </div>
                                         </div>
-                                         <DropdownMenu>
-                                            <DropdownMenuTrigger asChild>
-                                                <Button variant="ghost" size="icon" className="h-8 w-8">
-                                                    <MoreHorizontal className="h-4 w-4" />
-                                                </Button>
-                                            </DropdownMenuTrigger>
-                                            <DropdownMenuContent align="end">
-                                                <DropdownMenuItem onSelect={() => openCouponForm(coupon)}>
-                                                    <Edit className="mr-2 h-4 w-4" /> Edit
-                                                </DropdownMenuItem>
-                                                <DropdownMenuItem className="text-destructive" onSelect={() => handleDeleteCoupon(coupon.id!)}>
-                                                    <Trash2 className="mr-2 h-4 w-4" /> Delete
-                                                </DropdownMenuItem>
-                                            </DropdownMenuContent>
-                                        </DropdownMenu>
-                                    </div>
-                                ))}
+                                    )
+                                })}
                                 {sellerCoupons.length === 0 && (
                                     <div className="text-center text-muted-foreground py-12">
                                         <p>You haven't created any coupons yet.</p>
@@ -356,4 +374,3 @@ export default function SellerPromotionsPage() {
         </Dialog>
     );
 }
-
