@@ -9,7 +9,7 @@ import { LoadingSpinner } from './ui/loading-spinner';
 const publicOnlyPaths = ['/signup', '/forgot-password', '/'];
 const emailVerificationPath = '/verify-email';
 const adminPaths = ['/admin', '/admin/dashboard', '/admin/orders', '/admin/users', '/admin/products', '/admin/live-control', '/admin/settings', '/admin/messages', '/admin/inquiries', '/admin/edit/privacy', '/admin/edit/terms'];
-const sellerPaths = ['/seller/dashboard', '/seller/products', '/seller/orders', '/seller/messages'];
+const sellerPaths = ['/seller/dashboard', '/seller/products', '/seller/orders', '/seller/messages', '/seller/revenue', '/seller/promotions', '/seller/feed', '/seller/settings', '/seller/live/studio', '/seller/settings/kyc'];
 
 
 const isPublicAllowedPath = (pathname: string) => {
@@ -53,7 +53,7 @@ export function AuthRedirector() {
                 }
             } 
             else if (role === 'seller') {
-                if (publicOnlyPaths.includes(pathname) || pathname === emailVerificationPath || pathname.startsWith('/admin')) {
+                 if (publicOnlyPaths.includes(pathname) || pathname === emailVerificationPath || pathname.startsWith('/admin') || pathname === '/live-selling') {
                     targetPath = '/seller/dashboard';
                 }
             } 
