@@ -4,62 +4,24 @@
 import React from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import { useRouter } from 'next/navigation';
-import { Button, buttonVariants } from '@/components/ui/button';
-import { Edit, Mail, Phone, MapPin, Camera, Truck, Star, ThumbsUp, ThumbsDown, ShoppingBag, Eye, Award, History, Search, Plus, Trash2, Heart, MessageSquare, StarIcon, UserPlus, Users, Package, PackageSearch, Loader2, UserCheck, Instagram, Twitter, Youtube, Video, Facebook, Twitch, Play, MoreHorizontal, ArrowUp, ArrowDown, Flag } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Mail, Phone, MapPin, Package, Video, UserPlus, UserCheck, Instagram, Twitter, Youtube, Facebook, Twitch } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
-import { useEffect, useState, useRef, useMemo, useCallback } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { useEffect, useState, useMemo, useCallback } from 'react';
 import { cn } from '@/lib/utils';
 import { Separator } from './ui/separator';
-import { ScrollArea, ScrollBar } from './ui/scroll-area';
-import { EditAddressForm } from './edit-address-form';
 import { Skeleton } from './ui/skeleton';
 import { Badge } from './ui/badge';
 import Image from 'next/image';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { CreditCard, Wallet } from 'lucide-react';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from './ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
-import { getRecentlyViewed, addRecentlyViewed, addToWishlist, getWishlist, Product } from '@/lib/product-history';
-import { RadioGroup, RadioGroupItem } from './ui/radio-group';
-import { Label } from './ui/label';
-import Link from 'next/link';
-import { CreatePostForm, PostData } from './create-post-form';
-import { ChatPopup } from './chat-popup';
-import { toggleFollow, getUserData, getFollowers, getFollowing, isFollowing as isFollowingBackend, UserData, updateUserData } from '@/lib/follow-data';
-import { getUserReviews, Review } from '@/lib/review-data';
-import { getFirestore, collection, query, where, getDocs, orderBy, onSnapshot, serverTimestamp, addDoc, Timestamp } from 'firebase/firestore';
+import { toggleFollow, isFollowing as isFollowingBackend, UserData } from '@/lib/follow-data';
+import { getFirestore, collection, query, where, onSnapshot, orderBy } from 'firebase/firestore';
 import { getFirestoreDb } from '@/lib/firebase';
-import { getStatusFromTimeline } from '@/lib/order-data';
 import { formatDistanceToNow } from 'date-fns';
 import { productDetails } from '@/lib/product-data';
-import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from './ui/dropdown-menu';
-
-const mockReviews = [
-    { id: 1, productName: 'Wireless Headphones', rating: 5, review: 'Absolutely amazing sound quality and comfort. Best purchase this year!', date: '2 weeks ago', imageUrl: 'https://placehold.co/100x100.png', hint: 'modern headphones', productInfo: 'These are the latest model with active noise cancellation and a 20-hour battery life. Sold by GadgetGuru.' },
-    { id: 2, productName: 'Smart Watch', rating: 4, review: 'Great features and battery life. The strap could be a bit more comfortable, but overall a solid watch.', date: '1 month ago', imageUrl: null, hint: null, productInfo: 'Series 8 Smart Watch with GPS and cellular capabilities. Water-resistant up to 50m. Sold by TechWizard.' },
-    { id: 3, productName: 'Vintage Camera', rating: 5, review: "A beautiful piece of equipment. It works flawlessly and I've gotten so many compliments on it.", date: '3 months ago', imageUrl: 'https://placehold.co/100x100.png', hint: 'vintage film camera', productInfo: 'A fully refurbished 1975 film camera with a 50mm f/1.8 lens. A rare find! Sold by RetroClicks.' },
-];
-
-const averageRating = (mockReviews.reduce((acc, review) => acc + review.rating, 0) / mockReviews.length).toFixed(1);
-
-const mockAchievements = [
-    { id: 1, name: 'Top Shopper', icon: <ShoppingBag />, description: 'Made over 50 purchases' },
-    { id: 2, name: 'Power Viewer', icon: <Eye />, description: 'Watched over 100 hours of streams' },
-    { id: 3, name: 'Review Pro', icon: <ThumbsUp />, description: 'Wrote more than 20 helpful reviews' },
-    { id: 4, name: 'Pioneer', icon: <Award />, description: 'Joined within the first month of launch' },
-    { id: 5, name: 'One Year Club', icon: <History />, description: 'Member for over a year' },
-    { id: 6, name: 'Deal Hunter', icon: <Search />, description: 'Snagged 10+ flash sale items' },
-];
-
-const mockBeautyBoxProducts = [
-    { id: 'bb_prod_1', name: 'Vitamin C Serum', category: "Beauty", price: 2500, stock: 50, sold: 200, images: [{ preview: "https://placehold.co/200x200.png?text=Serum" }], hint: "skincare serum" },
-    { id: 'bb_prod_2', name: 'Matte Lipstick', category: "Beauty", price: 1200, stock: 100, sold: 500, images: [{ preview: "https://placehold.co/200x200.png?text=Lipstick" }], hint: "red lipstick" },
-    { id: 'bb_prod_3', name: 'Eyeshadow Palette', category: "Beauty", price: 3500, stock: 30, sold: 150, images: [{ preview: "https://placehold.co/200x200.png?text=Palette" }], hint: "eyeshadow palette" },
-    { id: 'bb_prod_4', name: 'Hydrating Face Mask', category: "Beauty", price: 800, stock: 75, sold: 400, images: [{ preview: "https://placehold.co/200x200.png?text=Mask" }], hint: "face mask" },
-];
+import Link from 'next/link';
 
 const liveSellers = [
     { id: 'fashionfinds-uid', name: 'FashionFinds', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Fashion', viewers: 1200, buyers: 25, rating: 4.8, reviews: 12, hint: 'woman posing stylish outfit', productId: 'prod_1', hasAuction: true },
@@ -75,11 +37,21 @@ const liveSellers = [
 ];
 
 const mockPastStreams = [
-    { id: 'gadgetguru-uid', title: 'Unboxing the Latest Tech', description: 'Join me as I unbox and review the most anticipated gadgets of the month. We\'ll take a look at the new smartphone, a pair of noise-cancelling headphones, and a surprise gadget you won\'t want to miss. Get ready for in-depth analysis, first impressions, and maybe a few giveaways!', date: '3 days ago', views: '1.2M', duration: '45:12', thumbnailUrl: 'https://placehold.co/400x225.png?text=Past+Stream+1' },
-    { id: 'fashionfinds-uid', title: 'Fall Fashion Lookbook', description: 'Discover the key trends for this fall season. I\'ll be styling five essential looks, from cozy knits to statement coats. We\'ll discuss color palettes, textures, and how to mix and match pieces to create your perfect autumn wardrobe. Get your notepads ready!', date: '1 week ago', views: '890k', duration: '1:02:30', thumbnailUrl: 'https://placehold.co/400x225.png?text=Past+Stream+2' },
-    { id: 'kitchenwiz-uid', title: 'Kitchen Gadgets You Need', description: 'Tired of tedious meal prep? I\'m showcasing five game-changing kitchen gadgets that will save you time and effort. From a high-speed blender to a smart air fryer, see them in action and learn some new recipes along the way. Your kitchen will thank you!', date: '2 weeks ago', views: '2.1M', duration: '33:45', thumbnailUrl: 'https://placehold.co/400x225.png?text=Past+Stream+3' },
-    { id: 'beautybox-uid', title: 'Morning Skincare Routine', description: 'A step-by-step guide to my go-to morning skincare routine for a glowing complexion. We\'ll cover cleansers, serums, moisturizers, and of course, SPF! I\'ll share my holy grail products and answer all your skincare questions. Let\'s get glowing!', date: '1 month ago', views: '500k', duration: '25:00', thumbnailUrl: 'https://placehold.co/400x225.png?text=Past+Stream+4' },
+    { id: 'gadgetguru-uid', title: 'Unboxing the Latest Tech', date: '3 days ago', views: '1.2M', duration: '45:12', thumbnailUrl: 'https://placehold.co/400x225.png?text=Past+Stream+1' },
+    { id: 'fashionfinds-uid', title: 'Fall Fashion Lookbook', date: '1 week ago', views: '890k', duration: '1:02:30', thumbnailUrl: 'https://placehold.co/400x225.png?text=Past+Stream+2' },
 ];
+
+const mockAchievements = [
+    { id: 1, name: 'Top Seller', icon: <Award className="h-6 w-6" />, description: 'Achieved top 1% seller status' },
+    { id: 2, name: 'Community Pillar', icon: <Users className="h-6 w-6" />, description: 'Over 10,000 followers' },
+    { id: 3, name: 'Power Streamer', icon: <Video className="h-6 w-6" />, description: 'Streamed for over 100 hours' },
+];
+
+const mockUserOrders = [
+    { orderId: '#STREAM619732', date: 'Nov 01, 2025', timeline: [{ status: 'Delivered' }] },
+    { orderId: '#MOCK5678', date: 'Oct 26, 2025', timeline: [{ status: 'Cancelled by seller' }] },
+];
+
 
 function ProductSkeletonGrid() {
     return (
@@ -97,392 +69,267 @@ function ProductSkeletonGrid() {
     );
 }
 
-function ReviewSkeleton() {
-    return (
-        <Card className="p-4">
-            <div className="flex gap-4">
-                <Skeleton className="w-20 h-20 rounded-md" />
-                <div className="flex-grow space-y-2">
-                    <Skeleton className="h-5 w-1/2" />
-                    <Skeleton className="h-4 w-1/4" />
-                    <Skeleton className="h-4 w-full" />
-                    <Skeleton className="h-4 w-3/4" />
-                </div>
-            </div>
-        </Card>
-    );
-}
-
-export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFollowToggle: onFollowToggleProp, handleAuthAction }: { profileData: UserData, isOwnProfile: boolean, onAddressesUpdate: (addresses: any[]) => void, onFollowToggle?: () => void, handleAuthAction: (callback: () => void) => void }) {
-  const { user, userData } = useAuth();
-  const { toast } = useToast();
-  const [profileImage, setProfileImage] = useState<string | null>(null);
-  const profileFileInputRef = useRef<HTMLInputElement>(null);
-  const [isAddressDialogOpen, setIsAddressDialogOpen] = useState(false);
-  const [addresses, setAddresses] = useState(profileData.addresses || []);
-  const [defaultAddressId, setDefaultAddressId] = useState((profileData.addresses && profileData.addresses[0]?.id) || null);
-  const [isLoadingContent, setIsLoadingContent] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [editingAddress, setEditingAddress] = useState(null);
-  const [recentlyViewedItems, setRecentlyViewedItems] = useState<Product[]>([]);
-  const [myReviews, setMyReviews] = useState<Review[]>([]);
-  const [wishlist, setWishlist] = useState<number[]>([]);
-  const displayName = profileData.displayName || (profileData as any).name || "";
-  const getProductsKey = (name: string) => `sellerProducts_${name}`;
-  const [sellerProducts, setSellerProducts] = useState<any[]>([]);
-  const [userPosts, setUserPosts] = useState<any[]>([]);
-  const [followingList, setFollowingList] = useState<any[]>([]);
-  const [followerList, setFollowerList] = useState<any[]>([]);
-  
-  const [isFollowed, setIsFollowed] = useState(false);
-
-  const [activeCategory, setActiveCategory] = useState("All");
-  const [userOrders, setUserOrders] = useState<any[]>([]);
-  const [isLoadingOrders, setIsLoadingOrders] = useState(false);
-  const router = useRouter();
-  
-  const loadFollowData = async () => {
-    if (user) {
-        setIsFollowed(await isFollowingBackend(user.uid, profileData.uid));
-        
-        if (isOwnProfile) {
-          setFollowingList(await getFollowing(user.uid));
-        }
-
-        setFollowerList(await getFollowers(profileData.uid));
-    }
-  };
-
-  useEffect(() => {
-    if (user) {
-       loadFollowData();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, profileData.uid, isOwnProfile]);
-  
-  // Fetch user orders
-  useEffect(() => {
-    const fetchOrders = async () => {
-        if (!isOwnProfile) return;
-        setIsLoadingOrders(true);
-        try {
-            const db = getFirestoreDb();
-            const ordersRef = collection(db, 'orders');
-            const q = query(ordersRef, where('userId', '==', profileData.uid), orderBy('orderDate', 'desc'));
-            const snapshot = await getDocs(q);
-            const orders = snapshot.docs.map(doc => ({...doc.data(), id: doc.id}));
-            setUserOrders(orders);
-        } catch (error) {
-            console.error("Error fetching orders:", error);
-            toast({variant: 'destructive', title: "Error", description: "Could not fetch order history."});
-        } finally {
-            setIsLoadingOrders(false);
-        }
-    };
-    fetchOrders();
-  }, [profileData.uid, isOwnProfile, toast]);
-
-
-  // Load data from localStorage on mount and add storage listener
-  useEffect(() => {
-    const productsKey = getProductsKey(displayName);
-    const loadData = () => {
-      setRecentlyViewedItems(getRecentlyViewed());
-      setWishlist(getWishlist().map(p => p.id));
-      if (profileData.role === 'seller') {
-          const storedProducts = localStorage.getItem(productsKey);
-          let productsToShow = [];
-          if (storedProducts) {
-              productsToShow = JSON.parse(storedProducts);
-          } else if (displayName === 'BeautyBox') {
-              productsToShow = mockBeautyBoxProducts;
-          }
-          setSellerProducts(productsToShow.length > 0 ? productsToShow : mockBeautyBoxProducts);
-      }
-      if (user) {
-          setMyReviews(getUserReviews(user.uid));
-      }
-    };
-    
-    loadData();
-
-    const handleStorageChange = (event: StorageEvent) => {
-      if (event.key === productsKey || event.key === 'streamcart_recently_viewed' || event.key === 'streamcart_wishlist' || event.key === 'streamcart_reviews') {
-        loadData();
-      }
-      if(event.key?.startsWith('following_')) {
-          loadFollowData();
-      }
-    };
-    
-    // Listen to firestore posts
-    const db = getFirestoreDb();
-    const postsQuery = query(collection(db, "posts"), where("sellerId", "==", profileData.uid), orderBy("timestamp", "desc"));
-    const unsubscribe = onSnapshot(postsQuery, (snapshot) => {
-        const postsData = snapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data(),
-            timestamp: doc.data().timestamp, // Keep it as a Timestamp for now
-        }));
-        setUserPosts(postsData);
-    });
-    
-    setTimeout(() => {
-        setIsLoadingContent(false);
-    }, 1000);
-
-    window.addEventListener('storage', handleStorageChange);
-    return () => {
-        window.removeEventListener('storage', handleStorageChange);
-        unsubscribe();
-    };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [profileData.role, displayName, profileData.uid, user]);
-
-
-  const productCategories = useMemo(() => {
-    const categories = new Set(sellerProducts.map(p => p.category));
-    return ["All", ...Array.from(categories)];
-  }, [sellerProducts]);
-
-  const filteredProducts = useMemo(() => {
-    let products = sellerProducts;
-    if (activeCategory !== 'All') {
-        products = products.filter(p => p.category === activeCategory);
-    }
-    if (searchTerm) {
-        products = products.filter(product =>
-            product.name.toLowerCase().includes(searchTerm.toLowerCase())
-        );
-    }
-    return products;
-  }, [searchTerm, sellerProducts, activeCategory]);
-
-   const sellerLiveStreams = useMemo(() => {
-        return liveSellers.filter(s => s.id === profileData.uid);
-    }, [profileData.uid]);
-
-    
-  const filteredUserPosts = useMemo(() => {
-    const mockSellerPost = {
-        id: 'mock-post-for-seller',
-        sellerId: profileData.uid,
-        sellerName: profileData.displayName,
-        avatarUrl: profileData.photoURL,
-        timestamp: new Date(), // This will be a JS Date object
-        content: `Welcome to my page! Check out our latest products and live streams. #welcome #${profileData.displayName.toLowerCase().replace(/\s+/g, '')}`,
-        images: [{ url: 'https://placehold.co/600x400.png' }],
-        likes: 15,
-        replies: 2,
-    };
-      
-    // Combine mock post with real posts, ensuring no duplicates if mock is somehow in db
-    const combined = [...userPosts];
-    if (!userPosts.find(p => p.id === mockSellerPost.id)) {
-        combined.unshift(mockSellerPost);
-    }
-
-    return combined;
-  }, [userPosts, profileData.uid, profileData.displayName, profileData.photoURL]);
-
-
-  const filteredRecentlyViewed = useMemo(() => {
-    if (!searchTerm) return recentlyViewedItems;
-    return recentlyViewedItems.filter(item =>
-      item.name.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  }, [searchTerm, recentlyViewedItems]);
-
-  const filteredReviews = useMemo(() => {
-    if (!searchTerm) return myReviews;
-    return myReviews.filter(review =>
-      review.productName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      review.text.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  }, [searchTerm, myReviews]);
-  
-  const handleWishlistToggle = (product: Product) => {
-    addToWishlist(product);
-    setWishlist(getWishlist().map(p => p.id));
-    toast({
-        title: "Added to Wishlist!",
-        description: `${product.name} has been added to your wishlist.`
-    });
-  };
-  
-  const handleFollowToggle = async () => {
-    handleAuthAction(async () => {
-        setIsFollowed(prev => !prev);
-        await toggleFollow(user!.uid, profileData.uid);
-        if (onFollowToggleProp) {
-            onFollowToggleProp();
-        }
-        loadFollowData();
-    });
-  };
-
-  const handleReportPost = () => {
-      handleAuthAction(() => {
-          toast({ title: 'Post Reported', description: 'Thank you for your feedback.' });
-      });
-  };
-
-  const renderContentWithHashtags = (text: string) => {
+const renderContentWithHashtags = (text: string) => {
+    if (!text) return null;
     const parts = text.split(/(#\w+)/g);
     return parts.map((part, index) => {
         if (part.startsWith('#')) {
-            return (
-                <button key={index} className="text-primary hover:underline font-semibold">
-                    {part}
-                </button>
-            );
+            return <button key={index} className="text-primary hover:underline font-semibold">{part}</button>;
         }
         return part;
     });
-  };
+};
 
-  const sellerAverageRating = (mockReviews.reduce((acc, review) => acc + review.rating, 0) / mockReviews.length).toFixed(1);
-  
-  const showAdminView = userData?.role === 'admin';
+const RealtimeTimestamp = ({ date, isEdited }: { date: Date | string, isEdited?: boolean }) => {
+    const [relativeTime, setRelativeTime] = useState('');
 
-  return (
-    <>
-      <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-6 relative p-4 sm:p-6">
-          <div className="relative z-10 flex-shrink-0">
-              <Avatar className="h-20 w-20 sm:h-24 sm:w-24 border-4 border-background shadow-lg">
-                  <AvatarImage src={profileImage || profileData?.photoURL || `https://placehold.co/128x128.png?text=${displayName.charAt(0)}`} alt={displayName} />
-                  <AvatarFallback className="text-4xl">{displayName.charAt(0) || user?.email?.charAt(0)}</AvatarFallback>
-              </Avatar>
-          </div>
-          
-          <div className="relative z-10 flex flex-col items-center sm:items-start text-foreground flex-grow text-center sm:text-left">
-              <div className="flex items-center gap-2">
-                  <h2 className="text-2xl sm:text-3xl font-bold">{displayName}</h2>
-                  {profileData.role === 'seller' && (
-                      <Badge variant="secondary" className="flex items-center gap-1">
-                          <Star className="h-3 w-3" />
-                          {sellerAverageRating}
-                      </Badge>
-                  )}
-              </div>
-              {isOwnProfile && <p className="text-sm text-muted-foreground">{profileData.email}</p>}
-              
-              <div className="flex gap-6 pt-2 sm:pt-4">
-                  <Dialog>
-                      <DialogTrigger asChild>
-                          <div className="text-center cursor-pointer">
-                              <p className="text-xl sm:text-2xl font-bold">{followingList.length}</p>
-                              <p className="text-xs sm:text-sm text-muted-foreground">Following</p>
-                          </div>
-                      </DialogTrigger>
-                      <DialogContent>
-                          <DialogHeader>
-                              <DialogTitle>Following</DialogTitle>
-                          </DialogHeader>
-                          <ScrollArea className="h-80">
-                              <div className="p-4 space-y-4">
-                                  {followingList.map(followedUser => (
-                                      <div key={followedUser?.uid} className="flex items-center justify-between group">
-                                          <Link href={`/seller/profile?userId=${followedUser?.uid}`} className="flex items-center gap-3">
-                                              <Avatar>
-                                                  <AvatarImage src={followedUser?.photoURL} />
-                                                  <AvatarFallback>{followedUser?.displayName?.charAt(0) || 'U'}</AvatarFallback>
-                                              </Avatar>
-                                              <div>
-                                                  <p className="font-semibold group-hover:underline">{followedUser?.displayName || 'Unnamed User'}</p>
-                                                  <p className="text-sm text-muted-foreground">@{followedUser?.displayName?.toLowerCase().replace(' ', '') || 'user'}</p>
-                                              </div>
-                                          </Link>
-                                          {isOwnProfile && (
-                                               <Button variant="outline" size="sm" onClick={() => handleFollowToggle()}>Unfollow</Button>
-                                          )}
-                                      </div>
-                                  ))}
-                                  {followingList.length === 0 && (
-                                      <p className="text-center text-muted-foreground py-8">Not following anyone yet.</p>
-                                  )}
-                              </div>
-                          </ScrollArea>
-                      </DialogContent>
-                  </Dialog>
-                  <Dialog>
-                        <DialogTrigger asChild>
-                            <div className="cursor-pointer">
-                                <p className="text-xl sm:text-2xl font-bold">{(followerList.length) > 1000 ? `${(followerList.length/1000).toFixed(1)}k` : (followerList.length)}</p>
-                                <p className="text-xs sm:text-sm text-muted-foreground">Followers</p>
-                            </div>
-                        </DialogTrigger>
-                        <DialogContent>
-                            <DialogHeader>
-                                <DialogTitle>Followers</DialogTitle>
-                            </DialogHeader>
-                            <ScrollArea className="h-80">
-                                  <div className="p-4 space-y-4">
-                                    {followerList.map(follower => (
-                                        <div key={follower?.uid} className="flex items-center justify-between group">
-                                            <Link href={`/seller/profile?userId=${follower?.uid}`} className="flex items-center gap-3">
-                                                <Avatar>
-                                                    <AvatarImage src={follower?.photoURL} />
-                                                    <AvatarFallback>{follower?.displayName?.charAt(0) || 'U'}</AvatarFallback>
-                                                </Avatar>
-                                                <div>
-                                                    <p className="font-semibold group-hover:underline">{follower?.displayName || 'Unnamed User'}</p>
-                                                    <p className="text-sm text-muted-foreground">@{follower?.displayName?.toLowerCase().replace(' ', '') || 'user'}</p>
-                                                </div>
-                                            </Link>
-                                            <Button variant="outline" size="sm" asChild>
-                                                <Link href={`/profile?userId=${follower?.uid}`}>View</Link>
-                                            </Button>
-                                        </div>
-                                    ))}
-                                    {followerList.length === 0 && (
-                                        <p className="text-center text-muted-foreground py-8">No followers yet.</p>
-                                    )}
-                                </div>
-                            </ScrollArea>
-                        </DialogContent>
-                    </Dialog>
-              </div>
+    useEffect(() => {
+        const update = () => {
+            setRelativeTime(formatDistanceToNow(new Date(date), { addSuffix: true }));
+        };
+        update();
+        const interval = setInterval(update, 60000); // Update every minute
+        return () => clearInterval(interval);
+    }, [date]);
 
-                {!isOwnProfile && profileData.role === 'seller' && (
-                    <div className="flex gap-2 mt-4">
-                         <Button onClick={handleFollowToggle} variant={isFollowed ? "outline" : "default"}>
-                            {isFollowed ? <UserCheck className="mr-2 h-4 w-4" /> : <UserPlus className="mr-2 h-4 w-4" />}
-                            {isFollowed ? "Following" : "Follow"}
-                        </Button>
-                        <Button variant="outline" onClick={() => handleAuthAction(() => router.push(`/feed?tab=messages&userId=${profileData.uid}&userName=${profileData.displayName}`))}>
-                            <MessageSquare className="mr-2 h-4 w-4" />
-                            Message
-                        </Button>
+    return <>{relativeTime} {isEdited && <span className="text-muted-foreground/80">• Edited</span>}</>;
+};
+
+export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFollowToggle: onFollowToggleProp, handleAuthAction }: { profileData: UserData, isOwnProfile: boolean, onAddressesUpdate: (addresses: any[]) => void, onFollowToggle?: () => void, handleAuthAction: (callback: () => void) => void }) {
+    const { user } = useAuth();
+    const [isLoadingContent, setIsLoadingContent] = useState(true);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [sellerProducts, setSellerProducts] = useState<any[]>([]);
+    const [userPosts, setUserPosts] = useState<any[]>([]);
+    const [isFollowed, setIsFollowed] = useState(false);
+    const [activeCategory, setActiveCategory] = useState("All");
+    const [userOrders, setUserOrders] = useState<any[]>(mockUserOrders); // Mock for now
+
+    useEffect(() => {
+        if (user) {
+            isFollowingBackend(user.uid, profileData.uid).then(setIsFollowed);
+        }
+    }, [user, profileData.uid]);
+    
+    useEffect(() => {
+        const productsKey = `sellerProducts`;
+        const storedProducts = localStorage.getItem(productsKey);
+        if (storedProducts) {
+            setSellerProducts(JSON.parse(storedProducts).filter((p: any) => p.seller === profileData.displayName));
+        }
+
+        const db = getFirestoreDb();
+        const postsQuery = query(collection(db, "posts"), where("sellerId", "==", profileData.uid), orderBy("timestamp", "desc"));
+        const unsubscribe = onSnapshot(postsQuery, (snapshot) => {
+            const postsData = snapshot.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data(),
+                timestamp: doc.data().timestamp,
+            }));
+            setUserPosts(postsData);
+        });
+
+        const timer = setTimeout(() => setIsLoadingContent(false), 500);
+
+        return () => {
+            clearTimeout(timer);
+            unsubscribe();
+        };
+    }, [profileData.uid, profileData.displayName]);
+
+    const productCategories = useMemo(() => {
+        const categories = new Set(sellerProducts.map(p => p.category));
+        return ["All", ...Array.from(categories)];
+    }, [sellerProducts]);
+
+    const filteredProducts = useMemo(() => {
+        let products = sellerProducts;
+        if (activeCategory !== 'All') {
+            products = products.filter(p => p.category === activeCategory);
+        }
+        if (searchTerm) {
+            products = products.filter(product =>
+                product.name.toLowerCase().includes(searchTerm.toLowerCase())
+            );
+        }
+        return products;
+    }, [searchTerm, sellerProducts, activeCategory]);
+
+    const handleFollowToggle = async () => {
+        handleAuthAction(async () => {
+            setIsFollowed(prev => !prev);
+            await toggleFollow(user!.uid, profileData.uid);
+            if (onFollowToggleProp) onFollowToggleProp();
+        });
+    };
+
+    return (
+        <>
+            <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-6 relative p-4 sm:p-6">
+                <Avatar className="h-20 w-20 sm:h-24 sm:w-24 border-4 border-background shadow-lg">
+                    <AvatarImage src={profileData.photoURL} alt={profileData.displayName} />
+                    <AvatarFallback className="text-4xl">{profileData.displayName.charAt(0)}</AvatarFallback>
+                </Avatar>
+                <div className="flex flex-col items-center sm:items-start text-foreground flex-grow text-center sm:text-left">
+                    <h2 className="text-2xl sm:text-3xl font-bold">{profileData.displayName}</h2>
+                    <div className="flex gap-2 items-center">
+                        <p className="text-sm text-muted-foreground">@{profileData.displayName.toLowerCase().replace(' ', '')}</p>
+                        {profileData.role === 'seller' && (
+                            <Badge variant="secondary" className="flex items-center gap-1">
+                                <Star className="h-3 w-3" /> 4.8
+                            </Badge>
+                        )}
+                         {profileData.role === 'admin' && <Badge variant="destructive">Admin</Badge>}
                     </div>
-              )}
-          </div>
-      </div>
+                    {profileData.bio && <p className="text-sm text-muted-foreground mt-2 max-w-lg">{profileData.bio}</p>}
+                    <div className="flex gap-4 pt-2 sm:pt-4">
+                        <div className="text-center">
+                            <p className="text-xl sm:text-2xl font-bold">{profileData.following || 0}</p>
+                            <p className="text-xs sm:text-sm text-muted-foreground">Following</p>
+                        </div>
+                        <div className="text-center">
+                            <p className="text-xl sm:text-2xl font-bold">{profileData.followers || 0}</p>
+                            <p className="text-xs sm:text-sm text-muted-foreground">Followers</p>
+                        </div>
+                    </div>
+                    {!isOwnProfile && profileData.role === 'seller' && (
+                        <div className="flex gap-2 mt-4">
+                            <Button onClick={handleFollowToggle} variant={isFollowed ? "outline" : "default"}>
+                                {isFollowed ? <UserCheck className="mr-2 h-4 w-4" /> : <UserPlus className="mr-2 h-4 w-4" />}
+                                {isFollowed ? "Following" : "Follow"}
+                            </Button>
+                        </div>
+                    )}
+                </div>
+            </div>
 
-      <div className="p-4 sm:p-6">
-        <Tabs defaultValue="posts" className="w-full">
-            <TabsList className="w-full overflow-x-auto no-scrollbar justify-start">
-                {profileData.role === 'seller' && <TabsTrigger value="products">Listed Products</TabsTrigger>}
-                <TabsTrigger value="posts">Posts</TabsTrigger>
-                {profileData.role === 'seller' && <TabsTrigger value="sessions">Sessions</TabsTrigger>}
-                {isOwnProfile && (
-                    <>
-                        <TabsTrigger value="recent">Recently Viewed</TabsTrigger>
-                        <TabsTrigger value="reviews">My Reviews</TabsTrigger>
-                        <TabsTrigger value="achievements">Achievements</TabsTrigger>
-                        <TabsTrigger value="orders">Orders</TabsTrigger>
-                    </>
-                )}
-            </TabsList>
-            <TabsContent value="products" className="mt-4">
-                {/* Product content goes here */}
-            </TabsContent>
-            <TabsContent value="posts" className="mt-4">
-                {/* Post content goes here */}
-            </TabsContent>
-            {/* Other tabs content */}
-        </Tabs>
-      </div>
-    </>
-  );
+            <div className="px-4 sm:px-6">
+                <Tabs defaultValue="posts" className="w-full">
+                    <TabsList className="w-full overflow-x-auto no-scrollbar justify-start">
+                        {profileData.role === 'seller' && <TabsTrigger value="products">Listed Products</TabsTrigger>}
+                        <TabsTrigger value="posts">Posts</TabsTrigger>
+                        {profileData.role === 'seller' && <TabsTrigger value="sessions">Sessions</TabsTrigger>}
+                        {isOwnProfile && <TabsTrigger value="achievements">Achievements</TabsTrigger>}
+                        {isOwnProfile && <TabsTrigger value="orders">Orders</TabsTrigger>}
+                    </TabsList>
+                    <TabsContent value="products" className="mt-4">
+                        {isLoadingContent ? <ProductSkeletonGrid /> : filteredProducts.length > 0 ? (
+                            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                                {filteredProducts.map(p => (
+                                    <Card key={p.id} className="w-full">
+                                        <CardContent className="p-0">
+                                            <div className="aspect-square bg-muted rounded-t-lg overflow-hidden relative">
+                                                <Image src={p.images[0]?.preview || 'https://placehold.co/200x200.png'} alt={p.name} fill className="object-cover" />
+                                            </div>
+                                            <div className="p-3">
+                                                <h4 className="font-semibold truncate text-sm">{p.name}</h4>
+                                                <p className="font-bold text-foreground">₹{p.price.toLocaleString()}</p>
+                                            </div>
+                                        </CardContent>
+                                    </Card>
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="text-center py-12 text-muted-foreground">This seller hasn't listed any products yet.</div>
+                        )}
+                    </TabsContent>
+                    <TabsContent value="posts" className="mt-4">
+                       <div className="space-y-4">
+                          {userPosts.map(post => (
+                              <Card key={post.id}>
+                                <CardContent className="p-4">
+                                  <div className="flex items-start gap-3">
+                                    <Avatar>
+                                      <AvatarImage src={post.avatarUrl} />
+                                      <AvatarFallback>{post.sellerName?.charAt(0)}</AvatarFallback>
+                                    </Avatar>
+                                    <div className="flex-grow">
+                                      <div className="flex items-center justify-between">
+                                        <div>
+                                          <p className="font-semibold">{post.sellerName}</p>
+                                          <p className="text-xs text-muted-foreground">
+                                              <RealtimeTimestamp date={post.timestamp.toDate()} isEdited={post.lastEditedAt} />
+                                          </p>
+                                        </div>
+                                      </div>
+                                      <p className="text-sm mt-2 whitespace-pre-wrap">{renderContentWithHashtags(post.content)}</p>
+                                       {post.images && post.images.length > 0 && (
+                                            <div className="mt-2 rounded-lg overflow-hidden border">
+                                                <Image src={post.images[0].url} alt="Post image" width={400} height={300} className="w-full h-auto object-cover" />
+                                            </div>
+                                        )}
+                                    </div>
+                                  </div>
+                                </CardContent>
+                              </Card>
+                          ))}
+                          {userPosts.length === 0 && (
+                              <div className="text-center py-12 text-muted-foreground">This user hasn't posted anything yet.</div>
+                          )}
+                       </div>
+                    </TabsContent>
+                    <TabsContent value="sessions" className="mt-4">
+                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {mockPastStreams.filter(s => s.id === profileData.uid).map(stream => (
+                                <Card key={stream.id}>
+                                    <CardContent className="p-0">
+                                        <div className="aspect-video bg-muted rounded-t-lg overflow-hidden relative">
+                                            <Image src={stream.thumbnailUrl} alt={stream.title} fill className="object-cover" />
+                                            <div className="absolute bottom-2 right-2 bg-black/50 text-white text-xs px-1.5 py-0.5 rounded-sm">{stream.duration}</div>
+                                        </div>
+                                        <div className="p-3">
+                                            <h4 className="font-semibold truncate">{stream.title}</h4>
+                                            <p className="text-sm text-muted-foreground">{stream.views} views • {stream.date}</p>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            ))}
+                             {mockPastStreams.filter(s => s.id === profileData.uid).length === 0 && (
+                                <div className="col-span-full text-center py-12 text-muted-foreground">This seller has no past streams.</div>
+                             )}
+                         </div>
+                    </TabsContent>
+                     {isOwnProfile && (
+                        <>
+                           <TabsContent value="achievements" className="mt-4">
+                              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                                  {mockAchievements.map(ach => (
+                                    <Card key={ach.id} className="text-center p-4 flex flex-col items-center justify-center">
+                                      <div className="p-3 bg-primary/10 rounded-full mb-2 text-primary">{ach.icon}</div>
+                                      <p className="font-semibold text-sm">{ach.name}</p>
+                                      <p className="text-xs text-muted-foreground">{ach.description}</p>
+                                    </Card>
+                                  ))}
+                              </div>
+                            </TabsContent>
+                            <TabsContent value="orders" className="mt-4">
+                               {userOrders.length > 0 ? (
+                                    <div className="space-y-4">
+                                        {userOrders.map(order => (
+                                            <Card key={order.orderId}>
+                                                <CardContent className="p-4">
+                                                    <div className="flex justify-between items-start">
+                                                        <div>
+                                                            <p className="font-semibold">Order {order.orderId}</p>
+                                                            <p className="text-sm text-muted-foreground">{new Date(order.date).toLocaleDateString()}</p>
+                                                        </div>
+                                                        <Badge>{order.timeline[order.timeline.length - 1].status}</Badge>
+                                                    </div>
+                                                     <Link href={`/delivery-information/${order.orderId}`} className="text-primary text-sm font-semibold mt-2 inline-block">View Details</Link>
+                                                </CardContent>
+                                            </Card>
+                                        ))}
+                                    </div>
+                               ) : (
+                                  <div className="text-center py-12 text-muted-foreground">No orders yet.</div>
+                               )}
+                            </TabsContent>
+                        </>
+                    )}
+                </Tabs>
+            </div>
+        </>
+    );
 }
+
+    
