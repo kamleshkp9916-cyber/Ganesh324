@@ -59,6 +59,8 @@ export interface Product {
     price: number;
     discountPercentage?: number;
     stock: number;
+    availableSizes?: string;
+    availableColors?: string;
     variants: z.infer<typeof variantSchema>[];
     media: { type: 'video' | 'image', file?: File, url: string }[];
     status: 'active' | 'draft' | 'archived';
@@ -82,6 +84,8 @@ const productFormSchema = z.object({
   price: z.coerce.number().min(0, "Price must be a positive number."),
   discountPercentage: z.coerce.number().optional(),
   stock: z.coerce.number().int().min(0, "Stock cannot be negative."),
+  availableSizes: z.string().optional(),
+  availableColors: z.string().optional(),
   media: z.array(z.any()).min(1, "At least one image or video is required."),
   variants: z.array(variantSchema).optional().default([]),
   listingType: z.enum(['general', 'live-only']),
@@ -117,6 +121,7 @@ export function ProductForm({ onSave, productToEdit }: ProductFormProps) {
       price: 0, stock: 0, media: [], variants: [],
       listingType: 'general', status: 'active', keyDetails: "", discountPercentage: undefined,
       weight: undefined, length: undefined, width: undefined, height: undefined,
+      availableSizes: "", availableColors: "",
     },
   });
 
@@ -139,6 +144,8 @@ export function ProductForm({ onSave, productToEdit }: ProductFormProps) {
         width: product.width ?? undefined,
         height: product.height ?? undefined,
         variants: product.variants || [],
+        availableSizes: product.availableSizes || "",
+        availableColors: product.availableColors || "",
       });
       setMedia(product.media || []);
       if(typeof product.highlightsImage === 'string') {
@@ -152,6 +159,7 @@ export function ProductForm({ onSave, productToEdit }: ProductFormProps) {
         price: 0, stock: 0, media: [], variants: [],
         listingType: 'general', status: 'active', keyDetails: "", discountPercentage: undefined,
         weight: undefined, length: undefined, width: undefined, height: undefined,
+        availableSizes: "", availableColors: "",
       });
       setMedia([]);
       setHighlightsImagePreview(null);
@@ -332,9 +340,20 @@ export function ProductForm({ onSave, productToEdit }: ProductFormProps) {
                     <FormItem><FormLabel>Default Stock</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormDescription>This is the total stock if no variants are specified.</FormDescription><FormMessage /></FormItem>
                 )}/>
                 <Separator />
+                 <h3 className="font-semibold text-lg">Simple Options</h3>
+                 <FormDescription>For products where price and stock are the same for all options.</FormDescription>
+                <div className="grid grid-cols-2 gap-4">
+                    <FormField control={form.control} name="availableSizes" render={({ field }) => (
+                        <FormItem><FormLabel>Available Sizes</FormLabel><FormControl><Input placeholder="S, M, L, XL" {...field} /></FormControl><FormDescription className="text-xs">Comma-separated.</FormDescription><FormMessage /></FormItem>
+                    )}/>
+                    <FormField control={form.control} name="availableColors" render={({ field }) => (
+                        <FormItem><FormLabel>Available Colors</FormLabel><FormControl><Input placeholder="Red, Blue, Green" {...field} /></FormControl><FormDescription className="text-xs">Comma-separated.</FormDescription><FormMessage /></FormItem>
+                    )}/>
+                </div>
+                <Separator />
                 <div>
                   <h3 className="font-semibold text-lg">Product Variants</h3>
-                  <FormDescription>Add variants if your product comes in different sizes, colors, etc. This will override the default price and stock.</FormDescription>
+                  <FormDescription>Add variants if your product has different prices or stock for different sizes, colors, etc. This will override the simple options above.</FormDescription>
                 </div>
                 <div className="space-y-4">
                   {fields.map((field, index) => (
