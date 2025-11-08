@@ -2,14 +2,13 @@
 "use client"
 
 import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm, useFieldArray, useFormContext } from "react-hook-form"
+import { useForm, useFieldArray } from "react-hook-form"
 import * as z from "zod"
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { Button } from "@/components/ui/button"
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -24,7 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Dialog, DialogFooter, DialogClose, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from "../ui/dialog"
+import { DialogFooter, DialogClose } from "../ui/dialog"
 import { Loader2, UploadCloud, X, PlusCircle, Image as ImageIcon, Video } from "lucide-react"
 import Image from "next/image"
 import { cn } from "@/lib/utils";
@@ -33,6 +32,7 @@ import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
 import { defaultCategories } from "@/lib/categories";
 import { Separator } from "../ui/separator";
 import { generateKeywords } from "@/lib/generateKeywords";
+import { FormDescription } from "../ui/form"
 
 const variantSchema = z.object({
     size: z.string().optional(),
@@ -84,7 +84,6 @@ interface ProductFormProps {
 
 const VariantImageInput = ({ control, index, getValues }: { control: any, index: number, getValues: any }) => {
     const fileInputRef = useRef<HTMLInputElement>(null);
-    const { setValue } = useFormContext(); 
     
     const initialPreview = getValues(`variants.${index}.image`)?.preview || null;
     const [preview, setPreview] = useState(initialPreview);
@@ -96,7 +95,7 @@ const VariantImageInput = ({ control, index, getValues }: { control: any, index:
             reader.onloadend = () => {
                 const result = reader.result as string;
                 setPreview(result);
-                setValue(`variants.${index}.image`, { file, preview: result });
+                control.setValue(`variants.${index}.image`, { file, preview: result });
             };
             reader.readAsDataURL(file);
         }
@@ -185,7 +184,7 @@ export function ProductForm({ onSave, productToEdit }: ProductFormProps) {
 
   const selectedCategory = form.watch("category");
   const subcategories = useMemo(() => {
-      const category = categories.find(c => c.name === selectedCategory);
+      const category = defaultCategories.find(c => c.name === selectedCategory);
       return category?.subcategories || [];
   }, [selectedCategory]);
   
@@ -270,7 +269,7 @@ export function ProductForm({ onSave, productToEdit }: ProductFormProps) {
 
                     <div className="grid grid-cols-2 gap-4">
                         <FormField name="category" control={form.control} render={({ field }) => (
-                            <FormItem><FormLabel>Category</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue placeholder="Select a category" /></SelectTrigger></FormControl><SelectContent>{categories.map(cat => <SelectItem key={cat.name} value={cat.name}>{cat.name}</SelectItem>)}</SelectContent></Select><FormMessage /></FormItem>
+                            <FormItem><FormLabel>Category</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue placeholder="Select a category" /></SelectTrigger></FormControl><SelectContent>{defaultCategories.map(cat => <SelectItem key={cat.name} value={cat.name}>{cat.name}</SelectItem>)}</SelectContent></Select><FormMessage /></FormItem>
                         )}/>
                         <FormField name="subcategory" control={form.control} render={({ field }) => (
                             <FormItem><FormLabel>Sub-category</FormLabel><Select onValueChange={field.onChange} value={field.value || ""} disabled={!selectedCategory}><FormControl><SelectTrigger><SelectValue placeholder="Select a sub-category" /></SelectTrigger></FormControl><SelectContent>{subcategories.map(sub => <SelectItem key={sub.name} value={sub.name}>{sub.name}</SelectItem>)}</SelectContent></Select><FormMessage /></FormItem>
