@@ -53,7 +53,10 @@ export function AuthRedirector() {
                 }
             } 
             else if (role === 'seller') {
-                 if (publicOnlyPaths.includes(pathname) || pathname === emailVerificationPath || pathname.startsWith('/admin') || pathname === '/live-selling') {
+                const isAlreadyInSellerArea = sellerPaths.some(p => pathname.startsWith(p));
+                const isViewingPublicProfile = pathname.startsWith('/seller/profile');
+
+                 if (!isAlreadyInSellerArea && !isViewingPublicProfile) {
                     targetPath = '/seller/dashboard';
                 }
             } 
