@@ -5,7 +5,7 @@ import React from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Mail, Phone, MapPin, Package, Video, UserPlus, UserCheck, Instagram, Twitter, Youtube, Facebook, Twitch, Award, Users, Home } from 'lucide-react';
+import { Mail, Phone, MapPin, Package, Video, UserPlus, UserCheck, Instagram, Twitter, Youtube, Facebook, Twitch, Award, Users, Home, Star } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useEffect, useState, useMemo, useCallback } from 'react';
