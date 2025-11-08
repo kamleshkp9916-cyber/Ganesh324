@@ -1,3 +1,4 @@
+
 "use client"
 
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -67,7 +68,7 @@ const productFormSchema = z.object({
   highlights: z.string().optional(),
   highlightsImage: z.any().optional(),
   keywords: z.array(z.string()).optional(),
-  deliveryInfo: z.string().optional(), // New field for private delivery info
+  deliveryInfo: z.string().optional(),
   weight: z.coerce.number().positive("Weight must be a positive number.").optional(),
   length: z.coerce.number().positive("Length must be a positive number.").optional(),
   width: z.coerce.number().positive("Width must be a positive number.").optional(),
@@ -88,7 +89,7 @@ interface ProductFormProps {
 const VariantImageInput = ({ control, index, getValues }: { control: any, index: number, getValues: any }) => {
     const fileInputRef = useRef<HTMLInputElement>(null);
     
-    const initialPreview = getValues(\`variants.\${index}.image\`)?.preview || null;
+    const initialPreview = getValues(`variants.${index}.image`)?.preview || null;
     const [preview, setPreview] = useState(initialPreview);
 
     const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -98,7 +99,7 @@ const VariantImageInput = ({ control, index, getValues }: { control: any, index:
             reader.onloadend = () => {
                 const result = reader.result as string;
                 setPreview(result);
-                control.setValue(\`variants.\${index}.image\`, { file, preview: result });
+                control.setValue(`variants.${index}.image`, { file, preview: result });
             };
             reader.readAsDataURL(file);
         }
@@ -135,9 +136,9 @@ export function ProductForm({ onSave, productToEdit }: ProductFormProps) {
   const [isSaving, setIsSaving] = useState(false);
   const [step, setStep] = useState(1);
   
-  const defaultValues = useMemo(() => {
-    if (productToEdit) {
-      return {
+  const form = useForm<z.infer<typeof productFormSchema>>({
+    resolver: zodResolver(productFormSchema),
+    defaultValues: productToEdit ? {
         ...productToEdit,
         price: parseFloat(String(productToEdit.price).replace(/[^0-9.-]+/g, '')) || 0,
         discountPercentage: productToEdit.discountPercentage ? parseFloat(String(productToEdit.discountPercentage)) : undefined,
@@ -146,13 +147,10 @@ export function ProductForm({ onSave, productToEdit }: ProductFormProps) {
             ...v,
             price: v.price ? parseFloat(String(v.price).replace(/[^0-9.-]+/g, '')) : undefined
         })) || [],
-      };
-    }
-    return {
+    } : {
       name: "",
       description: "",
       price: 0,
-      discountPercentage: undefined,
       stock: 0,
       media: [],
       listingType: "general",
@@ -166,17 +164,7 @@ export function ProductForm({ onSave, productToEdit }: ProductFormProps) {
       origin: "",
       variants: [],
       highlights: "",
-      deliveryInfo: "",
-      weight: undefined,
-      length: undefined,
-      width: undefined,
-      height: undefined,
-    };
-  }, [productToEdit]);
-
-  const form = useForm<z.infer<typeof productFormSchema>>({
-    resolver: zodResolver(productFormSchema),
-    defaultValues: defaultValues,
+    },
   });
 
   const { fields: mediaFields, append: appendMedia, remove: removeMedia } = useFieldArray({
@@ -196,14 +184,23 @@ export function ProductForm({ onSave, productToEdit }: ProductFormProps) {
   }, [selectedCategory]);
   
   useEffect(() => {
-    if (form.formState.isDirty) {
-        form.resetField('subcategory');
-    }
+    form.resetField('subcategory');
   }, [selectedCategory, form]);
 
   useEffect(() => {
-    form.reset(defaultValues);
-  }, [productToEdit, form, defaultValues]);
+    if (productToEdit) {
+      form.reset({
+        ...productToEdit,
+        price: parseFloat(String(productToEdit.price).replace(/[^0-9.-]+/g, '')) || 0,
+        discountPercentage: productToEdit.discountPercentage ? parseFloat(String(productToEdit.discountPercentage)) : undefined,
+        media: productToEdit.media?.map(item => ({...item, file: undefined })) || [],
+        variants: productToEdit.variants?.map(v => ({
+            ...v,
+            price: v.price ? parseFloat(String(v.price).replace(/[^0-9.-]+/g, '')) : undefined
+        })) || [],
+      });
+    }
+  }, [productToEdit, form]);
 
   function handleFinalSave(values: z.infer<typeof productFormSchema>) {
     setIsSaving(true);
@@ -254,6 +251,28 @@ export function ProductForm({ onSave, productToEdit }: ProductFormProps) {
               <FormField name="description" control={form.control} render={({ field }) => (
                   <FormItem><FormLabel>Description</FormLabel><FormControl><Textarea placeholder="Describe your product in detail..." className="resize-none" {...field} /></FormControl><FormMessage /></FormItem>
               )}/>
+                <FormField name="highlights" control={form.control} render={({ field }) => (
+                    <FormItem>
+                        <FormLabel>Product Highlights</FormLabel>
+                        <FormControl>
+                            <Textarea placeholder="Feature 1&#x0a;Feature 2&#x0a;Feature 3" {...field} />
+                        </FormControl>
+                         <FormDescription>Each line will be shown as a separate bullet point.</FormDescription>
+                        <FormMessage />
+                    </FormItem>
+                )}/>
+                <FormField name="highlightsImage" render={({ field }) => (
+                    <FormItem>
+                        <FormLabel>Highlights Image (Optional)</FormLabel>
+                        <FormControl>
+                            {/* This is a simplified version. A real one might need useState. */}
+                            <Input type="file" accept="image/*" onChange={(e) => field.onChange(e.target.files?.[0])} />
+                        </FormControl>
+                        <FormDescription>An image to display prominently in the highlights section. Recommended size: 800x800 pixels.</FormDescription>
+                        <FormMessage />
+                    </FormItem>
+                )}/>
+
               <div className="grid grid-cols-2 gap-4">
                   <FormField name="category" control={form.control} render={({ field }) => (
                       <FormItem><FormLabel>Category</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue placeholder="Select a category" /></SelectTrigger></FormControl><SelectContent>{defaultCategories.map(cat => <SelectItem key={cat.name} value={cat.name}>{cat.name}</SelectItem>)}</SelectContent></Select><FormMessage /></FormItem>
@@ -262,6 +281,17 @@ export function ProductForm({ onSave, productToEdit }: ProductFormProps) {
                       <FormItem><FormLabel>Sub-category</FormLabel><Select onValueChange={field.onChange} value={field.value || ""} disabled={!selectedCategory}><FormControl><SelectTrigger><SelectValue placeholder="Select a sub-category" /></SelectTrigger></FormControl><SelectContent>{subcategories.map(sub => <SelectItem key={sub.name} value={sub.name}>{sub.name}</SelectItem>)}</SelectContent></Select><FormMessage /></FormItem>
                   )}/>
               </div>
+               <div className="grid grid-cols-2 gap-4">
+                   <FormField name="brand" control={form.control} render={({ field }) => (
+                      <FormItem><FormLabel>Brand (Optional)</FormLabel><FormControl><Input placeholder="e.g., RetroCam" {...field} /></FormControl><FormMessage /></FormItem>
+                    )}/>
+                    <FormField name="modelNumber" control={form.control} render={({ field }) => (
+                        <FormItem><FormLabel>Model Number (Optional)</FormLabel><FormControl><Input placeholder="e.g., RC-1975" {...field} /></FormControl><FormMessage /></FormItem>
+                    )}/>
+               </div>
+                <FormField name="origin" control={form.control} render={({ field }) => (
+                    <FormItem><FormLabel>Country of Origin (Optional)</FormLabel><FormControl><Input placeholder="e.g., Japan" {...field} /></FormControl><FormMessage /></FormItem>
+                )}/>
               <FormField name="media" control={form.control} render={({ field }) => (
                   <FormItem>
                       <FormLabel>Product Media</FormLabel>
@@ -270,7 +300,7 @@ export function ProductForm({ onSave, productToEdit }: ProductFormProps) {
                               {mediaFields.map((field, index) => (
                                   <div key={field.id} className="relative w-24 h-24">
                                       {field.type === 'image' ? (
-                                          <Image src={field.preview} alt={\`Preview \${index}\`} width={96} height={96} className="object-cover rounded-md w-full h-full"/>
+                                          <Image src={field.preview} alt={`Preview ${index}`} width={96} height={96} className="object-cover rounded-md w-full h-full"/>
                                       ) : (
                                           <video src={field.preview} className="object-cover rounded-md w-full h-full" />
                                       )}
@@ -293,9 +323,40 @@ export function ProductForm({ onSave, productToEdit }: ProductFormProps) {
                       <FormMessage />
                   </FormItem>
               )}/>
-               <FormField name="status" control={form.control} render={({ field }) => (
-                      <FormItem><FormLabel>Status</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue placeholder="Select product status" /></SelectTrigger></FormControl><SelectContent><SelectItem value="draft">Draft</SelectItem><SelectItem value="active">Active</SelectItem><SelectItem value="archived">Archived</SelectItem></SelectContent></Select><FormMessage /></FormItem>
-                  )}/>
+               <FormField name="listingType" control={form.control} render={({ field }) => (
+                  <FormItem><FormLabel>Listing Type</FormLabel>
+                    <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex gap-4">
+                      <FormItem className="flex items-center space-x-2 space-y-0">
+                        <FormControl><RadioGroupItem value="general" id="general"/></FormControl>
+                        <FormLabel htmlFor="general" className="font-normal">General Listing - Available for everyone to purchase anytime.</FormLabel>
+                      </FormItem>
+                      <FormItem className="flex items-center space-x-2 space-y-0">
+                        <FormControl><RadioGroupItem value="live-stream" id="live-stream"/></FormControl>
+                        <FormLabel htmlFor="live-stream" className="font-normal">Live Stream Only - Product is only available for purchase during a live stream.</FormLabel>
+                      </FormItem>
+                    </RadioGroup>
+                  <FormMessage /></FormItem>
+              )}/>
+               <FormField control={form.control} name="status" render={({ field }) => (
+                <FormItem><FormLabel>Status</FormLabel>
+                  <FormControl>
+                    <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex gap-4">
+                      <FormItem className="flex items-center space-x-3 space-y-0">
+                        <FormControl><RadioGroupItem value="active" id="active"/></FormControl>
+                        <FormLabel htmlFor="active" className="font-normal">Active</FormLabel>
+                      </FormItem>
+                      <FormItem className="flex items-center space-x-3 space-y-0">
+                        <FormControl><RadioGroupItem value="draft" id="draft"/></FormControl>
+                        <FormLabel htmlFor="draft" className="font-normal">Draft</FormLabel>
+                      </FormItem>
+                       <FormItem className="flex items-center space-x-3 space-y-0">
+                        <FormControl><RadioGroupItem value="archived" id="archived"/></FormControl>
+                        <FormLabel htmlFor="archived" className="font-normal">Archived</FormLabel>
+                      </FormItem>
+                    </RadioGroup>
+                  </FormControl>
+                </FormItem>
+              )}/>
             </div>
           </ScrollArea>
         );
@@ -345,19 +406,19 @@ export function ProductForm({ onSave, productToEdit }: ProductFormProps) {
                           {variantFields.map((field, index) => (
                               <div key={field.id} className="grid grid-cols-[auto,1fr,1fr,1fr,1fr,auto] gap-2 items-end p-3 border rounded-lg">
                                   <VariantImageInput control={form.control} index={index} getValues={form.getValues} />
-                                  <FormField control={form.control} name={\`variants.\${index}.color\`} render={({ field }) => (
+                                  <FormField control={form.control} name={`variants.${index}.color`} render={({ field }) => (
                                       <FormItem><FormLabel className="text-xs">Color</FormLabel><FormControl><Input placeholder="e.g., Red" {...field} /></FormControl><FormMessage /></FormItem>
                                   )}/>
-                                  <FormField control={form.control} name={\`variants.\${index}.size\`} render={({ field }) => (
+                                  <FormField control={form.control} name={`variants.${index}.size`} render={({ field }) => (
                                       <FormItem><FormLabel className="text-xs">Size</FormLabel><FormControl><Input placeholder="e.g., M" {...field} /></FormControl><FormMessage /></FormItem>
                                   )}/>
-                                  <FormField control={form.control} name={\`variants.\${index}.stock\`} render={({ field }) => (
+                                  <FormField control={form.control} name={`variants.${index}.stock`} render={({ field }) => (
                                       <FormItem><FormLabel className="text-xs">Stock</FormLabel><FormControl><Input type="number" placeholder="0" {...field} /></FormControl><FormMessage /></FormItem>
                                   )}/>
-                                  <FormField control={form.control} name={\`variants.\${index}.price\`} render={({ field }) => (
+                                  <FormField control={form.control} name={`variants.${index}.price`} render={({ field }) => (
                                       <FormItem><FormLabel className="text-xs">Price (Opt.)</FormLabel><FormControl><Input type="number" placeholder="Default" {...field} /></FormControl><FormMessage /></FormItem>
                                   )}/>
-                                  <Textarea placeholder="Variant Highlights (one per line)" {...form.register(\`variants.\${index}.highlights\`)} className="col-span-full mt-2" />
+                                  <Textarea placeholder="Variant Highlights (one per line)" {...form.register(`variants.${index}.highlights`)} className="col-span-full mt-2" />
                                   <Button type="button" variant="ghost" size="icon" onClick={() => removeVariant(index)} className="text-destructive"><X className="h-4 w-4" /></Button>
                               </div>
                           ))}
@@ -454,3 +515,5 @@ export function ProductForm({ onSave, productToEdit }: ProductFormProps) {
     </Form>
   )
 }
+
+    
