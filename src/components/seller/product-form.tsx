@@ -69,6 +69,10 @@ const productFormSchema = z.object({
   highlightsImage: z.any().optional(),
   keywords: z.array(z.string()).optional(),
   deliveryInfo: z.string().optional(), // New field for private delivery info
+  weight: z.coerce.number().positive("Weight must be a positive number.").optional(),
+  length: z.coerce.number().positive("Length must be a positive number.").optional(),
+  width: z.coerce.number().positive("Width must be a positive number.").optional(),
+  height: z.coerce.number().positive("Height must be a positive number.").optional(),
 }).refine(data => !data.discountPercentage || (data.discountPercentage > 0 && data.discountPercentage < 100), {
     message: "Discount must be between 1 and 99.",
     path: ["discountPercentage"],
@@ -164,6 +168,10 @@ export function ProductForm({ onSave, productToEdit }: ProductFormProps) {
       variants: [],
       highlights: "",
       deliveryInfo: "",
+      weight: undefined,
+      length: undefined,
+      width: undefined,
+      height: undefined,
     };
   }, [productToEdit]);
 
@@ -422,8 +430,8 @@ export function ProductForm({ onSave, productToEdit }: ProductFormProps) {
             ) : (
                 <div className="flex flex-col h-full">
                     <div className="p-6 space-y-4">
-                        <h3 className="text-lg font-semibold">Delivery Information</h3>
-                        <p className="text-sm text-muted-foreground">Add private notes for the delivery team. This will not be visible to the customer on the product page, but will be available for invoicing.</p>
+                        <h3 className="text-lg font-semibold">Shipping Details</h3>
+                        <p className="text-sm text-muted-foreground">Add private notes and package dimensions for delivery. This will not be visible to the customer on the product page, but will be available for invoicing.</p>
                         <FormField name="deliveryInfo" control={form.control} render={({ field }) => (
                             <FormItem>
                                 <FormLabel>Internal Notes / Key Details</FormLabel>
@@ -433,6 +441,36 @@ export function ProductForm({ onSave, productToEdit }: ProductFormProps) {
                                 <FormMessage />
                             </FormItem>
                         )}/>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-4">
+                           <FormField name="weight" control={form.control} render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Weight (kg)</FormLabel>
+                                    <FormControl><Input type="number" placeholder="0.5" {...field} /></FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}/>
+                             <FormField name="length" control={form.control} render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Length (cm)</FormLabel>
+                                    <FormControl><Input type="number" placeholder="20" {...field} /></FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}/>
+                             <FormField name="width" control={form.control} render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Width (cm)</FormLabel>
+                                    <FormControl><Input type="number" placeholder="15" {...field} /></FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}/>
+                             <FormField name="height" control={form.control} render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Height (cm)</FormLabel>
+                                    <FormControl><Input type="number" placeholder="10" {...field} /></FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}/>
+                        </div>
                     </div>
                     <DialogFooter className="pt-6 border-t mt-auto p-6">
                         <Button type="button" variant="ghost" onClick={() => setStep(1)}>Back</Button>
@@ -447,5 +485,3 @@ export function ProductForm({ onSave, productToEdit }: ProductFormProps) {
     </Form>
   )
 }
-
-    
