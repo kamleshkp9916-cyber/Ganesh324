@@ -1,4 +1,3 @@
-
 "use client"
 
 import {
@@ -7,7 +6,6 @@ import {
   MoreHorizontal,
   ListFilter,
   ImageIcon,
-  ArrowLeft,
   MessageSquare,
   HelpCircle,
 } from "lucide-react"
@@ -52,8 +50,6 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-  DialogFooter,
-  DialogClose,
 } from "@/components/ui/dialog"
 import Image from "next/image"
 import { useState, useEffect, useMemo } from "react"
@@ -63,7 +59,6 @@ import { LoadingSpinner } from "@/components/ui/loading-spinner"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { useToast } from "@/hooks/use-toast"
-import { cn } from "@/lib/utils"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Textarea } from "@/components/ui/textarea"
 import { SellerHeader } from "@/components/seller/seller-header"
@@ -363,50 +358,52 @@ export default function SellerProductsPage() {
         <div className="flex min-h-screen w-full flex-col bg-muted/40">
            <SellerHeader />
           <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8">
-             <div className="flex items-center gap-4">
-                 <div className="ml-auto flex items-center gap-2">
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                        <Button variant="outline" size="sm" className="h-8 gap-1">
-                            <ListFilter className="h-3.5 w-3.5" />
-                            <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                            Filter
-                            </span>
-                        </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                            <DropdownMenuLabel>Filter by Stock</DropdownMenuLabel>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuCheckboxItem checked={stockFilter.includes('inStock')} onCheckedChange={() => handleStockFilterChange('inStock')}>
-                                In Stock
-                            </DropdownMenuCheckboxItem>
-                            <DropdownMenuCheckboxItem checked={stockFilter.includes('outOfStock')} onCheckedChange={() => handleStockFilterChange('outOfStock')}>
-                                Out of Stock
-                            </DropdownMenuCheckboxItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                    <Button size="sm" variant="outline" className="h-8 gap-1" onClick={handleExport}>
-                        <File className="h-3.5 w-3.5" />
-                        <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                        Export
-                        </span>
-                    </Button>
-                    <DialogTrigger asChild>
-                      <Button size="sm" className="h-8 gap-1">
-                          <PlusCircle className="h-3.5 w-3.5" />
-                          <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                          Add Product
-                          </span>
-                      </Button>
-                  </DialogTrigger>
-                </div>
-            </div>
               <Card>
                   <CardHeader>
-                      <CardTitle>Products</CardTitle>
-                      <CardDescription>
-                      Manage your products and view their sales performance.
-                      </CardDescription>
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <CardTitle>Products</CardTitle>
+                            <CardDescription>
+                            Manage your products and view their sales performance.
+                            </CardDescription>
+                        </div>
+                         <div className="ml-auto flex items-center gap-2">
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                <Button variant="outline" size="sm" className="h-8 gap-1">
+                                    <ListFilter className="h-3.5 w-3.5" />
+                                    <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+                                    Filter
+                                    </span>
+                                </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                    <DropdownMenuLabel>Filter by Stock</DropdownMenuLabel>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuCheckboxItem checked={stockFilter.includes('inStock')} onCheckedChange={() => handleStockFilterChange('inStock')}>
+                                        In Stock
+                                    </DropdownMenuCheckboxItem>
+                                    <DropdownMenuCheckboxItem checked={stockFilter.includes('outOfStock')} onCheckedChange={() => handleStockFilterChange('outOfStock')}>
+                                        Out of Stock
+                                    </DropdownMenuCheckboxItem>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                            <Button size="sm" variant="outline" className="h-8 gap-1" onClick={handleExport}>
+                                <File className="h-3.5 w-3.5" />
+                                <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+                                Export
+                                </span>
+                            </Button>
+                             <DialogTrigger asChild>
+                              <Button size="sm" className="h-8 gap-1">
+                                  <PlusCircle className="h-3.5 w-3.5" />
+                                  <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+                                  Add Product
+                                  </span>
+                              </Button>
+                            </DialogTrigger>
+                        </div>
+                    </div>
                   </CardHeader>
                   <CardContent>
                       <Tabs defaultValue="all">
