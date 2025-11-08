@@ -10,7 +10,7 @@ import Link from "next/link";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -240,135 +240,141 @@ export default function SellerPromotionsPage() {
     };
 
     return (
-        <Dialog open={isCouponFormOpen} onOpenChange={setIsCouponFormOpen}>
-        <div className="flex min-h-screen w-full flex-col bg-muted/40">
-            <SellerHeader />
-            <main className="grid flex-1 items-start gap-8 p-4 sm:px-6 md:p-8">
-                 <Tabs defaultValue="coupons">
-                    <TabsList className="grid w-full grid-cols-2">
-                        <TabsTrigger value="coupons">Offers & Coupons</TabsTrigger>
-                        <TabsTrigger value="sponsored">Sponsored Products</TabsTrigger>
-                    </TabsList>
-                    <TabsContent value="coupons" className="mt-6">
-                        <Card>
-                             <CardHeader className="flex flex-row items-center justify-between">
-                                <div>
-                                    <CardTitle>Your Coupons</CardTitle>
-                                    <CardDescription>Create and manage discount codes for your products.</CardDescription>
-                                </div>
-                                <Button size="sm" onClick={() => openCouponForm()}><PlusCircle className="mr-2 h-4 w-4" />Create Coupon</Button>
-                            </CardHeader>
-                             <CardContent>
-                                <div className="space-y-4">
-                                {sellerCoupons.map(coupon => {
-                                    const appliedProducts = getAppliedProducts(coupon.applicableProducts);
-                                    return (
-                                        <div key={coupon.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between rounded-lg border p-4 gap-4">
-                                            <div className="flex items-start gap-4">
-                                                <div className="w-12 h-12 bg-muted rounded-md flex items-center justify-center flex-shrink-0">
-                                                    <Ticket className="h-6 w-6 text-primary" />
-                                                </div>
-                                                <div>
-                                                    <h4 className="font-semibold">{coupon.code}</h4>
-                                                    <p className="text-sm text-muted-foreground">{coupon.description}</p>
-                                                    <p className="text-xs text-muted-foreground">
-                                                        Applies to: {appliedProducts.length > 0 ? `${appliedProducts.length} product(s)` : 'All Products'}
-                                                    </p>
-                                                     {coupon.expiresAt && <p className="text-xs text-muted-foreground mt-1">Expires on: {format(new Date(coupon.expiresAt), 'PPP')}</p>}
-                                                </div>
-                                            </div>
-                                             <div className="flex flex-col sm:items-end gap-2 w-full sm:w-auto">
-                                                <div className="flex items-center gap-2">
-                                                    {appliedProducts.slice(0,3).map(p => (
-                                                        <div key={p.key} className="w-10 h-10 rounded-md border overflow-hidden">
-                                                            <Image src={p.images[0]} alt={p.name} width={40} height={40} className="object-cover"/>
-                                                        </div>
-                                                    ))}
-                                                     {appliedProducts.length > 3 && (
-                                                         <div className="w-10 h-10 rounded-md border bg-muted flex items-center justify-center text-xs font-medium">
-                                                            +{appliedProducts.length - 3}
-                                                         </div>
-                                                     )}
-                                                </div>
-                                                <DropdownMenu>
-                                                    <DropdownMenuTrigger asChild>
-                                                        <Button variant="ghost" size="sm" className="w-fit self-end">
-                                                            <MoreHorizontal className="h-4 w-4 mr-2" />
-                                                            Manage
-                                                        </Button>
-                                                    </DropdownMenuTrigger>
-                                                    <DropdownMenuContent align="end">
-                                                        <DropdownMenuItem onSelect={() => openCouponForm(coupon)}>
-                                                            <Edit className="mr-2 h-4 w-4" /> Edit
-                                                        </DropdownMenuItem>
-                                                        <DropdownMenuItem className="text-destructive" onSelect={() => handleDeleteCoupon(coupon.id!)}>
-                                                            <Trash2 className="mr-2 h-4 w-4" /> Delete
-                                                        </DropdownMenuItem>
-                                                    </DropdownMenuContent>
-                                                </DropdownMenu>
-                                            </div>
-                                        </div>
-                                    )
-                                })}
-                                {sellerCoupons.length === 0 && (
-                                    <div className="text-center text-muted-foreground py-12">
-                                        <p>You haven't created any coupons yet.</p>
+        <>
+            <Dialog open={isCouponFormOpen} onOpenChange={setIsCouponFormOpen}>
+                <DialogContent className="max-w-2xl">
+                    <DialogHeader>
+                        <DialogTitle>{editingCoupon ? 'Edit' : 'Add New'} Coupon</DialogTitle>
+                        <DialogDescription>Fill in the details for the discount coupon.</DialogDescription>
+                    </DialogHeader>
+                    <CouponForm onSave={handleSaveCoupon} existingCoupon={editingCoupon} closeDialog={() => setIsCouponFormOpen(false)} />
+                </DialogContent>
+            </Dialog>
+            <div className="flex min-h-screen w-full flex-col bg-muted/40">
+                <SellerHeader />
+                <main className="grid flex-1 items-start gap-8 p-4 sm:px-6 md:p-8">
+                    <Tabs defaultValue="coupons">
+                        <TabsList className="grid w-full grid-cols-2">
+                            <TabsTrigger value="coupons">Offers & Coupons</TabsTrigger>
+                            <TabsTrigger value="sponsored">Sponsored Products</TabsTrigger>
+                        </TabsList>
+                        <TabsContent value="coupons" className="mt-6">
+                            <Card>
+                                <CardHeader className="flex flex-row items-center justify-between">
+                                    <div>
+                                        <CardTitle>Your Coupons</CardTitle>
+                                        <CardDescription>Create and manage discount codes for your products.</CardDescription>
                                     </div>
-                                )}
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </TabsContent>
-                    <TabsContent value="sponsored" className="mt-6">
-                        <div>
-                            <CardHeader className="px-0">
-                                <CardTitle>Sponsor Your Products</CardTitle>
-                                <CardDescription>
-                                    Purchase promotional packages to feature your products across the platform and reach more customers. This feature is coming soon.
-                                </CardDescription>
-                            </CardHeader>
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                {promotionTiers.map(tier => (
-                                    <Card key={tier.name} className="flex flex-col">
-                                        <CardHeader>
-                                            <div className="flex items-center gap-3 mb-2">
-                                                <div className="bg-primary/10 p-3 rounded-full">{tier.icon}</div>
-                                                <CardTitle className="text-xl">{tier.name}</CardTitle>
+                                    <Button size="sm" onClick={() => openCouponForm()}><PlusCircle className="mr-2 h-4 w-4" />Create Coupon</Button>
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="space-y-4">
+                                    {sellerCoupons.map(coupon => {
+                                        const appliedProducts = getAppliedProducts(coupon.applicableProducts);
+                                        return (
+                                            <div key={coupon.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between rounded-lg border p-4 gap-4">
+                                                <div className="flex items-start gap-4">
+                                                    <div className="w-12 h-12 bg-muted rounded-md flex items-center justify-center flex-shrink-0">
+                                                        <Ticket className="h-6 w-6 text-primary" />
+                                                    </div>
+                                                    <div>
+                                                        <h4 className="font-semibold">{coupon.code}</h4>
+                                                        <p className="text-sm text-muted-foreground">{coupon.description}</p>
+                                                        <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
+                                                            Applies to:
+                                                            {appliedProducts.length > 0 ? (
+                                                                <div className="flex items-center gap-1">
+                                                                    {appliedProducts.slice(0,3).map(p => (
+                                                                        <div key={p.key} className="w-6 h-6 rounded-md border overflow-hidden">
+                                                                            <Image src={p.images[0]} alt={p.name} width={24} height={24} className="object-cover"/>
+                                                                        </div>
+                                                                    ))}
+                                                                    {appliedProducts.length > 3 && (
+                                                                        <div className="w-6 h-6 rounded-md border bg-muted flex items-center justify-center text-xs font-medium">
+                                                                            +{appliedProducts.length - 3}
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                            ) : (
+                                                                <Badge variant="outline">All Products</Badge>
+                                                            )}
+                                                        </div>
+                                                        {coupon.expiresAt && <p className="text-xs text-muted-foreground mt-1">Expires on: {format(new Date(coupon.expiresAt), 'PPP')}</p>}
+                                                    </div>
+                                                </div>
+                                                <div className="flex flex-col sm:items-end gap-2 w-full sm:w-auto">
+                                                    <DropdownMenu>
+                                                        <DropdownMenuTrigger asChild>
+                                                            <Button variant="ghost" size="sm" className="w-fit self-end">
+                                                                <MoreHorizontal className="h-4 w-4 mr-2" />
+                                                                Manage
+                                                            </Button>
+                                                        </DropdownMenuTrigger>
+                                                        <DropdownMenuContent align="end">
+                                                            <DropdownMenuItem onSelect={() => openCouponForm(coupon)}>
+                                                                <Edit className="mr-2 h-4 w-4" /> Edit
+                                                            </DropdownMenuItem>
+                                                            <DropdownMenuItem className="text-destructive" onSelect={() => handleDeleteCoupon(coupon.id!)}>
+                                                                <Trash2 className="mr-2 h-4 w-4" /> Delete
+                                                            </DropdownMenuItem>
+                                                        </DropdownMenuContent>
+                                                    </DropdownMenu>
+                                                </div>
                                             </div>
-                                            <p className="text-3xl font-bold">{tier.price}</p>
-                                            <CardDescription>{tier.description}</CardHeader>
-                                        <CardContent className="flex-grow">
-                                            <ul className="space-y-2 text-sm text-muted-foreground">
-                                                {tier.features.map(feat => (
-                                                    <li key={feat} className="flex items-center gap-2">
-                                                        <Star className="h-4 w-4 text-primary fill-primary" />
-                                                        <span>{feat}</span>
-                                                    </li>
-                                                ))}
-                                            </ul>
-                                        </CardContent>
-                                        <CardFooter>
-                                            <Button className="w-full" disabled>
-                                                <PlusCircle className="mr-2 h-4 w-4" />
-                                                Create Promotion
-                                            </Button>
-                                        </CardFooter>
-                                    </Card>
-                                ))}
+                                        )
+                                    })}
+                                    {sellerCoupons.length === 0 && (
+                                        <div className="text-center text-muted-foreground py-12">
+                                            <p>You haven't created any coupons yet.</p>
+                                        </div>
+                                    )}
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        </TabsContent>
+                        <TabsContent value="sponsored" className="mt-6">
+                            <div>
+                                <CardHeader className="px-0">
+                                    <CardTitle>Sponsor Your Products</CardTitle>
+                                    <CardDescription>
+                                        Purchase promotional packages to feature your products across the platform and reach more customers. This feature is coming soon.
+                                    </CardDescription>
+                                </CardHeader>
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                    {promotionTiers.map(tier => (
+                                        <Card key={tier.name} className="flex flex-col">
+                                            <CardHeader>
+                                                <div className="flex items-center gap-3 mb-2">
+                                                    <div className="bg-primary/10 p-3 rounded-full">{tier.icon}</div>
+                                                    <CardTitle className="text-xl">{tier.name}</CardTitle>
+                                                </div>
+                                                <p className="text-3xl font-bold">{tier.price}</p>
+                                                <CardDescription>{tier.description}</CardDescription>
+                                            </CardHeader>
+                                            <CardContent className="flex-grow">
+                                                <ul className="space-y-2 text-sm text-muted-foreground">
+                                                    {tier.features.map(feat => (
+                                                        <li key={feat} className="flex items-center gap-2">
+                                                            <Star className="h-4 w-4 text-primary fill-primary" />
+                                                            <span>{feat}</span>
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                            </CardContent>
+                                            <CardFooter>
+                                                <Button className="w-full" disabled>
+                                                    <PlusCircle className="mr-2 h-4 w-4" />
+                                                    Create Promotion
+                                                </Button>
+                                            </CardFooter>
+                                        </Card>
+                                    ))}
+                                </div>
                             </div>
-                        </div>
-                    </TabsContent>
-                </Tabs>
-            </main>
-        </div>
-        <DialogContent className="max-w-2xl">
-             <DialogHeader>
-                <DialogTitle>{editingCoupon ? 'Edit' : 'Add New'} Coupon</DialogTitle>
-                <DialogDescription>Fill in the details for the discount coupon.</DialogDescription>
-            </DialogHeader>
-            <CouponForm onSave={handleSaveCoupon} existingCoupon={editingCoupon} closeDialog={() => setIsCouponFormOpen(false)} />
-        </DialogContent>
-        </Dialog>
+                        </TabsContent>
+                    </Tabs>
+                </main>
+            </div>
+        </>
     );
 }
-
