@@ -359,7 +359,6 @@ export default function SellerProductsPage() {
     const handleStockFilterChange = (filter: 'inStock' | 'outOfStock') => {
         setStockFilter(prev => {
             const newFilters = prev.includes(filter) ? prev.filter(f => f !== filter) : [...prev, filter];
-            // If both are removed, show all
             return newFilters.length === 0 ? ['inStock', 'outOfStock'] : newFilters;
         });
     };
@@ -490,4 +489,5 @@ export default function SellerProductsPage() {
     </>
   )
 }
-```
+
+    
