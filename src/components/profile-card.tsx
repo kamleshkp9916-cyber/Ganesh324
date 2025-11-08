@@ -356,7 +356,7 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                     )}
                 </Tabs>
             </div>
-             <DialogContent>
+            <DialogContent>
                 <DialogHeader>
                     <DialogTitle>Manage Delivery Addresses</DialogTitle>
                     <DialogDescription>Add, edit, or remove your saved addresses.</DialogDescription>
@@ -371,4 +371,3 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
     );
 }
 
-    
