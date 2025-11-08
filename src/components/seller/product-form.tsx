@@ -24,7 +24,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { DialogFooter, DialogClose } from "../ui/dialog"
+import { Dialog, DialogFooter, DialogClose, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from "../ui/dialog"
 import { Loader2, UploadCloud, X, PlusCircle, Image as ImageIcon, Video } from "lucide-react"
 import Image from "next/image"
 import { cn } from "@/lib/utils";
@@ -68,6 +68,7 @@ const productFormSchema = z.object({
   highlights: z.string().optional(),
   highlightsImage: z.any().optional(),
   keywords: z.array(z.string()).optional(),
+  deliveryInfo: z.string().optional(), // New field for private delivery info
 }).refine(data => !data.discountPercentage || (data.discountPercentage > 0 && data.discountPercentage < 100), {
     message: "Discount must be between 1 and 99.",
     path: ["discountPercentage"],
@@ -83,8 +84,6 @@ interface ProductFormProps {
 
 const VariantImageInput = ({ control, index, getValues }: { control: any, index: number, getValues: any }) => {
     const fileInputRef = useRef<HTMLInputElement>(null);
-    
-    // Correctly get field state and update function from useFormContext
     const { setValue } = useFormContext(); 
     
     const initialPreview = getValues(`variants.${index}.image`)?.preview || null;
@@ -97,7 +96,6 @@ const VariantImageInput = ({ control, index, getValues }: { control: any, index:
             reader.onloadend = () => {
                 const result = reader.result as string;
                 setPreview(result);
-                // Use setValue from useFormContext to update the form state
                 setValue(`variants.${index}.image`, { file, preview: result });
             };
             reader.readAsDataURL(file);
@@ -133,6 +131,8 @@ const VariantImageInput = ({ control, index, getValues }: { control: any, index:
 
 export function ProductForm({ onSave, productToEdit }: ProductFormProps) {
   const [isSaving, setIsSaving] = useState(false);
+  const [step, setStep] = useState(1);
+  const [productData, setProductData] = useState<Product | null>(null);
   
   const defaultValues = useMemo(() => {
     if (productToEdit) {
@@ -165,6 +165,7 @@ export function ProductForm({ onSave, productToEdit }: ProductFormProps) {
       origin: "",
       variants: [],
       highlights: "",
+      deliveryInfo: "",
     };
   }, [productToEdit]);
 
@@ -199,20 +200,28 @@ export function ProductForm({ onSave, productToEdit }: ProductFormProps) {
     form.reset(defaultValues);
   }, [productToEdit, form, defaultValues]);
 
-  function onSubmit(values: z.infer<typeof productFormSchema>) {
-    setIsSaving(true);
+  async function handleFirstStepSubmit(values: z.infer<typeof productFormSchema>) {
+    setProductData(values);
+    setStep(2);
+  }
+
+  function handleFinalSave(deliveryInfo: string) {
+    if (!productData) return;
     
-    // Calculate total stock from variants if they exist
-    if (values.variants && values.variants.length > 0) {
-        values.stock = values.variants.reduce((acc, variant) => acc + (variant.stock || 0), 0);
+    setIsSaving(true);
+    let finalValues: Product = { ...productData, deliveryInfo };
+
+    if (finalValues.variants && finalValues.variants.length > 0) {
+        finalValues.stock = finalValues.variants.reduce((acc, variant) => acc + (variant.stock || 0), 0);
     }
 
-    const keywords = generateKeywords(values);
-    const finalValues = { ...values, keywords };
+    const keywords = generateKeywords(finalValues);
+    finalValues = { ...finalValues, keywords };
 
     setTimeout(() => {
         onSave(finalValues);
         setIsSaving(false);
+        setStep(1);
     }, 1000);
   }
 
@@ -235,9 +244,36 @@ export function ProductForm({ onSave, productToEdit }: ProductFormProps) {
       return watchVariants?.reduce((acc, variant) => acc + (variant?.stock || 0), 0) || 0;
   }, [watchVariants]);
 
+  if (step === 2) {
+      return (
+        <div className="flex flex-col h-full">
+            <div className="p-6 space-y-4">
+                <h3 className="text-lg font-semibold">Delivery Information</h3>
+                <p className="text-sm text-muted-foreground">Add private notes for the delivery team. This will not be visible to the customer on the product page, but will be available for invoicing.</p>
+                 <FormField name="deliveryInfo" control={form.control} render={({ field }) => (
+                    <FormItem>
+                        <FormLabel>Internal Notes / Key Details</FormLabel>
+                        <FormControl>
+                            <Textarea placeholder="e.g., Fragile item, handle with care. Contains glassware. Box #A-123." {...field} />
+                        </FormControl>
+                        <FormMessage />
+                    </FormItem>
+                )}/>
+            </div>
+            <DialogFooter className="pt-6 border-t mt-auto p-6">
+                <Button type="button" variant="ghost" onClick={() => setStep(1)}>Back</Button>
+                <Button onClick={() => handleFinalSave(form.getValues('deliveryInfo') || '')} disabled={isSaving}>
+                     {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    {productToEdit ? "Save Changes" : "Create Product"}
+                </Button>
+            </DialogFooter>
+        </div>
+      )
+  }
+
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col h-full">
+      <form onSubmit={form.handleSubmit(handleFirstStepSubmit)} className="flex flex-col h-full">
         <ScrollArea className="flex-grow pr-6 -mr-6">
             <div className="space-y-6 py-4">
               <FormField name="name" control={form.control} render={({ field }) => (
@@ -257,7 +293,7 @@ export function ProductForm({ onSave, productToEdit }: ProductFormProps) {
                <FormField name="highlightsImage" control={form.control} render={({ field }) => (
                   <FormItem>
                       <FormLabel>Highlights Image (Optional)</FormLabel>
-                      <FormControl>
+                       <FormControl>
                           <Input type="file" accept="image/*" onChange={e => field.onChange(e.target.files?.[0])} />
                       </FormControl>
                       <FormDescription>An image to display prominently in the highlights section. Recommended size: 800x800 pixels.</FormDescription>
@@ -412,9 +448,8 @@ export function ProductForm({ onSave, productToEdit }: ProductFormProps) {
         </ScrollArea>
         <DialogFooter className="pt-6 border-t mt-auto">
           <DialogClose asChild><Button type="button" variant="secondary">Cancel</Button></DialogClose>
-          <Button type="submit" disabled={isSaving}>
-            {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {productToEdit ? "Save Changes" : "Create Product"}
+          <Button type="submit">
+            Next
           </Button>
         </DialogFooter>
       </form>
