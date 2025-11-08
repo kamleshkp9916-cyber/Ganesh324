@@ -10,6 +10,7 @@ import {
   ShieldCheck,
   RadioTower,
   User,
+  LifeBuoy,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -145,7 +146,10 @@ export function SellerHeader() {
                 My Profile
             </DropdownMenuItem>
             <DropdownMenuItem onSelect={() => router.push('/seller/settings')}>Settings</DropdownMenuItem>
-            <DropdownMenuItem>Support</DropdownMenuItem>
+            <DropdownMenuItem onSelect={() => router.push('/seller/messages?executive=true')}>
+                <LifeBuoy className="mr-2 h-4 w-4" />
+                Support
+            </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={() => signOut(true)}>Logout</DropdownMenuItem>
           </DropdownMenuContent>
