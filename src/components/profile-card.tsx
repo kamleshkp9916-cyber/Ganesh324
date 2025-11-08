@@ -5,7 +5,7 @@ import React from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Mail, Phone, MapPin, Package, Video, UserPlus, UserCheck, Instagram, Twitter, Youtube, Facebook, Twitch, Award, Users, Home, Edit } from 'lucide-react';
+import { Mail, Phone, MapPin, Package, Video, UserPlus, UserCheck, Instagram, Twitter, Youtube, Facebook, Twitch, Award, Users, Home, Edit, Star } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useEffect, useState, useMemo, useCallback } from 'react';
@@ -16,7 +16,7 @@ import { Badge } from './ui/badge';
 import Image from 'next/image';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from '@/hooks/use-toast';
-import { toggleFollow, isFollowing as isFollowingBackend, UserData } from '@/lib/follow-data';
+import { toggleFollow, isFollowing as isFollowingBackend, UserData, updateUserData } from '@/lib/follow-data';
 import { getFirestoreDb } from '@/lib/firebase';
 import { collection, query, where, onSnapshot, orderBy } from 'firebase/firestore';
 import { formatDistanceToNow } from 'date-fns';
@@ -366,3 +366,5 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
         </Dialog>
     );
 }
+
+    
