@@ -4,7 +4,7 @@
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm, useFieldArray } from "react-hook-form"
 import * as z from "zod"
-import { useState, useMemo, useEffect, useRef } from 'react';
+import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { Button } from "@/components/ui/button"
 import {
   Form,
@@ -59,16 +59,16 @@ const productFormSchema = z.object({
   status: z.enum(["draft", "active", "archived"]),
   category: z.string().min(1, "Category is required."),
   subcategory: z.string().min(1, "Sub-category is required."),
-  brand: z.string().optional(),
-  modelNumber: z.string().optional(),
-  availableSizes: z.string().optional(),
-  availableColors: z.string().optional(),
-  origin: z.string().optional(),
+  brand: z.string().optional().default(''),
+  modelNumber: z.string().optional().default(''),
+  availableSizes: z.string().optional().default(''),
+  availableColors: z.string().optional().default(''),
+  origin: z.string().optional().default(''),
   variants: z.array(variantSchema).optional(),
-  highlights: z.string().optional(),
+  highlights: z.string().optional().default(''),
   highlightsImage: z.any().optional(),
   keywords: z.array(z.string()).optional(),
-  deliveryInfo: z.string().optional(),
+  deliveryInfo: z.string().optional().default(''),
   weight: z.coerce.number().positive("Weight must be a positive number.").optional(),
   length: z.coerce.number().positive("Length must be a positive number.").optional(),
   width: z.coerce.number().positive("Width must be a positive number.").optional(),
@@ -164,6 +164,7 @@ export function ProductForm({ onSave, productToEdit }: ProductFormProps) {
       origin: "",
       variants: [],
       highlights: "",
+      deliveryInfo: "",
     },
   });
 
@@ -187,20 +188,40 @@ export function ProductForm({ onSave, productToEdit }: ProductFormProps) {
     form.resetField('subcategory');
   }, [selectedCategory, form]);
 
-  useEffect(() => {
-    if (productToEdit) {
-      form.reset({
-        ...productToEdit,
-        price: parseFloat(String(productToEdit.price).replace(/[^0-9.-]+/g, '')) || 0,
-        discountPercentage: productToEdit.discountPercentage ? parseFloat(String(productToEdit.discountPercentage)) : undefined,
-        media: productToEdit.media?.map(item => ({...item, file: undefined })) || [],
-        variants: productToEdit.variants?.map(v => ({
+  const setInitialValues = useCallback((product: Product | undefined) => {
+    const defaults = {
+        name: product?.name || "",
+        description: product?.description || "",
+        price: product?.price ? parseFloat(String(product.price).replace(/[^0-9.-]+/g, '')) : 0,
+        stock: product?.stock || 0,
+        media: product?.media?.map(item => ({...item, file: undefined })) || [],
+        listingType: product?.listingType || "general",
+        status: product?.status || "draft",
+        category: product?.category || "",
+        subcategory: product?.subcategory || "",
+        brand: product?.brand || "",
+        modelNumber: product?.modelNumber || "",
+        availableSizes: product?.availableSizes || "",
+        availableColors: product?.availableColors || "",
+        origin: product?.origin || "",
+        variants: product?.variants?.map(v => ({
             ...v,
             price: v.price ? parseFloat(String(v.price).replace(/[^0-9.-]+/g, '')) : undefined
         })) || [],
-      });
-    }
-  }, [productToEdit, form]);
+        highlights: product?.highlights || "",
+        deliveryInfo: product?.deliveryInfo || "",
+        discountPercentage: product?.discountPercentage ? parseFloat(String(product.discountPercentage)) : undefined,
+        weight: product?.weight,
+        length: product?.length,
+        width: product?.width,
+        height: product?.height,
+    };
+    form.reset(defaults as any);
+  }, [form]);
+
+  useEffect(() => {
+    setInitialValues(productToEdit);
+  }, [productToEdit, setInitialValues]);
 
   function handleFinalSave(values: z.infer<typeof productFormSchema>) {
     setIsSaving(true);
@@ -265,7 +286,6 @@ export function ProductForm({ onSave, productToEdit }: ProductFormProps) {
                     <FormItem>
                         <FormLabel>Highlights Image (Optional)</FormLabel>
                         <FormControl>
-                            {/* This is a simplified version. A real one might need useState. */}
                             <Input type="file" accept="image/*" onChange={(e) => field.onChange(e.target.files?.[0])} />
                         </FormControl>
                         <FormDescription>An image to display prominently in the highlights section. Recommended size: 800x800 pixels.</FormDescription>
@@ -322,40 +342,6 @@ export function ProductForm({ onSave, productToEdit }: ProductFormProps) {
                       <FormDescription>The first item will be the main display media. Recommended size: 800x800 pixels. Max 5MB per file.</FormDescription>
                       <FormMessage />
                   </FormItem>
-              )}/>
-               <FormField name="listingType" control={form.control} render={({ field }) => (
-                  <FormItem><FormLabel>Listing Type</FormLabel>
-                    <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex gap-4">
-                      <FormItem className="flex items-center space-x-2 space-y-0">
-                        <FormControl><RadioGroupItem value="general" id="general"/></FormControl>
-                        <FormLabel htmlFor="general" className="font-normal">General Listing - Available for everyone to purchase anytime.</FormLabel>
-                      </FormItem>
-                      <FormItem className="flex items-center space-x-2 space-y-0">
-                        <FormControl><RadioGroupItem value="live-stream" id="live-stream"/></FormControl>
-                        <FormLabel htmlFor="live-stream" className="font-normal">Live Stream Only - Product is only available for purchase during a live stream.</FormLabel>
-                      </FormItem>
-                    </RadioGroup>
-                  <FormMessage /></FormItem>
-              )}/>
-               <FormField control={form.control} name="status" render={({ field }) => (
-                <FormItem><FormLabel>Status</FormLabel>
-                  <FormControl>
-                    <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex gap-4">
-                      <FormItem className="flex items-center space-x-3 space-y-0">
-                        <FormControl><RadioGroupItem value="active" id="active"/></FormControl>
-                        <FormLabel htmlFor="active" className="font-normal">Active</FormLabel>
-                      </FormItem>
-                      <FormItem className="flex items-center space-x-3 space-y-0">
-                        <FormControl><RadioGroupItem value="draft" id="draft"/></FormControl>
-                        <FormLabel htmlFor="draft" className="font-normal">Draft</FormLabel>
-                      </FormItem>
-                       <FormItem className="flex items-center space-x-3 space-y-0">
-                        <FormControl><RadioGroupItem value="archived" id="archived"/></FormControl>
-                        <FormLabel htmlFor="archived" className="font-normal">Archived</FormLabel>
-                      </FormItem>
-                    </RadioGroup>
-                  </FormControl>
-                </FormItem>
               )}/>
             </div>
           </ScrollArea>
@@ -516,4 +502,3 @@ export function ProductForm({ onSave, productToEdit }: ProductFormProps) {
   )
 }
 
-    
