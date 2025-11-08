@@ -81,11 +81,11 @@ interface ProductFormProps {
   productToEdit?: Product;
 }
 
-const VariantImageInput = ({ control, index }: { control: any, index: number }) => {
+const VariantImageInput = ({ control, index, getValues }: { control: any, index: number, getValues: any }) => {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const { field } = useForm({ control }).register(`variants.${index}.image`);
 
-    const [preview, setPreview] = useState(control.getValues(`variants.${index}.image`)?.preview || null);
+    const [preview, setPreview] = useState(getValues(`variants.${index}.image`)?.preview || null);
 
     const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
@@ -322,8 +322,8 @@ export function ProductForm({ onSave, productToEdit }: ProductFormProps) {
                     {variantFields.length > 0 ? (
                         <div className="space-y-2">
                              {variantFields.map((field, index) => (
-                                <div key={field.id} className="grid grid-cols-[auto_1fr_1fr_1fr_auto] gap-2 items-center p-3 border rounded-lg">
-                                    <VariantImageInput control={form.control} index={index} />
+                                <div key={field.id} className="grid grid-cols-[auto,1fr,1fr,1fr,auto] gap-2 items-center p-3 border rounded-lg">
+                                    <VariantImageInput control={form.control} index={index} getValues={form.getValues} />
                                     <FormField control={form.control} name={`variants.${index}.color`} render={({ field }) => (
                                         <FormItem><FormLabel className="text-xs">Color</FormLabel><FormControl><Input placeholder="e.g., Red" {...field} /></FormControl><FormMessage /></FormItem>
                                     )}/>
