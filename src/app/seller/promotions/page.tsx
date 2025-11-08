@@ -26,10 +26,12 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
 import { useLocalStorage } from "@/hooks/use-local-storage";
-import { productDetails } from "@/lib/product-data";
+import { productDetails, productToSellerMapping } from "@/lib/product-data";
 import { Separator } from "@/components/ui/separator";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { MoreHorizontal } from "lucide-react";
+import { getFirestoreDb } from "@/lib/firebase";
+import { collection, query, where, getDocs } from "firebase/firestore";
 
 export const COUPONS_KEY = 'streamcart_coupons';
 
@@ -44,7 +46,7 @@ const couponSchema = z.object({
   applicableProducts: z.array(z.string()).optional(),
 });
 
-export type Coupon = z.infer<typeof couponSchema>;
+export type Coupon = z.infer<typeof couponSchema> & { sellerId: string, sellerName?: string, status?: 'pending' | 'active' | 'rejected' };
 
 const promotionTiers = [
     {
@@ -71,20 +73,28 @@ const promotionTiers = [
 ];
 
 const initialCoupons: Coupon[] = [
-    { id: 1, code: 'SELLER10', description: '10% off on all my products', discountType: 'percentage', discountValue: 10 },
+    { id: 1, code: 'SELLER10', description: '10% off on all my products', discountType: 'percentage', discountValue: 10, sellerId: 'seller1' },
 ];
 
-const CouponForm = ({ onSave, existingCoupon, closeDialog }: { onSave: (coupon: Coupon) => void, existingCoupon?: Coupon, closeDialog: () => void }) => {
+const CouponForm = ({ onSave, existingCoupon, closeDialog }: { onSave: (coupon: Omit<Coupon, 'sellerId'>) => void, existingCoupon?: Coupon, closeDialog: () => void }) => {
     const { user } = useAuth();
     const [sellerProducts, setSellerProducts] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
-        if (user) {
-            const allProducts = Object.values(productDetails);
-            const userProducts = allProducts.filter(p => p.brand === user.displayName); // Simple mock filter
-            setSellerProducts(userProducts.filter(p => p.stock > 0));
-        }
+        const fetchProducts = async () => {
+            if (user) {
+                const db = getFirestoreDb();
+                const productsQuery = query(
+                    collection(db, `users/${user.uid}/products`),
+                    where('stock', '>', 0)
+                );
+                const querySnapshot = await getDocs(productsQuery);
+                const products = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                setSellerProducts(products);
+            }
+        };
+        fetchProducts();
     }, [user]);
 
     const form = useForm<z.infer<typeof couponSchema>>({
@@ -187,19 +197,27 @@ const CouponForm = ({ onSave, existingCoupon, closeDialog }: { onSave: (coupon: 
 
 
 export default function SellerPromotionsPage() {
-    const [coupons, setCoupons] = useLocalStorage<Coupon[]>(COUPONS_KEY, initialCoupons);
+    const { user } = useAuth();
+    const [allCoupons, setAllCoupons] = useLocalStorage<Coupon[]>(COUPONS_KEY, initialCoupons);
     const [isCouponFormOpen, setIsCouponFormOpen] = useState(false);
     const [editingCoupon, setEditingCoupon] = useState<Coupon | undefined>(undefined);
     const { toast } = useToast();
+    
+    const sellerCoupons = useMemo(() => {
+        if (!user) return [];
+        return allCoupons.filter(c => c.sellerId === user.uid);
+    }, [allCoupons, user]);
 
-    const handleSaveCoupon = (coupon: Coupon) => {
-        setCoupons(prev => {
+    const handleSaveCoupon = (coupon: Omit<Coupon, 'sellerId'>) => {
+        if (!user) return;
+        const couponWithSeller = { ...coupon, sellerId: user.uid };
+        setAllCoupons(prev => {
             const newCoupons = [...prev];
             const existingIndex = newCoupons.findIndex(c => c.id === coupon.id);
             if (existingIndex > -1) {
-                newCoupons[existingIndex] = coupon;
+                newCoupons[existingIndex] = couponWithSeller;
             } else {
-                newCoupons.unshift(coupon);
+                newCoupons.unshift(couponWithSeller);
             }
             return newCoupons;
         });
@@ -207,7 +225,7 @@ export default function SellerPromotionsPage() {
     };
 
     const handleDeleteCoupon = (couponId: number) => {
-        setCoupons(prev => prev.filter(c => c.id !== couponId));
+        setAllCoupons(prev => prev.filter(c => c.id !== couponId));
         toast({ title: "Coupon Deleted", variant: "destructive" });
     };
     
@@ -218,8 +236,9 @@ export default function SellerPromotionsPage() {
 
     const getProductNames = (productIds: string[] | undefined) => {
         if (!productIds || productIds.length === 0) return "All Products";
+        const allProducts = Object.values(productDetails);
         return productIds.map(id => {
-            const product = Object.values(productDetails).find(p => p.id.toString() === id);
+            const product = allProducts.find(p => p.id.toString() === id || p.key === id);
             return product ? product.name : 'Unknown Product';
         }).join(', ');
     };
@@ -245,7 +264,7 @@ export default function SellerPromotionsPage() {
                             </CardHeader>
                              <CardContent>
                                 <div className="space-y-4">
-                                {coupons.map(coupon => (
+                                {sellerCoupons.map(coupon => (
                                     <div key={coupon.id} className="flex items-center justify-between rounded-lg border p-4">
                                         <div className="flex items-center gap-4">
                                             <div className="w-12 h-12 bg-muted rounded-md flex items-center justify-center">
@@ -275,7 +294,7 @@ export default function SellerPromotionsPage() {
                                         </DropdownMenu>
                                     </div>
                                 ))}
-                                {coupons.length === 0 && (
+                                {sellerCoupons.length === 0 && (
                                     <div className="text-center text-muted-foreground py-12">
                                         <p>You haven't created any coupons yet.</p>
                                     </div>
