@@ -41,7 +41,7 @@ import { COUPONS_KEY, Coupon } from '@/app/admin/settings/page';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from './ui/carousel';
 import { RadioGroup, RadioGroupItem } from './ui/radio-group';
 import { ProductShelfContent } from './product-shelf-content';
-
+import { SellerHeader } from './seller/seller-header';
 
 const CountdownTimer = ({ expiryDate, onExpire }: { expiryDate: string | Date, onExpire: () => void }) => {
     const [timeLeft, setTimeLeft] = useState<Duration | null>(null);
@@ -202,6 +202,13 @@ export function ProductDetailClient({ productId }: { productId: string }) {
 
     const product = useMemo(() => productDetails[productId as keyof typeof productDetails] || null, [productId]);
     
+    const seller = useMemo(() => product ? productToSellerMapping[product.key as keyof typeof productToSellerMapping] : null, [product]);
+
+    const isOwnerViewing = useMemo(() => {
+        if (!user || !seller) return false;
+        return user.uid === seller.uid;
+    }, [user, seller]);
+
     const getProductsForSeller = useCallback((sellerId: string): any[] => {
         return Object.values(productDetails).filter(p => productToSellerMapping[p.key as keyof typeof productToSellerMapping]?.uid === sellerId);
     }, []);
@@ -649,15 +656,13 @@ export function ProductDetailClient({ productId }: { productId: string }) {
         const parts = text.split(/(#\\w+)/g);
         return parts.map((part, index) => {
             if (part.startsWith('#')) {
-                return (
-                    <button 
+                return <button 
                         key={index} 
                         className="text-primary hover:underline font-semibold"
                         onClick={() => onSearchComplete([], part)}
                     >
                         {part}
-                    </button>
-                );
+                    </button>;
             }
             return part;
         });
@@ -715,16 +720,13 @@ export function ProductDetailClient({ productId }: { productId: string }) {
         return Array.from(new Map(allMedia.map((item: any) => [item.url, item])).values());
     }, [product.media, product.images]);
 
-
-    const seller = productToSellerMapping[product.key];
-    const sellerLiveStream = liveSellers.find(s => s.id === seller.uid);
-    const reviewImages = reviews.map(r => r.imageUrl).filter(Boolean) as string[];
-
     const stock = variantStock ?? product.stock;
+    const sellerLiveStream = liveSellers.find(s => s.id === seller?.uid && s.status === 'live');
 
     return (
         <>
-             <AlertDialog open={isAuthDialogOpen} onOpenChange={setIsAuthDialogOpen}>
+            {isOwnerViewing && <SellerHeader />}
+            <AlertDialog open={isAuthDialogOpen} onOpenChange={setIsAuthDialogOpen}>
                 <AlertDialogContent>
                     <AlertDialogHeader>
                         <DialogTitle>Authentication Required</DialogTitle>
@@ -743,35 +745,37 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                 <ReportDialog onSubmit={handleReportProduct} />
             </Dialog>
             <div className="min-h-screen bg-background">
-                <header className="p-4 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-sm z-30 border-b">
-                    <Button variant="ghost" size="icon" onClick={() => {
-                        if (showSearchResults) {
-                            setShowSearchResults(false);
-                            setSearchQuery('');
-                            setSearchResults([]);
-                        } else {
-                            router.back()
-                        }
-                    }}>
-                        <ArrowLeft className="h-6 w-6" />
-                    </Button>
-                    <div className="flex-grow max-w-md mx-4">
-                        <ProductSearch onSearchComplete={onSearchComplete} />
-                    </div>
-                    <div className="flex items-center">
-                        <Button asChild variant="ghost" className="relative">
-                            <Link href="/cart">
-                                <ShoppingCart className="mr-2 h-5 w-5" />
-                                <span className="hidden sm:inline">My Cart</span>
-                                {cartCount > 0 && (
-                                    <Badge variant="destructive" className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center text-xs">
-                                        {cartCount}
-                                    </Badge>
-                                )}
-                            </Link>
+                 {!isOwnerViewing && (
+                    <header className="p-4 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-sm z-30 border-b">
+                        <Button variant="ghost" size="icon" onClick={() => {
+                            if (showSearchResults) {
+                                setShowSearchResults(false);
+                                setSearchQuery('');
+                                setSearchResults([]);
+                            } else {
+                                router.back()
+                            }
+                        }}>
+                            <ArrowLeft className="h-6 w-6" />
                         </Button>
-                    </div>
-                </header>
+                        <div className="flex-grow max-w-md mx-4">
+                            <ProductSearch onSearchComplete={onSearchComplete} />
+                        </div>
+                        <div className="flex items-center">
+                            <Button asChild variant="ghost" className="relative">
+                                <Link href="/cart">
+                                    <ShoppingCart className="mr-2 h-5 w-5" />
+                                    <span className="hidden sm:inline">My Cart</span>
+                                    {cartCount > 0 && (
+                                        <Badge variant="destructive" className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center text-xs">
+                                            {cartCount}
+                                        </Badge>
+                                    )}
+                                </Link>
+                            </Button>
+                        </div>
+                    </header>
+                 )}
 
                 <main>
                     {showSearchResults ? renderSearchResults() : (
@@ -970,29 +974,31 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                         </div>
                                     )}
                                 
-                                    <div className="flex flex-col sm:flex-row gap-3 pt-4">
-                                        {(variantStock !== undefined && variantStock > 0) ? (
-                                            <>
-                                                {inCart ? (
-                                                    <Button size="lg" className="w-full h-12 text-base bg-foreground hover:bg-foreground/80 text-background" asChild>
-                                                        <Link href="/cart">Go to Cart</Link>
+                                    {!isOwnerViewing && (
+                                        <div className="flex flex-col sm:flex-row gap-3 pt-4">
+                                            {(variantStock !== undefined && variantStock > 0) ? (
+                                                <>
+                                                    {inCart ? (
+                                                        <Button size="lg" className="w-full h-12 text-base bg-foreground hover:bg-foreground/80 text-background" asChild>
+                                                            <Link href="/cart">Go to Cart</Link>
+                                                        </Button>
+                                                    ) : (
+                                                        <Button size="lg" className="w-full h-12 text-base transition-transform hover:scale-105 active:scale-95 border border-foreground bg-transparent text-foreground hover:bg-foreground hover:text-background" variant="outline" onClick={handleAddToCart}>
+                                                            <ShoppingCart className="mr-2 h-5 w-5" />
+                                                            Add to Cart
+                                                        </Button>
+                                                    )}
+                                                    <Button size="lg" className="w-full h-12 text-base transition-transform hover:scale-105 active:scale-95 border border-foreground bg-transparent text-foreground hover:bg-foreground hover:text-background" onClick={handleBuyNow}>
+                                                        Buy Now
                                                     </Button>
-                                                ) : (
-                                                    <Button size="lg" className="w-full h-12 text-base transition-transform hover:scale-105 active:scale-95 border border-foreground bg-transparent text-foreground hover:bg-foreground hover:text-background" variant="outline" onClick={handleAddToCart}>
-                                                        <ShoppingCart className="mr-2 h-5 w-5" />
-                                                        Add to Cart
-                                                    </Button>
-                                                )}
-                                                <Button size="lg" className="w-full h-12 text-base transition-transform hover:scale-105 active:scale-95 border border-foreground bg-transparent text-foreground hover:bg-foreground hover:text-background" onClick={handleBuyNow}>
-                                                    Buy Now
+                                                </>
+                                            ) : (
+                                                <Button size="lg" className="w-full h-12 text-base" disabled>
+                                                    Out of Stock
                                                 </Button>
-                                            </>
-                                        ) : (
-                                            <Button size="lg" className="w-full h-12 text-base" disabled>
-                                                Out of Stock
-                                            </Button>
-                                        )}
-                                    </div>
+                                            )}
+                                        </div>
+                                    )}
                                     
                                     <div className="space-y-4 pt-4 w-full">
                                         <Card className='p-4'>
@@ -1139,39 +1145,6 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                         </div>
                                     </CardHeader>
                                     <CardContent className="space-y-4">
-                                        {reviewImages.length > 0 && (
-                                            <div className="grid grid-cols-4 gap-2">
-                                                {reviewImages.slice(0, 4).map((img, index) => (
-                                                    <Dialog key={index}>
-                                                        <DialogTrigger asChild>
-                                                            <div className={cn("relative aspect-square rounded-md overflow-hidden cursor-pointer", index === 3 && reviewImages.length > 4 && "bg-black/50")}>
-                                                                <Image src={img} alt={`Review image ${index + 1}`} layout="fill" className="object-cover" />
-                                                                {index === 3 && reviewImages.length > 4 && (
-                                                                    <div className="absolute inset-0 bg-black/60 flex items-center justify-center text-white font-bold text-lg">
-                                                                        +{reviewImages.length - 4}
-                                                                    </div>
-                                                                )}
-                                                            </div>
-                                                        </DialogTrigger>
-                                                        <DialogContent className="max-w-4xl p-0">
-                                                            <Carousel className="w-full">
-                                                                <CarouselContent>
-                                                                    {reviewImages.map((img, idx) => (
-                                                                        <CarouselItem key={idx}>
-                                                                            <div className="aspect-video relative">
-                                                                                <Image src={img} alt={`Review image slide ${idx + 1}`} layout="fill" className="object-contain" />
-                                                                            </div>
-                                                                        </CarouselItem>
-                                                                    ))}
-                                                                </CarouselContent>
-                                                                <CarouselPrevious />
-                                                                <CarouselNext />
-                                                            </Carousel>
-                                                        </DialogContent>
-                                                    </Dialog>
-                                                ))}
-                                            </div>
-                                        )}
                                         {reviews.length > 0 ? (
                                             <div className="space-y-4">
                                                 {reviews.slice(0, 3).map((review) => (
@@ -1235,100 +1208,107 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                     </CardFooter>
                                 </Card>
 
-                                <Separator />
-                                <div className="mt-4">
-                                    <h2 className="text-2xl font-bold mb-4">Related Product Streams</h2>
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                                        {relatedStreams.map((stream: any) => {
-                                            const sellerProducts = getProductsForSeller(stream.id);
-                                            const productsToShow = sellerProducts.slice(0, 5);
-                                            const remainingCount = sellerProducts.length > 5 ? sellerProducts.length - 5 : 0;
-                                            return (
-                                                <Card key={stream.id} className="group flex flex-col space-y-2 overflow-hidden border-none shadow-none bg-transparent">
-                                                    <Link href={`/stream/${stream.id}`} className="block">
-                                                        <div className="relative aspect-[16/9] bg-muted rounded-lg overflow-hidden">
-                                                            <Image src={stream.thumbnailUrl} alt={`Live stream from ${stream.name}`} fill sizes="(max-width: 640px) 100vw, 33vw" className="object-cover w-full h-full transition-transform group-hover:scale-105" />
-                                                            <div className="absolute top-3 left-3 z-10"><Badge variant="destructive" className="gap-1.5"><div className="h-2 w-2 rounded-full bg-white animate-pulse" />LIVE</Badge></div>
-                                                            <div className="absolute top-2 right-2 z-10">
-                                                                <Badge variant="secondary" className="bg-black/50 text-white font-semibold backdrop-blur-sm">
-                                                                    <Users className="w-3 h-3 mr-1"/>{stream.viewers.toLocaleString()}
-                                                                </Badge>
-                                                            </div>
-                                                        </div>
-                                                        <div className="flex items-start gap-2 mt-2">
-                                                                <Avatar className="w-8 h-8">
-                                                                <AvatarImage src={stream.avatarUrl} alt={stream.name} />
-                                                                <AvatarFallback>{stream.name.charAt(0)}</AvatarFallback>
-                                                            </Avatar>
-                                                            <div className="flex-1 overflow-hidden">
-                                                                <p className="font-semibold text-sm leading-tight group-hover:underline truncate">{stream.title || stream.name}</p>
-                                                                <p className="text-xs text-muted-foreground">{stream.name}</p>
-                                                                <p className="text-xs text-primary font-semibold mt-0.5">{stream.category}</p>
-                                                            </div>
-                                                        </div>
-                                                    </Link>
-                                                     <div className="flex items-center gap-1.5 mt-auto flex-shrink-0 pt-2 w-full justify-start pb-2 pl-2">
-                                                        {productsToShow.map((p: any) => (
-                                                            <Link href={`/product/${p.key}`} key={p.key} className="block" onClick={(e) => e.stopPropagation()}>
-                                                                <div className="w-10 h-10 bg-muted rounded-md border overflow-hidden hover:ring-2 hover:ring-primary">
-                                                                    <Image src={p.images[0]?.preview || p.images[0]} alt={p.name} width={40} height={40} className="object-cover w-full h-full" />
+                                {!isOwnerViewing && (
+                                    <>
+                                        <Separator />
+                                        <div className="mt-4">
+                                            <h2 className="text-2xl font-bold mb-4">Related Product Streams</h2>
+                                            <div className="overflow-x-auto no-scrollbar">
+                                                <div className="flex gap-4 pb-4">
+                                                    {relatedStreams.map((stream: any) => {
+                                                        const sellerProducts = getProductsForSeller(stream.id);
+                                                        const productsToShow = sellerProducts.slice(0, 5);
+                                                        const remainingCount = sellerProducts.length > 5 ? sellerProducts.length - 5 : 0;
+                                                        return (
+                                                            <Card key={stream.id} className="group flex flex-col space-y-2 overflow-hidden border-none shadow-none bg-transparent w-64 flex-shrink-0">
+                                                                <Link href={`/stream/${stream.id}`} className="block">
+                                                                    <div className="relative aspect-[16/9] bg-muted rounded-lg overflow-hidden">
+                                                                        <Image src={stream.thumbnailUrl} alt={`Live stream from ${stream.name}`} fill sizes="(max-width: 640px) 100vw, 33vw" className="object-cover w-full h-full transition-transform group-hover:scale-105" />
+                                                                        <div className="absolute top-3 left-3 z-10"><Badge variant="destructive" className="gap-1.5"><div className="h-2 w-2 rounded-full bg-white animate-pulse" />LIVE</Badge></div>
+                                                                        <div className="absolute top-2 right-2 z-10"><Badge variant="secondary" className="bg-black/50 text-white font-semibold backdrop-blur-sm"><Users className="w-3 h-3 mr-1"/>{stream.viewers.toLocaleString()}</Badge></div>
+                                                                    </div>
+                                                                    <div className="flex items-start gap-3 mt-2">
+                                                                            <Avatar className="w-8 h-8">
+                                                                            <AvatarImage src={stream.avatarUrl} alt={stream.name} />
+                                                                            <AvatarFallback>{stream.name.charAt(0)}</AvatarFallback>
+                                                                        </Avatar>
+                                                                        <div className="flex-1 overflow-hidden">
+                                                                            <p className="font-semibold text-sm leading-tight group-hover:underline truncate">{stream.title || stream.name}</p>
+                                                                            <p className="text-xs text-muted-foreground">{stream.name}</p>
+                                                                            <p className="text-xs text-primary font-semibold mt-0.5">{stream.category}</p>
+                                                                        </div>
+                                                                    </div>
+                                                                </Link>
+                                                                <div className="flex items-center gap-1.5 mt-auto flex-shrink-0 pt-2 w-full justify-start pb-2 pl-2">
+                                                                    {productsToShow.map((p: any) => (
+                                                                        <Link href={`/product/${p.key}`} key={p.key} className="block" onClick={(e) => e.stopPropagation()}>
+                                                                            <div className="w-10 h-10 bg-muted rounded-md border overflow-hidden hover:ring-2 hover:ring-primary">
+                                                                                <Image src={p.images[0]?.preview || p.images[0]} alt={p.name} width={40} height={40} className="object-cover w-full h-full" />
+                                                                            </div>
+                                                                        </Link>
+                                                                    ))}
+                                                                    {remainingCount > 0 && (
+                                                                        <Sheet>
+                                                                            <SheetTrigger asChild>
+                                                                                <button className="w-10 h-10 bg-muted rounded-md border flex items-center justify-center text-xs font-semibold text-muted-foreground hover:bg-secondary">
+                                                                                    +{remainingCount}
+                                                                                </button>
+                                                                            </SheetTrigger>
+                                                                            <SheetContent side="bottom" className="h-[60vh] flex flex-col p-0">
+                                                                                <ProductShelfContent
+                                                                                    sellerProducts={sellerProducts}
+                                                                                    handleAddToCart={handleAddToCart}
+                                                                                    handleBuyNow={handleBuyNow}
+                                                                                    isMobile={true}
+                                                                                    onClose={() => {
+                                                                                        const a = document.querySelector('[data-state="closed"]');
+                                                                                        if (a) (a as HTMLElement).click();
+                                                                                    }}
+                                                                                    toast={toast}
+                                                                                />
+                                                                            </SheetContent>
+                                                                        </Sheet>
+                                                                    )}
                                                                 </div>
-                                                            </Link>
-                                                        ))}
-                                                        {remainingCount > 0 && (
-                                                            <Sheet>
-                                                                <SheetTrigger asChild>
-                                                                    <button className="w-10 h-10 bg-muted rounded-md border flex items-center justify-center text-xs font-semibold text-muted-foreground hover:bg-secondary">
-                                                                        +{remainingCount}
-                                                                    </button>
-                                                                </SheetTrigger>
-                                                                <SheetContent side="bottom" className="h-[60vh] flex flex-col p-0">
-                                                                    <ProductShelfContent
-                                                                        sellerProducts={sellerProducts}
-                                                                        handleAddToCart={handleAddToCart}
-                                                                        handleBuyNow={handleBuyNow}
-                                                                        isMobile={true}
-                                                                        onClose={() => {
-                                                                            const a = document.querySelector('[data-state="closed"]');
-                                                                            if (a) (a as HTMLElement).click();
-                                                                        }}
-                                                                        toast={toast}
-                                                                    />
-                                                                </SheetContent>
-                                                            </Sheet>
-                                                        )}
-                                                      </div>
-                                                </Card>
-                                            )
-                                        })}
-                                    </div>
-                                </div>
+                                                            </Card>
+                                                        )
+                                                    })}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
                                 <Card className="mt-6">
                                     <CardHeader>
                                         <div className="flex items-center justify-between">
                                             <h3 className="text-lg font-semibold">Sold By</h3>
-                                            <Button asChild variant="outline" size="sm">
-                                                <Link href={`/seller/profile?userId=${seller.uid}`}>View Profile</Link>
-                                            </Button>
+                                            {seller && (
+                                                <Button asChild variant="outline" size="sm">
+                                                    <Link href={`/seller/profile?userId=${seller.uid}`}>View Profile</Link>
+                                                </Button>
+                                            )}
                                         </div>
                                     </CardHeader>
                                     <CardContent>
-                                        <div className="flex items-center gap-4">
-                                            <Avatar>
-                                                <AvatarImage src={seller.avatarUrl} />
-                                                <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
-                                            </Avatar>
-                                            <div>
-                                                <Link href={`/seller/profile?userId=${seller.uid}`} className="font-semibold hover:underline">{seller.name}</Link>
-                                                <div className="flex items-center gap-1 text-xs text-amber-400 mt-1">
-                                                    <Star className="w-4 h-4 fill-current" />
-                                                    <span>4.8</span>
+                                        {seller ? (
+                                            <div className="flex items-center gap-4">
+                                                <Avatar>
+                                                    <AvatarImage src={seller.avatarUrl} />
+                                                    <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
+                                                </Avatar>
+                                                <div>
+                                                    <Link href={`/seller/profile?userId=${seller.uid}`} className="font-semibold hover:underline">{seller.name}</Link>
+                                                    <div className="flex items-center gap-1 text-xs text-amber-400 mt-1">
+                                                        <Star className="w-4 h-4 fill-current" />
+                                                        <span>4.8</span>
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </div>
+                                        ) : (
+                                            <p className="text-sm text-muted-foreground">Seller information not available.</p>
+                                        )}
                                     </CardContent>
                                 </Card>
-                                {recentlyViewedItems.length > 0 && (
+                                {!isOwnerViewing && recentlyViewedItems.length > 0 && (
                                     <div className="mt-8">
                                         <h2 className="text-2xl font-bold mb-4">Recently Viewed</h2>
                                         <div className="overflow-x-auto no-scrollbar">
@@ -1389,3 +1369,4 @@ export function ProductDetailClient({ productId }: { productId: string }) {
         </>
     );
 }
+
