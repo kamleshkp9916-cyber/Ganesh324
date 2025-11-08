@@ -35,6 +35,7 @@ import { ref, uploadString, getDownloadURL } from "firebase/storage";
 import { defaultCategories } from "@/lib/categories";
 import Image from "next/image";
 import { Separator } from "@/components/ui/separator";
+import { errorEmitter, FirestorePermissionError } from "@/firebase";
 
 const variantSchema = z.object({
     id: z.string().optional(),
@@ -222,49 +223,68 @@ export function ProductForm({ onSave, productToEdit }: ProductFormProps) {
     }
     setIsLoading(true);
 
-    try {
-        const db = getFirestoreDb();
-        const storage = getFirebaseStorage();
+    const db = getFirestoreDb();
+    const storage = getFirebaseStorage();
 
-        const productData: any = { ...data, sellerId: user.uid, media: [] };
-        
-        const mediaUrls = await Promise.all(
-            media.map(async (mediaFile) => {
-                if (mediaFile.file) {
-                    const filePath = `products/${user.uid}/${Date.now()}_${mediaFile.file.name}`;
-                    const storageRef = ref(storage, filePath);
-                    await uploadString(storageRef, mediaFile.url, 'data_url');
-                    const downloadURL = await getDownloadURL(storageRef);
-                    return { type: mediaFile.type, url: downloadURL };
-                }
-                return { type: mediaFile.type, url: mediaFile.url };
+    const productData: any = { ...data, sellerId: user.uid, media: [] };
+    
+    // Perform media uploads first
+    const mediaUrls = await Promise.all(
+        media.map(async (mediaFile) => {
+            if (mediaFile.file) {
+                const filePath = `products/${user.uid}/${Date.now()}_${mediaFile.file.name}`;
+                const storageRef = ref(storage, filePath);
+                await uploadString(storageRef, mediaFile.url, 'data_url');
+                const downloadURL = await getDownloadURL(storageRef);
+                return { type: mediaFile.type, url: downloadURL };
+            }
+            return { type: mediaFile.type, url: mediaFile.url };
+        })
+    );
+    productData.media = mediaUrls;
+    
+    if (data.highlightsImage && data.highlightsImage.file) {
+         const highlightsImagePath = `products/${user.uid}/highlights_${Date.now()}_${data.highlightsImage.file.name}`;
+         const storageRef = ref(storage, highlightsImagePath);
+         await uploadString(storageRef, data.highlightsImage.preview, 'data_url');
+         productData.highlightsImage = await getDownloadURL(storageRef);
+    } else if (productToEdit?.highlightsImage) {
+        productData.highlightsImage = productToEdit.highlightsImage;
+    }
+
+    if (productToEdit?.id) {
+        const productRef = doc(db, "users", user.uid, "products", productToEdit.id);
+        setDoc(productRef, productData, { merge: true })
+            .then(() => {
+                onSave(productData as Product);
+                toast({ title: "Product Updated", description: "Your product has been saved successfully." });
             })
-        );
-        productData.media = mediaUrls;
-        
-        if (data.highlightsImage && data.highlightsImage.file) {
-             const highlightsImagePath = `products/${user.uid}/highlights_${Date.now()}_${data.highlightsImage.file.name}`;
-             const storageRef = ref(storage, highlightsImagePath);
-             await uploadString(storageRef, data.highlightsImage.preview, 'data_url');
-             productData.highlightsImage = await getDownloadURL(storageRef);
-        } else if (productToEdit?.highlightsImage) {
-            productData.highlightsImage = productToEdit.highlightsImage;
-        }
+            .catch((error) => {
+                const permissionError = new FirestorePermissionError({
+                    path: productRef.path,
+                    operation: 'update',
+                    requestResourceData: productData
+                });
+                errorEmitter.emit('permission-error', permissionError);
+            })
+            .finally(() => setIsLoading(false));
 
-        if (productToEdit?.id) {
-            const productRef = doc(db, "users", user.uid, "products", productToEdit.id);
-            await setDoc(productRef, productData, { merge: true });
-        } else {
-            await addDoc(collection(db, "users", user.uid, "products"), productData);
-        }
-
-        onSave(productData as Product);
-        toast({ title: productToEdit ? "Product Updated" : "Product Created", description: "Your product has been saved successfully." });
-    } catch (error) {
-        console.error("Error saving product: ", error);
-        toast({ variant: 'destructive', title: "Save Failed", description: "There was an error saving your product." });
-    } finally {
-        setIsLoading(false);
+    } else {
+        const collectionRef = collection(db, "users", user.uid, "products");
+        addDoc(collectionRef, productData)
+            .then((docRef) => {
+                onSave({ ...productData, id: docRef.id } as Product);
+                toast({ title: "Product Created", description: "Your product has been saved successfully." });
+            })
+            .catch((error) => {
+                const permissionError = new FirestorePermissionError({
+                    path: collectionRef.path,
+                    operation: 'create',
+                    requestResourceData: productData
+                });
+                errorEmitter.emit('permission-error', permissionError);
+            })
+            .finally(() => setIsLoading(false));
     }
   };
   
