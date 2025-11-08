@@ -386,6 +386,8 @@ export function ProductForm({ onSave, productToEdit }: ProductFormProps) {
     <Form {...form}>
       <form onSubmit={form.handleSubmit(processSubmit)} className="flex flex-col h-full">
         {renderStepContent()}
+        <input type="file" multiple accept="image/*" ref={imageInputRef} onChange={(e) => handleFileUpload(e, 'image')} className="hidden" />
+        <input type="file" multiple accept="video/*" ref={videoInputRef} onChange={(e) => handleFileUpload(e, 'video')} className="hidden" />
         <div className="p-6 pt-4 border-t flex justify-between items-center mt-auto">
           <div>
               {step > 1 && (
