@@ -28,16 +28,17 @@ import { useAuthActions } from "@/lib/auth";
 import { useRouter, usePathname } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { cn } from "@/lib/utils";
 
 const navLinks = [
-    { href: "/seller/dashboard", label: "Dashboard" },
-    { href: "/seller/revenue", label: "Revenue" },
-    { href: "/seller/orders", label: "Orders" },
-    { href: "/seller/products", label: "Products" },
-    { href: "/seller/promotions", label: "Promotions" },
-    { href: "/seller/messages", label: "Messages" },
-    { href: "/seller/feed", label: "Feed" },
-    { href: "#", label: "Analytics" },
+    { href: "/seller/dashboard", label: "Dashboard", disabled: false },
+    { href: "/seller/revenue", label: "Revenue", disabled: false },
+    { href: "/seller/orders", label: "Orders", disabled: false },
+    { href: "/seller/products", label: "Products", disabled: false },
+    { href: "/seller/promotions", label: "Promotions", disabled: false },
+    { href: "/seller/messages", label: "Messages", disabled: false },
+    { href: "/seller/feed", label: "Feed", disabled: false },
+    { href: "#", label: "Analytics", disabled: true },
 ];
 
 export function SellerHeader() {
@@ -59,14 +60,19 @@ export function SellerHeader() {
         {navLinks.map((link) => (
             <Link
                 key={link.href}
-                href={link.href}
-                className={
+                href={link.disabled ? "#" : link.href}
+                className={cn(
+                    "transition-colors",
+                    link.disabled ? "text-muted-foreground/50 cursor-not-allowed flex items-center gap-2" : 
                     pathname === link.href
-                    ? "text-foreground transition-colors hover:text-foreground"
-                    : "text-muted-foreground transition-colors hover:text-foreground"
-                }
+                    ? "text-foreground hover:text-foreground"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+                aria-disabled={link.disabled}
+                onClick={(e) => link.disabled && e.preventDefault()}
             >
                 {link.label}
+                {link.disabled && <Badge variant="outline">Soon</Badge>}
             </Link>
         ))}
       </nav>
@@ -93,14 +99,19 @@ export function SellerHeader() {
             {navLinks.map((link) => (
               <Link
                 key={link.href}
-                href={link.href}
-                 className={
+                href={link.disabled ? "#" : link.href}
+                 className={cn(
+                    "transition-colors flex items-center gap-2",
+                    link.disabled ? "text-muted-foreground/50 cursor-not-allowed" :
                     pathname === link.href
-                    ? "hover:text-foreground"
+                    ? "text-foreground"
                     : "text-muted-foreground hover:text-foreground"
-                }
+                )}
+                aria-disabled={link.disabled}
+                onClick={(e) => link.disabled && e.preventDefault()}
               >
                 {link.label}
+                {link.disabled && <Badge variant="outline">Soon</Badge>}
               </Link>
             ))}
           </nav>
