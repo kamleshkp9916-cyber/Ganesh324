@@ -24,6 +24,10 @@ service cloud.firestore {
     function isAdmin() {
       return isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
+    
+    function isSeller(userId) {
+      return get(/databases/$(database)/documents/users/$(userId)).data.role == 'seller';
+    }
 
     /**
      * @description Enforces access control for individual user documents.
@@ -72,8 +76,8 @@ service cloud.firestore {
           allow read, list: if true;
 
           // Only the owner of the user document (the seller) can create, update, or delete their own products.
-          // Role check ensures only sellers can perform these actions.
-          allow create, update, delete: if isOwner(userId) && get(/databases/$(database)/documents/users/$(userId)).data.role == 'seller';
+          // This rule now checks the incoming data, which is allowed.
+          allow create, update, delete: if isOwner(userId) && request.resource.data.sellerId == userId && isSeller(userId);
       }
     }
 
