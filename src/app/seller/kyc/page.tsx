@@ -1,297 +1,353 @@
 
 "use client";
 
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm, Controller } from "react-hook-form";
-import * as z from "zod";
-import { useState, useEffect, useRef } from 'react';
-import { useRouter } from "next/navigation";
-import { ArrowLeft, Loader2, ShieldCheck, CheckCircle2, AlertTriangle, FileText, Upload, Trash2, Camera, User, Building, Banknote } from "lucide-react";
+import React, { useMemo, useState, useEffect, useRef } from "react";
+import { Loader2, ShieldCheck, CheckCircle2, AlertTriangle, FileText, Upload, Trash2, Camera, User, Building, Banknote, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import Link from "next/link";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useAuthActions } from "@/lib/auth";
 import Image from "next/image";
 import SignatureCanvas from 'react-signature-canvas'
 import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
-
-const sellerKycSchema = z.object({
-  firstName: z.string().min(1, "First name is required."),
-  lastName: z.string().min(1, "Last name is required."),
-  email: z.string().email("Invalid email address."),
-  password: z.string().min(8, "Password must be at least 8 characters."),
-  confirmPassword: z.string(),
-  businessName: z.string().min(2, "Business name is required."),
-  phone: z.string().regex(/^\+91 \d{10}$/, "Please enter a valid 10-digit Indian phone number."),
-  accountNumber: z.string().min(9, "Account number is too short").max(18, "Account number is too long"),
-  ifsc: z.string().regex(/^[A-Z]{4}0[A-Z0-9]{6}$/, "Invalid IFSC code format."),
-  passportPhoto: z.any().refine(file => file, "Passport photo is required."),
-  signature: z.any().refine(sig => sig, "Signature is required."),
-}).refine(data => data.password === data.confirmPassword, {
-  message: "Passwords don't match",
-  path: ["confirmPassword"],
-});
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
+import { useRouter } from "next/navigation";
 
 
-export default function SellerKycPage() {
-    const { user, userData, loading: authLoading } = useAuth();
-    const router = useRouter();
-    const [isLoading, setIsLoading] = useState(false);
-    const { toast } = useToast();
-    const { handleSellerSignUp } = useAuthActions();
-    
-    const [step, setStep] = useState(1);
-    const [photoPreview, setPhotoPreview] = useState<string | null>(null);
-    const photoInputRef = useRef<HTMLInputElement>(null);
-    const signaturePadRef = useRef<SignatureCanvas>(null);
-
-    const form = useForm<z.infer<typeof sellerKycSchema>>({
-        resolver: zodResolver(sellerKycSchema),
-        defaultValues: {
-            firstName: '', lastName: '', email: '', password: '', confirmPassword: '',
-            businessName: '', phone: '+91 ',
-            accountNumber: '', ifsc: '',
-        },
-    });
-
-    useEffect(() => {
-        if (!authLoading) {
-            if (user) { // Customer upgrading to seller
-                form.setValue('firstName', user.displayName?.split(' ')[0] || '');
-                form.setValue('lastName', user.displayName?.split(' ').slice(1).join(' ') || '');
-                form.setValue('email', user.email || '');
-            }
-             if (userData?.role === 'seller') {
-                router.replace('/seller/dashboard');
-            }
-        }
-    }, [user, userData, authLoading, router, form]);
-
-    const handlePhotoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const file = event.target.files?.[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setPhotoPreview(reader.result as string);
-                form.setValue('passportPhoto', { file, preview: reader.result as string });
-            };
-            reader.readAsDataURL(file);
-        }
-    };
-
-    const handleSignatureEnd = () => {
-        if (signaturePadRef.current) {
-            const dataUrl = signaturePadRef.current.toDataURL();
-            form.setValue('signature', dataUrl);
-        }
-    };
-    
-    const clearSignature = () => {
-        signaturePadRef.current?.clear();
-        form.setValue('signature', null);
-    };
-
-    async function onSubmit(values: z.infer<typeof sellerKycSchema>) {
-        setIsLoading(true);
-        try {
-            await handleSellerSignUp(values);
-        } catch (error) {
-            // Toast is handled in auth action
-        } finally {
-            setIsLoading(false);
-        }
-    }
-
-    const handleNextStep = async () => {
-        let fieldsToValidate: any[] = [];
-        if (step === 1) {
-            fieldsToValidate = user ? ['firstName', 'lastName', 'email'] : ['firstName', 'lastName', 'email', 'password', 'confirmPassword'];
-        } else if (step === 2) {
-            fieldsToValidate = ['businessName', 'phone', 'accountNumber', 'ifsc'];
-        }
-        
-        const isValid = await form.trigger(fieldsToValidate);
-        if (isValid) {
-            setStep(prev => prev + 1);
-        }
-    }
-    
-    if (authLoading) {
-        return <div className="flex items-center justify-center min-h-screen"><LoadingSpinner /></div>
-    }
-
-    const steps = [
-        { num: 1, title: 'Account', icon: <User className="h-5 w-5" /> },
-        { num: 2, title: 'Business', icon: <Building className="h-5 w-5" /> },
-        { num: 3, title: 'Documents', icon: <FileText className="h-5 w-5" /> },
-    ];
-
+function Step({ n, title, done, current }: { n: number, title: string, done?: boolean, current?: boolean }) {
   return (
-    <div className="min-h-screen bg-muted/40 flex flex-col items-center justify-center p-4">
-         <div className="absolute top-4 left-4">
-          <Button asChild variant="ghost" className="flex items-center gap-2">
-            <Link href="/live-selling">
-                <ArrowLeft className="h-4 w-4" />
-                Back to App
-            </Link>
-          </Button>
-        </div>
-      <Card className="w-full max-w-2xl my-8">
-        <CardHeader className="text-center">
-            <div className="mx-auto bg-primary/10 p-3 rounded-full w-fit mb-2">
-                <ShieldCheck className="h-10 w-10 text-primary" />
-            </div>
-          <CardTitle className="text-2xl">Become a Seller</CardTitle>
-          <CardDescription>
-            Complete the form below to start selling on StreamCart.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-            <div className="mb-6">
-                <div className="flex justify-between items-center px-2">
-                    {steps.map((s, index) => (
-                        <div key={s.num} className={cn(
-                            "flex flex-col items-center z-10",
-                             index !== 0 && "flex-1"
-                        )}>
-                            <div className={cn(
-                                "h-10 w-10 rounded-full flex items-center justify-center transition-colors",
-                                step > s.num ? "bg-primary text-primary-foreground" :
-                                step === s.num ? "bg-primary text-primary-foreground border-2 border-background ring-2 ring-primary" : "bg-muted text-muted-foreground border"
-                            )}>
-                                {step > s.num ? <CheckCircle2 className="h-5 w-5" /> : s.icon}
-                            </div>
-                            <p className={cn("text-xs mt-1", step >= s.num ? "font-semibold text-primary" : "text-muted-foreground")}>{s.title}</p>
-                             {index > 0 && (
-                                <div className="absolute top-5 h-0.5 w-full bg-border -translate-x-1/2 -z-10">
-                                    <div className={cn("h-full bg-primary transition-all duration-300", step > s.num ? 'w-full' : 'w-0')} />
-                                </div>
-                            )}
-                        </div>
-                    ))}
-                </div>
-            </div>
-
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                
-                {step === 1 && (
-                    <div className="space-y-6">
-                        <h3 className="font-semibold text-lg border-b pb-2">Personal Information</h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <FormField control={form.control} name="firstName" render={({ field }) => (
-                                <FormItem><FormLabel>First Name</FormLabel><FormControl><Input {...field} disabled={!!user} /></FormControl><FormMessage /></FormItem>
-                            )}/>
-                            <FormField control={form.control} name="lastName" render={({ field }) => (
-                                <FormItem><FormLabel>Last Name</FormLabel><FormControl><Input {...field} disabled={!!user} /></FormControl><FormMessage /></FormItem>
-                            )}/>
-                        </div>
-                        <FormField control={form.control} name="email" render={({ field }) => (
-                            <FormItem><FormLabel>Email Address</FormLabel><FormControl><Input type="email" {...field} disabled={!!user} /></FormControl><FormMessage /></FormItem>
-                        )}/>
-                        {!user && (
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <FormField control={form.control} name="password" render={({ field }) => (
-                                    <FormItem><FormLabel>Create Password</FormLabel><FormControl><Input type="password" {...field} /></FormControl><FormMessage /></FormItem>
-                                )}/>
-                                <FormField control={form.control} name="confirmPassword" render={({ field }) => (
-                                    <FormItem><FormLabel>Confirm Password</FormLabel><FormControl><Input type="password" {...field} /></FormControl><FormMessage /></FormItem>
-                                )}/>
-                            </div>
-                        )}
-                    </div>
-                )}
-                
-                {step === 2 && (
-                    <div className="space-y-6">
-                        <h3 className="font-semibold text-lg border-b pb-2">Business Information</h3>
-                        <FormField control={form.control} name="businessName" render={({ field }) => (
-                            <FormItem><FormLabel>Business/Shop Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
-                        )}/>
-                        <FormField control={form.control} name="phone" render={({ field }) => (
-                            <FormItem><FormLabel>Phone Number</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
-                        )}/>
-
-                        <h3 className="font-semibold text-lg border-b pb-2 pt-4">Bank Details</h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <FormField control={form.control} name="accountNumber" render={({ field }) => (
-                                <FormItem><FormLabel>Bank Account Number</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>
-                            )}/>
-                            <FormField control={form.control} name="ifsc" render={({ field }) => (
-                                <FormItem><FormLabel>IFSC Code</FormLabel><FormControl><Input {...field} className="uppercase" /></FormControl><FormMessage /></FormItem>
-                            )}/>
-                        </div>
-                    </div>
-                )}
-
-                 {step === 3 && (
-                    <div className="space-y-6">
-                         <h3 className="font-semibold text-lg border-b pb-2">Document Upload</h3>
-                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
-                            <FormField control={form.control} name="passportPhoto" render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Passport-size Photo</FormLabel>
-                                    <FormControl>
-                                        <div className="w-full h-40 rounded-lg border-2 border-dashed flex items-center justify-center bg-muted text-muted-foreground hover:border-primary hover:text-primary cursor-pointer relative" onClick={() => photoInputRef.current?.click()}>
-                                            {photoPreview ? (
-                                                <Image src={photoPreview} alt="Photo Preview" fill sizes="100vw" className="object-cover rounded-lg" />
-                                            ) : (
-                                                <div className="text-center"><Camera className="h-8 w-8 mx-auto" /><p className="text-xs mt-1">Click to Upload</p></div>
-                                            )}
-                                            <Input id="photo-upload" type="file" ref={photoInputRef} className="hidden" accept="image/*" onChange={handlePhotoUpload}/>
-                                        </div>
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}/>
-                            <FormField control={form.control} name="signature" render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Signature</FormLabel>
-                                    <FormControl>
-                                    <div className="w-full rounded-lg border border-input bg-background relative">
-                                            <SignatureCanvas
-                                                ref={signaturePadRef}
-                                                penColor='black'
-                                                canvasProps={{ className: 'w-full h-40 rounded-lg' }}
-                                                onEnd={handleSignatureEnd}
-                                            />
-                                            <Button type="button" variant="ghost" size="sm" className="absolute bottom-2 right-2" onClick={clearSignature}>Clear</Button>
-                                    </div>
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}/>
-                        </div>
-                    </div>
-                 )}
-
-
-              <CardFooter className="px-0 pt-8 flex justify-between">
-                    <Button type="button" variant="outline" onClick={() => setStep(prev => prev - 1)} disabled={step === 1}>Back</Button>
-                    {step < 3 ? (
-                        <Button type="button" onClick={handleNextStep}>Next</Button>
-                    ) : (
-                        <Button type="submit" disabled={isLoading}>
-                            {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : 'Submit for Verification'}
-                        </Button>
-                    )}
-              </CardFooter>
-            </form>
-          </Form>
-        </CardContent>
-      </Card>
-      <p className="text-center text-xs text-muted-foreground mt-4 max-w-lg">
-        By submitting, you agree to our <Link href="/terms-and-conditions" className="underline hover:text-primary">Seller Terms &amp; Conditions</Link>.
-      </p>
+    <div className="flex items-start gap-3">
+      <div className={`h-7 w-7 shrink-0 rounded-full grid place-items-center text-sm font-semibold ring-2 ${done ? "bg-green-600 text-white ring-green-600" : current ? "bg-primary text-primary-foreground ring-primary" : "bg-muted text-muted-foreground ring-border"}`}>{n}</div>
+      <div>
+        <div className="font-semibold">{title}</div>
+        {done && <div className="text-xs text-green-700">Completed</div>}
+        {current && <div className="text-xs text-primary">In progress</div>}
+      </div>
     </div>
   );
 }
- 
+
+function SectionCard({ title, children, aside }: { title: string, children: React.ReactNode, aside?: React.ReactNode }) {
+  return (
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between">
+        <CardTitle className="text-lg">{title}</CardTitle>
+        {aside}
+      </CardHeader>
+      <CardContent className="grid gap-4">{children}</CardContent>
+    </Card>
+  );
+}
+
+function Field({ label, hint, children, required }: { label: string, hint?: string, children: React.ReactNode, required?: boolean }) {
+  return (
+    <div className="grid gap-1.5">
+      <Label>
+        {label}{required && <span className="text-destructive">*</span>}
+      </Label>
+      {children}
+      {hint && <p className="text-xs text-muted-foreground">{hint}</p>}
+    </div>
+  );
+}
+
+function Countdown({ to }: { to: number }) {
+  const [now, setNow] = useState(Date.now());
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, []);
+  const remain = Math.max(0, to - now);
+  const hh = String(Math.floor(remain/1000/60/60)).padStart(2, '0');
+  const mm = String(Math.floor(remain/1000/60)%60).padStart(2, '0');
+  const ss = String(Math.floor(remain/1000)%60).padStart(2, '0');
+  return <span className="tabular-nums">{hh}:{mm}:{ss}</span>;
+}
+
+const initialSeller = {
+  fullName: "",
+  dob: "",
+  phone: "",
+  email: "",
+  selfieFile: null,
+  selfiePreview: "",
+  aadhaarZip: null,
+  aadhaarShareCode: "",
+  aadhaarPhotoUrl: "",
+  faceMatchScore: 0,
+  faceMatchStatus: "pending" as "pending" | "passed" | "failed",
+  pan: "",
+  bankName: "",
+  ifsc: "",
+  acctName: "",
+  acctNumber: "",
+  sellerType: "individual",
+  shopName: "",
+  gst: "",
+  address: "",
+  open24x7: true,
+};
+
+export default function SellerKycPage() {
+  const [step, setStep] = useState(1);
+  const [seller, setSeller] = useState<any>(initialSeller);
+  const [submittedAt, setSubmittedAt] = useState<number | null>(null);
+  const slaMs = 24 * 60 * 60 * 1000; // 24 hours
+  const router = useRouter();
+
+  const canSubmit = useMemo(() => {
+    const p = seller.fullName && seller.dob && seller.phone && seller.email && seller.selfieFile;
+    const a = seller.aadhaarZip && seller.aadhaarShareCode?.length >= 4 && seller.aadhaarPhotoUrl;
+    const f = seller.faceMatchStatus === 'passed' && seller.faceMatchScore >= 0.8;
+    const k = seller.pan?.length === 10;
+    const b = seller.bankName && seller.ifsc && seller.acctName && seller.acctNumber;
+    return p && a && f && k && b;
+  }, [seller]);
+
+  function onAadhaarZip(e: React.ChangeEvent<HTMLInputElement>) {
+    const f = e.target.files?.[0] || null;
+    setSeller((s: any) => ({...s, aadhaarZip: f}));
+  }
+
+  function onSelfie(e: React.ChangeEvent<HTMLInputElement>){
+    const f = e.target.files?.[0] || null;
+    if (!f) return setSeller((s: any)=>({...s, selfieFile:null, selfiePreview:""}));
+    const url = URL.createObjectURL(f);
+    setSeller((s: any)=>({...s, selfieFile:f, selfiePreview:url}));
+  }
+
+  async function runFaceMatch(){
+    const score = Math.max(0, Math.min(1, 0.75 + Math.random()*0.25));
+    setSeller((s: any)=>({...s, faceMatchScore: score, faceMatchStatus: score>=0.8?'passed':'failed'}));
+  }
+
+  function submit() {
+    setSubmittedAt(Date.now());
+    // In a real app, this would submit the data to the backend.
+    // For now, we'll just redirect to a success page.
+    setTimeout(() => {
+        router.push('/seller/verification-pending');
+    }, 1500);
+  }
+
+  return (
+    <div className="min-h-screen bg-muted/40 p-4 sm:p-8">
+      <div className="max-w-6xl mx-auto grid gap-6">
+        <header className="flex items-center justify-between">
+            <Button asChild variant="ghost" onClick={() => router.back()}>
+                <ArrowLeft className="mr-2 h-4 w-4"/> Back to App
+            </Button>
+            <h1 className="text-2xl font-bold text-center">Seller Verification</h1>
+             <div className="w-24"></div>
+        </header>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-1 grid gap-5 self-start sticky top-24">
+            <SectionCard title="KYC Progress">
+              <div className="space-y-4">
+                <Step n={1} title="Personal Details" done={step>1} current={step===1} />
+                <Step n={2} title="Aadhaar Offline e-KYC" done={step>2} current={step===2} />
+                <Step n={3} title="PAN Verification" done={step>3} current={step===3} />
+                <Step n={4} title="Bank Details" done={step>4} current={step===4} />
+                <Step n={5} title="Business (Optional)" done={step>5} current={step===5} />
+                <Step n={6} title="Review & Submit" done={submittedAt !== null} current={step===6} />
+              </div>
+            </SectionCard>
+
+            <SectionCard title="Store Hours" aside={<Badge variant="outline">24 x 7</Badge>}>
+              <div className="flex items-center justify-between">
+                <div className="grid">
+                  <div className="font-medium">Open 24 hours</div>
+                  <p className="text-xs text-muted-foreground">Your store will appear as open all day</p>
+                </div>
+                <Switch checked={seller.open24x7} onCheckedChange={(v)=>setSeller((s: any)=>({...s, open24x7:v}))} aria-label="Toggle 24x7 hours" />
+              </div>
+            </SectionCard>
+
+            {submittedAt && (
+              <SectionCard title="Review Status" aside={<Badge variant="warning">Under Review</Badge>}>
+                <div className="text-sm text-muted-foreground">Admin will review your details within 24 hours.</div>
+                <div className="text-sm">Time remaining: <Countdown to={submittedAt + slaMs} /></div>
+              </SectionCard>
+            )}
+          </div>
+
+          <div className="lg:col-span-2 grid gap-6">
+            {step===1 && (
+              <SectionCard title="Personal Details">
+                <div className="grid sm:grid-cols-2 gap-4">
+                  <Field label="Full name (as per Aadhaar)" required>
+                    <Input value={seller.fullName} onChange={e=>setSeller({...seller, fullName:e.target.value})} placeholder="e.g. RAHUL KUMAR" />
+                  </Field>
+                  <Field label="Date of Birth" required>
+                    <Input type="date" value={seller.dob} onChange={e=>setSeller({...seller, dob:e.target.value})} />
+                  </Field>
+                  <Field label="Phone (OTP verified)" required>
+                    <Input type="tel" placeholder="10-digit mobile" value={seller.phone} onChange={e=>setSeller({...seller, phone:e.target.value})} />
+                  </Field>
+                  <Field label="Email" required>
+                    <Input type="email" placeholder="name@example.com" value={seller.email} onChange={e=>setSeller({...seller, email:e.target.value})} />
+                  </Field>
+                  <Field label="Profile Photo (Selfie)" hint="Clear face, no sunglasses" required>
+                    <Input type="file" accept="image/*" onChange={onSelfie} />
+                    <div className="flex items-center gap-3 pt-1">
+                      {seller.selfiePreview && <Image src={seller.selfiePreview} alt="selfie" width={64} height={64} className="h-16 w-16 rounded-xl object-cover ring-1 ring-border" />}
+                      {!seller.selfiePreview && <span className="text-xs text-muted-foreground">No photo selected</span>}
+                    </div>
+                  </Field>
+                </div>
+                <div className="flex justify-end">
+                  <Button onClick={()=>setStep(2)}>Continue</Button>
+                </div>
+              </SectionCard>
+            )}
+
+            {step===2 && (
+              <SectionCard title="Aadhaar Paperless Offline e-KYC" aside={<Badge variant="outline">UIDAI ZIP</Badge>}>
+                <p className="text-sm text-muted-foreground">Download your Aadhaar ZIP from UIDAI and upload it here. Use your 4-character share code.</p>
+                <div className="grid sm:grid-cols-2 gap-4">
+                  <Field label="Upload Aadhaar ZIP" required>
+                    <Input type="file" accept=".zip" onChange={onAadhaarZip} />
+                    {seller.aadhaarZip && <div className="text-xs text-green-700">{seller.aadhaarZip.name}</div>}
+                  </Field>
+                  <Field label="Share Code (password)" required>
+                    <Input placeholder="4-8 characters" value={seller.aadhaarShareCode} onChange={e=>setSeller({...seller, aadhaarShareCode:e.target.value})} />
+                  </Field>
+                </div>
+                <div className="grid sm:grid-cols-2 gap-4">
+                  <Field label="Aadhaar Photo (parsed)">
+                    {seller.aadhaarPhotoUrl ? (
+                      <Image src={seller.aadhaarPhotoUrl} alt="aadhaar" width={64} height={64} className="h-16 w-16 rounded-xl object-cover ring-1 ring-border" />
+                    ) : (
+                      <Button variant="secondary" onClick={()=>setSeller((s: any)=>({...s, aadhaarPhotoUrl: s.aadhaarPhotoUrl || s.selfiePreview || ''}))}>Fetch from ZIP (demo)</Button>
+                    )}
+                  </Field>
+                  <Field label="Face Match" hint="Selfie must match Aadhaar photo">
+                    <div className="flex items-center gap-3">
+                      <Button variant="default" onClick={runFaceMatch}>Run Face Match</Button>
+                      {seller.faceMatchScore>0 && (
+                        <Badge variant={seller.faceMatchStatus==='passed'?'success':'destructive'}>
+                          Score {(seller.faceMatchScore*100).toFixed(0)}% {seller.faceMatchStatus==='passed'?'Matched':'Not matched'}
+                        </Badge>
+                      )}
+                    </div>
+                  </Field>
+                </div>
+                <div className="flex justify-between">
+                  <Button variant="outline" onClick={()=>setStep(1)}>Back</Button>
+                  <Button onClick={()=>setStep(3)}>Continue</Button>
+                </div>
+              </SectionCard>
+            )}
+
+            {step===3 && (
+              <SectionCard title="PAN Verification" aside={<Badge variant="outline">Instant</Badge>}>
+                <div className="grid sm:grid-cols-2 gap-4">
+                  <Field label="PAN Number" required hint="10 characters (ABCDE1234F)">
+                    <Input maxLength={10} placeholder="ABCDE1234F" value={seller.pan} onChange={e=>setSeller({...seller, pan:e.target.value.toUpperCase()})} />
+                  </Field>
+                </div>
+                <div className="flex justify-between">
+                  <Button variant="outline" onClick={()=>setStep(2)}>Back</Button>
+                  <Button onClick={()=>setStep(4)}>Continue</Button>
+                </div>
+              </SectionCard>
+            )}
+
+            {step===4 && (
+              <SectionCard title="Bank Details for Payouts" aside={<Badge variant="outline">Required</Badge>}>
+                <div className="grid sm:grid-cols-2 gap-4">
+                  <Field label="Bank Name" required>
+                    <Input value={seller.bankName} onChange={e=>setSeller({...seller, bankName:e.target.value})} />
+                  </Field>
+                  <Field label="IFSC" required>
+                    <Input value={seller.ifsc} onChange={e=>setSeller({...seller, ifsc:e.target.value.toUpperCase()})} />
+                  </Field>
+                  <Field label="Account Holder Name" required>
+                    <Input value={seller.acctName} onChange={e=>setSeller({...seller, acctName:e.target.value})} />
+                  </Field>
+                  <Field label="Account Number" required>
+                    <Input value={seller.acctNumber} onChange={e=>setSeller({...seller, acctNumber:e.target.value})} />
+                  </Field>
+                </div>
+                <div className="flex justify-between">
+                  <Button variant="outline" onClick={()=>setStep(3)}>Back</Button>
+                  <Button onClick={()=>setStep(5)}>Continue</Button>
+                </div>
+              </SectionCard>
+            )}
+
+            {step===5 && (
+              <SectionCard title="Business Details (Optional)">
+                <div className="grid sm:grid-cols-2 gap-4">
+                  <Field label="Seller Type">
+                    <Select value={seller.sellerType} onValueChange={(v)=>setSeller({...seller, sellerType:v})}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="individual">Individual</SelectItem>
+                            <SelectItem value="business">Business</SelectItem>
+                        </SelectContent>
+                    </Select>
+                  </Field>
+                  {seller.sellerType==="business" && (
+                    <>
+                      <Field label="Shop / Brand Name">
+                        <Input value={seller.shopName} onChange={e=>setSeller({...seller, shopName:e.target.value})} />
+                      </Field>
+                      <Field label="GSTIN">
+                        <Input value={seller.gst} onChange={e=>setSeller({...seller, gst:e.target.value.toUpperCase()})} />
+                      </Field>
+                    </>
+                  )}
+                  <Field label="Pickup / Business Address">
+                    <Input value={seller.address} onChange={e=>setSeller({...seller, address:e.target.value})} />
+                  </Field>
+                </div>
+                <div className="flex justify-between">
+                  <Button variant="outline" onClick={()=>setStep(4)}>Back</Button>
+                  <Button onClick={()=>setStep(6)}>Continue</Button>
+                </div>
+              </SectionCard>
+            )}
+
+            {step===6 && (
+              <SectionCard title="Review & Submit" aside={<Badge variant="default">Final Step</Badge>}>
+                <div className="grid gap-2 text-sm">
+                  <h4 className="font-medium">Summary</h4>
+                  <ul className="list-disc ml-6 text-muted-foreground">
+                    <li>Name: <span className="font-medium text-foreground">{seller.fullName || '—'}</span></li>
+                    <li>DOB: {seller.dob || '—'}</li>
+                    <li>Phone: {seller.phone || '—'}</li>
+                    <li>Email: {seller.email || '—'}</li>
+                    <li>PAN: {seller.pan || '—'}</li>
+                    <li>Face Match: {seller.faceMatchScore>0 ? `${(seller.faceMatchScore*100).toFixed(0)}% (${seller.faceMatchStatus})` : '—'}</li>
+                    <li>Bank: {seller.bankName} ({seller.ifsc}) • {seller.acctNumber ? '••' + String(seller.acctNumber).slice(-4) : '—'}</li>
+                    <li>Type: {seller.sellerType}
+                      {seller.sellerType==='business' && <> • {seller.shopName || '—'} • GSTIN: {seller.gst || '—'}</>}
+                    </li>
+                    <li>Open 24x7: {seller.open24x7? 'Yes':'No'}</li>
+                  </ul>
+                </div>
+                <div className="flex items-center justify-between">
+                  <p className="text-xs text-muted-foreground">By submitting, you agree to verification of Aadhaar Offline e-KYC and PAN.</p>
+                  <Button disabled={!canSubmit} onClick={submit}>Submit for Review</Button>
+                </div>
+              </SectionCard>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+```
