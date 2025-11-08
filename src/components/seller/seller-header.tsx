@@ -38,7 +38,7 @@ const navLinks = [
     { href: "/seller/promotions", label: "Promotions", disabled: false },
     { href: "/seller/messages", label: "Messages", disabled: false },
     { href: "/seller/feed", label: "Feed", disabled: false },
-    { href: "#", label: "Analytics", disabled: true },
+    { href: "#", label: "Sponsored", disabled: true },
 ];
 
 export function SellerHeader() {
