@@ -225,6 +225,7 @@ export default function AdminProductsPage() {
                 <Link href="/admin/dashboard" className="text-muted-foreground transition-colors hover:text-foreground">Dashboard</Link>
                 <Link href="/admin/orders" className="text-muted-foreground transition-colors hover:text-foreground">Orders</Link>
                 <Link href="/admin/users" className="text-muted-foreground transition-colors hover:text-foreground">Users</Link>
+                <Link href="/admin/kyc" className="text-muted-foreground transition-colors hover:text-foreground">KYC</Link>
                 <Link href="/admin/inquiries" className="text-muted-foreground transition-colors hover:text-foreground">Inquiries</Link>
                 <Link href="/admin/messages" className="text-muted-foreground transition-colors hover:text-foreground">Messages</Link>
                 <Link href="/admin/products" className="text-foreground transition-colors hover:text-foreground">Products</Link>
@@ -239,6 +240,7 @@ export default function AdminProductsPage() {
                         <Link href="/admin/dashboard" className="text-muted-foreground hover:text-foreground">Dashboard</Link>
                         <Link href="/admin/orders" className="text-muted-foreground hover:text-foreground">Orders</Link>
                         <Link href="/admin/users" className="text-muted-foreground hover:text-foreground">Users</Link>
+                        <Link href="/admin/kyc" className="text-muted-foreground hover:text-foreground">KYC</Link>
                         <Link href="/admin/inquiries" className="text-muted-foreground hover:text-foreground">Inquiries</Link>
                         <Link href="/admin/messages" className="text-muted-foreground hover:text-foreground">Messages</Link>
                         <Link href="/admin/products" className="hover:text-foreground">Products</Link>
@@ -322,5 +324,3 @@ export default function AdminProductsPage() {
     </div>
   )
 }
-
-    

@@ -307,6 +307,12 @@ export default function AdminDashboard() {
             Users
           </Link>
           <Link
+            href="/admin/kyc"
+            className="text-muted-foreground transition-colors hover:text-foreground"
+          >
+            KYC
+          </Link>
+          <Link
             href="/admin/inquiries"
             className="text-muted-foreground transition-colors hover:text-foreground"
           >
@@ -374,6 +380,12 @@ export default function AdminDashboard() {
                 className="text-muted-foreground hover:text-foreground"
               >
                 Users
+              </Link>
+              <Link
+                href="/admin/kyc"
+                className="text-muted-foreground hover:text-foreground"
+              >
+                KYC
               </Link>
               <Link
                 href="/admin/inquiries"
