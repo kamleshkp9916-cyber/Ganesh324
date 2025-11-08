@@ -9,6 +9,7 @@ import {
   CircleUser,
   ShieldCheck,
   RadioTower,
+  User,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -25,8 +26,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useAuthActions } from "@/lib/auth";
 import { useRouter, usePathname } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
-import { GoLiveDialog } from "@/components/go-live-dialog";
-import { Dialog, DialogTrigger } from "@/components/ui/dialog";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 const navLinks = [
     { href: "/seller/dashboard", label: "Dashboard" },
@@ -129,15 +129,22 @@ export function SellerHeader() {
         )}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="secondary" size="icon" className="rounded-full">
-              <CircleUser className="h-5 w-5" />
-              <span className="sr-only">Toggle user menu</span>
+             <Button variant="secondary" size="icon" className="rounded-full">
+                <Avatar className="h-8 w-8">
+                    <AvatarImage src={user?.photoURL || undefined} alt={user?.displayName || 'User'} />
+                    <AvatarFallback>{user?.displayName?.charAt(0) || <User />}</AvatarFallback>
+                </Avatar>
+                <span className="sr-only">Toggle user menu</span>
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>My Account</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>Settings</DropdownMenuItem>
+            <DropdownMenuItem onSelect={() => router.push('/seller/profile')}>
+                <User className="mr-2 h-4 w-4" />
+                My Profile
+            </DropdownMenuItem>
+            <DropdownMenuItem onSelect={() => router.push('/seller/settings')}>Settings</DropdownMenuItem>
             <DropdownMenuItem>Support</DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={() => signOut(true)}>Logout</DropdownMenuItem>
