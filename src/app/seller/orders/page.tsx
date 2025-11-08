@@ -499,7 +499,9 @@ export default function SellerOrdersPage() {
                                         <div className="font-medium">{order.customer.name}</div>
                                     </TableCell>
                                     <TableCell className="hidden md:table-cell">
-                                        <div className="font-medium cursor-pointer hover:underline" onClick={() => setSelectedOrder(order)}>{order.product.name}</div>
+                                        <Link href={`/product/${order.products[0]?.key}`} className="font-medium hover:underline">
+                                            {order.product.name}
+                                        </Link>
                                     </TableCell>
                                     <TableCell className="hidden md:table-cell">
                                         <Badge variant={order.type === 'Live Stream' ? "destructive" : "secondary"}>{order.type}</Badge>
@@ -571,5 +573,3 @@ export default function SellerOrdersPage() {
     </Dialog>
   )
 }
-
-    
