@@ -97,6 +97,7 @@ const RealtimeTimestamp = ({ date, isEdited }: { date: Date | string, isEdited?:
 
 export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFollowToggle: onFollowToggleProp, handleAuthAction }: { profileData: UserData, isOwnProfile: boolean, onAddressesUpdate: (addresses: any[]) => void, onFollowToggle?: () => void, handleAuthAction: (callback: () => void) => void }) {
     const { user } = useAuth();
+    const router = useRouter();
     const [isLoadingContent, setIsLoadingContent] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [sellerProducts, setSellerProducts] = useState<any[]>([]);
@@ -210,7 +211,11 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                         {profileData.role === 'seller' && <TabsTrigger value="sessions">Sessions</TabsTrigger>}
                         <TabsTrigger value="about">About</TabsTrigger>
                         {isOwnProfile && <TabsTrigger value="achievements">Achievements</TabsTrigger>}
-                        {isOwnProfile && <TabsTrigger value="orders">Orders</TabsTrigger>}
+                        {isOwnProfile && (
+                            <TabsTrigger value="orders" onClick={() => router.push(profileData.role === 'seller' ? '/seller/orders' : '/orders')}>
+                                Orders
+                            </TabsTrigger>
+                        )}
                     </TabsList>
                     <TabsContent value="products" className="mt-4">
                         {isLoadingContent ? <ProductSkeletonGrid /> : filteredProducts.length > 0 ? (
@@ -335,28 +340,6 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                                   ))}
                               </div>
                             </TabsContent>
-                            <TabsContent value="orders" className="mt-4">
-                               {userOrders.length > 0 ? (
-                                    <div className="space-y-4">
-                                        {userOrders.map(order => (
-                                            <Card key={order.orderId}>
-                                                <CardContent className="p-4">
-                                                    <div className="flex justify-between items-start">
-                                                        <div>
-                                                            <p className="font-semibold">Order {order.orderId}</p>
-                                                            <p className="text-sm text-muted-foreground">{new Date(order.date).toLocaleDateString()}</p>
-                                                        </div>
-                                                        <Badge>{order.timeline[order.timeline.length - 1].status}</Badge>
-                                                    </div>
-                                                     <Link href={`/delivery-information/${order.orderId}`} className="text-primary text-sm font-semibold mt-2 inline-block">View Details</Link>
-                                                </CardContent>
-                                            </Card>
-                                        ))}
-                                    </div>
-                               ) : (
-                                  <div className="text-center py-12 text-muted-foreground">No orders yet.</div>
-                               )}
-                            </TabsContent>
                         </>
                     )}
                 </Tabs>
@@ -364,3 +347,5 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
         </>
     );
 }
+
+    
