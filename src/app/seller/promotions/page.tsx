@@ -1,10 +1,11 @@
+
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { SellerHeader } from "@/components/seller/seller-header";
-import { BarChart, Flame, PlusCircle, Rocket, Sparkles, Star, Ticket, Trash2, Edit } from "lucide-react";
+import { BarChart, Flame, PlusCircle, Rocket, Sparkles, Star, Ticket, Trash2, Edit, MoreHorizontal } from "lucide-react";
 import Link from "next/link";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/use-auth";
@@ -28,10 +29,10 @@ import { useLocalStorage } from "@/hooks/use-local-storage";
 import { productDetails, productToSellerMapping } from "@/lib/product-data";
 import { Separator } from "@/components/ui/separator";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { MoreHorizontal } from "lucide-react";
 import { getFirestoreDb } from "@/lib/firebase";
 import { collection, query, where, getDocs } from "firebase/firestore";
 import Image from "next/image";
+import { Badge } from "@/components/ui/badge";
 
 export const COUPONS_KEY = 'streamcart_coupons';
 
