@@ -138,34 +138,6 @@ export function ProductForm({ onSave, productToEdit }: ProductFormProps) {
   
   const form = useForm<z.infer<typeof productFormSchema>>({
     resolver: zodResolver(productFormSchema),
-    defaultValues: productToEdit ? {
-        ...productToEdit,
-        price: parseFloat(String(productToEdit.price).replace(/[^0-9.-]+/g, '')) || 0,
-        discountPercentage: productToEdit.discountPercentage ? parseFloat(String(productToEdit.discountPercentage)) : undefined,
-        media: productToEdit.media?.map(item => ({...item, file: undefined })) || [],
-        variants: productToEdit.variants?.map(v => ({
-            ...v,
-            price: v.price ? parseFloat(String(v.price).replace(/[^0-9.-]+/g, '')) : undefined
-        })) || [],
-    } : {
-      name: "",
-      description: "",
-      price: 0,
-      stock: 0,
-      media: [],
-      listingType: "general",
-      status: "draft",
-      category: "",
-      subcategory: "",
-      brand: "",
-      modelNumber: "",
-      availableSizes: "",
-      availableColors: "",
-      origin: "",
-      variants: [],
-      highlights: "",
-      deliveryInfo: "",
-    },
   });
 
   const { fields: mediaFields, append: appendMedia, remove: removeMedia } = useFieldArray({
@@ -211,10 +183,10 @@ export function ProductForm({ onSave, productToEdit }: ProductFormProps) {
         highlights: product?.highlights || "",
         deliveryInfo: product?.deliveryInfo || "",
         discountPercentage: product?.discountPercentage ? parseFloat(String(product.discountPercentage)) : undefined,
-        weight: product?.weight,
-        length: product?.length,
-        width: product?.width,
-        height: product?.height,
+        weight: product?.weight ? parseFloat(String(product.weight)) : undefined,
+        length: product?.length ? parseFloat(String(product.length)) : undefined,
+        width: product?.width ? parseFloat(String(product.width)) : undefined,
+        height: product?.height ? parseFloat(String(product.height)) : undefined,
     };
     form.reset(defaults as any);
   }, [form]);
@@ -501,4 +473,3 @@ export function ProductForm({ onSave, productToEdit }: ProductFormProps) {
     </Form>
   )
 }
-
