@@ -35,7 +35,7 @@ const navLinks = [
     { href: "/seller/revenue", label: "Revenue", disabled: false },
     { href: "/seller/orders", label: "Orders", disabled: false },
     { href: "/seller/products", label: "Products", disabled: false },
-    { href: "/seller/promotions", label: "Promotions", disabled: false },
+    { href: "/seller/promotions", label: "Marketing", disabled: false },
     { href: "/seller/messages", label: "Messages", disabled: false },
     { href: "/seller/feed", label: "Feed", disabled: false },
 ];
