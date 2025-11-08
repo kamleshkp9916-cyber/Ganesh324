@@ -25,6 +25,7 @@ import { useAuth } from "@/hooks/use-auth";
 import Link from "next/link";
 import { useToast } from "@/hooks/use-toast";
 import { useLocalStorage } from "@/hooks/use-local-storage";
+import { defaultCategories } from "@/lib/categories";
 
 
 // Types
@@ -148,32 +149,35 @@ export default function GoLiveStudio({ defaultTitle = "New Live Show", onStart }
     const product = products.find(p => p.id === id);
     if (!product) return;
 
+    // A category must be selected before adding products.
+    if (!state.streamCategory) {
+        toast({
+            variant: "destructive",
+            title: "Select a Category First",
+            description: "Please go back to 'Details' and select a stream category before adding products.",
+        });
+        return;
+    }
+
+    // Check if the product's category matches the stream's category
+    if (product.category !== state.streamCategory) {
+        toast({
+            variant: "destructive",
+            title: "Category Mismatch",
+            description: `You can only add products from the "${state.streamCategory}" category to this stream.`,
+        });
+        return;
+    }
+    
     const isSelected = state.selectedIds.includes(id);
 
     if (isSelected) {
         // Deselecting
         const newSelectedIds = state.selectedIds.filter(x => x !== id);
         updateState({ selectedIds: newSelectedIds });
-        
-        // If the last product is deselected, clear the stream category
-        if (newSelectedIds.length === 0) {
-            updateState({ streamCategory: undefined });
-        }
     } else {
         // Selecting
-        // If it's the first product, set the stream category
-        if (state.selectedIds.length === 0) {
-            updateState({ streamCategory: product.category, selectedIds: [id] });
-        } else if (product.category === state.streamCategory) {
-            // Only allow adding products of the same category
-            updateState({ selectedIds: [...state.selectedIds, id] });
-        } else {
-            toast({
-                variant: "destructive",
-                title: "Category Mismatch",
-                description: `You can only add products from the "${state.streamCategory}" category to this stream.`,
-            });
-        }
+        updateState({ selectedIds: [...state.selectedIds, id] });
     }
   };
 
@@ -323,8 +327,8 @@ export default function GoLiveStudio({ defaultTitle = "New Live Show", onStart }
   useEffect(()=>()=>{ stopPreview(); },[stopPreview]);
 
   const handleStart = ()=>{
-    const { step, ...payload } = state;
-    onStart?.(payload);
+    localStorage.setItem('liveStream', JSON.stringify(state));
+    router.push(`/stream/${user!.uid}`);
   };
 
   // Auto slide state (preview only)
@@ -362,6 +366,17 @@ export default function GoLiveStudio({ defaultTitle = "New Live Show", onStart }
               <Input value={state.title} onChange={(e)=>updateState({title: e.target.value})} maxLength={80}/>
               <div className="text-xs text-muted-foreground">Max 80 characters</div>
             </div>
+             <div className="space-y-2">
+                <Label>Stream Category</Label>
+                <Select value={state.streamCategory} onValueChange={(v) => updateState({streamCategory: v, selectedIds: []})}>
+                    <SelectTrigger><SelectValue placeholder="Select a category for your stream"/></SelectTrigger>
+                    <SelectContent>
+                        {defaultCategories.map(cat => (
+                            <SelectItem key={cat.id} value={cat.name}>{cat.name}</SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+            </div>
             <div className="space-y-2">
               <Label>Visibility</Label>
               <Select value={state.visibility} onValueChange={(v:any)=>updateState({visibility: v})}>
@@ -373,8 +388,7 @@ export default function GoLiveStudio({ defaultTitle = "New Live Show", onStart }
                 </SelectContent>
               </Select>
             </div>
-
-            <div className="md:col-span-2 space-y-2">
+             <div className="md:col-span-2 space-y-2">
               <Label>Thumbnail</Label>
               <div className="flex items-center gap-3">
                 <Button type="button" variant="outline" onClick={()=>thumbInputRef.current?.click()}><Upload className="w-4 h-4 mr-1"/>Upload Image</Button>
@@ -384,7 +398,6 @@ export default function GoLiveStudio({ defaultTitle = "New Live Show", onStart }
                 {state.thumbDataUrl ? <img src={state.thumbDataUrl} className="h-full object-contain" alt="thumbnail"/> : <span className="text-xs text-muted-foreground">No thumbnail selected</span>}
               </div>
             </div>
-
             <div className="md:col-span-2 space-y-2">
               <Label>Description</Label>
               <Textarea value={state.description} onChange={(e)=>updateState({description: e.target.value})} rows={3} placeholder="Tell viewers what this live is about..."/>
@@ -400,7 +413,7 @@ export default function GoLiveStudio({ defaultTitle = "New Live Show", onStart }
           </CardContent>
           <CardFooter className="justify-between">
             <div className="text-xs text-muted-foreground">You can change these later.</div>
-            <Button onClick={()=>updateState({step: 2})}>Next</Button>
+            <Button onClick={()=>updateState({step: 2})} disabled={!state.streamCategory}>Next</Button>
           </CardFooter>
         </Card>
       )}
@@ -477,7 +490,13 @@ export default function GoLiveStudio({ defaultTitle = "New Live Show", onStart }
             <div className="space-y-4">
               <div className="rounded-2xl overflow-hidden bg-black aspect-video relative">
                 <video ref={videoRef} className="w-full h-full object-cover" playsInline muted />
-                {!stream && (
+                {permissionsError && (
+                    <div className="absolute inset-0 flex items-center justify-center text-destructive text-sm text-center p-4 bg-black/50">
+                        <AlertTriangle className="w-8 h-8 mb-2" />
+                        <span>{permissionsError}</span>
+                    </div>
+                )}
+                {!stream && !permissionsError && (
                   <div className="absolute inset-0 flex items-center justify-center text-muted-foreground text-sm">
                       <span>Requesting permissions...</span>
                   </div>
