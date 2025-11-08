@@ -5,7 +5,7 @@ import React from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Mail, Phone, MapPin, Package, Video, UserPlus, UserCheck, Instagram, Twitter, Youtube, Facebook, Twitch, Award, Users, Home, Star, Edit } from 'lucide-react';
+import { Mail, Phone, MapPin, Package, Video, UserPlus, UserCheck, Instagram, Twitter, Youtube, Facebook, Twitch, Award, Users, Home, Edit } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useEffect, useState, useMemo, useCallback } from 'react';
@@ -214,11 +214,7 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                         {profileData.role === 'seller' && <TabsTrigger value="sessions">Sessions</TabsTrigger>}
                         <TabsTrigger value="about">About</TabsTrigger>
                         {isOwnProfile && <TabsTrigger value="achievements">Achievements</TabsTrigger>}
-                        {isOwnProfile && (
-                            <TabsTrigger value="orders" onClick={() => router.push(profileData.role === 'seller' ? '/seller/orders' : '/orders')}>
-                                Orders
-                            </TabsTrigger>
-                        )}
+                        {isOwnProfile && <TabsTrigger value="orders" onClick={() => router.push(profileData.role === 'seller' ? '/seller/orders' : '/orders')}>Orders</TabsTrigger>}
                     </TabsList>
                     <TabsContent value="products" className="mt-4">
                         {isLoadingContent ? <ProductSkeletonGrid /> : filteredProducts.length > 0 ? (
@@ -370,4 +366,3 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
         </Dialog>
     );
 }
-
