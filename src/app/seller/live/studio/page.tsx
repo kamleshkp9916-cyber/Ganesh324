@@ -10,7 +10,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardContent, CardFooter, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -26,6 +26,7 @@ import Link from "next/link";
 import { useToast } from "@/hooks/use-toast";
 import { useLocalStorage } from "@/hooks/use-local-storage";
 import { defaultCategories } from "@/lib/categories";
+import { useRouter } from "next/navigation";
 
 
 // Types
@@ -68,6 +69,7 @@ export default function GoLiveStudio({ defaultTitle = "New Live Show", onStart }
   const { user } = useAuth();
   const [sellerProducts, setSellerProducts] = useState<Product[]>([]);
   const { toast } = useToast();
+  const router = useRouter();
 
   const [state, setState] = useLocalStorage<GoLiveState>(GO_LIVE_STORAGE_KEY, {
     step: 1,
@@ -265,8 +267,6 @@ export default function GoLiveStudio({ defaultTitle = "New Live Show", onStart }
         console.error("Permission error:", e);
         if (e.name === 'NotAllowedError' || e.name === 'PermissionDeniedError') {
              setPermissionsError("Camera and microphone permissions are required to go live. Please enable them in your browser settings and refresh the page.");
-        } else {
-             setPermissionsError("Could not access camera or microphone. They may be in use by another app.");
         }
     }
   }, [state.videoDeviceId, state.audioDeviceId, updateState, startPreview]);
@@ -328,7 +328,15 @@ export default function GoLiveStudio({ defaultTitle = "New Live Show", onStart }
 
   const handleStart = ()=>{
     localStorage.setItem('liveStream', JSON.stringify(state));
-    router.push(`/stream/${user!.uid}`);
+    if (user) {
+      router.push(`/seller/live/${user.uid}`);
+    } else {
+      toast({
+        variant: "destructive",
+        title: "Authentication Error",
+        description: "You must be logged in to start a stream.",
+      });
+    }
   };
 
   // Auto slide state (preview only)
@@ -485,19 +493,20 @@ export default function GoLiveStudio({ defaultTitle = "New Live Show", onStart }
 
       {state.step===3 && (
         <Card>
-          <CardHeader><CardTitle className="text-base">Camera & Microphone</CardTitle></CardHeader>
+          <CardHeader><CardTitle className="text-base">Camera, Mic & Overlays</CardTitle></CardHeader>
           <CardContent className="grid md:grid-cols-[2fr,1fr] gap-6">
             <div className="space-y-4">
               <div className="rounded-2xl overflow-hidden bg-black aspect-video relative">
                 <video ref={videoRef} className="w-full h-full object-cover" playsInline muted />
                 {permissionsError && (
-                    <div className="absolute inset-0 flex items-center justify-center text-destructive text-sm text-center p-4 bg-black/50">
+                    <div className="absolute inset-0 flex flex-col items-center justify-center text-destructive text-sm text-center p-4 bg-black/50">
                         <AlertTriangle className="w-8 h-8 mb-2" />
                         <span>{permissionsError}</span>
                     </div>
                 )}
                 {!stream && !permissionsError && (
-                  <div className="absolute inset-0 flex items-center justify-center text-muted-foreground text-sm">
+                  <div className="absolute inset-0 flex flex-col items-center justify-center text-muted-foreground text-sm">
+                      <Loader2 className="w-6 h-6 animate-spin mb-2" />
                       <span>Requesting permissions...</span>
                   </div>
                 )}
@@ -513,8 +522,7 @@ export default function GoLiveStudio({ defaultTitle = "New Live Show", onStart }
                   <div className="absolute top-2 right-2 bg-white/90 text-xs rounded-full px-2 py-1 shadow">Super Chat ON</div>
                 )}
               </div>
-               <Separator/>
-               <div className="space-y-3">
+              <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <Switch checked={state.overlayEnabled} onCheckedChange={(checked) => updateState({overlayEnabled: checked})}/>
