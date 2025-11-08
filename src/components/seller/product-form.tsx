@@ -1,475 +1,104 @@
 
-"use client"
+/**
+ * @file Firestore Security Rules for StreamCart User Data
+ *
+ * Core Philosophy:
+ * This ruleset enforces a strict user-ownership model. Each user can only access their own data stored under their specific user ID.
+ *
+ */
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
 
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm, useFieldArray } from "react-hook-form"
-import * as z from "zod"
-import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
-import { Button } from "@/components/ui/button"
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
-import { DialogFooter, DialogClose } from "../ui/dialog"
-import { Loader2, UploadCloud, X, PlusCircle, Image as ImageIcon, Video } from "lucide-react"
-import Image from "next/image"
-import { cn } from "@/lib/utils";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
-import { defaultCategories } from "@/lib/categories";
-import { Separator } from "../ui/separator";
-import { generateKeywords } from "@/lib/generateKeywords";
-import { FormDescription } from "../ui/form"
-
-const variantSchema = z.object({
-    size: z.string().optional(),
-    color: z.string().optional(),
-    stock: z.coerce.number().int().min(0, "Stock must be a non-negative number."),
-    price: z.coerce.number().positive("Price must be a positive number.").optional(),
-    image: z.any().optional(),
-    highlights: z.string().optional(),
-});
-
-const productFormSchema = z.object({
-  id: z.string().optional(),
-  name: z.string().min(3, "Product name must be at least 3 characters."),
-  description: z.string().min(10, "Description must be at least 10 characters.").max(1000),
-  price: z.coerce.number().positive("Price must be a positive number."),
-  discountPercentage: z.coerce.number().optional(),
-  stock: z.coerce.number().int().min(0, "Stock cannot be negative."),
-  media: z.array(z.object({
-      type: z.enum(['image', 'video']),
-      file: z.any().optional(),
-      preview: z.string()
-  })).min(1, "Please upload at least one image or video."),
-  listingType: z.enum(['live-stream', 'general']).default('general'),
-  status: z.enum(["draft", "active", "archived"]),
-  category: z.string().min(1, "Category is required."),
-  subcategory: z.string().min(1, "Sub-category is required."),
-  brand: z.string().optional().default(''),
-  modelNumber: z.string().optional().default(''),
-  availableSizes: z.string().optional().default(''),
-  availableColors: z.string().optional().default(''),
-  origin: z.string().optional().default(''),
-  variants: z.array(variantSchema).optional(),
-  highlights: z.string().optional().default(''),
-  highlightsImage: z.any().optional(),
-  keywords: z.array(z.string()).optional(),
-  deliveryInfo: z.string().optional().default(''),
-  weight: z.coerce.number().positive("Weight must be a positive number.").optional(),
-  length: z.coerce.number().positive("Length must be a positive number.").optional(),
-  width: z.coerce.number().positive("Width must be a positive number.").optional(),
-  height: z.coerce.number().positive("Height must be a positive number.").optional(),
-}).refine(data => !data.discountPercentage || (data.discountPercentage > 0 && data.discountPercentage < 100), {
-    message: "Discount must be between 1 and 99.",
-    path: ["discountPercentage"],
-});
-
-
-export type Product = z.infer<typeof productFormSchema>;
-
-interface ProductFormProps {
-  onSave: (product: Product) => void;
-  productToEdit?: Product;
-}
-
-const VariantImageInput = ({ control, index, getValues }: { control: any, index: number, getValues: any }) => {
-    const fileInputRef = useRef<HTMLInputElement>(null);
-    
-    const initialPreview = getValues(`variants.${index}.image`)?.preview || null;
-    const [preview, setPreview] = useState(initialPreview);
-
-    const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const file = event.target.files?.[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                const result = reader.result as string;
-                setPreview(result);
-                control.setValue(`variants.${index}.image`, { file, preview: result });
-            };
-            reader.readAsDataURL(file);
-        }
-    };
-
-    return (
-        <FormItem className="flex flex-col items-center">
-            <FormLabel className="text-xs">Image</FormLabel>
-            <FormControl>
-                <div 
-                    className="w-16 h-16 rounded-md border-2 border-dashed flex items-center justify-center bg-muted text-muted-foreground hover:border-primary hover:text-primary cursor-pointer relative"
-                    onClick={() => fileInputRef.current?.click()}
-                >
-                    {preview ? (
-                        <Image src={preview} alt="Variant Preview" fill className="object-cover rounded-md" />
-                    ) : (
-                        <ImageIcon className="h-6 w-6" />
-                    )}
-                </div>
-            </FormControl>
-            <input 
-                type="file" 
-                ref={fileInputRef} 
-                className="hidden" 
-                accept="image/*" 
-                onChange={handleFileChange}
-            />
-        </FormItem>
-    );
-};
-
-
-export function ProductForm({ onSave, productToEdit }: ProductFormProps) {
-  const [isSaving, setIsSaving] = useState(false);
-  const [step, setStep] = useState(1);
-  
-  const form = useForm<z.infer<typeof productFormSchema>>({
-    resolver: zodResolver(productFormSchema),
-  });
-
-  const { fields: mediaFields, append: appendMedia, remove: removeMedia } = useFieldArray({
-    control: form.control,
-    name: "media"
-  });
-
-  const { fields: variantFields, append: appendVariant, remove: removeVariant } = useFieldArray({
-    control: form.control,
-    name: "variants"
-  });
-
-  const selectedCategory = form.watch("category");
-  const subcategories = useMemo(() => {
-      const category = defaultCategories.find(c => c.name === selectedCategory);
-      return category?.subcategories || [];
-  }, [selectedCategory]);
-  
-  useEffect(() => {
-    form.resetField('subcategory');
-  }, [selectedCategory, form]);
-
-  const setInitialValues = useCallback((product: Product | undefined) => {
-    const defaults = {
-        name: product?.name || "",
-        description: product?.description || "",
-        price: product?.price ? parseFloat(String(product.price).replace(/[^0-9.-]+/g, '')) : 0,
-        stock: product?.stock || 0,
-        media: product?.media?.map(item => ({...item, file: undefined })) || [],
-        listingType: product?.listingType || "general",
-        status: product?.status || "draft",
-        category: product?.category || "",
-        subcategory: product?.subcategory || "",
-        brand: product?.brand || "",
-        modelNumber: product?.modelNumber || "",
-        availableSizes: product?.availableSizes || "",
-        availableColors: product?.availableColors || "",
-        origin: product?.origin || "",
-        variants: product?.variants?.map(v => ({
-            ...v,
-            price: v.price ? parseFloat(String(v.price).replace(/[^0-9.-]+/g, '')) : undefined
-        })) || [],
-        highlights: product?.highlights || "",
-        deliveryInfo: product?.deliveryInfo || "",
-        discountPercentage: product?.discountPercentage ? parseFloat(String(product.discountPercentage)) : undefined,
-        weight: product?.weight ? parseFloat(String(product.weight)) : undefined,
-        length: product?.length ? parseFloat(String(product.length)) : undefined,
-        width: product?.width ? parseFloat(String(product.width)) : undefined,
-        height: product?.height ? parseFloat(String(product.height)) : undefined,
-    };
-    form.reset(defaults as any);
-  }, [form]);
-
-  useEffect(() => {
-    setInitialValues(productToEdit);
-  }, [productToEdit, setInitialValues]);
-
-  function handleFinalSave(values: z.infer<typeof productFormSchema>) {
-    setIsSaving(true);
-    let finalValues: Product = { ...values };
-
-    if (finalValues.variants && finalValues.variants.length > 0) {
-        finalValues.stock = finalValues.variants.reduce((acc, variant) => acc + (variant.stock || 0), 0);
+    // Helper function to check if the user is signed in.
+    function isSignedIn() {
+      return request.auth != null;
     }
 
-    const keywords = generateKeywords(finalValues);
-    finalValues = { ...finalValues, keywords };
-
-    setTimeout(() => {
-        onSave(finalValues);
-        setIsSaving(false);
-        setStep(1);
-    }, 1000);
-  }
-
-  const handleMediaChange = (e: React.ChangeEvent<HTMLInputElement>, type: 'image' | 'video') => {
-    const files = e.target.files;
-    if (files) {
-        for (let i = 0; i < files.length; i++) {
-            const file = files[i];
-            const reader = new FileReader();
-            reader.onload = (event) => {
-                appendMedia({ type, file: file, preview: event.target?.result as string });
-            };
-            reader.readAsDataURL(file);
-        }
+    // Helper function to check if the requested user ID matches the authenticated user's ID.
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
     }
-  };
 
-  const watchVariants = form.watch("variants");
-  const totalVariantStock = useMemo(() => {
-      return watchVariants?.reduce((acc, variant) => acc + (variant?.stock || 0), 0) || 0;
-  }, [watchVariants]);
+    // Helper function to check if the user has an 'admin' role.
+    function isAdmin() {
+      return isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
 
-  const renderStepContent = () => {
-    switch (step) {
-      case 1:
-        return (
-          <ScrollArea className="flex-grow pr-6 -mr-6">
-            <div className="space-y-6 py-4">
-              <FormField name="name" control={form.control} render={({ field }) => (
-                  <FormItem><FormLabel>Product Name</FormLabel><FormControl><Input placeholder="e.g. Vintage Leather Jacket" {...field} /></FormControl><FormMessage /></FormItem>
-              )}/>
-              <FormField name="description" control={form.control} render={({ field }) => (
-                  <FormItem><FormLabel>Description</FormLabel><FormControl><Textarea placeholder="Describe your product in detail..." className="resize-none" {...field} /></FormControl><FormMessage /></FormItem>
-              )}/>
-                <FormField name="highlights" control={form.control} render={({ field }) => (
-                    <FormItem>
-                        <FormLabel>Product Highlights</FormLabel>
-                        <FormControl>
-                            <Textarea placeholder="Feature 1&#x0a;Feature 2&#x0a;Feature 3" {...field} />
-                        </FormControl>
-                         <FormDescription>Each line will be shown as a separate bullet point.</FormDescription>
-                        <FormMessage />
-                    </FormItem>
-                )}/>
-                <FormField name="highlightsImage" render={({ field }) => (
-                    <FormItem>
-                        <FormLabel>Highlights Image (Optional)</FormLabel>
-                        <FormControl>
-                            <Input type="file" accept="image/*" onChange={(e) => field.onChange(e.target.files?.[0])} />
-                        </FormControl>
-                        <FormDescription>An image to display prominently in the highlights section. Recommended size: 800x800 pixels.</FormDescription>
-                        <FormMessage />
-                    </FormItem>
-                )}/>
+    /**
+     * @description Enforces access control for individual user documents.
+     * @path /users/{userId}
+     * @allow (create) User with UID 'user_abc' can create their own document at /users/user_abc.
+     * @allow (get) User with UID 'user_abc' can read their own document at /users/user_abc. An admin can also read any user's document.
+     * @allow (update) User with UID 'user_abc' can update their own document at /users/user_abc.
+     * @allow (delete) User with UID 'user_abc' can delete their own document at /users/user_abc.
+     * @deny (create) User with UID 'user_xyz' cannot create a document at /users/user_abc.
+     * @deny (get) User with UID 'user_xyz' cannot read document at /users/user_abc.
+     * @deny (update) User with UID 'user_xyz' cannot update document at /users/user_abc.
+     * @deny (delete) User with UID 'user_xyz' cannot delete document at /users/user_abc.
+     * @principle Enforces document ownership for all operations, with admin read access.
+     */
+    match /users/{userId} {
+      // A user can create their own document if the userId matches their auth.uid
+      allow create: if isOwner(userId) && request.resource.data.id == request.auth.uid;
 
-              <div className="grid grid-cols-2 gap-4">
-                  <FormField name="category" control={form.control} render={({ field }) => (
-                      <FormItem><FormLabel>Category</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue placeholder="Select a category" /></SelectTrigger></FormControl><SelectContent>{defaultCategories.map(cat => <SelectItem key={cat.name} value={cat.name}>{cat.name}</SelectItem>)}</SelectContent></Select><FormMessage /></FormItem>
-                  )}/>
-                  <FormField name="subcategory" control={form.control} render={({ field }) => (
-                      <FormItem><FormLabel>Sub-category</FormLabel><Select onValueChange={field.onChange} value={field.value || ""} disabled={!selectedCategory}><FormControl><SelectTrigger><SelectValue placeholder="Select a sub-category" /></SelectTrigger></FormControl><SelectContent>{subcategories.map(sub => <SelectItem key={sub.name} value={sub.name}>{sub.name}</SelectItem>)}</SelectContent></Select><FormMessage /></FormItem>
-                  )}/>
-              </div>
-               <div className="grid grid-cols-2 gap-4">
-                   <FormField name="brand" control={form.control} render={({ field }) => (
-                      <FormItem><FormLabel>Brand (Optional)</FormLabel><FormControl><Input placeholder="e.g., RetroCam" {...field} /></FormControl><FormMessage /></FormItem>
-                    )}/>
-                    <FormField name="modelNumber" control={form.control} render={({ field }) => (
-                        <FormItem><FormLabel>Model Number (Optional)</FormLabel><FormControl><Input placeholder="e.g., RC-1975" {...field} /></FormControl><FormMessage /></FormItem>
-                    )}/>
-               </div>
-                <FormField name="origin" control={form.control} render={({ field }) => (
-                    <FormItem><FormLabel>Country of Origin (Optional)</FormLabel><FormControl><Input placeholder="e.g., Japan" {...field} /></FormControl><FormMessage /></FormItem>
-                )}/>
-              <FormField name="media" control={form.control} render={({ field }) => (
-                  <FormItem>
-                      <FormLabel>Product Media</FormLabel>
-                      <FormControl>
-                          <div className="flex items-center gap-4 flex-wrap">
-                              {mediaFields.map((field, index) => (
-                                  <div key={field.id} className="relative w-24 h-24">
-                                      {field.type === 'image' ? (
-                                          <Image src={field.preview} alt={`Preview ${index}`} width={96} height={96} className="object-cover rounded-md w-full h-full"/>
-                                      ) : (
-                                          <video src={field.preview} className="object-cover rounded-md w-full h-full" />
-                                      )}
-                                      <Button type="button" variant="destructive" size="icon" className="absolute -top-2 -right-2 h-6 w-6 rounded-full" onClick={() => removeMedia(index)}><X className="h-4 w-4" /></Button>
-                                  </div>
-                              ))}
-                              <div className="flex gap-2">
-                                  <label htmlFor="image-upload" className="w-24 h-24 rounded-lg border-2 border-dashed flex items-center justify-center bg-muted text-muted-foreground cursor-pointer hover:border-primary hover:text-primary">
-                                      <div className="text-center"><ImageIcon className="h-8 w-8 mx-auto" /><span className="text-xs">Add Images</span></div>
-                                      <Input id="image-upload" type="file" multiple className="hidden" accept="image/*" onChange={(e) => handleMediaChange(e, 'image')}/>
-                                  </label>
-                                  <label htmlFor="video-upload" className="w-24 h-24 rounded-lg border-2 border-dashed flex items-center justify-center bg-muted text-muted-foreground cursor-pointer hover:border-primary hover:text-primary">
-                                      <div className="text-center"><Video className="h-8 w-8 mx-auto" /><span className="text-xs">Add Video</span></div>
-                                      <Input id="video-upload" type="file" className="hidden" accept="video/*" onChange={(e) => handleMediaChange(e, 'video')}/>
-                                  </label>
-                              </div>
-                          </div>
-                      </FormControl>
-                      <FormDescription>The first item will be the main display media. Recommended size: 800x800 pixels. Max 5MB per file.</FormDescription>
-                      <FormMessage />
-                  </FormItem>
-              )}/>
-            </div>
-          </ScrollArea>
-        );
-      case 2:
-        return (
-          <ScrollArea className="flex-grow pr-6 -mr-6">
-            <div className="space-y-6 py-4">
-              <div className="grid grid-cols-2 gap-4 items-end">
-                  <FormField name="price" control={form.control} render={({ field }) => (
-                      <FormItem>
-                          <FormLabel>Selling Price</FormLabel>
-                          <div className="relative">
-                              <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-muted-foreground">₹</span>
-                              <FormControl><Input type="number" placeholder="999.00" className="pl-6" {...field} /></FormControl>
-                          </div>
-                          <FormMessage />
-                      </FormItem>
-                  )}/>
-                  <FormField name="discountPercentage" control={form.control} render={({ field }) => (
-                      <FormItem>
-                          <FormLabel>Discount Percentage (Optional)</FormLabel>
-                          <div className="relative">
-                              <FormControl><Input type="number" placeholder="e.g., 10" className="pr-6" {...field} /></FormControl>
-                              <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-muted-foreground">%</span>
-                          </div>
-                          <FormMessage />
-                      </FormItem>
-                  )}/>
-              </div>
-              <FormDescription className="text-xs -mt-2">The discount creates a "sale" effect by showing a higher original price.</FormDescription>
-              
-              <div className="grid grid-cols-2 md:grid-cols-2 gap-4">
-                  <FormField name="availableSizes" control={form.control} render={({ field }) => (
-                      <FormItem><FormLabel>Available Sizes (comma-separated)</FormLabel><FormControl><Input placeholder="e.g., S, M, L, XL" {...field} /></FormControl><FormMessage /></FormItem>
-                  )}/>
-                  <FormField name="availableColors" control={form.control} render={({ field }) => (
-                      <FormItem><FormLabel>Available Colors (comma-separated)</FormLabel><FormControl><Input placeholder="e.g., Red, Blue, Green" {...field} /></FormControl><FormMessage /></FormItem>
-                  )}/>
-              </div>
+      // A user can read their own document, or an admin can read any user document.
+      allow read: if isOwner(userId) || isAdmin();
+      
+      // Allows a user to update their own document.
+      allow update: if isOwner(userId);
 
-              <Separator />
+      // Allows a user to delete their own document.
+      allow delete: if isOwner(userId);
 
-              <div>
-                  <h3 className="text-base font-semibold mb-2">Inventory &amp; Variants</h3>
-                  {variantFields.length > 0 ? (
-                      <div className="space-y-2">
-                          {variantFields.map((field, index) => (
-                              <div key={field.id} className="grid grid-cols-[auto,1fr,1fr,1fr,1fr,auto] gap-2 items-end p-3 border rounded-lg">
-                                  <VariantImageInput control={form.control} index={index} getValues={form.getValues} />
-                                  <FormField control={form.control} name={`variants.${index}.color`} render={({ field }) => (
-                                      <FormItem><FormLabel className="text-xs">Color</FormLabel><FormControl><Input placeholder="e.g., Red" {...field} /></FormControl><FormMessage /></FormItem>
-                                  )}/>
-                                  <FormField control={form.control} name={`variants.${index}.size`} render={({ field }) => (
-                                      <FormItem><FormLabel className="text-xs">Size</FormLabel><FormControl><Input placeholder="e.g., M" {...field} /></FormControl><FormMessage /></FormItem>
-                                  )}/>
-                                  <FormField control={form.control} name={`variants.${index}.stock`} render={({ field }) => (
-                                      <FormItem><FormLabel className="text-xs">Stock</FormLabel><FormControl><Input type="number" placeholder="0" {...field} /></FormControl><FormMessage /></FormItem>
-                                  )}/>
-                                  <FormField control={form.control} name={`variants.${index}.price`} render={({ field }) => (
-                                      <FormItem><FormLabel className="text-xs">Price (Opt.)</FormLabel><FormControl><Input type="number" placeholder="Default" {...field} /></FormControl><FormMessage /></FormItem>
-                                  )}/>
-                                  <Textarea placeholder="Variant Highlights (one per line)" {...form.register(`variants.${index}.highlights`)} className="col-span-full mt-2" />
-                                  <Button type="button" variant="ghost" size="icon" onClick={() => removeVariant(index)} className="text-destructive"><X className="h-4 w-4" /></Button>
-                              </div>
-                          ))}
-                          <div className="flex justify-between items-center p-2 bg-muted rounded-md">
-                              <span className="font-semibold text-sm">Total Variant Stock:</span>
-                              <span className="font-bold">{totalVariantStock}</span>
-                          </div>
-                      </div>
-                  ) : (
-                      <FormField name="stock" control={form.control} render={({ field }) => (
-                          <FormItem><FormLabel>Total Stock</FormLabel><FormControl><Input type="number" placeholder="0" {...field} /></FormControl><FormMessage /></FormItem>
-                      )}/>
-                  )}
+      // Prevents listing of user documents by non-admins.
+      allow list: if isAdmin();
 
-                  <Button type="button" variant="outline" size="sm" onClick={() => appendVariant({ color: '', size: '', stock: 0 })} className="mt-4">
-                      <PlusCircle className="mr-2 h-4 w-4" /> Add Variant
-                  </Button>
-              </div>
-            </div>
-          </ScrollArea>
-        );
-      case 3:
-        return (
-            <div className="p-6 space-y-4">
-                <h3 className="text-lg font-semibold">Shipping Details</h3>
-                <p className="text-sm text-muted-foreground">Add private notes and package dimensions for delivery. This will not be visible to the customer on the product page, but will be available for invoicing.</p>
-                <FormField name="deliveryInfo" control={form.control} render={({ field }) => (
-                    <FormItem>
-                        <FormLabel>Internal Notes / Key Details</FormLabel>
-                        <FormControl>
-                            <Textarea placeholder="e.g., Fragile item, handle with care. Contains glassware. Box #A-123." {...field} />
-                        </FormControl>
-                        <FormMessage />
-                    </FormItem>
-                )}/>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-4">
-                   <FormField name="weight" control={form.control} render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Weight (kg)</FormLabel>
-                            <FormControl><Input type="number" placeholder="0.5" {...field} /></FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}/>
-                     <FormField name="length" control={form.control} render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Length (cm)</FormLabel>
-                            <FormControl><Input type="number" placeholder="20" {...field} /></FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}/>
-                     <FormField name="width" control={form.control} render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Width (cm)</FormLabel>
-                            <FormControl><Input type="number" placeholder="15" {...field} /></FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}/>
-                     <FormField name="height" control={form.control} render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Height (cm)</FormLabel>
-                            <FormControl><Input type="number" placeholder="10" {...field} /></FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}/>
-                </div>
-            </div>
-        )
-      default:
-        return null;
+       /**
+       * @description Enforces access control for a seller's orders subcollection.
+       * @path /users/{userId}/orders/{orderId}
+       */
+      match /orders/{orderId} {
+        // Only the seller (owner of the user document) or an admin can manage orders in this subcollection.
+        allow read, write: if isOwner(userId) || isAdmin();
+      }
+
+      /**
+       * @description Enforces access control for a seller's products subcollection.
+       * @path /users/{userId}/products/{productId}
+       */
+      match /products/{productId} {
+          // Products are publicly readable.
+          allow read, list: if true;
+
+          // Only the owner of the user document (the seller) can create, update, or delete their own products.
+          // Role check ensures only sellers can perform these actions.
+          allow create, update, delete: if isOwner(userId) && get(/databases/$(database)/documents/users/$(userId)).data.role == 'seller';
+      }
+    }
+
+    /**
+     * @description Enforces access control for the orders collection.
+     * @path /orders/{orderId}
+     */
+    match /orders/{orderId} {
+      // Users can create orders for themselves.
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+
+      // A user can read an order if they are the customer, the seller, OR an admin.
+      allow get: if isSignedIn() && (resource.data.userId == request.auth.uid || resource.data.sellerId == request.auth.uid || isAdmin());
+      
+      // Customers can query their own orders.
+      // Sellers can query orders they are the seller for.
+      // Admins can list all orders.
+      allow list: if (isSignedIn() && 
+                    (request.query.where.userId == request.auth.uid || 
+                     (request.query.where.sellerId != null && request.query.where.sellerId == request.auth.uid))) || isAdmin();
+
+      // Users should not be able to update or delete orders directly.
+      // Updates should happen via Cloud Functions for status changes.
+      allow update, delete: if isAdmin();
     }
   }
-
-  return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(step === 3 ? handleFinalSave : () => setStep(s => s + 1))} className="flex flex-col h-full">
-        {renderStepContent()}
-        <DialogFooter className="pt-6 border-t mt-auto p-6">
-          <DialogClose asChild>
-            <Button type="button" variant="secondary">Cancel</Button>
-          </DialogClose>
-          {step > 1 && (
-            <Button type="button" variant="ghost" onClick={() => setStep(s => s - 1)}>Back</Button>
-          )}
-          <Button type="submit" disabled={isSaving}>
-            {step === 3 ? (
-              <>
-                {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                {productToEdit ? "Save Changes" : "Create Product"}
-              </>
-            ) : "Next"}
-          </Button>
-        </DialogFooter>
-      </form>
-    </Form>
-  )
 }
+```
