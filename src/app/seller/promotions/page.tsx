@@ -85,14 +85,12 @@ const CouponForm = ({ onSave, existingCoupon, closeDialog }: { onSave: (coupon: 
     useEffect(() => {
         const fetchProducts = async () => {
             if (user) {
-                const db = getFirestoreDb();
-                const productsQuery = query(
-                    collection(db, `users/${user.uid}/products`),
-                    where('stock', '>', 0)
-                );
-                const querySnapshot = await getDocs(productsQuery);
-                const products = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                setSellerProducts(products);
+                const storedProducts = localStorage.getItem('sellerProducts');
+                if(storedProducts) {
+                    const parsed = JSON.parse(storedProducts);
+                    const productsWithStock = parsed.filter((p: any) => p.stock > 0);
+                    setSellerProducts(productsWithStock);
+                }
             }
         };
         fetchProducts();
@@ -273,20 +271,19 @@ export default function SellerPromotionsPage() {
                                                 <div>
                                                     <h4 className="font-semibold">{coupon.code}</h4>
                                                     <p className="text-sm text-muted-foreground">{coupon.description}</p>
+                                                    <p className="text-xs text-muted-foreground">
+                                                        Applies to: {appliedProducts.length > 0 ? `${appliedProducts.length} product(s)` : 'All Products'}
+                                                    </p>
                                                      {coupon.expiresAt && <p className="text-xs text-muted-foreground mt-1">Expires on: {format(new Date(coupon.expiresAt), 'PPP')}</p>}
                                                 </div>
                                             </div>
                                              <div className="flex flex-col sm:items-end gap-2 w-full sm:w-auto">
                                                 <div className="flex items-center gap-2">
-                                                    {appliedProducts.length > 0 ? (
-                                                        appliedProducts.slice(0,3).map(p => (
-                                                            <div key={p.key} className="w-10 h-10 rounded-md border overflow-hidden">
-                                                                <Image src={p.images[0]} alt={p.name} width={40} height={40} className="object-cover"/>
-                                                            </div>
-                                                        ))
-                                                    ) : (
-                                                        <Badge variant="outline">All Products</Badge>
-                                                    )}
+                                                    {appliedProducts.slice(0,3).map(p => (
+                                                        <div key={p.key} className="w-10 h-10 rounded-md border overflow-hidden">
+                                                            <Image src={p.images[0]} alt={p.name} width={40} height={40} className="object-cover"/>
+                                                        </div>
+                                                    ))}
                                                      {appliedProducts.length > 3 && (
                                                          <div className="w-10 h-10 rounded-md border bg-muted flex items-center justify-center text-xs font-medium">
                                                             +{appliedProducts.length - 3}
@@ -327,7 +324,7 @@ export default function SellerPromotionsPage() {
                             <CardHeader className="px-0">
                                 <CardTitle>Sponsor Your Products</CardTitle>
                                 <CardDescription>
-                                    Purchase promotional packages to feature your products across the platform and reach more customers.
+                                    Purchase promotional packages to feature your products across the platform and reach more customers. This feature is coming soon.
                                 </CardDescription>
                             </CardHeader>
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -339,8 +336,7 @@ export default function SellerPromotionsPage() {
                                                 <CardTitle className="text-xl">{tier.name}</CardTitle>
                                             </div>
                                             <p className="text-3xl font-bold">{tier.price}</p>
-                                            <CardDescription>{tier.description}</CardDescription>
-                                        </CardHeader>
+                                            <CardDescription>{tier.description}</CardHeader>
                                         <CardContent className="flex-grow">
                                             <ul className="space-y-2 text-sm text-muted-foreground">
                                                 {tier.features.map(feat => (
@@ -352,7 +348,7 @@ export default function SellerPromotionsPage() {
                                             </ul>
                                         </CardContent>
                                         <CardFooter>
-                                            <Button className="w-full">
+                                            <Button className="w-full" disabled>
                                                 <PlusCircle className="mr-2 h-4 w-4" />
                                                 Create Promotion
                                             </Button>
@@ -376,4 +372,3 @@ export default function SellerPromotionsPage() {
     );
 }
 
-    
