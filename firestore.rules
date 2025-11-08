@@ -73,11 +73,11 @@ service cloud.firestore {
        */
       match /products/{productId} {
           // Products are publicly readable.
-          allow read, list: if true;
+          allow read: if true;
 
           // Only the owner of the user document (the seller) can create, update, or delete their own products.
           // This rule now checks the incoming data, which is allowed.
-          allow create, update, delete: if isOwner(userId) && request.resource.data.sellerId == userId && isSeller(userId);
+          allow write: if isOwner(userId) && isSeller(userId);
       }
     }
 
