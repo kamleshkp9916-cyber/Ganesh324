@@ -90,7 +90,7 @@ const couponSchema = z.object({
   maxDiscount: z.number().optional(),
   sellerId: z.string().optional(),
   sellerName: z.string().optional(),
-  status: z.enum(['pending', 'active', 'rejected', 'archived']).default('pending'),
+  status: z.enum(['pending', 'active', 'rejected', 'archived']).default('active'),
   terms: z.string().optional(),
 });
 
@@ -112,6 +112,7 @@ const CouponForm = ({ onSave, existingCoupon, closeDialog, sellerProducts }: { o
             maxDiscount: 0,
             applicableProducts: [],
             terms: "",
+            status: 'active',
         },
     });
 
@@ -199,7 +200,7 @@ const CouponForm = ({ onSave, existingCoupon, closeDialog, sellerProducts }: { o
                         </FormItem>
                     )}
                 />
-                <DialogFooter className="pt-4"><Button type="button" variant="ghost" onClick={closeDialog}>Cancel</Button><Button type="submit" disabled={isLoading}>{isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}Submit for Approval</Button></DialogFooter>
+                <DialogFooter className="pt-4"><Button type="button" variant="ghost" onClick={closeDialog}>Cancel</Button><Button type="submit" disabled={isLoading}>{isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}Save Coupon</Button></DialogFooter>
             </form>
         </Form>
     );
@@ -250,13 +251,13 @@ export default function SellerPromotionsPage() {
             const newCoupons = [...prev];
             const existingIndex = newCoupons.findIndex(c => c.id === coupon.id);
             if (existingIndex > -1) {
-                newCoupons[existingIndex] = { ...coupon, sellerId: user.uid, sellerName: userData.displayName, status: 'pending' };
+                newCoupons[existingIndex] = { ...coupon, sellerId: user.uid, sellerName: userData.displayName, status: 'active' };
             } else {
-                newCoupons.unshift({ ...coupon, id: Date.now(), sellerId: user.uid, sellerName: userData.displayName, status: 'pending' });
+                newCoupons.unshift({ ...coupon, id: Date.now(), sellerId: user.uid, sellerName: userData.displayName, status: 'active' });
             }
             return newCoupons;
         });
-        toast({ title: "Coupon Submitted!", description: `Coupon ${coupon.code} has been sent for admin approval.` });
+        toast({ title: "Coupon Saved!", description: `Coupon ${coupon.code} is now active.` });
     };
 
     const handleDeleteCoupon = (couponId: number) => {
@@ -289,7 +290,7 @@ export default function SellerPromotionsPage() {
                                         <div>
                                             <div className="flex items-center gap-2">
                                                 <h4 className="font-semibold">{coupon.code}</h4>
-                                                <Badge variant={
+                                                 <Badge variant={
                                                     coupon.status === 'active' ? 'success' :
                                                     coupon.status === 'pending' ? 'warning' : 'destructive'
                                                 }>{coupon.status}</Badge>
@@ -319,7 +320,7 @@ export default function SellerPromotionsPage() {
                 <DialogHeader>
                     <DialogTitle>{editingCoupon ? 'Edit' : 'Create'} Coupon</DialogTitle>
                     <DialogDescription>
-                        {editingCoupon ? 'Edit your coupon details. Changes will be sent for re-approval.' : 'Fill in the details for your new coupon. It will be sent to an admin for approval.'}
+                        {editingCoupon ? 'Edit your coupon details. Your coupon will be active immediately.' : 'Fill in the details for your new coupon. It will become active as soon as you save it.'}
                     </DialogDescription>
                 </DialogHeader>
                 <CouponForm onSave={handleSaveCoupon} existingCoupon={editingCoupon} closeDialog={() => setIsCouponFormOpen(false)} sellerProducts={sellerProducts} />
