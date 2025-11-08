@@ -76,6 +76,7 @@ import { categories } from "@/lib/categories"
 import { Badge } from "@/components/ui/badge"
 import { Textarea } from "@/components/ui/textarea"
 import { SellerHeader } from "@/components/seller/seller-header"
+import { Product } from "@/components/seller/product-form"
 
 const couponSchema = z.object({
   id: z.number().optional(),
@@ -93,7 +94,7 @@ const couponSchema = z.object({
   terms: z.string().optional(),
 });
 
-const CouponForm = ({ onSave, existingCoupon, closeDialog, sellerProducts }: { onSave: (coupon: Coupon) => void, existingCoupon?: Coupon, closeDialog: () => void, sellerProducts: any[] }) => {
+const CouponForm = ({ onSave, existingCoupon, closeDialog, sellerProducts }: { onSave: (coupon: Coupon) => void, existingCoupon?: Coupon, closeDialog: () => void, sellerProducts: Product[] }) => {
     const [isLoading, setIsLoading] = useState(false);
 
     const form = useForm<z.infer<typeof couponSchema>>({
@@ -122,6 +123,10 @@ const CouponForm = ({ onSave, existingCoupon, closeDialog, sellerProducts }: { o
             closeDialog();
         }, 500);
     };
+    
+    const availableProducts = useMemo(() => {
+        return sellerProducts.filter(p => p.stock > 0);
+    }, [sellerProducts]);
 
     return (
         <Form {...form}>
@@ -155,10 +160,10 @@ const CouponForm = ({ onSave, existingCoupon, closeDialog, sellerProducts }: { o
                         <FormItem>
                             <div className="mb-4">
                                 <FormLabel className="text-base">Applicable Products</FormLabel>
-                                <FormDescription>Select which of your products this coupon will apply to. If none are selected, it will apply to all.</FormDescription>
+                                <FormDescription>Select which of your products this coupon will apply to. If none are selected, it will apply to all of your products.</FormDescription>
                             </div>
                             <div className="grid grid-cols-2 md:grid-cols-3 gap-2 max-h-40 overflow-y-auto">
-                                {sellerProducts.map((product) => (
+                                {availableProducts.map((product) => (
                                     <FormField
                                         key={product.id}
                                         control={form.control}
@@ -168,10 +173,10 @@ const CouponForm = ({ onSave, existingCoupon, closeDialog, sellerProducts }: { o
                                             <FormItem key={product.id} className="flex flex-row items-start space-x-3 space-y-0">
                                                 <FormControl>
                                                     <Checkbox
-                                                        checked={field.value?.includes(product.id)}
+                                                        checked={field.value?.includes(product.id!)}
                                                         onCheckedChange={(checked) => {
                                                             return checked
-                                                            ? field.onChange([...(field.value || []), product.id])
+                                                            ? field.onChange([...(field.value || []), product.id!])
                                                             : field.onChange(
                                                                 field.value?.filter(
                                                                     (value) => value !== product.id
@@ -186,6 +191,9 @@ const CouponForm = ({ onSave, existingCoupon, closeDialog, sellerProducts }: { o
                                         }}
                                     />
                                 ))}
+                                 {availableProducts.length === 0 && (
+                                    <p className="col-span-full text-center text-sm text-muted-foreground py-4">You have no products with available stock.</p>
+                                )}
                             </div>
                             <FormMessage />
                         </FormItem>
@@ -206,7 +214,7 @@ export default function SellerPromotionsPage() {
     const [coupons, setCoupons] = useLocalStorage<Coupon[]>(COUPONS_KEY, []);
     const [isCouponFormOpen, setIsCouponFormOpen] = useState(false);
     const [editingCoupon, setEditingCoupon] = useState<Coupon | undefined>(undefined);
-    const [sellerProducts, setSellerProducts] = useState<any[]>([]);
+    const [sellerProducts, setSellerProducts] = useState<Product[]>([]);
     
     const sellerCoupons = useMemo(() => {
         if (!user) return [];
@@ -215,14 +223,17 @@ export default function SellerPromotionsPage() {
 
     useEffect(() => {
         setIsMounted(true);
-        if (userData) {
-            const productsKey = `sellerProducts`; // Generic key
+        if (userData && user) {
+            const productsKey = `sellerProducts`; 
             const storedProducts = localStorage.getItem(productsKey);
             if (storedProducts) {
-                setSellerProducts(JSON.parse(storedProducts));
+                // Filter products that belong to the current seller
+                const allProducts = JSON.parse(storedProducts) as Product[];
+                setSellerProducts(allProducts.filter(p => p.sellerId === user.uid));
             }
         }
-    }, [userData]);
+    }, [userData, user]);
+
 
     if (!isMounted || loading || !userData) {
         return <div className="flex h-screen items-center justify-center"><LoadingSpinner /></div>;
@@ -316,3 +327,5 @@ export default function SellerPromotionsPage() {
         </Dialog>
     )
 }
+
+    
