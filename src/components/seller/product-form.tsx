@@ -34,6 +34,7 @@ import { collection, doc, setDoc, addDoc } from "firebase/firestore";
 import { ref, uploadString, getDownloadURL } from "firebase/storage";
 import { defaultCategories } from "@/lib/categories";
 import Image from "next/image";
+import { Separator } from "@/components/ui/separator";
 
 const variantSchema = z.object({
     id: z.string().optional(),
@@ -277,7 +278,7 @@ export function ProductForm({ onSave, productToEdit }: ProductFormProps) {
                           <FormLabel>Category</FormLabel>
                           <Select onValueChange={field.onChange} defaultValue={field.value}>
                               <FormControl><SelectTrigger><SelectValue placeholder="Select a category" /></SelectTrigger></FormControl>
-                              <SelectContent>{defaultCategories.map(c => <SelectItem key={c.id} value={c.name}>{c.name}</SelectItem>)}</SelectContent>
+                              <SelectContent>{defaultCategories.map(c => <SelectItem key={c.name} value={c.name}>{c.name}</SelectItem>)}</SelectContent>
                           </Select>
                           <FormMessage />
                       </FormItem>
