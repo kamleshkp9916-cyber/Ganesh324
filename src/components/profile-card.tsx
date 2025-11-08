@@ -5,7 +5,7 @@ import React from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Mail, Phone, MapPin, Package, Video, UserPlus, UserCheck, Instagram, Twitter, Youtube, Facebook, Twitch, Award, Users } from 'lucide-react';
+import { Mail, Phone, MapPin, Package, Video, UserPlus, UserCheck, Instagram, Twitter, Youtube, Facebook, Twitch, Award, Users, Home } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useEffect, useState, useMemo, useCallback } from 'react';
@@ -301,6 +301,16 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                                     {profileData.location && <div className="flex items-center gap-2"><MapPin className="h-4 w-4 text-muted-foreground" /> <span>{profileData.location}</span></div>}
                                     {profileData.email && <div className="flex items-center gap-2"><Mail className="h-4 w-4 text-muted-foreground" /> <a href={`mailto:${profileData.email}`} className="hover:underline">{profileData.email}</a></div>}
                                     {profileData.phone && <div className="flex items-center gap-2"><Phone className="h-4 w-4 text-muted-foreground" /> <span>{profileData.phone}</span></div>}
+                                    {profileData.addresses && profileData.addresses.length > 0 && 
+                                        <div className="flex items-start gap-2 pt-2">
+                                            <Home className="h-4 w-4 text-muted-foreground mt-1" /> 
+                                            <div>
+                                                <p className="font-semibold text-foreground">Address</p>
+                                                <p>{profileData.addresses[0].village}, {profileData.addresses[0].district}</p>
+                                                <p>{profileData.addresses[0].city}, {profileData.addresses[0].state} - {profileData.addresses[0].pincode}</p>
+                                            </div>
+                                        </div>
+                                    }
                                 </div>
                                 <div className="flex items-center gap-2 flex-wrap">
                                     {profileData.instagram && <Button asChild variant="outline" size="sm"><Link href={profileData.instagram} target="_blank"><Instagram className="mr-2 h-4 w-4" /> Instagram</Link></Button>}
