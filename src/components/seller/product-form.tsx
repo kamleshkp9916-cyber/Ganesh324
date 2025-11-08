@@ -300,6 +300,14 @@ export function ProductForm({ onSave, productToEdit }: ProductFormProps) {
               <FormField control={form.control} name="description" render={({ field }) => (
                 <FormItem><FormLabel>Description</FormLabel><FormControl><Textarea {...field} /></FormControl><FormMessage /></FormItem>
               )} />
+               <div className="grid grid-cols-2 gap-4">
+                  <FormField control={form.control} name="brand" render={({ field }) => (
+                    <FormItem><FormLabel>Brand</FormLabel><FormControl><Input {...field} placeholder="e.g., Nike, Apple" /></FormControl><FormMessage /></FormItem>
+                  )} />
+                  <FormField control={form.control} name="modelNumber" render={({ field }) => (
+                    <FormItem><FormLabel>Model Number / SKU</FormLabel><FormControl><Input {...field} placeholder="e.g., A2650" /></FormControl><FormMessage /></FormItem>
+                  )} />
+              </div>
                <FormField control={form.control} name="highlights" render={({ field }) => (
                     <FormItem>
                         <FormLabel>Highlights</FormLabel>
@@ -506,5 +514,3 @@ export function ProductForm({ onSave, productToEdit }: ProductFormProps) {
     </Form>
   );
 }
-
-    
