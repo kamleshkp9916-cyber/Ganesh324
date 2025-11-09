@@ -168,7 +168,7 @@ function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
     setVerif({ state: "VERIFYING", message: "Verifying UIDAI signature…" });
     setTimeout(() => {
       const ok = true;
-      setVerif({ state: ok ? "VERIFIED" : "INVALID_SIGNATURE", message: ok ? "Digital signature valid. Fields parsed from ZIP." : "Digital signature in ZIP is invalid. Please re‑download from myAadhaar and try again." });
+      setVerif({ state: ok ? "VERIFIED" : "INVALID_SIGNATURE", message: ok ? "Digital signature valid. Fields parsed from ZIP." : "The digital signature on the file could not be validated. Please re-download from myAadhaar and try again." });
        toast({
         title: ok ? "Aadhaar Verified" : "Verification Failed",
         description: ok ? "Your Aadhaar details were successfully parsed." : "The digital signature on the file could not be validated.",
@@ -219,6 +219,9 @@ function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
             <div className="text-xs text-muted-foreground">You can submit after finishing KYC and accepting terms.</div>
           </CardContent>
         </Card>
+         <div className="text-xs text-muted-foreground p-3 bg-gray-50 rounded-lg">
+            <strong>Privacy Note:</strong> We do not store your raw Aadhaar or PAN data on our servers. We only retain the necessary information, such as your name and address, required for seller operations.
+        </div>
       </div>
 
       <div className="xl:col-span-3">
@@ -426,9 +429,6 @@ function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
                     {verif.state === "ERROR" && <Badge variant="destructive">{verif.message}</Badge>}
                   </div>
                   {verif.message && <p className="text-xs text-muted-foreground">{verif.message}</p>}
-                   <div className="!mt-6 text-xs text-muted-foreground p-3 bg-gray-50 rounded-lg">
-                    <strong>Privacy Note:</strong> We do not store your raw Aadhaar or PAN data on our servers. We only retain the necessary information, such as your name and address, required for seller operations.
-                  </div>
                 </div>
               </Section>
             )}
@@ -538,4 +538,3 @@ export default function KYCPage() {
         </div>
     );
 }
-
