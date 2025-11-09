@@ -399,14 +399,17 @@ function SellerPortal() {
               <Field label="Upload Aadhaar ZIP" required error={!seller.aadhaarZip ? 'Upload ZIP' : ''}>
                 <Input type="file" accept=".zip" onChange={onAadhaarZip} />
                 {seller.aadhaarZip && <div className="text-xs text-green-700">{seller.aadhaarZip.name}</div>}
-                 <Button className="mt-2" variant="secondary" onClick={uploadZipToStorage} disabled={!user || !seller.aadhaarZip}>Upload ZIP</Button>
+                 <Button className="mt-2" variant="secondary" onClick={uploadZipToStorage} disabled={!user || !seller.aadhaarZip || isProcessingZip}>
+                    {isProcessingZip && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    Upload ZIP
+                </Button>
               </Field>
               <Field label="Share Code (password)" required error={!(seller.aadhaarShareCode||'').length ? 'Required' : ((seller.aadhaarShareCode||'').length<4?'Min 4 chars':'')}>
                 <Input placeholder="4-8 characters" value={seller.aadhaarShareCode} onChange={(e:any)=>setSeller({...seller, aadhaarShareCode:e.target.value})} />
               </Field>
             </div>
             <div className="grid sm:grid-cols-2 gap-4">
-               <Field label="Aadhaar Photo (parsed)" error={!isProcessingZip && !seller.aadhaarPhotoUrl ? 'Photo will appear here after upload' : ''}>
+               <Field label="Aadhaar Photo (parsed)" hint={isProcessingZip ? 'Processing...' : ''} error={!isProcessingZip && !seller.aadhaarPhotoUrl ? 'Photo will appear after ZIP upload' : ''}>
                 {seller.aadhaarPhotoUrl ? (
                   <Image src={seller.aadhaarPhotoUrl} alt="aadhaar" width={64} height={64} className="h-16 w-16 rounded-xl object-cover ring-1 ring-border" />
                 ) : isProcessingZip ? (
@@ -420,14 +423,15 @@ function SellerPortal() {
                   </div>
                 )}
               </Field>
-              <Field label="Face Match" hint="Selfie must match Aadhaar photo (≥ 80%)" error={seller.faceMatchStatus === 'failed' ? 'Match failed. Please upload a clearer selfie and try again.' : ''}>
+              <Field label="Face Match" hint="Selfie must match Aadhaar photo (≥ 80%)">
                 <div className="flex items-center gap-3">
-                  <Button onClick={uploadSelfieAndRunFaceMatch} disabled={!user || !seller.aadhaarPhotoUrl}>Run Face Match</Button>
-                  <Badge variant={seller.faceMatchStatus === 'pending' ? 'outline' : seller.faceMatchStatus === 'passed' ? 'success' : 'destructive'}>
-                    {seller.faceMatchStatus === 'pending' ? 'Pending' :
-                     seller.faceMatchScore > 0 ? `Score: ${(seller.faceMatchScore*100).toFixed(0)}% - ${seller.faceMatchStatus}` : 'Not Run'}
-                  </Badge>
+                    <Button onClick={uploadSelfieAndRunFaceMatch} disabled={!user || !seller.selfieFile || !seller.aadhaarPhotoUrl}>Run Face Match</Button>
+                    <Badge variant={seller.faceMatchStatus === 'pending' ? 'outline' : seller.faceMatchStatus === 'passed' ? 'success' : 'destructive'}>
+                        {seller.faceMatchStatus === 'pending' ? 'Pending' :
+                        seller.faceMatchScore > 0 ? `Score: ${(seller.faceMatchScore*100).toFixed(0)}%` : 'Not Run'}
+                    </Badge>
                 </div>
+                 {seller.faceMatchStatus === 'failed' && <span className="text-xs text-destructive">Match failed. Please upload a clearer selfie and try again.</span>}
               </Field>
             </div>
             <div className="flex justify-between items-center">
@@ -551,3 +555,5 @@ export default function App() {
     </div>
   );
 }
+
+    
