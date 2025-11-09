@@ -470,16 +470,13 @@ export default function KYCPage() {
     };
     
     useEffect(() => {
-        // Wait until the initial auth check is complete and we are on the client
         if (isClient && authReady) {
-            // If a logged-in user who is already a seller lands here, redirect them away.
             if (user && userData?.role === 'seller') {
                 router.replace('/seller/dashboard');
             }
         }
     }, [isClient, user, userData, authReady, router]);
     
-    // Show a loader while waiting for auth state or if it's a server render
     if (loading || !isClient || !authReady) {
         return (
             <div className="min-h-screen p-6 md:p-10 flex items-center justify-center">
