@@ -370,7 +370,7 @@ function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
               <Section title="Identity — Aadhaar Offline e‑KYC" icon={<ShieldCheck className="w-5 h-5"/>}>
                 <div className="space-y-4">
                   <div className="p-3 rounded-xl bg-gray-50 text-sm">
-                    Download your <strong>Aadhaar Offline e‑KYC ZIP</strong> from myAadhaar, set a <strong>4‑digit Share Code</strong>, then upload it below.
+                    Download your password-protected <strong>Aadhaar Offline e‑KYC ZIP</strong> from myAadhaar, set a <strong>4‑digit Share Code</strong>, then upload the ZIP file below.
                   </div>
                   <div className="grid md:grid-cols-2 gap-4">
                     <div>
@@ -379,10 +379,12 @@ function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
                         <Input type="file" accept=".zip" onChange={(e)=>setField("aadhaarZip", e.target.files?.[0] || null)} />
                         <Button variant="secondary" className="ml-3"><Upload className="w-4 h-4 mr-2"/>Upload</Button>
                       </div>
+                      <p className="text-xs text-muted-foreground mt-1">Upload the password-protected ZIP file from UIDAI.</p>
                     </div>
                     <div>
                       <label className="text-sm">4‑digit Share Code</label>
                       <Input value={form.shareCode} maxLength={4} onChange={(e)=>setField("shareCode", e.target.value.replace(/[^0-9]/g, ""))} placeholder="e.g., 1234"/>
+                       <p className="text-xs text-muted-foreground mt-1">The code you created when downloading the ZIP.</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
@@ -488,6 +490,14 @@ export default function KYCPage() {
     return (
         <div className="min-h-screen p-6 md:p-10 bg-gradient-to-br from-gray-50 to-white">
             <div className="max-w-7xl mx-auto space-y-6">
+                 <div className="flex items-center justify-between">
+                  <Button asChild variant="ghost" className="-ml-4">
+                    <Link href="/live-selling">
+                      <ChevronLeft className="mr-2 h-4 w-4" />
+                      Back to Shopping
+                    </Link>
+                  </Button>
+                </div>
                 <div className="text-center">
                     <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">Become a Seller</h1>
                     <p className="text-sm text-muted-foreground">Complete the following steps to start selling on StreamCart.</p>
@@ -497,3 +507,5 @@ export default function KYCPage() {
         </div>
     );
 }
+
+```)
