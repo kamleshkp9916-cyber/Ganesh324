@@ -235,7 +235,7 @@ function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
                                   <InputOTPSlot index={0} /><InputOTPSlot index={1} /><InputOTPSlot index={2} />
                               </InputOTPGroup>
                           </InputOTP>
-                          <Button type="button" variant="secondary" onClick={() => handleVerifyOtp('email')} disabled={form.emailOtp.length < 6 || isVerifying.email}>
+                          <Button type="button" variant="secondary" onClick={() => handleVerifyOtp('email')} disabled={form.emailOtp.length < 3 || isVerifying.email}>
                             {isVerifying.email && <Loader2 className="mr-2 h-4 w-4 animate-spin"/>}
                             Verify Email
                           </Button>
@@ -259,7 +259,7 @@ function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
                                   <InputOTPSlot index={0} /><InputOTPSlot index={1} /><InputOTPSlot index={2} />
                               </InputOTPGroup>
                           </InputOTP>
-                          <Button type="button" variant="secondary" onClick={() => handleVerifyOtp('phone')} disabled={form.phoneOtp.length < 6 || isVerifying.phone}>
+                          <Button type="button" variant="secondary" onClick={() => handleVerifyOtp('phone')} disabled={form.phoneOtp.length < 3 || isVerifying.phone}>
                              {isVerifying.phone && <Loader2 className="mr-2 h-4 w-4 animate-spin"/>}
                             Verify Phone
                           </Button>
@@ -435,8 +435,8 @@ function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
                 </div>
               </Section>
             )}
-             <div className="flex items-center justify-between mt-4">
-                <Button variant="outline" onClick={prev} disabled={current === 0}>Back</Button>
+            <div className="flex items-center justify-between mt-6">
+              <Button variant="outline" onClick={prev} disabled={current === 0}>Back</Button>
               <div className="flex items-center gap-3">
                 {current < steps.length - 1 && (
                   <Button onClick={next} disabled={!canGoToStep(current + 1)}>Next<ChevronRight className="w-4 h-4 ml-2"/></Button>
@@ -476,27 +476,32 @@ export default function KYCPage() {
     };
 
     useEffect(() => {
-        if (isClient && !loading && userData?.role === 'seller') {
-            router.replace('/seller/dashboard');
+        if (!loading) {
+            if (!user) {
+                router.replace('/?redirect=/seller/kyc');
+            } else if (userData?.role === 'seller') {
+                router.replace('/seller/dashboard');
+            }
         }
-    }, [isClient, loading, userData, router]);
+    }, [user, userData, loading, router]);
 
 
-    if (loading || !isClient) {
+    if (loading || !isClient || (isClient && !user)) {
         return <div className="min-h-screen p-6 md:p-10 flex items-center justify-center"><LoadingSpinner /></div>;
     }
     
-    if (!user) {
-        // This effect will run after the first render, and only on the client.
-        // It's safe to use router here.
-        router.replace('/?redirect=/seller/kyc');
-        // Return a loader to prevent flicker while redirecting.
+    // This check is now safe because the useEffect above handles the redirect for non-logged-in users.
+    if (userData?.role === 'seller') {
         return <div className="min-h-screen p-6 md:p-10 flex items-center justify-center"><LoadingSpinner /></div>;
     }
 
     return (
         <div className="min-h-screen p-6 md:p-10 bg-gradient-to-br from-gray-50 to-white">
             <div className="max-w-7xl mx-auto space-y-6">
+                <Button variant="ghost" onClick={() => router.back()} className="mb-4">
+                    <ChevronLeft className="mr-2 h-4 w-4" />
+                    Back
+                </Button>
                 <div className="flex items-center justify-between">
                     <div>
                         <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">Become a Seller</h1>
@@ -508,6 +513,3 @@ export default function KYCPage() {
         </div>
     );
 }
-
-
-    
