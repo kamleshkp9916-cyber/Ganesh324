@@ -467,9 +467,11 @@ export default function KYCPage() {
 
     useEffect(() => {
         setIsClient(true);
-        const app = localStorage.getItem(SELLER_APP_SUBMITTED_KEY);
-        if (app) {
-            setSubmittedApp(JSON.parse(app));
+        if (typeof window !== 'undefined') {
+            const app = localStorage.getItem(SELLER_APP_SUBMITTED_KEY);
+            if (app) {
+                setSubmittedApp(JSON.parse(app));
+            }
         }
     }, []);
 
@@ -478,8 +480,8 @@ export default function KYCPage() {
         console.log("Seller Application Submitted:", data);
         router.push('/admin/kyc'); 
     };
-
-    if (!isClient || loading) {
+    
+    if (loading && !isClient) {
         return (
             <div className="min-h-screen p-6 md:p-10 flex items-center justify-center">
                 <LoadingSpinner />
@@ -487,23 +489,25 @@ export default function KYCPage() {
         );
     }
     
-    if (userData?.role === 'seller') {
-         useEffect(() => {
-            router.replace('/seller/dashboard');
-        }, [router]);
-        return (
-            <div className="min-h-screen p-6 md:p-10 flex items-center justify-center">
-                <LoadingSpinner />
-            </div>
-        );
+    if (isClient && !user) {
+        // Only run on client side after checking user state
+        router.replace('/?redirect=/seller/kyc');
+        return <div className="min-h-screen p-6 md:p-10 flex items-center justify-center"><LoadingSpinner /></div>;
+    }
+    
+    if (isClient && userData?.role === 'seller') {
+        router.replace('/seller/dashboard');
+        return <div className="min-h-screen p-6 md:p-10 flex items-center justify-center"><LoadingSpinner /></div>;
     }
 
     return (
         <div className="min-h-screen p-6 md:p-10 bg-gradient-to-br from-gray-50 to-white">
-            <Button variant="ghost" onClick={() => router.back()} className="absolute top-4 left-4">
-                <ChevronLeft className="mr-2 h-4 w-4" />
-                Back
-            </Button>
+            <div className="absolute top-4 left-4">
+                 <Button variant="ghost" onClick={() => router.back()}>
+                    <ChevronLeft className="mr-2 h-4 w-4" />
+                    Back
+                </Button>
+            </div>
             <div className="max-w-7xl mx-auto space-y-6">
                 <div className="text-center">
                     <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">Become a Seller</h1>
@@ -514,5 +518,3 @@ export default function KYCPage() {
         </div>
     );
 }
-
-```)
