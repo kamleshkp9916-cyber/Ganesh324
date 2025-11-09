@@ -355,8 +355,7 @@ function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
                 </div>
               </Section>
             )}
-             <div className="flex items-center justify-between">
-              <Button variant="ghost" onClick={prev} disabled={current===0}><ChevronLeft className="w-4 h-4 mr-2"/>Back</Button>
+             <div className="flex items-center justify-end">
               <div className="flex items-center gap-3">
                 {current < steps.length - 1 && (
                   <Button onClick={next}>Next<ChevronRight className="w-4 h-4 ml-2"/></Button>
