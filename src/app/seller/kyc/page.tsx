@@ -137,7 +137,7 @@ function SellerWizard() {
         title: "Application Submitted!",
         description: "Your details are now pending review from the admin team.",
     })
-    router.push('/seller/dashboard'); // Redirect to dashboard after submission
+    router.push('/seller/dashboard');
   };
 
   return (
@@ -291,7 +291,7 @@ function SellerWizard() {
               <Section title="Identity — Aadhaar Offline e‑KYC" icon={<ShieldCheck className="w-5 h-5"/>}>
                 <div className="space-y-4">
                   <div className="p-3 rounded-xl bg-gray-50 text-sm">
-                    Download your **Aadhaar Offline e‑KYC ZIP** from myAadhaar, set a **4‑digit Share Code**, then upload it below.
+                    Download your <strong>Aadhaar Offline e‑KYC ZIP</strong> from myAadhaar, set a <strong>4‑digit Share Code</strong>, then upload it below.
                   </div>
                   <div className="grid md:grid-cols-2 gap-4">
                     <div>
@@ -311,10 +311,7 @@ function SellerWizard() {
                     <span className="text-sm">Add selfie (optional for face match later)</span>
                   </div>
                   <div className="flex items-center gap-3">
-                    <Button onClick={fakeVerifyAadhaar} disabled={verif.state === "VERIFYING"}>
-                      {verif.state === "VERIFYING" && <Loader2 className="w-4 h-4 mr-2 animate-spin"/>}
-                      <ShieldCheck className="w-4 h-4 mr-2"/>Verify e‑KYC
-                    </Button>
+                    <Button onClick={fakeVerifyAadhaar} disabled={verif.state === "VERIFYING"}><ShieldCheck className="w-4 h-4 mr-2"/>Verify e‑KYC</Button>
                     {verif.state === "VERIFYING" && <Badge variant="secondary">Verifying…</Badge>}
                     {verif.state === "VERIFIED" && <Badge className="bg-green-600">Signature valid</Badge>}
                     {verif.state === "INVALID_SIGNATURE" && <Badge variant="destructive">Invalid signature</Badge>}
@@ -380,17 +377,20 @@ function SellerWizard() {
   );
 }
 
+
 export default function KYCPage() {
     const { user, loading } = useAuth();
     const router = useRouter();
 
-    if (loading) {
-        return <div className="min-h-screen p-6 md:p-10 flex items-center justify-center"><LoadingSpinner /></div>
-    }
+    useEffect(() => {
+        if (!loading && !user) {
+            router.replace('/?redirect=/seller/kyc');
+        }
+    }, [user, loading, router]);
 
-    if (!user) {
-        router.replace('/?redirect=/seller/kyc');
-        return null;
+
+    if (loading || !user) {
+        return <div className="min-h-screen p-6 md:p-10 flex items-center justify-center"><LoadingSpinner /></div>
     }
 
     return (
@@ -402,3 +402,5 @@ export default function KYCPage() {
     );
 }
 
+
+    
