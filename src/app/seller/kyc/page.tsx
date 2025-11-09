@@ -470,16 +470,17 @@ export default function KYCPage() {
     };
     
     useEffect(() => {
+        // Wait until the initial auth check is complete and we are on the client
         if (isClient && authReady) {
-            if (userData?.role === 'seller') {
+            // If a logged-in user who is already a seller lands here, redirect them away.
+            if (user && userData?.role === 'seller') {
                 router.replace('/seller/dashboard');
-            } else if (!user) {
-                router.replace('/?redirect=/seller/kyc');
             }
         }
     }, [isClient, user, userData, authReady, router]);
     
-    if (loading || !isClient || !authReady || !user || userData?.role === 'seller') {
+    // Show a loader while waiting for auth state or if it's a server render
+    if (loading || !isClient || !authReady) {
         return (
             <div className="min-h-screen p-6 md:p-10 flex items-center justify-center">
                 <LoadingSpinner />
@@ -487,6 +488,8 @@ export default function KYCPage() {
         );
     }
     
+    // The KYC form can now be shown to both logged-out users and logged-in customers.
+    // The redirector will handle moving logged-in sellers away.
     return (
         <div className="min-h-screen p-6 md:p-10 bg-gradient-to-br from-gray-50 to-white">
             <div className="max-w-7xl mx-auto space-y-6">
