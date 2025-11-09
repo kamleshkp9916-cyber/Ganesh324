@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useMemo, useState, useEffect, useCallback } from "react";
+import React, { useMemo, useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -14,7 +14,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { Check, AlertTriangle, Upload, ChevronLeft, ChevronRight, ShieldCheck, Building2, User2, MapPin, Banknote, FileSignature, ClipboardList, Eye, UserCheck, ShieldAlert, Gavel, Loader2, Send } from "lucide-react";
+import { Check, AlertTriangle, Upload, ChevronLeft, ChevronRight, ShieldCheck, Building2, User2, MapPin, Banknote, FileSignature, ClipboardList, Eye, UserCheck, ShieldAlert, Gavel, Loader2, Send, Camera } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
@@ -93,6 +93,9 @@ function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
   const [otpSent, setOtpSent] = useState({ email: false, phone: false });
   const [isVerifying, setIsVerifying] = useState({ email: false, phone: false });
 
+  const selfieInputRef = useRef<HTMLInputElement>(null);
+  const [selfiePreview, setSelfiePreview] = useState<string | null>(null);
+
   const isStep1Valid = useMemo(() => {
     return form.legalName && form.displayName && /.+@.+\..+/.test(form.email) && /^\d{10}$/.test(form.phone) && form.emailVerified && form.phoneVerified;
   }, [form]);
@@ -108,7 +111,11 @@ function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
   useEffect(() => {
     const draft = localStorage.getItem(SELLER_APP_DRAFT_KEY);
     if (draft) {
-      setForm(JSON.parse(draft));
+      const parsedDraft = JSON.parse(draft);
+      setForm(parsedDraft);
+      if (parsedDraft.selfie && parsedDraft.selfie.preview) {
+        setSelfiePreview(parsedDraft.selfie.preview);
+      }
     }
   }, []);
 
@@ -170,6 +177,19 @@ function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
         variant: ok ? "default" : "destructive",
       });
     }, 900);
+  };
+  
+  const handleSelfieUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const result = event.target?.result as string;
+        setSelfiePreview(result);
+        setField("selfie", { file, preview: result });
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const submit = () => {
@@ -388,10 +408,19 @@ function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
                        <p className="text-xs text-muted-foreground mt-1">The code you created when downloading the ZIP.</p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Switch checked={!!form.selfie} onCheckedChange={(v)=>{ if(!v) setField("selfie", null); else setField("selfie", { name: "selfie.jpg"}); }} />
-                    <span className="text-sm">Add selfie (optional for face match later)</span>
-                  </div>
+                   <div>
+                        <label className="text-sm">Upload Selfie</label>
+                         <div className="border rounded-xl p-4 flex items-center gap-4">
+                            <div className="w-24 h-24 bg-muted rounded-lg flex items-center justify-center text-muted-foreground">
+                                {selfiePreview ? <img src={selfiePreview} alt="Selfie preview" className="w-full h-full object-cover rounded-lg"/> : <Camera className="w-8 h-8"/>}
+                            </div>
+                            <div className="flex-1">
+                                <Button type="button" variant="secondary" onClick={() => selfieInputRef.current?.click()}><Upload className="w-4 h-4 mr-2"/>Upload Image</Button>
+                                <input ref={selfieInputRef} type="file" accept="image/*" className="hidden" onChange={handleSelfieUpload} />
+                                <p className="text-xs text-muted-foreground mt-2">The selfie should clearly show your face and match the photo on your Aadhaar card for verification.</p>
+                            </div>
+                        </div>
+                    </div>
                   <div className="flex items-center gap-3">
                     <Button onClick={fakeVerifyAadhaar}><ShieldCheck className="w-4 h-4 mr-2"/>Verify e‑KYC</Button>
                     {verif.state === "VERIFYING" && <Badge variant="secondary">Verifying…</Badge>}
