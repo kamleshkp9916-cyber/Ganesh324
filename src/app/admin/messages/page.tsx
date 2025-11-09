@@ -1,5 +1,3 @@
-
-
 "use client";
 
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -27,8 +25,8 @@ export default function AdminMessagePage() {
   const searchParams = useSearchParams();
   const { user, userData, loading } = useAuth();
   const { signOut } = useAuthActions();
-  const [conversations, setConversations] = useState<Conversation[]>([]);
-  const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
+  const [conversations, setConversations<Conversation[]>([]);
+  const [selectedConversation, setSelectedConversation<Conversation | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isChatLoading, setIsChatLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
@@ -93,7 +91,7 @@ export default function AdminMessagePage() {
   }
   
   if (loading || isLoading) {
-    return <div className="h-screen w-full flex items-center justify-center"><LoadingSpinner /></div>;
+    return <div className="h-screen w-full flex items-center justify-center"><LoadingSpinner />div>;
   }
   
   if (!user || userData?.role !== 'admin') {
@@ -117,7 +115,7 @@ export default function AdminMessagePage() {
                 selectedConversation={selectedConversation}
                 onSelectConversation={handleSelectConversation}
              />
-        </div>
+        div>
         
         <div className={cn(
             "h-full w-full flex-col md:flex md:w-2/3 lg:w-3/4",
@@ -133,11 +131,11 @@ export default function AdminMessagePage() {
              ) : (
                 <div className="hidden md:flex flex-col items-center justify-center h-full text-muted-foreground">
                     <MessageSquare className="h-16 w-16 mb-4"/>
-                    <h2 className="text-xl font-semibold">Select a chat</h2>
-                    <p>Choose a conversation to start messaging.</p>
-                </div>
+                    <h2 className="text-xl font-semibold">Select a chath2>
+                    pChoose a conversation to start messaging.p>
+                div>
              )}
-        </div>
-    </div>
+        div>
+    div>
   );
 }

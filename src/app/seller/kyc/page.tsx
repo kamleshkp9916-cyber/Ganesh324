@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useMemo, useState, useEffect } from "react";
+import React, { useMemo, useState, useEffect, useRef } from "react";
 import { Loader2, ShieldCheck, CheckCircle2, AlertTriangle, FileText, Upload, Trash2, Camera, User, Building, Banknote, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
@@ -20,6 +20,62 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { useRouter } from "next/navigation";
+import { getFirestore, doc, onSnapshot } from "firebase/firestore";
+import { getStorage, ref as sref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { getFirestoreDb, getFirebaseAuth, getFirebaseStorage } from "@/lib/firebase";
+
+
+// ---- Minimal, easy-to-read config ----
+const PUBLIC_DEFAULT = {
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+  functionsBase: "" // e.g. https://asia-south1-<PROJECT>.cloudfunctions.net
+};
+
+let functionsBase = PUBLIC_DEFAULT.functionsBase;
+if (typeof window !== 'undefined' && (window as any).__APP_PUBLIC_CONFIG?.functionsBase) {
+    functionsBase = (window as any).__APP_PUBLIC_CONFIG.functionsBase;
+}
+
+
+async function idToken() {
+  const auth = getFirebaseAuth();
+  if (!auth || !auth.currentUser) throw new Error("Sign in first");
+  return auth.currentUser.getIdToken();
+}
+
+// -------- Storage helpers --------
+async function uploadSelfie(uid: string, file: File) {
+  const storage = getFirebaseStorage();
+  if (!storage) throw new Error('Storage not initialized');
+  const r = sref(storage, `selfies/${uid}/${Date.now()}-${file.name}`);
+  await uploadBytes(r, file, { contentType: file.type });
+  return getDownloadURL(r);
+}
+
+async function uploadAadhaarZip(uid: string, appId: string, file: File) {
+  const storage = getFirebaseStorage();
+  if (!storage) throw new Error('Storage not initialized');
+  const storageBucket = process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET;
+  if (!storageBucket) throw new Error("Storage bucket not configured");
+
+  const r = sref(storage, `aadhaar_zips/${uid}/${appId}-${Date.now()}.zip`);
+  await uploadBytes(r, file, { contentType: "application/zip", customMetadata: { uid, appId } });
+  return `gs://${storageBucket}/${r.fullPath}`;
+}
+
+// -------- HTTPS Functions helpers (used for faceMatch & submit) --------
+function base(){ if(!functionsBase) throw new Error('Set NEXT_PUBLIC_FUNCTIONS_BASE in your environment'); return functionsBase; }
+async function submitKycFn(payload:any){ const t=await idToken(); const res=await fetch(`${base()}/submitKyc`,{method:'POST',headers:{'Content-Type':'application/json', Authorization:`Bearer ${t}`}, body:JSON.stringify(payload)}); if(!res.ok) throw new Error(await res.text()); return res.json(); }
+async function faceMatchFn({appId,selfieUrl,aadhaarPhotoUrl}:{appId:string,selfieUrl:string,aadhaarPhotoUrl:string}){ const t=await idToken(); const res=await fetch(`${base()}/faceMatch`,{method:'POST',headers:{'Content-Type':'application/json', Authorization:`Bearer ${t}`}, body:JSON.stringify({appId,selfieUrl,aadhaarPhotoUrl})}); if(!res.ok) throw new Error(await res.text()); return res.json(); }
+
+
+// ---------------- Validators (offline) ----------------
+const panIsValid = (pan:string) => /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test((pan||'').toUpperCase());
 
 
 function Step({ n, title, done, current }: { n: number, title: string, done?: boolean, current?: boolean }) {
@@ -47,7 +103,7 @@ function SectionCard({ title, children, aside }: { title: string, children: Reac
   );
 }
 
-function Field({ label, hint, children, required }: { label: string, hint?: string, children: React.ReactNode, required?: boolean }) {
+function Field({ label, hint, children, required, error }: { label: string, hint?: string, children: React.ReactNode, required?: boolean, error?: string }) {
   return (
     <div className="grid gap-1.5">
       <Label>
@@ -55,9 +111,11 @@ function Field({ label, hint, children, required }: { label: string, hint?: stri
       </Label>
       {children}
       {hint && <p className="text-xs text-muted-foreground">{hint}</p>}
+       {error && <span className="text-xs text-destructive">{error}</span>}
     </div>
   );
 }
+
 
 function Countdown({ to }: { to: number }) {
   const [now, setNow] = useState(Date.now());
@@ -77,14 +135,16 @@ const initialSeller = {
   dob: "",
   phone: "",
   email: "",
-  selfieFile: null,
+  selfieFile: null as File|null,
   selfiePreview: "",
-  aadhaarZip: null,
+  aadhaarZip: null as File|null,
   aadhaarShareCode: "",
   aadhaarPhotoUrl: "",
   faceMatchScore: 0,
   faceMatchStatus: "pending" as "pending" | "passed" | "failed",
   pan: "",
+  panName: "",
+  panVerified: false,
   bankName: "",
   ifsc: "",
   acctName: "",
@@ -102,15 +162,53 @@ function SellerPortal() {
   const [submittedAt, setSubmittedAt] = useState<number | null>(null);
   const slaMs = 24 * 60 * 60 * 1000; // 24 hours
   const router = useRouter();
+  const { user } = useAuth();
+  const [appId,setAppId]=useState("");
+  const unsubRef = useRef<any>(null);
+  const db = getFirestoreDb();
+  
+  useEffect(()=>{
+    if (!db || !appId) return;
+    if (unsubRef.current) { try { unsubRef.current(); } catch {} }
+    const dref = doc(db, 'kyc_applications', appId);
+    const unsub = onSnapshot(dref, snap => {
+      const data:any = snap.data();
+      const url = data?.documents?.aadhaarPhotoUrl;
+      if (url && url !== seller.aadhaarPhotoUrl) {
+        setSeller((s: any)=>({...s, aadhaarPhotoUrl: url }));
+      }
+    });
+    unsubRef.current = unsub;
+    return () => unsub();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  },[db, appId]);
 
-  const canSubmit = useMemo(() => {
-    const p = seller.fullName && seller.dob && seller.phone && seller.email && seller.selfieFile;
-    const a = seller.aadhaarZip && seller.aadhaarShareCode?.length >= 4 && seller.aadhaarPhotoUrl;
-    const f = seller.faceMatchStatus === 'passed' && seller.faceMatchScore >= 0.8;
-    const k = seller.pan?.length === 10;
-    const b = seller.bankName && seller.ifsc && seller.acctName && seller.acctNumber;
-    return p && a && f && k && b;
-  }, [seller]);
+  const isStepValid = (n:number) => {
+    switch(n){
+      case 1: return Boolean(seller.fullName && seller.dob && seller.phone && seller.email && seller.selfieFile);
+      case 2: {
+        const zipOk = !!(seller.aadhaarZip && (seller.aadhaarShareCode||"").length>=4);
+        const faceOk = (seller.faceMatchStatus==='passed' && seller.faceMatchScore>=0.8);
+        const photoOk = !!seller.aadhaarPhotoUrl; // must appear from backend
+        return zipOk && photoOk && faceOk; // strict per A,A,A
+      }
+      case 3: return Boolean(panIsValid(seller.pan) && seller.panVerified);
+      case 4: return Boolean(seller.bankName && seller.ifsc && seller.acctName && seller.acctNumber);
+      case 5: return seller.sellerType==='business' ? Boolean(seller.shopName && seller.address) : true;
+      case 6: return canSubmit;
+      default: return false;
+    }
+  }
+
+  const canSubmit = useMemo(()=> isStepValid(1) && isStepValid(2) && isStepValid(3) && isStepValid(4) && isStepValid(5), [seller]);
+
+  async function ensureDraft(){
+    if(appId) return appId;
+    const payload={ personal:{ fullName:seller.fullName, dob:seller.dob, phone:seller.phone, email:seller.email, selfieUrl: seller.selfiePreview || '' }, documents:{ pan: seller.pan }, bank:{}, business:{ sellerType: seller.sellerType, shopName: seller.shopName, gst: seller.gst, address: seller.address } };
+    const { id } = await submitKycFn(payload);
+    setAppId(id);
+    return id;
+  }
 
   function onAadhaarZip(e: React.ChangeEvent<HTMLInputElement>) {
     const f = e.target.files?.[0] || null;
@@ -123,13 +221,43 @@ function SellerPortal() {
     const url = URL.createObjectURL(f);
     setSeller((s: any)=>({...s, selfieFile:f, selfiePreview:url}));
   }
-
-  async function runFaceMatch(){
-    const score = Math.max(0, Math.min(1, 0.75 + Math.random()*0.25));
-    setSeller((s: any)=>({...s, faceMatchScore: score, faceMatchStatus: score>=0.8?'passed':'failed'}));
+  
+  async function uploadAndVerifyPan(){
+    const id = await ensureDraft();
+    if (!user) return alert('Sign in first');
+    const pan = (seller.pan||'').toUpperCase();
+    if (!panIsValid(pan)) return alert('Enter valid 10-char PAN (ABCDE1234F)');
+    setSeller((s: any)=>({...s, pan: pan, panVerified:true, panName: '' }));
+    setTimeout(()=> setStep(4), 250);
   }
 
-  function submit() {
+  async function uploadSelfieAndRunFaceMatch(){
+    const id = await ensureDraft();
+    if (!user) return alert('Sign in first');
+    if (!seller.selfieFile) return alert('Upload selfie');
+    const selfieUrl = await uploadSelfie(user.uid, seller.selfieFile as File);
+    if (!seller.aadhaarPhotoUrl) return alert('Wait for Aadhaar photo (ZIP parse)');
+    const { score, status } = await faceMatchFn({ appId:id, selfieUrl, aadhaarPhotoUrl: seller.aadhaarPhotoUrl });
+    setSeller((s: any)=>({...s, faceMatchScore:score, faceMatchStatus:status }));
+  }
+
+  async function uploadZipToStorage(){
+    const id = await ensureDraft();
+    if (!user) return alert('Sign in first');
+    if (!seller.aadhaarZip) return alert('Select ZIP');
+    await uploadAadhaarZip(user.uid, id, seller.aadhaarZip as File);
+    alert('ZIP uploaded. Backend will parse and set Aadhaar photo automatically.');
+  }
+
+  async function submit() {
+    const payload={
+      personal:{ fullName:seller.fullName, dob:seller.dob, phone:seller.phone, email:seller.email, selfieUrl: seller.selfiePreview },
+      documents:{ aadhaarZipPath:null, aadhaarPhotoUrl: seller.aadhaarPhotoUrl, pan: seller.pan },
+      bank:{ bankName:seller.bankName, ifsc:seller.ifsc, acctName:seller.acctName, acctNumber:seller.acctNumber },
+      business:{ sellerType:seller.sellerType, shopName:seller.shopName, gst:seller.gst, address:seller.address }
+    };
+    const { id } = await submitKycFn(payload);
+    setAppId(id);
     setSubmittedAt(Date.now());
     setTimeout(() => {
         router.push('/seller/verification-pending');
@@ -156,7 +284,23 @@ function SellerPortal() {
               <div className="font-medium">Open 24 hours</div>
               <p className="text-xs text-muted-foreground">Your store will appear as open all day</p>
             </div>
-            <Switch checked={seller.open24x7} onCheckedChange={(v)=>setSeller((s: any)=>({...s, open24x7:v}))} aria-label="Toggle 24x7 hours" />
+            <Switch checked={seller.open24x7} onCheckedChange={(v: boolean)=>setSeller((s: any)=>({...s, open24x7:v}))} aria-label="Toggle 24x7 hours" />
+          </div>
+        </SectionCard>
+        
+        <SectionCard title="Dev • PAN Regex Tests" aside={<Badge variant="outline">offline</Badge>}>
+          <div className="text-xs grid gap-1">
+            {[
+              'ABCDE1234F', 'abcde1234f', 'ABCD1234F', 'ABCDE12345', 'AAAAA0000A',
+            ].map((p, i)=>{
+              const ok = panIsValid(p);
+              return (
+                <div key={i} className="flex items-center gap-2 font-mono">
+                  <span>{p}</span>
+                  <Badge variant={ok ? 'success' : 'destructive'}>{ok ? 'PASS' : 'FAIL'}</Badge>
+                </div>
+              );
+            })}
           </div>
         </SectionCard>
 
@@ -172,19 +316,19 @@ function SellerPortal() {
         {step===1 && (
           <SectionCard title="Personal Details">
             <div className="grid sm:grid-cols-2 gap-4">
-              <Field label="Full name (as per Aadhaar)" required>
-                <Input value={seller.fullName} onChange={e=>setSeller({...seller, fullName:e.target.value})} placeholder="e.g. RAHUL KUMAR" />
+              <Field label="Full name (as per Aadhaar)" required error={!seller.fullName ? 'Required' : ''}>
+                <Input value={seller.fullName} onChange={(e:any)=>setSeller({...seller, fullName:e.target.value})} placeholder="e.g. RAHUL KUMAR" />
               </Field>
-              <Field label="Date of Birth" required>
-                <Input type="date" value={seller.dob} onChange={e=>setSeller({...seller, dob:e.target.value})} />
+              <Field label="Date of Birth" required error={!seller.dob ? 'Required' : ''}>
+                <Input type="date" value={seller.dob} onChange={(e:any)=>setSeller({...seller, dob:e.target.value})} />
               </Field>
-              <Field label="Phone (OTP verified)" required>
-                <Input type="tel" placeholder="10-digit mobile" value={seller.phone} onChange={e=>setSeller({...seller, phone:e.target.value})} />
+              <Field label="Phone (OTP verified)" required error={!seller.phone ? 'Required' : ''}>
+                <Input type="tel" placeholder="10-digit mobile" value={seller.phone} onChange={(e:any)=>setSeller({...seller, phone:e.target.value})} />
               </Field>
-              <Field label="Email" required>
-                <Input type="email" placeholder="name@example.com" value={seller.email} onChange={e=>setSeller({...seller, email:e.target.value})} />
+              <Field label="Email" required error={!seller.email ? 'Required' : ''}>
+                <Input type="email" placeholder="name@example.com" value={seller.email} onChange={(e:any)=>setSeller({...seller, email:e.target.value})} />
               </Field>
-              <Field label="Profile Photo (Selfie)" hint="Clear face, no sunglasses" required>
+              <Field label="Profile Photo (Selfie)" hint="Clear face, no sunglasses" required error={!seller.selfieFile ? 'Upload a selfie' : ''}>
                 <Input type="file" accept="image/*" onChange={onSelfie} />
                 <div className="flex items-center gap-3 pt-1">
                   {seller.selfiePreview && <Image src={seller.selfiePreview} alt="selfie" width={64} height={64} className="h-16 w-16 rounded-xl object-cover ring-1 ring-border" />}
@@ -193,34 +337,35 @@ function SellerPortal() {
               </Field>
             </div>
             <div className="flex justify-end">
-              <Button onClick={()=>setStep(2)}>Continue</Button>
+              <Button onClick={()=>setStep(2)} disabled={!isStepValid(1)}>Continue</Button>
             </div>
           </SectionCard>
         )}
 
         {step===2 && (
-          <SectionCard title="Aadhaar Paperless Offline e-KYC" aside={<Badge variant="outline">UIDAI ZIP</Badge>}>
+          <SectionCard title="Aadhaar Paperless Offline e-KYC" aside={<Badge>UIDAI ZIP</Badge>}>
             <p className="text-sm text-muted-foreground">Download your Aadhaar ZIP from UIDAI and upload it here. Use your 4-character share code.</p>
             <div className="grid sm:grid-cols-2 gap-4">
-              <Field label="Upload Aadhaar ZIP" required>
+              <Field label="Upload Aadhaar ZIP" required error={!seller.aadhaarZip ? 'Upload ZIP' : ''}>
                 <Input type="file" accept=".zip" onChange={onAadhaarZip} />
                 {seller.aadhaarZip && <div className="text-xs text-green-700">{seller.aadhaarZip.name}</div>}
+                 <Button className="mt-2" variant="secondary" onClick={uploadZipToStorage}>Upload ZIP</Button>
               </Field>
-              <Field label="Share Code (password)" required>
-                <Input placeholder="4-8 characters" value={seller.aadhaarShareCode} onChange={e=>setSeller({...seller, aadhaarShareCode:e.target.value})} />
+              <Field label="Share Code (password)" required error={!(seller.aadhaarShareCode||'').length ? 'Required' : ((seller.aadhaarShareCode||'').length<4?'Min 4 chars':'')}>
+                <Input placeholder="4-8 characters" value={seller.aadhaarShareCode} onChange={(e:any)=>setSeller({...seller, aadhaarShareCode:e.target.value})} />
               </Field>
             </div>
             <div className="grid sm:grid-cols-2 gap-4">
-              <Field label="Aadhaar Photo (parsed)">
+              <Field label="Aadhaar Photo (parsed)" error={!seller.aadhaarPhotoUrl ? 'Wait for backend to parse' : ''}>
                 {seller.aadhaarPhotoUrl ? (
                   <Image src={seller.aadhaarPhotoUrl} alt="aadhaar" width={64} height={64} className="h-16 w-16 rounded-xl object-cover ring-1 ring-border" />
                 ) : (
-                  <Button variant="secondary" onClick={()=>setSeller((s: any)=>({...s, aadhaarPhotoUrl: s.aadhaarPhotoUrl || s.selfiePreview || ''}))}>Fetch from ZIP (demo)</Button>
+                  <span className="text-xs text-slate-600">Will appear automatically after parse.</span>
                 )}
               </Field>
-              <Field label="Face Match" hint="Selfie must match Aadhaar photo">
+              <Field label="Face Match" hint="Selfie must match Aadhaar photo (≥ 80%)" error={!(seller.faceMatchStatus==='passed' && seller.faceMatchScore>=0.8) ? 'Run face match & ensure ≥ 80%' : ''}>
                 <div className="flex items-center gap-3">
-                  <Button onClick={runFaceMatch}>Run Face Match</Button>
+                  <Button onClick={uploadSelfieAndRunFaceMatch}>Run Face Match</Button>
                   {seller.faceMatchScore>0 && (
                     <Badge variant={seller.faceMatchStatus==='passed'?'success':'destructive'}>
                       Score {(seller.faceMatchScore*100).toFixed(0)}% {seller.faceMatchStatus==='passed'?'Matched':'Not matched'}
@@ -231,21 +376,23 @@ function SellerPortal() {
             </div>
             <div className="flex justify-between">
               <Button variant="outline" onClick={()=>setStep(1)}>Back</Button>
-              <Button onClick={()=>setStep(3)}>Continue</Button>
+              <Button onClick={()=>setStep(3)} disabled={!isStepValid(2)}>Continue</Button>
             </div>
           </SectionCard>
         )}
 
         {step===3 && (
-          <SectionCard title="PAN Verification" aside={<Badge variant="outline">Instant</Badge>}>
+          <SectionCard title="PAN Verification" aside={<Badge variant="outline">Offline</Badge>}>
             <div className="grid sm:grid-cols-2 gap-4">
-              <Field label="PAN Number" required hint="10 characters (ABCDE1234F)">
-                <Input maxLength={10} placeholder="ABCDE1234F" value={seller.pan} onChange={e=>setSeller({...seller, pan:e.target.value.toUpperCase()})} />
+              <Field label="PAN Number" required hint="10 characters (ABCDE1234F)" error={!panIsValid(seller.pan) ? (seller.pan? 'Invalid PAN format':'Enter a valid PAN') : ''}>
+                <Input maxLength={10} placeholder="ABCDE1234F" value={seller.pan} onChange={(e:any)=>setSeller({...seller, pan:e.target.value.toUpperCase()})} />
+                <Button className="mt-2" variant="secondary" onClick={uploadAndVerifyPan}>Verify PAN</Button>
+                {seller.panVerified && <div className="text-xs text-green-700 mt-1">Verified (format only)</div>}
               </Field>
             </div>
             <div className="flex justify-between">
               <Button variant="outline" onClick={()=>setStep(2)}>Back</Button>
-              <Button onClick={()=>setStep(4)}>Continue</Button>
+              <Button onClick={()=>setStep(4)} disabled={!isStepValid(3)}>Continue</Button>
             </div>
           </SectionCard>
         )}
@@ -253,22 +400,22 @@ function SellerPortal() {
         {step===4 && (
           <SectionCard title="Bank Details for Payouts" aside={<Badge variant="outline">Required</Badge>}>
             <div className="grid sm:grid-cols-2 gap-4">
-              <Field label="Bank Name" required>
-                <Input value={seller.bankName} onChange={e=>setSeller({...seller, bankName:e.target.value})} />
+              <Field label="Bank Name" required error={!seller.bankName ? 'Required' : ''}>
+                <Input value={seller.bankName} onChange={(e:any)=>setSeller({...seller, bankName:e.target.value})} />
               </Field>
-              <Field label="IFSC" required>
-                <Input value={seller.ifsc} onChange={e=>setSeller({...seller, ifsc:e.target.value.toUpperCase()})} />
+              <Field label="IFSC" required error={!seller.ifsc ? 'Required' : ''}>
+                <Input value={seller.ifsc} onChange={(e:any)=>setSeller({...seller, ifsc:e.target.value.toUpperCase()})} />
               </Field>
-              <Field label="Account Holder Name" required>
-                <Input value={seller.acctName} onChange={e=>setSeller({...seller, acctName:e.target.value})} />
+              <Field label="Account Holder Name" required error={!seller.acctName ? 'Required' : ''}>
+                <Input value={seller.acctName} onChange={(e:any)=>setSeller({...seller, acctName:e.target.value})} />
               </Field>
-              <Field label="Account Number" required>
-                <Input value={seller.acctNumber} onChange={e=>setSeller({...seller, acctNumber:e.target.value})} />
+              <Field label="Account Number" required error={!seller.acctNumber ? 'Required' : ''}>
+                <Input value={seller.acctNumber} onChange={(e:any)=>setSeller({...seller, acctNumber:e.target.value})} />
               </Field>
             </div>
             <div className="flex justify-between">
               <Button variant="outline" onClick={()=>setStep(3)}>Back</Button>
-              <Button onClick={()=>setStep(5)}>Continue</Button>
+              <Button onClick={()=>setStep(5)} disabled={!isStepValid(4)}>Continue</Button>
             </div>
           </SectionCard>
         )}
@@ -277,7 +424,7 @@ function SellerPortal() {
           <SectionCard title="Business Details (Optional)">
             <div className="grid sm:grid-cols-2 gap-4">
               <Field label="Seller Type">
-                <Select value={seller.sellerType} onValueChange={(v)=>setSeller({...seller, sellerType:v})}>
+                <Select value={seller.sellerType} onValueChange={(v:string)=>setSeller({...seller, sellerType:v})}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
                         <SelectItem value="individual">Individual</SelectItem>
@@ -287,21 +434,21 @@ function SellerPortal() {
               </Field>
               {seller.sellerType==="business" && (
                 <>
-                  <Field label="Shop / Brand Name">
-                    <Input value={seller.shopName} onChange={e=>setSeller({...seller, shopName:e.target.value})} />
+                  <Field label="Shop / Brand Name" error={!seller.shopName ? 'Required for business' : ''}>
+                    <Input value={seller.shopName} onChange={(e:any)=>setSeller({...seller, shopName:e.target.value})} />
                   </Field>
                   <Field label="GSTIN">
-                    <Input value={seller.gst} onChange={e=>setSeller({...seller, gst:e.target.value.toUpperCase()})} />
+                    <Input value={seller.gst} onChange={(e:any)=>setSeller({...seller, gst:e.target.value.toUpperCase()})} />
                   </Field>
                 </>
               )}
-              <Field label="Pickup / Business Address">
-                <Input value={seller.address} onChange={e=>setSeller({...seller, address:e.target.value})} />
+              <Field label="Pickup / Business Address" error={!seller.address && (seller.sellerType==='business'?'Required':'')}>
+                <Input value={seller.address} onChange={(e:any)=>setSeller({...seller, address:e.target.value})} />
               </Field>
             </div>
             <div className="flex justify-between">
               <Button variant="outline" onClick={()=>setStep(4)}>Back</Button>
-              <Button onClick={()=>setStep(6)}>Continue</Button>
+              <Button onClick={()=>setStep(6)} disabled={!isStepValid(5)}>Continue</Button>
             </div>
           </SectionCard>
         )}
@@ -315,7 +462,7 @@ function SellerPortal() {
                 <li>DOB: {seller.dob || '—'}</li>
                 <li>Phone: {seller.phone || '—'}</li>
                 <li>Email: {seller.email || '—'}</li>
-                <li>PAN: {seller.pan || '—'}</li>
+                <li>PAN: {seller.pan || '—'} {seller.panVerified && <Badge variant="success">Format OK</Badge>}</li>
                 <li>Face Match: {seller.faceMatchScore>0 ? `${(seller.faceMatchScore*100).toFixed(0)}% (${seller.faceMatchStatus})` : '—'}</li>
                 <li>Bank: {seller.bankName} ({seller.ifsc}) • {seller.acctNumber ? '••' + String(seller.acctNumber).slice(-4) : '—'}</li>
                 <li>Type: {seller.sellerType}
@@ -326,7 +473,7 @@ function SellerPortal() {
             </div>
             <div className="flex items-center justify-between">
               <p className="text-xs text-muted-foreground">By submitting, you agree to verification of Aadhaar Offline e-KYC and PAN.</p>
-              <Button disabled={!canSubmit} onClick={submit}>Submit for Review</Button>
+              <Button disabled={!canSubmit} onClick={submit} variant={canSubmit ? "success" : "secondary"}>Submit for Review</Button>
             </div>
           </SectionCard>
         )}
@@ -336,7 +483,6 @@ function SellerPortal() {
 }
 
 export default function App() {
-  const [tab, setTab] = useState("seller");
   
   return (
     <div className="min-h-screen bg-muted/40 p-4 sm:p-8">
@@ -358,3 +504,4 @@ export default function App() {
     </div>
   );
 }
+```
