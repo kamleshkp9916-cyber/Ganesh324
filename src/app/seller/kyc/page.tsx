@@ -377,22 +377,17 @@ function SellerWizard() {
   );
 }
 
-
 export default function KYCPage() {
     const { user, loading } = useAuth();
     const router = useRouter();
 
-    useEffect(() => {
-        if (!loading && !user) {
-            router.replace('/?redirect=/seller/kyc');
-        }
-    }, [user, loading, router]);
-
-
-    if (loading || !user) {
+    if (loading) {
         return <div className="min-h-screen p-6 md:p-10 flex items-center justify-center"><LoadingSpinner /></div>
     }
 
+    // AuthRedirector will handle the case where a user is logged out,
+    // so we don't need the redirect logic here anymore.
+    
     return (
         <div className="min-h-screen p-6 md:p-10 bg-gradient-to-br from-gray-50 to-white">
             <div className="max-w-7xl mx-auto space-y-6">
@@ -401,6 +396,3 @@ export default function KYCPage() {
         </div>
     );
 }
-
-
-    
