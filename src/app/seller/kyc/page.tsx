@@ -435,12 +435,8 @@ function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
                 </div>
               </Section>
             )}
-             <div className="flex items-center justify-between mt-6">
-                <div>
-                  {current > 0 && (
-                      <Button variant="outline" onClick={prev}>Back</Button>
-                  )}
-                </div>
+            <div className="flex items-center justify-between mt-6">
+                <Button variant="outline" onClick={prev} className={current === 0 ? "invisible" : ""}>Back</Button>
               <div className="flex items-center gap-3">
                 {current < steps.length - 1 && (
                   <Button onClick={next} disabled={!canGoToStep(current + 1)}>Next<ChevronRight className="w-4 h-4 ml-2"/></Button>
@@ -460,38 +456,30 @@ function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
 }
 
 export default function KYCPage() {
-    const { user, userData, loading } = useAuth();
+    const { user, userData, loading, authReady } = useAuth();
     const router = useRouter();
     const [isClient, setIsClient] = useState(false);
-    const [submittedApp, setSubmittedApp] = useState<any>(null);
-
+    
     useEffect(() => {
         setIsClient(true);
     }, []);
 
-    useEffect(() => {
-        if (!isClient || loading) return;
-
-        if (userData?.role === 'seller') {
-            router.replace('/seller/dashboard');
-        } else if (!user) {
-            router.replace('/?redirect=/seller/kyc');
-        } else {
-            const app = localStorage.getItem(SELLER_APP_SUBMITTED_KEY);
-            if (app) {
-                setSubmittedApp(JSON.parse(app));
-            }
-        }
-    }, [isClient, user, userData, loading, router]);
-
-
     const handleSubmission = (data: any) => {
-        setSubmittedApp(data);
         console.log("Seller Application Submitted:", data);
         router.push('/admin/kyc'); 
     };
     
-    if (loading || !isClient) {
+    useEffect(() => {
+        if (isClient && authReady) {
+            if (userData?.role === 'seller') {
+                router.replace('/seller/dashboard');
+            } else if (!user) {
+                router.replace('/?redirect=/seller/kyc');
+            }
+        }
+    }, [isClient, user, userData, authReady, router]);
+    
+    if (loading || !isClient || !authReady || !user || userData?.role === 'seller') {
         return (
             <div className="min-h-screen p-6 md:p-10 flex items-center justify-center">
                 <LoadingSpinner />
@@ -499,14 +487,6 @@ export default function KYCPage() {
         );
     }
     
-    if (userData?.role === 'seller' || (isClient && !user)) {
-        return (
-            <div className="min-h-screen p-6 md:p-10 flex items-center justify-center">
-                <LoadingSpinner />
-            </div>
-        );
-    }
-
     return (
         <div className="min-h-screen p-6 md:p-10 bg-gradient-to-br from-gray-50 to-white">
             <div className="max-w-7xl mx-auto space-y-6">
