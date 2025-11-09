@@ -405,7 +405,7 @@ function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
                     <div>
                       <label className="text-sm">4‑digit Share Code</label>
                       <Input value={form.shareCode} maxLength={4} onChange={(e)=>setField("shareCode", e.target.value.replace(/[^0-9]/g, ""))} placeholder="e.g., 1234"/>
-                       <p className="text-xs text-muted-foreground mt-1">The code you created when downloading the ZIP.</p>
+                       <p className="text-xs text-muted-foreground mt-1">This is the code you created yourself on the myAadhaar website when downloading the ZIP file.</p>
                     </div>
                   </div>
                    <div>
@@ -537,4 +537,3 @@ export default function KYCPage() {
         </div>
     );
 }
-
