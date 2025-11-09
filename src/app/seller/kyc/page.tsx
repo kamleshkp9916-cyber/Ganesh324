@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useMemo, useState, useCallback, useEffect } from "react";
+import React, { useMemo, useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,16 +13,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { Check, AlertTriangle, Upload, ChevronLeft, ChevronRight, ShieldCheck, Building2, User2, MapPin, Banknote, FileSignature, ClipboardList, Eye, UserCheck, ShieldAlert, Gavel } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
-import { defaultCategories } from "@/lib/categories";
-import { useRouter } from "next/navigation";
-import { SellerHeader } from "@/components/seller/seller-header";
+import { Check, AlertTriangle, Upload, ChevronLeft, ChevronRight, ShieldCheck, Building2, User2, MapPin, Banknote, FileSignature, ClipboardList, Eye, UserCheck, ShieldAlert, Gavel, Loader2 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
+import { useRouter } from "next/navigation";
+import { useToast } from "@/hooks/use-toast";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
 
-// ------------------------------------------------------------
-// Utility / Mock helpers
-// ------------------------------------------------------------
 const Section = ({ title, children, icon }: { title: string, children: React.ReactNode, icon: React.ReactNode }) => (
   <Card className="shadow-lg border rounded-2xl">
     <CardHeader className="pb-2">
@@ -42,9 +38,6 @@ const StepPill = ({ index, label, active, complete }: { index: number, label: st
   </div>
 );
 
-// ------------------------------------------------------------
-// Seller Wizard
-// ------------------------------------------------------------
 const steps = [
   { key: "basic", label: "Basic Info", icon: <User2 className="w-5 h-5"/> },
   { key: "biz", label: "Business", icon: <Building2 className="w-5 h-5"/> },
@@ -55,9 +48,12 @@ const steps = [
 ];
 
 const SELLER_APP_DRAFT_KEY = "sellerAppDraft";
+const SELLER_APP_SUBMITTED_KEY = "sellerAppSubmitted";
 
-function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
-  const { user, userData } = useAuth();
+function SellerWizard() {
+  const { user } = useAuth();
+  const router = useRouter();
+  const { toast } = useToast();
   const [current, setCurrent] = useState(0);
   const [form, setForm] = useState({
     legalName: "",
@@ -86,7 +82,6 @@ function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
     termsAccepted: false,
   });
   const [verif, setVerif] = useState({ state: "IDLE", message: "" });
-  const { toast } = useToast();
 
   useEffect(() => {
     const draft = localStorage.getItem(SELLER_APP_DRAFT_KEY);
@@ -126,7 +121,7 @@ function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
     setTimeout(() => {
       const ok = Number(form.shareCode.at(-1)) % 2 === 0;
       setVerif({ state: ok ? "VERIFIED" : "INVALID_SIGNATURE", message: ok ? "Signature valid. Fields parsed." : "Signature invalid. Re‑download from myAadhaar." });
-      toast({
+       toast({
         title: ok ? "Aadhaar Verified" : "Verification Failed",
         description: ok ? "Your Aadhaar details were successfully parsed." : "The signature on the file could not be validated.",
         variant: ok ? "default" : "destructive",
@@ -134,7 +129,16 @@ function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
     }, 900);
   };
 
-  const submit = () => onSubmit?.({ status: "SUBMITTED", payload: form, verif });
+  const submit = () => {
+    const applicationData = { status: "SUBMITTED", payload: form, verif };
+    localStorage.setItem(SELLER_APP_SUBMITTED_KEY, JSON.stringify(applicationData));
+    localStorage.removeItem(SELLER_APP_DRAFT_KEY);
+    toast({
+        title: "Application Submitted!",
+        description: "Your details are now pending review from the admin team.",
+    })
+    router.push('/seller/dashboard'); // Redirect to dashboard after submission
+  };
 
   return (
     <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
@@ -307,7 +311,10 @@ function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
                     <span className="text-sm">Add selfie (optional for face match later)</span>
                   </div>
                   <div className="flex items-center gap-3">
-                    <Button onClick={fakeVerifyAadhaar}><ShieldCheck className="w-4 h-4 mr-2"/>Verify e‑KYC</Button>
+                    <Button onClick={fakeVerifyAadhaar} disabled={verif.state === "VERIFYING"}>
+                      {verif.state === "VERIFYING" && <Loader2 className="w-4 h-4 mr-2 animate-spin"/>}
+                      <ShieldCheck className="w-4 h-4 mr-2"/>Verify e‑KYC
+                    </Button>
                     {verif.state === "VERIFYING" && <Badge variant="secondary">Verifying…</Badge>}
                     {verif.state === "VERIFIED" && <Badge className="bg-green-600">Signature valid</Badge>}
                     {verif.state === "INVALID_SIGNATURE" && <Badge variant="destructive">Invalid signature</Badge>}
@@ -373,155 +380,25 @@ function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
   );
 }
 
-// ------------------------------------------------------------
-// Admin Panel Prototype
-// ------------------------------------------------------------
-function AdminPanel({ application, onDecision }) {
-  const [tab, setTab] = useState("basic");
-  const [reason, setReason] = useState("");
+export default function KYCPage() {
+    const { user, loading } = useAuth();
+    const router = useRouter();
 
-  if (!application) {
+    if (loading) {
+        return <div className="min-h-screen p-6 md:p-10 flex items-center justify-center"><LoadingSpinner /></div>
+    }
+
+    if (!user) {
+        router.replace('/?redirect=/seller/kyc');
+        return null;
+    }
+
     return (
-      <Card className="rounded-2xl">
-        <CardHeader><CardTitle>Seller Applications</CardTitle></CardHeader>
-        <CardContent className="space-y-3">
-          <div className="text-sm">No submissions yet. Submit from the seller wizard to populate this queue.</div>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  const { payload, verif } = application;
-
-  return (
-    <div className="space-y-4">
-      <Card className="rounded-2xl">
-        <CardHeader className="pb-2">
-          <div className="flex items-center justify-between">
-            <CardTitle>Seller Review — {payload.displayName || payload.legalName || "Untitled"}</CardTitle>
-            <div className="flex items-center gap-2">
-              <Badge variant="secondary">SUBMITTED</Badge>
-              {verif.state === "VERIFIED" ? (
-                <Badge className="bg-green-600">e‑KYC: Signature valid</Badge>
-              ) : (
-                <Badge variant="destructive">e‑KYC: Needs attention</Badge>
-              )}
+        <div className="min-h-screen p-6 md:p-10 bg-gradient-to-br from-gray-50 to-white">
+            <div className="max-w-7xl mx-auto space-y-6">
+                <SellerWizard />
             </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="grid lg:grid-cols-3 gap-6">
-            <div className="space-y-2">
-              <div className="text-sm text-muted-foreground">Applicant</div>
-              <div className="text-lg font-semibold">{payload.legalName || "—"}</div>
-              <div className="text-sm">{payload.email} • {payload.phone}</div>
-              <div className="text-sm">PAN: {payload.pan || "—"}</div>
-              <div className="text-sm">IFSC: {payload.ifsc || "—"}</div>
-              <div className="mt-2 flex flex-wrap gap-2">
-                {verif.state === "VERIFIED" ? <Badge className="bg-green-600">Signature Valid</Badge> : <Badge variant="destructive">Invalid/Unverified</Badge>}
-                <Badge variant="secondary">Auctions {payload.auctionEnabled ? "On" : "Off"}</Badge>
-              </div>
-            </div>
-            <div className="lg:col-span-2">
-              <Tabs value={tab} onValueChange={setTab}>
-                <TabsList className="flex flex-wrap h-auto">
-                  <TabsTrigger value="basic">Basic</TabsTrigger>
-                  <TabsTrigger value="business">Business</TabsTrigger>
-                  <TabsTrigger value="address">Address</TabsTrigger>
-                  <TabsTrigger value="bank">Tax & Bank</TabsTrigger>
-                  <TabsTrigger value="kyc">Identity/KYC</TabsTrigger>
-                </TabsList>
-                <TabsContent value="basic" className="pt-4 text-sm space-y-2">
-                  <div>Legal: {payload.legalName || "—"}</div>
-                  <div>Shop: {payload.displayName || "—"}</div>
-                  <div>About: {payload.about || "—"}</div>
-                </TabsContent>
-                <TabsContent value="business" className="pt-4 text-sm space-y-2">
-                  <div>Type: {payload.bizType}</div>
-                  <div>Reg No: {payload.regNo || "—"}</div>
-                  <div>GSTIN: {payload.gstin || "—"}</div>
-                </TabsContent>
-                <TabsContent value="address" className="pt-4 text-sm space-y-2">
-                  <div>Registered: {payload.regAddr.line1 || ""} {payload.regAddr.city || ""} {payload.regAddr.state || ""} {payload.regAddr.pin || ""}</div>
-                </TabsContent>
-                <TabsContent value="bank" className="pt-4 text-sm space-y-2">
-                  <div>Account: {payload.accountNo || "—"}</div>
-                  <div>IFSC: {payload.ifsc || "—"}</div>
-                  <div>Holder: {payload.accountName || "—"}</div>
-                </TabsContent>
-                <TabsContent value="kyc" className="pt-4 text-sm space-y-3">
-                  <div className="flex items-center gap-2 text-sm">
-                    <ShieldCheck className="w-4 h-4"/>
-                    <span>UIDAI Signature: {verif.state === "VERIFIED" ? "Valid" : "Invalid/Unknown"}</span>
-                  </div>
-                  <div className="text-xs text-muted-foreground">(Demo) For production, store only last 4 digits & the reference ID; delete raw ZIP within 24 hours.</div>
-                </TabsContent>
-              </Tabs>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card className="rounded-2xl">
-        <CardHeader className="pb-2"><CardTitle>Decision</CardTitle></CardHeader>
-        <CardContent className="flex flex-col md:flex-row items-start md:items-center gap-3">
-          <Input placeholder="Reason / notes (required for Fix/Reject)" value={reason} onChange={(e)=>setReason(e.target.value)} className="md:flex-1"/>
-          <div className="flex gap-2">
-            <Button variant="secondary" onClick={()=>onDecision?.({ type: "FIX", reason })}><AlertTriangle className="w-4 h-4 mr-2"/>Request Fix</Button>
-            <Button variant="destructive" onClick={()=>onDecision?.({ type: "REJECT", reason })}><ShieldAlert className="w-4 h-4 mr-2"/>Reject</Button>
-            <Button onClick={()=>onDecision?.({ type: "APPROVE" })}><UserCheck className="w-4 h-4 mr-2"/>Approve</Button>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-  );
-}
-
-// ------------------------------------------------------------
-// Root Demo App
-// ------------------------------------------------------------
-export default function App() {
-  const [role, setRole] = useState("seller");
-  const [app, setApp] = useState(null);
-  const [final, setFinal] = useState(null);
-
-  return (
-    <div className="min-h-screen p-6 md:p-10 bg-gradient-to-br from-gray-50 to-white">
-      <div className="max-w-7xl mx-auto space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">StreamCart — Seller Onboarding + Admin</h1>
-            <p className="text-sm text-muted-foreground">Offline e‑KYC (Aadhaar ZIP) prototype — single‑file React preview.</p>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button variant={role === "seller" ? "default" : "secondary"} onClick={()=>setRole("seller")}>
-              <Gavel className="w-4 h-4 mr-2 rotate-180"/>Seller View
-            </Button>
-            <Button variant={role === "admin" ? "default" : "secondary"} onClick={()=>setRole("admin")}>
-              <Gavel className="w-4 h-4 mr-2"/>Admin View
-            </Button>
-          </div>
         </div>
-
-        {final && (
-          <Card className="rounded-2xl border-green-200 bg-green-50">
-            <CardHeader className="pb-2"><CardTitle>Application {final}</CardTitle></CardHeader>
-            <CardContent className="text-sm">Status updated. Use the view toggle above to navigate.</CardContent>
-          </Card>
-        )}
-
-        {role === "seller" && (
-          <SellerWizard onSubmit={(data)=>{ setApp(data); setRole("admin"); }} />
-        )}
-
-        {role === "admin" && (
-          <AdminPanel application={app} onDecision={(d)=>{
-            if (d.type === "APPROVE") setFinal("APPROVED");
-            if (d.type === "REJECT") setFinal("REJECTED");
-            if (d.type === "FIX") setFinal("NEEDS_FIX");
-          }} />
-        )}
-      </div>
-    </div>
-  );
+    );
 }
+
