@@ -8,7 +8,7 @@ import { LoadingSpinner } from './ui/loading-spinner';
 
 const publicOnlyPaths = ['/signup', '/forgot-password', '/'];
 const emailVerificationPath = '/verify-email';
-const adminPaths = ['/admin', '/admin/dashboard', '/admin/orders', '/admin/users', '/admin/products', '/admin/live-control', '/admin/settings', '/admin/messages', '/admin/inquiries', '/admin/edit/privacy', '/admin/edit/terms'];
+const adminPaths = ['/admin', '/admin/dashboard', '/admin/orders', '/admin/users', '/admin/products', '/admin/live-control', '/admin/settings', '/admin/messages', '/admin/inquiries', '/admin/edit/privacy', '/admin/edit/terms', '/admin/kyc'];
 const sellerPaths = ['/seller/dashboard', '/seller/products', '/seller/orders', '/seller/messages', '/seller/revenue', '/seller/promotions', '/seller/feed', '/seller/settings', '/seller/live/studio', '/seller/settings/kyc'];
 
 
@@ -35,8 +35,8 @@ export function AuthRedirector() {
     if (!authReady) {
       return; 
     }
-
-    // New rule: Always allow access to the seller KYC page, regardless of auth state.
+    
+    // Always allow access to the seller KYC page. This is the main fix.
     if (pathname === '/seller/kyc') {
       return;
     }
@@ -58,15 +58,13 @@ export function AuthRedirector() {
                 }
             } 
             else if (role === 'seller') {
-                const isAlreadyInSellerArea = sellerPaths.some(p => pathname.startsWith(p));
-                const isViewingPublicProfile = pathname.startsWith('/seller/profile');
-
-                 if (!isAlreadyInSellerArea && !isViewingPublicProfile) {
+                // If a user is already a seller, redirect them away from customer pages.
+                if (publicOnlyPaths.includes(pathname) || !sellerPaths.some(p => pathname.startsWith(p))) {
                     targetPath = '/seller/dashboard';
                 }
             } 
             else { // Customer
-                 if (pathname.startsWith('/seller/') && !pathname.startsWith('/seller/profile')) {
+                 if (pathname.startsWith('/seller/') && !pathname.startsWith('/seller/profile') && pathname !== '/seller/kyc') {
                     targetPath = '/live-selling';
                 } else if(pathname.startsWith('/admin/')) {
                     targetPath = '/live-selling';
@@ -86,6 +84,11 @@ export function AuthRedirector() {
         if (isAuthRequiredPath) {
              targetPath = '/';
         }
+    }
+
+    // Special override to ensure KYC page is always accessible
+    if (pathname === '/seller/kyc' && targetPath) {
+        targetPath = null;
     }
 
     if (targetPath && targetPath !== pathname) {
