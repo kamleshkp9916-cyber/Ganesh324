@@ -176,7 +176,7 @@ function SellerPortal() {
         const zipOk = !!(seller.aadhaarZip && (seller.aadhaarShareCode||"").length>=4);
         return zipOk;
       }
-      case 3: return Boolean(panIsValid(seller.pan) && seller.panVerified);
+      case 3: return panIsValid(seller.pan);
       case 4: return Boolean(seller.bankName && seller.ifsc && seller.acctName && seller.acctNumber);
       case 5: return seller.sellerType==='business' ? Boolean(seller.shopName && seller.address) : true;
       case 6: return canSubmit;
@@ -224,44 +224,6 @@ function SellerPortal() {
     setSeller((s: any)=>({...s, selfieFile:f, selfiePreview:url}));
   }
   
-  async function uploadAndVerifyPan(){
-    if (!user) {
-        toast({ variant: 'destructive', title: 'Authentication Error', description: 'Please sign in first.' });
-        return;
-    }
-    const pan = (seller.pan||'').toUpperCase();
-    if (!panIsValid(pan)) {
-        toast({ variant: 'destructive', title: 'Invalid PAN', description: 'Enter a valid 10-character PAN (e.g., ABCDE1234F).' });
-        return;
-    }
-    setSeller((s: any)=>({...s, pan: pan, panVerified:true, panName: '' }));
-    setTimeout(()=> setStep(4), 250);
-  }
-
-  async function uploadSelfieAndRunFaceMatch(){
-    if (!user) {
-        toast({ variant: 'destructive', title: 'Authentication Error', description: 'Please sign in first.' });
-        return;
-    }
-    if (!seller.selfieFile) {
-        toast({ variant: 'destructive', title: 'Selfie Required', description: 'Please upload a selfie image.' });
-        return;
-    }
-    if (!seller.aadhaarPhotoUrl) {
-        toast({ variant: 'destructive', title: 'Aadhaar Photo Missing', description: 'Please wait for your Aadhaar photo to be parsed from the ZIP file.' });
-        return;
-    }
-    try {
-        const id = await ensureDraft();
-        const selfieUrl = await uploadSelfie(user.uid, seller.selfieFile as File);
-        const { score, status } = await faceMatchFn({ appId:id, selfieUrl, aadhaarPhotoUrl: seller.aadhaarPhotoUrl });
-        setSeller((s: any)=>({...s, faceMatchScore:score, faceMatchStatus:status }));
-    } catch (e: any) {
-        console.error("Face match error:", e);
-        toast({ variant: 'destructive', title: 'Face Match Failed', description: e.message || 'An unexpected error occurred.' });
-    }
-  }
-
   async function uploadZipToStorage(){
     if (!user) {
         toast({ variant: 'destructive', title: 'Authentication Error', description: 'Please sign in first.' });
@@ -359,7 +321,7 @@ function SellerPortal() {
 
         {step===2 && (
           <SectionCard title="Aadhaar Paperless Offline e-KYC" aside={<Badge>UIDAI ZIP</Badge>}>
-            <p className="text-sm text-muted-foreground">Download your Aadhaar ZIP from the UIDAI website and upload it here along with the 4-digit share code you created.</p>
+            <p className="text-sm text-muted-foreground">Download your Aadhaar ZIP from UIDAI and upload it here along with the 4-digit share code you created.</p>
             <div className="grid sm:grid-cols-2 gap-4">
               <Field label="Upload Aadhaar ZIP" required error={!seller.aadhaarZip ? 'Upload ZIP' : ''}>
                 <Input type="file" accept=".zip" onChange={onAadhaarZip} />
@@ -369,6 +331,10 @@ function SellerPortal() {
                 <Input placeholder="4-8 characters" value={seller.aadhaarShareCode} onChange={(e:any)=>setSeller({...seller, aadhaarShareCode:e.target.value})} />
               </Field>
             </div>
+             <Button onClick={uploadZipToStorage} disabled={isProcessingZip || !seller.aadhaarZip || (seller.aadhaarShareCode||'').length < 4}>
+                {isProcessingZip && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {isProcessingZip ? 'Processing...' : 'Upload ZIP'}
+            </Button>
             <div className="flex justify-between items-center">
               <Button variant="outline" onClick={()=>setStep(1)}>Back</Button>
               <Button onClick={()=>setStep(3)} disabled={!isStepValid(2)}>Continue</Button>
@@ -381,8 +347,6 @@ function SellerPortal() {
             <div className="grid sm:grid-cols-2 gap-4">
               <Field label="PAN Number" required hint="10 characters (ABCDE1234F)" error={!panIsValid(seller.pan) ? (seller.pan? 'Invalid PAN format':'Enter a valid PAN') : ''}>
                 <Input maxLength={10} placeholder="ABCDE1234F" value={seller.pan} onChange={(e:any)=>setSeller({...seller, pan:e.target.value.toUpperCase()})} />
-                <Button className="mt-2" variant="secondary" onClick={uploadAndVerifyPan}>Verify PAN</Button>
-                {seller.panVerified && <div className="text-xs text-green-700 mt-1">Verified (format only)</div>}
               </Field>
             </div>
             <div className="flex justify-between items-center">
@@ -457,7 +421,7 @@ function SellerPortal() {
                 <li>DOB: {seller.dob || '—'}</li>
                 <li>Phone: {seller.phone || '—'}</li>
                 <li>Email: {seller.email || '—'}</li>
-                <li>PAN: {seller.pan || '—'} {seller.panVerified && <Badge variant="success">Format OK</Badge>}</li>
+                <li>PAN: {seller.pan || '—'}</li>
                 <li>Bank: {seller.bankName} ({seller.ifsc}) • {seller.acctNumber ? '••' + String(seller.acctNumber).slice(-4) : '—'}</li>
                 <li>Type: {seller.sellerType}
                   {seller.sellerType==='business' && <> • {seller.shopName || '—'} • GSTIN: {seller.gst || '—'}</>}
@@ -483,12 +447,7 @@ export default function App() {
           <h1 className="text-2xl font-bold">StreamCart • Seller KYC</h1>
         </header>
         <SellerPortal />
-        <footer className="text-xs text-slate-500 text-center pt-4">
-            This is a mock UI for KYC. The Aadhaar parsing happens on the backend via Storage Triggers, and face/PAN verification call placeholder functions.
-        </footer>
       </div>
     </div>
   );
 }
-
-    
