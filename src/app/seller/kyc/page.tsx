@@ -174,9 +174,7 @@ function SellerPortal() {
       case 1: return Boolean(seller.fullName && seller.dob && seller.phone && seller.email && seller.selfieFile);
       case 2: {
         const zipOk = !!(seller.aadhaarZip && (seller.aadhaarShareCode||"").length>=4);
-        const faceOk = (seller.faceMatchStatus==='passed' && seller.faceMatchScore>=0.8);
-        const photoOk = !!seller.aadhaarPhotoUrl; // must appear from backend
-        return zipOk && photoOk && faceOk; // strict per A,A,A
+        return zipOk;
       }
       case 3: return Boolean(panIsValid(seller.pan) && seller.panVerified);
       case 4: return Boolean(seller.bankName && seller.ifsc && seller.acctName && seller.acctNumber);
@@ -361,44 +359,14 @@ function SellerPortal() {
 
         {step===2 && (
           <SectionCard title="Aadhaar Paperless Offline e-KYC" aside={<Badge>UIDAI ZIP</Badge>}>
-            <p className="text-sm text-muted-foreground">Download your Aadhaar ZIP from UIDAI and upload it here. Use your 4-character share code. The backend will parse it and your photo will appear automatically. Then run Face Match.</p>
+            <p className="text-sm text-muted-foreground">Download your Aadhaar ZIP from the UIDAI website and upload it here along with the 4-digit share code you created.</p>
             <div className="grid sm:grid-cols-2 gap-4">
               <Field label="Upload Aadhaar ZIP" required error={!seller.aadhaarZip ? 'Upload ZIP' : ''}>
                 <Input type="file" accept=".zip" onChange={onAadhaarZip} />
                 {seller.aadhaarZip && <div className="text-xs text-green-700">{seller.aadhaarZip.name}</div>}
-                 <Button className="mt-2" variant="secondary" onClick={uploadZipToStorage} disabled={!user || !seller.aadhaarZip || isProcessingZip}>
-                    {isProcessingZip && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    Upload ZIP
-                </Button>
               </Field>
               <Field label="Share Code (password)" required error={!(seller.aadhaarShareCode||'').length ? 'Required' : ((seller.aadhaarShareCode||'').length<4?'Min 4 chars':'')}>
                 <Input placeholder="4-8 characters" value={seller.aadhaarShareCode} onChange={(e:any)=>setSeller({...seller, aadhaarShareCode:e.target.value})} />
-              </Field>
-            </div>
-            <div className="grid sm:grid-cols-2 gap-4">
-              <Field label="Aadhaar Photo (parsed)">
-                {isProcessingZip ? (
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground h-16">
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    <span>Processing ZIP...</span>
-                  </div>
-                ) : seller.aadhaarPhotoUrl ? (
-                  <Image src={seller.aadhaarPhotoUrl} alt="aadhaar" width={64} height={64} className="h-16 w-16 rounded-xl object-cover ring-1 ring-border" />
-                ) : (
-                  <div className="h-16 flex items-center text-xs text-muted-foreground">
-                    Photo will appear here after upload.
-                  </div>
-                )}
-              </Field>
-               <Field label="Face Match" hint="Selfie must match Aadhaar photo (≥ 80%)">
-                <div className="flex items-center gap-3">
-                    <Button onClick={uploadSelfieAndRunFaceMatch} disabled={!user || !seller.selfieFile || !seller.aadhaarPhotoUrl}>Run Face Match</Button>
-                    <Badge variant={seller.faceMatchStatus === 'pending' ? 'outline' : seller.faceMatchStatus === 'passed' ? 'success' : 'destructive'}>
-                        {seller.faceMatchStatus === 'pending' ? 'Pending' :
-                        seller.faceMatchScore > 0 ? `Score: ${(seller.faceMatchScore*100).toFixed(0)}%` : 'Not Run'}
-                    </Badge>
-                </div>
-                 {seller.faceMatchStatus === 'failed' && <span className="text-xs text-destructive">Match failed. Please upload a clearer selfie and try again.</span>}
               </Field>
             </div>
             <div className="flex justify-between items-center">
@@ -490,16 +458,14 @@ function SellerPortal() {
                 <li>Phone: {seller.phone || '—'}</li>
                 <li>Email: {seller.email || '—'}</li>
                 <li>PAN: {seller.pan || '—'} {seller.panVerified && <Badge variant="success">Format OK</Badge>}</li>
-                <li>Face Match: {seller.faceMatchScore>0 ? `${(seller.faceMatchScore*100).toFixed(0)}% (${seller.faceMatchStatus})` : '—'}</li>
                 <li>Bank: {seller.bankName} ({seller.ifsc}) • {seller.acctNumber ? '••' + String(seller.acctNumber).slice(-4) : '—'}</li>
                 <li>Type: {seller.sellerType}
                   {seller.sellerType==='business' && <> • {seller.shopName || '—'} • GSTIN: {seller.gst || '—'}</>}
                 </li>
-                <li>Open 24x7: {seller.open24x7? 'Yes':'No'}</li>
               </ul>
             </div>
             <div className="flex items-center justify-between">
-              <p className="text-xs text-muted-foreground">By submitting, you agree to verification of Aadhaar Offline e-KYC and PAN.</p>
+              <p className="text-xs text-muted-foreground">By submitting, you agree to our terms and conditions.</p>
               <Button disabled={!canSubmit} onClick={submit} variant={canSubmit ? "default" : "secondary"}>Submit for Review</Button>
             </div>
           </SectionCard>
