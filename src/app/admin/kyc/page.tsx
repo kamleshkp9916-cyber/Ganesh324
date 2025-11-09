@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useMemo, useState, useEffect } from "react";
@@ -63,7 +62,9 @@ function AdminKycPage() {
   }
 
   const { user, userData, loading } = useAuth();
-  if (loading) return <div className="flex h-screen items-center justify-center"><LoadingSpinner /></div>
+  if (loading || !userData || userData.role !== 'admin') {
+     return <div className="flex h-screen items-center justify-center"><LoadingSpinner /></div>
+  }
 
   return (
     <div className="grid gap-6 p-4 sm:p-8">

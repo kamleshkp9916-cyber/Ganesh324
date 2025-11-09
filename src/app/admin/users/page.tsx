@@ -92,7 +92,7 @@ const mockPayouts = [
 
 const UserTable = ({ users, onViewDetails, onDelete, onMakeAdmin, onImpersonate }: { users: any[], onViewDetails: (user: any) => void, onDelete: (user: any) => void, onMakeAdmin: (user: any) => void, onImpersonate: (user: any) => void }) => {
     const [isMounted, setIsMounted] = useState(false);
-    useEffect(() => setIsMounted(true), []);
+    const useEffect(() => setIsMounted(true), []);
 
     return (
     <>
@@ -188,7 +188,7 @@ export default function AdminUsersPage() {
     setAllUsersState(usersList as UserData[]);
   };
 
-  useEffect(() => {
+  const useEffect(() => {
     if (!loading && userData?.role === 'admin') {
       fetchUsers();
     }
@@ -345,6 +345,12 @@ export default function AdminUsersPage() {
           >
             Users
           </Link>
+          <Link
+            href="/admin/kyc"
+            className="text-muted-foreground transition-colors hover:text-foreground"
+          >
+            KYC
+          </Link>
            <Link
             href="/admin/inquiries"
             className="text-muted-foreground transition-colors hover:text-foreground"
@@ -410,6 +416,12 @@ export default function AdminUsersPage() {
                 className="hover:text-foreground"
               >
                 Users
+              </Link>
+              <Link
+                href="/admin/kyc"
+                className="text-muted-foreground hover:text-foreground"
+              >
+                KYC
               </Link>
               <Link
                 href="/admin/inquiries"

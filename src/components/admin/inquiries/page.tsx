@@ -1,4 +1,3 @@
-
 "use client"
 
 import {
@@ -70,7 +69,7 @@ export default function AdminInquiriesPage() {
   const { user, userData, loading } = useAuth();
   const { signOut } = useAuthActions();
   const router = useRouter();
-  const [inquiries, setInquiries] = useState<(Inquiry & { id: string })[]>([]);
+  const [inquiries, setInquiries<(Inquiry & { id: string })[]>([]);
   const [selectedInquiry, setSelectedInquiry] = useState<(Inquiry & { id: string }) | null>(null);
 
   useEffect(() => {
@@ -97,7 +96,6 @@ export default function AdminInquiriesPage() {
   };
 
   const handleReplyToInquiry = (inquiry: Inquiry & {id: string}) => {
-    // This will open the new admin message page
     router.push(`/admin/messages?userId=${inquiry.email}&userName=${inquiry.name}`);
   }
 
@@ -148,83 +146,83 @@ export default function AdminInquiriesPage() {
                             <Button variant="secondary" size="icon" className="rounded-full">
                                 <Avatar className="h-9 w-9"><AvatarImage src={user?.photoURL || 'https://placehold.co/40x40.png'} /><AvatarFallback>{user?.displayName?.charAt(0)}</AvatarFallback></Avatar>
                             </Button>
-                        </DropdownMenuTrigger>
+                        DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                             <DropdownMenuLabel>Admin Account</DropdownMenuLabel><DropdownMenuSeparator />
                             <DropdownMenuItem onSelect={() => router.push('/settings')}>Settings</DropdownMenuItem><DropdownMenuSeparator />
                             <DropdownMenuItem onClick={signOut}>Logout</DropdownMenuItem>
                         </DropdownMenuContent>
-                    </DropdownMenu>
-                </div>
-            </header>
+                    DropdownMenu>
+                div>
+            header>
             <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8">
                 <Card>
                     <CardHeader>
-                        <CardTitle>Customer Inquiries</CardTitle>
-                        <CardDescription>Messages sent from the contact us form.</CardDescription>
-                    </CardHeader>
-                    <CardContent>
+                        <CardTitle>Customer InquiriesCardTitle>
+                        <CardDescription>Messages sent from the contact us form.CardDescription>
+                    CardHeader>
+                    CardContent>
                         <Table>
                             <TableHeader>
                                 <TableRow>
-                                    <TableHead>From</TableHead>
-                                    <TableHead>Subject</TableHead>
-                                    <TableHead>Date</TableHead>
-                                    <TableHead><span className="sr-only">Actions</span></TableHead>
-                                </TableRow>
-                            </TableHeader>
+                                    <TableHead>FromTableHead>
+                                    <TableHead>SubjectTableHead>
+                                    <TableHead>DateTableHead>
+                                    <TableHead><span className="sr-only">Actionsspan>TableHead>
+                                TableRow>
+                            TableHeader>
                             <TableBody>
                                 {inquiries.map(inquiry => (
                                     <TableRow key={inquiry.id} className={cn(!inquiry.isRead && "font-bold")}>
-                                        <TableCell>{inquiry.name}</TableCell>
-                                        <TableCell>{inquiry.subject}</TableCell>
-                                        <TableCell>{format(parseISO(inquiry.createdAt!), "dd MMM, yyyy")}</TableCell>
+                                        <TableCell>{inquiry.name}TableCell>
+                                        <TableCell>{inquiry.subject}TableCell>
+                                        <TableCell>{format(parseISO(inquiry.createdAt!), "dd MMM, yyyy")}TableCell>
                                         <TableCell>
                                             <Button variant="outline" size="sm" onClick={() => handleViewInquiry(inquiry)}>
                                                 <Eye className="mr-2 h-4 w-4" /> View
-                                            </Button>
-                                        </TableCell>
-                                    </TableRow>
+                                            Button>
+                                        TableCell>
+                                    TableRow>
                                 ))}
                                 {inquiries.length === 0 && (
                                      <TableRow>
-                                        <TableCell colSpan={4} className="h-24 text-center">No inquiries yet.</TableCell>
-                                    </TableRow>
+                                        <TableCell colSpan={4} className="h-24 text-center">No inquiries yet.TableCell>
+                                    TableRow>
                                 )}
-                            </TableBody>
-                        </Table>
-                    </CardContent>
+                            TableBody>
+                        Table>
+                    CardContent>
                     <CardFooter>
                         <div className="text-xs text-muted-foreground">
-                            Showing <strong>1-{inquiries.length}</strong> of <strong>{inquiries.length}</strong> inquiries
-                        </div>
-                    </CardFooter>
-                </Card>
-            </main>
-        </div>
+                            Showing <strong>1-{inquiries.length}strong> of <strong>{inquiries.length}strong> inquiries
+                        div>
+                    CardFooter>
+                Card>
+            main>
+        div>
         {selectedInquiry && (
             <DialogContent className="max-w-2xl">
                 <DialogHeader>
-                    <DialogTitle>{selectedInquiry.subject}</DialogTitle>
+                    <DialogTitle>{selectedInquiry.subject}DialogTitle>
                     <DialogDescription>
                         From: {selectedInquiry.name} ({selectedInquiry.email})
-                        <br/>
+                        br/
                         Received on: {format(parseISO(selectedInquiry.createdAt!), "PPP p")}
-                    </DialogDescription>
-                </DialogHeader>
+                    DialogDescription>
+                DialogHeader>
                 <div className="py-4 whitespace-pre-wrap text-sm">
                     {selectedInquiry.message}
-                </div>
-                <div className="flex justify-end gap-2">
+                div>
+                div className="flex justify-end gap-2">
                      <DialogClose asChild>
-                        <Button type="button" variant="secondary">Close</Button>
-                    </DialogClose>
+                        <Button type="button" variant="secondary">CloseButton>
+                    DialogClose>
                      <Button onClick={() => handleReplyToInquiry(selectedInquiry)}>
                         <Mail className="mr-2 h-4 w-4" /> Reply
-                    </Button>
-                </div>
-            </DialogContent>
+                    Button>
+                div>
+            DialogContent>
         )}
-    </Dialog>
+    Dialog>
   )
 }
