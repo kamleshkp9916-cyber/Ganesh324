@@ -63,7 +63,7 @@ export default function Home() {
             </div>
              <div>
                 Want to become a seller?{" "}
-                <Link href="/seller/register" className="font-semibold text-primary underline">
+                <Link href="/seller/kyc" className="font-semibold text-primary underline">
                   Register here
                 </Link>
             </div>
@@ -73,3 +73,4 @@ export default function Home() {
     </div>
   );
 }
+
