@@ -166,6 +166,7 @@ function SellerPortal() {
   const [appId,setAppId]=useState("");
   const unsubRef = useRef<any>(null);
   const db = getFirestoreDb();
+  const { toast } = useToast();
   
   useEffect(()=>{
     if (!db || !appId) return;
@@ -204,6 +205,7 @@ function SellerPortal() {
 
   async function ensureDraft(){
     if(appId) return appId;
+    if (!user) throw new Error("User not authenticated");
     const payload={ personal:{ fullName:seller.fullName, dob:seller.dob, phone:seller.phone, email:seller.email, selfieUrl: seller.selfiePreview || '' }, documents:{ pan: seller.pan }, bank:{}, business:{ sellerType: seller.sellerType, shopName: seller.shopName, gst: seller.gst, address: seller.address } };
     const { id } = await submitKycFn(payload);
     setAppId(id);
@@ -223,30 +225,60 @@ function SellerPortal() {
   }
   
   async function uploadAndVerifyPan(){
-    const id = await ensureDraft();
-    if (!user) return alert('Sign in first');
+    if (!user) {
+        toast({ variant: 'destructive', title: 'Authentication Error', description: 'Please sign in first.' });
+        return;
+    }
     const pan = (seller.pan||'').toUpperCase();
-    if (!panIsValid(pan)) return alert('Enter valid 10-char PAN (ABCDE1234F)');
+    if (!panIsValid(pan)) {
+        toast({ variant: 'destructive', title: 'Invalid PAN', description: 'Enter a valid 10-character PAN (e.g., ABCDE1234F).' });
+        return;
+    }
     setSeller((s: any)=>({...s, pan: pan, panVerified:true, panName: '' }));
     setTimeout(()=> setStep(4), 250);
   }
 
   async function uploadSelfieAndRunFaceMatch(){
-    const id = await ensureDraft();
-    if (!user) return alert('Sign in first');
-    if (!seller.selfieFile) return alert('Upload selfie');
-    const selfieUrl = await uploadSelfie(user.uid, seller.selfieFile as File);
-    if (!seller.aadhaarPhotoUrl) return alert('Wait for Aadhaar photo (ZIP parse)');
-    const { score, status } = await faceMatchFn({ appId:id, selfieUrl, aadhaarPhotoUrl: seller.aadhaarPhotoUrl });
-    setSeller((s: any)=>({...s, faceMatchScore:score, faceMatchStatus:status }));
+    if (!user) {
+        toast({ variant: 'destructive', title: 'Authentication Error', description: 'Please sign in first.' });
+        return;
+    }
+    if (!seller.selfieFile) {
+        toast({ variant: 'destructive', title: 'Selfie Required', description: 'Please upload a selfie image.' });
+        return;
+    }
+    if (!seller.aadhaarPhotoUrl) {
+        toast({ variant: 'destructive', title: 'Aadhaar Photo Missing', description: 'Please wait for your Aadhaar photo to be parsed from the ZIP file.' });
+        return;
+    }
+    try {
+        const id = await ensureDraft();
+        const selfieUrl = await uploadSelfie(user.uid, seller.selfieFile as File);
+        const { score, status } = await faceMatchFn({ appId:id, selfieUrl, aadhaarPhotoUrl: seller.aadhaarPhotoUrl });
+        setSeller((s: any)=>({...s, faceMatchScore:score, faceMatchStatus:status }));
+    } catch (e: any) {
+        console.error("Face match error:", e);
+        toast({ variant: 'destructive', title: 'Face Match Failed', description: e.message || 'An unexpected error occurred.' });
+    }
   }
 
   async function uploadZipToStorage(){
-    const id = await ensureDraft();
-    if (!user) return alert('Sign in first');
-    if (!seller.aadhaarZip) return alert('Select ZIP');
-    await uploadAadhaarZip(user.uid, id, seller.aadhaarZip as File);
-    alert('ZIP uploaded. Backend will parse and set the Aadhaar photo automatically.');
+    if (!user) {
+        toast({ variant: 'destructive', title: 'Authentication Error', description: 'Please sign in first.' });
+        return;
+    }
+    if (!seller.aadhaarZip) {
+        toast({ variant: 'destructive', title: 'Aadhaar ZIP Required', description: 'Please select your Aadhaar ZIP file.' });
+        return;
+    }
+    try {
+        const id = await ensureDraft();
+        await uploadAadhaarZip(user.uid, id, seller.aadhaarZip as File);
+        toast({ title: 'ZIP Uploaded', description: 'Your Aadhaar ZIP file is being processed. The photo will appear automatically.' });
+    } catch (e: any) {
+        console.error("ZIP upload error:", e);
+        toast({ variant: 'destructive', title: 'Upload Failed', description: e.message || 'An unexpected error occurred.' });
+    }
   }
 
   async function submit() {
@@ -256,12 +288,18 @@ function SellerPortal() {
       bank:{ bankName:seller.bankName, ifsc:seller.ifsc, acctName:seller.acctName, acctNumber:seller.acctNumber },
       business:{ sellerType:seller.sellerType, shopName:seller.shopName, gst:seller.gst, address:seller.address }
     };
-    const { id } = await submitKycFn(payload);
-    setAppId(id);
-    setSubmittedAt(Date.now());
-    setTimeout(() => {
-        router.push('/seller/verification-pending');
-    }, 1500);
+    try {
+        const { id } = await submitKycFn(payload);
+        setAppId(id);
+        setSubmittedAt(Date.now());
+        toast({ title: 'Application Submitted!', description: 'Your KYC details are now under review.' });
+        setTimeout(() => {
+            router.push('/seller/dashboard'); // Redirect after successful submission
+        }, 1500);
+    } catch (e: any) {
+        console.error("Submission error:", e);
+        toast({ variant: 'destructive', title: 'Submission Failed', description: e.message || 'An unexpected error occurred.' });
+    }
   }
 
   return (
@@ -344,12 +382,12 @@ function SellerPortal() {
 
         {step===2 && (
           <SectionCard title="Aadhaar Offline e-KYC" aside={<Badge>UIDAI ZIP</Badge>}>
-            <p className="text-sm text-muted-foreground">Download your Aadhaar ZIP from UIDAI and upload it here. Use your 4-character share code.</p>
+            <p className="text-sm text-muted-foreground">Upload Aadhaar ZIP and share code. Backend will parse and set the Aadhaar photo automatically. Then run Face Match.</p>
             <div className="grid sm:grid-cols-2 gap-4">
               <Field label="Upload Aadhaar ZIP" required error={!seller.aadhaarZip ? 'Upload ZIP' : ''}>
                 <Input type="file" accept=".zip" onChange={onAadhaarZip} />
                 {seller.aadhaarZip && <div className="text-xs text-green-700">{seller.aadhaarZip.name}</div>}
-                 <Button className="mt-2" variant="secondary" onClick={uploadZipToStorage}>Upload ZIP</Button>
+                 <Button className="mt-2" variant="secondary" onClick={uploadZipToStorage} disabled={!user}>Upload ZIP</Button>
               </Field>
               <Field label="Share Code (password)" required error={!(seller.aadhaarShareCode||'').length ? 'Required' : ((seller.aadhaarShareCode||'').length<4?'Min 4 chars':'')}>
                 <Input placeholder="4-8 characters" value={seller.aadhaarShareCode} onChange={(e:any)=>setSeller({...seller, aadhaarShareCode:e.target.value})} />
@@ -360,12 +398,12 @@ function SellerPortal() {
                 {seller.aadhaarPhotoUrl ? (
                   <Image src={seller.aadhaarPhotoUrl} alt="aadhaar" width={64} height={64} className="h-16 w-16 rounded-xl object-cover ring-1 ring-border" />
                 ) : (
-                  <span className="text-xs text-slate-600">Will appear automatically after parse.</span>
+                  <span className="text-xs text-muted-foreground">Will appear automatically after parse.</span>
                 )}
               </Field>
               <Field label="Face Match" hint="Selfie must match Aadhaar photo (≥ 80%)" error={!(seller.faceMatchStatus==='passed' && seller.faceMatchScore>=0.8) ? 'Run face match & ensure ≥ 80%' : ''}>
                 <div className="flex items-center gap-3">
-                  <Button onClick={uploadSelfieAndRunFaceMatch}>Run Face Match</Button>
+                  <Button onClick={uploadSelfieAndRunFaceMatch} disabled={!user}>Run Face Match</Button>
                   {seller.faceMatchScore>0 && (
                     <Badge variant={seller.faceMatchStatus==='passed'?'success':'destructive'}>
                       Score {(seller.faceMatchScore*100).toFixed(0)}% {seller.faceMatchStatus==='passed'?'Matched':'Not matched'}
@@ -483,24 +521,17 @@ function SellerPortal() {
 }
 
 export default function App() {
-  
   return (
     <div className="min-h-screen bg-muted/40 p-4 sm:p-8">
       <div className="max-w-6xl mx-auto grid gap-6">
         <header className="flex items-center justify-between">
-            <Button asChild variant="ghost" className="mb-4 -ml-4">
-                <Link href="/seller/dashboard">
-                    <ArrowLeft className="mr-2 h-4 w-4"/> Back to Dashboard
-                </Link>
-            </Button>
-            <h1 className="text-2xl font-bold text-center">Seller Verification</h1>
-             <div className="w-48"></div>
+          <h1 className="text-2xl font-bold">StreamCart • Seller KYC</h1>
         </header>
-
         <SellerPortal />
-
         <footer className="text-xs text-muted-foreground text-center pt-4">This is a static preview. Wire it to your backend APIs to enable real verification and approvals.</footer>
       </div>
     </div>
   );
 }
+
+    
