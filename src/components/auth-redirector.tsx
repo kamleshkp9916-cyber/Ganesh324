@@ -9,6 +9,7 @@ import { LoadingSpinner } from './ui/loading-spinner';
 const publicOnlyPaths = ['/signup', '/forgot-password', '/'];
 const emailVerificationPath = '/verify-email';
 const adminPaths = ['/admin', '/admin/dashboard', '/admin/orders', '/admin/users', '/admin/products', '/admin/live-control', '/admin/settings', '/admin/messages', '/admin/inquiries', '/admin/edit/privacy', '/admin/edit/terms', '/admin/kyc'];
+// IMPORTANT: /seller/kyc is intentionally EXCLUDED from this list. It must be public.
 const sellerPaths = ['/seller/dashboard', '/seller/products', '/seller/orders', '/seller/messages', '/seller/revenue', '/seller/promotions', '/seller/feed', '/seller/settings', '/seller/live/studio', '/seller/settings/kyc'];
 
 
