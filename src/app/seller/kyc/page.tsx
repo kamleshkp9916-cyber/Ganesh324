@@ -246,7 +246,7 @@ function SellerPortal() {
     if (!user) return alert('Sign in first');
     if (!seller.aadhaarZip) return alert('Select ZIP');
     await uploadAadhaarZip(user.uid, id, seller.aadhaarZip as File);
-    alert('ZIP uploaded. Backend will parse and set Aadhaar photo automatically.');
+    alert('ZIP uploaded. Backend will parse and set the Aadhaar photo automatically.');
   }
 
   async function submit() {
@@ -343,7 +343,7 @@ function SellerPortal() {
         )}
 
         {step===2 && (
-          <SectionCard title="Aadhaar Paperless Offline e-KYC" aside={<Badge>UIDAI ZIP</Badge>}>
+          <SectionCard title="Aadhaar Offline e-KYC" aside={<Badge>UIDAI ZIP</Badge>}>
             <p className="text-sm text-muted-foreground">Download your Aadhaar ZIP from UIDAI and upload it here. Use your 4-character share code.</p>
             <div className="grid sm:grid-cols-2 gap-4">
               <Field label="Upload Aadhaar ZIP" required error={!seller.aadhaarZip ? 'Upload ZIP' : ''}>
@@ -473,7 +473,7 @@ function SellerPortal() {
             </div>
             <div className="flex items-center justify-between">
               <p className="text-xs text-muted-foreground">By submitting, you agree to verification of Aadhaar Offline e-KYC and PAN.</p>
-              <Button disabled={!canSubmit} onClick={submit} variant={canSubmit ? "success" : "secondary"}>Submit for Review</Button>
+              <Button disabled={!canSubmit} onClick={submit} variant={canSubmit ? "default" : "secondary"}>Submit for Review</Button>
             </div>
           </SectionCard>
         )}
@@ -488,7 +488,7 @@ export default function App() {
     <div className="min-h-screen bg-muted/40 p-4 sm:p-8">
       <div className="max-w-6xl mx-auto grid gap-6">
         <header className="flex items-center justify-between">
-            <Button asChild variant="ghost">
+            <Button asChild variant="ghost" className="mb-4 -ml-4">
                 <Link href="/seller/dashboard">
                     <ArrowLeft className="mr-2 h-4 w-4"/> Back to Dashboard
                 </Link>
@@ -504,4 +504,3 @@ export default function App() {
     </div>
   );
 }
-```
