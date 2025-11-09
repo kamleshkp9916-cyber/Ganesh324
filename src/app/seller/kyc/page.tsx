@@ -488,8 +488,6 @@ export default function KYCPage() {
         );
     }
     
-    // The KYC form can now be shown to both logged-out users and logged-in customers.
-    // The redirector will handle moving logged-in sellers away.
     return (
         <div className="min-h-screen p-6 md:p-10 bg-gradient-to-br from-gray-50 to-white">
             <div className="max-w-7xl mx-auto space-y-6">
