@@ -168,6 +168,7 @@ function SellerPortal() {
   const db = getFirestoreDb();
   const { toast } = useToast();
   
+  // Listen to Firestore doc to auto-get Aadhaar photo when backend parses ZIP
   useEffect(()=>{
     if (!db || !appId) return;
     if (unsubRef.current) { try { unsubRef.current(); } catch {} }
@@ -386,7 +387,7 @@ function SellerPortal() {
         )}
 
         {step===2 && (
-          <SectionCard title="Aadhaar Offline e-KYC" aside={<Badge>UIDAI ZIP</Badge>}>
+          <SectionCard title="Aadhaar Paperless Offline e-KYC" aside={<Badge>UIDAI ZIP</Badge>}>
             <p className="text-sm text-muted-foreground">Upload Aadhaar ZIP and share code. Backend will parse and set the Aadhaar photo automatically. Then run Face Match.</p>
             <div className="grid sm:grid-cols-2 gap-4">
               <Field label="Upload Aadhaar ZIP" required error={!seller.aadhaarZip ? 'Upload ZIP' : ''}>
@@ -399,16 +400,19 @@ function SellerPortal() {
               </Field>
             </div>
             <div className="grid sm:grid-cols-2 gap-4">
-              <Field label="Aadhaar Photo (parsed)" error={!seller.aadhaarPhotoUrl ? 'Wait for backend to parse' : ''}>
+              <Field label="Aadhaar Photo (parsed)">
                 {seller.aadhaarPhotoUrl ? (
                   <Image src={seller.aadhaarPhotoUrl} alt="aadhaar" width={64} height={64} className="h-16 w-16 rounded-xl object-cover ring-1 ring-border" />
                 ) : (
-                  <span className="text-xs text-muted-foreground">Will appear automatically after parse.</span>
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground h-16">
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>Processing ZIP...</span>
+                  </div>
                 )}
               </Field>
               <Field label="Face Match" hint="Selfie must match Aadhaar photo (≥ 80%)">
                 <div className="flex items-center gap-3">
-                  <Button onClick={uploadSelfieAndRunFaceMatch} disabled={!user}>Run Face Match</Button>
+                  <Button onClick={uploadSelfieAndRunFaceMatch} disabled={!user || !seller.aadhaarPhotoUrl}>Run Face Match</Button>
                   <Badge variant={seller.faceMatchStatus === 'pending' ? 'outline' : seller.faceMatchStatus === 'passed' ? 'success' : 'destructive'}>
                     {seller.faceMatchStatus === 'pending' ? 'Pending' :
                      seller.faceMatchScore > 0 ? `Score: ${(seller.faceMatchScore*100).toFixed(0)}% - ${seller.faceMatchStatus}` : 'Not Run'}
@@ -544,8 +548,9 @@ export default function App() {
             <div className="w-24"></div>
         </header>
         <SellerPortal />
-        <footer className="text-xs text-muted-foreground text-center pt-4">This is a static preview. Wire it to your backend APIs to enable real verification and approvals.</footer>
+        <footer className="text-xs text-muted-foreground text-center pt-4">This is a static preview. Your backend will handle verification and approvals.</footer>
       </div>
     </div>
   );
 }
+```
