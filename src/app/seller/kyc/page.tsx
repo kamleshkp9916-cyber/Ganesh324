@@ -50,9 +50,8 @@ const steps = [
 const SELLER_APP_DRAFT_KEY = "sellerAppDraft";
 const SELLER_APP_SUBMITTED_KEY = "sellerAppSubmitted";
 
-function SellerWizard() {
+function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
   const { user } = useAuth();
-  const router = useRouter();
   const { toast } = useToast();
   const [current, setCurrent] = useState(0);
   const [form, setForm] = useState({
@@ -130,14 +129,9 @@ function SellerWizard() {
   };
 
   const submit = () => {
-    const applicationData = { status: "SUBMITTED", payload: form, verif };
-    localStorage.setItem(SELLER_APP_SUBMITTED_KEY, JSON.stringify(applicationData));
+    localStorage.setItem(SELLER_APP_SUBMITTED_KEY, JSON.stringify({ status: "SUBMITTED", payload: form, verif }));
     localStorage.removeItem(SELLER_APP_DRAFT_KEY);
-    toast({
-        title: "Application Submitted!",
-        description: "Your details are now pending review from the admin team.",
-    })
-    router.push('/seller/dashboard');
+    onSubmit({ status: "SUBMITTED", payload: form, verif });
   };
 
   return (
@@ -357,8 +351,7 @@ function SellerWizard() {
               </Section>
             )}
 
-            <div className="flex items-center justify-between">
-              <Button variant="ghost" onClick={prev} disabled={current===0}><ChevronLeft className="w-4 h-4 mr-2"/>Back</Button>
+            <div className="flex items-center justify-end">
               <div className="flex items-center gap-3">
                 {current < steps.length - 1 && (
                   <Button onClick={next}>Next<ChevronRight className="w-4 h-4 ml-2"/></Button>
@@ -377,7 +370,6 @@ function SellerWizard() {
   );
 }
 
-
 export default function KYCPage() {
     const { user, userData, loading } = useAuth();
     const router = useRouter();
@@ -388,7 +380,6 @@ export default function KYCPage() {
     }, []);
 
     useEffect(() => {
-        // This effect runs only on the client after `isClient` becomes true
         if (isClient && !loading) {
             if (userData?.role === 'seller') {
                 router.replace('/seller/dashboard');
@@ -396,25 +387,37 @@ export default function KYCPage() {
         }
     }, [isClient, loading, userData, router]);
     
-    // While loading or before client has mounted, show a spinner.
-    // This prevents the flicker by not rendering any decision-making logic prematurely.
     if (loading || !isClient) {
         return <div className="min-h-screen p-6 md:p-10 flex items-center justify-center"><LoadingSpinner /></div>;
     }
 
-    // If after loading, the user is already a seller, show a loading spinner while redirecting.
     if (userData?.role === 'seller') {
         return <div className="min-h-screen p-6 md:p-10 flex items-center justify-center"><LoadingSpinner /></div>;
     }
 
-    // Otherwise, render the wizard.
+    const handleSubmission = (data: any) => {
+        console.log("Seller Application Submitted:", data);
+        // Here you would typically save this to your backend
+        // For the demo, we'll just redirect to the admin view to show the data.
+        router.push('/admin/kyc'); 
+    };
+
     return (
         <div className="min-h-screen p-6 md:p-10 bg-gradient-to-br from-gray-50 to-white">
             <div className="max-w-7xl mx-auto space-y-6">
-                <SellerWizard />
+                <Button variant="ghost" onClick={() => router.back()} className="mb-4 -ml-4">
+                  <ChevronLeft className="w-4 h-4 mr-2"/>Back
+                </Button>
+                <div className="flex items-center justify-between">
+                    <div>
+                        <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">Become a Seller</h1>
+                        <p className="text-sm text-muted-foreground">Complete the following steps to start selling on StreamCart.</p>
+                    </div>
+                </div>
+                <SellerWizard onSubmit={handleSubmission} />
             </div>
         </div>
     );
 }
 
-    
+```
