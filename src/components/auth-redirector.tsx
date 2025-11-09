@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useEffect } from 'react';
@@ -35,11 +34,6 @@ export function AuthRedirector() {
     if (!authReady) {
       return; 
     }
-    
-    // Always allow access to the seller KYC page. This is the main fix.
-    if (pathname === '/seller/kyc') {
-      return;
-    }
 
     let targetPath: string | null = null;
     
@@ -58,13 +52,14 @@ export function AuthRedirector() {
                 }
             } 
             else if (role === 'seller') {
-                // If a user is already a seller, redirect them away from customer pages.
-                if (publicOnlyPaths.includes(pathname) || !sellerPaths.some(p => pathname.startsWith(p))) {
+                // Sellers should be redirected away from the initial KYC page to their dashboard.
+                if (pathname === '/seller/kyc' || publicOnlyPaths.includes(pathname)) {
                     targetPath = '/seller/dashboard';
                 }
             } 
             else { // Customer
-                 if (pathname.startsWith('/seller/') && !pathname.startsWith('/seller/profile') && pathname !== '/seller/kyc') {
+                 if (pathname.startsWith('/seller/') && pathname !== '/seller/kyc' && !pathname.startsWith('/seller/profile')) {
+                    // If a customer tries to access any seller page EXCEPT kyc or profile, redirect them.
                     targetPath = '/live-selling';
                 } else if(pathname.startsWith('/admin/')) {
                     targetPath = '/live-selling';
@@ -76,19 +71,15 @@ export function AuthRedirector() {
     } 
     else { 
         // --- No user is logged in ---
-        const isAuthRequiredPath = adminPaths.some(p => pathname.startsWith(p)) || sellerPaths.some(p => pathname.startsWith(p))
-            || pathname === '/profile' || pathname === '/orders' || pathname === '/wishlist'
-            || pathname === '/cart' || pathname === '/wallet' || pathname === '/setting'
-            || pathname === '/message';
+        // If a non-logged-in user tries to access a protected route, send them to login.
+        // The seller KYC page is an exception and should be accessible publicly.
+        const isAuthRequiredPath = adminPaths.some(p => pathname.startsWith(p)) || 
+            sellerPaths.filter(p => p !== '/seller/kyc').some(p => pathname.startsWith(p)) ||
+            ['/profile', '/orders', '/wishlist', '/cart', '/wallet', '/setting', '/message'].includes(pathname);
 
         if (isAuthRequiredPath) {
              targetPath = '/';
         }
-    }
-
-    // Special override to ensure KYC page is always accessible
-    if (pathname === '/seller/kyc' && targetPath) {
-        targetPath = null;
     }
 
     if (targetPath && targetPath !== pathname) {
