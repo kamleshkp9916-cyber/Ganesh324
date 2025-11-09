@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useEffect } from 'react';
@@ -30,7 +31,6 @@ export function AuthRedirector() {
   const pathname = usePathname();
 
   useEffect(() => {
-    // Wait until both authentication and user data are confirmed to be loaded
     if (!authReady) {
       return; 
     }
@@ -38,47 +38,43 @@ export function AuthRedirector() {
     let targetPath: string | null = null;
     
     if (user) {
-        // --- User is logged in ---
-        if (!user.emailVerified) {
-            if (pathname !== emailVerificationPath) {
-                targetPath = emailVerificationPath;
-            }
+        // --- User is LOGGED IN ---
+        if (!user.emailVerified && pathname !== emailVerificationPath) {
+            targetPath = emailVerificationPath;
         } else if (userData) {
             const { role } = userData;
-            
+
             if (role === 'admin') {
                 if (publicOnlyPaths.includes(pathname) || pathname === emailVerificationPath) {
                     targetPath = '/admin/dashboard';
                 }
-            } 
-            else if (role === 'seller') {
-                // Sellers should be redirected away from the initial KYC page to their dashboard.
-                if (pathname === '/seller/kyc' || publicOnlyPaths.includes(pathname)) {
+            } else if (role === 'seller') {
+                // If a seller lands on a public-only page (like login/signup) or the KYC page again, send them to their dashboard.
+                if (publicOnlyPaths.includes(pathname) || pathname === '/seller/kyc' || pathname === emailVerificationPath) {
                     targetPath = '/seller/dashboard';
                 }
-            } 
-            else { // Customer
-                 if (pathname.startsWith('/seller/') && pathname !== '/seller/kyc' && !pathname.startsWith('/seller/profile')) {
-                    // If a customer tries to access any seller page EXCEPT kyc or profile, redirect them.
+            } else { // Customer
+                if (pathname.startsWith('/admin/')) {
+                    // Customers trying to access admin pages are redirected.
                     targetPath = '/live-selling';
-                } else if(pathname.startsWith('/admin/')) {
+                } else if (sellerPaths.includes(pathname) && pathname !== '/seller/kyc') {
+                    // Customers can access /seller/kyc, but no other specific seller pages.
                     targetPath = '/live-selling';
                 } else if (publicOnlyPaths.includes(pathname) || pathname === emailVerificationPath) {
+                    // If a customer is on a page only for logged-out users, redirect them.
                     targetPath = '/live-selling';
                 }
             }
         }
-    } 
-    else { 
-        // --- No user is logged in ---
-        // If a non-logged-in user tries to access a protected route, send them to login.
-        // The seller KYC page is an exception and should be accessible publicly.
-        const isAuthRequiredPath = adminPaths.some(p => pathname.startsWith(p)) || 
-            sellerPaths.filter(p => p !== '/seller/kyc').some(p => pathname.startsWith(p)) ||
-            ['/profile', '/orders', '/wishlist', '/cart', '/wallet', '/setting', '/message'].includes(pathname);
+    } else { 
+        // --- User is LOGGED OUT ---
+        const isProtectedPath = 
+            adminPaths.some(p => pathname.startsWith(p)) ||
+            sellerPaths.some(p => pathname.startsWith(p)) || // All seller paths are protected
+            ['/profile', '/orders', '/wishlist', '/cart', '/wallet', '/setting', '/message', '/feed'].includes(pathname);
 
-        if (isAuthRequiredPath) {
-             targetPath = '/';
+        if (isProtectedPath) {
+             targetPath = `/?redirect=${pathname}`;
         }
     }
 
