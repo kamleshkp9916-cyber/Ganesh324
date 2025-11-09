@@ -319,11 +319,11 @@ function SellerPortal() {
       <div className="lg:col-span-1 grid gap-5 self-start sticky top-24">
         <SectionCard title="KYC Progress">
           <div className="space-y-4">
-            <Step n={1} title="Personal Details" done={step>1} current={step===1} />
-            <Step n={2} title="Aadhaar Offline e-KYC" done={step>2} current={step===2} />
-            <Step n={3} title="PAN Verification" done={step>3} current={step===3} />
-            <Step n={4} title="Bank Details" done={step>4} current={step===4} />
-            <Step n={5} title="Business (Optional)" done={step>5} current={step===5} />
+            <Step n={1} title="Personal Details" done={isStepValid(1)} current={step===1} />
+            <Step n={2} title="Aadhaar Offline e-KYC" done={isStepValid(2)} current={step===2} />
+            <Step n={3} title="PAN Verification" done={isStepValid(3)} current={step===3} />
+            <Step n={4} title="Bank Details" done={isStepValid(4)} current={step===4} />
+            <Step n={5} title="Business (Optional)" done={isStepValid(5)} current={step===5} />
             <Step n={6} title="Review & Submit" done={submittedAt !== null} current={step===6} />
           </div>
         </SectionCard>
@@ -409,7 +409,7 @@ function SellerPortal() {
               </Field>
             </div>
             <div className="grid sm:grid-cols-2 gap-4">
-               <Field label="Aadhaar Photo (parsed)" hint={isProcessingZip ? 'Processing...' : ''} error={!isProcessingZip && !seller.aadhaarPhotoUrl ? 'Photo will appear after ZIP upload' : ''}>
+              <Field label="Aadhaar Photo (parsed)" hint={isProcessingZip ? 'Processing...' : ''} error={!isProcessingZip && !seller.aadhaarPhotoUrl ? 'Upload ZIP file to see photo' : ''}>
                 {seller.aadhaarPhotoUrl ? (
                   <Image src={seller.aadhaarPhotoUrl} alt="aadhaar" width={64} height={64} className="h-16 w-16 rounded-xl object-cover ring-1 ring-border" />
                 ) : isProcessingZip ? (
@@ -419,11 +419,11 @@ function SellerPortal() {
                   </div>
                 ) : (
                   <div className="h-16 flex items-center text-xs text-muted-foreground">
-                    Please upload ZIP and wait.
+                    Photo will appear here after upload.
                   </div>
                 )}
               </Field>
-              <Field label="Face Match" hint="Selfie must match Aadhaar photo (≥ 80%)">
+               <Field label="Face Match" hint="Selfie must match Aadhaar photo (≥ 80%)">
                 <div className="flex items-center gap-3">
                     <Button onClick={uploadSelfieAndRunFaceMatch} disabled={!user || !seller.selfieFile || !seller.aadhaarPhotoUrl}>Run Face Match</Button>
                     <Badge variant={seller.faceMatchStatus === 'pending' ? 'outline' : seller.faceMatchStatus === 'passed' ? 'success' : 'destructive'}>
@@ -458,7 +458,7 @@ function SellerPortal() {
         )}
 
         {step===4 && (
-          <SectionCard title="Bank Details for Payouts" aside={<Badge variant="outline">Required</Badge>}>
+          <SectionCard title="Bank Details for Payouts" aside={<Badge>Required</Badge>}>
             <div className="grid sm:grid-cols-2 gap-4">
               <Field label="Bank Name" required error={!seller.bankName ? 'Required' : ''}>
                 <Input value={seller.bankName} onChange={(e:any)=>setSeller({...seller, bankName:e.target.value})} />
@@ -514,7 +514,7 @@ function SellerPortal() {
         )}
         
         {step===6 && (
-          <SectionCard title="Review & Submit" aside={<Badge>Final Step</Badge>}>
+          <SectionCard title="Review & Submit" aside={<Badge variant="default">Final Step</Badge>}>
             <div className="grid gap-2 text-sm">
               <h4 className="font-medium">Summary</h4>
               <ul className="list-disc ml-6 text-muted-foreground">
