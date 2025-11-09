@@ -38,6 +38,9 @@ const StepPill = ({ index, label, active, complete }: { index: number, label: st
   </div>
 );
 
+// ------------------------------------------------------------
+// Seller Wizard
+// ------------------------------------------------------------
 const steps = [
   { key: "basic", label: "Basic Info", icon: <User2 className="w-5 h-5"/> },
   { key: "biz", label: "Business", icon: <Building2 className="w-5 h-5"/> },
@@ -112,12 +115,14 @@ function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
   const canSubmit = form.termsAccepted && verif.state === "VERIFIED";
 
   const fakeVerifyAadhaar = async () => {
+    // purely client-side mock to simulate offline e‑KYC ZIP + share code verification
     if (!form.aadhaarZip || !form.shareCode || form.shareCode.length !== 4) {
       setVerif({ state: "ERROR", message: "Please upload the ZIP and enter the 4‑digit Share Code." });
       return;
     }
     setVerif({ state: "VERIFYING", message: "Verifying UIDAI signature…" });
     setTimeout(() => {
+      // Mock rule: if share code ends with even number → VERIFIED else MISMATCH
       const ok = Number(form.shareCode.at(-1)) % 2 === 0;
       setVerif({ state: ok ? "VERIFIED" : "INVALID_SIGNATURE", message: ok ? "Signature valid. Fields parsed." : "Signature invalid. Re‑download from myAadhaar." });
        toast({
@@ -305,7 +310,7 @@ function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
                     <span className="text-sm">Add selfie (optional for face match later)</span>
                   </div>
                   <div className="flex items-center gap-3">
-                    <Button onClick={fakeVerifyAadhaar} disabled={verif.state === "VERIFYING"}><ShieldCheck className="w-4 h-4 mr-2"/>Verify e‑KYC</Button>
+                    <Button onClick={fakeVerifyAadhaar}><ShieldCheck className="w-4 h-4 mr-2"/>Verify e‑KYC</Button>
                     {verif.state === "VERIFYING" && <Badge variant="secondary">Verifying…</Badge>}
                     {verif.state === "VERIFIED" && <Badge className="bg-green-600">Signature valid</Badge>}
                     {verif.state === "INVALID_SIGNATURE" && <Badge variant="destructive">Invalid signature</Badge>}
@@ -350,8 +355,8 @@ function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
                 </div>
               </Section>
             )}
-
-            <div className="flex items-center justify-end">
+             <div className="flex items-center justify-between">
+              <Button variant="ghost" onClick={prev} disabled={current===0}><ChevronLeft className="w-4 h-4 mr-2"/>Back</Button>
               <div className="flex items-center gap-3">
                 {current < steps.length - 1 && (
                   <Button onClick={next}>Next<ChevronRight className="w-4 h-4 ml-2"/></Button>
@@ -379,29 +384,17 @@ export default function KYCPage() {
         setIsClient(true);
     }, []);
 
-    useEffect(() => {
-        if (isClient && !loading) {
-            if (userData?.role === 'seller') {
-                router.replace('/seller/dashboard');
-            }
-        }
-    }, [isClient, loading, userData, router]);
-    
-    if (loading || !isClient) {
-        return <div className="min-h-screen p-6 md:p-10 flex items-center justify-center"><LoadingSpinner /></div>;
-    }
-
-    if (userData?.role === 'seller') {
-        return <div className="min-h-screen p-6 md:p-10 flex items-center justify-center"><LoadingSpinner /></div>;
-    }
-
     const handleSubmission = (data: any) => {
         console.log("Seller Application Submitted:", data);
-        // Here you would typically save this to your backend
-        // For the demo, we'll just redirect to the admin view to show the data.
         router.push('/admin/kyc'); 
     };
 
+    if (loading || !isClient) {
+        return <div className="min-h-screen p-6 md:p-10 flex items-center justify-center"><LoadingSpinner /></div>;
+    }
+    
+    // This case handles a logged-out user or a customer.
+    // The wizard should be displayed.
     return (
         <div className="min-h-screen p-6 md:p-10 bg-gradient-to-br from-gray-50 to-white">
             <div className="max-w-7xl mx-auto space-y-6">
@@ -419,5 +412,3 @@ export default function KYCPage() {
         </div>
     );
 }
-
-```
