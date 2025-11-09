@@ -1,4 +1,5 @@
 
+      
 "use client";
 
 import React, { useMemo, useState, useEffect, useRef, useCallback } from "react";
@@ -27,9 +28,7 @@ import { getFirebaseAuth, getFirestoreDb, getFirebaseStorage } from "@/lib/fireb
 
 async function idToken() {
   const auth = getFirebaseAuth();
-  if (!auth.currentUser) {
-    throw new Error("Sign in first");
-  }
+  if (!auth.currentUser) throw new Error("Sign in first");
   return auth.currentUser.getIdToken();
 }
 
@@ -178,7 +177,7 @@ function SellerPortal() {
       }
       case 3: return panIsValid(seller.pan);
       case 4: return Boolean(seller.bankName && seller.ifsc && seller.acctName && seller.acctNumber);
-      case 5: return seller.sellerType==='business' ? Boolean(seller.shopName && seller.address) : true;
+      case 5: return seller.sellerType === 'business' ? Boolean(seller.shopName && seller.address) : true;
       case 6: return canSubmit;
       default: return false;
     }
@@ -451,3 +450,5 @@ export default function App() {
     </div>
   );
 }
+
+    
