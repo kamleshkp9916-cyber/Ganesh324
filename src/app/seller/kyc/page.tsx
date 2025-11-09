@@ -135,7 +135,7 @@ function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
 
   const handleVerifyOtp = (type: 'email' | 'phone') => {
       const otp = type === 'email' ? form.emailOtp : form.phoneOtp;
-      if (otp !== '123456') { // Mock OTP
+      if (otp !== '1234') { // Mock OTP
           toast({ variant: 'destructive', title: `Invalid ${type} OTP` });
           return;
       }
@@ -230,12 +230,12 @@ function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
                   </div>
                    {otpSent.email && !form.emailVerified && (
                       <div className="flex items-center gap-2">
-                          <InputOTP maxLength={6} value={form.emailOtp} onChange={(val) => setField("emailOtp", val)}>
+                          <InputOTP maxLength={4} value={form.emailOtp} onChange={(val) => setField("emailOtp", val)}>
                               <InputOTPGroup>
-                                  <InputOTPSlot index={0} /><InputOTPSlot index={1} /><InputOTPSlot index={2} />
+                                  <InputOTPSlot index={0} /><InputOTPSlot index={1} /><InputOTPSlot index={2} /><InputOTPSlot index={3} />
                               </InputOTPGroup>
                           </InputOTP>
-                          <Button type="button" variant="secondary" onClick={() => handleVerifyOtp('email')} disabled={form.emailOtp.length < 3 || isVerifying.email}>
+                          <Button type="button" variant="secondary" onClick={() => handleVerifyOtp('email')} disabled={form.emailOtp.length < 4 || isVerifying.email}>
                             {isVerifying.email && <Loader2 className="mr-2 h-4 w-4 animate-spin"/>}
                             Verify Email
                           </Button>
@@ -254,12 +254,12 @@ function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
                   </div>
                   {otpSent.phone && !form.phoneVerified && (
                       <div className="flex items-center gap-2">
-                          <InputOTP maxLength={6} value={form.phoneOtp} onChange={(val) => setField("phoneOtp", val)}>
+                          <InputOTP maxLength={4} value={form.phoneOtp} onChange={(val) => setField("phoneOtp", val)}>
                                <InputOTPGroup>
-                                  <InputOTPSlot index={0} /><InputOTPSlot index={1} /><InputOTPSlot index={2} />
+                                  <InputOTPSlot index={0} /><InputOTPSlot index={1} /><InputOTPSlot index={2} /><InputOTPSlot index={3} />
                               </InputOTPGroup>
                           </InputOTP>
-                          <Button type="button" variant="secondary" onClick={() => handleVerifyOtp('phone')} disabled={form.phoneOtp.length < 3 || isVerifying.phone}>
+                          <Button type="button" variant="secondary" onClick={() => handleVerifyOtp('phone')} disabled={form.phoneOtp.length < 4 || isVerifying.phone}>
                              {isVerifying.phone && <Loader2 className="mr-2 h-4 w-4 animate-spin"/>}
                             Verify Phone
                           </Button>
@@ -435,8 +435,12 @@ function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
                 </div>
               </Section>
             )}
-            <div className="flex items-center justify-between mt-6">
-              <Button variant="outline" onClick={prev} disabled={current === 0}>Back</Button>
+             <div className="flex items-center justify-between mt-6">
+                 <div>
+                    {current > 0 && (
+                        <Button variant="outline" onClick={prev}>Back</Button>
+                    )}
+                 </div>
               <div className="flex items-center gap-3">
                 {current < steps.length - 1 && (
                   <Button onClick={next} disabled={!canGoToStep(current + 1)}>Next<ChevronRight className="w-4 h-4 ml-2"/></Button>
@@ -475,35 +479,35 @@ export default function KYCPage() {
         router.push('/admin/kyc'); 
     };
 
-    useEffect(() => {
-        if (isClient && !loading) {
-            if (userData?.role === 'seller') {
-                router.replace('/seller/dashboard');
-            }
-        }
-    }, [isClient, user, userData, loading, router]);
-
-
-    if (loading || !isClient) {
-        return <div className="min-h-screen p-6 md:p-10 flex items-center justify-center"><LoadingSpinner /></div>;
+    if (!isClient || loading) {
+        return (
+            <div className="min-h-screen p-6 md:p-10 flex items-center justify-center">
+                <LoadingSpinner />
+            </div>
+        );
     }
     
     if (userData?.role === 'seller') {
-        return <div className="min-h-screen p-6 md:p-10 flex items-center justify-center"><LoadingSpinner /></div>;
+         useEffect(() => {
+            router.replace('/seller/dashboard');
+        }, [router]);
+        return (
+            <div className="min-h-screen p-6 md:p-10 flex items-center justify-center">
+                <LoadingSpinner />
+            </div>
+        );
     }
 
     return (
         <div className="min-h-screen p-6 md:p-10 bg-gradient-to-br from-gray-50 to-white">
+            <Button variant="ghost" onClick={() => router.back()} className="absolute top-4 left-4">
+                <ChevronLeft className="mr-2 h-4 w-4" />
+                Back
+            </Button>
             <div className="max-w-7xl mx-auto space-y-6">
-                <Button variant="ghost" onClick={() => router.back()} className="mb-4">
-                    <ChevronLeft className="mr-2 h-4 w-4" />
-                    Back
-                </Button>
-                <div className="flex items-center justify-between">
-                    <div>
-                        <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">Become a Seller</h1>
-                        <p className="text-sm text-muted-foreground">Complete the following steps to start selling on StreamCart.</p>
-                    </div>
+                <div className="text-center">
+                    <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">Become a Seller</h1>
+                    <p className="text-sm text-muted-foreground">Complete the following steps to start selling on StreamCart.</p>
                 </div>
                 <SellerWizard onSubmit={handleSubmission} />
             </div>
@@ -511,5 +515,4 @@ export default function KYCPage() {
     );
 }
 
-
-    
+```)
