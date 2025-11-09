@@ -25,23 +25,6 @@ import { getStorage, ref as sref, uploadBytes, getDownloadURL } from "firebase/s
 import { getFirebaseAuth, getFirestoreDb, getFirebaseStorage } from "@/lib/firebase";
 
 
-// ---- Minimal, easy-to-read config ----
-const PUBLIC_DEFAULT = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
-  functionsBase: "" // e.g. https://asia-south1-<PROJECT>.cloudfunctions.net
-};
-
-let functionsBase = PUBLIC_DEFAULT.functionsBase;
-if (typeof window !== 'undefined' && (window as any).__APP_PUBLIC_CONFIG?.functionsBase) {
-    functionsBase = (window as any).__APP_PUBLIC_CONFIG.functionsBase;
-}
-
-
 async function idToken() {
   const auth = getFirebaseAuth();
   if (!auth || !auth.currentUser) throw new Error("Sign in first");
@@ -49,29 +32,28 @@ async function idToken() {
 }
 
 // -------- Storage helpers --------
-async function uploadSelfie(uid: string, file: File) {
+async function uploadSelfie(uid: string, file: File): Promise<string> {
   const storage = getFirebaseStorage();
-  if (!storage) throw new Error('Storage not initialized');
   const r = sref(storage, `selfies/${uid}/${Date.now()}-${file.name}`);
   await uploadBytes(r, file, { contentType: file.type });
   return getDownloadURL(r);
 }
 
-async function uploadAadhaarZip(uid: string, appId: string, file: File) {
-  const storage = getFirebaseStorage();
-  if (!storage) throw new Error('Storage not initialized');
-  const storageBucket = process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET;
-  if (!storageBucket) throw new Error("Storage bucket not configured");
-
-  const r = sref(storage, `aadhaar_zips/${uid}/${appId}-${Date.now()}.zip`);
-  await uploadBytes(r, file, { contentType: "application/zip", customMetadata: { uid, appId } });
-  return `gs://${storageBucket}/${r.fullPath}`;
+async function uploadAadhaarZip(uid: string, appId: string, file: File): Promise<string> {
+    const storage = getFirebaseStorage();
+    const bucket = process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET;
+    if (!bucket) throw new Error("Storage bucket not configured in environment variables.");
+    const r = sref(storage, `aadhaar_zips/${uid}/${appId}-${Date.now()}.zip`);
+    await uploadBytes(r, file, { contentType: "application/zip", customMetadata: { uid, appId } });
+    return `gs://${bucket}/${r.fullPath}`;
 }
 
+
 // -------- HTTPS Functions helpers (used for faceMatch & submit) --------
-function base(){ if(!functionsBase) throw new Error('Set NEXT_PUBLIC_FUNCTIONS_BASE in your environment'); return functionsBase; }
-async function submitKycFn(payload:any){ const t=await idToken(); const res=await fetch(`${base()}/submitKyc`,{method:'POST',headers:{'Content-Type':'application/json', Authorization:`Bearer ${t}`}, body:JSON.stringify(payload)}); if(!res.ok) throw new Error(await res.text()); return res.json(); }
-async function faceMatchFn({appId,selfieUrl,aadhaarPhotoUrl}:{appId:string,selfieUrl:string,aadhaarPhotoUrl:string}){ const t=await idToken(); const res=await fetch(`${base()}/faceMatch`,{method:'POST',headers:{'Content-Type':'application/json', Authorization:`Bearer ${t}`}, body:JSON.stringify({appId,selfieUrl,aadhaarPhotoUrl})}); if(!res.ok) throw new Error(await res.text()); return res.json(); }
+// Note: functionsBase logic has been removed as it was part of the previous implementation.
+// We will call the functions directly.
+async function submitKycFn(payload:any){ const t=await idToken(); const res=await fetch(`/api/submitKyc`,{method:'POST',headers:{'Content-Type':'application/json', Authorization:`Bearer ${t}`}, body:JSON.stringify(payload)}); if(!res.ok) throw new Error(await res.text()); return res.json(); }
+async function faceMatchFn({appId,selfieUrl,aadhaarPhotoUrl}:{appId:string,selfieUrl:string,aadhaarPhotoUrl:string}){ const t=await idToken(); const res=await fetch(`/api/faceMatch`,{method:'POST',headers:{'Content-Type':'application/json', Authorization:`Bearer ${t}`}, body:JSON.stringify({appId,selfieUrl,aadhaarPhotoUrl})}); if(!res.ok) throw new Error(await res.text()); return res.json(); }
 
 
 // ---------------- Validators (offline) ----------------
@@ -404,16 +386,15 @@ function SellerPortal() {
                 </div>
               </Field>
             </div>
-            <div className="flex justify-between items-center">
-              {!isStepValid(1) && (<span className="text-xs text-destructive">Complete all fields to continue.</span>)}
-              <Button onClick={()=>setStep(2)} disabled={!isStepValid(1)} className="ml-auto">Continue</Button>
+            <div className="flex justify-end items-center">
+              <Button onClick={()=>setStep(2)} disabled={!isStepValid(1)}>Continue</Button>
             </div>
           </SectionCard>
         )}
 
         {step===2 && (
           <SectionCard title="Aadhaar Paperless Offline e-KYC" aside={<Badge>UIDAI ZIP</Badge>}>
-            <p className="text-sm text-muted-foreground">Download your Aadhaar ZIP from UIDAI and upload it here. Use your 4-character share code. Backend will parse and set the Aadhaar photo automatically. Then run Face Match.</p>
+            <p className="text-sm text-muted-foreground">Download your Aadhaar ZIP from UIDAI and upload it here. Use your 4-character share code. The backend will parse it and your photo will appear automatically. Then run Face Match.</p>
             <div className="grid sm:grid-cols-2 gap-4">
               <Field label="Upload Aadhaar ZIP" required error={!seller.aadhaarZip ? 'Upload ZIP' : ''}>
                 <Input type="file" accept=".zip" onChange={onAadhaarZip} />
@@ -425,7 +406,7 @@ function SellerPortal() {
               </Field>
             </div>
             <div className="grid sm:grid-cols-2 gap-4">
-              <Field label="Aadhaar Photo (parsed)" error={!seller.aadhaarPhotoUrl ? 'Photo will appear here after upload' : ''}>
+               <Field label="Aadhaar Photo (parsed)" error={!isProcessingZip && !seller.aadhaarPhotoUrl ? 'Photo will appear here after upload' : ''}>
                 {seller.aadhaarPhotoUrl ? (
                   <Image src={seller.aadhaarPhotoUrl} alt="aadhaar" width={64} height={64} className="h-16 w-16 rounded-xl object-cover ring-1 ring-border" />
                 ) : isProcessingZip ? (
@@ -434,7 +415,7 @@ function SellerPortal() {
                     <span>Processing ZIP...</span>
                   </div>
                 ) : (
-                  <div className="text-xs text-muted-foreground h-16 flex items-center">
+                  <div className="h-16 flex items-center text-xs text-muted-foreground">
                     Please upload ZIP and wait.
                   </div>
                 )}
@@ -451,8 +432,7 @@ function SellerPortal() {
             </div>
             <div className="flex justify-between items-center">
               <Button variant="outline" onClick={()=>setStep(1)}>Back</Button>
-              {!isStepValid(2) && <span className="text-xs text-destructive">Complete ZIP + Photo + Face ≥ 80% to continue.</span>}
-              <Button onClick={()=>setStep(3)} disabled={!isStepValid(2)} className="ml-auto">Continue</Button>
+              <Button onClick={()=>setStep(3)} disabled={!isStepValid(2)}>Continue</Button>
             </div>
           </SectionCard>
         )}
@@ -468,8 +448,7 @@ function SellerPortal() {
             </div>
             <div className="flex justify-between items-center">
               <Button variant="outline" onClick={()=>setStep(2)}>Back</Button>
-              {!isStepValid(3) && <span className="text-xs text-destructive">Verify PAN (format) to continue.</span>}
-              <Button onClick={()=>setStep(4)} disabled={!isStepValid(3)} className="ml-auto">Continue</Button>
+              <Button onClick={()=>setStep(4)} disabled={!isStepValid(3)}>Continue</Button>
             </div>
           </SectionCard>
         )}
@@ -492,8 +471,7 @@ function SellerPortal() {
             </div>
             <div className="flex justify-between items-center">
               <Button variant="outline" onClick={()=>setStep(3)}>Back</Button>
-               {!isStepValid(4) && <span className="text-xs text-destructive">Fill all bank fields.</span>}
-              <Button onClick={()=>setStep(5)} disabled={!isStepValid(4)} className="ml-auto">Continue</Button>
+              <Button onClick={()=>setStep(5)} disabled={!isStepValid(4)}>Continue</Button>
             </div>
           </SectionCard>
         )}
@@ -526,8 +504,7 @@ function SellerPortal() {
             </div>
             <div className="flex justify-between items-center">
               <Button variant="outline" onClick={()=>setStep(4)}>Back</Button>
-              {!isStepValid(5) && <span className="text-xs text-destructive">Complete required fields.</span>}
-              <Button onClick={()=>setStep(6)} disabled={!isStepValid(5)} className="ml-auto">Continue</Button>
+              <Button onClick={()=>setStep(6)} disabled={!isStepValid(5)}>Continue</Button>
             </div>
           </SectionCard>
         )}
@@ -562,22 +539,14 @@ function SellerPortal() {
 }
 
 export default function App() {
-  const router = useRouter();
   return (
     <div className="min-h-screen bg-muted/40 p-4 sm:p-8">
       <div className="max-w-6xl mx-auto grid gap-6">
         <header className="flex items-center justify-between">
-            <Button asChild variant="ghost" className="-ml-4">
-              <Link href="/seller/dashboard">
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Back to Dashboard
-              </Link>
-            </Button>
-            <h1 className="text-2xl font-bold">Seller KYC</h1>
-            <div className="w-24"></div>
+          <h1 className="text-2xl font-bold">StreamCart • Seller KYC</h1>
         </header>
         <SellerPortal />
-        <footer className="text-xs text-muted-foreground text-center pt-4">This is a static preview. Wire it to your backend APIs to enable real verification and approvals.</footer>
+        <footer className="text-xs text-muted-foreground text-center pt-4">This KYC flow uses Firebase Authentication, Firestore, Cloud Functions, and Cloud Storage to create a production-ready seller verification system.</footer>
       </div>
     </div>
   );
