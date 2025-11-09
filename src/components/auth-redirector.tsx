@@ -36,6 +36,11 @@ export function AuthRedirector() {
       return; 
     }
 
+    // New rule: Always allow access to the seller KYC page, regardless of auth state.
+    if (pathname === '/seller/kyc') {
+      return;
+    }
+
     let targetPath: string | null = null;
     
     if (user) {
