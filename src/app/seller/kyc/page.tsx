@@ -27,7 +27,9 @@ import { getFirebaseAuth, getFirestoreDb, getFirebaseStorage } from "@/lib/fireb
 
 async function idToken() {
   const auth = getFirebaseAuth();
-  if (!auth || !auth.currentUser) throw new Error("Sign in first");
+  if (!auth.currentUser) {
+    throw new Error("Sign in first");
+  }
   return auth.currentUser.getIdToken();
 }
 
@@ -50,8 +52,6 @@ async function uploadAadhaarZip(uid: string, appId: string, file: File): Promise
 
 
 // -------- HTTPS Functions helpers (used for faceMatch & submit) --------
-// Note: functionsBase logic has been removed as it was part of the previous implementation.
-// We will call the functions directly.
 async function submitKycFn(payload:any){ const t=await idToken(); const res=await fetch(`/api/submitKyc`,{method:'POST',headers:{'Content-Type':'application/json', Authorization:`Bearer ${t}`}, body:JSON.stringify(payload)}); if(!res.ok) throw new Error(await res.text()); return res.json(); }
 async function faceMatchFn({appId,selfieUrl,aadhaarPhotoUrl}:{appId:string,selfieUrl:string,aadhaarPhotoUrl:string}){ const t=await idToken(); const res=await fetch(`/api/faceMatch`,{method:'POST',headers:{'Content-Type':'application/json', Authorization:`Bearer ${t}`}, body:JSON.stringify({appId,selfieUrl,aadhaarPhotoUrl})}); if(!res.ok) throw new Error(await res.text()); return res.json(); }
 
@@ -327,39 +327,6 @@ function SellerPortal() {
             <Step n={6} title="Review & Submit" done={submittedAt !== null} current={step===6} />
           </div>
         </SectionCard>
-
-        <SectionCard title="Store Hours" aside={<Badge>24 x 7</Badge>}>
-          <div className="flex items-center justify-between">
-            <div className="grid">
-              <div className="font-medium">Open 24 hours</div>
-              <p className="text-xs text-muted-foreground">Your store will appear as open all day</p>
-            </div>
-            <Switch checked={seller.open24x7} onCheckedChange={(v: boolean)=>setSeller((s: any)=>({...s, open24x7:v}))} aria-label="Toggle 24x7 hours" />
-          </div>
-        </SectionCard>
-        
-        <SectionCard title="Dev • PAN Regex Tests" aside={<Badge variant="outline">offline</Badge>}>
-          <div className="text-xs grid gap-1">
-            {[
-              'ABCDE1234F', 'abcde1234f', 'ABCD1234F', 'ABCDE12345', 'AAAAA0000A',
-            ].map((p, i)=>{
-              const ok = panIsValid(p);
-              return (
-                <div key={i} className="flex items-center gap-2 font-mono">
-                  <span>{p}</span>
-                  <Badge variant={ok ? 'success' : 'destructive'}>{ok ? 'PASS' : 'FAIL'}</Badge>
-                </div>
-              );
-            })}
-          </div>
-        </SectionCard>
-
-        {submittedAt && (
-          <SectionCard title="Review Status" aside={<Badge variant="warning">Under Review</Badge>}>
-            <div className="text-sm text-muted-foreground">Admin will review your details within 24 hours.</div>
-            <div className="text-sm">Time remaining: <Countdown to={submittedAt + slaMs} /></div>
-          </SectionCard>
-        )}
       </div>
 
       <div className="lg:col-span-2 grid gap-6">
@@ -409,14 +376,14 @@ function SellerPortal() {
               </Field>
             </div>
             <div className="grid sm:grid-cols-2 gap-4">
-              <Field label="Aadhaar Photo (parsed)" hint={isProcessingZip ? 'Processing...' : ''} error={!isProcessingZip && !seller.aadhaarPhotoUrl ? 'Upload ZIP file to see photo' : ''}>
-                {seller.aadhaarPhotoUrl ? (
-                  <Image src={seller.aadhaarPhotoUrl} alt="aadhaar" width={64} height={64} className="h-16 w-16 rounded-xl object-cover ring-1 ring-border" />
-                ) : isProcessingZip ? (
+              <Field label="Aadhaar Photo (parsed)">
+                {isProcessingZip ? (
                   <div className="flex items-center gap-2 text-sm text-muted-foreground h-16">
                     <Loader2 className="w-4 h-4 animate-spin" />
                     <span>Processing ZIP...</span>
                   </div>
+                ) : seller.aadhaarPhotoUrl ? (
+                  <Image src={seller.aadhaarPhotoUrl} alt="aadhaar" width={64} height={64} className="h-16 w-16 rounded-xl object-cover ring-1 ring-border" />
                 ) : (
                   <div className="h-16 flex items-center text-xs text-muted-foreground">
                     Photo will appear here after upload.
@@ -442,7 +409,7 @@ function SellerPortal() {
         )}
 
         {step===3 && (
-          <SectionCard title="PAN Verification" aside={<Badge variant="outline">Offline</Badge>}>
+          <SectionCard title="PAN Verification" aside={<Badge>Offline</Badge>}>
             <div className="grid sm:grid-cols-2 gap-4">
               <Field label="PAN Number" required hint="10 characters (ABCDE1234F)" error={!panIsValid(seller.pan) ? (seller.pan? 'Invalid PAN format':'Enter a valid PAN') : ''}>
                 <Input maxLength={10} placeholder="ABCDE1234F" value={seller.pan} onChange={(e:any)=>setSeller({...seller, pan:e.target.value.toUpperCase()})} />
@@ -550,7 +517,9 @@ export default function App() {
           <h1 className="text-2xl font-bold">StreamCart • Seller KYC</h1>
         </header>
         <SellerPortal />
-        <footer className="text-xs text-muted-foreground text-center pt-4">This KYC flow uses Firebase Authentication, Firestore, Cloud Functions, and Cloud Storage to create a production-ready seller verification system.</footer>
+        <footer className="text-xs text-slate-500 text-center pt-4">
+            This is a mock UI for KYC. The Aadhaar parsing happens on the backend via Storage Triggers, and face/PAN verification call placeholder functions.
+        </footer>
       </div>
     </div>
   );
