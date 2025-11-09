@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useMemo, useState, useEffect, useRef } from "react";
+import React, { useMemo, useState, useEffect, useRef, useCallback } from "react";
 import { Loader2, ShieldCheck, CheckCircle2, AlertTriangle, FileText, Upload, Trash2, Camera, User, Building, Banknote, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
@@ -20,9 +20,9 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { useRouter } from "next/navigation";
-import { getFirestore, doc, onSnapshot } from "firebase/firestore";
+import { getFirestore, doc, onSnapshot, setDoc, addDoc, collection } from "firebase/firestore";
 import { getStorage, ref as sref, uploadBytes, getDownloadURL } from "firebase/storage";
-import { getFirestoreDb, getFirebaseAuth, getFirebaseStorage } from "@/lib/firebase";
+import { getFirebaseAuth, getFirestoreDb, getFirebaseStorage } from "@/lib/firebase";
 
 
 // ---- Minimal, easy-to-read config ----
@@ -167,6 +167,7 @@ function SellerPortal() {
   const unsubRef = useRef<any>(null);
   const db = getFirestoreDb();
   const { toast } = useToast();
+  const [isProcessingZip, setIsProcessingZip] = useState(false);
   
   // Listen to Firestore doc to auto-get Aadhaar photo when backend parses ZIP
   useEffect(()=>{
@@ -178,6 +179,7 @@ function SellerPortal() {
       const url = data?.documents?.aadhaarPhotoUrl;
       if (url && url !== seller.aadhaarPhotoUrl) {
         setSeller((s: any)=>({...s, aadhaarPhotoUrl: url }));
+        setIsProcessingZip(false); // Stop showing loading state once photo URL is received
       }
     });
     unsubRef.current = unsub;
@@ -185,7 +187,7 @@ function SellerPortal() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   },[db, appId]);
 
-  const isStepValid = (n:number) => {
+  const isStepValid = useCallback((n:number) => {
     switch(n){
       case 1: return Boolean(seller.fullName && seller.dob && seller.phone && seller.email && seller.selfieFile);
       case 2: {
@@ -200,18 +202,35 @@ function SellerPortal() {
       case 6: return canSubmit;
       default: return false;
     }
-  }
+  }, [seller]);
 
-  const canSubmit = useMemo(()=> isStepValid(1) && isStepValid(2) && isStepValid(3) && isStepValid(4) && isStepValid(5), [seller]);
+  const canSubmit = useMemo(()=> isStepValid(1) && isStepValid(2) && isStepValid(3) && isStepValid(4) && isStepValid(5), [isStepValid]);
 
-  async function ensureDraft(){
-    if(appId) return appId;
-    if (!user) throw new Error("User not authenticated");
-    const payload={ personal:{ fullName:seller.fullName, dob:seller.dob, phone:seller.phone, email:seller.email, selfieUrl: seller.selfiePreview || '' }, documents:{ pan: seller.pan }, bank:{}, business:{ sellerType: seller.sellerType, shopName: seller.shopName, gst: seller.gst, address: seller.address } };
-    const { id } = await submitKycFn(payload);
-    setAppId(id);
-    return id;
-  }
+  const ensureDraft = useCallback(async () => {
+    if (appId) return appId;
+    if (!user) {
+        toast({ variant: 'destructive', title: 'Authentication Error', description: 'Please sign in first.' });
+        throw new Error("User not authenticated");
+    }
+    // This is a minimal payload to create the draft document in Firestore
+    const payload = { 
+        personal: { 
+            fullName: seller.fullName || user.displayName, 
+            email: seller.email || user.email 
+        },
+        status: 'draft' 
+    };
+    try {
+        const docRef = await addDoc(collection(db, 'kyc_applications'), payload);
+        setAppId(docRef.id);
+        return docRef.id;
+    } catch (error: any) {
+        console.error("Error creating draft KYC application:", error);
+        toast({ variant: 'destructive', title: 'Error', description: 'Could not create a draft application. Please check your connection and try again.' });
+        throw error;
+    }
+  }, [appId, user, seller, db, toast]);
+
 
   function onAadhaarZip(e: React.ChangeEvent<HTMLInputElement>) {
     const f = e.target.files?.[0] || null;
@@ -273,16 +292,22 @@ function SellerPortal() {
         return;
     }
     try {
+        setIsProcessingZip(true);
         const id = await ensureDraft();
         await uploadAadhaarZip(user.uid, id, seller.aadhaarZip as File);
         toast({ title: 'ZIP Uploaded', description: 'Your Aadhaar ZIP file is being processed. The photo will appear automatically.' });
     } catch (e: any) {
         console.error("ZIP upload error:", e);
         toast({ variant: 'destructive', title: 'Upload Failed', description: e.message || 'An unexpected error occurred.' });
+        setIsProcessingZip(false);
     }
   }
 
   async function submit() {
+    if (!canSubmit) {
+      toast({ variant: 'destructive', title: 'Incomplete Form', description: 'Please complete all required steps before submitting.' });
+      return;
+    }
     const payload={
       personal:{ fullName:seller.fullName, dob:seller.dob, phone:seller.phone, email:seller.email, selfieUrl: seller.selfiePreview },
       documents:{ aadhaarZipPath:null, aadhaarPhotoUrl: seller.aadhaarPhotoUrl, pan: seller.pan },
@@ -348,7 +373,7 @@ function SellerPortal() {
         </SectionCard>
 
         {submittedAt && (
-          <SectionCard title="Review Status" aside={<Badge>Under Review</Badge>}>
+          <SectionCard title="Review Status" aside={<Badge variant="warning">Under Review</Badge>}>
             <div className="text-sm text-muted-foreground">Admin will review your details within 24 hours.</div>
             <div className="text-sm">Time remaining: <Countdown to={submittedAt + slaMs} /></div>
           </SectionCard>
@@ -388,7 +413,7 @@ function SellerPortal() {
 
         {step===2 && (
           <SectionCard title="Aadhaar Paperless Offline e-KYC" aside={<Badge>UIDAI ZIP</Badge>}>
-            <p className="text-sm text-muted-foreground">Upload Aadhaar ZIP and share code. Backend will parse and set the Aadhaar photo automatically. Then run Face Match.</p>
+            <p className="text-sm text-muted-foreground">Download your Aadhaar ZIP from UIDAI and upload it here. Use your 4-character share code. Backend will parse and set the Aadhaar photo automatically. Then run Face Match.</p>
             <div className="grid sm:grid-cols-2 gap-4">
               <Field label="Upload Aadhaar ZIP" required error={!seller.aadhaarZip ? 'Upload ZIP' : ''}>
                 <Input type="file" accept=".zip" onChange={onAadhaarZip} />
@@ -400,17 +425,21 @@ function SellerPortal() {
               </Field>
             </div>
             <div className="grid sm:grid-cols-2 gap-4">
-              <Field label="Aadhaar Photo (parsed)" error={!seller.aadhaarPhotoUrl ? 'Please upload ZIP and wait.' : ''}>
+              <Field label="Aadhaar Photo (parsed)" error={!seller.aadhaarPhotoUrl ? 'Photo will appear here after upload' : ''}>
                 {seller.aadhaarPhotoUrl ? (
                   <Image src={seller.aadhaarPhotoUrl} alt="aadhaar" width={64} height={64} className="h-16 w-16 rounded-xl object-cover ring-1 ring-border" />
-                ) : (
+                ) : isProcessingZip ? (
                   <div className="flex items-center gap-2 text-sm text-muted-foreground h-16">
                     <Loader2 className="w-4 h-4 animate-spin" />
                     <span>Processing ZIP...</span>
                   </div>
+                ) : (
+                  <div className="text-xs text-muted-foreground h-16 flex items-center">
+                    Please upload ZIP and wait.
+                  </div>
                 )}
               </Field>
-              <Field label="Face Match" hint="Selfie must match Aadhaar photo (≥ 80%)" error={!(seller.faceMatchStatus==='passed' && seller.faceMatchScore>=0.8) ? 'Run face match & ensure ≥ 80%' : ''}>
+              <Field label="Face Match" hint="Selfie must match Aadhaar photo (≥ 80%)" error={seller.faceMatchStatus === 'failed' ? 'Match failed. Please upload a clearer selfie and try again.' : ''}>
                 <div className="flex items-center gap-3">
                   <Button onClick={uploadSelfieAndRunFaceMatch} disabled={!user || !seller.aadhaarPhotoUrl}>Run Face Match</Button>
                   <Badge variant={seller.faceMatchStatus === 'pending' ? 'outline' : seller.faceMatchStatus === 'passed' ? 'success' : 'destructive'}>
@@ -418,7 +447,6 @@ function SellerPortal() {
                      seller.faceMatchScore > 0 ? `Score: ${(seller.faceMatchScore*100).toFixed(0)}% - ${seller.faceMatchStatus}` : 'Not Run'}
                   </Badge>
                 </div>
-                 {seller.faceMatchStatus === 'failed' && <p className="text-xs text-destructive">Match failed. Please upload a clearer selfie and try again.</p>}
               </Field>
             </div>
             <div className="flex justify-between items-center">
@@ -549,9 +577,8 @@ export default function App() {
             <div className="w-24"></div>
         </header>
         <SellerPortal />
-        <footer className="text-xs text-muted-foreground text-center pt-4">This is a static preview. Your backend will handle verification and approvals.</footer>
+        <footer className="text-xs text-muted-foreground text-center pt-4">This is a static preview. Wire it to your backend APIs to enable real verification and approvals.</footer>
       </div>
     </div>
   );
 }
-
