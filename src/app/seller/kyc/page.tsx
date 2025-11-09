@@ -13,7 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { Check, AlertTriangle, Upload, ChevronLeft, ChevronRight, ShieldCheck, Building2, User2, MapPin, Banknote, FileSignature, ClipboardList, Eye, UserCheck, ShieldAlert, Gavel, Loader2 } from "lucide-react";
+import { Check, AlertTriangle, Upload, ChevronLeft, ChevronRight, ShieldCheck, Building2, User2, MapPin, Banknote, FileSignature, ClipboardList, Eye, UserCheck, ShieldAlert, Gavel } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
@@ -377,17 +377,37 @@ function SellerWizard() {
   );
 }
 
-export default function KYCPage() {
-    const { user, loading } = useAuth();
-    const router = useRouter();
 
-    if (loading) {
-        return <div className="min-h-screen p-6 md:p-10 flex items-center justify-center"><LoadingSpinner /></div>
+export default function KYCPage() {
+    const { user, userData, loading } = useAuth();
+    const router = useRouter();
+    const [isClient, setIsClient] = useState(false);
+
+    useEffect(() => {
+        setIsClient(true);
+    }, []);
+
+    useEffect(() => {
+        // This effect runs only on the client after `isClient` becomes true
+        if (isClient && !loading) {
+            if (userData?.role === 'seller') {
+                router.replace('/seller/dashboard');
+            }
+        }
+    }, [isClient, loading, userData, router]);
+    
+    // While loading or before client has mounted, show a spinner.
+    // This prevents the flicker by not rendering any decision-making logic prematurely.
+    if (loading || !isClient) {
+        return <div className="min-h-screen p-6 md:p-10 flex items-center justify-center"><LoadingSpinner /></div>;
     }
 
-    // AuthRedirector will handle the case where a user is logged out,
-    // so we don't need the redirect logic here anymore.
-    
+    // If after loading, the user is already a seller, show a loading spinner while redirecting.
+    if (userData?.role === 'seller') {
+        return <div className="min-h-screen p-6 md:p-10 flex items-center justify-center"><LoadingSpinner /></div>;
+    }
+
+    // Otherwise, render the wizard.
     return (
         <div className="min-h-screen p-6 md:p-10 bg-gradient-to-br from-gray-50 to-white">
             <div className="max-w-7xl mx-auto space-y-6">
@@ -396,3 +416,5 @@ export default function KYCPage() {
         </div>
     );
 }
+
+    
