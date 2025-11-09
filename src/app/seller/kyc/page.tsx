@@ -162,7 +162,7 @@ function SellerPortal() {
   const [submittedAt, setSubmittedAt] = useState<number | null>(null);
   const slaMs = 24 * 60 * 60 * 1000; // 24 hours
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [appId,setAppId]=useState("");
   const unsubRef = useRef<any>(null);
   const db = getFirestoreDb();
@@ -302,6 +302,10 @@ function SellerPortal() {
     }
   }
 
+  if (authLoading) {
+    return <div className="h-screen w-full flex items-center justify-center"><LoadingSpinner /></div>
+  }
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
       <div className="lg:col-span-1 grid gap-5 self-start sticky top-24">
@@ -316,7 +320,7 @@ function SellerPortal() {
           </div>
         </SectionCard>
 
-        <SectionCard title="Store Hours" aside={<Badge variant="outline">24 x 7</Badge>}>
+        <SectionCard title="Store Hours" aside={<Badge>24 x 7</Badge>}>
           <div className="flex items-center justify-between">
             <div className="grid">
               <div className="font-medium">Open 24 hours</div>
@@ -374,8 +378,9 @@ function SellerPortal() {
                 </div>
               </Field>
             </div>
-            <div className="flex justify-end">
-              <Button onClick={()=>setStep(2)} disabled={!isStepValid(1)}>Continue</Button>
+            <div className="flex justify-between items-center">
+              {!isStepValid(1) && (<span className="text-xs text-destructive">Complete all fields to continue.</span>)}
+              <Button onClick={()=>setStep(2)} disabled={!isStepValid(1)} className="ml-auto">Continue</Button>
             </div>
           </SectionCard>
         )}
@@ -401,20 +406,21 @@ function SellerPortal() {
                   <span className="text-xs text-muted-foreground">Will appear automatically after parse.</span>
                 )}
               </Field>
-              <Field label="Face Match" hint="Selfie must match Aadhaar photo (≥ 80%)" error={!(seller.faceMatchStatus==='passed' && seller.faceMatchScore>=0.8) ? 'Run face match & ensure ≥ 80%' : ''}>
+              <Field label="Face Match" hint="Selfie must match Aadhaar photo (≥ 80%)">
                 <div className="flex items-center gap-3">
                   <Button onClick={uploadSelfieAndRunFaceMatch} disabled={!user}>Run Face Match</Button>
-                  {seller.faceMatchScore>0 && (
-                    <Badge variant={seller.faceMatchStatus==='passed'?'success':'destructive'}>
-                      Score {(seller.faceMatchScore*100).toFixed(0)}% {seller.faceMatchStatus==='passed'?'Matched':'Not matched'}
-                    </Badge>
-                  )}
+                  <Badge variant={seller.faceMatchStatus === 'pending' ? 'outline' : seller.faceMatchStatus === 'passed' ? 'success' : 'destructive'}>
+                    {seller.faceMatchStatus === 'pending' ? 'Pending' :
+                     seller.faceMatchScore > 0 ? `Score: ${(seller.faceMatchScore*100).toFixed(0)}% - ${seller.faceMatchStatus}` : 'Not Run'}
+                  </Badge>
                 </div>
+                 {seller.faceMatchStatus === 'failed' && <p className="text-xs text-destructive">Match failed. Please upload a clearer selfie and try again.</p>}
               </Field>
             </div>
-            <div className="flex justify-between">
+            <div className="flex justify-between items-center">
               <Button variant="outline" onClick={()=>setStep(1)}>Back</Button>
-              <Button onClick={()=>setStep(3)} disabled={!isStepValid(2)}>Continue</Button>
+              {!isStepValid(2) && <span className="text-xs text-destructive">Complete ZIP + Photo + Face ≥ 80% to continue.</span>}
+              <Button onClick={()=>setStep(3)} disabled={!isStepValid(2)} className="ml-auto">Continue</Button>
             </div>
           </SectionCard>
         )}
@@ -428,9 +434,10 @@ function SellerPortal() {
                 {seller.panVerified && <div className="text-xs text-green-700 mt-1">Verified (format only)</div>}
               </Field>
             </div>
-            <div className="flex justify-between">
+            <div className="flex justify-between items-center">
               <Button variant="outline" onClick={()=>setStep(2)}>Back</Button>
-              <Button onClick={()=>setStep(4)} disabled={!isStepValid(3)}>Continue</Button>
+              {!isStepValid(3) && <span className="text-xs text-destructive">Verify PAN (format) to continue.</span>}
+              <Button onClick={()=>setStep(4)} disabled={!isStepValid(3)} className="ml-auto">Continue</Button>
             </div>
           </SectionCard>
         )}
@@ -451,9 +458,10 @@ function SellerPortal() {
                 <Input value={seller.acctNumber} onChange={(e:any)=>setSeller({...seller, acctNumber:e.target.value})} />
               </Field>
             </div>
-            <div className="flex justify-between">
+            <div className="flex justify-between items-center">
               <Button variant="outline" onClick={()=>setStep(3)}>Back</Button>
-              <Button onClick={()=>setStep(5)} disabled={!isStepValid(4)}>Continue</Button>
+               {!isStepValid(4) && <span className="text-xs text-destructive">Fill all bank fields.</span>}
+              <Button onClick={()=>setStep(5)} disabled={!isStepValid(4)} className="ml-auto">Continue</Button>
             </div>
           </SectionCard>
         )}
@@ -484,15 +492,16 @@ function SellerPortal() {
                 <Input value={seller.address} onChange={(e:any)=>setSeller({...seller, address:e.target.value})} />
               </Field>
             </div>
-            <div className="flex justify-between">
+            <div className="flex justify-between items-center">
               <Button variant="outline" onClick={()=>setStep(4)}>Back</Button>
-              <Button onClick={()=>setStep(6)} disabled={!isStepValid(5)}>Continue</Button>
+              {!isStepValid(5) && <span className="text-xs text-destructive">Complete required fields.</span>}
+              <Button onClick={()=>setStep(6)} disabled={!isStepValid(5)} className="ml-auto">Continue</Button>
             </div>
           </SectionCard>
         )}
 
         {step===6 && (
-          <SectionCard title="Review & Submit" aside={<Badge variant="default">Final Step</Badge>}>
+          <SectionCard title="Review & Submit" aside={<Badge>Final Step</Badge>}>
             <div className="grid gap-2 text-sm">
               <h4 className="font-medium">Summary</h4>
               <ul className="list-disc ml-6 text-muted-foreground">
@@ -525,7 +534,14 @@ export default function App() {
     <div className="min-h-screen bg-muted/40 p-4 sm:p-8">
       <div className="max-w-6xl mx-auto grid gap-6">
         <header className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold">StreamCart • Seller KYC</h1>
+            <Button asChild variant="ghost" className="-ml-4">
+              <Link href="/seller/dashboard">
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Back to Dashboard
+              </Link>
+            </Button>
+            <h1 className="text-2xl font-bold">Seller KYC</h1>
+            <div className="w-24"></div>
         </header>
         <SellerPortal />
         <footer className="text-xs text-muted-foreground text-center pt-4">This is a static preview. Wire it to your backend APIs to enable real verification and approvals.</footer>
@@ -533,5 +549,3 @@ export default function App() {
     </div>
   );
 }
-
-    
