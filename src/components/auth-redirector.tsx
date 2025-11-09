@@ -57,15 +57,11 @@ export function AuthRedirector() {
                 if (pathname.startsWith('/admin/')) {
                     // Customers trying to access admin pages are redirected.
                     targetPath = '/live-selling';
-                } else if (sellerPaths.includes(pathname) && pathname !== '/seller/kyc') {
-                    // Customers can access /seller/kyc, but no other specific seller pages.
+                } else if (sellerPaths.includes(pathname)) {
+                    // Customers can't access any specific seller pages.
                     targetPath = '/live-selling';
                 } else if (publicOnlyPaths.includes(pathname) || pathname === emailVerificationPath) {
-                    // If a customer is on a page only for logged-out users, redirect them.
-                    // CRITICAL FIX: Do NOT redirect if they are trying to access the seller kyc page.
-                    if (pathname !== '/seller/kyc') {
-                        targetPath = '/live-selling';
-                    }
+                    targetPath = '/live-selling';
                 }
             }
         }
@@ -73,10 +69,11 @@ export function AuthRedirector() {
         // --- User is LOGGED OUT ---
         const isProtectedPath = 
             adminPaths.some(p => pathname.startsWith(p)) ||
-            (sellerPaths.some(p => pathname.startsWith(p)) && pathname !== '/seller/kyc') || // Allow logged-out access to kyc page
+            (sellerPaths.some(p => pathname.startsWith(p))) ||
             ['/profile', '/orders', '/wishlist', '/cart', '/wallet', '/setting', '/message', '/feed'].includes(pathname);
-
-        if (isProtectedPath) {
+        
+        // Logged-out users should be able to access the KYC page.
+        if (isProtectedPath && pathname !== '/seller/kyc') {
              targetPath = `/?redirect=${pathname}`;
         }
     }
