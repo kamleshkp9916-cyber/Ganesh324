@@ -435,7 +435,7 @@ function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
                 </div>
               </Section>
             )}
-            <div className="flex items-center justify-between">
+             <div className="flex items-center justify-between mt-4">
                 <Button variant="outline" onClick={prev} disabled={current === 0}>Back</Button>
               <div className="flex items-center gap-3">
                 {current < steps.length - 1 && (
@@ -459,31 +459,44 @@ export default function KYCPage() {
     const { user, userData, loading } = useAuth();
     const router = useRouter();
     const [isClient, setIsClient] = useState(false);
+    const [submittedApp, setSubmittedApp] = useState<any>(null);
 
     useEffect(() => {
         setIsClient(true);
+        const app = localStorage.getItem(SELLER_APP_SUBMITTED_KEY);
+        if (app) {
+            setSubmittedApp(JSON.parse(app));
+        }
     }, []);
 
     const handleSubmission = (data: any) => {
+        setSubmittedApp(data);
         console.log("Seller Application Submitted:", data);
         router.push('/admin/kyc'); 
     };
 
+    useEffect(() => {
+        if (isClient && !loading && userData?.role === 'seller') {
+            router.replace('/seller/dashboard');
+        }
+    }, [isClient, loading, userData, router]);
+
+
     if (loading || !isClient) {
         return <div className="min-h-screen p-6 md:p-10 flex items-center justify-center"><LoadingSpinner /></div>;
     }
-
-    if (userData && userData.role === 'seller') {
-        router.replace('/seller/dashboard');
+    
+    if (!user) {
+        // This effect will run after the first render, and only on the client.
+        // It's safe to use router here.
+        router.replace('/?redirect=/seller/kyc');
+        // Return a loader to prevent flicker while redirecting.
         return <div className="min-h-screen p-6 md:p-10 flex items-center justify-center"><LoadingSpinner /></div>;
     }
-    
+
     return (
         <div className="min-h-screen p-6 md:p-10 bg-gradient-to-br from-gray-50 to-white">
             <div className="max-w-7xl mx-auto space-y-6">
-                <Button variant="ghost" onClick={() => router.back()} className="mb-4 -ml-4">
-                  <ChevronLeft className="w-4 h-4 mr-2"/>Back
-                </Button>
                 <div className="flex items-center justify-between">
                     <div>
                         <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">Become a Seller</h1>
@@ -495,4 +508,6 @@ export default function KYCPage() {
         </div>
     );
 }
-```)
+
+
+    
