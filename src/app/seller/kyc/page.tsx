@@ -13,11 +13,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { Check, AlertTriangle, Upload, ChevronLeft, ChevronRight, ShieldCheck, Building2, User2, MapPin, Banknote, FileSignature, ClipboardList, Eye, UserCheck, ShieldAlert, Gavel } from "lucide-react";
+import { Check, AlertTriangle, Upload, ChevronLeft, ChevronRight, ShieldCheck, Building2, User2, MapPin, Banknote, FileSignature, ClipboardList, Eye, UserCheck, ShieldAlert, Gavel, Loader2, Send } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
+import { InputOTP, InputOTPGroup, InputOTPSeparator, InputOTPSlot } from "@/components/ui/input-otp";
 
 const Section = ({ title, children, icon }: { title: string, children: React.ReactNode, icon: React.ReactNode }) => (
   <Card className="shadow-lg border rounded-2xl">
@@ -62,6 +63,10 @@ function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
     displayName: "",
     email: user?.email || "",
     phone: "",
+    emailOtp: "",
+    phoneOtp: "",
+    emailVerified: false,
+    phoneVerified: false,
     categories: [],
     about: "",
     bizType: "Individual",
@@ -84,6 +89,20 @@ function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
     termsAccepted: false,
   });
   const [verif, setVerif] = useState({ state: "IDLE", message: "" });
+  const [otpSent, setOtpSent] = useState({ email: false, phone: false });
+  const [isVerifying, setIsVerifying] = useState({ email: false, phone: false });
+
+  const isStep1Valid = useMemo(() => {
+    return form.legalName && form.displayName && /.+@.+\..+/.test(form.email) && /^\d{10}$/.test(form.phone) && form.emailVerified && form.phoneVerified;
+  }, [form]);
+
+  const canGoToStep = (stepIndex: number) => {
+    switch(stepIndex) {
+        case 1: return isStep1Valid;
+        // Add validation for other steps here
+        default: return true; // Default to allow navigation for subsequent steps for now
+    }
+  }
 
   useEffect(() => {
     const draft = localStorage.getItem(SELLER_APP_DRAFT_KEY);
@@ -107,6 +126,25 @@ function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
       localStorage.setItem(SELLER_APP_DRAFT_KEY, JSON.stringify(clone));
       return clone;
     });
+  };
+
+  const handleSendOtp = (type: 'email' | 'phone') => {
+      setOtpSent(prev => ({...prev, [type]: true}));
+      toast({ title: `OTP Sent to your ${type}` });
+  };
+
+  const handleVerifyOtp = (type: 'email' | 'phone') => {
+      const otp = type === 'email' ? form.emailOtp : form.phoneOtp;
+      if (otp !== '123456') { // Mock OTP
+          toast({ variant: 'destructive', title: `Invalid ${type} OTP` });
+          return;
+      }
+      setIsVerifying(prev => ({...prev, [type]: true }));
+      setTimeout(() => {
+          setField(`${type}Verified`, true);
+          setIsVerifying(prev => ({ ...prev, [type]: false }));
+          toast({ title: `${type.charAt(0).toUpperCase() + type.slice(1)} Verified!` });
+      }, 1000);
   };
 
   const next = () => setCurrent((c) => Math.min(c + 1, steps.length - 1));
@@ -169,24 +207,66 @@ function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
           <motion.div key={current} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} className="space-y-4">
             {steps[current].key === "basic" && (
               <Section title="Basic Info" icon={<User2 className="w-5 h-5"/>}>
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-sm">Legal name</label>
-                    <Input value={form.legalName} onChange={(e)=>setField("legalName", e.target.value)} placeholder="As per ID"/>
+                <div className="space-y-4">
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-sm">Legal name</label>
+                      <Input value={form.legalName} onChange={(e)=>setField("legalName", e.target.value)} placeholder="As per ID"/>
+                    </div>
+                    <div>
+                      <label className="text-sm">Shop display name</label>
+                      <Input value={form.displayName} onChange={(e)=>setField("displayName", e.target.value)} placeholder="Unique store name"/>
+                    </div>
                   </div>
-                  <div>
-                    <label className="text-sm">Shop display name</label>
-                    <Input value={form.displayName} onChange={(e)=>setField("displayName", e.target.value)} placeholder="Unique store name"/>
+                  <div className="grid md:grid-cols-[1fr,auto] gap-2 items-end">
+                      <div>
+                        <label className="text-sm">Email</label>
+                        <Input value={form.email} onChange={(e)=>setField("email", e.target.value)} placeholder="you@shop.com" disabled={form.emailVerified} />
+                      </div>
+                      <Button type="button" onClick={() => handleSendOtp('email')} disabled={otpSent.email || form.emailVerified || !/.+@.+\..+/.test(form.email)}>
+                          {form.emailVerified ? <Check className="mr-2 h-4 w-4"/> : <Send className="mr-2 h-4 w-4"/>}
+                          {form.emailVerified ? 'Verified' : otpSent.email ? 'Resend OTP' : 'Send OTP'}
+                      </Button>
                   </div>
-                  <div>
-                    <label className="text-sm">Email</label>
-                    <Input value={form.email} onChange={(e)=>setField("email", e.target.value)} placeholder="you@shop.com"/>
+                   {otpSent.email && !form.emailVerified && (
+                      <div className="flex items-center gap-2">
+                          <InputOTP maxLength={6} value={form.emailOtp} onChange={(val) => setField("emailOtp", val)}>
+                              <InputOTPGroup>
+                                  <InputOTPSlot index={0} /><InputOTPSlot index={1} /><InputOTPSlot index={2} />
+                              </InputOTPGroup>
+                          </InputOTP>
+                          <Button type="button" variant="secondary" onClick={() => handleVerifyOtp('email')} disabled={form.emailOtp.length < 6 || isVerifying.email}>
+                            {isVerifying.email && <Loader2 className="mr-2 h-4 w-4 animate-spin"/>}
+                            Verify Email
+                          </Button>
+                      </div>
+                  )}
+
+                  <div className="grid md:grid-cols-[1fr,auto] gap-2 items-end">
+                      <div>
+                        <label className="text-sm">Phone</label>
+                        <Input value={form.phone} onChange={(e)=>setField("phone", e.target.value.replace(/[^0-9]/g, "").slice(0,10))} placeholder="10‑digit mobile" disabled={form.phoneVerified}/>
+                      </div>
+                      <Button type="button" onClick={() => handleSendOtp('phone')} disabled={otpSent.phone || form.phoneVerified || form.phone.length !== 10}>
+                         {form.phoneVerified ? <Check className="mr-2 h-4 w-4"/> : <Send className="mr-2 h-4 w-4"/>}
+                         {form.phoneVerified ? 'Verified' : otpSent.phone ? 'Resend OTP' : 'Send OTP'}
+                      </Button>
                   </div>
+                  {otpSent.phone && !form.phoneVerified && (
+                      <div className="flex items-center gap-2">
+                          <InputOTP maxLength={6} value={form.phoneOtp} onChange={(val) => setField("phoneOtp", val)}>
+                               <InputOTPGroup>
+                                  <InputOTPSlot index={0} /><InputOTPSlot index={1} /><InputOTPSlot index={2} />
+                              </InputOTPGroup>
+                          </InputOTP>
+                          <Button type="button" variant="secondary" onClick={() => handleVerifyOtp('phone')} disabled={form.phoneOtp.length < 6 || isVerifying.phone}>
+                             {isVerifying.phone && <Loader2 className="mr-2 h-4 w-4 animate-spin"/>}
+                            Verify Phone
+                          </Button>
+                      </div>
+                  )}
+
                   <div>
-                    <label className="text-sm">Phone</label>
-                    <Input value={form.phone} onChange={(e)=>setField("phone", e.target.value)} placeholder="10‑digit mobile"/>
-                  </div>
-                  <div className="md:col-span-2">
                     <label className="text-sm">About shop</label>
                     <Textarea value={form.about} onChange={(e)=>setField("about", e.target.value)} placeholder="Short bio"/>
                   </div>
@@ -355,10 +435,11 @@ function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
                 </div>
               </Section>
             )}
-             <div className="flex items-center justify-end">
+            <div className="flex items-center justify-between">
+                <Button variant="outline" onClick={prev} disabled={current === 0}>Back</Button>
               <div className="flex items-center gap-3">
                 {current < steps.length - 1 && (
-                  <Button onClick={next}>Next<ChevronRight className="w-4 h-4 ml-2"/></Button>
+                  <Button onClick={next} disabled={!canGoToStep(current + 1)}>Next<ChevronRight className="w-4 h-4 ml-2"/></Button>
                 )}
                 {current === steps.length - 1 && (
                   <Button disabled={!canSubmit} onClick={submit}>
@@ -391,9 +472,12 @@ export default function KYCPage() {
     if (loading || !isClient) {
         return <div className="min-h-screen p-6 md:p-10 flex items-center justify-center"><LoadingSpinner /></div>;
     }
+
+    if (userData && userData.role === 'seller') {
+        router.replace('/seller/dashboard');
+        return <div className="min-h-screen p-6 md:p-10 flex items-center justify-center"><LoadingSpinner /></div>;
+    }
     
-    // This case handles a logged-out user or a customer.
-    // The wizard should be displayed.
     return (
         <div className="min-h-screen p-6 md:p-10 bg-gradient-to-br from-gray-50 to-white">
             <div className="max-w-7xl mx-auto space-y-6">
@@ -411,3 +495,4 @@ export default function KYCPage() {
         </div>
     );
 }
+```)
