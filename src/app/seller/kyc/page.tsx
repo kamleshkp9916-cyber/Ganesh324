@@ -170,10 +170,10 @@ function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
     setTimeout(() => {
       // Mock rule: if share code ends with even number → VERIFIED else MISMATCH
       const ok = Number(form.shareCode.at(-1)) % 2 === 0;
-      setVerif({ state: ok ? "VERIFIED" : "INVALID_SIGNATURE", message: ok ? "Signature valid. Fields parsed." : "Signature invalid. Re‑download from myAadhaar." });
+      setVerif({ state: ok ? "VERIFIED" : "INVALID_SIGNATURE", message: ok ? "Digital signature valid. Fields parsed from ZIP." : "Digital signature in ZIP is invalid. Please re‑download from myAadhaar and try again." });
        toast({
         title: ok ? "Aadhaar Verified" : "Verification Failed",
-        description: ok ? "Your Aadhaar details were successfully parsed." : "The signature on the file could not be validated.",
+        description: ok ? "Your Aadhaar details were successfully parsed." : "The digital signature on the file could not be validated.",
         variant: ok ? "default" : "destructive",
       });
     }, 900);
@@ -391,7 +391,7 @@ function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
               <Section title="Identity — Aadhaar Offline e‑KYC" icon={<ShieldCheck className="w-5 h-5"/>}>
                 <div className="space-y-4">
                   <div className="p-3 rounded-xl bg-gray-50 text-sm">
-                    Download your password-protected (locked) <strong>Aadhaar Offline e‑KYC ZIP</strong> from myAadhaar, set a <strong>4‑digit Share Code</strong>, then upload the ZIP file below.
+                    Download your password-protected (i.e., <strong>locked</strong>) Aadhaar Offline e‑KYC ZIP from myAadhaar, set a <strong>4‑digit Share Code</strong> during download, then upload the ZIP file below.
                   </div>
                   <div className="grid md:grid-cols-2 gap-4">
                     <div>
@@ -400,12 +400,11 @@ function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
                         <Input type="file" accept=".zip" onChange={(e)=>setField("aadhaarZip", e.target.files?.[0] || null)} />
                         <Button variant="secondary" className="ml-3"><Upload className="w-4 h-4 mr-2"/>Upload</Button>
                       </div>
-                      <p className="text-xs text-muted-foreground mt-1">Upload the password-protected (locked) ZIP file from UIDAI.</p>
                     </div>
                     <div>
                       <label className="text-sm">4‑digit Share Code</label>
                       <Input value={form.shareCode} maxLength={4} onChange={(e)=>setField("shareCode", e.target.value.replace(/[^0-9]/g, ""))} placeholder="e.g., 1234"/>
-                       <p className="text-xs text-muted-foreground mt-1">This is the code you created yourself on the myAadhaar website when downloading the ZIP file.</p>
+                       <p className="text-xs text-muted-foreground mt-1">This is the code you created on the myAadhaar website when downloading the ZIP file.</p>
                     </div>
                   </div>
                    <div>
@@ -424,10 +423,11 @@ function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
                   <div className="flex items-center gap-3">
                     <Button onClick={fakeVerifyAadhaar}><ShieldCheck className="w-4 h-4 mr-2"/>Verify e‑KYC</Button>
                     {verif.state === "VERIFYING" && <Badge variant="secondary">Verifying…</Badge>}
-                    {verif.state === "VERIFIED" && <Badge className="bg-green-600">Signature valid</Badge>}
-                    {verif.state === "INVALID_SIGNATURE" && <Badge variant="destructive">Invalid signature</Badge>}
+                    {verif.state === "VERIFIED" && <Badge className="bg-green-600">Digital Signature Valid</Badge>}
+                    {verif.state === "INVALID_SIGNATURE" && <Badge variant="destructive">Digital signature in ZIP is invalid</Badge>}
                     {verif.state === "ERROR" && <Badge variant="destructive">{verif.message}</Badge>}
                   </div>
+                  {verif.message && <p className="text-xs text-muted-foreground">{verif.message}</p>}
                 </div>
               </Section>
             )}
@@ -537,3 +537,4 @@ export default function KYCPage() {
         </div>
     );
 }
+
