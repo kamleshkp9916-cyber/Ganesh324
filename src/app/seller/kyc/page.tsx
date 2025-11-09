@@ -161,15 +161,13 @@ function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
   const canSubmit = form.termsAccepted && verif.state === "VERIFIED";
 
   const fakeVerifyAadhaar = async () => {
-    // purely client-side mock to simulate offline e‑KYC ZIP + share code verification
     if (!form.aadhaarZip || !form.shareCode || form.shareCode.length !== 4) {
       setVerif({ state: "ERROR", message: "Please upload the ZIP and enter the 4‑digit Share Code." });
       return;
     }
     setVerif({ state: "VERIFYING", message: "Verifying UIDAI signature…" });
     setTimeout(() => {
-      // Mock rule: if share code ends with even number → VERIFIED else MISMATCH
-      const ok = Number(form.shareCode.at(-1)) % 2 === 0;
+      const ok = true; // Always succeed for demonstration purposes
       setVerif({ state: ok ? "VERIFIED" : "INVALID_SIGNATURE", message: ok ? "Digital signature valid. Fields parsed from ZIP." : "Digital signature in ZIP is invalid. Please re‑download from myAadhaar and try again." });
        toast({
         title: ok ? "Aadhaar Verified" : "Verification Failed",
