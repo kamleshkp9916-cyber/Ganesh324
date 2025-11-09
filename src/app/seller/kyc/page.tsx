@@ -370,7 +370,7 @@ function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
               <Section title="Identity — Aadhaar Offline e‑KYC" icon={<ShieldCheck className="w-5 h-5"/>}>
                 <div className="space-y-4">
                   <div className="p-3 rounded-xl bg-gray-50 text-sm">
-                    Download your password-protected <strong>Aadhaar Offline e‑KYC ZIP</strong> from myAadhaar, set a <strong>4‑digit Share Code</strong>, then upload the ZIP file below.
+                    Download your password-protected (locked) <strong>Aadhaar Offline e‑KYC ZIP</strong> from myAadhaar, set a <strong>4‑digit Share Code</strong>, then upload the ZIP file below.
                   </div>
                   <div className="grid md:grid-cols-2 gap-4">
                     <div>
@@ -379,7 +379,7 @@ function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
                         <Input type="file" accept=".zip" onChange={(e)=>setField("aadhaarZip", e.target.files?.[0] || null)} />
                         <Button variant="secondary" className="ml-3"><Upload className="w-4 h-4 mr-2"/>Upload</Button>
                       </div>
-                      <p className="text-xs text-muted-foreground mt-1">Upload the password-protected ZIP file from UIDAI.</p>
+                      <p className="text-xs text-muted-foreground mt-1">Upload the password-protected (locked) ZIP file from UIDAI.</p>
                     </div>
                     <div>
                       <label className="text-sm">4‑digit Share Code</label>
@@ -458,18 +458,13 @@ function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
 }
 
 export default function KYCPage() {
-    const { user, userData, loading, authReady } = useAuth();
+    const { user, userData, authReady } = useAuth();
     const router = useRouter();
     const [isClient, setIsClient] = useState(false);
     
     useEffect(() => {
         setIsClient(true);
     }, []);
-
-    const handleSubmission = (data: any) => {
-        console.log("Seller Application Submitted:", data);
-        router.push('/admin/kyc'); 
-    };
     
     useEffect(() => {
         if (isClient && authReady) {
@@ -479,7 +474,12 @@ export default function KYCPage() {
         }
     }, [isClient, user, userData, authReady, router]);
     
-    if (loading || !isClient || !authReady) {
+    const handleSubmission = (data: any) => {
+        console.log("Seller Application Submitted:", data);
+        router.push('/admin/kyc'); 
+    };
+
+    if (!isClient || !authReady) {
         return (
             <div className="min-h-screen p-6 md:p-10 flex items-center justify-center">
                 <LoadingSpinner />
@@ -507,5 +507,3 @@ export default function KYCPage() {
         </div>
     );
 }
-
-```)
