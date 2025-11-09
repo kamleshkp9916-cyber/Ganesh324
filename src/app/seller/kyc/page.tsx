@@ -476,21 +476,18 @@ export default function KYCPage() {
     };
 
     useEffect(() => {
-        if (!loading) {
-            if (!user) {
-                router.replace('/?redirect=/seller/kyc');
-            } else if (userData?.role === 'seller') {
+        if (isClient && !loading) {
+            if (userData?.role === 'seller') {
                 router.replace('/seller/dashboard');
             }
         }
-    }, [user, userData, loading, router]);
+    }, [isClient, user, userData, loading, router]);
 
 
-    if (loading || !isClient || (isClient && !user)) {
+    if (loading || !isClient) {
         return <div className="min-h-screen p-6 md:p-10 flex items-center justify-center"><LoadingSpinner /></div>;
     }
     
-    // This check is now safe because the useEffect above handles the redirect for non-logged-in users.
     if (userData?.role === 'seller') {
         return <div className="min-h-screen p-6 md:p-10 flex items-center justify-center"><LoadingSpinner /></div>;
     }
@@ -513,3 +510,6 @@ export default function KYCPage() {
         </div>
     );
 }
+
+
+    
