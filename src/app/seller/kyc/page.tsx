@@ -436,11 +436,11 @@ function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
               </Section>
             )}
              <div className="flex items-center justify-between mt-6">
-                 <div>
-                    {current > 0 && (
-                        <Button variant="outline" onClick={prev}>Back</Button>
-                    )}
-                 </div>
+                <div>
+                  {current > 0 && (
+                      <Button variant="outline" onClick={prev}>Back</Button>
+                  )}
+                </div>
               <div className="flex items-center gap-3">
                 {current < steps.length - 1 && (
                   <Button onClick={next} disabled={!canGoToStep(current + 1)}>Next<ChevronRight className="w-4 h-4 ml-2"/></Button>
@@ -467,13 +467,23 @@ export default function KYCPage() {
 
     useEffect(() => {
         setIsClient(true);
-        if (typeof window !== 'undefined') {
+    }, []);
+
+    useEffect(() => {
+        if (!isClient || loading) return;
+
+        if (userData?.role === 'seller') {
+            router.replace('/seller/dashboard');
+        } else if (!user) {
+            router.replace('/?redirect=/seller/kyc');
+        } else {
             const app = localStorage.getItem(SELLER_APP_SUBMITTED_KEY);
             if (app) {
                 setSubmittedApp(JSON.parse(app));
             }
         }
-    }, []);
+    }, [isClient, user, userData, loading, router]);
+
 
     const handleSubmission = (data: any) => {
         setSubmittedApp(data);
@@ -481,7 +491,7 @@ export default function KYCPage() {
         router.push('/admin/kyc'); 
     };
     
-    if (loading && !isClient) {
+    if (loading || !isClient) {
         return (
             <div className="min-h-screen p-6 md:p-10 flex items-center justify-center">
                 <LoadingSpinner />
@@ -489,25 +499,16 @@ export default function KYCPage() {
         );
     }
     
-    if (isClient && !user) {
-        // Only run on client side after checking user state
-        router.replace('/?redirect=/seller/kyc');
-        return <div className="min-h-screen p-6 md:p-10 flex items-center justify-center"><LoadingSpinner /></div>;
-    }
-    
-    if (isClient && userData?.role === 'seller') {
-        router.replace('/seller/dashboard');
-        return <div className="min-h-screen p-6 md:p-10 flex items-center justify-center"><LoadingSpinner /></div>;
+    if (userData?.role === 'seller' || (isClient && !user)) {
+        return (
+            <div className="min-h-screen p-6 md:p-10 flex items-center justify-center">
+                <LoadingSpinner />
+            </div>
+        );
     }
 
     return (
         <div className="min-h-screen p-6 md:p-10 bg-gradient-to-br from-gray-50 to-white">
-            <div className="absolute top-4 left-4">
-                 <Button variant="ghost" onClick={() => router.back()}>
-                    <ChevronLeft className="mr-2 h-4 w-4" />
-                    Back
-                </Button>
-            </div>
             <div className="max-w-7xl mx-auto space-y-6">
                 <div className="text-center">
                     <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">Become a Seller</h1>
