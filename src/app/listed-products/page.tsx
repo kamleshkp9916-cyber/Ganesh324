@@ -1,5 +1,5 @@
 
-"use client";
+      "use client";
 
 import * as React from "react";
 import Link from "next/link";
@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/navigation-menu"
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { Menu, ShoppingBag, User, X, ChevronRight, ArrowLeft, Search, List, Star, Package, Users, ArrowRight } from "lucide-react";
+import { Menu, ShoppingBag, User, X, ChevronRight, ArrowLeft, Search, List, Star, Package, Users, ArrowRight, Zap } from "lucide-react";
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import Image from 'next/image';
@@ -33,7 +33,7 @@ import { motion } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
 import { Footer } from "@/components/footer";
 import { useLocalStorage } from "@/hooks/use-local-storage";
-
+import { HubBanner, CATEGORY_HUB_BANNER_KEY } from "@/components/settings/promotions-settings";
 
 const collageCategories = [
     { name: "Women", href: "/women", imageUrl: "https://images.unsplash.com/photo-1483985988355-763728e1935b?w=800&h=1200&fit=crop", hint: "woman shopping", gridClass: "md:row-span-2 md:col-span-2" },
@@ -45,6 +45,13 @@ const collageCategories = [
 ];
 
 
+const defaultHubBanner: HubBanner = {
+    title: "Discover products you'll love",
+    description: "Curated picks, timeless design, and everyday prices. Start exploring our latest arrivals and best sellers.",
+    imageUrl: 'https://images.unsplash.com/photo-1568252542512-9fe8fe9c87bb?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxmYXNoaW9uJTIwbW9kZWx8ZW58MHx8fHwxNzYxNTYyNzc5fDA&ixlib=rb-4.1.0&q=80&w=1080',
+};
+
+
 export default function ListedProductsPage() {
   const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
@@ -52,6 +59,7 @@ export default function ListedProductsPage() {
   const [showSearchResults, setShowSearchResults] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [allCategories] = useLocalStorage<Category[]>(CATEGORIES_KEY, defaultCategories);
+  const [hubBanner] = useLocalStorage<HubBanner>(CATEGORY_HUB_BANNER_KEY, defaultHubBanner);
 
   const trendingProducts = useMemo(() => {
     return Object.values(productDetails)
@@ -209,7 +217,23 @@ export default function ListedProductsPage() {
       <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-10 flex-grow">
          {showSearchResults ? renderSearchResults() : (
            <div className="space-y-16">
-              <PromotionalCarousel />
+              <Card className="overflow-hidden bg-gray-100 dark:bg-gray-900 border-none text-center p-8 md:p-12 relative flex flex-col justify-center items-center aspect-[2.5/1]">
+                  <Image
+                    src={hubBanner.imageUrl}
+                    alt={hubBanner.title}
+                    fill
+                    className="object-cover"
+                    data-ai-hint="electronics sale"
+                  />
+                   <div className="absolute inset-0 bg-black/40" />
+                   <div className="relative z-10 text-white">
+                        <h2 className="text-3xl md:text-5xl font-extrabold tracking-tight">{hubBanner.title}</h2>
+                        <p className="mt-4 text-lg md:text-xl max-w-2xl mx-auto">{hubBanner.description}</p>
+                        <Button asChild size="lg" className="mt-6">
+                            <Link href="/sale">Shop Now <Zap className="ml-2 h-4 w-4" /></Link>
+                        </Button>
+                    </div>
+              </Card>
               
                 <section>
                     <div className="text-left mb-8">
@@ -278,3 +302,4 @@ ListItem.displayName = "ListItem"
     
 
 
+    
