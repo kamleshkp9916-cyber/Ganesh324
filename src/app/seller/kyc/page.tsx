@@ -21,12 +21,14 @@ import { useToast } from "@/hooks/use-toast";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { InputOTP, InputOTPGroup, InputOTPSeparator, InputOTPSlot } from "@/components/ui/input-otp";
 import Image from "next/image";
-import { updateUserData } from "@/lib/follow-data";
+import { updateUserData, UserData } from "@/lib/follow-data";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useAuthActions } from "@/lib/auth";
+import { getFirestore, collection, query, where, getDocs } from "firebase/firestore";
+import { getFirestoreDb } from "@/lib/firebase";
 
 const Section = ({ title, children, icon }: { title: string, children: React.ReactNode, icon: React.ReactNode }) => (
   <Card className="shadow-lg border rounded-2xl">
@@ -111,6 +113,9 @@ function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
   const [selfiePreview, setSelfiePreview] = useState<string | null>(null);
   const selfieInputRef = useRef<HTMLInputElement>(null);
 
+  const [emailError, setEmailError] = useState('');
+  const [phoneError, setPhoneError] = useState('');
+
    useEffect(() => {
     const draft = localStorage.getItem(SELLER_APP_DRAFT_KEY);
     if (draft) {
@@ -131,8 +136,8 @@ function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
   }, []);
 
   const isStep1Valid = useMemo(() => {
-    return form.legalName && form.displayName && /.+@.+\..+/.test(form.email) && /^\d{10}$/.test(form.phone) && form.emailVerified && form.phoneVerified && form.photoUrl && form.password.length >= 8 && form.password === form.confirmPassword;
-  }, [form]);
+    return form.legalName && form.displayName && /.+@.+\..+/.test(form.email) && /^\d{10}$/.test(form.phone) && form.emailVerified && form.phoneVerified && form.photoUrl && form.password.length >= 8 && form.password === form.confirmPassword && !emailError && !phoneError;
+  }, [form, emailError, phoneError]);
 
   const isStep2Valid = useMemo(() => {
     return form.bizType && /.+@.+\..+/.test(form.supportEmail) && /^\d{10}$/.test(form.supportPhone);
@@ -181,6 +186,32 @@ function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
       return clone;
     });
   };
+
+  const checkEmailExists = useCallback(async () => {
+    if (!/.+@.+\..+/.test(form.email)) return;
+    const db = getFirestoreDb();
+    const usersRef = collection(db, "users");
+    const q = query(usersRef, where("email", "==", form.email));
+    const querySnapshot = await getDocs(q);
+    if (!querySnapshot.empty) {
+      setEmailError("This email is already registered. Please use a different one.");
+    } else {
+      setEmailError("");
+    }
+  }, [form.email]);
+
+  const checkPhoneExists = useCallback(async () => {
+    if (!/^\d{10}$/.test(form.phone)) return;
+    const db = getFirestoreDb();
+    const usersRef = collection(db, "users");
+    const q = query(usersRef, where("phone", "==", `+91 ${form.phone}`));
+    const querySnapshot = await getDocs(q);
+    if (!querySnapshot.empty) {
+      setPhoneError("This phone number is already registered. Please use a different one.");
+    } else {
+      setPhoneError("");
+    }
+  }, [form.phone]);
 
   const handleSendOtp = (type: 'email' | 'phone' | 'aadhaar') => {
       setOtpSent(prev => ({...prev, [type]: true}));
@@ -262,7 +293,6 @@ function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
         onSubmit({ status: "SUBMITTED", payload: finalData });
     } catch (error) {
         console.error("Seller sign up failed:", error);
-        // Error toast is handled inside handleSellerSignUp
     }
   };
 
@@ -326,9 +356,10 @@ function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
                   <div className="grid md:grid-cols-[1fr,auto] gap-2 items-end">
                       <div>
                         <label className="text-sm">Email</label>
-                        <Input value={form.email} onChange={(e)=>setField("email", e.target.value)} placeholder="you@shop.com" disabled={form.emailVerified} />
+                        <Input value={form.email} onChange={(e) => { setEmailError(''); setField("email", e.target.value); }} onBlur={checkEmailExists} placeholder="you@shop.com" disabled={form.emailVerified} />
+                         {emailError && <p className="text-xs text-destructive mt-1">{emailError}</p>}
                       </div>
-                      <Button type="button" onClick={() => handleSendOtp('email')} disabled={otpSent.email || form.emailVerified || !/.+@.+\..+/.test(form.email)}>
+                      <Button type="button" onClick={() => handleSendOtp('email')} disabled={otpSent.email || form.emailVerified || !!emailError || !/.+@.+\..+/.test(form.email)}>
                           {form.emailVerified ? <Check className="mr-2 h-4 w-4"/> : <Send className="mr-2 h-4 w-4"/>}
                           {form.emailVerified ? 'Verified' : otpSent.email ? 'Resend OTP' : 'Send OTP'}
                       </Button>
@@ -350,9 +381,10 @@ function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
                   <div className="grid md:grid-cols-[1fr,auto] gap-2 items-end">
                       <div>
                         <label className="text-sm">Phone</label>
-                        <Input value={form.phone} onChange={(e)=>setField("phone", e.target.value.replace(/[^0-9]/g, "").slice(0,10))} placeholder="10‑digit mobile" disabled={form.phoneVerified}/>
+                        <Input value={form.phone} onChange={(e) => { setPhoneError(''); setField("phone", e.target.value.replace(/[^0-9]/g, "").slice(0,10)); }} onBlur={checkPhoneExists} placeholder="10‑digit mobile" disabled={form.phoneVerified}/>
+                        {phoneError && <p className="text-xs text-destructive mt-1">{phoneError}</p>}
                       </div>
-                      <Button type="button" onClick={() => handleSendOtp('phone')} disabled={otpSent.phone || form.phoneVerified || form.phone.length !== 10}>
+                      <Button type="button" onClick={() => handleSendOtp('phone')} disabled={otpSent.phone || form.phoneVerified || !!phoneError || form.phone.length !== 10}>
                          {form.phoneVerified ? <Check className="mr-2 h-4 w-4"/> : <Send className="mr-2 h-4 w-4"/>}
                          {form.phoneVerified ? 'Verified' : otpSent.phone ? 'Resend OTP' : 'Send OTP'}
                       </Button>
@@ -615,7 +647,7 @@ function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
                 )}
                 {current === steps.length - 1 && (
                   <Button disabled={!canSubmit} onClick={submit}>
-                    Submit for Review
+                    Submit to Nipher for Review
                   </Button>
                 )}
               </div>
@@ -643,14 +675,8 @@ export default function KYCPage() {
     
     useEffect(() => {
         if (isClient && authReady) {
-            // This logic runs after auth state is resolved
             if (user && userData?.role === 'seller') {
                 router.replace('/seller/dashboard');
-            } else if (user && !userData) {
-                // If user is logged in but has no user data (e.g., from a different flow)
-                // This scenario might need specific handling, for now we let the wizard load
-            } else if (!user) {
-                // User is not logged in. The form will show fields for a new account.
             }
         }
     }, [isClient, user, userData, authReady, router]);
@@ -668,7 +694,7 @@ export default function KYCPage() {
         );
     }
 
-    if (submissionStatus === 'pending' && !user) {
+    if (submissionStatus === 'pending') {
          return (
              <div className="min-h-screen p-6 md:p-10 flex items-center justify-center">
                 <Card className="max-w-md text-center">
