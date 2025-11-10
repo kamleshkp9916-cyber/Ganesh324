@@ -13,7 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Check, AlertTriangle, Upload, ChevronLeft, ChevronRight, ShieldCheck, Building2, User2, MapPin, Banknote, FileSignature, ClipboardList, Eye, UserCheck, ShieldAlert, Gavel, Loader2, Send, Camera, QrCode, CheckCircle2 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useRouter } from "next/navigation";
@@ -250,21 +250,15 @@ function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
         return;
     }
     
-    const { regAddr, pickupAddr, ...restOfForm } = form;
-
-    const addresses = [regAddr];
-    if (!pickupAddr.same) {
-        addresses.push(pickupAddr);
-    }
+    const { emailOtp, phoneOtp, aadhaarOtp, ...restOfForm } = form;
 
     const finalData = {
         ...restOfForm,
-        addresses: addresses,
         isNipherVerified: verif.state === "VERIFIED",
     };
 
     try {
-        await updateUserData(user.uid, finalData);
+        await updateUserData(user.uid, { verificationStatus: 'pending', kycData: finalData });
         localStorage.removeItem(SELLER_APP_DRAFT_KEY);
         onSubmit({ status: "SUBMITTED", payload: finalData });
     } catch (error) {
@@ -641,7 +635,9 @@ export default function KYCPage() {
     const handleSubmission = (data: any) => {
         console.log("Seller Application Submitted:", data);
         localStorage.setItem(SELLER_APP_SUBMITTED_KEY, JSON.stringify(data));
-        router.push('/admin/kyc'); 
+        // Show a "pending review" page or redirect.
+        // For this example, we'll just log it and the admin page will pick it up.
+        // A better approach would involve a dedicated status page for the seller.
     };
 
     if (!isClient || !authReady) {
@@ -672,4 +668,3 @@ export default function KYCPage() {
         </div>
     );
 }
-
