@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/accordion"
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import { Button } from "./ui/button";
 
 const sidebarSections = [
     { 
@@ -25,7 +26,18 @@ const sidebarSections = [
     { title: "Men's Brands", links: ["Brand X", "Brand Y", "Brand Z"] },
 ];
 
-export function MensSidebar() {
+interface MensSidebarProps {
+    onSelectSubcategory: (slug: string | null) => void;
+    selectedSubcategory: string | null;
+}
+
+export function MensSidebar({ onSelectSubcategory, selectedSubcategory }: MensSidebarProps) {
+    
+    const getSlug = (link: string) => {
+        if (link === "All Men's Clothing") return null;
+        return link.toLowerCase().replace(/\s+/g, '-').replace(/&/g, '%26');
+    }
+
     return (
         <div className="w-full">
             <h2 className="text-2xl font-bold mb-4">Men</h2>
@@ -35,13 +47,21 @@ export function MensSidebar() {
                     <AccordionItem value={section.title} key={section.title}>
                         <AccordionTrigger className="text-base font-semibold">{section.title}</AccordionTrigger>
                         <AccordionContent>
-                            <div className="flex flex-col space-y-2 pl-2">
+                            <div className="flex flex-col space-y-1 pl-2">
                                 {section.links.map(link => {
-                                    const subCategorySlug = link.toLowerCase().replace(/\s+/g, '-').replace(/&/g, '%26');
+                                    const slug = getSlug(link);
                                     return (
-                                        <Link key={link} href={`/men/${subCategorySlug}`} className="text-sm text-muted-foreground hover:text-foreground">
+                                        <Button
+                                            key={link}
+                                            variant="ghost"
+                                            className={cn(
+                                                "w-full justify-start text-sm text-muted-foreground hover:text-foreground h-auto py-1.5 px-2",
+                                                selectedSubcategory === slug && "font-semibold text-primary bg-primary/10"
+                                            )}
+                                            onClick={() => onSelectSubcategory(slug)}
+                                        >
                                             {link}
-                                        </Link>
+                                        </Button>
                                     )
                                 })}
                             </div>

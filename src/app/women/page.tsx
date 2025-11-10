@@ -1,181 +1,254 @@
 
 "use client";
 
-import { useRouter } from 'next/navigation';
-import { Button } from '@/components/ui/button';
-import { ArrowLeft, Menu, Search, User, ShoppingCart, Home, ChevronRight } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
-import Image from 'next/image';
+import { useRouter, useSearchParams } from 'next/navigation';
+import React, { useState, useMemo, useCallback } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { WomensSidebar } from '@/components/womens-sidebar';
-import { Logo } from '@/components/logo';
 import { Input } from '@/components/ui/input';
-import { useLocalStorage } from '@/hooks/use-local-storage';
-import { CATEGORY_BANNERS_KEY, CategoryBanners } from '@/app/admin/settings/page';
-import { useState, useEffect } from 'react';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Pagination, PaginationContent, PaginationItem, PaginationPrevious, PaginationNext } from '@/components/ui/pagination';
+import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { ArrowLeft, Menu, Search, ShoppingCart, Home, ChevronRight, Video, Tv, Star, Users, Package, Heart, Sparkles, Loader2, ChevronDown } from 'lucide-react';
+
+import { WomensSidebar } from '@/components/womens-sidebar';
+import { Footer } from '@/components/footer';
+import { SimilarProductsOverlay } from '@/components/similar-products-overlay';
+import ProductSearch from '@/components/ProductSearch';
+
+import { productDetails } from '@/lib/product-data';
+import { generateKeywords } from '@/lib/generateKeywords';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/hooks/use-auth';
+import { differenceInHours } from 'date-fns';
 
-const categories = [
-    { name: "Tops", image: "https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?w=400&h=500&fit=crop", hint: "woman wearing top" },
-    { name: "Dresses", image: "https://images.unsplash.com/photo-1572804013427-4d7ca726b655?w=400&h=500&fit=crop", hint: "woman in dress" },
-    { name: "Coats & Jackets", image: "https://images.unsplash.com/photo-1591047139829-d919b49ea84e?w=400&h=500&fit=crop", hint: "woman wearing jacket" },
-    { name: "Pants", image: "https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?w=400&h=500&fit=crop", hint: "woman wearing pants" },
-    { name: "Jeans", image: "https://images.unsplash.com/photo-1604176214539-d34199c1484b?w=400&h=500&fit=crop", hint: "woman wearing jeans" },
-    { name: "Swim & Cover-Ups", image: "https://images.unsplash.com/photo-1575429188235-9d0a48405f6a?w=400&h=500&fit=crop", hint: "woman in swimsuit" },
-];
+const PRODUCTS_PER_PAGE = 30;
 
-const defaultBanners: CategoryBanners = {
-    "Women": {
-        banner1: { title: '25% off', description: 'Michael Kors for her. Ends 5/15.', imageUrl: 'https://images.unsplash.com/photo-1525945367383-a90940981977?w=800&h=800&fit=crop' },
-        banner2: { title: 'State of Day', description: 'Restwear, sleepwear & innerwear that takes you from sunrise to slumber.', imageUrl: 'https://images.unsplash.com/photo-1617964436152-29304c5aad3a?w=1200&h=600&fit=crop' }
-    }
-};
+const ProductCardSkeleton = () => (
+    <Card className="w-full overflow-hidden h-full flex flex-col">
+        <Skeleton className="relative aspect-square bg-muted" />
+        <div className="p-3 flex-grow flex flex-col space-y-2">
+            <Skeleton className="h-4 w-3/4" />
+            <Skeleton className="h-5 w-1/2" />
+            <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
+                <Skeleton className="h-4 w-16" />
+            </div>
+            <div className="flex items-center gap-4 text-xs text-muted-foreground mt-1">
+                <Skeleton className="h-3 w-12" />
+                <Skeleton className="h-3 w-12" />
+            </div>
+        </div>
+    </Card>
+);
 
 export default function WomensClothingPage() {
-  const router = useRouter();
-  const [banners] = useLocalStorage<CategoryBanners>(CATEGORY_BANNERS_KEY, defaultBanners);
-  const [isMounted, setIsMounted] = useState(false);
+    const router = useRouter();
+    const searchParams = useSearchParams();
+    const [sortOption, setSortOption] = useState("relevance");
+    const [searchResults, setSearchResults] = useState<any[]>([]);
+    const [showSearchResults, setShowSearchResults] = useState(false);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [currentPage, setCurrentPage] = useState(1);
+    const [isLoading, setIsLoading] = useState(true);
+    const { user } = useAuth();
+    const [selectedSubcategory, setSelectedSubcategory] = useState<string | null>(searchParams.get('subcategory'));
 
-  useEffect(() => {
-      setIsMounted(true);
-  }, []);
+    const [scanningProductId, setScanningProductId] = useState<string | null>(null);
+    const [showSimilarOverlay, setShowSimilarOverlay] = useState(false);
+    const [isLoadingSimilar, setIsLoadingSimilar] = useState(false);
+    const [similarProducts, setSimilarProducts] = useState<any[]>([]);
 
-  const banner1 = banners?.Women?.banner1;
-  const banner2 = banners?.Women?.banner2;
+    React.useEffect(() => {
+        setIsLoading(false);
+    }, [selectedSubcategory]);
 
-  const getSubCategoryPath = (name: string) => {
-    const subCategorySlug = name.toLowerCase().replace(/\s+/g, '-').replace(/&/g, '%26');
-    return `/women/${subCategorySlug}`;
-  };
+    const allProducts = useMemo(() => Object.values(productDetails).map(p => ({ ...p, keywords: generateKeywords(p) })), []);
 
-  return (
-    <div className="min-h-screen bg-background text-foreground flex flex-col h-screen">
-       <header className="p-4 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-sm z-30 border-b">
-        <h1 className="text-xl font-bold truncate">Women</h1>
-        <Link href="/cart">
-            <Button asChild variant="ghost" size="icon">
-                <ShoppingCart className="h-6 w-6" />
-            </Button>
-        </Link>
-      </header>
+    const categoryProducts = useMemo(() => {
+        return allProducts.filter(product => {
+            const productCategorySlug = product.category.toLowerCase().replace(/\s+/g, '-');
+            const productSubCategorySlug = product.subcategory?.toLowerCase().replace(/\s+/g, '-').replace(/&/g, '%26');
+            
+            if (selectedSubcategory) {
+                return productCategorySlug === 'women' && productSubCategorySlug === selectedSubcategory;
+            }
+            return productCategorySlug === 'women';
+        });
+    }, [allProducts, selectedSubcategory]);
 
-      <main className="container mx-auto px-4 sm:px-6 lg:px-8 flex-grow flex flex-col overflow-hidden">
-        <div className="flex items-center justify-between my-4 lg:hidden flex-shrink-0">
-             <Sheet>
-                <SheetTrigger asChild>
-                    <Button variant="outline" size="icon">
-                        <Menu className="h-6 w-6" />
-                    </Button>
-                </SheetTrigger>
-                <SheetContent side="left" className="p-0 w-80">
-                    <WomensSidebar />
-                </SheetContent>
-            </Sheet>
-        </div>
+    const sortedProducts = useMemo(() => {
+        let sorted = showSearchResults ? searchResults : [...categoryProducts];
+        if (sortOption === 'price-asc') {
+            sorted.sort((a, b) => parseFloat(a.price.replace(/[^0-9.-]+/g, "")) - parseFloat(b.price.replace(/[^0-9.-]+/g, "")));
+        } else if (sortOption === 'price-desc') {
+            sorted.sort((a, b) => parseFloat(b.price.replace(/[^0-9.-]+/g, "")) - parseFloat(a.price.replace(/[^0-9.-]+/g, "")));
+        }
+        return sorted;
+    }, [categoryProducts, searchResults, showSearchResults, sortOption]);
 
-        <div className="hidden lg:flex items-center justify-between my-4">
-             <div className="flex items-center gap-2">
-                <nav aria-label="Breadcrumb">
-                    <ol className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                        <li><Button asChild variant="ghost" size="sm"><Link href="/listed-products"><Home className="h-4 w-4" /><span className="sr-only md:not-sr-only md:ml-2">Home</span></Link></Button></li>
-                        <li><ChevronRight className="h-4 w-4" /></li>
-                    </ol>
-                </nav>
-                <h1 className="text-2xl font-bold">Women</h1>
-            </div>
-        </div>
+    const onSearchComplete = useCallback((results: any[], query: string) => {
+        setSearchResults(results);
+        setSearchQuery(query);
+        setShowSearchResults(results.length > 0 || query.length > 0);
+        setCurrentPage(1);
+    }, []);
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 flex-grow overflow-hidden">
-          {/* Left Column: Sidebar (Desktop) */}
-          <aside className="hidden lg:block lg:col-span-1 h-full overflow-y-auto no-scrollbar">
-             <div className="sticky top-0 pt-6">
-                <WomensSidebar />
-            </div>
-          </aside>
+    const handleSimilarClick = (e: React.MouseEvent, product: any) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setScanningProductId(product.key);
+        setIsLoadingSimilar(true);
+        const similar = allProducts.filter(p => p.category === product.category && p.key !== product.key).slice(0, 10);
+        setSimilarProducts(similar);
+        setTimeout(() => {
+            setScanningProductId(null);
+            setShowSimilarOverlay(true);
+            setTimeout(() => setIsLoadingSimilar(false), 1000);
+        }, 1500);
+    };
+    
+    const handleSubcategorySelect = (slug: string | null) => {
+        setSelectedSubcategory(slug);
+        setCurrentPage(1);
+    };
 
-          {/* Right Column: Main Content */}
-           <div className="lg:col-span-3 h-full overflow-y-auto no-scrollbar">
-               <div className="space-y-10 pb-10">
-                    <section>
-                        <Card className="overflow-hidden bg-gray-100 dark:bg-gray-900 border-none">
-                            {isMounted && banner1 ? (
-                                <CardContent className="p-0 flex flex-col md:flex-row items-center">
-                                    <div className="md:w-1/2 p-8 text-center md:text-left">
-                                        <h3 className="text-3xl font-bold">{banner1.title}</h3>
-                                        <p className="text-xl">{banner1.description}</p>
-                                        <Button asChild variant="link" className="mt-4 px-0">
-                                            <Link href="/sale">Shop Now</Link>
+    const totalPages = Math.ceil(sortedProducts.length / PRODUCTS_PER_PAGE);
+    const visibleProducts = sortedProducts.slice((currentPage - 1) * PRODUCTS_PER_PAGE, currentPage * PRODUCTS_PER_PAGE);
+    
+    const handlePageChange = (page: number) => {
+        if (page > 0 && page <= totalPages) {
+            setCurrentPage(page);
+            window.scrollTo(0, 0);
+        }
+    };
+    
+    const pageTitle = selectedSubcategory
+        ? selectedSubcategory.replace(/-/g, ' ').replace(/%26/g, '&').split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')
+        : 'Women';
+
+    return (
+        <>
+            <div className="min-h-screen bg-background text-foreground flex flex-col">
+                 <header className="p-4 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-sm z-30 border-b">
+                    <h1 className="text-xl font-bold truncate">{pageTitle}</h1>
+                    <Link href="/cart">
+                        <Button asChild variant="ghost" size="icon">
+                            <ShoppingCart className="h-6 w-6" />
+                        </Button>
+                    </Link>
+                </header>
+
+                <div className="flex flex-1">
+                    <aside className="hidden lg:block w-72 p-6 border-r sticky top-[65px] h-screen overflow-y-auto">
+                        <WomensSidebar onSelectSubcategory={handleSubcategorySelect} selectedSubcategory={selectedSubcategory} />
+                    </aside>
+                    <main className="flex-1">
+                         <div className="p-4 border-b flex flex-col sm:flex-row items-center gap-4 sticky top-[65px] bg-background/80 backdrop-blur-sm z-20 -mx-4 sm:mx-0">
+                            <div className="relative flex-1 w-full">
+                                <ProductSearch onSearchComplete={onSearchComplete} />
+                            </div>
+                             <div className="flex items-center gap-2 w-full sm:w-auto">
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <Button variant="outline" className="gap-1.5 w-full justify-center">
+                                            Sort by: <span className="font-semibold capitalize">{sortOption.replace('-', ' ')}</span>
+                                            <ChevronDown className="h-4 w-4" />
                                         </Button>
-                                    </div>
-                                    <div className="md:w-1/2 h-64 md:h-auto md:aspect-square relative">
-                                        <Image 
-                                            src={banner1.imageUrl}
-                                            alt={banner1.title}
-                                            fill
-                                            className="object-cover"
-                                            data-ai-hint="woman fashion"
-                                        />
-                                    </div>
-                                </CardContent>
-                            ) : (
-                                <Skeleton className="w-full h-80" />
-                            )}
-                        </Card>
-                    </section>
-                    
-                    <section>
-                        <Card className="overflow-hidden relative text-white">
-                            {isMounted && banner2 ? (
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent className="w-56">
+                                        <DropdownMenuRadioGroup value={sortOption} onValueChange={setSortOption}>
+                                            <DropdownMenuRadioItem value="relevance">Relevance</DropdownMenuRadioItem>
+                                            <DropdownMenuRadioItem value="price-asc">Price: Low to High</DropdownMenuRadioItem>
+                                            <DropdownMenuRadioItem value="price-desc">Price: High to Low</DropdownMenuRadioItem>
+                                        </DropdownMenuRadioGroup>
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
+                            </div>
+                        </div>
+
+                         <div className="p-6">
+                            {isLoading ? (
+                                <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                                    {Array.from({ length: 10 }).map((_, index) => <ProductCardSkeleton key={index} />)}
+                                </div>
+                            ) : visibleProducts.length > 0 ? (
                                 <>
-                                    <div className="absolute inset-0 bg-black/40 z-10" />
-                                    <Image 
-                                        src={banner2.imageUrl}
-                                        alt={banner2.title}
-                                        fill
-                                        className="object-cover"
-                                        data-ai-hint="woman relaxing"
-                                    />
-                                    <CardContent className="relative z-20 p-8 md:p-12 flex flex-col items-center justify-center text-center h-80">
-                                        <h3 className="text-4xl font-bold">{banner2.title}</h3>
-                                        <p className="max-w-md mt-2">{banner2.description}</p>
-                                        <Button asChild variant="link" className="mt-4 text-white">
-                                            <Link href={getSubCategoryPath("Pajamas & Robes")}>Shop The Collection</Link>
-                                        </Button>
-                                    </CardContent>
+                                    <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                                        {visibleProducts.map((product: any) => {
+                                            const isNew = product.createdAt && differenceInHours(new Date(), new Date(product.createdAt)) <= 24;
+                                            const isScanning = scanningProductId === product.key;
+                                            const originalPrice = parseFloat(product.price.replace(/[^0-9.-]+/g,""));
+                                            const hasDiscount = product.discountPercentage && product.discountPercentage > 0;
+                                            const discountedPrice = hasDiscount ? originalPrice * (1 - product.discountPercentage / 100) : originalPrice;
+                                            return (
+                                                <Link href={`/product/${product.key}`} key={product.key} className="group block">
+                                                    <Card className="w-full overflow-hidden h-full flex flex-col">
+                                                        <div className="relative aspect-square bg-muted">
+                                                            {isNew && <Badge className="absolute top-2 left-2 z-10">NEW</Badge>}
+                                                            {product.isFromStream && <Badge variant="purple" className={cn("absolute z-10", isNew ? "top-10 left-2" : "top-2 left-2")}><Video className="h-3 w-3 mr-1"/> From Stream</Badge>}
+                                                            <Button variant="ghost" size="icon" className="absolute top-1 right-1 h-8 w-8 rounded-full bg-black/30 text-white backdrop-blur-sm z-10 hover:bg-black/50 hover:text-red-500"><Heart className="h-4 w-4" /></Button>
+                                                            <Image src={product.images[0]} alt={product.name} fill sizes="(max-width: 640px) 50vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, (max-width: 1280px) 25vw, 20vw" className="object-cover transition-transform group-hover:scale-105" data-ai-hint={product.hint}/>
+                                                            {isScanning && <div className="absolute inset-0 bg-black/30 overflow-hidden"><div className="scan-animation"></div></div>}
+                                                            <div className="absolute bottom-2 left-2 flex items-center gap-1 text-xs text-white bg-black/50 px-1.5 py-0.5 rounded-full backdrop-blur-sm"><Star className="w-3 h-3 text-black fill-black" /><span className="font-bold">4.8</span></div>
+                                                            <div className="absolute bottom-2 right-2">
+                                                                <Button size="icon" className="h-8 w-8 rounded-full bg-black/50 text-white backdrop-blur-sm" onClick={(e) => handleSimilarClick(e, product)} disabled={isScanning}>
+                                                                    {isScanning ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+                                                                </Button>
+                                                            </div>
+                                                        </div>
+                                                        <CardContent className="p-3 flex-grow flex flex-col">
+                                                            <h4 className="font-semibold truncate text-sm flex-grow">{product.name}</h4>
+                                                            <div className="flex items-baseline gap-x-2 mt-1">
+                                                                <p className="font-bold text-sm text-foreground">₹{discountedPrice.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                                                                {hasDiscount && (
+                                                                    <>
+                                                                        <p className="text-xs text-muted-foreground line-through">₹{originalPrice.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                                                                        <Badge variant="destructive" className="text-[10px] px-1 py-0">({product.discountPercentage}% OFF)</Badge>
+                                                                    </>
+                                                                )}
+                                                            </div>
+                                                            <div className="flex items-center gap-4 text-xs text-muted-foreground mt-2">
+                                                                <div className="flex items-center gap-1"><Package className="w-3 h-3" /> {product.stock} left</div>
+                                                                <div className="flex items-center gap-1"><Users className="w-3 h-3" /> {product.sold} sold</div>
+                                                            </div>
+                                                        </CardContent>
+                                                    </Card>
+                                                </Link>
+                                            )
+                                        })}
+                                    </div>
+                                    {totalPages > 1 && (
+                                        <Pagination className="mt-8">
+                                            <PaginationContent>
+                                                <PaginationItem>
+                                                    <Button variant="outline" onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1}><ChevronLeft className="h-4 w-4 mr-1" /> Previous</Button>
+                                                </PaginationItem>
+                                                <PaginationItem>
+                                                    <span className="p-2 text-sm">Page {currentPage} of {totalPages}</span>
+                                                </PaginationItem>
+                                                <PaginationItem>
+                                                    <Button variant="outline" onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages}>Next <ChevronRight className="h-4 w-4 ml-1" /></Button>
+                                                </PaginationItem>
+                                            </PaginationContent>
+                                        </Pagination>
+                                    )}
                                 </>
                             ) : (
-                                <Skeleton className="w-full h-80" />
+                                <div className="text-center py-20 text-muted-foreground">
+                                    <h2 className="text-2xl font-bold">{searchQuery ? `No results for "${searchQuery}"` : "No Products Found"}</h2>
+                                    <p>{searchQuery ? "Try searching for something else." : "There are no products in this category yet."}</p>
+                                </div>
                             )}
-                        </Card>
-                    </section>
-                    
-                    <section>
-                        <h2 className="text-xl font-semibold mb-4 text-center">Shop by category</h2>
-                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                            {categories.map(category => (
-                                <Link href={getSubCategoryPath(category.name)} key={category.name} className="group block text-center">
-                                    <div className="aspect-square bg-muted rounded-lg overflow-hidden mb-2">
-                                        <Image 
-                                            src={category.image}
-                                            alt={category.name}
-                                            width={200}
-                                            height={200}
-                                            className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                                            data-ai-hint={category.hint}
-                                        />
-                                    </div>
-                                    <p className="text-sm font-medium group-hover:underline">{category.name}</p>
-                                </Link>
-                            ))}
                         </div>
-                    </section>
+                    </main>
                 </div>
-           </div>
-        </div>
-      </main>
-    </div>
-  );
+                <Footer />
+            </div>
+             {showSimilarOverlay && <SimilarProductsOverlay isOpen={showSimilarOverlay} onClose={() => setShowSimilarOverlay(false)} similarProducts={similarProducts} relatedStreams={[]} isLoading={isLoadingSimilar} />}
+        </>
+    );
 }
