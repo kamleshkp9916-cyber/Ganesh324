@@ -90,19 +90,24 @@ function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
     accountName: "",
     auctionEnabled: false,
     termsAccepted: false,
+    aadhaarNumber: "",
+    aadhaarOtp: "",
   };
 
   const [form, setForm] = useState(initialFormState);
   
   const [verif, setVerif] = useState<{ state: "IDLE" | "PENDING" | "VERIFIED" | "FAILED", message: string }>({ state: "IDLE", message: "" });
-  const [otpSent, setOtpSent] = useState({ email: false, phone: false });
-  const [isVerifying, setIsVerifying] = useState({ email: false, phone: false });
+  const [otpSent, setOtpSent] = useState({ email: false, phone: false, aadhaar: false });
+  const [isVerifying, setIsVerifying] = useState({ email: false, phone: false, aadhaar: false, face: false });
   const [qrCodeUrl, setQrCodeUrl] = useState<string | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  const [selfiePreview, setSelfiePreview] = useState<string | null>(null);
+  const selfieInputRef = useRef<HTMLInputElement>(null);
 
   const isStep1Valid = useMemo(() => {
-    return form.legalName && form.displayName && /.+@.+\..+/.test(form.email) && /^\d{10}$/.test(form.phone) && form.emailVerified && form.phoneVerified;
+    return form.legalName && form.displayName && /.+@.+\..+/.test(form.email) && /^\d{10}$/.test(form.phone) && form.emailVerified && form.phoneVerified && form.photoUrl;
   }, [form]);
 
   const isStep2Valid = useMemo(() => {
@@ -117,7 +122,7 @@ function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
   }, [form]);
 
   const isStep4Valid = useMemo(() => {
-    return /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(form.pan) && /^[A-Z]{4}0[A-Z0-9]{6}$/i.test(form.ifsc) && /^\d{6,18}$/.test(form.accountNo) && form.accountName.length >= 3;
+    return /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(form.pan) && /^[A-Z]{4}0[A-Z0-9]{6}$/i.test(form.ifsc) && /^\d{9,18}$/.test(form.accountNo) && form.accountName.length >= 3;
   }, [form]);
 
   const isStep5Valid = useMemo(() => {
@@ -147,6 +152,20 @@ function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
       }
     }
   }, []);
+  
+  useEffect(() => {
+    const draft = localStorage.getItem(SELLER_APP_DRAFT_KEY);
+    if (draft) {
+        try {
+            const parsedDraft = JSON.parse(draft);
+            setForm(prevForm => ({ ...initialFormState, ...prevForm, ...parsedDraft }));
+            if(parsedDraft.photoUrl) setPhotoPreview(parsedDraft.photoUrl);
+        } catch (error) {
+            console.error("Failed to parse seller draft from localStorage", error);
+        }
+    }
+}, []);
+
 
   const progress = useMemo(() => Math.round(((current) / (steps.length - 1)) * 100), [current]);
 
@@ -165,20 +184,22 @@ function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
     });
   };
 
-  const handleSendOtp = (type: 'email' | 'phone') => {
+  const handleSendOtp = (type: 'email' | 'phone' | 'aadhaar') => {
       setOtpSent(prev => ({...prev, [type]: true}));
       toast({ title: `OTP Sent to your ${type}` });
   };
 
-  const handleVerifyOtp = (type: 'email' | 'phone') => {
-      const otp = type === 'email' ? form.emailOtp : form.phoneOtp;
+  const handleVerifyOtp = (type: 'email' | 'phone' | 'aadhaar') => {
+      const otp = type === 'email' ? form.emailOtp : type === 'phone' ? form.phoneOtp : form.aadhaarOtp;
       if (otp !== '1234') { // Mock OTPs
           toast({ variant: 'destructive', title: `Invalid ${type} OTP` });
           return;
       }
       setIsVerifying(prev => ({...prev, [type]: true }));
       setTimeout(() => {
-          setField(`${type}Verified`, true);
+          if(type !== 'aadhaar') {
+            setField(`${type}Verified`, true);
+          }
           toast({ title: `${type.charAt(0).toUpperCase() + type.slice(1)} Verified!` });
           setIsVerifying(prev => ({ ...prev, [type]: false }));
       }, 1000);
@@ -196,6 +217,17 @@ function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
       reader.readAsDataURL(file);
     }
   };
+  
+    const handleSelfieChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setSelfiePreview(reader.result as string);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
 
   const next = () => setCurrent((c) => Math.min(c + 1, steps.length - 1));
   const prev = () => setCurrent((c) => Math.max(c - 1, 0));
@@ -220,9 +252,20 @@ function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
         toast({ title: 'Error', description: 'You must be logged in to submit.', variant: 'destructive' });
         return;
     }
-    // Only store that verification was completed, not the API details.
-    const finalData = { ...form, isNipherVerified: verif.state === "VERIFIED" };
     
+    const { regAddr, pickupAddr, ...restOfForm } = form;
+
+    const addresses = [regAddr];
+    if (!pickupAddr.same) {
+        addresses.push(pickupAddr);
+    }
+
+    const finalData = {
+        ...restOfForm,
+        addresses: addresses,
+        isNipherVerified: verif.state === "VERIFIED",
+    };
+
     try {
         await updateUserData(user.uid, finalData);
         localStorage.removeItem(SELLER_APP_DRAFT_KEY);
@@ -559,6 +602,7 @@ export default function KYCPage() {
     
     const handleSubmission = (data: any) => {
         console.log("Seller Application Submitted:", data);
+        localStorage.setItem(SELLER_APP_SUBMITTED_KEY, JSON.stringify(data));
         router.push('/admin/kyc'); 
     };
 
@@ -590,3 +634,5 @@ export default function KYCPage() {
         </div>
     );
 }
+
+```
