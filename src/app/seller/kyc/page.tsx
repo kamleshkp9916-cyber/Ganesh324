@@ -58,8 +58,6 @@ const steps = [
   { key: "policies", label: "Policies & Preview", icon: <ClipboardList className="w-5 h-5"/> },
 ];
 
-const SELLER_APP_SUBMITTED_KEY = "sellerAppSubmitted";
-
 function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -639,14 +637,9 @@ export default function KYCPage() {
     const { user, userData, authReady } = useAuth();
     const router = useRouter();
     const [isClient, setIsClient] = useState(false);
-    const [submissionStatus, setSubmissionStatus] = useState<string | null>(null);
     
     useEffect(() => {
         setIsClient(true);
-        const storedStatus = localStorage.getItem(SELLER_APP_SUBMITTED_KEY);
-        if (storedStatus) {
-            setSubmissionStatus('pending');
-        }
     }, []);
     
     useEffect(() => {
@@ -658,8 +651,7 @@ export default function KYCPage() {
     }, [isClient, user, userData, authReady, router]);
     
     const handleSubmission = (data: any) => {
-        localStorage.setItem(SELLER_APP_SUBMITTED_KEY, JSON.stringify(data));
-        setSubmissionStatus('pending');
+        router.refresh(); // This will re-trigger the check in useEffect
     };
 
     if (!isClient || !authReady) {
@@ -669,8 +661,8 @@ export default function KYCPage() {
             </div>
         );
     }
-
-    if (submissionStatus === 'pending') {
+    
+    if (userData?.verificationStatus === 'pending') {
          return (
              <div className="min-h-screen p-6 md:p-10 flex items-center justify-center">
                 <Card className="max-w-md text-center">
@@ -685,6 +677,26 @@ export default function KYCPage() {
                 </Card>
             </div>
          );
+    }
+
+    if (userData?.verificationStatus === 'rejected') {
+        return (
+             <div className="min-h-screen p-6 md:p-10 flex items-center justify-center">
+                <Card className="max-w-md text-center border-destructive">
+                    <CardHeader>
+                        <CardTitle className="text-destructive">Application Rejected</CardTitle>
+                        <CardDescription>Unfortunately, your seller application could not be approved at this time.</CardDescription>
+                    </CardHeader>
+                     <CardContent>
+                        <div className="bg-destructive/10 p-3 rounded-md text-left">
+                            <p className="font-semibold">Reason for rejection:</p>
+                            <p className="text-sm">{userData.rejectionReason || "No reason provided."}</p>
+                        </div>
+                        <Button onClick={() => updateUserData(user!.uid, { verificationStatus: 'pending', rejectionReason: '' })} className="mt-4">Start New Application</Button>
+                    </CardContent>
+                </Card>
+            </div>
+        );
     }
     
     return (
