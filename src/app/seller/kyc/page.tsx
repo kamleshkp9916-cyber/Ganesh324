@@ -407,7 +407,7 @@ function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
                             <Input value={form.aadhaarNumber} maxLength={12} onChange={(e) => setField("aadhaarNumber", e.target.value.replace(/\D/g, ""))} placeholder="Enter 12-digit Aadhaar"/>
                         </div>
                         <div className="flex items-end">
-                            <Button type="button" className="w-full" onClick={() => handleSendOtp('aadhaar')} disabled={otpSent.aadhaar || isVerifying.aadhaar || form.aadhaarNumber.length !== 12}>
+                            <Button type="button" className="w-full" onClick={() => handleSendOtp('aadhaar')} disabled={otpSent.aadhaar || isVerifying.aadhaar || (form.aadhaarNumber && form.aadhaarNumber.length !== 12)}>
                                 {isVerifying.aadhaar ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <Send className="mr-2 h-4 w-4"/>}
                                 {otpSent.aadhaar ? 'Resend OTP' : 'Send OTP'}
                             </Button>
