@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -43,6 +42,7 @@ import { Badge } from "../ui/badge";
 
 export const PROMOTIONAL_SLIDES_KEY = 'streamcart_promotional_slides';
 export const COUPONS_KEY = 'streamcart_coupons';
+export const CATEGORY_BANNERS_KEY = 'streamcart_category_banners';
 
 const slideSchema = z.object({
   id: z.number().optional(),
@@ -100,6 +100,19 @@ const couponSchema = z.object({
 
 export type Coupon = z.infer<typeof couponSchema> & { status: 'active' | 'archived' };
 
+export interface Banner {
+  title: string;
+  description: string;
+  imageUrl: string;
+}
+
+export interface CategoryBanners {
+  [categoryName: string]: {
+    banner1: Banner;
+    banner2: Banner;
+  };
+}
+
 const initialCoupons: Coupon[] = [
     { id: 1, code: 'STREAM10', description: '10% off on all orders', discountType: 'percentage', discountValue: 10, expiresAt: new Date('2025-11-13'), applicableCategories: ['All'], status: 'active' },
     { id: 2, code: 'SAVE100', description: '₹100 off on orders above ₹1000', discountType: 'fixed', discountValue: 100, minOrderValue: 1000, applicableCategories: ['All'], status: 'active' },
@@ -154,6 +167,102 @@ const CouponForm = ({ onSave, existingCoupon, closeDialog }: { onSave: (coupon: 
         </Form>
     );
 }
+
+const CategoryBannerManagement = () => {
+    const [allCategories] = useLocalStorage<Category[]>(CATEGORIES_KEY, defaultCategories);
+    const [allBanners, setAllBanners] = useLocalStorage<CategoryBanners>(CATEGORY_BANNERS_KEY, {});
+    const [selectedCategory, setSelectedCategory] = useState<string>(allCategories[0]?.name || '');
+    const [banner1Data, setBanner1Data] = useState<Banner>({ title: '', description: '', imageUrl: '' });
+    const [banner2Data, setBanner2Data] = useState<Banner>({ title: '', description: '', imageUrl: '' });
+    const { toast } = useToast();
+
+    useEffect(() => {
+        if (selectedCategory && allBanners[selectedCategory]) {
+            setBanner1Data(allBanners[selectedCategory].banner1);
+            setBanner2Data(allBanners[selectedCategory].banner2);
+        } else {
+            setBanner1Data({ title: '', description: '', imageUrl: '' });
+            setBanner2Data({ title: '', description: '', imageUrl: '' });
+        }
+    }, [selectedCategory, allBanners]);
+
+    const handleSaveBanner = (bannerNumber: 1 | 2) => {
+        const dataToSave = bannerNumber === 1 ? banner1Data : banner2Data;
+        setAllBanners(prev => ({
+            ...prev,
+            [selectedCategory]: {
+                ...prev[selectedCategory],
+                [`banner${bannerNumber}`]: dataToSave
+            }
+        }));
+        toast({ title: "Banner Saved!", description: `Banner for ${selectedCategory} has been updated.` });
+    };
+
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle>Category Page Banner Management</CardTitle>
+                <CardDescription>Select a category to manage its two promotional banners.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+                <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                    <SelectTrigger className="w-full md:w-1/3">
+                        <SelectValue placeholder="Select a category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {allCategories.map(cat => (
+                            <SelectItem key={cat.id} value={cat.name}>{cat.name}</SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <Card>
+                        <CardHeader><CardTitle>Top Banner</CardTitle></CardHeader>
+                        <CardContent className="space-y-4">
+                            <div className="space-y-1">
+                                <Label>Title</Label>
+                                <Input value={banner1Data.title} onChange={(e) => setBanner1Data(prev => ({ ...prev, title: e.target.value }))} />
+                            </div>
+                             <div className="space-y-1">
+                                <Label>Description</Label>
+                                <Textarea value={banner1Data.description} onChange={(e) => setBanner1Data(prev => ({ ...prev, description: e.target.value }))} />
+                            </div>
+                             <div className="space-y-1">
+                                <Label>Image URL</Label>
+                                <Input value={banner1Data.imageUrl} onChange={(e) => setBanner1Data(prev => ({ ...prev, imageUrl: e.target.value }))} />
+                            </div>
+                        </CardContent>
+                        <CardFooter>
+                            <Button onClick={() => handleSaveBanner(1)}>Save Banner</Button>
+                        </CardFooter>
+                    </Card>
+                     <Card>
+                        <CardHeader><CardTitle>Bottom Banner</CardTitle></CardHeader>
+                        <CardContent className="space-y-4">
+                            <div className="space-y-1">
+                                <Label>Title</Label>
+                                <Input value={banner2Data.title} onChange={(e) => setBanner2Data(prev => ({ ...prev, title: e.target.value }))} />
+                            </div>
+                             <div className="space-y-1">
+                                <Label>Description</Label>
+                                <Textarea value={banner2Data.description} onChange={(e) => setBanner2Data(prev => ({ ...prev, description: e.target.value }))} />
+                            </div>
+                             <div className="space-y-1">
+                                <Label>Image URL</Label>
+                                <Input value={banner2Data.imageUrl} onChange={(e) => setBanner2Data(prev => ({ ...prev, imageUrl: e.target.value }))} />
+                            </div>
+                        </CardContent>
+                         <CardFooter>
+                            <Button onClick={() => handleSaveBanner(2)}>Save Banner</Button>
+                        </CardFooter>
+                    </Card>
+                </div>
+            </CardContent>
+        </Card>
+    );
+};
+
 
 export function PromotionsSettings() {
   const [slides, setSlides] = useLocalStorage<Slide[]>(PROMOTIONAL_SLIDES_KEY, defaultSlides);
@@ -214,9 +323,10 @@ export function PromotionsSettings() {
         if (isSlideFormOpen) setIsSlideFormOpen(open);
         if (isCouponFormOpen) setIsCouponFormOpen(open);
     }}>
-        <Tabs defaultValue="slides">
-            <TabsList>
+        <Tabs defaultValue="slides" className="w-full">
+            <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="slides">Promotional Slides</TabsTrigger>
+                <TabsTrigger value="category-banners">Category Banners</TabsTrigger>
                 <TabsTrigger value="coupons">Admin Coupons</TabsTrigger>
             </TabsList>
             <TabsContent value="slides" className="mt-4">
@@ -249,6 +359,9 @@ export function PromotionsSettings() {
                         </div>
                     </CardContent>
                 </Card>
+            </TabsContent>
+            <TabsContent value="category-banners" className="mt-4">
+                <CategoryBannerManagement />
             </TabsContent>
             <TabsContent value="coupons" className="mt-4">
                  <Card>
