@@ -567,19 +567,19 @@ const RelatedContent = ({ relatedStreams, onAddToCart, onBuyNow, toast, getProdu
                             <div className="absolute top-3 left-3 z-10"><Badge variant="destructive" className="gap-1.5"><div className="h-2 w-2 rounded-full bg-white animate-pulse" />LIVE</Badge></div>
                             <div className="absolute top-2 right-2 z-10"><Badge variant="secondary" className="bg-black/50 text-white font-semibold backdrop-blur-sm"><Users className="w-3 h-3 mr-1"/>{s.viewers.toLocaleString()}</Badge></div>
                         </div>
-                        <div className="flex items-start gap-2 mt-2">
-                                <Avatar className="w-8 h-8">
-                                <AvatarImage src={s.avatarUrl} alt={s.name} />
+                        <div className="flex items-start gap-3 mt-2">
+                            <Avatar>
+                                <AvatarImage src={s.avatarUrl} />
                                 <AvatarFallback>{s.name.charAt(0)}</AvatarFallback>
                             </Avatar>
-                            <div className="flex-1 overflow-hidden">
-                                <p className="font-semibold text-sm leading-tight group-hover:underline truncate">{s.title || s.name}</p>
+                            <div>
+                                <p className="font-semibold text-sm group-hover:underline truncate">{s.title}</p>
                                 <p className="text-xs text-muted-foreground">{s.name}</p>
                                 <p className="text-xs text-primary font-semibold mt-0.5">{s.category}</p>
                             </div>
                         </div>
                     </Link>
-                      <div className="flex items-center gap-1.5 mt-auto flex-shrink-0 pt-2 w-full justify-start pb-2 pl-2">
+                      <div className="flex items-center gap-1.5 mt-auto flex-shrink-0 pt-2 w-full justify-start pb-2">
                         {productsToShow.map((p: any) => (
                             <Link href={`/product/${p.key}`} key={p.key} className="block" onClick={(e) => e.stopPropagation()}>
                                 <div className="w-10 h-10 bg-muted rounded-md border overflow-hidden hover:ring-2 hover:ring-primary">
@@ -704,8 +704,9 @@ const SuperChatDialog = ({ walletBalance, handlers, isSuperChatOpen, setIsSuperC
 };
 
 const ChatMessage = ({ msg, handlers, seller }: { msg: any, handlers: any, seller: any }) => {
-    const { user } = useAuth();
+    const { user, userData } = useAuth();
     const isMyMessage = msg.userId === user?.uid;
+    const isSellerMessage = msg.userId === seller.id;
     
     const handleReply = () => handlers.onReply(msg);
     const handleTogglePin = () => handlers.onTogglePin(msg.id);
@@ -722,33 +723,27 @@ const ChatMessage = ({ msg, handlers, seller }: { msg: any, handlers: any, selle
             </Avatar>
             <div className="flex-grow">
                 <div className="flex items-center gap-1.5 flex-wrap">
-                    <span className={cn("font-semibold text-xs break-all", msg.isSeller && "text-yellow-400")}>
+                    <span className={cn("font-semibold text-xs break-all", isSellerMessage && "text-yellow-400")}>
                         {msg.user}:
                     </span>
-                    {msg.isSeller && <Badge variant="outline" className="mr-1.5 border-yellow-400/50 text-yellow-400 h-4 text-[10px] px-1.5">Seller</Badge>}
+                    {isSellerMessage && <Badge variant="outline" className="mr-1.5 border-yellow-400/50 text-yellow-400 h-4 text-[10px] px-1.5">Seller</Badge>}
                 </div>
                  <div className="text-sm whitespace-pre-wrap break-words text-foreground/80 leading-snug">
                     {renderWithHashtagsAndLinks(msg.text)}
                  </div>
             </div>
-            <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                    <button className="text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity p-1">
-                        <MoreHorizontal className="w-4 h-4" />
-                    </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                    <DropdownMenuItem onSelect={handleReply}><Reply className="mr-2 h-4 w-4" />Reply</DropdownMenuItem>
-                    {isMyMessage && (
-                        <>
-                            <DropdownMenuItem onSelect={handleTogglePin}><Pin className="mr-2 h-4 w-4" />Pin Message</DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem className="text-destructive" onSelect={handleDelete}><Trash2 className="mr-2 h-4 w-4" />Delete</DropdownMenuItem>
-                        </>
-                    )}
-                    {!isMyMessage && <DropdownMenuItem onSelect={handleReport}><Flag className="mr-2 h-4 w-4" />Report</DropdownMenuItem>}
-                </DropdownMenuContent>
-            </DropdownMenu>
+            {userData?.role === 'admin' && (
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <button className="text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity p-1">
+                            <MoreHorizontal className="w-4 h-4" />
+                        </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                        <DropdownMenuItem onSelect={handleDelete} className="text-destructive"><Trash2 className="mr-2 h-4 w-4" />Delete Message</DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
+            )}
         </div>
     );
 };
@@ -778,10 +773,11 @@ const ChatPanel = ({
     setIsSuperChatOpen: (open: boolean) => void;
     isChatDisabled: boolean;
 }) => {
-    const { user } = useAuth();
+    const { user, userData } = useAuth();
     const [newMessage, setNewMessage] = useState('');
     const [replyingTo, setReplyingTo] = useState<any | null>(null);
     const scrollAreaRef = useRef<HTMLDivElement>(null);
+    const isAdmin = userData?.role === 'admin';
     
     useEffect(() => {
         const scrollArea = scrollAreaRef.current;
@@ -871,7 +867,25 @@ const ChatPanel = ({
                             </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                            <DropdownMenuItem onSelect={handlers.onReportStream}><Flag className="mr-2 h-4 w-4" /> Report Stream</DropdownMenuItem>
+                             <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                    <DropdownMenuItem onSelect={(e) => e.preventDefault()} disabled={!isAdmin}>
+                                        <StopCircle className="mr-2 h-4 w-4" />
+                                        <span>Stop Stream</span>
+                                    </DropdownMenuItem>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                        <AlertDialogDescription>This will immediately terminate the live stream for everyone. This action cannot be undone.</AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                        <AlertDialogAction onClick={handlers.onStopStream}>Confirm Stop</AlertDialogAction>
+                                    </AlertDialogFooter>
+                                </AlertDialogContent>
+                            </AlertDialog>
+                            {!isAdmin && <DropdownMenuItem onSelect={handlers.onReportStream}><Flag className="mr-2 h-4 w-4" /> Report Stream</DropdownMenuItem>}
                             <DropdownMenuSeparator />
                              <FeedbackDialog>
                                 <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
@@ -879,7 +893,7 @@ const ChatPanel = ({
                                     <span>Feedback</span>
                                 </DropdownMenuItem>
                             </FeedbackDialog>
-                            <DropdownMenuItem><LifeBuoy className="mr-2 h-4 w-4" /> Help & Support</DropdownMenuItem>
+                             <DropdownMenuItem><LifeBuoy className="mr-2 h-4 w-4" /> Help & Support</DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>
                     <Button variant="ghost" size="icon" className="md:hidden" onClick={onClose}>
@@ -932,7 +946,7 @@ const ChatPanel = ({
                         </Avatar>
                         <div className="relative flex-grow">
                             <Textarea
-                                placeholder={isChatDisabled ? "Chat is closed" : "Say something..."}
+                                placeholder={isChatDisabled ? "Chat is closed" : isAdmin ? "Admin monitoring (chat disabled)" : "Say something..."}
                                 value={newMessage}
                                 onChange={(e) => setNewMessage(e.target.value)}
                                 rows={1}
@@ -943,11 +957,11 @@ const ChatPanel = ({
                                         handleSendMessage(e);
                                     }
                                 }}
-                                disabled={isChatDisabled}
+                                disabled={isChatDisabled || isAdmin}
                             />
                             <Popover>
                                 <PopoverTrigger asChild>
-                                    <Button variant="ghost" size="icon" type="button" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 text-muted-foreground" disabled={isChatDisabled}>
+                                    <Button variant="ghost" size="icon" type="button" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 text-muted-foreground" disabled={isChatDisabled || isAdmin}>
                                         <Smile />
                                     </Button>
                                 </PopoverTrigger>
@@ -962,8 +976,8 @@ const ChatPanel = ({
                                 </PopoverContent>
                             </Popover>
                         </div>
-                         <SuperChatDialog walletBalance={walletBalance} handlers={handlers} isSuperChatOpen={isSuperChatOpen} setIsSuperChatOpen={setIsSuperChatOpen} />
-                        <Button type="submit" size="icon" disabled={!newMessage.trim() || isChatDisabled} className="rounded-full flex-shrink-0 h-11 w-11">
+                         {!isAdmin && <SuperChatDialog walletBalance={walletBalance} handlers={handlers} isSuperChatOpen={isSuperChatOpen} setIsSuperChatOpen={setIsSuperChatOpen} />}
+                        <Button type="submit" size="icon" disabled={!newMessage.trim() || isChatDisabled || isAdmin} className="rounded-full flex-shrink-0 h-11 w-11">
                             <Send className="h-5 w-5" />
                         </Button>
                     </form>
@@ -977,7 +991,8 @@ const ChatPanel = ({
 const MemoizedStreamInfo = React.memo(StreamInfo);
 const MemoizedRelatedContent = React.memo(RelatedContent);
 
-const DesktopLayout = React.memo(({ user, handlers, handleAddToCart, handleBuyNow, chatMessages, cartCount, walletBalance, isSuperChatOpen, setIsSuperChatOpen, pinnedMessages, isChatDisabled, ...props }: any) => {
+const DesktopLayout = React.memo(({ user, userData, handlers, handleAddToCart, handleBuyNow, chatMessages, cartCount, walletBalance, isSuperChatOpen, setIsSuperChatOpen, pinnedMessages, isChatDisabled, ...props }: any) => {
+    const isAdmin = userData?.role === 'admin';
 return (
 <div className="flex flex-col h-screen overflow-hidden">
     <header className="p-3 flex items-center justify-between z-40 h-16 shrink-0 w-full">
@@ -1008,7 +1023,7 @@ return (
             )}
         </div>
         <div className="flex items-center gap-2">
-            {user ? (
+            {user && !isAdmin ? (
                 <Button asChild variant="ghost">
                     <Link href="/cart" className="relative">
                         <ShoppingCart className="mr-2 h-4 w-4" />
@@ -1020,11 +1035,7 @@ return (
                         )}
                     </Link>
                 </Button>
-            ) : (
-                <Button asChild>
-                    <Link href="/">Login / Sign Up</Link>
-                </Button>
-            )}
+            ) : null}
         </div>
     </header>
     <div className="flex-1 grid grid-cols-[1fr,384px] overflow-hidden">
@@ -1108,7 +1119,7 @@ return (
                 isSuperChatOpen={isSuperChatOpen}
                 setIsSuperChatOpen={setIsSuperChatOpen}
                 isPastStream={props.isPastStream}
-                isChatDisabled={isChatDisabled}
+                isChatDisabled={isAdmin || isChatDisabled}
             />
         </aside>
     </div>
@@ -1116,8 +1127,9 @@ return (
 )});
 DesktopLayout.displayName = "DesktopLayout";
 
-const MobileLayout = React.memo(({ user, handlers, handleAddToCart, handleBuyNow, chatMessages, walletBalance, isPastStream, isSuperChatOpen, setIsSuperChatOpen, pinnedMessages, isChatDisabled, ...props }: any) => {
+const MobileLayout = React.memo(({ user, userData, handlers, handleAddToCart, handleBuyNow, chatMessages, walletBalance, isPastStream, isSuperChatOpen, setIsSuperChatOpen, pinnedMessages, isChatDisabled, ...props }: any) => {
     const { isMuted, setIsMuted, handleGoLive, isLive, formatTime, currentTime, duration, handleShare, handleToggleFullscreen, progressContainerRef, handleProgressClick, isPaused, handlePlayPause, handleSeek, handleMinimize, activeQuality, setActiveQuality } = props;
+    const isAdmin = userData?.role === 'admin';
     return (
         <div className="flex flex-col h-dvh overflow-hidden relative">
             <header className="p-3 flex items-center justify-between sticky top-0 bg-transparent z-30 h-16 shrink-0 w-full">
@@ -1139,11 +1151,13 @@ const MobileLayout = React.memo(({ user, handlers, handleAddToCart, handleBuyNow
                     )}
                 </div>
                  <div className="flex items-center gap-0.5">
-                    <Button asChild variant="ghost" size="icon">
-                        <Link href="/cart">
-                            <ShoppingCart className="h-5 w-5" />
-                        </Link>
-                    </Button>
+                    {user && !isAdmin &&
+                        <Button asChild variant="ghost" size="icon">
+                            <Link href="/cart">
+                                <ShoppingCart className="h-5 w-5" />
+                            </Link>
+                        </Button>
+                    }
                 </div>
             </header>
 
@@ -1225,7 +1239,7 @@ const MobileLayout = React.memo(({ user, handlers, handleAddToCart, handleBuyNow
                 )}
             </div>
 
-            {props.mobileView === 'stream' && (
+            {props.mobileView === 'stream' && !isAdmin && (
                 <div className="fixed bottom-4 left-4 z-20">
                     <Button className="rounded-full shadow-lg h-12 px-6" onClick={() => props.setMobileView('chat')}>
                         <MessageSquare className="mr-2 h-5 w-5"/>
@@ -1246,7 +1260,7 @@ const StreamPage = () => {
     const streamId = params.streamId as string;
     const isPastStream = searchParams.get('isPast') === 'true';
 
-    const { user } = useAuth();
+    const { user, userData } = useAuth();
     const { toast } = useToast();
     const { minimizedStream, minimizeStream, closeMinimizedStream, isMinimized } = useMiniPlayer();
     const inlineAuctionCardRefs = useRef<Record<string, HTMLDivElement | null>>({});
@@ -1275,7 +1289,9 @@ const StreamPage = () => {
     const [userRating, setUserRating] = useState<number>(0);
     
     const [isStreamEnded, setIsStreamEnded] = useState(false);
-    const [isChatDisabled, setIsChatDisabled] = useState(false);
+    
+    const isAdmin = userData?.role === 'admin';
+    const isChatDisabled = isStreamEnded || (isAdmin && isPastStream);
     
     const handleAuthAction = useCallback((callback?: () => void) => {
         if (!user) {
@@ -1729,6 +1745,15 @@ const StreamPage = () => {
         handleAuthAction(() => setIsReportOpen(true));
     }, [handleAuthAction]);
     
+    const onStopStream = useCallback(() => {
+        toast({
+            variant: "destructive",
+            title: "Stream Stopped",
+            description: "This live stream has been terminated by an administrator.",
+        });
+        setIsStreamEnded(true);
+    }, [toast]);
+    
     const handleAddToCart = useCallback((product: any) => {
         handleAuthAction(() => {
             if (product) {
@@ -1757,13 +1782,14 @@ const StreamPage = () => {
         onReportMessage: handleReportMessage,
         onDeleteMessage: handleDeleteMessage,
         onReportStream,
+        onStopStream,
         onAddToCart: handleAddToCart,
         onBuyNow: handleBuyNow,
         toast,
         seller,
         handleNewMessageSubmit,
         handleAuthAction,
-    }), [toast, handleReply, handleReportMessage, handleTogglePinMessage, handleDeleteMessage, seller, handleNewMessageSubmit, onReportStream, handleAddToCart, handleBuyNow, handleAuthAction]);
+    }), [toast, handleReply, handleReportMessage, handleTogglePinMessage, handleDeleteMessage, seller, handleNewMessageSubmit, onReportStream, onStopStream, handleAddToCart, handleBuyNow, handleAuthAction]);
     
     if (isMinimized(streamId)) {
         return (
@@ -1862,10 +1888,10 @@ const StreamPage = () => {
                         <LoadingSpinner />
                     </div>
                  ) : isMobile ? (
-                     <MobileLayout {...{ user, handlers, handleAddToCart, handleBuyNow, chatMessages, walletBalance, isPastStream, isSuperChatOpen, setIsSuperChatOpen, pinnedMessages, isChatDisabled, ...props }} />
+                     <MobileLayout {...{ user, userData, handlers, handleAddToCart, handleBuyNow, chatMessages, walletBalance, isPastStream, isSuperChatOpen, setIsSuperChatOpen, pinnedMessages, isChatDisabled, ...props }} />
                  ) : (
                     <DesktopLayout 
-                        {...{ user, handlers, handleAddToCart, handleBuyNow, chatMessages, cartCount, walletBalance, isSuperChatOpen, setIsSuperChatOpen, pinnedMessages, isChatDisabled, ...props }}
+                        {...{ user, userData, handlers, handleAddToCart, handleBuyNow, chatMessages, cartCount, walletBalance, isSuperChatOpen, setIsSuperChatOpen, pinnedMessages, isChatDisabled, ...props }}
                     />
                  )}
             </div>
@@ -1876,16 +1902,64 @@ const StreamPage = () => {
 export default StreamPage;
 
     
+```
+- src/components/ui/sidebar.tsx:
+```tsx
+
+
+"use client"
+
+import * as React from "react"
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
+import { useIsMobile } from "@/hooks/use-mobile"
+import { Menu } from "lucide-react"
+import { Button } from "./button"
+
+const SidebarContext = React.createContext<{
+  open: boolean,
+  setOpen: (open: boolean) => void
+}>({
+    open: false,
+    setOpen: () => {},
+});
+
+export const SidebarProvider = ({ children }: { children: React.ReactNode }) => {
+    const [open, setOpen] = React.useState(false);
     
+    const value = React.useMemo(() => ({
+        open,
+        setOpen,
+    }), [open, setOpen]);
+    
+    return (
+        <SidebarContext.Provider value={value}>
+            {children}
+        </SidebarContext.Provider>
+    )
+}
 
+export function useSidebar() {
+  const context = React.useContext(SidebarContext)
+  if (!context) {
+    throw new Error("useSidebar must be used within a SidebarProvider.")
+  }
+  return context
+}
 
+export const SidebarTrigger = () => {
+    const { setOpen } = useSidebar();
+    return (
+        <Button variant="outline" size="icon" className="shrink-0 md:hidden" onClick={() => setOpen(true)}>
+            <Menu className="h-5 w-5" />
+            <span className="sr-only">Toggle navigation menu</span>
+        </Button>
+    )
+}
 
+// These are no longer needed as wrappers but are kept for compatibility
+export const Sidebar = ({ children }: { children: React.ReactNode }) => <>{children}</>
+export const SidebarContent = ({ children }: { children: React.ReactNode }) => <>{children}</>
+export const SidebarHeader = ({ children }: { children: React.ReactNode }) => <>{children}</>
+export const SidebarInset = ({ children }: { children: React.ReactNode }) => <>{children}</>
 
-
-
-
-
-
-
-
-
+```
