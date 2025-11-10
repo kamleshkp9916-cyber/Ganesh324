@@ -13,7 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetDescription } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Check, AlertTriangle, Upload, ChevronLeft, ChevronRight, ShieldCheck, Building2, User2, MapPin, Banknote, FileSignature, ClipboardList, Eye, UserCheck, ShieldAlert, Gavel, Loader2, Send, Camera, QrCode, CheckCircle2 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useRouter } from "next/navigation";
@@ -54,7 +54,7 @@ const steps = [
   { key: "biz", label: "Business", icon: <Building2 className="w-5 h-5"/> },
   { key: "addr", label: "Address", icon: <MapPin className="w-5 h-5"/> },
   { key: "bank", label: "Tax & Bank", icon: <Banknote className="w-5 h-5"/> },
-  { key: "kyc", label: "Identity (Nipher)", icon: <ShieldCheck className="w-5 h-5"/> },
+  { key: "kyc", label: "Identity (0DIDit)", icon: <ShieldCheck className="w-5 h-5"/> },
   { key: "policies", label: "Policies & Preview", icon: <ClipboardList className="w-5 h-5"/> },
 ];
 
@@ -232,7 +232,7 @@ function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
   const canSubmit = form.termsAccepted && verif.state === "VERIFIED";
 
   const handleGenerateVerification = async () => {
-    setVerif({ state: "PENDING", message: "Generating secure Nipher verification link..." });
+    setVerif({ state: "PENDING", message: "Generating secure 0DIDit verification link..." });
     const verificationLink = "https://0did.it/verify/mock-session-12345";
     setQrCodeUrl(`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(verificationLink)}`);
     
@@ -297,7 +297,7 @@ function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
           </CardContent>
         </Card>
          <div className="text-xs text-muted-foreground p-3 bg-gray-50 rounded-lg">
-            <strong>Privacy Note:</strong> We use Nipher for secure identity verification. Your personal identity data is not stored on our servers, only the verification status. We only store information that is necessary for you to use or sell products on our platform.
+            <strong>Privacy Note:</strong> We use 0DIDit for secure identity verification. Your personal identity data like your ID is not stored on our servers, only the verification status. We only store information necessary for you to use or sell products on the Nipher platform.
         </div>
       </div>
 
@@ -479,12 +479,12 @@ function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
             )}
 
             {steps[current].key === "kyc" && (
-              <Section title="Identity — Nipher 0DIDit" icon={<ShieldCheck className="w-5 h-5"/>}>
+              <Section title="Identity — 0DIDit" icon={<ShieldCheck className="w-5 h-5"/>}>
                 <div className="space-y-4 text-center flex flex-col items-center">
                     {verif.state === 'IDLE' && (
                         <>
                             <div className="p-3 rounded-xl bg-gray-50 text-sm max-w-md mx-auto">
-                                Verify your identity using Nipher for a secure and fast verification process. You will be prompted to scan a QR code with your phone.
+                                Verify your identity using 0DIDit for a secure and fast verification process. You will be prompted to scan a QR code with your phone.
                             </div>
                             <Button onClick={handleGenerateVerification}>Generate Verification Link</Button>
                         </>
@@ -495,7 +495,7 @@ function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
                             <h3 className="font-semibold">Scan to Verify</h3>
                             <p className="text-sm text-muted-foreground">Scan the QR code with your phone's camera to complete verification on the 0DIDit platform.</p>
                             {qrCodeUrl ? (
-                                <Image src={qrCodeUrl} alt="Nipher Verification QR Code" width={250} height={250} className="rounded-lg border p-2" />
+                                <Image src={qrCodeUrl} alt="0DIDit Verification QR Code" width={250} height={250} className="rounded-lg border p-2" />
                             ) : (
                                 <Skeleton className="w-[250px] h-[250px]" />
                             )}
@@ -586,7 +586,7 @@ function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
                                                 <div className="text-muted-foreground">IFSC</div><div>{form.ifsc}</div>
 
                                                 <h4 className="col-span-2 text-base font-semibold mt-4">Verification</h4>
-                                                <div className="text-muted-foreground">Identity (Nipher)</div><div>{verif.state === 'VERIFIED' ? <Badge variant="success">Verified</Badge> : <Badge variant="destructive">Not Verified</Badge>}</div>
+                                                <div className="text-muted-foreground">Identity (0DIDit)</div><div>{verif.state === 'VERIFIED' ? <Badge variant="success">Verified</Badge> : <Badge variant="destructive">Not Verified</Badge>}</div>
 
                                                 <h4 className="col-span-2 text-base font-semibold mt-4">Settings</h4>
                                                 <div className="text-muted-foreground">Auctions</div><div>{form.auctionEnabled ? 'Enabled' : 'Disabled'}</div>
@@ -672,3 +672,4 @@ export default function KYCPage() {
         </div>
     );
 }
+
