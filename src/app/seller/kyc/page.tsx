@@ -145,26 +145,14 @@ function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
     if (draft) {
       try {
         const parsedDraft = JSON.parse(draft);
-        setForm(prevForm => ({ ...prevForm, ...parsedDraft }));
+        setForm(prevForm => ({ ...initialFormState, ...prevForm, ...parsedDraft }));
         if(parsedDraft.photoUrl) setPhotoPreview(parsedDraft.photoUrl);
       } catch (error) {
         console.error("Failed to parse seller draft from localStorage", error);
       }
     }
-  }, []);
-  
-  useEffect(() => {
-    const draft = localStorage.getItem(SELLER_APP_DRAFT_KEY);
-    if (draft) {
-        try {
-            const parsedDraft = JSON.parse(draft);
-            setForm(prevForm => ({ ...initialFormState, ...prevForm, ...parsedDraft }));
-            if(parsedDraft.photoUrl) setPhotoPreview(parsedDraft.photoUrl);
-        } catch (error) {
-            console.error("Failed to parse seller draft from localStorage", error);
-        }
-    }
 }, []);
+
 
 
   const progress = useMemo(() => Math.round(((current) / (steps.length - 1)) * 100), [current]);
@@ -634,5 +622,3 @@ export default function KYCPage() {
         </div>
     );
 }
-
-```
