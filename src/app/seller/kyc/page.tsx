@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useMemo, useState, useEffect, useCallback, useRef } from "react";
@@ -697,6 +696,38 @@ export default function KYCPage() {
                 </Card>
             </div>
         );
+    }
+    
+    if (userData?.verificationStatus === 'needs-resubmission') {
+        return (
+            <div className="min-h-screen p-6 md:p-10 bg-gradient-to-br from-gray-50 to-white">
+                <div className="max-w-7xl mx-auto space-y-6">
+                    <div className="flex items-center justify-between">
+                        <Button asChild variant="ghost" className="-ml-4">
+                            <Link href="/live-selling">
+                                <ChevronLeft className="mr-2 h-4 w-4" />
+                                Back to Shopping
+                            </Link>
+                        </Button>
+                    </div>
+                    <div className="text-center">
+                        <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">Seller Application</h1>
+                    </div>
+                    <Card className="border-amber-500 bg-amber-50">
+                        <CardHeader className="text-center">
+                            <CardTitle className="text-amber-700">Resubmission Required</CardTitle>
+                            <CardDescription className="text-amber-600">
+                                An admin has reviewed your application and requires more information. Please review the feedback below, make the necessary changes, and re-submit.
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent className="text-center font-medium text-amber-800">
+                             <p>"{userData.resubmissionReason || 'No reason provided.'}"</p>
+                        </CardContent>
+                    </Card>
+                    <SellerWizard onSubmit={handleSubmission} />
+                </div>
+            </div>
+        )
     }
     
     return (
