@@ -37,7 +37,7 @@ import {
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import React, { useState, useEffect, useRef, useMemo } from "react"
-import { useForm } from "react-hook-form"
+import { useForm, useFieldArray } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
 import { format } from "date-fns"
@@ -246,6 +246,86 @@ const defaultFeaturedProducts: FeaturedProduct[] = [
   { imageUrl: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500&h=500&fit=crop', name: 'Headphones', model: 'AudioMax 3' },
 ];
 
+const footerContentSchema = z.object({
+  description: z.string().min(10, "Description is required."),
+  address: z.string().min(10, "Address is required."),
+  phone: z.string().min(10, "Phone number is required."),
+  email: z.string().email("Invalid email address."),
+  facebook: z.string().url().or(z.literal("")),
+  twitter: z.string().url().or(z.literal("")),
+  linkedin: z.string().url().or(z.literal("")),
+  instagram: z.string().url().or(z.literal("")),
+});
+export type FooterContent = z.infer<typeof footerContentSchema>;
+
+const shippingSettingsSchema = z.object({
+  deliveryCharge: z.coerce.number().min(0, "Charge must be non-negative."),
+});
+export type ShippingSettings = z.infer<typeof shippingSettingsSchema>;
+
+const defaultFooterContent: FooterContent = {
+  description: "Your one-stop shop for live shopping. Discover, engage, and buy in real-time.",
+  address: "123 Stream St, Commerce City, IN",
+  phone: "(+91) 98765 43210",
+  email: "streamcartcom@gmail.com",
+  facebook: "https://facebook.com",
+  twitter: "https://twitter.com",
+  linkedin: "https://linkedin.com",
+  instagram: "https://instagram.com",
+};
+
+const defaultShippingSettings: ShippingSettings = {
+    deliveryCharge: 50.00
+};
+
+const initialFlaggedContent = [
+    { id: 1, type: 'User Profile', content: 'Inappropriate bio for user "SpamBot99"', targetId: 'SpamBot99', reporter: 'AdminBot', status: 'Pending' },
+    { id: 2, type: 'Product Image', content: 'Misleading image for "Magic Beans"', targetId: 'prod_1', reporter: 'JaneDoe', status: 'Pending' },
+    { id: 3, type: 'Chat Message', content: 'Harassment in chat from "User123"', targetId: 'User123', reporter: 'User456', status: 'Pending' },
+    { id: 4, type: 'Live Stream', content: 'Off-topic content in "GadgetGuru" stream', targetId: 'GadgetGuru', reporter: 'CommunityMod', status: 'Reviewed' },
+];
+
+const initialCoupons: Coupon[] = [
+    { id: 1, code: 'STREAM10', description: '10% off on all orders', discountType: 'percentage', discountValue: 10, expiresAt: new Date(new Date().setDate(new Date().getDate() + 7)), applicableCategories: ['All'], minOrderValue: 0, status: 'active', sellerId: 'admin' },
+    { id: 2, code: 'SAVE100', description: '₹100 off on orders above ₹1000', discountType: 'fixed', discountValue: 100, minOrderValue: 1000, applicableCategories: ['All'], status: 'active', sellerId: 'admin' },
+    { id: 3, code: 'FREESHIP', description: 'Free shipping on all orders', discountType: 'fixed', discountValue: 0, status: 'pending', sellerId: 'seller1', sellerName: 'FashionFinds'},
+];
+
+const initialSlides: Slide[] = [
+  { id: 1, imageUrl: 'https://placehold.co/1200x400.png', title: 'Flash Sale!', description: 'Up to 50% off on electronics.', expiresAt: new Date(new Date().setDate(new Date().getDate() + 3)) },
+  { id: 2, imageUrl: 'https://placehold.co/1200x400.png', title: 'New Arrivals', description: 'Check out the latest fashion trends.' },
+];
+
+const defaultCategoryBanners: CategoryBanners = {
+    "Women": {
+        banner1: { title: '25% off', description: 'Michael Kors for her. Ends 5/15.', imageUrl: 'https://images.unsplash.com/photo-1525945367383-a90940981977?w=800&h=800&fit=crop' },
+        banner2: { title: 'State of Day', description: 'Restwear, sleepwear & innerwear that takes you from sunrise to slumber.', imageUrl: 'https://images.unsplash.com/photo-1617964436152-29304c5aad3a?w=1200&h=600&fit=crop' }
+    },
+    "Men": {
+        banner1: { title: '40% off', description: 'Top Brand Polos & Tees. Limited time only.', imageUrl: 'https://images.unsplash.com/photo-1618354691373-d851c5c3a990?w=800&h=800&fit=crop' },
+        banner2: { title: 'Activewear Collection', description: 'Engineered to keep you cool, dry, and comfortable.', imageUrl: 'https://images.unsplash.com/photo-1506629082955-511b1aa562c8?w=1200&h=600&fit=crop' }
+    },
+    "Kids": { banner1: { title: "Kids' Corner", description: 'Fun and stylish outfits for your little ones.', imageUrl: 'https://placehold.co/800x800.png' }, banner2: { title: 'Playtime Favorites', description: 'Durable and fun toys for all ages.', imageUrl: 'https://placehold.co/1200x600.png' } },
+    "Home": { banner1: { title: 'Cozy Living', description: 'Upgrade your living space with our new home decor.', imageUrl: 'https://placehold.co/800x800.png' }, banner2: { title: 'Kitchen Essentials', description: 'Cook up a storm with our latest kitchenware.', imageUrl: 'https://placehold.co/1200x600.png' } },
+    "Electronics": { banner1: { title: 'Tech Deals', description: 'Get the latest gadgets at amazing prices.', imageUrl: 'https://placehold.co/800x800.png' }, banner2: { title: 'Sound On', description: 'Experience immersive audio with our new headphones.', imageUrl: 'https://placehold.co/1200x600.png' } },
+    "Shoes": { banner1: { title: 'Step Up Your Style', description: 'Find the perfect pair for any occasion.', imageUrl: 'https://placehold.co/800x800.png' }, banner2: { title: 'Comfort & Style', description: 'Sneakers, boots, and more.', imageUrl: 'https://placehold.co/1200x600.png' } },
+    "Handbags": { banner1: { title: 'The Perfect Accessory', description: 'Complete your look with our new handbag collection.', imageUrl: 'https://placehold.co/800x800.png' }, banner2: { title: 'Carry It All', description: 'Stylish and functional bags for every need.', imageUrl: 'https://placehold.co/1200x600.png' } },
+    "Trending": { banner1: { title: 'What\'s Hot', description: 'Discover the most popular items right now.', imageUrl: 'https://placehold.co/800x800.png' }, banner2: { title: 'Must-Haves', description: 'The products everyone is talking about.', imageUrl: 'https://placehold.co/1200x600.png' } },
+    "Sale": { banner1: { title: 'Big Savings!', description: 'Up to 70% off on selected items.', imageUrl: 'https://placehold.co/800x800.png' }, banner2: { title: 'Final Clearance', description: 'Don\'t miss out on these last-chance deals.', imageUrl: 'https://placehold.co/1200x600.png' } }
+};
+
+const defaultHubBanner: HubBanner = {
+    title: "Mega Electronics Sale",
+    description: "Up to 40% off on all smartphones, laptops, and accessories. Limited time offer!",
+    imageUrl: "https://images.unsplash.com/photo-1525547719571-a2d4ac8945e2?w=1200&h=400&fit=crop"
+};
+
+const defaultFeaturedProducts: FeaturedProduct[] = [
+  { imageUrl: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=500&h=500&fit=crop', name: 'Latest Laptop', model: 'Model Pro X' },
+  { imageUrl: 'https://images.unsplash.com/photo-1580910051074-3eb694886505?w=500&h=500&fit=crop', name: 'Smartphone', model: 'SmartX 12' },
+  { imageUrl: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500&h=500&fit=crop', name: 'Headphones', model: 'AudioMax 3' },
+];
+
 const categorySchema = z.object({
   id: z.string().min(1, "ID is required."),
   name: z.string().min(2, "Category name is required."),
@@ -261,7 +341,7 @@ const CategoryForm = ({ category, onSave, onCancel }: { category: Category | nul
         defaultValues: category || { id: '', name: '', subcategories: [] }
     });
 
-    const { fields, append, remove } = useForm({
+    const { fields, append, remove } = useFieldArray({
         control: form.control,
         name: "subcategories",
     });
@@ -287,7 +367,7 @@ const CategoryForm = ({ category, onSave, onCancel }: { category: Category | nul
                     
                     <h4 className="font-semibold text-sm pt-2">Subcategories</h4>
                     <div className="space-y-3 max-h-60 overflow-y-auto pr-2">
-                    {(fields as any[]).map((field, index) => (
+                    {(fields || []).map((field, index) => (
                         <div key={field.id} className="grid grid-cols-[1fr,1fr,auto] gap-2 items-start border p-3 rounded-lg">
                             <FormField control={form.control} name={`subcategories.${index}.name`} render={({ field }) => (
                                 <FormItem><FormLabel className="text-xs">Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
