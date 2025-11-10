@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useMemo, useState, useEffect, useCallback, useRef } from "react";
@@ -19,6 +18,15 @@ import Image from "next/image";
 import { updateUserData, UserData } from "@/lib/follow-data";
 import { getFirestore, collection, query, where, getDocs, updateDoc, doc } from "firebase/firestore";
 import { getFirestoreDb } from "@/lib/firebase";
+
+const steps = [
+  { key: "basic", label: "Basic Info", icon: <User2 className="w-5 h-5"/> },
+  { key: "biz", label: "Business", icon: <Building2 className="w-5 h-5"/> },
+  { key: "address", label: "Address", icon: <MapPin className="w-5 h-5"/> },
+  { key: "bank", label: "Tax & Bank", icon: <Banknote className="w-5 h-5"/> },
+  { key: "kyc", label: "Identity (0DIDit)", icon: <ShieldCheck className="w-5 h-5"/> },
+  { key: "policies", label: "Policies & Preview", icon: <ClipboardList className="w-5 h-5"/> },
+];
 
 function AdminPanel() {
   const [applications, setApplications] = useState<UserData[]>([]);
