@@ -1,5 +1,4 @@
 
-      
 "use client";
 
 import React, { useMemo, useState, useEffect, useCallback, useRef } from "react";
@@ -15,12 +14,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { Check, AlertTriangle, Upload, ChevronLeft, ChevronRight, ShieldCheck, Building2, User2, MapPin, Banknote, FileSignature, ClipboardList, Eye, UserCheck, ShieldAlert, Gavel, Loader2, Send, Camera } from "lucide-react";
+import { Check, AlertTriangle, Upload, ChevronLeft, ChevronRight, ShieldCheck, Building2, User2, MapPin, Banknote, FileSignature, ClipboardList, Eye, UserCheck, ShieldAlert, Gavel, Loader2, Send, Camera, QrCode } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { InputOTP, InputOTPGroup, InputOTPSeparator, InputOTPSlot } from "@/components/ui/input-otp";
+import Image from "next/image";
 
 const Section = ({ title, children, icon }: { title: string, children: React.ReactNode, icon: React.ReactNode }) => (
   <Card className="shadow-lg border rounded-2xl">
@@ -49,7 +49,7 @@ const steps = [
   { key: "biz", label: "Business", icon: <Building2 className="w-5 h-5"/> },
   { key: "addr", label: "Address", icon: <MapPin className="w-5 h-5"/> },
   { key: "bank", label: "Tax & Bank", icon: <Banknote className="w-5 h-5"/> },
-  { key: "kyc", label: "Identity (DigiLocker)", icon: <ShieldCheck className="w-5 h-5"/> },
+  { key: "kyc", label: "Identity (Nipher)", icon: <ShieldCheck className="w-5 h-5"/> },
   { key: "policies", label: "Policies & Preview", icon: <ClipboardList className="w-5 h-5"/> },
 ];
 
@@ -85,19 +85,12 @@ function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
     accountNo: "",
     accountName: "",
     auctionEnabled: false,
-    aadhaarZip: null,
-    shareCode: "",
-    selfie: null,
     termsAccepted: false,
-    aadhaarNumber: "",
-    aadhaarOtp: "",
   });
-  const [verif, setVerif] = useState({ state: "IDLE", message: "" });
-  const [otpSent, setOtpSent] = useState({ email: false, phone: false, aadhaar: false });
-  const [isVerifying, setIsVerifying] = useState({ email: false, phone: false, aadhaar: false });
-
-  const selfieInputRef = useRef<HTMLInputElement>(null);
-  const [selfiePreview, setSelfiePreview] = useState<string | null>(null);
+  const [verif, setVerif] = useState<{ state: "IDLE" | "PENDING" | "VERIFIED" | "FAILED", message: string }>({ state: "IDLE", message: "" });
+  const [otpSent, setOtpSent] = useState({ email: false, phone: false });
+  const [isVerifying, setIsVerifying] = useState({ email: false, phone: false });
+  const [qrCodeUrl, setQrCodeUrl] = useState<string | null>(null);
 
   const isStep1Valid = useMemo(() => {
     return form.legalName && form.displayName && /.+@.+\..+/.test(form.email) && /^\d{10}$/.test(form.phone) && form.emailVerified && form.phoneVerified;
@@ -116,11 +109,7 @@ function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
     if (draft) {
         try {
             const parsedDraft = JSON.parse(draft);
-            // Merge draft with default state to prevent uncontrolled inputs
             setForm(prevForm => ({ ...prevForm, ...parsedDraft }));
-            if (parsedDraft.selfie && parsedDraft.selfie.preview) {
-                setSelfiePreview(parsedDraft.selfie.preview);
-            }
         } catch (error) {
             console.error("Failed to parse seller draft from localStorage", error);
         }
@@ -145,29 +134,21 @@ function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
     });
   };
 
-  const handleSendOtp = (type: 'email' | 'phone' | 'aadhaar') => {
-      if (type === 'aadhaar' && form.aadhaarNumber.length !== 12) {
-          toast({ variant: 'destructive', title: "Invalid Aadhaar", description: "Please enter a valid 12-digit Aadhaar number." });
-          return;
-      }
+  const handleSendOtp = (type: 'email' | 'phone') => {
       setOtpSent(prev => ({...prev, [type]: true}));
-      toast({ title: `OTP Sent to your ${type === 'aadhaar' ? 'Aadhaar-linked mobile' : type}` });
+      toast({ title: `OTP Sent to your ${type}` });
   };
 
-  const handleVerifyOtp = (type: 'email' | 'phone' | 'aadhaar') => {
-      const otp = type === 'email' ? form.emailOtp : type === 'phone' ? form.phoneOtp : form.aadhaarOtp;
-      if (otp !== '1234' && otp !== '123456') { // Mock OTPs
+  const handleVerifyOtp = (type: 'email' | 'phone') => {
+      const otp = type === 'email' ? form.emailOtp : form.phoneOtp;
+      if (otp !== '1234') { // Mock OTPs
           toast({ variant: 'destructive', title: `Invalid ${type} OTP` });
           return;
       }
       setIsVerifying(prev => ({...prev, [type]: true }));
       setTimeout(() => {
-          if(type === 'aadhaar') {
-              fakeVerifyAadhaar();
-          } else {
-              setField(`${type}Verified`, true);
-              toast({ title: `${type.charAt(0).toUpperCase() + type.slice(1)} Verified!` });
-          }
+          setField(`${type}Verified`, true);
+          toast({ title: `${type.charAt(0).toUpperCase() + type.slice(1)} Verified!` });
           setIsVerifying(prev => ({ ...prev, [type]: false }));
       }, 1000);
   };
@@ -177,32 +158,19 @@ function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
 
   const canSubmit = form.termsAccepted && verif.state === "VERIFIED";
 
-  const fakeVerifyAadhaar = async () => {
-    setVerif({ state: "VERIFYING", message: "Verifying Aadhaar OTP & fetching data from DigiLocker…" });
+  const handleGenerateVerification = async () => {
+    setVerif({ state: "PENDING", message: "Generating secure Nipher verification link..." });
+    const verificationLink = "https://0did.it/verify/mock-session-12345";
+    setQrCodeUrl(`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(verificationLink)}`);
+    
+    // Simulate user scanning and verifying on their phone
     setTimeout(() => {
-      const ok = true;
-      setVerif({ state: ok ? "VERIFIED" : "INVALID_SIGNATURE", message: ok ? "Aadhaar verified. Photo matched successfully." : "The Aadhaar OTP was incorrect. Please try again." });
-       toast({
-        title: ok ? "Aadhaar Verified" : "Verification Failed",
-        description: ok ? "Your Aadhaar details were successfully fetched and your photo was matched." : "The OTP was incorrect.",
-        variant: ok ? "default" : "destructive",
-      });
-    }, 1500);
+        setVerif({ state: "VERIFIED", message: "Verification successful on your mobile device. You can now proceed." });
+        toast({ title: "Verification Successful!", description: "You can proceed to the next step." });
+        setTimeout(() => next(), 1500); // Auto-advance after success
+    }, 5000); 
   };
   
-  const handleSelfieUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const result = event.target?.result as string;
-        setSelfiePreview(result);
-        setField("selfie", { file, preview: result });
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
   const submit = () => {
     localStorage.setItem(SELLER_APP_SUBMITTED_KEY, JSON.stringify({ status: "SUBMITTED", payload: form, verif }));
     localStorage.removeItem(SELLER_APP_DRAFT_KEY);
@@ -233,7 +201,7 @@ function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
           </CardContent>
         </Card>
          <div className="text-xs text-muted-foreground p-3 bg-gray-50 rounded-lg">
-            <strong>Privacy Note:</strong> We do not store your raw Aadhaar or PAN data on our servers. We only retain the necessary information, such as your name and address, required for seller operations.
+            <strong>Privacy Note:</strong> We partner with Nipher for secure identity verification. Your data is handled according to our privacy policy and Nipher's.
         </div>
       </div>
 
@@ -402,46 +370,48 @@ function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
             )}
 
             {steps[current].key === "kyc" && (
-              <Section title="Identity — DigiLocker Aadhaar" icon={<ShieldCheck className="w-5 h-5"/>}>
-                <div className="space-y-4">
-                    <div className="p-3 rounded-xl bg-gray-50 text-sm">
-                        Verify your identity using your Aadhaar number through DigiLocker for a secure and fast verification process.
-                    </div>
-                    <div className="grid md:grid-cols-2 gap-4">
-                        <div>
-                            <label className="text-sm">Aadhaar Number</label>
-                            <Input value={form.aadhaarNumber || ''} maxLength={12} onChange={(e) => setField("aadhaarNumber", e.target.value.replace(/\D/g, ""))} placeholder="Enter 12-digit Aadhaar"/>
-                        </div>
-                        <div className="flex items-end">
-                            <Button type="button" className="w-full" onClick={() => handleSendOtp('aadhaar')} disabled={otpSent.aadhaar || isVerifying.aadhaar || (form.aadhaarNumber?.length || 0) !== 12}>
-                                {isVerifying.aadhaar ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <Send className="mr-2 h-4 w-4"/>}
-                                {otpSent.aadhaar ? 'Resend OTP' : 'Send OTP'}
-                            </Button>
-                        </div>
-                    </div>
-                     {otpSent.aadhaar && (
-                      <div className="space-y-2">
-                          <label className="text-sm">Enter OTP</label>
-                          <div className="flex items-center gap-2">
-                            <InputOTP maxLength={6} value={form.aadhaarOtp} onChange={(val) => setField("aadhaarOtp", val)}>
-                                <InputOTPGroup>
-                                    <InputOTPSlot index={0} /><InputOTPSlot index={1} /><InputOTPSlot index={2} />
-                                    <InputOTPSlot index={3} /><InputOTPSlot index={4} /><InputOTPSlot index={5} />
-                                </InputOTPGroup>
-                            </InputOTP>
-                            <Button type="button" variant="secondary" onClick={() => handleVerifyOtp('aadhaar')} disabled={form.aadhaarOtp.length < 6 || isVerifying.aadhaar}>
-                                {isVerifying.aadhaar && <Loader2 className="mr-2 h-4 w-4 animate-spin"/>}
-                                Verify Aadhaar
-                            </Button>
-                          </div>
-                      </div>
+              <Section title="Identity — Nipher 0DIDit" icon={<ShieldCheck className="w-5 h-5"/>}>
+                <div className="space-y-4 text-center flex flex-col items-center">
+                    {verif.state === 'IDLE' && (
+                        <>
+                            <div className="p-3 rounded-xl bg-gray-50 text-sm max-w-md mx-auto">
+                                Verify your identity using Nipher for a secure and fast verification process. You will be prompted to scan a QR code with your phone.
+                            </div>
+                            <Button onClick={handleGenerateVerification}>Generate Verification Link</Button>
+                        </>
                     )}
-                     <div className="flex items-center gap-3 pt-2">
-                        {verif.state === "VERIFYING" && <Badge variant="secondary"><Loader2 className="mr-2 h-3 w-3 animate-spin"/>Verifying…</Badge>}
-                        {verif.state === "VERIFIED" && <Badge className="bg-green-600"><Check className="mr-2 h-3 w-3"/>Aadhaar Verified & Photo Matched</Badge>}
-                        {verif.state === "INVALID_SIGNATURE" && <Badge variant="destructive"><AlertTriangle className="mr-2 h-3 w-3"/>Verification Failed</Badge>}
-                    </div>
-                    {verif.message && <p className="text-xs text-muted-foreground">{verif.message}</p>}
+
+                    {verif.state === 'PENDING' && (
+                        <div className="flex flex-col items-center gap-4">
+                            <h3 className="font-semibold">Scan to Verify</h3>
+                            <p className="text-sm text-muted-foreground">Scan the QR code with your phone's camera to complete verification on the 0DIDit platform.</p>
+                            {qrCodeUrl ? (
+                                <Image src={qrCodeUrl} alt="Nipher Verification QR Code" width={250} height={250} className="rounded-lg border p-2" />
+                            ) : (
+                                <Skeleton className="w-[250px] h-[250px]" />
+                            )}
+                            <div className="flex items-center gap-2 text-muted-foreground">
+                                <Loader2 className="h-4 w-4 animate-spin"/>
+                                Waiting for completion...
+                            </div>
+                        </div>
+                    )}
+                     {verif.state === 'VERIFIED' && (
+                        <div className="flex flex-col items-center gap-4 text-green-600">
+                             <CheckCircle2 className="h-16 w-16" />
+                             <h3 className="font-semibold text-lg">Verification Successful!</h3>
+                             <p className="text-sm max-w-sm">{verif.message}</p>
+                             <p className="text-xs text-muted-foreground">Proceeding to the next step...</p>
+                        </div>
+                     )}
+                     {verif.state === 'FAILED' && (
+                        <div className="flex flex-col items-center gap-4 text-destructive">
+                             <AlertTriangle className="h-16 w-16" />
+                             <h3 className="font-semibold text-lg">Verification Failed</h3>
+                             <p className="text-sm max-w-sm">{verif.message}</p>
+                             <Button onClick={() => setVerif({state: "IDLE", message: ""})}>Try Again</Button>
+                        </div>
+                     )}
                 </div>
               </Section>
             )}
@@ -551,7 +521,3 @@ export default function KYCPage() {
         </div>
     );
 }
-
-
-    
-
