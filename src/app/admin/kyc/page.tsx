@@ -8,10 +8,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Check, AlertTriangle, ShieldCheck, UserCheck, ShieldAlert } from "lucide-react";
+import { Check, AlertTriangle, ShieldCheck, UserCheck, ShieldAlert, Image as ImageIcon } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useRouter } from "next/navigation";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
+import Image from "next/image";
+import { Textarea } from "@/components/ui/textarea";
 
 const SELLER_APP_SUBMITTED_KEY = "sellerAppSubmitted";
 
@@ -51,7 +53,9 @@ function AdminPanel() {
     );
   }
 
-  const { payload, verif } = application;
+  const { payload } = application;
+  const isNipherVerified = payload.isNipherVerified;
+
 
   if (finalDecision) {
       return (
@@ -80,8 +84,8 @@ function AdminPanel() {
             <CardTitle>Seller Review — {payload.displayName || payload.legalName || "Untitled"}</CardTitle>
             <div className="flex items-center gap-2">
               <Badge variant="secondary">SUBMITTED</Badge>
-              {verif.state === "VERIFIED" ? (
-                <Badge className="bg-green-600">e‑KYC: Signature valid</Badge>
+              {isNipherVerified ? (
+                <Badge className="bg-green-600">e‑KYC: Nipher Verified</Badge>
               ) : (
                 <Badge variant="destructive">e‑KYC: Needs attention</Badge>
               )}
@@ -91,15 +95,19 @@ function AdminPanel() {
         <CardContent>
           <div className="grid lg:grid-cols-3 gap-6">
             <div className="space-y-2">
-              <div className="text-sm text-muted-foreground">Applicant</div>
+              <div className="text-sm text-muted-foreground">Applicant Photo</div>
+              <div className="w-32 h-32 rounded-lg bg-muted flex items-center justify-center overflow-hidden relative">
+                  {payload.photoUrl ? (
+                      <Image src={payload.photoUrl} alt="Seller photo" layout="fill" className="object-cover" />
+                  ) : (
+                      <ImageIcon className="w-10 h-10 text-muted-foreground"/>
+                  )}
+              </div>
+              <div className="text-sm text-muted-foreground pt-4">Applicant Details</div>
               <div className="text-lg font-semibold">{payload.legalName || "—"}</div>
               <div className="text-sm">{payload.email} • {payload.phone}</div>
               <div className="text-sm">PAN: {payload.pan || "—"}</div>
               <div className="text-sm">IFSC: {payload.ifsc || "—"}</div>
-              <div className="mt-2 flex flex-wrap gap-2">
-                {verif.state === "VERIFIED" ? <Badge className="bg-green-600">Signature Valid</Badge> : <Badge variant="destructive">Invalid/Unverified</Badge>}
-                <Badge variant="secondary">Auctions {payload.auctionEnabled ? "On" : "Off"}</Badge>
-              </div>
             </div>
             <div className="lg:col-span-2">
               <Tabs value={tab} onValueChange={setTab}>
@@ -131,9 +139,9 @@ function AdminPanel() {
                 <TabsContent value="kyc" className="pt-4 text-sm space-y-3">
                   <div className="flex items-center gap-2 text-sm">
                     <ShieldCheck className="w-4 h-4"/>
-                    <span>UIDAI Signature: {verif.state === "VERIFIED" ? "Valid" : "Invalid/Unknown"}</span>
+                    <span>Nipher 0DIDit Verification: {isNipherVerified ? "Completed" : "Not Completed"}</span>
                   </div>
-                  <div className="text-xs text-muted-foreground">(Demo) For production, store only last 4 digits & the reference ID; delete raw ZIP within 24 hours.</div>
+                  <div className="text-xs text-muted-foreground">Full KYC data from Nipher is not stored. Only the verification status is recorded.</div>
                 </TabsContent>
               </Tabs>
             </div>
@@ -143,13 +151,15 @@ function AdminPanel() {
 
       <Card className="rounded-2xl">
         <CardHeader className="pb-2"><CardTitle>Decision</CardTitle></CardHeader>
-        <CardContent className="flex flex-col md:flex-row items-start md:items-center gap-3">
-          <Input placeholder="Reason / notes (required for Fix/Reject)" value={reason} onChange={(e)=>setReason(e.target.value)} className="md:flex-1"/>
-          <div className="flex gap-2">
-            <Button variant="secondary" onClick={()=>handleDecision({ type: "FIX", reason })}><AlertTriangle className="w-4 h-4 mr-2"/>Request Fix</Button>
-            <Button variant="destructive" onClick={()=>handleDecision({ type: "REJECT", reason })}><ShieldAlert className="w-4 h-4 mr-2"/>Reject</Button>
-            <Button onClick={()=>handleDecision({ type: "APPROVE" })}><UserCheck className="w-4 h-4 mr-2"/>Approve</Button>
-          </div>
+        <CardContent className="space-y-3">
+            <Textarea placeholder="Reason / notes (required for Fix/Reject)" value={reason} onChange={(e)=>setReason(e.target.value)}/>
+             <div className="flex flex-col md:flex-row items-start md:items-center gap-3">
+                <div className="flex gap-2">
+                    <Button variant="secondary" onClick={()=>handleDecision({ type: "FIX", reason })} disabled={!reason}><AlertTriangle className="w-4 h-4 mr-2"/>Request Fix</Button>
+                    <Button variant="destructive" onClick={()=>handleDecision({ type: "REJECT", reason })} disabled={!reason}><ShieldAlert className="w-4 h-4 mr-2"/>Reject</Button>
+                    <Button onClick={()=>handleDecision({ type: "APPROVE" })}><UserCheck className="w-4 h-4 mr-2"/>Approve</Button>
+                </div>
+            </div>
         </CardContent>
       </Card>
     </div>
@@ -184,4 +194,3 @@ export default function AdminKycPage() {
     </div>
   );
 }
-

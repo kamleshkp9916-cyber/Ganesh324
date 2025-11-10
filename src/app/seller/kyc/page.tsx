@@ -22,6 +22,7 @@ import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { InputOTP, InputOTPGroup, InputOTPSeparator, InputOTPSlot } from "@/components/ui/input-otp";
 import Image from "next/image";
 import { updateUserData } from "@/lib/follow-data";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 const Section = ({ title, children, icon }: { title: string, children: React.ReactNode, icon: React.ReactNode }) => (
   <Card className="shadow-lg border rounded-2xl">
@@ -63,6 +64,7 @@ function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
   const [current, setCurrent] = useState(0);
   
   const initialFormState = {
+    photoUrl: "",
     legalName: "",
     displayName: "",
     email: user?.email || "",
@@ -96,6 +98,8 @@ function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
   const [otpSent, setOtpSent] = useState({ email: false, phone: false });
   const [isVerifying, setIsVerifying] = useState({ email: false, phone: false });
   const [qrCodeUrl, setQrCodeUrl] = useState<string | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const isStep1Valid = useMemo(() => {
     return form.legalName && form.displayName && /.+@.+\..+/.test(form.email) && /^\d{10}$/.test(form.phone) && form.emailVerified && form.phoneVerified;
@@ -137,6 +141,7 @@ function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
       try {
         const parsedDraft = JSON.parse(draft);
         setForm(prevForm => ({ ...prevForm, ...parsedDraft }));
+        if(parsedDraft.photoUrl) setPhotoPreview(parsedDraft.photoUrl);
       } catch (error) {
         console.error("Failed to parse seller draft from localStorage", error);
       }
@@ -179,6 +184,19 @@ function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
       }, 1000);
   };
 
+  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const result = reader.result as string;
+        setPhotoPreview(result);
+        setField('photoUrl', result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const next = () => setCurrent((c) => Math.min(c + 1, steps.length - 1));
   const prev = () => setCurrent((c) => Math.max(c - 1, 0));
 
@@ -202,12 +220,13 @@ function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
         toast({ title: 'Error', description: 'You must be logged in to submit.', variant: 'destructive' });
         return;
     }
-    const finalData = { ...form, kycProvider: "Nipher", kycStatus: "pending" };
+    // Only store that verification was completed, not the API details.
+    const finalData = { ...form, isNipherVerified: verif.state === "VERIFIED" };
     
     try {
         await updateUserData(user.uid, finalData);
         localStorage.removeItem(SELLER_APP_DRAFT_KEY);
-        onSubmit({ status: "SUBMITTED", payload: finalData, verif });
+        onSubmit({ status: "SUBMITTED", payload: finalData });
     } catch (error) {
         console.error("Failed to save KYC data:", error);
         toast({ title: 'Submission Failed', description: 'Could not save your application. Please try again.', variant: 'destructive' });
@@ -248,6 +267,19 @@ function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
             {steps[current].key === "basic" && (
               <Section title="Basic Info" icon={<User2 className="w-5 h-5"/>}>
                 <div className="space-y-4">
+                  <div className="flex items-center gap-4">
+                      <Avatar className="h-24 w-24">
+                          <AvatarImage src={photoPreview || undefined} alt="Seller photo"/>
+                          <AvatarFallback><User2 className="w-10 h-10"/></AvatarFallback>
+                      </Avatar>
+                      <div className="space-y-2">
+                          <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()}>
+                              <Upload className="w-4 h-4 mr-2"/> Upload Photo
+                          </Button>
+                          <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handlePhotoChange} />
+                          <p className="text-xs text-muted-foreground">This will be your public profile picture.</p>
+                      </div>
+                  </div>
                   <div className="grid md:grid-cols-2 gap-4">
                     <div>
                       <label className="text-sm">Legal name</label>
@@ -558,5 +590,3 @@ export default function KYCPage() {
         </div>
     );
 }
-
-    
