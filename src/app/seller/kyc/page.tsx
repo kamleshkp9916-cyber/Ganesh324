@@ -114,13 +114,19 @@ function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
   useEffect(() => {
     const draft = localStorage.getItem(SELLER_APP_DRAFT_KEY);
     if (draft) {
-      const parsedDraft = JSON.parse(draft);
-      setForm(parsedDraft);
-      if (parsedDraft.selfie && parsedDraft.selfie.preview) {
-        setSelfiePreview(parsedDraft.selfie.preview);
-      }
+        try {
+            const parsedDraft = JSON.parse(draft);
+            // Merge draft with default state to prevent uncontrolled inputs
+            setForm(prevForm => ({ ...prevForm, ...parsedDraft }));
+            if (parsedDraft.selfie && parsedDraft.selfie.preview) {
+                setSelfiePreview(parsedDraft.selfie.preview);
+            }
+        } catch (error) {
+            console.error("Failed to parse seller draft from localStorage", error);
+        }
     }
-  }, []);
+}, []);
+
 
   const progress = useMemo(() => Math.round(((current) / (steps.length - 1)) * 100), [current]);
 
@@ -404,10 +410,10 @@ function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
                     <div className="grid md:grid-cols-2 gap-4">
                         <div>
                             <label className="text-sm">Aadhaar Number</label>
-                            <Input value={form.aadhaarNumber} maxLength={12} onChange={(e) => setField("aadhaarNumber", e.target.value.replace(/\D/g, ""))} placeholder="Enter 12-digit Aadhaar"/>
+                            <Input value={form.aadhaarNumber || ''} maxLength={12} onChange={(e) => setField("aadhaarNumber", e.target.value.replace(/\D/g, ""))} placeholder="Enter 12-digit Aadhaar"/>
                         </div>
                         <div className="flex items-end">
-                            <Button type="button" className="w-full" onClick={() => handleSendOtp('aadhaar')} disabled={otpSent.aadhaar || isVerifying.aadhaar || (form.aadhaarNumber && form.aadhaarNumber.length !== 12)}>
+                            <Button type="button" className="w-full" onClick={() => handleSendOtp('aadhaar')} disabled={otpSent.aadhaar || isVerifying.aadhaar || (form.aadhaarNumber?.length || 0) !== 12}>
                                 {isVerifying.aadhaar ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <Send className="mr-2 h-4 w-4"/>}
                                 {otpSent.aadhaar ? 'Resend OTP' : 'Send OTP'}
                             </Button>
@@ -548,3 +554,4 @@ export default function KYCPage() {
 
 
     
+
