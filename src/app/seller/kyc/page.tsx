@@ -161,6 +161,7 @@ function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
 
   const canGoToStep = (stepIndex: number) => {
     switch(stepIndex) {
+        case 0: return true;
         case 1: return isStep1Valid;
         case 2: return isStep1Valid && isStep2Valid;
         case 3: return isStep1Valid && isStep2Valid && isStep3Valid;
@@ -643,7 +644,7 @@ function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
                 <Button variant="outline" onClick={prev} className={current === 0 ? "invisible" : ""}>Back</Button>
               <div className="flex items-center gap-3">
                 {current < steps.length - 1 && (
-                  <Button onClick={next} disabled={!canGoToStep(current)}>Next<ChevronRight className="w-4 h-4 ml-2"/></Button>
+                  <Button onClick={next} disabled={!canGoToStep(current + 1)}>Next<ChevronRight className="w-4 h-4 ml-2"/></Button>
                 )}
                 {current === steps.length - 1 && (
                   <Button disabled={!canSubmit} onClick={submit}>
