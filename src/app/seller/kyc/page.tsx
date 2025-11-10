@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useMemo, useState, useEffect, useCallback, useRef } from "react";
@@ -643,7 +644,7 @@ export default function KYCPage() {
     
     useEffect(() => {
         if (isClient && authReady) {
-            if (user && userData?.role === 'seller') {
+            if (user && userData?.role === 'seller' && userData?.verificationStatus === 'verified') {
                 router.replace('/seller/dashboard');
             }
         }
