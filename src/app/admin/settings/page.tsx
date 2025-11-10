@@ -1,5 +1,4 @@
 
-
 "use client"
 
 import {
@@ -92,6 +91,7 @@ import { useLocalStorage } from "@/hooks/use-local-storage"
 import { CATEGORIES_KEY, defaultCategories, Category, Subcategory } from "@/lib/categories";
 import { Checkbox } from "@/components/ui/checkbox"
 import { Separator } from "@/components/ui/separator"
+import { AdminLayout } from "@/components/admin/admin-layout"
 
 
 const FLAGGED_COMMENTS_KEY = 'streamcart_flagged_comments';
@@ -102,7 +102,7 @@ export const FOOTER_CONTENT_KEY = 'streamcart_footer_content';
 export const HUB_BANNER_KEY = 'streamcart_hub_banner';
 export const HUB_FEATURED_PRODUCTS_KEY = 'streamcart_hub_featured_products';
 export const SHIPPING_SETTINGS_KEY = 'streamcart_shipping_settings';
-
+export const PAYOUT_REQUESTS_KEY = 'streamcart_payout_requests';
 
 const announcementSchema = z.object({
     title: z.string().min(5, "Title must be at least 5 characters."),
@@ -721,7 +721,6 @@ const ShippingSettingsForm = ({ storedValue, onSave }: { storedValue: ShippingSe
 
 export default function AdminSettingsPage() {
   const { user, userData, loading } = useAuth();
-  const { signOut } = useAuthActions();
   const router = useRouter();
   const { toast } = useToast()
   const [isSendingAnnouncement, setIsSendingAnnouncement] = useState(false)
@@ -956,46 +955,7 @@ export default function AdminSettingsPage() {
          <Dialog open={isCategoryFormOpen} onOpenChange={setIsCategoryFormOpen}>
             <CategoryForm category={editingCategory} onSave={handleSaveCategory} onCancel={() => setIsCategoryFormOpen(false)} />
         </Dialog>
-        <div className="flex min-h-screen w-full flex-col bg-muted/40">
-            <header className="sticky top-0 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6 z-40">
-                <nav className="hidden flex-col gap-6 text-lg font-medium md:flex md:flex-row md:items-center md:gap-5 md:text-sm lg:gap-6">
-                    <Link href="/admin/dashboard" className="flex items-center gap-2 text-lg font-semibold md:text-base"><ShieldCheck className="h-6 w-6" /><span className="sr-only">Admin</span></Link>
-                    <Link href="/admin/dashboard" className="text-muted-foreground transition-colors hover:text-foreground">Dashboard</Link>
-                    <Link href="/admin/orders" className="text-muted-foreground transition-colors hover:text-foreground">Orders</Link>
-                    <Link href="/admin/users" className="text-muted-foreground transition-colors hover:text-foreground">Users</Link>
-                    <Link href="/admin/inquiries" className="text-muted-foreground transition-colors hover:text-foreground">Inquiries</Link>
-                    <Link href="/admin/messages" className="text-muted-foreground transition-colors hover:text-foreground">Messages</Link>
-                    <Link href="/admin/products" className="text-muted-foreground transition-colors hover:text-foreground">Products</Link>
-                    <Link href="/admin/live-control" className="text-muted-foreground transition-colors hover:text-foreground">Live Control</Link>
-                    <Link href="/admin/settings" className="text-foreground transition-colors hover:text-foreground">Settings</Link>
-                </nav>
-                <Sheet>
-                    <SheetTrigger asChild><Button variant="outline" size="icon" className="shrink-0 md:hidden"><Menu className="h-5 w-5" /><span className="sr-only">Menu</span></Button></SheetTrigger>
-                    <SheetContent side="left">
-                         <SheetHeader>
-                            <SheetTitle className="sr-only">Admin Navigation Menu</SheetTitle>
-                        </SheetHeader>
-                        <nav className="grid gap-6 text-lg font-medium">
-                            <Link href="/admin/dashboard" className="flex items-center gap-2 text-lg font-semibold"><ShieldCheck className="h-6 w-6" /><span>Admin Panel</span></Link>
-                            <Link href="/admin/dashboard" className="text-muted-foreground hover:text-foreground">Dashboard</Link>
-                            <Link href="/admin/orders" className="text-muted-foreground hover:text-foreground">Orders</Link>
-                            <Link href="/admin/users" className="text-muted-foreground hover:text-foreground">Users</Link>
-                            <Link href="/admin/inquiries" className="text-muted-foreground hover:text-foreground">Inquiries</Link>
-                            <Link href="/admin/messages" className="text-muted-foreground hover:text-foreground">Messages</Link>
-                            <Link href="/admin/products" className="text-muted-foreground hover:text-foreground">Products</Link>
-                            <Link href="/admin/live-control" className="text-muted-foreground hover:text-foreground">Live Control</Link>
-                             <Link href="/admin/settings" className="hover:text-foreground">Settings</Link>
-                        </nav>
-                    </SheetContent>
-                </Sheet>
-                <div className="flex w-full items-center gap-4 md:ml-auto md:gap-2 lg:gap-4">
-                    <div className="ml-auto"></div>
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild><Button variant="secondary" size="icon" className="rounded-full"><Avatar className="h-9 w-9"><AvatarImage src={user?.photoURL || 'https://placehold.co/40x40.png'} /><AvatarFallback>{user?.displayName?.charAt(0)}</AvatarFallback></Avatar></Button></DropdownMenuTrigger>
-                        <DropdownMenuContent align="end"><DropdownMenuLabel>Admin Account</DropdownMenuLabel><DropdownMenuSeparator /><DropdownMenuItem onSelect={() => router.push('/profile')}>Profile</DropdownMenuItem><DropdownMenuItem onSelect={() => router.push('/settings')}>Settings</DropdownMenuItem><DropdownMenuSeparator /><DropdownMenuItem onClick={signOut}>Logout</DropdownMenuItem></DropdownMenuContent>
-                    </DropdownMenu>
-                </div>
-            </header>
+        <AdminLayout>
             <main className="grid flex-1 items-start gap-8 p-4 sm:px-6 md:p-8">
                  <Card>
                     <CardHeader>
@@ -1299,7 +1259,7 @@ export default function AdminSettingsPage() {
                     </CardContent>
                 </Card>
             </main>
-        </div>
+        </AdminLayout>
     </>
   )
 }

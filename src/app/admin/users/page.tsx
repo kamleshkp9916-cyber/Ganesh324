@@ -1,3 +1,4 @@
+
 "use client"
 
 import {
@@ -76,8 +77,10 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { cn } from "@/lib/utils";
 import { useDebounce } from "@/hooks/use-debounce";
 import { createImpersonationToken } from "@/ai/flows/impersonation-flow";
-import { useLocalStorage } from "@/hooks/use-local-storage";
 import { PAYOUT_REQUESTS_KEY } from "@/app/admin/settings/page";
+import { useLocalStorage } from "@/hooks/use-local-storage";
+import { AdminLayout } from "@/components/admin/admin-layout"
+
 
 const mockPayments = [
     { orderId: "#ORD5896", customer: { name: "Ganesh Prajapati" }, amount: 12500.00, status: 'holding' },
@@ -92,7 +95,7 @@ const mockPayouts = [
 
 const UserTable = ({ users, onViewDetails, onDelete, onMakeAdmin, onImpersonate }: { users: any[], onViewDetails: (user: any) => void, onDelete: (user: any) => void, onMakeAdmin: (user: any) => void, onImpersonate: (user: any) => void }) => {
     const [isMounted, setIsMounted] = useState(false);
-    const useEffect(() => setIsMounted(true), []);
+    useEffect(() => setIsMounted(true), []);
 
     return (
     <>
@@ -188,7 +191,7 @@ export default function AdminUsersPage() {
     setAllUsersState(usersList as UserData[]);
   };
 
-  const useEffect(() => {
+  useEffect(() => {
     if (!loading && userData?.role === 'admin') {
       fetchUsers();
     }
@@ -317,179 +320,7 @@ export default function AdminUsersPage() {
             </AlertDialogFooter>
         </AlertDialogContent>
     </AlertDialog>
-    <div className="flex min-h-screen w-full flex-col">
-      <header className="sticky top-0 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6 z-40">
-        <nav className="hidden flex-col gap-6 text-lg font-medium md:flex md:flex-row md:items-center md:gap-5 md:text-sm lg:gap-6">
-          <Link
-            href="/admin/dashboard"
-            className="flex items-center gap-2 text-lg font-semibold md:text-base"
-          >
-            <ShieldCheck className="h-6 w-6" />
-            <span className="sr-only">StreamCart Admin</span>
-          </Link>
-          <Link
-            href="/admin/dashboard"
-            className="text-muted-foreground transition-colors hover:text-foreground"
-          >
-            Dashboard
-          </Link>
-          <Link
-            href="/admin/orders"
-            className="text-muted-foreground transition-colors hover:text-foreground"
-          >
-            Orders
-          </Link>
-          <Link
-            href="/admin/users"
-            className="text-foreground transition-colors hover:text-foreground"
-          >
-            Users
-          </Link>
-          <Link
-            href="/admin/kyc"
-            className="text-muted-foreground transition-colors hover:text-foreground"
-          >
-            KYC
-          </Link>
-           <Link
-            href="/admin/inquiries"
-            className="text-muted-foreground transition-colors hover:text-foreground"
-          >
-            Inquiries
-          </Link>
-           <Link
-            href="/admin/messages"
-            className="text-muted-foreground transition-colors hover:text-foreground"
-          >
-            Messages
-          </Link>
-          <Link
-            href="/admin/products"
-            className="text-muted-foreground transition-colors hover:text-foreground"
-          >
-            Products
-          </Link>
-          <Link
-            href="/admin/live-control"
-            className="text-muted-foreground transition-colors hover:text-foreground"
-          >
-            Live Control
-          </Link>
-          <Link
-            href="/admin/settings"
-            className="text-muted-foreground transition-colors hover:text-foreground"
-          >
-            Settings
-          </Link>
-        </nav>
-        <Sheet>
-          <SheetTrigger asChild>
-            <Button
-              variant="outline"
-              size="icon"
-              className="shrink-0 md:hidden"
-            >
-              <Menu className="h-5 w-5" />
-              <span className="sr-only">Toggle navigation menu</span>
-            </Button>
-          </SheetTrigger>
-          <SheetContent side="left">
-            <nav className="grid gap-6 text-lg font-medium">
-              <Link
-                href="/admin/dashboard"
-                className="flex items-center gap-2 text-lg font-semibold"
-              >
-                <ShieldCheck className="h-6 w-6" />
-                <span className="">Admin Panel</span>
-              </Link>
-              <Link href="/admin/dashboard" className="text-muted-foreground hover:text-foreground">
-                Dashboard
-              </Link>
-              <Link
-                href="/admin/orders"
-                className="text-muted-foreground hover:text-foreground"
-              >
-                Orders
-              </Link>
-              <Link
-                href="/admin/users"
-                className="hover:text-foreground"
-              >
-                Users
-              </Link>
-              <Link
-                href="/admin/kyc"
-                className="text-muted-foreground hover:text-foreground"
-              >
-                KYC
-              </Link>
-              <Link
-                href="/admin/inquiries"
-                className="text-muted-foreground hover:text-foreground"
-              >
-                Inquiries
-              </Link>
-               <Link
-                href="/admin/messages"
-                className="text-muted-foreground hover:text-foreground"
-              >
-                Messages
-              </Link>
-               <Link
-                href="/admin/products"
-                className="text-muted-foreground hover:text-foreground"
-              >
-                Products
-              </Link>
-              <Link
-                href="/admin/live-control"
-                className="text-muted-foreground hover:text-foreground"
-              >
-                Live Control
-              </Link>
-              <Link
-                href="/admin/settings"
-                className="text-muted-foreground hover:text-foreground"
-              >
-                Settings
-              </Link>
-            </nav>
-          </SheetContent>
-        </Sheet>
-        <div className="flex w-full items-center gap-4 md:ml-auto md:gap-2 lg:gap-4">
-          <form className="ml-auto flex-1 sm:flex-initial" onSubmit={(e) => e.preventDefault()}>
-            <div className="relative">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                type="search"
-                placeholder="Search..."
-                className="pl-8 sm:w-[300px] md:w-[200px] lg:w-[300px]"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
-          </form>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="secondary" size="icon" className="rounded-full">
-                 <Avatar className="h-9 w-9">
-                    <AvatarImage src={user?.photoURL || 'https://placehold.co/40x40.png'} alt={user?.displayName || "Admin"} />
-                    <AvatarFallback>{user?.displayName ? user.displayName.charAt(0) : 'A'}</AvatarFallback>
-                </Avatar>
-                <span className="sr-only">Toggle user menu</span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Admin Account</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onSelect={() => router.push('/profile')}>Profile</DropdownMenuItem>
-              <DropdownMenuItem onSelect={() => router.push('/settings')}>Settings</DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={signOut}>Logout</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      </header>
+    <AdminLayout>
       <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
         <Tabs defaultValue="customers">
             <div className="flex items-center justify-between">
@@ -598,7 +429,7 @@ export default function AdminUsersPage() {
              </TabsContent>
         </Tabs>
       </main>
-    </div>
+    </AdminLayout>
     </>
   )
 }
