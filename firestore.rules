@@ -44,13 +44,23 @@ service cloud.firestore {
      */
     match /users/{userId} {
       // A user can create their own document if the userId matches their auth.uid
-      allow create: if isOwner(userId) && request.resource.data.id == request.auth.uid;
+      // and the data being sent is valid.
+      allow create: if isOwner(userId) &&
+                       request.resource.data.uid == userId &&
+                       request.resource.data.role != 'admin' &&
+                       request.resource.data.displayName is string &&
+                       request.resource.data.displayName.size() > 0 &&
+                       request.resource.data.email is string;
 
       // A user can read their own document, or an admin can read any user document.
       allow read: if isOwner(userId) || isAdmin();
       
-      // Allows a user to update their own document.
-      allow update: if isOwner(userId);
+      // Allows a user to update their own document, but prevents changing critical fields.
+      allow update: if isOwner(userId) &&
+                       request.resource.data.role == resource.data.role && // Cannot change own role
+                       request.resource.data.uid == resource.data.uid && // Cannot change own uid
+                       request.resource.data.followers == resource.data.followers && // Cannot change follower count
+                       request.resource.data.following == resource.data.following; // Cannot change following count
 
       // Allows a user to delete their own document.
       allow delete: if isOwner(userId);
