@@ -209,6 +209,8 @@ export function ProductDetailClient({ productId }: { productId: string }) {
         return user.uid === seller.uid;
     }, [user, seller]);
 
+    const isAdminViewing = useMemo(() => userData?.role === 'admin', [userData]);
+
     const getProductsForSeller = useCallback((sellerId: string): any[] => {
         return Object.values(productDetails).filter(p => productToSellerMapping[p.key as keyof typeof productToSellerMapping]?.uid === sellerId);
     }, []);
@@ -745,7 +747,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                 <ReportDialog onSubmit={handleReportProduct} />
             </Dialog>
             <div className="min-h-screen bg-background">
-                {!isOwnerViewing && (
+                {(!isOwnerViewing && !isAdminViewing) && (
                     <header className="p-4 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-sm z-30 border-b">
                         <Button variant="ghost" size="icon" onClick={() => {
                             if (showSearchResults) {
@@ -809,7 +811,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                                                 <Video className="h-3 w-3 mr-1"/> From Stream
                                                             </Badge>
                                                         )}
-                                                        {!isOwnerViewing && (
+                                                        {(!isOwnerViewing && !isAdminViewing) && (
                                                         <div className="absolute top-2 right-2 z-20 flex flex-col gap-2">
                                                             <Button variant="secondary" size="icon" className="h-8 w-8 rounded-full" onClick={(e) => { e.stopPropagation(); handleWishlistToggle(); }}>
                                                                 <Heart className={cn("h-4 w-4", wishlisted ? "fill-red-500 text-red-500" : "text-muted-foreground")} />
@@ -878,7 +880,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                             </div>
                                         </DialogContent>
                                     </Dialog>
-                                    {!isOwnerViewing && (
+                                    {(!isOwnerViewing && !isAdminViewing) && (
                                     <Button size="lg" className="w-full rounded-full bg-black/50 text-white backdrop-blur-sm flex items-center gap-1.5 mt-4" onClick={handleSimilarClick} disabled={isScanning}>
                                         {isScanning ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
                                         <span>Find Similar Products</span>
@@ -978,7 +980,7 @@ export function ProductDetailClient({ productId }: { productId: string }) {
                                         </div>
                                     )}
                                 
-                                    {!isOwnerViewing && (
+                                    {(!isOwnerViewing && !isAdminViewing) && (
                                         <div className="flex flex-col sm:flex-row gap-3 pt-4">
                                             {(variantStock !== undefined && variantStock > 0) ? (
                                                 <>
@@ -1304,3 +1306,5 @@ export function ProductDetailClient({ productId }: { productId: string }) {
         </>
     );
 }
+
+    
