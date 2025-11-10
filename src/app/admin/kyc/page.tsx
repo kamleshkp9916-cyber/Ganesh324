@@ -1,48 +1,114 @@
 
 "use client";
 
-import React, { useMemo, useState, useEffect } from "react";
+import React, { useMemo, useState, useEffect, useCallback, useRef } from "react";
+import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Check, AlertTriangle, ShieldCheck, UserCheck, ShieldAlert, Image as ImageIcon } from "lucide-react";
+import { Check, AlertTriangle, ShieldCheck, UserCheck, ShieldAlert, Image as ImageIcon, ChevronLeft, ChevronRight, User2, Building2, MapPin, Banknote, FileSignature, ClipboardList, Gavel, Loader2, Send } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useRouter } from "next/navigation";
+import { useToast } from "@/hooks/use-toast";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import Image from "next/image";
-import { Textarea } from "@/components/ui/textarea";
-
-const SELLER_APP_SUBMITTED_KEY = "sellerAppSubmitted";
+import { updateUserData, UserData } from "@/lib/follow-data";
+import { getFirestore, collection, query, where, getDocs, updateDoc, doc } from "firebase/firestore";
+import { getFirestoreDb } from "@/lib/firebase";
 
 function AdminPanel() {
-  const [application, setApplication] = useState<any | null>(null);
+  const [applications, setApplications] = useState<UserData[]>([]);
+  const [currentAppIndex, setCurrentAppIndex] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
   const [finalDecision, setFinalDecision] = useState<string | null>(null);
   const [tab, setTab] = useState("basic");
   const [reason, setReason] = useState("");
+  const { toast } = useToast();
 
-  useEffect(() => {
-    const submittedApp = localStorage.getItem(SELLER_APP_SUBMITTED_KEY);
-    if (submittedApp) {
-      setApplication(JSON.parse(submittedApp));
+  const fetchApplications = useCallback(async () => {
+    setIsLoading(true);
+    const db = getFirestoreDb();
+    const usersRef = collection(db, "users");
+    const q = query(usersRef, where("role", "==", "seller"), where("verificationStatus", "==", "pending"));
+    
+    try {
+        const querySnapshot = await getDocs(q);
+        const pendingApps = querySnapshot.docs.map(doc => doc.data() as UserData);
+        setApplications(pendingApps);
+    } catch (error) {
+        console.error("Error fetching pending applications:", error);
+        toast({ variant: 'destructive', title: "Error", description: "Could not fetch applications." });
+    } finally {
+        setIsLoading(false);
     }
-  }, []);
+  }, [toast]);
+  
+  useEffect(() => {
+    fetchApplications();
+  }, [fetchApplications]);
 
-  const handleDecision = (decision: { type: string, reason?: string }) => {
+  const handleDecision = async (decision: { type: string, reason?: string }) => {
+    const application = applications[currentAppIndex];
     if (!application) return;
 
     let status;
-    if (decision.type === "APPROVE") status = "APPROVED";
-    if (decision.type === "REJECT") status = "REJECTED";
-    if (decision.type === "FIX") status = "NEEDS_FIX";
+    let toastTitle = "";
+    let toastDescription = "";
     
-    setFinalDecision(status || null);
-    // In a real app, this would update a backend. Here we just show the decision.
+    switch (decision.type) {
+      case "APPROVE":
+        status = "verified";
+        toastTitle = "Application Approved";
+        toastDescription = `${application.displayName} is now a verified seller.`;
+        break;
+      case "REJECT":
+        status = "rejected";
+        toastTitle = "Application Rejected";
+        toastDescription = `The application for ${application.displayName} has been rejected.`;
+        break;
+      case "FIX":
+        status = "needs-resubmission";
+        toastTitle = "Fixes Requested";
+        toastDescription = `A request for more information has been sent to ${application.displayName}.`;
+        break;
+      default:
+        return;
+    }
+    
+    setFinalDecision(status);
+    
+    try {
+        await updateUserData(application.uid, { 
+            verificationStatus: status, 
+            rejectionReason: decision.type === 'REJECT' ? reason : undefined,
+            resubmissionReason: decision.type === 'FIX' ? reason : undefined,
+        });
+        toast({ title: toastTitle, description: toastDescription });
+    } catch (error) {
+        console.error("Error updating user status:", error);
+        toast({ variant: 'destructive', title: "Update Failed", description: "Could not update the seller's status." });
+        setFinalDecision(null); // Revert UI on failure
+    }
   };
+  
+  const nextApplication = () => {
+    setFinalDecision(null);
+    setReason('');
+    setCurrentAppIndex(prev => (prev + 1) % applications.length);
+     if (currentAppIndex >= applications.length - 1) {
+        fetchApplications(); // Refresh list when we're at the end
+    }
+  }
 
-  if (!application) {
+  if (isLoading) {
+    return <Card className="rounded-2xl flex items-center justify-center p-12"><LoadingSpinner /></Card>;
+  }
+
+  if (applications.length === 0) {
     return (
       <Card className="rounded-2xl">
         <CardHeader><CardTitle>Seller Applications</CardTitle></CardHeader>
@@ -52,25 +118,32 @@ function AdminPanel() {
       </Card>
     );
   }
+  
+  const application = applications[currentAppIndex];
+  if (!application) {
+     return (
+      <Card className="rounded-2xl">
+        <CardHeader><CardTitle>Seller Applications</CardTitle></CardHeader>
+        <CardContent className="space-y-3">
+          <div className="text-sm text-center py-12 text-muted-foreground">No more applications to review.</div>
+           <Button onClick={fetchApplications}>Refresh</Button>
+        </CardContent>
+      </Card>
+    );
+  }
 
-  const { payload } = application;
-  const isNipherVerified = payload.isNipherVerified;
-
+  const isNipherVerified = application.isNipherVerified;
 
   if (finalDecision) {
       return (
            <Card className="rounded-2xl border-green-200 bg-green-50 text-center py-12">
             <CardHeader className="pb-2">
                 <Check className="mx-auto h-12 w-12 text-green-600"/>
-                <CardTitle>Application {finalDecision}</CardTitle>
+                <CardTitle>Application {finalDecision.toUpperCase()}</CardTitle>
             </CardHeader>
             <CardContent className="text-sm">
-                <p>The decision has been recorded for {payload.displayName}.</p>
-                <Button variant="link" onClick={() => {
-                    setApplication(null);
-                    setFinalDecision(null);
-                    localStorage.removeItem(SELLER_APP_SUBMITTED_KEY);
-                }}>Review another</Button>
+                <p>The decision has been recorded for {application.displayName}.</p>
+                <Button variant="link" onClick={nextApplication}>Review another</Button>
             </CardContent>
           </Card>
       )
@@ -78,16 +151,25 @@ function AdminPanel() {
 
   return (
     <div className="space-y-4">
+      <div className="flex justify-between items-center">
+          <Button onClick={() => setCurrentAppIndex(prev => Math.max(0, prev - 1))} disabled={currentAppIndex === 0}>
+              <ChevronLeft className="w-4 h-4 mr-2"/> Previous
+          </Button>
+          <span className="text-sm text-muted-foreground">Viewing {currentAppIndex + 1} of {applications.length}</span>
+           <Button onClick={() => setCurrentAppIndex(prev => Math.min(applications.length - 1, prev + 1))} disabled={currentAppIndex === applications.length - 1}>
+               Next <ChevronRight className="w-4 h-4 ml-2"/>
+          </Button>
+      </div>
       <Card className="rounded-2xl">
         <CardHeader className="pb-2">
           <div className="flex items-center justify-between">
-            <CardTitle>Seller Review — {payload.displayName || payload.legalName || "Untitled"}</CardTitle>
+            <CardTitle>Seller Review — {application.displayName || application.legalName || "Untitled"}</CardTitle>
             <div className="flex items-center gap-2">
-              <Badge variant="secondary">SUBMITTED</Badge>
+              <Badge variant="secondary">PENDING</Badge>
               {isNipherVerified ? (
-                <Badge className="bg-green-600">e‑KYC: Nipher Verified</Badge>
+                <Badge className="bg-green-600 text-white">0DIDit Verified</Badge>
               ) : (
-                <Badge variant="destructive">e‑KYC: Needs attention</Badge>
+                <Badge variant="destructive">0DIDit: Needs attention</Badge>
               )}
             </div>
           </div>
@@ -97,51 +179,57 @@ function AdminPanel() {
             <div className="space-y-2">
               <div className="text-sm text-muted-foreground">Applicant Photo</div>
               <div className="w-32 h-32 rounded-lg bg-muted flex items-center justify-center overflow-hidden relative">
-                  {payload.photoUrl ? (
-                      <Image src={payload.photoUrl} alt="Seller photo" layout="fill" className="object-cover" />
+                  {application.photoURL ? (
+                      <Image src={application.photoURL} alt="Seller photo" layout="fill" className="object-cover" />
                   ) : (
                       <ImageIcon className="w-10 h-10 text-muted-foreground"/>
                   )}
               </div>
               <div className="text-sm text-muted-foreground pt-4">Applicant Details</div>
-              <div className="text-lg font-semibold">{payload.legalName || "—"}</div>
-              <div className="text-sm">{payload.email} • {payload.phone}</div>
-              <div className="text-sm">PAN: {payload.pan || "—"}</div>
-              <div className="text-sm">IFSC: {payload.ifsc || "—"}</div>
+              <div className="text-lg font-semibold">{application.legalName || "—"}</div>
+              <div className="text-sm">{application.email} • {application.phone}</div>
+              <div className="text-sm">PAN: {application.pan || "—"}</div>
+              <div className="text-sm">IFSC: {application.ifsc || "—"}</div>
             </div>
             <div className="lg:col-span-2">
               <Tabs value={tab} onValueChange={setTab}>
                 <TabsList className="flex flex-wrap h-auto">
-                  <TabsTrigger value="basic">Basic</TabsTrigger>
-                  <TabsTrigger value="business">Business</TabsTrigger>
-                  <TabsTrigger value="address">Address</TabsTrigger>
-                  <TabsTrigger value="bank">Tax & Bank</TabsTrigger>
-                  <TabsTrigger value="kyc">Identity/KYC</TabsTrigger>
+                    {steps.map(s => <TabsTrigger key={s.key} value={s.key}>{s.icon}{s.label}</TabsTrigger>)}
                 </TabsList>
                 <TabsContent value="basic" className="pt-4 text-sm space-y-2">
-                  <div>Legal: {payload.legalName || "—"}</div>
-                  <div>Shop: {payload.displayName || "—"}</div>
-                  <div>About: {payload.about || "—"}</div>
+                  <div>Legal Name: {application.legalName || "—"}</div>
+                  <div>Shop Name: {application.displayName || "—"}</div>
+                  <div>About: {application.about || "—"}</div>
                 </TabsContent>
-                <TabsContent value="business" className="pt-4 text-sm space-y-2">
-                  <div>Type: {payload.bizType}</div>
-                  <div>Reg No: {payload.regNo || "—"}</div>
-                  <div>GSTIN: {payload.gstin || "—"}</div>
+                <TabsContent value="biz" className="pt-4 text-sm space-y-2">
+                  <div>Type: {application.bizType}</div>
+                  <div>Reg No: {application.regNo || "—"}</div>
+                  <div>GSTIN: {application.gstin || "—"}</div>
                 </TabsContent>
                 <TabsContent value="address" className="pt-4 text-sm space-y-2">
-                  <div>Registered: {payload.regAddr.line1 || ""} {payload.regAddr.city || ""} {payload.regAddr.state || ""} {payload.regAddr.pin || ""}</div>
+                  {application.addresses.map((addr: any) => (
+                      <div key={addr.id}>
+                          <p className="font-semibold capitalize">{addr.type} Address:</p>
+                          <p>{addr.line1}, {addr.city}, {addr.state} - {addr.pin}</p>
+                      </div>
+                  ))}
                 </TabsContent>
                 <TabsContent value="bank" className="pt-4 text-sm space-y-2">
-                  <div>Account: {payload.accountNo || "—"}</div>
-                  <div>IFSC: {payload.ifsc || "—"}</div>
-                  <div>Holder: {payload.accountName || "—"}</div>
+                  <div>Account No: {application.accountNo || "—"}</div>
+                  <div>IFSC: {application.ifsc || "—"}</div>
+                  <div>Account Holder: {application.accountName || "—"}</div>
+                  <div>PAN: {application.pan || "—"}</div>
                 </TabsContent>
                 <TabsContent value="kyc" className="pt-4 text-sm space-y-3">
                   <div className="flex items-center gap-2 text-sm">
                     <ShieldCheck className="w-4 h-4"/>
-                    <span>Nipher 0DIDit Verification: {isNipherVerified ? "Completed" : "Not Completed"}</span>
+                    <span>0DIDit Verification: {isNipherVerified ? "Completed" : "Not Completed"}</span>
                   </div>
-                  <div className="text-xs text-muted-foreground">Full KYC data from Nipher is not stored. Only the verification status is recorded.</div>
+                  <div className="text-xs text-muted-foreground">Full KYC data from 0DIDit is not stored. Only the verification status is recorded.</div>
+                </TabsContent>
+                <TabsContent value="policies" className="pt-4 text-sm space-y-3">
+                    <div>Auctions: {application.auctionEnabled ? 'Enabled' : 'Disabled'}</div>
+                    <div>Terms Accepted: {application.termsAccepted ? 'Yes' : 'No'}</div>
                 </TabsContent>
               </Tabs>
             </div>
@@ -184,6 +272,11 @@ export default function AdminKycPage() {
     <div className="min-h-screen p-6 md:p-10 bg-gradient-to-br from-gray-50 to-white">
       <div className="max-w-7xl mx-auto space-y-6">
         <div className="flex items-center justify-between">
+            <Link href="/admin/dashboard">
+                <Button variant="outline">
+                    <ChevronLeft className="w-4 h-4 mr-2"/> Back to Dashboard
+                </Button>
+            </Link>
           <div>
             <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">Admin KYC Review</h1>
             <p className="text-sm text-muted-foreground">Review and approve new seller applications.</p>
