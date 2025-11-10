@@ -350,13 +350,13 @@ export default function AdminDashboard() {
           <Card className="xl:col-span-2">
             <CardHeader className="flex flex-row items-center">
               <div className="grid gap-2">
-                <CardTitle>Transactions</CardTitle>
+                <CardTitle>Recent Transactions</CardTitle>
                 <CardDescription>
                   Recent transactions from your store.
                 </CardDescription>
               </div>
               <Button asChild size="sm" className="ml-auto gap-1">
-                <Link href="/admin/orders">
+                <Link href="/admin/transactions">
                   View All
                   <ArrowUpRight className="h-4 w-4" />
                 </Link>

@@ -53,6 +53,7 @@ const navItems = [
     { href: "/admin/dashboard", icon: Home, label: "Dashboard" },
     { href: "/admin/orders", icon: ShoppingCart, label: "Orders" },
     { href: "/admin/revenue", icon: LineChart, label: "Revenue" },
+    { href: "/admin/transactions", icon: CreditCard, label: "Transactions" },
     { href: "/admin/users", icon: Users, label: "Users" },
     { href: "/admin/kyc", icon: Shield, label: "KYC" },
     { href: "/admin/products", icon: Package, label: "Products" },
