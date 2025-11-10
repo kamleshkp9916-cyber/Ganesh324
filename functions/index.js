@@ -298,3 +298,5 @@ exports.faceMatch = onRequest({ cors: true }, async (req, res) => {
         res.status(500).send('Error during face detection.');
     }
 });
+
+    
