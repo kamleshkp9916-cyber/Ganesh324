@@ -1,4 +1,5 @@
 
+      
 "use client";
 
 import React, { useMemo, useState, useEffect, useCallback, useRef } from "react";
@@ -48,7 +49,7 @@ const steps = [
   { key: "biz", label: "Business", icon: <Building2 className="w-5 h-5"/> },
   { key: "addr", label: "Address", icon: <MapPin className="w-5 h-5"/> },
   { key: "bank", label: "Tax & Bank", icon: <Banknote className="w-5 h-5"/> },
-  { key: "kyc", label: "Identity (Offline e‑KYC)", icon: <ShieldCheck className="w-5 h-5"/> },
+  { key: "kyc", label: "Identity (DigiLocker)", icon: <ShieldCheck className="w-5 h-5"/> },
   { key: "policies", label: "Policies & Preview", icon: <ClipboardList className="w-5 h-5"/> },
 ];
 
@@ -88,10 +89,12 @@ function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
     shareCode: "",
     selfie: null,
     termsAccepted: false,
+    aadhaarNumber: "",
+    aadhaarOtp: "",
   });
   const [verif, setVerif] = useState({ state: "IDLE", message: "" });
-  const [otpSent, setOtpSent] = useState({ email: false, phone: false });
-  const [isVerifying, setIsVerifying] = useState({ email: false, phone: false });
+  const [otpSent, setOtpSent] = useState({ email: false, phone: false, aadhaar: false });
+  const [isVerifying, setIsVerifying] = useState({ email: false, phone: false, aadhaar: false });
 
   const selfieInputRef = useRef<HTMLInputElement>(null);
   const [selfiePreview, setSelfiePreview] = useState<string | null>(null);
@@ -136,22 +139,30 @@ function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
     });
   };
 
-  const handleSendOtp = (type: 'email' | 'phone') => {
+  const handleSendOtp = (type: 'email' | 'phone' | 'aadhaar') => {
+      if (type === 'aadhaar' && form.aadhaarNumber.length !== 12) {
+          toast({ variant: 'destructive', title: "Invalid Aadhaar", description: "Please enter a valid 12-digit Aadhaar number." });
+          return;
+      }
       setOtpSent(prev => ({...prev, [type]: true}));
-      toast({ title: `OTP Sent to your ${type}` });
+      toast({ title: `OTP Sent to your ${type === 'aadhaar' ? 'Aadhaar-linked mobile' : type}` });
   };
 
-  const handleVerifyOtp = (type: 'email' | 'phone') => {
-      const otp = type === 'email' ? form.emailOtp : form.phoneOtp;
-      if (otp !== '1234') { // Mock OTP
+  const handleVerifyOtp = (type: 'email' | 'phone' | 'aadhaar') => {
+      const otp = type === 'email' ? form.emailOtp : type === 'phone' ? form.phoneOtp : form.aadhaarOtp;
+      if (otp !== '1234' && otp !== '123456') { // Mock OTPs
           toast({ variant: 'destructive', title: `Invalid ${type} OTP` });
           return;
       }
       setIsVerifying(prev => ({...prev, [type]: true }));
       setTimeout(() => {
-          setField(`${type}Verified`, true);
+          if(type === 'aadhaar') {
+              fakeVerifyAadhaar();
+          } else {
+              setField(`${type}Verified`, true);
+              toast({ title: `${type.charAt(0).toUpperCase() + type.slice(1)} Verified!` });
+          }
           setIsVerifying(prev => ({ ...prev, [type]: false }));
-          toast({ title: `${type.charAt(0).toUpperCase() + type.slice(1)} Verified!` });
       }, 1000);
   };
 
@@ -161,20 +172,16 @@ function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
   const canSubmit = form.termsAccepted && verif.state === "VERIFIED";
 
   const fakeVerifyAadhaar = async () => {
-    if (!form.aadhaarZip || !form.shareCode || form.shareCode.length !== 4) {
-      setVerif({ state: "ERROR", message: "Please upload the ZIP and enter the 4‑digit Share Code." });
-      return;
-    }
-    setVerif({ state: "VERIFYING", message: "Verifying UIDAI signature…" });
+    setVerif({ state: "VERIFYING", message: "Verifying Aadhaar OTP & fetching data from DigiLocker…" });
     setTimeout(() => {
       const ok = true;
-      setVerif({ state: ok ? "VERIFIED" : "INVALID_SIGNATURE", message: ok ? "Digital signature valid. Fields parsed from ZIP." : "The digital signature on the file could not be validated. Please re-download from myAadhaar and try again." });
+      setVerif({ state: ok ? "VERIFIED" : "INVALID_SIGNATURE", message: ok ? "Aadhaar verified. Photo matched successfully." : "The Aadhaar OTP was incorrect. Please try again." });
        toast({
         title: ok ? "Aadhaar Verified" : "Verification Failed",
-        description: ok ? "Your Aadhaar details were successfully parsed." : "The digital signature on the file could not be validated.",
+        description: ok ? "Your Aadhaar details were successfully fetched and your photo was matched." : "The OTP was incorrect.",
         variant: ok ? "default" : "destructive",
       });
-    }, 900);
+    }, 1500);
   };
   
   const handleSelfieUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -389,46 +396,46 @@ function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
             )}
 
             {steps[current].key === "kyc" && (
-              <Section title="Identity — Aadhaar Offline e‑KYC" icon={<ShieldCheck className="w-5 h-5"/>}>
+              <Section title="Identity — DigiLocker Aadhaar" icon={<ShieldCheck className="w-5 h-5"/>}>
                 <div className="space-y-4">
-                  <div className="p-3 rounded-xl bg-gray-50 text-sm">
-                    Download your password-protected (i.e., <strong>locked</strong>) Aadhaar Offline e‑KYC ZIP from myAadhaar, set a <strong>4‑digit Share Code</strong> during download, then upload the ZIP file below.
-                  </div>
-                  <div className="grid md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="text-sm">Upload Aadhaar e‑KYC ZIP</label>
-                      <div className="border rounded-xl p-4 flex items-center justify-between">
-                        <Input type="file" accept=".zip" onChange={(e)=>setField("aadhaarZip", e.target.files?.[0] || null)} />
-                        <Button variant="secondary" className="ml-3"><Upload className="w-4 h-4 mr-2"/>Upload</Button>
-                      </div>
+                    <div className="p-3 rounded-xl bg-gray-50 text-sm">
+                        Verify your identity using your Aadhaar number through DigiLocker for a secure and fast verification process.
                     </div>
-                    <div>
-                      <label className="text-sm">4‑digit Share Code</label>
-                      <Input value={form.shareCode} maxLength={4} onChange={(e)=>setField("shareCode", e.target.value.replace(/[^0-9]/g, ""))} placeholder="e.g., 1234"/>
-                       <p className="text-xs text-muted-foreground mt-1">This is the code you created on the myAadhaar website when downloading the ZIP file.</p>
-                    </div>
-                  </div>
-                   <div>
-                        <label className="text-sm">Upload Selfie</label>
-                         <div className="border rounded-xl p-4 flex items-center gap-4">
-                            <div className="w-24 h-24 bg-muted rounded-lg flex items-center justify-center text-muted-foreground">
-                                {selfiePreview ? <img src={selfiePreview} alt="Selfie preview" className="w-full h-full object-cover rounded-lg"/> : <Camera className="w-8 h-8"/>}
-                            </div>
-                            <div className="flex-1">
-                                <Button type="button" variant="secondary" onClick={() => selfieInputRef.current?.click()}><Upload className="w-4 h-4 mr-2"/>Upload Image</Button>
-                                <input ref={selfieInputRef} type="file" accept="image/*" className="hidden" onChange={handleSelfieUpload} />
-                                <p className="text-xs text-muted-foreground mt-2">The selfie should clearly show your face and match the photo on your Aadhaar card for verification.</p>
-                            </div>
+                    <div className="grid md:grid-cols-2 gap-4">
+                        <div>
+                            <label className="text-sm">Aadhaar Number</label>
+                            <Input value={form.aadhaarNumber} maxLength={12} onChange={(e) => setField("aadhaarNumber", e.target.value.replace(/\D/g, ""))} placeholder="Enter 12-digit Aadhaar"/>
+                        </div>
+                        <div className="flex items-end">
+                            <Button type="button" className="w-full" onClick={() => handleSendOtp('aadhaar')} disabled={otpSent.aadhaar || isVerifying.aadhaar || form.aadhaarNumber.length !== 12}>
+                                {isVerifying.aadhaar ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <Send className="mr-2 h-4 w-4"/>}
+                                {otpSent.aadhaar ? 'Resend OTP' : 'Send OTP'}
+                            </Button>
                         </div>
                     </div>
-                  <div className="flex items-center gap-3">
-                    <Button onClick={fakeVerifyAadhaar}><ShieldCheck className="w-4 h-4 mr-2"/>Verify e‑KYC</Button>
-                    {verif.state === "VERIFYING" && <Badge variant="secondary">Verifying…</Badge>}
-                    {verif.state === "VERIFIED" && <Badge className="bg-green-600">Digital Signature Valid</Badge>}
-                    {verif.state === "INVALID_SIGNATURE" && <Badge variant="destructive">Digital signature in ZIP is invalid</Badge>}
-                    {verif.state === "ERROR" && <Badge variant="destructive">{verif.message}</Badge>}
-                  </div>
-                  {verif.message && <p className="text-xs text-muted-foreground">{verif.message}</p>}
+                     {otpSent.aadhaar && (
+                      <div className="space-y-2">
+                          <label className="text-sm">Enter OTP</label>
+                          <div className="flex items-center gap-2">
+                            <InputOTP maxLength={6} value={form.aadhaarOtp} onChange={(val) => setField("aadhaarOtp", val)}>
+                                <InputOTPGroup>
+                                    <InputOTPSlot index={0} /><InputOTPSlot index={1} /><InputOTPSlot index={2} />
+                                    <InputOTPSlot index={3} /><InputOTPSlot index={4} /><InputOTPSlot index={5} />
+                                </InputOTPGroup>
+                            </InputOTP>
+                            <Button type="button" variant="secondary" onClick={() => handleVerifyOtp('aadhaar')} disabled={form.aadhaarOtp.length < 6 || isVerifying.aadhaar}>
+                                {isVerifying.aadhaar && <Loader2 className="mr-2 h-4 w-4 animate-spin"/>}
+                                Verify Aadhaar
+                            </Button>
+                          </div>
+                      </div>
+                    )}
+                     <div className="flex items-center gap-3 pt-2">
+                        {verif.state === "VERIFYING" && <Badge variant="secondary"><Loader2 className="mr-2 h-3 w-3 animate-spin"/>Verifying…</Badge>}
+                        {verif.state === "VERIFIED" && <Badge className="bg-green-600"><Check className="mr-2 h-3 w-3"/>Aadhaar Verified & Photo Matched</Badge>}
+                        {verif.state === "INVALID_SIGNATURE" && <Badge variant="destructive"><AlertTriangle className="mr-2 h-3 w-3"/>Verification Failed</Badge>}
+                    </div>
+                    {verif.message && <p className="text-xs text-muted-foreground">{verif.message}</p>}
                 </div>
               </Section>
             )}
@@ -538,3 +545,6 @@ export default function KYCPage() {
         </div>
     );
 }
+
+
+    
