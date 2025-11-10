@@ -2,6 +2,10 @@
 import type {NextConfig} from 'next';
 
 const nextConfig: NextConfig = {
+  experimental: {
+    // This is required for the Studio to work.
+    serverComponentsExternalPackages: ['@genkit-ai/google-genai'],
+  },
   images: {
     remotePatterns: [
       {
@@ -37,6 +41,12 @@ const nextConfig: NextConfig = {
       {
         protocol: 'https',
         hostname: 'picsum.photos',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'api.qrserver.com',
         port: '',
         pathname: '/**',
       }

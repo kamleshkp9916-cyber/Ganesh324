@@ -14,13 +14,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { Check, AlertTriangle, Upload, ChevronLeft, ChevronRight, ShieldCheck, Building2, User2, MapPin, Banknote, FileSignature, ClipboardList, Eye, UserCheck, ShieldAlert, Gavel, Loader2, Send, Camera, QrCode } from "lucide-react";
+import { Check, AlertTriangle, Upload, ChevronLeft, ChevronRight, ShieldCheck, Building2, User2, MapPin, Banknote, FileSignature, ClipboardList, Eye, UserCheck, ShieldAlert, Gavel, Loader2, Send, Camera, QrCode, CheckCircle2 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { InputOTP, InputOTPGroup, InputOTPSeparator, InputOTPSlot } from "@/components/ui/input-otp";
 import Image from "next/image";
+import { updateUserData } from "@/lib/follow-data";
 
 const Section = ({ title, children, icon }: { title: string, children: React.ReactNode, icon: React.ReactNode }) => (
   <Card className="shadow-lg border rounded-2xl">
@@ -60,7 +61,8 @@ function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
   const { user } = useAuth();
   const { toast } = useToast();
   const [current, setCurrent] = useState(0);
-  const [form, setForm] = useState({
+  
+  const initialFormState = {
     legalName: "",
     displayName: "",
     email: user?.email || "",
@@ -86,7 +88,10 @@ function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
     accountName: "",
     auctionEnabled: false,
     termsAccepted: false,
-  });
+  };
+
+  const [form, setForm] = useState(initialFormState);
+  
   const [verif, setVerif] = useState<{ state: "IDLE" | "PENDING" | "VERIFIED" | "FAILED", message: string }>({ state: "IDLE", message: "" });
   const [otpSent, setOtpSent] = useState({ email: false, phone: false });
   const [isVerifying, setIsVerifying] = useState({ email: false, phone: false });
@@ -109,6 +114,7 @@ function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
     if (draft) {
         try {
             const parsedDraft = JSON.parse(draft);
+            // Merge draft with initial state to ensure all keys are present
             setForm(prevForm => ({ ...prevForm, ...parsedDraft }));
         } catch (error) {
             console.error("Failed to parse seller draft from localStorage", error);
@@ -171,10 +177,21 @@ function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
     }, 5000); 
   };
   
-  const submit = () => {
-    localStorage.setItem(SELLER_APP_SUBMITTED_KEY, JSON.stringify({ status: "SUBMITTED", payload: form, verif }));
-    localStorage.removeItem(SELLER_APP_DRAFT_KEY);
-    onSubmit({ status: "SUBMITTED", payload: form, verif });
+  const submit = async () => {
+    if (!user) {
+        toast({ title: 'Error', description: 'You must be logged in to submit.', variant: 'destructive' });
+        return;
+    }
+    const finalData = { ...form, kycProvider: "Nipher", kycStatus: "pending" };
+    
+    try {
+        await updateUserData(user.uid, finalData);
+        localStorage.removeItem(SELLER_APP_DRAFT_KEY);
+        onSubmit({ status: "SUBMITTED", payload: finalData, verif });
+    } catch (error) {
+        console.error("Failed to save KYC data:", error);
+        toast({ title: 'Submission Failed', description: 'Could not save your application. Please try again.', variant: 'destructive' });
+    }
   };
 
   return (
