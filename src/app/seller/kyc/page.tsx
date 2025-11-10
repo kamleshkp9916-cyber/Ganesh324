@@ -25,6 +25,7 @@ import { updateUserData } from "@/lib/follow-data";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 const Section = ({ title, children, icon }: { title: string, children: React.ReactNode, icon: React.ReactNode }) => (
   <Card className="shadow-lg border rounded-2xl">
@@ -64,6 +65,7 @@ function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
   const { user } = useAuth();
   const { toast } = useToast();
   const [current, setCurrent] = useState(0);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   
   const initialFormState = {
     photoUrl: "",
@@ -295,7 +297,7 @@ function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
           </CardContent>
         </Card>
          <div className="text-xs text-muted-foreground p-3 bg-gray-50 rounded-lg">
-            <strong>Privacy Note:</strong> We partner with Nipher for secure identity verification. Your data is handled according to our privacy policy and Nipher's.
+            <strong>Privacy Note:</strong> We use Nipher for secure identity verification. Your personal identity data is not stored on our servers, only the verification status. We only store information that is necessary for you to use or sell products on our platform.
         </div>
       </div>
 
@@ -524,78 +526,80 @@ function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
             )}
 
             {steps[current].key === "policies" && (
-              <Section title="Policies & Preview" icon={<FileSignature className="w-5 h-5"/>}>
-                <div className="space-y-4">
-                  <div className="p-3 bg-gray-50 rounded-xl text-sm">
-                    By enabling auctions you agree to comply with platform rules and local regulations.
+                <Section title="Policies & Preview" icon={<FileSignature className="w-5 h-5"/>}>
+                  <div className="space-y-4">
+                    <div className="p-3 bg-gray-50 rounded-xl text-sm">
+                      By enabling auctions you agree to comply with platform rules and local regulations.
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Switch checked={form.auctionEnabled} onCheckedChange={(v)=>setField("auctionEnabled", v)} />
+                      <span>Enable live auctions</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Switch checked={form.termsAccepted} onCheckedChange={(v)=>setField("termsAccepted", v)} />
+                      <span>I accept the Nipher Terms & Policies</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                        <div className="text-sm text-muted-foreground">Preview your storefront card with name and bio.</div>
+                        <Collapsible open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
+                            <CollapsibleTrigger asChild>
+                                <Button variant="secondary"><Eye className="w-4 h-4 mr-2"/>{isPreviewOpen ? 'Hide' : 'Show'} Preview</Button>
+                            </CollapsibleTrigger>
+                             <CollapsibleContent asChild>
+                                 <Card className="mt-4">
+                                     <CardHeader>
+                                        <CardTitle>Application Preview</CardTitle>
+                                        <CardDescription>This is a summary of the information you have provided.</CardDescription>
+                                     </CardHeader>
+                                     <CardContent>
+                                        <div className="space-y-6 pr-6">
+                                            <div className="flex items-center gap-4">
+                                                <Avatar className="h-20 w-20">
+                                                    <AvatarImage src={form.photoUrl} />
+                                                    <AvatarFallback>{form.displayName.charAt(0)}</AvatarFallback>
+                                                </Avatar>
+                                                <div>
+                                                    <h3 className="text-xl font-bold">{form.displayName}</h3>
+                                                    <p className="text-muted-foreground">{form.about}</p>
+                                                </div>
+                                            </div>
+                                            <Separator />
+                                            <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+                                                <h4 className="col-span-2 text-base font-semibold">Basic Information</h4>
+                                                <div className="text-muted-foreground">Legal Name</div><div>{form.legalName}</div>
+                                                <div className="text-muted-foreground">Email</div><div>{form.email}</div>
+                                                <div className="text-muted-foreground">Phone</div><div>{form.phone}</div>
+
+                                                <h4 className="col-span-2 text-base font-semibold mt-4">Business Details</h4>
+                                                <div className="text-muted-foreground">Business Type</div><div>{form.bizType}</div>
+                                                <div className="text-muted-foreground">Support Email</div><div>{form.supportEmail}</div>
+                                                <div className="text-muted-foreground">Support Phone</div><div>{form.supportPhone}</div>
+
+                                                <h4 className="col-span-2 text-base font-semibold mt-4">Address</h4>
+                                                <div className="text-muted-foreground">Registered</div><div className="truncate">{form.regAddr.line1}, {form.regAddr.city}</div>
+                                                <div className="text-muted-foreground">Pickup</div><div className="truncate">{form.pickupAddr.same ? 'Same as registered' : `${form.pickupAddr.line1}, ${form.pickupAddr.city}`}</div>
+
+                                                 <h4 className="col-span-2 text-base font-semibold mt-4">Bank & Tax</h4>
+                                                <div className="text-muted-foreground">PAN</div><div>{form.pan}</div>
+                                                <div className="text-muted-foreground">Account Holder</div><div>{form.accountName}</div>
+                                                <div className="text-muted-foreground">Account No.</div><div>{form.accountNo}</div>
+                                                <div className="text-muted-foreground">IFSC</div><div>{form.ifsc}</div>
+
+                                                <h4 className="col-span-2 text-base font-semibold mt-4">Verification</h4>
+                                                <div className="text-muted-foreground">Identity (Nipher)</div><div>{verif.state === 'VERIFIED' ? <Badge variant="success">Verified</Badge> : <Badge variant="destructive">Not Verified</Badge>}</div>
+
+                                                <h4 className="col-span-2 text-base font-semibold mt-4">Settings</h4>
+                                                <div className="text-muted-foreground">Auctions</div><div>{form.auctionEnabled ? 'Enabled' : 'Disabled'}</div>
+                                                <div className="text-muted-foreground">Terms Accepted</div><div>{form.termsAccepted ? 'Yes' : 'No'}</div>
+                                            </div>
+                                          </div>
+                                     </CardContent>
+                                 </Card>
+                            </CollapsibleContent>
+                        </Collapsible>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <Switch checked={form.auctionEnabled} onCheckedChange={(v)=>setField("auctionEnabled", v)} />
-                    <span>Enable live auctions</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <Switch checked={form.termsAccepted} onCheckedChange={(v)=>setField("termsAccepted", v)} />
-                    <span>I accept the Terms & Policies</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div className="text-sm text-muted-foreground">Preview your storefront card with name and bio.</div>
-                     <Sheet>
-                      <SheetTrigger asChild>
-                        <Button variant="secondary"><Eye className="w-4 h-4 mr-2"/>Preview Application</Button>
-                      </SheetTrigger>
-                      <SheetContent side="bottom" className="h-auto max-h-[80vh]">
-                        <SheetHeader className="text-left">
-                          <SheetTitle>Application Preview</SheetTitle>
-                          <SheetDescription>This is a summary of the information you have provided.</SheetDescription>
-                        </SheetHeader>
-                        <ScrollArea className="h-[60vh] mt-4">
-                          <div className="space-y-6 pr-6">
-                            <div className="flex items-center gap-4">
-                                <Avatar className="h-20 w-20">
-                                    <AvatarImage src={form.photoUrl} />
-                                    <AvatarFallback>{form.displayName.charAt(0)}</AvatarFallback>
-                                </Avatar>
-                                <div>
-                                    <h3 className="text-xl font-bold">{form.displayName}</h3>
-                                    <p className="text-muted-foreground">{form.about}</p>
-                                </div>
-                            </div>
-                            <Separator />
-                            <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
-                                <h4 className="col-span-2 text-base font-semibold">Basic Information</h4>
-                                <div className="text-muted-foreground">Legal Name</div><div>{form.legalName}</div>
-                                <div className="text-muted-foreground">Email</div><div>{form.email}</div>
-                                <div className="text-muted-foreground">Phone</div><div>{form.phone}</div>
-
-                                <h4 className="col-span-2 text-base font-semibold mt-4">Business Details</h4>
-                                <div className="text-muted-foreground">Business Type</div><div>{form.bizType}</div>
-                                <div className="text-muted-foreground">Support Email</div><div>{form.supportEmail}</div>
-                                <div className="text-muted-foreground">Support Phone</div><div>{form.supportPhone}</div>
-
-                                <h4 className="col-span-2 text-base font-semibold mt-4">Address</h4>
-                                <div className="text-muted-foreground">Registered</div><div className="truncate">{form.regAddr.line1}, {form.regAddr.city}</div>
-                                <div className="text-muted-foreground">Pickup</div><div className="truncate">{form.pickupAddr.same ? 'Same as registered' : `${form.pickupAddr.line1}, ${form.pickupAddr.city}`}</div>
-
-                                 <h4 className="col-span-2 text-base font-semibold mt-4">Bank & Tax</h4>
-                                <div className="text-muted-foreground">PAN</div><div>{form.pan}</div>
-                                <div className="text-muted-foreground">Account Holder</div><div>{form.accountName}</div>
-                                <div className="text-muted-foreground">Account No.</div><div>{form.accountNo}</div>
-                                <div className="text-muted-foreground">IFSC</div><div>{form.ifsc}</div>
-
-                                <h4 className="col-span-2 text-base font-semibold mt-4">Verification</h4>
-                                <div className="text-muted-foreground">Identity (Nipher)</div><div>{verif.state === 'VERIFIED' ? <Badge variant="success">Verified</Badge> : <Badge variant="destructive">Not Verified</Badge>}</div>
-
-                                <h4 className="col-span-2 text-base font-semibold mt-4">Settings</h4>
-                                <div className="text-muted-foreground">Auctions</div><div>{form.auctionEnabled ? 'Enabled' : 'Disabled'}</div>
-                                <div className="text-muted-foreground">Terms Accepted</div><div>{form.termsAccepted ? 'Yes' : 'No'}</div>
-                            </div>
-                          </div>
-                        </ScrollArea>
-                      </SheetContent>
-                    </Sheet>
-                  </div>
-                </div>
-              </Section>
+                </Section>
             )}
             <div className="flex items-center justify-between mt-6">
                 <Button variant="outline" onClick={prev} className={current === 0 ? "invisible" : ""}>Back</Button>
@@ -661,11 +665,10 @@ export default function KYCPage() {
                 </div>
                 <div className="text-center">
                     <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">Become a Seller</h1>
-                    <p className="text-sm text-muted-foreground">Complete the following steps to start selling on StreamCart.</p>
+                    <p className="text-sm text-muted-foreground">Complete the following steps to start selling on Nipher.</p>
                 </div>
                 <SellerWizard onSubmit={handleSubmission} />
             </div>
         </div>
     );
 }
-
