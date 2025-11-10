@@ -13,7 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Check, AlertTriangle, Upload, ChevronLeft, ChevronRight, ShieldCheck, Building2, User2, MapPin, Banknote, FileSignature, ClipboardList, Eye, UserCheck, ShieldAlert, Gavel, Loader2, Send, Camera, QrCode, CheckCircle2 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useRouter } from "next/navigation";
@@ -58,7 +58,6 @@ const steps = [
   { key: "policies", label: "Policies & Preview", icon: <ClipboardList className="w-5 h-5"/> },
 ];
 
-const SELLER_APP_DRAFT_KEY = "sellerAppDraft";
 const SELLER_APP_SUBMITTED_KEY = "sellerAppSubmitted";
 
 function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
@@ -116,25 +115,6 @@ function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
   const [emailError, setEmailError] = useState('');
   const [phoneError, setPhoneError] = useState('');
 
-   useEffect(() => {
-    const draft = localStorage.getItem(SELLER_APP_DRAFT_KEY);
-    if (draft) {
-      try {
-        const parsedDraft = JSON.parse(draft);
-        setForm(prevForm => ({ 
-            ...initialFormState, 
-            ...prevForm, 
-            ...parsedDraft,
-            regAddr: { ...initialFormState.regAddr, ...(parsedDraft.regAddr || {}) },
-            pickupAddr: { ...initialFormState.pickupAddr, ...(parsedDraft.pickupAddr || {}) }
-        }));
-        if(parsedDraft.photoUrl) setPhotoPreview(parsedDraft.photoUrl);
-      } catch (error) {
-        console.error("Failed to parse seller draft from localStorage", error);
-      }
-    }
-  }, []);
-
   const isStep1Valid = useMemo(() => {
     return form.legalName && form.displayName && /.+@.+\..+/.test(form.email) && /^\d{10}$/.test(form.phone) && form.emailVerified && form.phoneVerified && form.photoUrl && form.password.length >= 8 && form.password === form.confirmPassword && !emailError && !phoneError;
   }, [form, emailError, phoneError]);
@@ -183,7 +163,6 @@ function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
         node = node[parts[i]];
       }
       node[parts.at(-1)!] = value;
-      localStorage.setItem(SELLER_APP_DRAFT_KEY, JSON.stringify(clone));
       return clone;
     });
   };
@@ -290,7 +269,6 @@ function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
 
     try {
         await handleSellerSignUp(finalData);
-        localStorage.removeItem(SELLER_APP_DRAFT_KEY);
         onSubmit({ status: "SUBMITTED", payload: finalData });
     } catch (error) {
         console.error("Seller sign up failed:", error);
@@ -316,7 +294,7 @@ function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
         <Card className="rounded-2xl">
           <CardHeader className="pb-2"><CardTitle>Application Status</CardTitle></CardHeader>
           <CardContent className="space-y-2">
-            <div className="flex items-center gap-2 text-sm"><Badge>Draft</Badge><span>Autosaves enabled</span></div>
+            <div className="flex items-center gap-2 text-sm"><Badge>Draft</Badge></div>
             <div className="text-xs text-muted-foreground">You can submit after finishing KYC and accepting terms.</div>
           </CardContent>
         </Card>
@@ -580,62 +558,7 @@ function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
                     </div>
                     <div className="flex items-center justify-between">
                         <div className="text-sm text-muted-foreground">Preview your storefront card with name and bio.</div>
-                        <Collapsible open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
-                            <CollapsibleTrigger asChild>
-                                <Button variant="secondary"><Eye className="w-4 h-4 mr-2"/>{isPreviewOpen ? 'Hide' : 'Show'} Preview</Button>
-                            </CollapsibleTrigger>
-                             <CollapsibleContent asChild>
-                                 <Card className="mt-4">
-                                     <CardHeader>
-                                        <CardTitle>Application Preview</CardTitle>
-                                        <CardDescription>This is a summary of the information you have provided.</CardDescription>
-                                     </CardHeader>
-                                     <CardContent>
-                                        <div className="space-y-6 pr-6">
-                                            <div className="flex items-center gap-4">
-                                                <Avatar className="h-20 w-20">
-                                                    <AvatarImage src={form.photoUrl} />
-                                                    <AvatarFallback>{form.displayName.charAt(0)}</AvatarFallback>
-                                                </Avatar>
-                                                <div>
-                                                    <h3 className="text-xl font-bold">{form.displayName}</h3>
-                                                    <p className="text-muted-foreground">{form.about}</p>
-                                                </div>
-                                            </div>
-                                            <Separator />
-                                            <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
-                                                <h4 className="col-span-2 text-base font-semibold">Basic Information</h4>
-                                                <div className="text-muted-foreground">Legal Name</div><div>{form.legalName}</div>
-                                                <div className="text-muted-foreground">Email</div><div>{form.email}</div>
-                                                <div className="text-muted-foreground">Phone</div><div>{form.phone}</div>
-
-                                                <h4 className="col-span-2 text-base font-semibold mt-4">Business Details</h4>
-                                                <div className="text-muted-foreground">Business Type</div><div>{form.bizType}</div>
-                                                <div className="text-muted-foreground">Support Email</div><div>{form.supportEmail}</div>
-                                                <div className="text-muted-foreground">Support Phone</div><div>{form.supportPhone}</div>
-
-                                                <h4 className="col-span-2 text-base font-semibold mt-4">Address</h4>
-                                                <div className="text-muted-foreground">Registered</div><div className="truncate">{form.regAddr.line1}, {form.regAddr.city}</div>
-                                                <div className="text-muted-foreground">Pickup</div><div className="truncate">{form.pickupAddr.same ? 'Same as registered' : `${form.pickupAddr.line1}, ${form.pickupAddr.city}`}</div>
-
-                                                 <h4 className="col-span-2 text-base font-semibold mt-4">Bank & Tax</h4>
-                                                <div className="text-muted-foreground">PAN</div><div>{form.pan}</div>
-                                                <div className="text-muted-foreground">Account Holder</div><div>{form.accountName}</div>
-                                                <div className="text-muted-foreground">Account No.</div><div>{form.accountNo}</div>
-                                                <div className="text-muted-foreground">IFSC</div><div>{form.ifsc}</div>
-
-                                                <h4 className="col-span-2 text-base font-semibold mt-4">Verification</h4>
-                                                <div className="text-muted-foreground">Identity (0DIDit)</div><div>{verif.state === 'VERIFIED' ? <Badge variant="success">Verified</Badge> : <Badge variant="destructive">Not Verified</Badge>}</div>
-
-                                                <h4 className="col-span-2 text-base font-semibold mt-4">Settings</h4>
-                                                <div className="text-muted-foreground">Auctions</div><div>{form.auctionEnabled ? 'Enabled' : 'Disabled'}</div>
-                                                <div className="text-muted-foreground">Terms Accepted</div><div>{form.termsAccepted ? 'Yes' : 'No'}</div>
-                                            </div>
-                                          </div>
-                                     </CardContent>
-                                 </Card>
-                            </CollapsibleContent>
-                        </Collapsible>
+                        <Button variant="secondary" onClick={() => setIsPreviewOpen(true)}><Eye className="w-4 h-4 mr-2"/>Preview</Button>
                     </div>
                   </div>
                 </Section>
@@ -656,6 +579,58 @@ function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
           </motion.div>
         </AnimatePresence>
       </div>
+
+       <Sheet open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
+        <SheetContent side="bottom" className="h-[80vh] flex flex-col">
+            <SheetHeader className="text-left">
+                <SheetTitle>Application Preview</SheetTitle>
+                <SheetDescription>This is a summary of the information you have provided.</SheetDescription>
+            </SheetHeader>
+            <ScrollArea className="h-full mt-4">
+                <div className="space-y-6 pr-6">
+                    <div className="flex items-center gap-4">
+                        <Avatar className="h-20 w-20">
+                            <AvatarImage src={form.photoUrl} />
+                            <AvatarFallback>{form.displayName.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                        <div>
+                            <h3 className="text-xl font-bold">{form.displayName}</h3>
+                            <p className="text-muted-foreground">{form.about}</p>
+                        </div>
+                    </div>
+                    <Separator />
+                    <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+                        <h4 className="col-span-2 text-base font-semibold">Basic Information</h4>
+                        <div className="text-muted-foreground">Legal Name</div><div>{form.legalName}</div>
+                        <div className="text-muted-foreground">Email</div><div>{form.email}</div>
+                        <div className="text-muted-foreground">Phone</div><div>{form.phone}</div>
+
+                        <h4 className="col-span-2 text-base font-semibold mt-4">Business Details</h4>
+                        <div className="text-muted-foreground">Business Type</div><div>{form.bizType}</div>
+                        <div className="text-muted-foreground">Support Email</div><div>{form.supportEmail}</div>
+                        <div className="text-muted-foreground">Support Phone</div><div>{form.supportPhone}</div>
+
+                        <h4 className="col-span-2 text-base font-semibold mt-4">Address</h4>
+                        <div className="text-muted-foreground">Registered</div><div className="truncate">{form.regAddr.line1}, {form.regAddr.city}</div>
+                        <div className="text-muted-foreground">Pickup</div><div className="truncate">{form.pickupAddr.same ? 'Same as registered' : `${form.pickupAddr.line1}, ${form.pickupAddr.city}`}</div>
+
+                         <h4 className="col-span-2 text-base font-semibold mt-4">Bank & Tax</h4>
+                        <div className="text-muted-foreground">PAN</div><div>{form.pan}</div>
+                        <div className="text-muted-foreground">Account Holder</div><div>{form.accountName}</div>
+                        <div className="text-muted-foreground">Account No.</div><div>{form.accountNo}</div>
+                        <div className="text-muted-foreground">IFSC</div><div>{form.ifsc}</div>
+
+                        <h4 className="col-span-2 text-base font-semibold mt-4">Verification</h4>
+                        <div className="text-muted-foreground">Identity (0DIDit)</div><div>{verif.state === 'VERIFIED' ? <Badge variant="success">Verified</Badge> : <Badge variant="destructive">Not Verified</Badge>}</div>
+
+                        <h4 className="col-span-2 text-base font-semibold mt-4">Settings</h4>
+                        <div className="text-muted-foreground">Auctions</div><div>{form.auctionEnabled ? 'Enabled' : 'Disabled'}</div>
+                        <div className="text-muted-foreground">Terms Accepted</div><div>{form.termsAccepted ? 'Yes' : 'No'}</div>
+                    </div>
+                </div>
+            </ScrollArea>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }
@@ -732,3 +707,5 @@ export default function KYCPage() {
         </div>
     );
 }
+
+    
