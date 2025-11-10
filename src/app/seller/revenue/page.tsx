@@ -101,7 +101,7 @@ export default function SellerRevenueDashboard() {
     return payouts.reduce((sum, p) => sum + p.amount, 0);
   }, [payouts]);
 
-  const PLATFORM_FEE_RATE = 0.05;
+  const PLATFORM_FEE_RATE = 0.03;
 
   const revenueInsights = useMemo(() => {
     if (isLoading) {
