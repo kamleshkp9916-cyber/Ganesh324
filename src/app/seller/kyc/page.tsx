@@ -101,27 +101,47 @@ function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
     return form.legalName && form.displayName && /.+@.+\..+/.test(form.email) && /^\d{10}$/.test(form.phone) && form.emailVerified && form.phoneVerified;
   }, [form]);
 
+  const isStep2Valid = useMemo(() => {
+    return form.bizType && /.+@.+\..+/.test(form.supportEmail) && /^\d{10}$/.test(form.supportPhone);
+  }, [form]);
+
+  const isStep3Valid = useMemo(() => {
+    const { regAddr, pickupAddr } = form;
+    const isRegAddrValid = regAddr.line1 && regAddr.city && regAddr.state && /^\d{6}$/.test(regAddr.pin);
+    if (pickupAddr.same) return isRegAddrValid;
+    return isRegAddrValid && pickupAddr.line1 && pickupAddr.city && pickupAddr.state && /^\d{6}$/.test(pickupAddr.pin);
+  }, [form]);
+
+  const isStep4Valid = useMemo(() => {
+    return /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(form.pan) && /^[A-Z]{4}0[A-Z0-9]{6}$/i.test(form.ifsc) && /^\d{6,18}$/.test(form.accountNo) && form.accountName.length >= 3;
+  }, [form]);
+
+  const isStep5Valid = useMemo(() => {
+    return verif.state === "VERIFIED";
+  }, [verif.state]);
+
   const canGoToStep = (stepIndex: number) => {
     switch(stepIndex) {
         case 1: return isStep1Valid;
-        // Add validation for other steps here
-        default: return true; // Default to allow navigation for subsequent steps for now
+        case 2: return isStep1Valid && isStep2Valid;
+        case 3: return isStep1Valid && isStep2Valid && isStep3Valid;
+        case 4: return isStep1Valid && isStep2Valid && isStep3Valid && isStep4Valid;
+        case 5: return isStep1Valid && isStep2Valid && isStep3Valid && isStep4Valid && isStep5Valid;
+        default: return true;
     }
   }
 
   useEffect(() => {
     const draft = localStorage.getItem(SELLER_APP_DRAFT_KEY);
     if (draft) {
-        try {
-            const parsedDraft = JSON.parse(draft);
-            // Merge draft with initial state to ensure all keys are present
-            setForm(prevForm => ({ ...prevForm, ...parsedDraft }));
-        } catch (error) {
-            console.error("Failed to parse seller draft from localStorage", error);
-        }
+      try {
+        const parsedDraft = JSON.parse(draft);
+        setForm(prevForm => ({ ...prevForm, ...parsedDraft }));
+      } catch (error) {
+        console.error("Failed to parse seller draft from localStorage", error);
+      }
     }
-}, []);
-
+  }, []);
 
   const progress = useMemo(() => Math.round(((current) / (steps.length - 1)) * 100), [current]);
 
@@ -323,7 +343,7 @@ function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
                   </div>
                   <div>
                     <label className="text-sm">Support phone</label>
-                    <Input value={form.supportPhone} onChange={(e)=>setField("supportPhone", e.target.value)} placeholder="For buyers"/>
+                    <Input value={form.supportPhone} onChange={(e)=>setField("supportPhone", e.target.value.replace(/[^0-9]/g, "").slice(0,10))} placeholder="For buyers (10-digit)"/>
                   </div>
                 </div>
               </Section>
@@ -339,7 +359,7 @@ function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
                     <div className="grid grid-cols-3 gap-2">
                       <Input placeholder="City" value={form.regAddr.city} onChange={(e)=>setField("regAddr.city", e.target.value)}/>
                       <Input placeholder="State" value={form.regAddr.state} onChange={(e)=>setField("regAddr.state", e.target.value)}/>
-                      <Input placeholder="PIN" value={form.regAddr.pin} onChange={(e)=>setField("regAddr.pin", e.target.value)}/>
+                      <Input placeholder="PIN" value={form.regAddr.pin} onChange={(e)=>setField("regAddr.pin", e.target.value.replace(/[^0-9]/g, "").slice(0,6))}/>
                     </div>
                   </div>
                   <div className="space-y-2">
@@ -354,7 +374,7 @@ function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
                         <div className="grid grid-cols-3 gap-2">
                           <Input placeholder="City" value={form.pickupAddr.city} onChange={(e)=>setField("pickupAddr.city", e.target.value)}/>
                           <Input placeholder="State" value={form.pickupAddr.state} onChange={(e)=>setField("pickupAddr.state", e.target.value)}/>
-                          <Input placeholder="PIN" value={form.pickupAddr.pin} onChange={(e)=>setField("pickupAddr.pin", e.target.value)}/>
+                          <Input placeholder="PIN" value={form.pickupAddr.pin} onChange={(e)=>setField("pickupAddr.pin", e.target.value.replace(/[^0-9]/g, "").slice(0,6))}/>
                         </div>
                       </>
                     )}
@@ -376,7 +396,7 @@ function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
                   </div>
                   <div>
                     <label className="text-sm">Account number</label>
-                    <Input value={form.accountNo} onChange={(e)=>setField("accountNo", e.target.value)} placeholder=""/>
+                    <Input value={form.accountNo} onChange={(e)=>setField("accountNo", e.target.value.replace(/[^0-9]/g, ""))} placeholder=""/>
                   </div>
                   <div>
                     <label className="text-sm">IFSC</label>
@@ -472,7 +492,7 @@ function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
                 <Button variant="outline" onClick={prev} className={current === 0 ? "invisible" : ""}>Back</Button>
               <div className="flex items-center gap-3">
                 {current < steps.length - 1 && (
-                  <Button onClick={next} disabled={!canGoToStep(current + 1)}>Next<ChevronRight className="w-4 h-4 ml-2"/></Button>
+                  <Button onClick={next} disabled={!canGoToStep(current)}>Next<ChevronRight className="w-4 h-4 ml-2"/></Button>
                 )}
                 {current === steps.length - 1 && (
                   <Button disabled={!canSubmit} onClick={submit}>
@@ -538,3 +558,5 @@ export default function KYCPage() {
         </div>
     );
 }
+
+    
