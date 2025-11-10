@@ -13,7 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Check, AlertTriangle, Upload, ChevronLeft, ChevronRight, ShieldCheck, Building2, User2, MapPin, Banknote, FileSignature, ClipboardList, Eye, UserCheck, ShieldAlert, Gavel, Loader2, Send, Camera, QrCode, CheckCircle2 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useRouter } from "next/navigation";
@@ -26,6 +26,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { useAuthActions } from "@/lib/auth";
 
 const Section = ({ title, children, icon }: { title: string, children: React.ReactNode, icon: React.ReactNode }) => (
   <Card className="shadow-lg border rounded-2xl">
@@ -46,9 +47,6 @@ const StepPill = ({ index, label, active, complete }: { index: number, label: st
   </div>
 );
 
-// ------------------------------------------------------------
-// Seller Wizard
-// ------------------------------------------------------------
 const steps = [
   { key: "basic", label: "Basic Info", icon: <User2 className="w-5 h-5"/> },
   { key: "biz", label: "Business", icon: <Building2 className="w-5 h-5"/> },
@@ -64,6 +62,7 @@ const SELLER_APP_SUBMITTED_KEY = "sellerAppSubmitted";
 function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { handleSellerSignUp } = useAuthActions();
   const [current, setCurrent] = useState(0);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   
@@ -73,6 +72,8 @@ function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
     displayName: "",
     email: user?.email || "",
     phone: "",
+    password: "",
+    confirmPassword: "",
     emailOtp: "",
     phoneOtp: "",
     emailVerified: false,
@@ -130,8 +131,8 @@ function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
   }, []);
 
   const isStep1Valid = useMemo(() => {
-    return form.legalName && form.displayName && /.+@.+\..+/.test(form.email) && /^\d{10}$/.test(form.phone) && form.emailVerified && form.phoneVerified && form.photoUrl;
-  }, [form.legalName, form.displayName, form.email, form.phone, form.emailVerified, form.phoneVerified, form.photoUrl]);
+    return form.legalName && form.displayName && /.+@.+\..+/.test(form.email) && /^\d{10}$/.test(form.phone) && form.emailVerified && form.phoneVerified && form.photoUrl && form.password.length >= 8 && form.password === form.confirmPassword;
+  }, [form]);
 
   const isStep2Valid = useMemo(() => {
     return form.bizType && /.+@.+\..+/.test(form.supportEmail) && /^\d{10}$/.test(form.supportPhone);
@@ -236,34 +237,32 @@ function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
     const verificationLink = "https://0did.it/verify/mock-session-12345";
     setQrCodeUrl(`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(verificationLink)}`);
     
-    // Simulate user scanning and verifying on their phone
     setTimeout(() => {
         setVerif({ state: "VERIFIED", message: "Verification successful on your mobile device. You can now proceed." });
         toast({ title: "Verification Successful!", description: "You can proceed to the next step." });
-        setTimeout(() => next(), 1500); // Auto-advance after success
+        setTimeout(() => next(), 1500);
     }, 5000); 
   };
   
   const submit = async () => {
-    if (!user) {
-        toast({ title: 'Error', description: 'You must be logged in to submit.', variant: 'destructive' });
-        return;
-    }
-    
     const { emailOtp, phoneOtp, aadhaarOtp, ...restOfForm } = form;
 
     const finalData = {
         ...restOfForm,
         isNipherVerified: verif.state === "VERIFIED",
+        addresses: [
+            {...form.regAddr, id: 1, type: 'registered' },
+            !form.pickupAddr.same ? {...form.pickupAddr, id: 2, type: 'pickup'} : null
+        ].filter(Boolean),
     };
 
     try {
-        await updateUserData(user.uid, { verificationStatus: 'pending', kycData: finalData });
+        await handleSellerSignUp(finalData);
         localStorage.removeItem(SELLER_APP_DRAFT_KEY);
         onSubmit({ status: "SUBMITTED", payload: finalData });
     } catch (error) {
-        console.error("Failed to save KYC data:", error);
-        toast({ title: 'Submission Failed', description: 'Could not save your application. Please try again.', variant: 'destructive' });
+        console.error("Seller sign up failed:", error);
+        // Error toast is handled inside handleSellerSignUp
     }
   };
 
@@ -291,7 +290,7 @@ function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
           </CardContent>
         </Card>
          <div className="text-xs text-muted-foreground p-3 bg-gray-50 rounded-lg">
-            <strong>Privacy Note:</strong> We use 0DIDit for secure identity verification. Your personal identity data like your ID is not stored on our servers, only the verification status. We only store information necessary for you to use or sell products on the Nipher platform.
+            <strong>Privacy Note:</strong> We use 0DIDit for secure identity verification. We don't store your personal ID data, only the information necessary for you to use or sell products on the Nipher platform.
         </div>
       </div>
 
@@ -371,6 +370,19 @@ function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
                           </Button>
                       </div>
                   )}
+                  
+                  <div className="grid md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="text-sm">Password</label>
+                        <Input type="password" value={form.password} onChange={(e)=>setField("password", e.target.value)} placeholder="Minimum 8 characters"/>
+                         {form.password && form.password.length < 8 && <p className="text-xs text-destructive mt-1">Password must be at least 8 characters.</p>}
+                      </div>
+                       <div>
+                        <label className="text-sm">Confirm Password</label>
+                        <Input type="password" value={form.confirmPassword} onChange={(e)=>setField("confirmPassword", e.target.value)} placeholder="Re-enter your password"/>
+                        {form.confirmPassword && form.password !== form.confirmPassword && <p className="text-xs text-destructive mt-1">Passwords do not match.</p>}
+                      </div>
+                  </div>
 
                   <div>
                     <label className="text-sm">About shop</label>
@@ -619,25 +631,33 @@ export default function KYCPage() {
     const { user, userData, authReady } = useAuth();
     const router = useRouter();
     const [isClient, setIsClient] = useState(false);
+    const [submissionStatus, setSubmissionStatus] = useState<string | null>(null);
     
     useEffect(() => {
         setIsClient(true);
+        const storedStatus = localStorage.getItem(SELLER_APP_SUBMITTED_KEY);
+        if (storedStatus) {
+            setSubmissionStatus('pending');
+        }
     }, []);
     
     useEffect(() => {
         if (isClient && authReady) {
+            // This logic runs after auth state is resolved
             if (user && userData?.role === 'seller') {
                 router.replace('/seller/dashboard');
+            } else if (user && !userData) {
+                // If user is logged in but has no user data (e.g., from a different flow)
+                // This scenario might need specific handling, for now we let the wizard load
+            } else if (!user) {
+                // User is not logged in. The form will show fields for a new account.
             }
         }
     }, [isClient, user, userData, authReady, router]);
     
     const handleSubmission = (data: any) => {
-        console.log("Seller Application Submitted:", data);
         localStorage.setItem(SELLER_APP_SUBMITTED_KEY, JSON.stringify(data));
-        // Show a "pending review" page or redirect.
-        // For this example, we'll just log it and the admin page will pick it up.
-        // A better approach would involve a dedicated status page for the seller.
+        setSubmissionStatus('pending');
     };
 
     if (!isClient || !authReady) {
@@ -646,6 +666,23 @@ export default function KYCPage() {
                 <LoadingSpinner />
             </div>
         );
+    }
+
+    if (submissionStatus === 'pending' && !user) {
+         return (
+             <div className="min-h-screen p-6 md:p-10 flex items-center justify-center">
+                <Card className="max-w-md text-center">
+                    <CardHeader>
+                        <CardTitle>Application Submitted</CardTitle>
+                        <CardDescription>Thank you for submitting your application. We are currently reviewing your details.</CardDescription>
+                    </CardHeader>
+                     <CardContent>
+                        <p className="text-sm">Estimated review time is <span className="font-bold">24 hours</span>. You will receive an email once your application has been reviewed.</p>
+                        <Button asChild className="mt-4"><Link href="/">Back to Login</Link></Button>
+                    </CardContent>
+                </Card>
+            </div>
+         );
     }
     
     return (
