@@ -20,7 +20,8 @@ import {
   Settings,
   RadioTower,
   CreditCard,
-  FileText
+  FileText,
+  Rss, // Added Rss icon
 } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
@@ -51,11 +52,13 @@ import { cn } from "@/lib/utils"
 const navItems = [
     { href: "/admin/dashboard", icon: Home, label: "Dashboard" },
     { href: "/admin/orders", icon: ShoppingCart, label: "Orders" },
+    { href: "/admin/revenue", icon: LineChart, label: "Revenue" },
     { href: "/admin/users", icon: Users, label: "Users" },
     { href: "/admin/kyc", icon: Shield, label: "KYC" },
     { href: "/admin/products", icon: Package, label: "Products" },
     { href: "/admin/messages", icon: MessageSquare, label: "Messages" },
     { href: "/admin/inquiries", icon: FileText, label: "Inquiries" },
+    { href: "/admin/feed", icon: Rss, label: "Feed" },
 ];
 
 const featuresItems = [
