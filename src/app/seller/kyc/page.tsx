@@ -5,7 +5,7 @@ import React, { useMemo, useState, useEffect, useCallback, useRef } from "react"
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
@@ -23,6 +23,8 @@ import { InputOTP, InputOTPGroup, InputOTPSeparator, InputOTPSlot } from "@/comp
 import Image from "next/image";
 import { updateUserData } from "@/lib/follow-data";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Separator } from "@/components/ui/separator";
 
 const Section = ({ title, children, icon }: { title: string, children: React.ReactNode, icon: React.ReactNode }) => (
   <Card className="shadow-lg border rounded-2xl">
@@ -106,24 +108,44 @@ function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
   const [selfiePreview, setSelfiePreview] = useState<string | null>(null);
   const selfieInputRef = useRef<HTMLInputElement>(null);
 
+   useEffect(() => {
+    const draft = localStorage.getItem(SELLER_APP_DRAFT_KEY);
+    if (draft) {
+      try {
+        const parsedDraft = JSON.parse(draft);
+        setForm(prevForm => ({ 
+            ...initialFormState, 
+            ...prevForm, 
+            ...parsedDraft,
+            regAddr: { ...initialFormState.regAddr, ...(parsedDraft.regAddr || {}) },
+            pickupAddr: { ...initialFormState.pickupAddr, ...(parsedDraft.pickupAddr || {}) }
+        }));
+        if(parsedDraft.photoUrl) setPhotoPreview(parsedDraft.photoUrl);
+      } catch (error) {
+        console.error("Failed to parse seller draft from localStorage", error);
+      }
+    }
+  }, []);
+
   const isStep1Valid = useMemo(() => {
     return form.legalName && form.displayName && /.+@.+\..+/.test(form.email) && /^\d{10}$/.test(form.phone) && form.emailVerified && form.phoneVerified && form.photoUrl;
-  }, [form]);
+  }, [form.legalName, form.displayName, form.email, form.phone, form.emailVerified, form.phoneVerified, form.photoUrl]);
 
   const isStep2Valid = useMemo(() => {
     return form.bizType && /.+@.+\..+/.test(form.supportEmail) && /^\d{10}$/.test(form.supportPhone);
-  }, [form]);
+  }, [form.bizType, form.supportEmail, form.supportPhone]);
 
   const isStep3Valid = useMemo(() => {
     const { regAddr, pickupAddr } = form;
     const isRegAddrValid = regAddr.line1 && regAddr.city && regAddr.state && /^\d{6}$/.test(regAddr.pin);
     if (pickupAddr.same) return isRegAddrValid;
     return isRegAddrValid && pickupAddr.line1 && pickupAddr.city && pickupAddr.state && /^\d{6}$/.test(pickupAddr.pin);
-  }, [form]);
+  }, [form.regAddr, form.pickupAddr]);
 
   const isStep4Valid = useMemo(() => {
     return /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(form.pan) && /^[A-Z]{4}0[A-Z0-9]{6}$/i.test(form.ifsc) && /^\d{9,18}$/.test(form.accountNo) && form.accountName.length >= 3;
-  }, [form]);
+  }, [form.pan, form.ifsc, form.accountNo, form.accountName]);
+
 
   const isStep5Valid = useMemo(() => {
     return verif.state === "VERIFIED";
@@ -139,21 +161,6 @@ function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
         default: return true;
     }
   }
-
-  useEffect(() => {
-    const draft = localStorage.getItem(SELLER_APP_DRAFT_KEY);
-    if (draft) {
-      try {
-        const parsedDraft = JSON.parse(draft);
-        setForm(prevForm => ({ ...initialFormState, ...prevForm, ...parsedDraft }));
-        if(parsedDraft.photoUrl) setPhotoPreview(parsedDraft.photoUrl);
-      } catch (error) {
-        console.error("Failed to parse seller draft from localStorage", error);
-      }
-    }
-}, []);
-
-
 
   const progress = useMemo(() => Math.round(((current) / (steps.length - 1)) * 100), [current]);
 
@@ -532,19 +539,58 @@ function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
                   </div>
                   <div className="flex items-center justify-between">
                     <div className="text-sm text-muted-foreground">Preview your storefront card with name and bio.</div>
-                    <Sheet>
+                     <Sheet>
                       <SheetTrigger asChild>
-                        <Button variant="secondary"><Eye className="w-4 h-4 mr-2"/>Preview</Button>
+                        <Button variant="secondary"><Eye className="w-4 h-4 mr-2"/>Preview Application</Button>
                       </SheetTrigger>
-                      <SheetContent className="w-[500px]">
-                        <SheetHeader>
-                          <SheetTitle>Storefront Preview</SheetTitle>
+                      <SheetContent side="bottom" className="h-auto max-h-[80vh]">
+                        <SheetHeader className="text-left">
+                          <SheetTitle>Application Preview</SheetTitle>
+                          <SheetDescription>This is a summary of the information you have provided.</SheetDescription>
                         </SheetHeader>
-                        <div className="mt-4 space-y-2">
-                          <div className="text-lg font-semibold">{form.displayName || "Your Shop"}</div>
-                          <div className="text-sm text-muted-foreground">{form.about || "Tell buyers what you sell"}</div>
-                          <div className="mt-3"><Badge>Auctions {form.auctionEnabled ? "On" : "Off"}</Badge></div>
-                        </div>
+                        <ScrollArea className="h-[60vh] mt-4">
+                          <div className="space-y-6 pr-6">
+                            <div className="flex items-center gap-4">
+                                <Avatar className="h-20 w-20">
+                                    <AvatarImage src={form.photoUrl} />
+                                    <AvatarFallback>{form.displayName.charAt(0)}</AvatarFallback>
+                                </Avatar>
+                                <div>
+                                    <h3 className="text-xl font-bold">{form.displayName}</h3>
+                                    <p className="text-muted-foreground">{form.about}</p>
+                                </div>
+                            </div>
+                            <Separator />
+                            <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+                                <h4 className="col-span-2 text-base font-semibold">Basic Information</h4>
+                                <div className="text-muted-foreground">Legal Name</div><div>{form.legalName}</div>
+                                <div className="text-muted-foreground">Email</div><div>{form.email}</div>
+                                <div className="text-muted-foreground">Phone</div><div>{form.phone}</div>
+
+                                <h4 className="col-span-2 text-base font-semibold mt-4">Business Details</h4>
+                                <div className="text-muted-foreground">Business Type</div><div>{form.bizType}</div>
+                                <div className="text-muted-foreground">Support Email</div><div>{form.supportEmail}</div>
+                                <div className="text-muted-foreground">Support Phone</div><div>{form.supportPhone}</div>
+
+                                <h4 className="col-span-2 text-base font-semibold mt-4">Address</h4>
+                                <div className="text-muted-foreground">Registered</div><div className="truncate">{form.regAddr.line1}, {form.regAddr.city}</div>
+                                <div className="text-muted-foreground">Pickup</div><div className="truncate">{form.pickupAddr.same ? 'Same as registered' : `${form.pickupAddr.line1}, ${form.pickupAddr.city}`}</div>
+
+                                 <h4 className="col-span-2 text-base font-semibold mt-4">Bank & Tax</h4>
+                                <div className="text-muted-foreground">PAN</div><div>{form.pan}</div>
+                                <div className="text-muted-foreground">Account Holder</div><div>{form.accountName}</div>
+                                <div className="text-muted-foreground">Account No.</div><div>{form.accountNo}</div>
+                                <div className="text-muted-foreground">IFSC</div><div>{form.ifsc}</div>
+
+                                <h4 className="col-span-2 text-base font-semibold mt-4">Verification</h4>
+                                <div className="text-muted-foreground">Identity (Nipher)</div><div>{verif.state === 'VERIFIED' ? <Badge variant="success">Verified</Badge> : <Badge variant="destructive">Not Verified</Badge>}</div>
+
+                                <h4 className="col-span-2 text-base font-semibold mt-4">Settings</h4>
+                                <div className="text-muted-foreground">Auctions</div><div>{form.auctionEnabled ? 'Enabled' : 'Disabled'}</div>
+                                <div className="text-muted-foreground">Terms Accepted</div><div>{form.termsAccepted ? 'Yes' : 'No'}</div>
+                            </div>
+                          </div>
+                        </ScrollArea>
                       </SheetContent>
                     </Sheet>
                   </div>
