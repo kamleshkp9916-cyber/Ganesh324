@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import {
@@ -123,7 +122,7 @@ import { useInView } from "react-intersection-observer";
 import { useMiniPlayer } from "@/context/MiniPlayerContext";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { useIsMobile } from "@/hooks/use-is-mobile";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { format, formatDistanceToNow, isThisWeek, isThisYear, parseISO, parse } from 'date-fns';
 import { ProductShelfContent } from '@/components/product-shelf-content';
@@ -561,11 +560,11 @@ const RelatedContent = ({ relatedStreams, onAddToCart, onBuyNow, toast, getProdu
                  const remainingCount = sellerProducts.length > 5 ? sellerProducts.length - 5 : 0;
                  return (
                  <Card key={s.id} className="group flex flex-col space-y-2 overflow-hidden border-none shadow-none bg-transparent">
-                    <Link href={`/stream/${s.id}`} className="block">
-                        <div className="relative aspect-[16/9] bg-muted rounded-lg overflow-hidden">
-                            <Image src={s.thumbnailUrl} alt={`Live stream from ${s.name}`} fill sizes="(max-width: 640px) 100vw, 33vw" className="object-cover w-full h-full transition-transform group-hover:scale-105" />
-                            <div className="absolute top-3 left-3 z-10"><Badge variant="destructive" className="gap-1.5"><div className="h-2 w-2 rounded-full bg-white animate-pulse" />LIVE</Badge></div>
-                            <div className="absolute top-2 right-2 z-10"><Badge variant="secondary" className="bg-black/50 text-white font-semibold backdrop-blur-sm"><Users className="w-3 h-3 mr-1"/>{s.viewers.toLocaleString()}</Badge></div>
+                    <Link href={`/stream/${s.id}`} key={s.id} className="group block">
+                        <div className="relative rounded-lg overflow-hidden aspect-video bg-muted w-full flex-shrink-0">
+                            <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
+                            <div className="absolute top-2 right-2 z-10"><Badge variant="secondary" className="bg-black/50 text-white"><Users className="w-3 h-3 mr-1"/>{s.viewers.toLocaleString()}</Badge></div>
+                            <Image src={s.thumbnailUrl} alt={`Live stream from ${s.name}`} fill sizes="(max-width: 768px) 50vw, 33vw" className="object-cover w-full h-full transition-transform group-hover:scale-105" />
                         </div>
                         <div className="flex items-start gap-3 mt-2">
                             <Avatar>
@@ -704,7 +703,7 @@ const SuperChatDialog = ({ walletBalance, handlers, isSuperChatOpen, setIsSuperC
 };
 
 const ChatMessage = ({ msg, handlers, seller }: { msg: any, handlers: any, seller: any }) => {
-    const { user, userData } = useAuth();
+    const { user } = useAuth();
     const isMyMessage = msg.userId === user?.uid;
     const isSellerMessage = msg.userId === seller.id;
     
@@ -732,7 +731,7 @@ const ChatMessage = ({ msg, handlers, seller }: { msg: any, handlers: any, selle
                     {renderWithHashtagsAndLinks(msg.text)}
                  </div>
             </div>
-            {userData?.role === 'admin' && (
+            {user?.uid === post.sellerId && (
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                         <button className="text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity p-1">
@@ -1291,7 +1290,7 @@ const StreamPage = () => {
     const [isStreamEnded, setIsStreamEnded] = useState(false);
     
     const isAdmin = userData?.role === 'admin';
-    const isChatDisabled = isStreamEnded || (isAdmin && isPastStream);
+    const isChatDisabled = isStreamEnded || (isAdmin && !isPastStream);
     
     const handleAuthAction = useCallback((callback?: () => void) => {
         if (!user) {
@@ -1415,7 +1414,7 @@ const StreamPage = () => {
     const [playbackRate, setPlaybackRate] = useState(1);
     const [skipInterval, setSkipInterval] = useState(10);
     const [isFullscreen, setIsFullscreen] = useState(false);
-    const [isLive, setIsLive] = useState(isMobile ? true : false);
+    const [isLive, setIsLive] = isMobile ? true : false;
     const mainScrollRef = useRef<HTMLDivElement>(null);
     const [hydrated, setHydrated] = useState(false);
     const [showGoToTop, setShowGoToTop] = useState(false);
@@ -1455,7 +1454,7 @@ const StreamPage = () => {
 
     const scrollToTop = (ref: React.RefObject<HTMLDivElement>) => {
         ref.current?.scrollTo({ top: 0, behavior: 'smooth' });
-    };
+        };
 
     const sellerProducts = useMemo(() => {
         if (!seller) return [];
@@ -1568,7 +1567,7 @@ const StreamPage = () => {
                     video.pause();
                     setChatMessages(prev => [...prev, { id: 'stream-end', type: 'system', text: 'The live stream has ended. Thank you for watching!' }]);
                     setTimeout(() => {
-                        setIsChatDisabled(true);
+                        // setIsChatDisabled(true); // Logic was here, now derived from isStreamEnded
                     }, 5 * 60 * 1000); // 5 minutes
                 }
             };
@@ -1901,65 +1900,3 @@ const StreamPage = () => {
 
 export default StreamPage;
 
-    
-```
-- src/components/ui/sidebar.tsx:
-```tsx
-
-
-"use client"
-
-import * as React from "react"
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
-import { useIsMobile } from "@/hooks/use-mobile"
-import { Menu } from "lucide-react"
-import { Button } from "./button"
-
-const SidebarContext = React.createContext<{
-  open: boolean,
-  setOpen: (open: boolean) => void
-}>({
-    open: false,
-    setOpen: () => {},
-});
-
-export const SidebarProvider = ({ children }: { children: React.ReactNode }) => {
-    const [open, setOpen] = React.useState(false);
-    
-    const value = React.useMemo(() => ({
-        open,
-        setOpen,
-    }), [open, setOpen]);
-    
-    return (
-        <SidebarContext.Provider value={value}>
-            {children}
-        </SidebarContext.Provider>
-    )
-}
-
-export function useSidebar() {
-  const context = React.useContext(SidebarContext)
-  if (!context) {
-    throw new Error("useSidebar must be used within a SidebarProvider.")
-  }
-  return context
-}
-
-export const SidebarTrigger = () => {
-    const { setOpen } = useSidebar();
-    return (
-        <Button variant="outline" size="icon" className="shrink-0 md:hidden" onClick={() => setOpen(true)}>
-            <Menu className="h-5 w-5" />
-            <span className="sr-only">Toggle navigation menu</span>
-        </Button>
-    )
-}
-
-// These are no longer needed as wrappers but are kept for compatibility
-export const Sidebar = ({ children }: { children: React.ReactNode }) => <>{children}</>
-export const SidebarContent = ({ children }: { children: React.ReactNode }) => <>{children}</>
-export const SidebarHeader = ({ children }: { children: React.ReactNode }) => <>{children}</>
-export const SidebarInset = ({ children }: { children: React.ReactNode }) => <>{children}</>
-
-```
