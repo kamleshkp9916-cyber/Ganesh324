@@ -114,8 +114,22 @@ export default function AdminLiveControlPage() {
         <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8">
             <Card>
                 <CardHeader>
-                    <CardTitle>Live Stream Control</CardTitle>
-                    <CardDescription>Monitor and manage all ongoing live streams.</CardDescription>
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <CardTitle>Live Stream Control</CardTitle>
+                            <CardDescription>Monitor and manage all ongoing live streams.</CardDescription>
+                        </div>
+                        <div className="relative">
+                            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                            <Input
+                              type="search"
+                              placeholder="Search streams..."
+                              className="pl-8 sm:w-[300px] md:w-[200px] lg:w-[300px]"
+                              value={searchTerm}
+                              onChange={(e) => setSearchTerm(e.target.value)}
+                            />
+                        </div>
+                    </div>
                 </CardHeader>
                 <CardContent>
                     <Table>
