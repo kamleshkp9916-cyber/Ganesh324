@@ -1,10 +1,11 @@
-"use client";
+
+      "use client";
 
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { PlusCircle, Trash2, Edit, Ticket, Calendar as CalendarIcon, Upload } from "lucide-react";
+import { PlusCircle, Trash2, Edit, Ticket, Calendar as CalendarIcon, Upload, Loader2 } from "lucide-react";
 import { useLocalStorage } from "@/hooks/use-local-storage";
 import {
   Dialog,
@@ -39,10 +40,21 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { defaultCategories, Category } from "@/lib/categories";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
 import { Badge } from "../ui/badge";
+import { useToast } from "@/hooks/use-toast";
 
 export const PROMOTIONAL_SLIDES_KEY = 'streamcart_promotional_slides';
 export const COUPONS_KEY = 'streamcart_coupons';
 export const CATEGORY_BANNERS_KEY = 'streamcart_category_banners';
+export const CATEGORY_HUB_BANNER_KEY = 'streamcart_category_hub_banner';
+
+
+export interface Slide {
+  id: number;
+  imageUrl: string;
+  title: string;
+  description: string;
+  expiresAt?: Date;
+}
 
 const slideSchema = z.object({
   id: z.number().optional(),
@@ -51,8 +63,6 @@ const slideSchema = z.object({
   imageUrl: z.string().url("Please enter a valid URL."),
   expiresAt: z.date().optional(),
 });
-
-export type Slide = z.infer<typeof slideSchema>;
 
 const SlideForm = ({ onSave, existingSlide, closeDialog }: { onSave: (slide: Slide) => void, existingSlide?: Slide, closeDialog: () => void }) => {
   const form = useForm<z.infer<typeof slideSchema>>({
@@ -263,6 +273,71 @@ const CategoryBannerManagement = () => {
     );
 };
 
+export interface HubBanner {
+  title: string;
+  description: string;
+  imageUrl: string;
+}
+
+const defaultHubBanner: HubBanner = {
+    title: "Discover products you'll love",
+    description: "Curated picks, timeless design, and everyday prices. Start exploring our latest arrivals and best sellers.",
+    imageUrl: 'https://images.unsplash.com/photo-1568252542512-9fe8fe9c87bb?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxmYXNoaW9uJTIwbW9kZWx8ZW58MHx8fHwxNzYxNTYyNzc5fDA&ixlib=rb-4.1.0&q=80&w=1080',
+};
+
+const CategoryHubBannerSettings = () => {
+    const [banner, setBanner] = useLocalStorage<HubBanner>(CATEGORY_HUB_BANNER_KEY, defaultHubBanner);
+    const [formState, setFormState] = useState<HubBanner>(defaultHubBanner);
+    const [isSaving, setIsSaving] = useState(false);
+    const { toast } = useToast();
+
+    useEffect(() => {
+        setFormState(banner);
+    }, [banner]);
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+        const { name, value } = e.target;
+        setFormState(prev => ({ ...prev, [name]: value }));
+    };
+
+    const handleSave = () => {
+        setIsSaving(true);
+        setTimeout(() => {
+            setBanner(formState);
+            toast({ title: "Hub Banner Saved!", description: "The banner on the Listed Products page has been updated." });
+            setIsSaving(false);
+        }, 500);
+    };
+
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle>Category Hub Banner</CardTitle>
+                <CardDescription>Manage the main banner on the "Listed Products" page.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+                <div className="space-y-2">
+                    <Label htmlFor="hub-title">Title</Label>
+                    <Input id="hub-title" name="title" value={formState.title} onChange={handleChange} />
+                </div>
+                <div className="space-y-2">
+                    <Label htmlFor="hub-description">Description</Label>
+                    <Textarea id="hub-description" name="description" value={formState.description} onChange={handleChange} />
+                </div>
+                <div className="space-y-2">
+                    <Label htmlFor="hub-imageUrl">Image URL</Label>
+                    <Input id="hub-imageUrl" name="imageUrl" value={formState.imageUrl} onChange={handleChange} />
+                </div>
+            </CardContent>
+            <CardFooter className="border-t pt-6 flex justify-end">
+                <Button onClick={handleSave} disabled={isSaving}>
+                    {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin"/>}
+                    Save Hub Banner
+                </Button>
+            </CardFooter>
+        </Card>
+    );
+};
 
 export function PromotionsSettings() {
   const [slides, setSlides] = useLocalStorage<Slide[]>(PROMOTIONAL_SLIDES_KEY, defaultSlides);
@@ -324,11 +399,15 @@ export function PromotionsSettings() {
         if (isCouponFormOpen) setIsCouponFormOpen(open);
     }}>
         <Tabs defaultValue="slides" className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className="grid w-full grid-cols-4">
+                <TabsTrigger value="hub-banner">Hub Banner</TabsTrigger>
                 <TabsTrigger value="slides">Promotional Slides</TabsTrigger>
                 <TabsTrigger value="category-banners">Category Banners</TabsTrigger>
                 <TabsTrigger value="coupons">Admin Coupons</TabsTrigger>
             </TabsList>
+            <TabsContent value="hub-banner" className="mt-4">
+                <CategoryHubBannerSettings />
+            </TabsContent>
             <TabsContent value="slides" className="mt-4">
                 <Card>
                     <CardHeader className="flex flex-row items-start justify-between">
@@ -405,3 +484,5 @@ export function PromotionsSettings() {
     </Dialog>
   );
 }
+
+    
