@@ -77,6 +77,7 @@ import { formatDistanceToNow, isSameDay, isSameMonth, isSameYear, parseISO } fro
 import { useDebounce } from "@/hooks/use-debounce";
 import { getFirestore, collection, query, getDocs, orderBy } from "firebase/firestore";
 import { getFirestoreDb } from "@/lib/firebase";
+import { AdminLayout } from "@/components/admin/admin-layout";
 
 
 const salesData = [
@@ -278,182 +279,7 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="flex min-h-screen w-full flex-col">
-      <header className="sticky top-0 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6 z-40">
-        <nav className="hidden flex-col gap-6 text-lg font-medium md:flex md:flex-row md:items-center md:gap-5 md:text-sm lg:gap-6">
-          <Link
-            href="/admin/dashboard"
-            className="flex items-center gap-2 text-lg font-semibold md:text-base"
-          >
-            <ShieldCheck className="h-6 w-6" />
-            <span className="sr-only">StreamCart Admin</span>
-          </Link>
-          <Link
-            href="/admin/dashboard"
-            className="text-foreground transition-colors hover:text-foreground"
-          >
-            Dashboard
-          </Link>
-          <Link
-            href="/admin/orders"
-            className="text-muted-foreground transition-colors hover:text-foreground"
-          >
-            Orders
-          </Link>
-          <Link
-            href="/admin/users"
-            className="text-muted-foreground transition-colors hover:text-foreground"
-          >
-            Users
-          </Link>
-          <Link
-            href="/admin/kyc"
-            className="text-muted-foreground transition-colors hover:text-foreground"
-          >
-            KYC
-          </Link>
-          <Link
-            href="/admin/inquiries"
-            className="text-muted-foreground transition-colors hover:text-foreground"
-          >
-            Inquiries
-          </Link>
-          <Link
-            href="/admin/messages"
-            className="text-muted-foreground transition-colors hover:text-foreground"
-          >
-            Messages
-          </Link>
-          <Link
-            href="/admin/products"
-            className="text-muted-foreground transition-colors hover:text-foreground"
-          >
-            Products
-          </Link>
-           <Link
-            href="/admin/live-control"
-            className="text-muted-foreground transition-colors hover:text-foreground"
-          >
-            Live Control
-          </Link>
-          <Link
-            href="/admin/settings"
-            className="text-muted-foreground transition-colors hover:text-foreground"
-          >
-            Settings
-          </Link>
-        </nav>
-        <Sheet>
-          <SheetTrigger asChild>
-            <Button
-              variant="outline"
-              size="icon"
-              className="shrink-0 md:hidden"
-            >
-              <Menu className="h-5 w-5" />
-              <span className="sr-only">Toggle navigation menu</span>
-            </Button>
-          </SheetTrigger>
-          <SheetContent side="left">
-            <SheetHeader>
-                <SheetTitle className="sr-only">Admin Navigation Menu</SheetTitle>
-            </SheetHeader>
-            <nav className="grid gap-6 text-lg font-medium">
-              <Link
-                href="/admin/dashboard"
-                className="flex items-center gap-2 text-lg font-semibold"
-              >
-                <ShieldCheck className="h-6 w-6" />
-                <span className="">Admin Panel</span>
-              </Link>
-              <Link href="/admin/dashboard" className="hover:text-foreground">
-                Dashboard
-              </Link>
-              <Link
-                href="/admin/orders"
-                className="text-muted-foreground hover:text-foreground"
-              >
-                Orders
-              </Link>
-              <Link
-                href="/admin/users"
-                className="text-muted-foreground hover:text-foreground"
-              >
-                Users
-              </Link>
-              <Link
-                href="/admin/kyc"
-                className="text-muted-foreground hover:text-foreground"
-              >
-                KYC
-              </Link>
-              <Link
-                href="/admin/inquiries"
-                className="text-muted-foreground hover:text-foreground"
-              >
-                Inquiries
-              </Link>
-              <Link
-                href="/admin/messages"
-                className="text-muted-foreground hover:text-foreground"
-              >
-                Messages
-              </Link>
-               <Link
-                href="/admin/products"
-                className="text-muted-foreground transition-colors hover:text-foreground"
-              >
-                Products
-              </Link>
-              <Link
-                href="/admin/live-control"
-                className="text-muted-foreground hover:text-foreground"
-              >
-                Live Control
-              </Link>
-              <Link
-                href="/admin/settings"
-                className="text-muted-foreground hover:text-foreground"
-              >
-                Settings
-              </Link>
-            </nav>
-          </SheetContent>
-        </Sheet>
-        <div className="flex w-full items-center gap-4 md:ml-auto md:gap-2 lg:gap-4">
-          <form className="ml-auto flex-1 sm:flex-initial" onSubmit={(e) => e.preventDefault()}>
-            <div className="relative">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                type="search"
-                placeholder="Search..."
-                className="pl-8 sm:w-[300px] md:w-[200px] lg:w-[300px]"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
-          </form>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="secondary" size="icon" className="rounded-full">
-                 <Avatar className="h-9 w-9">
-                    <AvatarImage src={user.photoURL || 'https://placehold.co/40x40.png'} alt={user.displayName || "Admin"} />
-                    <AvatarFallback>{user.displayName ? user.displayName.charAt(0) : 'A'}</AvatarFallback>
-                </Avatar>
-                <span className="sr-only">Toggle user menu</span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Admin Account</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onSelect={() => router.push('/profile')}>Profile</DropdownMenuItem>
-              <DropdownMenuItem onSelect={() => router.push('/settings')}>Settings</DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleAdminSignOut}>Logout</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      </header>
+    <AdminLayout>
       <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
         <div className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-3">
           <Card>
@@ -641,6 +467,6 @@ export default function AdminDashboard() {
             </CardContent>
         </Card>
       </main>
-    </div>
+    </AdminLayout>
   )
 }

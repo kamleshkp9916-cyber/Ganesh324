@@ -50,6 +50,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useAuthActions } from "@/lib/auth"
 import { useDebounce } from "@/hooks/use-debounce";
 import { Input } from "@/components/ui/input"
+import { AdminLayout } from "@/components/admin/admin-layout"
+
 
 interface Product {
     id: string;
@@ -191,7 +193,6 @@ const ProductTable = ({ products }: { products: Product[] }) => (
 
 export default function AdminProductsPage() {
     const { user, userData, loading } = useAuth();
-    const { signOut } = useAuthActions();
     const router = useRouter();
     const [searchTerm, setSearchTerm] = useState("");
     const debouncedSearchTerm = useDebounce(searchTerm, 300);
@@ -218,65 +219,7 @@ export default function AdminProductsPage() {
     }
   
   return (
-    <div className="flex min-h-screen w-full flex-col bg-muted/40">
-        <header className="sticky top-0 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6 z-40">
-            <nav className="hidden flex-col gap-6 text-lg font-medium md:flex md:flex-row md:items-center md:gap-5 md:text-sm lg:gap-6">
-                <Link href="/admin/dashboard" className="flex items-center gap-2 text-lg font-semibold md:text-base"><ShieldCheck className="h-6 w-6" /><span className="sr-only">Admin</span></Link>
-                <Link href="/admin/dashboard" className="text-muted-foreground transition-colors hover:text-foreground">Dashboard</Link>
-                <Link href="/admin/orders" className="text-muted-foreground transition-colors hover:text-foreground">Orders</Link>
-                <Link href="/admin/users" className="text-muted-foreground transition-colors hover:text-foreground">Users</Link>
-                <Link href="/admin/inquiries" className="text-muted-foreground transition-colors hover:text-foreground">Inquiries</Link>
-                <Link href="/admin/messages" className="text-muted-foreground transition-colors hover:text-foreground">Messages</Link>
-                <Link href="/admin/products" className="text-foreground transition-colors hover:text-foreground">Products</Link>
-                <Link href="/admin/live-control" className="text-muted-foreground transition-colors hover:text-foreground">Live Control</Link>
-                <Link href="/admin/settings" className="text-muted-foreground transition-colors hover:text-foreground">Settings</Link>
-            </nav>
-            <Sheet>
-                <SheetTrigger asChild><Button variant="outline" size="icon" className="shrink-0 md:hidden"><Menu className="h-5 w-5" /><span className="sr-only">Menu</span></Button></SheetTrigger>
-                <SheetContent side="left">
-                    <SheetHeader>
-                        <SheetTitle className="sr-only">Admin Navigation Menu</SheetTitle>
-                    </SheetHeader>
-                    <nav className="grid gap-6 text-lg font-medium">
-                        <Link href="/admin/dashboard" className="flex items-center gap-2 text-lg font-semibold"><ShieldCheck className="h-6 w-6" /><span>Admin Panel</span></Link>
-                        <Link href="/admin/dashboard" className="text-muted-foreground hover:text-foreground">Dashboard</Link>
-                        <Link href="/admin/orders" className="text-muted-foreground hover:text-foreground">Orders</Link>
-                        <Link href="/admin/users" className="text-muted-foreground hover:text-foreground">Users</Link>
-                        <Link href="/admin/inquiries" className="text-muted-foreground hover:text-foreground">Inquiries</Link>
-                        <Link href="/admin/messages" className="text-muted-foreground hover:text-foreground">Messages</Link>
-                        <Link href="/admin/products" className="hover:text-foreground">Products</Link>
-                        <Link href="/admin/live-control" className="text-muted-foreground hover:text-foreground">Live Control</Link>
-                        <Link href="/admin/settings" className="text-muted-foreground hover:text-foreground">Settings</Link>
-                    </nav>
-                </SheetContent>
-            </Sheet>
-            <div className="ml-auto flex items-center gap-2">
-                 <form className="ml-auto flex-1 sm:flex-initial" onSubmit={(e) => e.preventDefault()}>
-                    <div className="relative">
-                        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                        <Input
-                          type="search"
-                          placeholder="Search products..."
-                          className="pl-8 sm:w-[300px] md:w-[200px] lg:w-[300px]"
-                          value={searchTerm}
-                          onChange={(e) => setSearchTerm(e.target.value)}
-                        />
-                    </div>
-                </form>
-                <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                        <Button variant="secondary" size="icon" className="rounded-full">
-                            <Avatar className="h-9 w-9"><AvatarImage src={user?.photoURL || 'https://placehold.co/40x40.png'} /><AvatarFallback>{user?.displayName?.charAt(0)}</AvatarFallback></Avatar>
-                        </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Admin Account</DropdownMenuLabel><DropdownMenuSeparator />
-                        <DropdownMenuItem onSelect={() => router.push('/settings')}>Settings</DropdownMenuItem><DropdownMenuSeparator />
-                        <DropdownMenuItem onClick={signOut}>Logout</DropdownMenuItem>
-                    </DropdownMenuContent>
-                </DropdownMenu>
-          </div>
-        </header>
+    <AdminLayout>
         <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8">
             <Card>
                 <CardHeader>
@@ -322,6 +265,6 @@ export default function AdminProductsPage() {
                 </CardContent>
             </Card>
         </main>
-    </div>
+    </AdminLayout>
   )
 }

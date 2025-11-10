@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -13,11 +14,12 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
 import { Sheet, SheetTrigger, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { useAuthActions } from '@/lib/auth';
 import { useDebounce } from '@/hooks/use-debounce';
-import { ChatWindow, ConversationList, Conversation } from '@/components/messaging/common';
+import { ChatWindow, ConversationList, Conversation, Message } from '@/components/messaging/common';
 import { getConversations, getOrCreateConversation } from '@/ai/flows/chat-flow';
 import { getUserByDisplayName, UserData } from '@/lib/follow-data';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { AdminLayout } from '@/components/admin/admin-layout';
 
 
 export default function AdminMessagePage() {
@@ -25,8 +27,8 @@ export default function AdminMessagePage() {
   const searchParams = useSearchParams();
   const { user, userData, loading } = useAuth();
   const { signOut } = useAuthActions();
-  const [conversations, setConversations<Conversation[]>([]);
-  const [selectedConversation, setSelectedConversation<Conversation | null>(null);
+  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isChatLoading, setIsChatLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
@@ -91,7 +93,7 @@ export default function AdminMessagePage() {
   }
   
   if (loading || isLoading) {
-    return <div className="h-screen w-full flex items-center justify-center"><LoadingSpinner />div>;
+    return <div className="h-screen w-full flex items-center justify-center"><LoadingSpinner /></div>;
   }
   
   if (!user || userData?.role !== 'admin') {
@@ -105,37 +107,39 @@ export default function AdminMessagePage() {
   }, [conversations, debouncedSearchTerm]);
 
   return (
-    <div className="h-dvh w-full flex bg-background text-foreground overflow-hidden">
-        <div className={cn(
-            "h-full w-full flex-col border-r md:flex md:w-1/3 lg:w-1/4",
-            isMobile && selectedConversation && "hidden"
-        )}>
-             <ConversationList 
-                conversations={filteredConversations} 
-                selectedConversation={selectedConversation}
-                onSelectConversation={handleSelectConversation}
-             />
-        div>
-        
-        <div className={cn(
-            "h-full w-full flex-col md:flex md:w-2/3 lg:w-3/4",
-            isMobile && !selectedConversation && "hidden"
-        )}>
-             {selectedConversation && userData ? (
-                <ChatWindow 
-                    key={selectedConversation.userId}
-                    conversation={selectedConversation}
-                    userData={userData}
-                    onBack={() => setSelectedConversation(null)}
+    <AdminLayout>
+        <div className="h-full w-full flex bg-background text-foreground overflow-hidden">
+            <div className={cn(
+                "h-full w-full flex-col border-r md:flex md:w-1/3 lg:w-1/4",
+                isMobile && selectedConversation && "hidden"
+            )}>
+                <ConversationList 
+                    conversations={filteredConversations} 
+                    selectedConversation={selectedConversation}
+                    onSelectConversation={handleSelectConversation}
                 />
-             ) : (
-                <div className="hidden md:flex flex-col items-center justify-center h-full text-muted-foreground">
-                    <MessageSquare className="h-16 w-16 mb-4"/>
-                    <h2 className="text-xl font-semibold">Select a chath2>
-                    pChoose a conversation to start messaging.p>
-                div>
-             )}
-        div>
-    div>
+            </div>
+            
+            <div className={cn(
+                "h-full w-full flex-col md:flex md:w-2/3 lg:w-3/4",
+                isMobile && !selectedConversation && "hidden"
+            )}>
+                {selectedConversation && userData ? (
+                    <ChatWindow 
+                        key={selectedConversation.userId}
+                        conversation={selectedConversation}
+                        userData={userData}
+                        onBack={() => setSelectedConversation(null)}
+                    />
+                ) : (
+                    <div className="hidden md:flex flex-col items-center justify-center h-full text-muted-foreground">
+                        <MessageSquare className="h-16 w-16 mb-4"/>
+                        <h2 className="text-xl font-semibold">Select a chat</h2>
+                        <p>Choose a conversation to start messaging.</p>
+                    </div>
+                )}
+            </div>
+        </div>
+    </AdminLayout>
   );
 }
