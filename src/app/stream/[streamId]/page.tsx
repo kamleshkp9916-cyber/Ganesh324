@@ -731,7 +731,7 @@ const ChatMessage = ({ msg, handlers, seller }: { msg: any, handlers: any, selle
                     {renderWithHashtagsAndLinks(msg.text)}
                  </div>
             </div>
-            {user?.uid === post.sellerId && (
+            {user?.uid === seller.id && (
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                         <button className="text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity p-1">
@@ -1414,7 +1414,12 @@ const StreamPage = () => {
     const [playbackRate, setPlaybackRate] = useState(1);
     const [skipInterval, setSkipInterval] = useState(10);
     const [isFullscreen, setIsFullscreen] = useState(false);
-    const [isLive, setIsLive] = isMobile ? true : false;
+    const [isLive, setIsLive] = useState(false);
+    
+    useEffect(() => {
+        setIsLive(!!isMobile);
+    }, [isMobile]);
+
     const mainScrollRef = useRef<HTMLDivElement>(null);
     const [hydrated, setHydrated] = useState(false);
     const [showGoToTop, setShowGoToTop] = useState(false);
@@ -1899,4 +1904,3 @@ const StreamPage = () => {
 };
 
 export default StreamPage;
-
