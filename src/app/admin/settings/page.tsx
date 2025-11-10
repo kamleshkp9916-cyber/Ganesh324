@@ -22,17 +22,16 @@ import { CategoriesSettings } from "@/components/settings/categories-settings";
 import { PromotionsSettings } from "@/components/settings/promotions-settings";
 import { ShippingSettingsComponent } from "@/components/settings/shipping-settings";
 import { PoliciesSettings } from "@/components/settings/policies-settings";
+import { ContentModerationSettings } from "@/components/settings/content-moderation-settings";
 
-type SettingView = 'main' | 'categories' | 'promotions' | 'shipping' | 'policies';
+type SettingView = 'main' | 'categories' | 'promotions' | 'shipping' | 'policies' | 'moderation';
 
 const settingsLinks = [
     { id: 'categories', href: "#", icon: LayoutGrid, title: "Category Management", description: "Add, edit, or delete product categories and subcategories." },
     { id: 'promotions', href: "#", icon: Ticket, title: "Promotions & Coupons", description: "Manage promotional slides and discount codes." },
     { id: 'shipping', href: "#", icon: Truck, title: "Shipping & Delivery", description: "Configure flat-rate delivery charges." },
     { id: 'policies', href: "#", icon: FileText, title: "Content & Policies", description: "Edit your Terms of Service and Privacy Policy." },
-    // { href_disabled: "/admin/settings/site-content", icon: Sparkles, title: "Site Content & Banners", description: "Update homepage banners and featured content." },
-    // { href_disabled: "/admin/settings/notifications", icon: MessageSquare, title: "User Notifications", description: "Send announcements or warnings to users." },
-    // { href_disabled: "/admin/settings/content-moderation", icon: Flag, title: "Content Moderation", description: "Review and act on content flagged by users." },
+    { id: 'moderation', href: "#", icon: Flag, title: "Content Moderation", description: "Review and act on content flagged by users." },
 ];
 
 export default function AdminSettingsHubPage() {
@@ -48,6 +47,8 @@ export default function AdminSettingsHubPage() {
             return <ShippingSettingsComponent />;
         case 'policies':
             return <PoliciesSettings />;
+        case 'moderation':
+            return <ContentModerationSettings />;
         default:
             return (
                 <Card>
