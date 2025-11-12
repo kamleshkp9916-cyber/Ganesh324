@@ -113,5 +113,24 @@ service cloud.firestore {
       // Updates should happen via Cloud Functions for status changes.
       allow update, delete: if isAdmin();
     }
+    
+    /**
+     * @description Enforces access control for the posts collection.
+     * @path /posts/{postId}
+     */
+    match /posts/{postId} {
+        // Anyone can read posts. Admins can list all posts.
+        allow read: if true;
+        allow list: if true;
+
+        // Any signed-in user can create a post, but they must be the author.
+        allow create: if isSignedIn() && request.resource.data.sellerId == request.auth.uid;
+        
+        // Only the author of the post can update it.
+        allow update: if isSignedIn() && resource.data.sellerId == request.auth.uid;
+
+        // The author of the post or an admin can delete it.
+        allow delete: if (isSignedIn() && resource.data.sellerId == request.auth.uid) || isAdmin();
+    }
   }
 }
