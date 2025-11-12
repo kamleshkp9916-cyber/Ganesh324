@@ -53,6 +53,8 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { addToCart, saveCart } from '@/lib/product-history';
 import { toggleSavePost, isPostSaved, getSavedPosts } from '@/lib/post-history';
 import { AdminLayout } from '@/components/admin/admin-layout';
+import { ScrollArea } from '@/components/ui/scroll-area';
+
 
 function FeedPostSkeleton() {
     return (
@@ -348,55 +350,59 @@ export default function AdminFeedPage() {
 
   return (
     <AdminLayout>
-        <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
-            <Card>
-                <CardHeader>
-                    <CardTitle>Global Feed</CardTitle>
-                    <CardDescription>Monitor and manage all user-generated posts.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <div className="max-w-2xl mx-auto space-y-4">
-                      <div className="relative w-full">
-                          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                          <Input
-                              placeholder="Search posts or users..."
-                              className="pl-9"
-                              value={searchTerm}
-                              onChange={(e) => setSearchTerm(e.target.value)}
-                          />
-                      </div>
-                      <CreatePostForm
-                          onPost={handlePostSubmit}
-                          postToEdit={postToEdit}
-                          onFinishEditing={onFinishEditing}
-                          isSubmitting={isFormSubmitting}
-                      />
-                      <div className="space-y-4">
-                        {isLoadingFeed ? (
-                          <div className="space-y-4">
-                            <FeedPostSkeleton />
-                            <FeedPostSkeleton />
-                          </div>
-                        ) : filteredFeed.length > 0 ? (
-                          filteredFeed.map(post => (
-                            <FeedPost
-                              key={post.id}
-                              post={post}
-                              onDelete={handleDeletePost}
-                              onSaveToggle={handleSaveToggle}
-                              isSaved={isPostSavedCheck(post.id)}
-                            />
-                          ))
-                        ) : (
-                          <div className="text-center py-20 text-muted-foreground">
-                              No posts found.
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                </CardContent>
-            </Card>
-        </main>
+      <div className="flex flex-col h-[calc(100vh-60px)]">
+        <header className="p-4 border-b">
+           <h1 className="text-xl font-bold">Global Feed</h1>
+           <p className="text-sm text-muted-foreground">Monitor and manage all user-generated posts.</p>
+            <div className="relative w-full max-w-sm mt-4">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                    placeholder="Search posts or users..."
+                    className="pl-9"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                />
+            </div>
+        </header>
+
+        <ScrollArea className="flex-1">
+          <div className="max-w-2xl mx-auto space-y-4 p-4">
+            <div className="space-y-4">
+              {isLoadingFeed ? (
+                <div className="space-y-4">
+                  <FeedPostSkeleton />
+                  <FeedPostSkeleton />
+                </div>
+              ) : filteredFeed.length > 0 ? (
+                filteredFeed.map(post => (
+                  <FeedPost
+                    key={post.id}
+                    post={post}
+                    onDelete={handleDeletePost}
+                    onSaveToggle={handleSaveToggle}
+                    isSaved={isPostSavedCheck(post.id)}
+                  />
+                ))
+              ) : (
+                <div className="text-center py-20 text-muted-foreground">
+                    No posts found.
+                </div>
+              )}
+            </div>
+          </div>
+        </ScrollArea>
+
+         <footer className="sticky bottom-0 p-3 bg-background/80 backdrop-blur-sm border-t z-10">
+           <div className="max-w-xl mx-auto">
+             <CreatePostForm
+                onPost={handlePostSubmit}
+                postToEdit={postToEdit}
+                onFinishEditing={onFinishEditing}
+                isSubmitting={isFormSubmitting}
+            />
+           </div>
+        </footer>
+      </div>
     </AdminLayout>
   );
 }
