@@ -375,7 +375,7 @@ export default function AdminFeedPage() {
                 })
             );
             
-            dataToSave.images = mediaUploads.filter(m => m.type === 'image');
+            dataToSave.images = mediaUploads.filter(m => m?.type === 'image');
             // Handle video if needed
         }
 
@@ -420,24 +420,21 @@ export default function AdminFeedPage() {
 
   return (
     <AdminLayout>
-        <main className="flex-1 p-4 md:p-6 lg:p-8">
-            <div className="max-w-3xl mx-auto space-y-6">
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Global Feed</CardTitle>
-                        <CardDescription>Monitor and manage all user-generated posts.</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <CreatePostForm
-                            onPost={handlePostSubmit}
-                            postToEdit={postToEdit}
-                            onFinishEditing={onFinishEditing}
-                            isSubmitting={isFormSubmitting}
-                            showTagProduct={false}
-                        />
-                    </CardContent>
-                </Card>
-                <div className="space-y-4">
+        <div className="flex-1 flex flex-col overflow-hidden">
+            <header className="p-4 border-b flex items-center gap-4 sticky top-0 bg-background z-10">
+                <h1 className="text-xl font-bold">Global Feed</h1>
+                <div className="relative ml-auto">
+                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Input 
+                        placeholder="Search posts or users..." 
+                        className="pl-9"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                </div>
+            </header>
+            <main className="flex-1 overflow-y-auto">
+                <div className="max-w-3xl mx-auto space-y-4 py-6 px-4">
                   {isLoadingFeed ? (
                     <div className="space-y-4">
                       <FeedPostSkeleton />
@@ -461,8 +458,72 @@ export default function AdminFeedPage() {
                     </div>
                   )}
                 </div>
-            </div>
-        </main>
+            </main>
+            <footer className="sticky bottom-0 p-3 bg-background/80 backdrop-blur-sm border-t z-10">
+                 <div className="max-w-2xl mx-auto">
+                     <CreatePostForm
+                        onPost={handlePostSubmit}
+                        postToEdit={postToEdit}
+                        onFinishEditing={onFinishEditing}
+                        isSubmitting={isFormSubmitting}
+                        showTagProduct={false}
+                    />
+                 </div>
+            </footer>
+        </div>
     </AdminLayout>
   );
 }
+
+```
+- src/storage.rules:
+```rules
+
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Helper function to check if the user has an 'admin' role.
+    function isAdmin() {
+      return request.auth != null && get(/databases/(default)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    // Helper function to check if the user has a 'seller' role.
+    function isSeller(userId) {
+        return request.auth != null && get(/databases/(default)/documents/users/$(userId)).data.role == 'seller';
+    }
+
+    // Avatars (one file per user)
+    match /avatars/{uid} {
+      allow read: if true;
+      allow write: if request.auth != null && request.auth.uid == uid;
+    }
+
+    // Product media: Public read. Seller write/delete. Admin delete.
+    match /products/{userId}/{allPaths=**} {
+      allow read: if true;
+      allow write: if (request.auth != null && request.auth.uid == userId && isSeller(userId)) || (request.method == 'delete' && isAdmin());
+    }
+
+    // Posts media: only the authenticated user may write into their own folder
+    match /posts/{userId}/{allPaths=**} {
+      allow read: if true;
+      allow write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Seller documents (e.g. KYC)
+    match /seller-documents/{userId}/{allPaths=**} {
+      allow read: if request.auth != null && request.auth.uid == userId;
+      allow write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // Fallback: deny all other writes
+    match /{allPaths=**} {
+      allow read: if true;
+      allow write: if false;
+    }
+  }
+}
+
+```
+
+```
