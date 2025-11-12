@@ -1,6 +1,6 @@
-
 "use client";
 
+import Link from 'next/link';
 import {
   Menu,
   MoreHorizontal,
@@ -16,6 +16,8 @@ import {
   ArrowUp,
   ArrowDown,
   MessageSquare,
+  X,
+  ArrowLeft,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
@@ -24,7 +26,7 @@ import { cn } from '@/lib/utils';
 import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/hooks/use-auth';
-import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/components/ui/dropdown-menu';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -38,14 +40,18 @@ import {
 } from "@/components/ui/alert-dialog"
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { collection, query, orderBy, onSnapshot, Timestamp, deleteDoc, doc } from "firebase/firestore";
+import { collection, query, orderBy, onSnapshot, Timestamp, deleteDoc, doc, addDoc, serverTimestamp, updateDoc } from "firebase/firestore";
 import { getFirestoreDb } from '@/lib/firebase';
 import { formatDistanceToNow } from 'date-fns';
 import { useToast } from "@/hooks/use-toast";
 import { Input } from '@/components/ui/input';
 import { useDebounce } from '@/hooks/use-debounce';
 import { AdminLayout } from '@/components/admin/admin-layout';
-import Link from 'next/link';
+import { CreatePostForm, PostData } from '@/components/create-post-form';
+import { productDetails } from '@/lib/product-data';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { addToCart, saveCart } from '@/lib/product-history';
+import { toggleSavePost, isPostSaved, getSavedPosts } from '@/lib/post-history';
 
 function FeedPostSkeleton() {
     return (
@@ -68,7 +74,7 @@ function FeedPostSkeleton() {
     );
 }
 
-const FeedPost = ({ post, onDelete }: { post: any; onDelete: (post: any) => void }) => {
+const FeedPost = ({ post, onDelete, onSaveToggle, isSaved }: { post: any; onDelete: (post: any) => void; onSaveToggle: (post: any) => void, isSaved: boolean }) => {
     const renderContentWithHashtags = (text: string) => {
         if (!text) return null;
         const parts = text.split(/(#\w+)/g);
@@ -81,66 +87,136 @@ const FeedPost = ({ post, onDelete }: { post: any; onDelete: (post: any) => void
             return part;
         });
     };
+    
+    const handleAddToCart = (product: any) => {
+        addToCart({ ...product, quantity: 1 });
+    };
+
+    const handleBuyNow = (product: any) => {
+        saveCart([{ ...product, quantity: 1 }]);
+        localStorage.setItem('buyNow', 'true');
+        // This would need the router, passed in or via hook
+        // router.push('/cart');
+    };
+    
+    const handleNotifyMe = (product: any) => {
+        // Placeholder for notification logic
+    };
 
     return (
-        <Card className="w-full">
-            <div className="p-4">
-                <div className="flex items-start justify-between">
-                    <Link href={`/admin/users/${post.sellerId}`} className="flex items-center gap-3 group">
-                        <Avatar className="h-10 w-10">
-                            <AvatarImage src={post.avatarUrl} />
-                            <AvatarFallback>{post.sellerName.charAt(0)}</AvatarFallback>
-                        </Avatar>
-                        <div>
-                            <span className="font-semibold group-hover:underline">{post.sellerName}</span>
-                            <div className="text-xs text-muted-foreground">{post.timestamp}</div>
-                        </div>
-                    </Link>
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon"><MoreHorizontal /></Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                            <AlertDialog>
-                                <AlertDialogTrigger asChild>
-                                    <DropdownMenuItem className="text-destructive" onSelect={(e) => e.preventDefault()}>
-                                        <Trash2 className="mr-2 h-4 w-4" /> Delete Post
+         <Collapsible>
+            <Card className="w-full">
+                <div className="p-4">
+                    <div className="flex items-start justify-between">
+                        <Link href={`/admin/users/${post.sellerId}`} className="flex items-center gap-3 group">
+                            <Avatar className="h-10 w-10">
+                                <AvatarImage src={post.avatarUrl} />
+                                <AvatarFallback>{post.sellerName.charAt(0)}</AvatarFallback>
+                            </Avatar>
+                            <div>
+                                <span className="font-semibold group-hover:underline">{post.sellerName}</span>
+                                <div className="text-xs text-muted-foreground">{post.timestamp}</div>
+                            </div>
+                        </Link>
+                        <div className="flex items-center gap-2">
+                            {post.taggedProducts && post.taggedProducts.length > 0 && (
+                                <CollapsibleTrigger asChild>
+                                    <Button variant="secondary" size="sm" className="h-7 w-7 p-0 sm:w-auto sm:px-2 text-xs">
+                                        <ShoppingBag className="w-4 h-4 sm:mr-1"/>
+                                        <span className="hidden sm:inline">View Products</span>
+                                    </Button>
+                                </CollapsibleTrigger>
+                            )}
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button variant="ghost" size="icon"><MoreHorizontal /></Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                    <AlertDialog>
+                                        <AlertDialogTrigger asChild>
+                                            <DropdownMenuItem className="text-destructive" onSelect={(e) => e.preventDefault()}>
+                                                <Trash2 className="mr-2 h-4 w-4" /> Delete Post
+                                            </DropdownMenuItem>
+                                        </AlertDialogTrigger>
+                                        <AlertDialogContent>
+                                            <AlertDialogHeader>
+                                                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                                <AlertDialogDescription>This will permanently delete this post. This action cannot be undone.</AlertDialogDescription>
+                                            </AlertDialogHeader>
+                                            <AlertDialogFooter>
+                                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                <AlertDialogAction onClick={() => onDelete(post)}>Delete</AlertDialogAction>
+                                            </AlertDialogFooter>
+                                        </AlertDialogContent>
+                                    </AlertDialog>
+                                    <DropdownMenuItem onClick={() => onSaveToggle(post)}>
+                                        <Save className={cn("mr-2 h-4 w-4", isSaved && "fill-current")} /> {isSaved ? 'Unsave' : 'Save'}
                                     </DropdownMenuItem>
-                                </AlertDialogTrigger>
-                                <AlertDialogContent>
-                                    <AlertDialogHeader>
-                                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                                        <AlertDialogDescription>This will permanently delete this post. This action cannot be undone.</AlertDialogDescription>
-                                    </AlertDialogHeader>
-                                    <AlertDialogFooter>
-                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                        <AlertDialogAction onClick={() => onDelete(post)}>Delete</AlertDialogAction>
-                                    </AlertDialogFooter>
-                                </AlertDialogContent>
-                            </AlertDialog>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                </div>
-                <div className="mt-3 text-sm text-muted-foreground whitespace-pre-wrap">
-                    {renderContentWithHashtags(post.content)}
-                </div>
-                {post.images && post.images.length > 0 && (
-                    <div className="mt-3 rounded-lg overflow-hidden border aspect-video relative">
-                        <Image src={post.images[0].url} alt="Post image" layout="fill" objectFit="cover" />
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                        </div>
                     </div>
-                )}
-            </div>
-            <div className="px-4 pb-2 mt-2 flex items-center justify-between">
-                <div className="flex items-center gap-2 text-muted-foreground">
-                    <Button variant="ghost" size="sm" className="flex items-center gap-1.5">
-                        <ArrowUp className="w-4 h-4"/> <span>{post.likes || 0}</span>
-                    </Button>
-                    <Button variant="ghost" size="sm" className="flex items-center gap-1.5">
-                        <MessageSquare className="w-4 h-4"/> <span>{post.replies || 0}</span>
-                    </Button>
+                    <div className="mt-3 text-sm text-muted-foreground whitespace-pre-wrap">
+                        {renderContentWithHashtags(post.content)}
+                    </div>
+                    {post.images && post.images.length > 0 && (
+                        <div className="mt-3 rounded-lg overflow-hidden border aspect-video relative">
+                            <Image src={post.images[0].url} alt="Post image" layout="fill" objectFit="cover" />
+                        </div>
+                    )}
                 </div>
-            </div>
-        </Card>
+                 <CollapsibleContent>
+                    {post.taggedProducts && post.taggedProducts.length > 0 && (
+                        <Card className="m-4 mt-0">
+                            <CardContent className="p-3 divide-y">
+                                {post.taggedProducts.map((product: any, index: number) => (
+                                    <div key={product.key || index} className="flex items-center gap-4 py-3 first:pt-0 last:pb-0">
+                                        <Link href={`/product/${product.key}`}>
+                                            <Image src={product.image?.preview || product.images?.[0] || 'https://placehold.co/60x60.png'} alt={product.name} width={60} height={60} className="rounded-md" />
+                                        </Link>
+                                        <div className="flex-grow">
+                                            <Link href={`/product/${product.key}`} className="hover:underline">
+                                                <h4 className="font-semibold text-sm">{product.name}</h4>
+                                            </Link>
+                                            <p className="font-bold text-lg">{product.price}</p>
+                                            <p className="text-xs text-muted-foreground">
+                                                {product.stock > 0 ? `Stock: ${product.stock}` : <span className="text-destructive font-semibold">Out of Stock</span>}
+                                            </p>
+                                        </div>
+                                         <div className="flex items-center gap-2">
+                                             {product.stock > 0 ? (
+                                                <>
+                                                    <Button variant="outline" size="icon" className="h-9 w-9" onClick={() => handleAddToCart(product)}>
+                                                        <ShoppingBag className="h-4 w-4" />
+                                                    </Button>
+                                                    <Button size="sm" className="h-9" onClick={() => handleBuyNow(product)}>
+                                                        Buy Now
+                                                    </Button>
+                                                </>
+                                             ) : (
+                                                 <Button size="sm" className="h-9" onClick={() => handleNotifyMe(product)}>
+                                                    Notify Me
+                                                </Button>
+                                             )}
+                                        </div>
+                                    </div>
+                                ))}
+                            </CardContent>
+                        </Card>
+                    )}
+                </CollapsibleContent>
+                <div className="px-4 pb-2 mt-2 flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-muted-foreground">
+                        <Button variant="ghost" size="sm" className="flex items-center gap-1.5">
+                            <ArrowUp className="w-4 h-4"/> <span>{post.likes || 0}</span>
+                        </Button>
+                        <Button variant="ghost" size="sm" className="flex items-center gap-1.5">
+                            <MessageSquare className="w-4 h-4"/> <span>{post.replies || 0}</span>
+                        </Button>
+                    </div>
+                </div>
+            </Card>
+        </Collapsible>
     );
 };
 
@@ -152,12 +228,30 @@ export default function AdminFeedPage() {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
+  const [isFormSubmitting, setIsFormSubmitting] = useState(false);
+  const [postToEdit, setPostToEdit] = useState(null);
+  const [savedPosts, setSavedPosts] = useState<any[]>([]);
 
   useEffect(() => {
     if (!loading && userData?.role !== 'admin') {
       router.replace('/');
     }
   }, [user, userData, loading, router]);
+  
+  useEffect(() => {
+    setSavedPosts(getSavedPosts());
+    const handleStorageChange = () => setSavedPosts(getSavedPosts());
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
+
+  const handleSaveToggle = (post: any) => {
+    toggleSavePost(post);
+  };
+
+  const isPostSavedCheck = (postId: string) => {
+    return savedPosts.some(p => p.id === postId);
+  };
 
   useEffect(() => {
     setIsLoadingFeed(true);
@@ -205,6 +299,42 @@ export default function AdminFeedPage() {
       }
   };
   
+  const handlePostSubmit = async (postData: PostData) => {
+    if ((!postData.content.trim() && (!postData.media || postData.media.length === 0)) || !user || !userData) return;
+    
+    setIsFormSubmitting(true);
+    
+    try {
+        const db = getFirestoreDb();
+        const dataToSave: any = {
+            content: postData.content,
+            taggedProducts: postData.taggedProducts,
+            sellerId: user.uid,
+            sellerName: userData.displayName,
+            avatarUrl: userData.photoURL,
+            timestamp: serverTimestamp(),
+            likes: 0,
+            replies: 0,
+            images: [],
+        };
+        await addDoc(collection(db, "posts"), dataToSave);
+        toast({ title: "Post Created!", description: "Your post has been successfully shared." });
+    } catch (error: any) {
+        console.error("Error submitting post:", error);
+        toast({
+            variant: 'destructive',
+            title: "Submission Error",
+            description: `A database error occurred: ${error.message}.`
+        });
+    } finally {
+        setIsFormSubmitting(false);
+    }
+  };
+  
+  const onFinishEditing = () => {
+    setPostToEdit(null);
+  };
+  
   const filteredFeed = useMemo(() => {
     if (!debouncedSearchTerm) return feed;
     const lowercasedTerm = debouncedSearchTerm.toLowerCase();
@@ -216,44 +346,64 @@ export default function AdminFeedPage() {
 
 
   return (
-    <AdminLayout>
-      <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
-        <div className="flex items-center justify-between">
-            <div>
-                <h1 className="text-2xl font-semibold">Global Feed</h1>
-                <p className="text-muted-foreground">Monitor and manage all user-generated posts.</p>
-            </div>
-            <div className="relative w-full max-w-sm">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                    placeholder="Search posts or users..."
-                    className="pl-9"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                />
+    <div className="flex min-h-screen w-full">
+        <div className="hidden border-r bg-muted/40 md:block md:w-[220px] lg:w-[280px]">
+            <div className="flex h-full max-h-screen flex-col gap-2">
+                <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
+                    <Link href="/admin/dashboard" className="flex items-center gap-2 font-semibold">
+                        <ArrowLeft />
+                        <span>Back to Admin</span>
+                    </Link>
+                </div>
+                <div className="flex-1 overflow-y-auto">
+                    {/* Potential for future sidebar content */}
+                </div>
             </div>
         </div>
-        <div className="space-y-4">
-          {isLoadingFeed ? (
-            <div className="space-y-4">
-              <FeedPostSkeleton />
-              <FeedPostSkeleton />
-            </div>
-          ) : filteredFeed.length > 0 ? (
-            filteredFeed.map(post => (
-              <FeedPost
-                key={post.id}
-                post={post}
-                onDelete={handleDeletePost}
+        <div className="flex flex-1 flex-col">
+          <main className="flex-1 p-4 md:p-6 lg:p-8">
+            <div className="max-w-2xl mx-auto space-y-4">
+              <h1 className="text-2xl font-semibold">Global Feed</h1>
+              <div className="relative w-full">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                      placeholder="Search posts or users..."
+                      className="pl-9"
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+              </div>
+              <CreatePostForm
+                  onPost={handlePostSubmit}
+                  postToEdit={postToEdit}
+                  onFinishEditing={onFinishEditing}
+                  isSubmitting={isFormSubmitting}
               />
-            ))
-          ) : (
-            <div className="text-center py-20 text-muted-foreground">
-                No posts found.
+              <div className="space-y-4">
+                {isLoadingFeed ? (
+                  <div className="space-y-4">
+                    <FeedPostSkeleton />
+                    <FeedPostSkeleton />
+                  </div>
+                ) : filteredFeed.length > 0 ? (
+                  filteredFeed.map(post => (
+                    <FeedPost
+                      key={post.id}
+                      post={post}
+                      onDelete={handleDeletePost}
+                      onSaveToggle={handleSaveToggle}
+                      isSaved={isPostSavedCheck(post.id)}
+                    />
+                  ))
+                ) : (
+                  <div className="text-center py-20 text-muted-foreground">
+                      No posts found.
+                  </div>
+                )}
+              </div>
             </div>
-          )}
+          </main>
         </div>
-      </main>
-    </AdminLayout>
+    </div>
   );
 }
