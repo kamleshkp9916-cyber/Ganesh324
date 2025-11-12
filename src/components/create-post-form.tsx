@@ -194,7 +194,18 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
         <div className="w-full bg-background/80 backdrop-blur-sm rounded-lg" ref={ref}>
             {/* ... (rest of the JSX for editing/replying state) */}
              <div className="p-3">
-                 {/* ... (rest of the JSX for media previews) */}
+                 {media.length > 0 && (
+                    <div className="mb-3 grid grid-cols-3 sm:grid-cols-5 gap-2">
+                        {media.map((m, i) => (
+                            <div key={i} className="relative aspect-square w-full rounded-md overflow-hidden group">
+                                {m.type === 'image' ? <Image src={m.url} alt={`media ${i}`} fill sizes="100px" className="object-cover" /> : <video src={m.url} className="object-cover w-full h-full" />}
+                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                <Button variant="destructive" size="icon" className="h-8 w-8" onClick={() => removeMedia(i)}><Trash2 className="w-4 h-4" /></Button>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                 )}
                 <div className="flex items-start sm:items-center gap-3 mb-3">
                     <Avatar className="h-9 w-9 hidden sm:flex">
                         <AvatarImage src={user.photoURL || undefined} alt={user.displayName || 'User'}/>
@@ -289,3 +300,5 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
     );
 });
 CreatePostForm.displayName = 'CreatePostForm';
+
+    
