@@ -490,6 +490,3 @@ export function PromotionsSettings() {
     </Dialog>
   );
 }
-
-    
-```
