@@ -41,7 +41,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { collection, query, orderBy, onSnapshot, Timestamp, deleteDoc, doc, addDoc, serverTimestamp, updateDoc } from "firebase/firestore";
+import { collection, query, orderBy, onSnapshot, Timestamp, deleteDoc, doc, addDoc, serverTimestamp } from "firebase/firestore";
 import { getFirestoreDb } from '@/lib/firebase';
 import { formatDistanceToNow } from 'date-fns';
 import { useToast } from "@/hooks/use-toast";
@@ -52,6 +52,7 @@ import { productDetails } from '@/lib/product-data';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { addToCart, saveCart } from '@/lib/product-history';
 import { toggleSavePost, isPostSaved, getSavedPosts } from '@/lib/post-history';
+import { AdminLayout } from '@/components/admin/admin-layout';
 
 function FeedPostSkeleton() {
     return (
@@ -346,56 +347,56 @@ export default function AdminFeedPage() {
 
 
   return (
-    <div className="flex min-h-screen w-full flex-col">
-        <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background/95 px-4 backdrop-blur sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
-            <Button variant="outline" size="icon" onClick={() => router.push('/admin/dashboard')}>
-                <ArrowLeft className="h-4 w-4" />
-            </Button>
-            <h1 className="text-xl font-semibold">Global Feed</h1>
-        </header>
-        <main className="flex-1 p-4 md:p-6 lg:p-8">
-            <div className="max-w-2xl mx-auto space-y-4">
-              <div className="relative w-full">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                      placeholder="Search posts or users..."
-                      className="pl-9"
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                  />
-              </div>
-              <CreatePostForm
-                  onPost={handlePostSubmit}
-                  postToEdit={postToEdit}
-                  onFinishEditing={onFinishEditing}
-                  isSubmitting={isFormSubmitting}
-              />
-              <div className="space-y-4">
-                {isLoadingFeed ? (
-                  <div className="space-y-4">
-                    <FeedPostSkeleton />
-                    <FeedPostSkeleton />
-                  </div>
-                ) : filteredFeed.length > 0 ? (
-                  filteredFeed.map(post => (
-                    <FeedPost
-                      key={post.id}
-                      post={post}
-                      onDelete={handleDeletePost}
-                      onSaveToggle={handleSaveToggle}
-                      isSaved={isPostSavedCheck(post.id)}
-                    />
-                  ))
-                ) : (
-                  <div className="text-center py-20 text-muted-foreground">
-                      No posts found.
-                  </div>
-                )}
-              </div>
-            </div>
+    <AdminLayout>
+        <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
+            <Card>
+                <CardHeader>
+                    <CardTitle>Global Feed</CardTitle>
+                    <CardDescription>Monitor and manage all user-generated posts.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <div className="max-w-2xl mx-auto space-y-4">
+                      <div className="relative w-full">
+                          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                          <Input
+                              placeholder="Search posts or users..."
+                              className="pl-9"
+                              value={searchTerm}
+                              onChange={(e) => setSearchTerm(e.target.value)}
+                          />
+                      </div>
+                      <CreatePostForm
+                          onPost={handlePostSubmit}
+                          postToEdit={postToEdit}
+                          onFinishEditing={onFinishEditing}
+                          isSubmitting={isFormSubmitting}
+                      />
+                      <div className="space-y-4">
+                        {isLoadingFeed ? (
+                          <div className="space-y-4">
+                            <FeedPostSkeleton />
+                            <FeedPostSkeleton />
+                          </div>
+                        ) : filteredFeed.length > 0 ? (
+                          filteredFeed.map(post => (
+                            <FeedPost
+                              key={post.id}
+                              post={post}
+                              onDelete={handleDeletePost}
+                              onSaveToggle={handleSaveToggle}
+                              isSaved={isPostSavedCheck(post.id)}
+                            />
+                          ))
+                        ) : (
+                          <div className="text-center py-20 text-muted-foreground">
+                              No posts found.
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                </CardContent>
+            </Card>
         </main>
-    </div>
+    </AdminLayout>
   );
 }
-
-    
