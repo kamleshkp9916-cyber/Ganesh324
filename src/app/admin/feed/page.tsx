@@ -41,7 +41,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { collection, query, orderBy, onSnapshot, Timestamp, deleteDoc, doc, addDoc, serverTimestamp } from "firebase/firestore";
+import { collection, query, orderBy, onSnapshot, Timestamp, deleteDoc, doc, addDoc, serverTimestamp, updateDoc } from "firebase/firestore";
 import { getFirestoreDb, getFirebaseStorage } from '@/lib/firebase';
 import { formatDistanceToNow } from 'date-fns';
 import { useToast } from "@/hooks/use-toast";
@@ -55,6 +55,7 @@ import { toggleSavePost, isPostSaved, getSavedPosts } from '@/lib/post-history';
 import { AdminLayout } from '@/components/admin/admin-layout';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { ref as storageRef, uploadString, getDownloadURL, deleteObject } from 'firebase/storage';
+import { Badge } from '@/components/ui/badge';
 
 
 function FeedPostSkeleton() {
@@ -78,7 +79,7 @@ function FeedPostSkeleton() {
     );
 }
 
-const FeedPost = ({ post, onDelete, onSaveToggle, isSaved }: { post: any; onDelete: (post: any) => void; onSaveToggle: (post: any) => void, isSaved: boolean }) => {
+const FeedPost = ({ post, onDelete, onEdit, onSaveToggle, isSaved, currentUserId }: { post: any; onDelete: (post: any) => void; onEdit: (post: any) => void; onSaveToggle: (post: any) => void, isSaved: boolean, currentUserId: string }) => {
     const renderContentWithHashtags = (text: string) => {
         if (!text) return null;
         const parts = text.split(/(#\w+)/g);
@@ -106,6 +107,8 @@ const FeedPost = ({ post, onDelete, onSaveToggle, isSaved }: { post: any; onDele
     const handleNotifyMe = (product: any) => {
         // Placeholder for notification logic
     };
+    
+    const isOwnPost = currentUserId === post.sellerId;
 
     return (
          <Collapsible>
@@ -118,7 +121,18 @@ const FeedPost = ({ post, onDelete, onSaveToggle, isSaved }: { post: any; onDele
                                 <AvatarFallback>{post.sellerName.charAt(0)}</AvatarFallback>
                             </Avatar>
                             <div>
-                                <span className="font-semibold group-hover:underline">{post.sellerName}</span>
+                                <div className="flex items-center gap-2">
+                                  <span className="font-semibold group-hover:underline">{post.sellerName}</span>
+                                  {post.role === 'admin' && (
+                                    <>
+                                      <span className="text-sm text-muted-foreground">• Nipher.in</span>
+                                      <Badge variant="destructive">Admin</Badge>
+                                    </>
+                                  )}
+                                  {post.role === 'seller' && (
+                                      <Badge variant="secondary">Seller</Badge>
+                                  )}
+                                </div>
                                 <div className="text-xs text-muted-foreground">{post.timestamp}</div>
                             </div>
                         </Link>
@@ -136,6 +150,11 @@ const FeedPost = ({ post, onDelete, onSaveToggle, isSaved }: { post: any; onDele
                                     <Button variant="ghost" size="icon"><MoreHorizontal /></Button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end">
+                                    {isOwnPost && (
+                                        <DropdownMenuItem onSelect={() => onEdit(post)}>
+                                            <Edit className="mr-2 h-4 w-4" /> Edit Post
+                                        </DropdownMenuItem>
+                                    )}
                                     <AlertDialog>
                                         <AlertDialogTrigger asChild>
                                             <DropdownMenuItem className="text-destructive" onSelect={(e) => e.preventDefault()}>
@@ -233,7 +252,7 @@ export default function AdminFeedPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
   const [isFormSubmitting, setIsFormSubmitting] = useState(false);
-  const [postToEdit, setPostToEdit] = useState(null);
+  const [postToEdit, setPostToEdit] = useState<any | null>(null);
   const [savedPosts, setSavedPosts] = useState<any[]>([]);
 
   useEffect(() => {
@@ -333,6 +352,7 @@ export default function AdminFeedPage() {
             sellerId: user.uid,
             sellerName: userData.displayName,
             avatarUrl: userData.photoURL,
+            role: userData.role, // Add role to the post
             timestamp: serverTimestamp(),
             likes: 0,
             replies: 0,
@@ -356,9 +376,15 @@ export default function AdminFeedPage() {
         
         dataToSave.images = mediaUploads.filter(m => m.type === 'image');
         // Handle video if needed
-        
-        await addDoc(collection(db, "posts"), dataToSave);
-        toast({ title: "Post Created!", description: "Your post has been successfully shared." });
+
+        if (postToEdit) {
+            const postRef = doc(db, 'posts', postToEdit.id);
+            await updateDoc(postRef, dataToSave);
+            toast({ title: "Post Updated!", description: "Your changes have been saved." });
+        } else {
+            await addDoc(collection(db, "posts"), dataToSave);
+            toast({ title: "Post Created!", description: "Your post has been successfully shared." });
+        }
     } catch (error: any) {
         console.error("Error submitting post:", error);
         toast({
@@ -368,11 +394,16 @@ export default function AdminFeedPage() {
         });
     } finally {
         setIsFormSubmitting(false);
+        onFinishEditing();
     }
   };
   
   const onFinishEditing = () => {
     setPostToEdit(null);
+  };
+  
+  const handleEditPost = (post: any) => {
+      setPostToEdit(post);
   };
   
   const filteredFeed = useMemo(() => {
@@ -391,7 +422,6 @@ export default function AdminFeedPage() {
         <header className="p-4 border-b flex items-center justify-between">
            <div className="flex items-center gap-4">
              <h1 className="text-xl font-bold">Global Feed</h1>
-             <p className="text-sm text-muted-foreground hidden md:block">Monitor and manage all user-generated posts.</p>
            </div>
             <div className="relative w-full max-w-sm">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -418,8 +448,10 @@ export default function AdminFeedPage() {
                     key={post.id}
                     post={post}
                     onDelete={handleDeletePost}
+                    onEdit={handleEditPost}
                     onSaveToggle={handleSaveToggle}
                     isSaved={isPostSavedCheck(post.id)}
+                    currentUserId={user!.uid}
                   />
                 ))
               ) : (
