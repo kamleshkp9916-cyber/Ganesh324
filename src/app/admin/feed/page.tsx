@@ -359,23 +359,25 @@ export default function AdminFeedPage() {
         };
 
         // Handle media uploads
-        const mediaUploads = await Promise.all(
-            (postData.media || []).map(async (mediaFile) => {
-                if (!mediaFile.file) return { type: mediaFile.type, url: mediaFile.url }; // Already uploaded
-                
-                const storage = getFirebaseStorage();
-                const filePath = `posts/${user.uid}/${Date.now()}_${mediaFile.file.name}`;
-                const fileRef = storageRef(storage, filePath);
-                
-                await uploadString(fileRef, mediaFile.url, 'data_url');
-                const downloadURL = await getDownloadURL(fileRef);
-                
-                return { type: mediaFile.type, url: downloadURL };
-            })
-        );
-        
-        dataToSave.images = mediaUploads.filter(m => m.type === 'image');
-        // Handle video if needed
+        if (postData.media && postData.media.length > 0) {
+            const mediaUploads = await Promise.all(
+                postData.media.map(async (mediaFile) => {
+                    if (!mediaFile.file) return { type: mediaFile.type, url: mediaFile.url }; // Already uploaded
+                    
+                    const storage = getFirebaseStorage();
+                    const filePath = `posts/${user.uid}/${Date.now()}_${mediaFile.file.name}`;
+                    const fileRef = storageRef(storage, filePath);
+                    
+                    await uploadString(fileRef, mediaFile.url, 'data_url');
+                    const downloadURL = await getDownloadURL(fileRef);
+                    
+                    return { type: mediaFile.type, url: downloadURL };
+                })
+            );
+            
+            dataToSave.images = mediaUploads.filter(m => m.type === 'image');
+            // Handle video if needed
+        }
 
         if (postToEdit) {
             const postRef = doc(db, 'posts', postToEdit.id);
@@ -418,63 +420,49 @@ export default function AdminFeedPage() {
 
   return (
     <AdminLayout>
-      <div className="flex flex-col h-[calc(100vh-60px)]">
-        <header className="p-4 border-b flex items-center justify-between">
-           <div className="flex items-center gap-4">
-             <h1 className="text-xl font-bold">Global Feed</h1>
-           </div>
-            <div className="relative w-full max-w-sm">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                    placeholder="Search posts or users..."
-                    className="pl-9"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                />
-            </div>
-        </header>
-
-        <ScrollArea className="flex-1">
-          <div className="max-w-2xl mx-auto space-y-4 p-4">
-            <div className="space-y-4">
-              {isLoadingFeed ? (
+        <main className="flex-1 p-4 md:p-6 lg:p-8">
+            <div className="max-w-3xl mx-auto space-y-6">
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Global Feed</CardTitle>
+                        <CardDescription>Monitor and manage all user-generated posts.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <CreatePostForm
+                            onPost={handlePostSubmit}
+                            postToEdit={postToEdit}
+                            onFinishEditing={onFinishEditing}
+                            isSubmitting={isFormSubmitting}
+                            showTagProduct={false}
+                        />
+                    </CardContent>
+                </Card>
                 <div className="space-y-4">
-                  <FeedPostSkeleton />
-                  <FeedPostSkeleton />
+                  {isLoadingFeed ? (
+                    <div className="space-y-4">
+                      <FeedPostSkeleton />
+                      <FeedPostSkeleton />
+                    </div>
+                  ) : filteredFeed.length > 0 ? (
+                    filteredFeed.map(post => (
+                      <FeedPost
+                        key={post.id}
+                        post={post}
+                        onDelete={handleDeletePost}
+                        onEdit={handleEditPost}
+                        onSaveToggle={handleSaveToggle}
+                        isSaved={isPostSavedCheck(post.id)}
+                        currentUserId={user!.uid}
+                      />
+                    ))
+                  ) : (
+                    <div className="text-center py-20 text-muted-foreground">
+                        No posts found.
+                    </div>
+                  )}
                 </div>
-              ) : filteredFeed.length > 0 ? (
-                filteredFeed.map(post => (
-                  <FeedPost
-                    key={post.id}
-                    post={post}
-                    onDelete={handleDeletePost}
-                    onEdit={handleEditPost}
-                    onSaveToggle={handleSaveToggle}
-                    isSaved={isPostSavedCheck(post.id)}
-                    currentUserId={user!.uid}
-                  />
-                ))
-              ) : (
-                <div className="text-center py-20 text-muted-foreground">
-                    No posts found.
-                </div>
-              )}
             </div>
-          </div>
-        </ScrollArea>
-
-         <footer className="sticky bottom-0 p-3 bg-background/80 backdrop-blur-sm border-t z-10">
-           <div className="max-w-xl mx-auto">
-             <CreatePostForm
-                onPost={handlePostSubmit}
-                postToEdit={postToEdit}
-                onFinishEditing={onFinishEditing}
-                isSubmitting={isFormSubmitting}
-                showTagProduct={false}
-            />
-           </div>
-        </footer>
-      </div>
+        </main>
     </AdminLayout>
   );
 }
