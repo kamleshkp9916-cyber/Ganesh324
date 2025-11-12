@@ -271,15 +271,17 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
                             </Badge>
                         ))}
                     </div>
-                    <Button 
-                        className="rounded-full font-bold px-6 bg-foreground text-background hover:bg-foreground/80 ml-auto"
-                        onClick={handleSubmit}
-                        disabled={(!content.trim() && media.length === 0 && (!showPollCreator || pollOptions.filter(o => o.text.trim()).length < 2)) || (isSubmitting)}
-                    >
-                        {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin"/>}
-                        {postToEdit && <FileEdit className="mr-2 h-4 w-4" />}
-                        {postToEdit ? 'Save Changes' : 'Send'}
-                    </Button>
+                    <div className="ml-auto">
+                        <Button 
+                            className="rounded-full font-bold px-6 bg-foreground text-background hover:bg-foreground/80"
+                            onClick={handleSubmit}
+                            disabled={(!content.trim() && media.length === 0 && (!showPollCreator || pollOptions.filter(o => o.text.trim()).length < 2)) || (isSubmitting)}
+                        >
+                            {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin"/>}
+                            {postToEdit && <FileEdit className="mr-2 h-4 w-4" />}
+                            {postToEdit ? 'Save' : 'Send'}
+                        </Button>
+                    </div>
                 </div>
             </div>
         </div>
