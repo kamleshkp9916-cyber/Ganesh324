@@ -41,6 +41,7 @@ import { defaultCategories, Category, CATEGORIES_KEY } from "@/lib/categories";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
 import { Badge } from "../ui/badge";
 import { useToast } from "@/hooks/use-toast";
+import { Rocket, Sparkles, Flame } from "lucide-react";
 
 export const PROMOTIONAL_SLIDES_KEY = 'streamcart_promotional_slides';
 export const COUPONS_KEY = 'streamcart_coupons';
@@ -56,12 +57,6 @@ export interface Slide {
   expiresAt?: Date;
 }
 
-const defaultSlides: Slide[] = [
-  { id: 1, imageUrl: 'https://images.unsplash.com/photo-1568252542512-9fe8fe9c87bb?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxmYXNoaW9uJTIwbW9kZWx8ZW58MHx8fHwxNzYxNTYyNzc5fDA&ixlib=rb-4.1.0&q=80&w=1080', title: "Discover products you'll love", description: "Curated picks, timeless design, and everyday prices. Start exploring our latest arrivals and best sellers." },
-  { id: 2, imageUrl: 'https://images.unsplash.com/photo-1562572159-4efc207f5aff?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxmYXNoaW9uJTIwbW9kZWx8ZW58MHx8fHwxNzYxNTYyNzc5fDA&ixlib=rb-4.1.0&q=80&w=1080', title: 'New Arrivals Are Here', description: 'Check out the latest fashion trends and must-have styles for the new season.' },
-  { id: 3, imageUrl: 'https://images.unsplash.com/photo-1627292441194-0280c19e74e4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxmYXNoaW9uJTIwbW9kZWx8ZW58MHx8fHwxNzYxNTYyNzc5fDA&ixlib=rb-4.1.0&q=80&w=1080', title: "Women's Fashion", description: 'Explore our curated collection of women\'s clothing and accessories.' },
-];
-
 const slideSchema = z.object({
   id: z.number().optional(),
   title: z.string().min(1, "Title is required."),
@@ -69,6 +64,12 @@ const slideSchema = z.object({
   imageUrl: z.string().url("Please enter a valid URL."),
   expiresAt: z.date().optional(),
 });
+
+const defaultSlides: Slide[] = [
+  { id: 1, imageUrl: 'https://images.unsplash.com/photo-1568252542512-9fe8fe9c87bb?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxmYXNoaW9uJTIwbW9kZWx8ZW58MHx8fHwxNzYxNTYyNzc5fDA&ixlib=rb-4.1.0&q=80&w=1080', title: "Discover products you'll love", description: "Curated picks, timeless design, and everyday prices. Start exploring our latest arrivals and best sellers." },
+  { id: 2, imageUrl: 'https://images.unsplash.com/photo-1562572159-4efc207f5aff?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxmYXNoaW9uJTIwbW9kZWx8ZW58MHx8fHwxNzYxNTYyNzc5fDA&ixlib=rb-4.1.0&q=80&w=1080', title: 'New Arrivals Are Here', description: 'Check out the latest fashion trends and must-have styles for the new season.' },
+  { id: 3, imageUrl: 'https://images.unsplash.com/photo-1627292441194-0280c19e74e4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxmYXNoaW9uJTIwbW9kZWx8ZW58MHx8fHwxNzYxNTYyNzc5fDA&ixlib=rb-4.1.0&q=80&w=1080', title: "Women's Fashion", description: 'Explore our curated collection of women\'s clothing and accessories.' },
+];
 
 const SlideForm = ({ onSave, existingSlide, closeDialog }: { onSave: (slide: Slide) => void, existingSlide?: Slide, closeDialog: () => void }) => {
   const form = useForm<z.infer<typeof slideSchema>>({
@@ -127,6 +128,12 @@ export interface CategoryBanners {
     banner1: Banner;
     banner2: Banner;
   };
+}
+
+export interface HubBanner {
+  title: string;
+  description: string;
+  imageUrl: string;
 }
 
 const initialCoupons: Coupon[] = [
@@ -279,11 +286,6 @@ const CategoryBannerManagement = () => {
     );
 };
 
-export interface HubBanner {
-  title: string;
-  description: string;
-  imageUrl: string;
-}
 
 const defaultHubBanner: HubBanner = {
     title: "Discover products you'll love",
@@ -490,4 +492,3 @@ export function PromotionsSettings() {
     </Dialog>
   );
 }
-```
