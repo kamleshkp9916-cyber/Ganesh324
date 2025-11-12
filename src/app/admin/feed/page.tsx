@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from 'next/link';
@@ -46,7 +47,6 @@ import { formatDistanceToNow } from 'date-fns';
 import { useToast } from "@/hooks/use-toast";
 import { Input } from '@/components/ui/input';
 import { useDebounce } from '@/hooks/use-debounce';
-import { AdminLayout } from '@/components/admin/admin-layout';
 import { CreatePostForm, PostData } from '@/components/create-post-form';
 import { productDetails } from '@/lib/product-data';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
@@ -346,24 +346,15 @@ export default function AdminFeedPage() {
 
 
   return (
-    <div className="flex min-h-screen w-full">
-        <div className="hidden border-r bg-muted/40 md:block md:w-[220px] lg:w-[280px]">
-            <div className="flex h-full max-h-screen flex-col gap-2">
-                <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
-                    <Link href="/admin/dashboard" className="flex items-center gap-2 font-semibold">
-                        <ArrowLeft />
-                        <span>Back to Admin</span>
-                    </Link>
-                </div>
-                <div className="flex-1 overflow-y-auto">
-                    {/* Potential for future sidebar content */}
-                </div>
-            </div>
-        </div>
-        <div className="flex flex-1 flex-col">
-          <main className="flex-1 p-4 md:p-6 lg:p-8">
+    <div className="flex min-h-screen w-full flex-col">
+        <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background/95 px-4 backdrop-blur sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
+            <Button variant="outline" size="icon" onClick={() => router.push('/admin/dashboard')}>
+                <ArrowLeft className="h-4 w-4" />
+            </Button>
+            <h1 className="text-xl font-semibold">Global Feed</h1>
+        </header>
+        <main className="flex-1 p-4 md:p-6 lg:p-8">
             <div className="max-w-2xl mx-auto space-y-4">
-              <h1 className="text-2xl font-semibold">Global Feed</h1>
               <div className="relative w-full">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
@@ -402,8 +393,9 @@ export default function AdminFeedPage() {
                 )}
               </div>
             </div>
-          </main>
-        </div>
+        </main>
     </div>
   );
 }
+
+    
