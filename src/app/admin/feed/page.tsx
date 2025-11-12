@@ -24,7 +24,7 @@ import { Button } from '@/components/ui/button';
 import Image from 'next/image';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/hooks/use-auth';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/components/ui/dropdown-menu';
@@ -42,7 +42,7 @@ import {
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { collection, query, orderBy, onSnapshot, Timestamp, deleteDoc, doc, addDoc, serverTimestamp } from "firebase/firestore";
-import { getFirestoreDb } from '@/lib/firebase';
+import { getFirestoreDb, getFirebaseStorage } from '@/lib/firebase';
 import { formatDistanceToNow } from 'date-fns';
 import { useToast } from "@/hooks/use-toast";
 import { Input } from '@/components/ui/input';
@@ -54,6 +54,7 @@ import { addToCart, saveCart } from '@/lib/product-history';
 import { toggleSavePost, isPostSaved, getSavedPosts } from '@/lib/post-history';
 import { AdminLayout } from '@/components/admin/admin-layout';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { ref as storageRef, uploadString, getDownloadURL, deleteObject } from 'firebase/storage';
 
 
 function FeedPostSkeleton() {
@@ -287,6 +288,23 @@ export default function AdminFeedPage() {
       const postRef = doc(db, 'posts', post.id);
 
       try {
+          // Also delete associated images from storage
+          if (post.images && post.images.length > 0) {
+              const storage = getFirebaseStorage();
+              const deletePromises = post.images.map((image: { url: string }) => {
+                   if (image.url && image.url.includes('firebasestorage.googleapis.com')) {
+                       try {
+                           const imageRef = storageRef(storage, image.url);
+                           return deleteObject(imageRef);
+                       } catch (e) {
+                           console.warn("Could not create storage ref for deletion:", image.url, e);
+                           return Promise.resolve();
+                       }
+                   }
+                   return Promise.resolve();
+              });
+              await Promise.all(deletePromises);
+          }
           await deleteDoc(postRef);
           toast({
               title: "Post Deleted",
@@ -318,8 +336,27 @@ export default function AdminFeedPage() {
             timestamp: serverTimestamp(),
             likes: 0,
             replies: 0,
-            images: [],
         };
+
+        // Handle media uploads
+        const mediaUploads = await Promise.all(
+            (postData.media || []).map(async (mediaFile) => {
+                if (!mediaFile.file) return { type: mediaFile.type, url: mediaFile.url }; // Already uploaded
+                
+                const storage = getFirebaseStorage();
+                const filePath = `posts/${user.uid}/${Date.now()}_${mediaFile.file.name}`;
+                const fileRef = storageRef(storage, filePath);
+                
+                await uploadString(fileRef, mediaFile.url, 'data_url');
+                const downloadURL = await getDownloadURL(fileRef);
+                
+                return { type: mediaFile.type, url: downloadURL };
+            })
+        );
+        
+        dataToSave.images = mediaUploads.filter(m => m.type === 'image');
+        // Handle video if needed
+        
         await addDoc(collection(db, "posts"), dataToSave);
         toast({ title: "Post Created!", description: "Your post has been successfully shared." });
     } catch (error: any) {
