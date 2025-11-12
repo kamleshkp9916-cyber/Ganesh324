@@ -1,5 +1,5 @@
 
-      "use client";
+"use client";
 
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
@@ -55,6 +55,12 @@ export interface Slide {
   description: string;
   expiresAt?: Date;
 }
+
+const defaultSlides: Slide[] = [
+  { id: 1, imageUrl: 'https://images.unsplash.com/photo-1568252542512-9fe8fe9c87bb?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxmYXNoaW9uJTIwbW9kZWx8ZW58MHx8fHwxNzYxNTYyNzc5fDA&ixlib=rb-4.1.0&q=80&w=1080', title: "Discover products you'll love", description: "Curated picks, timeless design, and everyday prices. Start exploring our latest arrivals and best sellers." },
+  { id: 2, imageUrl: 'https://images.unsplash.com/photo-1562572159-4efc207f5aff?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxmYXNoaW9uJTIwbW9kZWx8ZW58MHx8fHwxNzYxNTYyNzc5fDA&ixlib=rb-4.1.0&q=80&w=1080', title: 'New Arrivals Are Here', description: 'Check out the latest fashion trends and must-have styles for the new season.' },
+  { id: 3, imageUrl: 'https://images.unsplash.com/photo-1627292441194-0280c19e74e4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxmYXNoaW9uJTIwbW9kZWx8ZW58MHx8fHwxNzYxNTYyNzc5fDA&ixlib=rb-4.1.0&q=80&w=1080', title: "Women's Fashion", description: 'Explore our curated collection of women\'s clothing and accessories.' },
+];
 
 const slideSchema = z.object({
   id: z.number().optional(),
@@ -486,3 +492,4 @@ export function PromotionsSettings() {
 }
 
     
+```
