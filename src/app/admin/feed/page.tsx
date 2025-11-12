@@ -352,17 +352,16 @@ export default function AdminFeedPage() {
             sellerId: user.uid,
             sellerName: userData.displayName,
             avatarUrl: userData.photoURL,
-            role: userData.role, // Add role to the post
+            role: userData.role,
             timestamp: serverTimestamp(),
             likes: 0,
             replies: 0,
         };
 
-        // Handle media uploads
         if (postData.media && postData.media.length > 0) {
             const mediaUploads = await Promise.all(
                 postData.media.map(async (mediaFile) => {
-                    if (!mediaFile.file) return { type: mediaFile.type, url: mediaFile.url }; // Already uploaded
+                    if (!mediaFile.file) return { type: mediaFile.type, url: mediaFile.url };
                     
                     const storage = getFirebaseStorage();
                     const filePath = `posts/${user.uid}/${Date.now()}_${mediaFile.file.name}`;
@@ -376,7 +375,6 @@ export default function AdminFeedPage() {
             );
             
             dataToSave.images = mediaUploads.filter(m => m?.type === 'image');
-            // Handle video if needed
         }
 
         if (postToEdit) {
@@ -420,110 +418,59 @@ export default function AdminFeedPage() {
 
   return (
     <AdminLayout>
-        <div className="flex-1 flex flex-col overflow-hidden">
-            <header className="p-4 border-b flex items-center gap-4 sticky top-0 bg-background z-10">
-                <h1 className="text-xl font-bold">Global Feed</h1>
-                <div className="relative ml-auto">
-                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                    <Input 
-                        placeholder="Search posts or users..." 
-                        className="pl-9"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                    />
+      <main className="flex-1 flex flex-col overflow-hidden">
+        <header className="p-4 border-b flex items-center gap-4 sticky top-0 bg-background z-10">
+          <div className="flex items-center gap-4">
+            <h1 className="text-xl font-bold">Global Feed</h1>
+             <div className="relative">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                placeholder="Search posts or users..."
+                className="pl-9"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                />
+            </div>
+          </div>
+        </header>
+        <ScrollArea className="flex-grow">
+            <div className="max-w-2xl mx-auto space-y-4 py-6 px-4">
+            {isLoadingFeed ? (
+                <div className="space-y-4">
+                <FeedPostSkeleton />
+                <FeedPostSkeleton />
                 </div>
-            </header>
-            <main className="flex-1 overflow-y-auto">
-                <div className="max-w-3xl mx-auto space-y-4 py-6 px-4">
-                  {isLoadingFeed ? (
-                    <div className="space-y-4">
-                      <FeedPostSkeleton />
-                      <FeedPostSkeleton />
-                    </div>
-                  ) : filteredFeed.length > 0 ? (
-                    filteredFeed.map(post => (
-                      <FeedPost
-                        key={post.id}
-                        post={post}
-                        onDelete={handleDeletePost}
-                        onEdit={handleEditPost}
-                        onSaveToggle={handleSaveToggle}
-                        isSaved={isPostSavedCheck(post.id)}
-                        currentUserId={user!.uid}
-                      />
-                    ))
-                  ) : (
-                    <div className="text-center py-20 text-muted-foreground">
-                        No posts found.
-                    </div>
-                  )}
+            ) : filteredFeed.length > 0 ? (
+                filteredFeed.map(post => (
+                <FeedPost
+                    key={post.id}
+                    post={post}
+                    onDelete={handleDeletePost}
+                    onEdit={handleEditPost}
+                    onSaveToggle={handleSaveToggle}
+                    isSaved={isPostSavedCheck(post.id)}
+                    currentUserId={user!.uid}
+                />
+                ))
+            ) : (
+                <div className="text-center py-20 text-muted-foreground">
+                No posts found.
                 </div>
-            </main>
-            <footer className="sticky bottom-0 p-3 bg-background/80 backdrop-blur-sm border-t z-10">
-                 <div className="max-w-2xl mx-auto">
-                     <CreatePostForm
-                        onPost={handlePostSubmit}
-                        postToEdit={postToEdit}
-                        onFinishEditing={onFinishEditing}
-                        isSubmitting={isFormSubmitting}
-                        showTagProduct={false}
-                    />
-                 </div>
-            </footer>
+            )}
+            </div>
+        </ScrollArea>
+        <div className="flex-shrink-0 p-3 bg-background/80 backdrop-blur-sm border-t">
+          <div className="max-w-2xl mx-auto">
+            <CreatePostForm
+              onPost={handlePostSubmit}
+              postToEdit={postToEdit}
+              onFinishEditing={onFinishEditing}
+              isSubmitting={isFormSubmitting}
+              showTagProduct={false}
+            />
+          </div>
         </div>
+      </main>
     </AdminLayout>
   );
 }
-
-```
-- src/storage.rules:
-```rules
-
-rules_version = '2';
-service firebase.storage {
-  match /b/{bucket}/o {
-    // Helper function to check if the user has an 'admin' role.
-    function isAdmin() {
-      return request.auth != null && get(/databases/(default)/documents/users/$(request.auth.uid)).data.role == 'admin';
-    }
-
-    // Helper function to check if the user has a 'seller' role.
-    function isSeller(userId) {
-        return request.auth != null && get(/databases/(default)/documents/users/$(userId)).data.role == 'seller';
-    }
-
-    // Avatars (one file per user)
-    match /avatars/{uid} {
-      allow read: if true;
-      allow write: if request.auth != null && request.auth.uid == uid;
-    }
-
-    // Product media: Public read. Seller write/delete. Admin delete.
-    match /products/{userId}/{allPaths=**} {
-      allow read: if true;
-      allow write: if (request.auth != null && request.auth.uid == userId && isSeller(userId)) || (request.method == 'delete' && isAdmin());
-    }
-
-    // Posts media: only the authenticated user may write into their own folder
-    match /posts/{userId}/{allPaths=**} {
-      allow read: if true;
-      allow write: if request.auth != null && request.auth.uid == userId;
-    }
-    
-    // Seller documents (e.g. KYC)
-    match /seller-documents/{userId}/{allPaths=**} {
-      allow read: if request.auth != null && request.auth.uid == userId;
-      allow write: if request.auth != null && request.auth.uid == userId;
-    }
-
-    // Fallback: deny all other writes
-    match /{allPaths=**} {
-      allow read: if true;
-      allow write: if false;
-    }
-  }
-}
-
-```
-
-```
