@@ -351,10 +351,12 @@ export default function AdminFeedPage() {
   return (
     <AdminLayout>
       <div className="flex flex-col h-[calc(100vh-60px)]">
-        <header className="p-4 border-b">
-           <h1 className="text-xl font-bold">Global Feed</h1>
-           <p className="text-sm text-muted-foreground">Monitor and manage all user-generated posts.</p>
-            <div className="relative w-full max-w-sm mt-4">
+        <header className="p-4 border-b flex items-center justify-between">
+           <div>
+             <h1 className="text-xl font-bold">Global Feed</h1>
+             <p className="text-sm text-muted-foreground">Monitor and manage all user-generated posts.</p>
+           </div>
+            <div className="relative w-full max-w-sm">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                     placeholder="Search posts or users..."
@@ -406,3 +408,4 @@ export default function AdminFeedPage() {
     </AdminLayout>
   );
 }
+
