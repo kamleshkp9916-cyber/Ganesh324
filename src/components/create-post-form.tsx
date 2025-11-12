@@ -44,6 +44,7 @@ interface CreatePostFormProps {
   onFinishEditing: () => void;
   onPost: (data: PostData) => Promise<void>;
   isSubmitting: boolean;
+  showTagProduct?: boolean;
 }
 
 const emojis = [
@@ -58,7 +59,7 @@ const emojis = [
     '💯', '🔥', '🎉', '🎊', '🎁', '🎈',
 ];
 
-export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({ replyTo, onClearReply, postToEdit, onFinishEditing, onPost, isSubmitting }, ref) => {
+export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({ replyTo, onClearReply, postToEdit, onFinishEditing, onPost, isSubmitting, showTagProduct = true }, ref) => {
     const { user, userData } = useAuth();
     const { toast } = useToast();
     const [content, setContent] = useState("");
@@ -242,7 +243,7 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
                     <Button variant="ghost" size="sm" className="text-muted-foreground" onClick={() => videoInputRef.current?.click()} disabled={media.length >= 5}>
                         <Video className="mr-2 h-5 w-5" /> Video
                     </Button>
-                     {(userData?.role === 'seller' || userData?.role === 'admin') && sellerProducts.length > 0 && (
+                     {(userData?.role === 'seller' || userData?.role === 'admin') && sellerProducts.length > 0 && showTagProduct && (
                         <Select onValueChange={(productId) => {
                             const product = sellerProducts.find(p => p.id === productId);
                             if (product && !taggedProducts.some(p => p.id === productId)) {
@@ -288,4 +289,3 @@ export const CreatePostForm = forwardRef<HTMLDivElement, CreatePostFormProps>(({
     );
 });
 CreatePostForm.displayName = 'CreatePostForm';
-
