@@ -37,7 +37,7 @@ import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
-import { defaultCategories, Category } from "@/lib/categories";
+import { defaultCategories, Category, CATEGORIES_KEY } from "@/lib/categories";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
 import { Badge } from "../ui/badge";
 import { useToast } from "@/hooks/use-toast";
@@ -490,3 +490,4 @@ export function PromotionsSettings() {
     </Dialog>
   );
 }
+```
