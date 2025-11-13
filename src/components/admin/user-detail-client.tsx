@@ -3,14 +3,10 @@
 
 import {
   ArrowLeft,
-  BadgeEuro,
   DollarSign,
   Eye,
-  File,
   Mail,
   MapPin,
-  Menu,
-  MoreVertical,
   Package,
   Phone,
   RadioTower,
@@ -18,10 +14,7 @@ import {
   ShoppingBag,
   Star,
   User,
-  UserCheck,
-  UserX,
   Wallet,
-  BookUser,
   LineChart,
   MessageSquare,
   PackageCheck,
@@ -33,8 +26,10 @@ import {
   CheckCircle2,
   Home,
   ShieldAlert,
+  Banknote,
+  Percent,
 } from "lucide-react"
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 
@@ -63,40 +58,19 @@ import {
 import { useAuth } from "@/hooks/use-auth"
 import { LoadingSpinner } from "@/components/ui/loading-spinner"
 import { getUserData, UserData, updateUserData } from "@/lib/follow-data";
-import { getFirestore, collection, query, where, getDocs, orderBy } from "firebase/firestore";
 import { getFirestoreDb } from "@/lib/firebase";
-import { getStatusFromTimeline } from "@/lib/order-data";
+import { getStatusFromTimeline, Order } from "@/lib/order-data";
 import Image from "next/image"
 import { Skeleton } from "@/components/ui/skeleton"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog"
 import { cn } from "@/lib/utils"
 import { useToast } from "@/hooks/use-toast";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip, Legend } from "recharts"
+import { collection, query, where, getDocs, orderBy, onSnapshot } from "firebase/firestore";
+import { format, parseISO } from "date-fns";
 
-
-type Order = {
-    orderId: string;
-    userId: string;
-    products: any[];
-    address: any;
-    total: number;
-    orderDate: string;
-    isReturnable: boolean;
-    timeline: any[];
-    paymentMethod: 'Credit Card' | 'UPI' | 'Net Banking';
-    refundStatus: 'N/A' | 'Pending' | 'Completed';
-    transactionId: string;
-};
 
 type Product = {
     id: string;
@@ -123,24 +97,10 @@ const mockOrders: Order[] = [
         refundStatus: 'N/A',
         transactionId: 'txn_1a2b3c4d5e6f'
     },
-    {
-        orderId: "#MOCK456",
-        userId: "mockUser",
-        products: [{ name: "Mock Product 2", key: "mock_2", productId: "mock_2" }],
-        address: { name: "Mock User", village: "123 Mockingbird Lane", city: "Faketown", state: "CA", pincode: "90210", phone: "1234567890" },
-        total: 450.50,
-        orderDate: "2024-07-25T15:30:00.000Z",
-        isReturnable: false,
-        timeline: [{ status: "Shipped", date: "Jul 26, 2024", time: "11:00 AM", completed: true }],
-        paymentMethod: 'UPI',
-        refundStatus: 'Pending',
-        transactionId: 'txn_7g8h9i0j1k2l'
-    }
 ];
 
 const mockProducts: Product[] = [
     { id: 'mock_1', key: 'mock_1', name: 'Mock Seller Product A', price: 1999.00, category: 'Electronics', images: [{ preview: 'https://placehold.co/100x100.png' }] },
-    { id: 'mock_2', key: 'mock_2', name: 'Mock Seller Product B', price: 450.50, category: 'Fashion', images: [{ preview: 'https://placehold.co/100x100.png' }] },
 ];
 
 
@@ -151,9 +111,9 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
   const [userOrders, setUserOrders] = useState<Order[]>([]);
   const [userProducts, setUserProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [activeView, setActiveView] = useState<ViewType>('orders');
   const [selectedOrderForTimeline, setSelectedOrderForTimeline] = useState<Order | null>(null);
   const { toast } = useToast();
+  const [payouts, setPayouts] = useState<any[]>([]);
 
   useEffect(() => {
     const fetchAllData = async () => {
@@ -173,7 +133,6 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
 
             const db = getFirestoreDb();
             
-            // Fetch user orders
             const ordersRef = collection(db, "orders");
             const ordersQuery = query(ordersRef, where("userId", "==", userId), orderBy("orderDate", "desc"));
             const ordersSnapshot = await getDocs(ordersQuery);
@@ -183,7 +142,6 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
             } as Order));
             setUserOrders(fetchedOrders.length > 0 ? fetchedOrders : mockOrders);
 
-            // Fetch user products if they are a seller
             if (fetchedUserData.role === 'seller') {
                 const productsKey = `sellerProducts_${fetchedUserData.displayName}`;
                 const storedProducts = localStorage.getItem(productsKey);
@@ -192,11 +150,17 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
                 } else {
                      setUserProducts(mockProducts);
                 }
+
+                // Fetch payouts
+                 const payoutsQuery = query(collection(db, "payouts"), where("sellerId", "==", userId), orderBy("requestedAt", "desc"));
+                 onSnapshot(payoutsQuery, (snapshot) => {
+                    const fetchedPayouts = snapshot.docs.map(doc => doc.data());
+                    setPayouts(fetchedPayouts);
+                });
             }
 
         } catch (error) {
             console.error("Error fetching user details:", error);
-            // Fallback to mock data on error for demo purposes
             setUserOrders(mockOrders);
             setUserProducts(mockProducts);
         } finally {
@@ -219,6 +183,25 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
     });
   };
 
+  const sellerRevenueData = useMemo(() => {
+    const deliveredOrders = userOrders.filter(o => getStatusFromTimeline(o.timeline) === 'Delivered');
+    const totalEarnings = deliveredOrders.reduce((sum, o) => sum + o.total, 0);
+    const platformCommission = totalEarnings * 0.03; // Assuming 3%
+    const totalWithdrawn = payouts.filter(p => p.status === 'paid').reduce((sum, p) => sum + p.amount, 0);
+    const pendingPayouts = payouts.filter(p => p.status === 'pending').reduce((sum, p) => sum + p.amount, 0);
+
+    const monthlyRevenue = deliveredOrders.reduce((acc, order) => {
+        const month = format(new Date(order.orderDate), 'MMM');
+        acc[month] = (acc[month] || 0) + order.total;
+        return acc;
+    }, {} as Record<string, number>);
+    
+    const chartData = Object.entries(monthlyRevenue).map(([name, revenue]) => ({ name, revenue }));
+
+    return { totalEarnings, platformCommission, totalWithdrawn, pendingPayouts, chartData };
+  }, [userOrders, payouts]);
+
+
   if (adminLoading) {
     return <div className="flex h-screen items-center justify-center"><LoadingSpinner /></div>
   }
@@ -237,7 +220,7 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
   }
 
   const totalSpent = userOrders.reduce((sum, order) => sum + order.total, 0);
-  const sellerAverageRating = 4.8; // Mock rating
+  const sellerAverageRating = 4.8;
 
   const getStatusIcon = (status: string) => {
     if (status.toLowerCase().includes("pending")) return <Hourglass className="h-5 w-5" />;
@@ -252,114 +235,32 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
     return <Circle className="h-5 w-5" />;
   };
 
-  const renderActiveView = () => {
-    switch(activeView) {
-        case 'orders':
-            return (
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Order History</CardTitle>
-                        <CardDescription>A list of all orders placed by this user.</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>Order ID</TableHead>
-                                    <TableHead>Product</TableHead>
-                                    <TableHead>Status</TableHead>
-                                    <TableHead>Transaction Details</TableHead>
-                                    <TableHead className="text-right">Total</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {isLoading ? (
-                                    <>
-                                        <TableRow><TableCell colSpan={5}><Skeleton className="h-10 w-full" /></TableCell></TableRow>
-                                        <TableRow><TableCell colSpan={5}><Skeleton className="h-10 w-full" /></TableCell></TableRow>
-                                    </>
-                                ) : userOrders.length > 0 ? (
-                                    userOrders.map(order => (
-                                        <TableRow key={order.orderId}>
-                                            <TableCell>
-                                                <Link href={`/delivery-information/${encodeURIComponent(order.orderId)}`} className="font-medium hover:underline">{order.orderId}</Link>
-                                            </TableCell>
-                                            <TableCell>
-                                                <Link href={`/product/${order.products[0].key}`} className="hover:underline">
-                                                    {order.products[0].name}{order.products.length > 1 ? ` + ${order.products.length - 1}` : ''}
-                                                </Link>
-                                            </TableCell>
-                                            <TableCell>
-                                                <DialogTrigger asChild>
-                                                    <Badge 
-                                                        variant={getStatusFromTimeline(order.timeline) === 'Delivered' ? 'success' : 'outline'}
-                                                        className="cursor-pointer"
-                                                        onClick={() => setSelectedOrderForTimeline(order)}
-                                                    >
-                                                        {getStatusFromTimeline(order.timeline)}
-                                                    </Badge>
-                                                </DialogTrigger>
-                                            </TableCell>
-                                            <TableCell className="text-xs">
-                                                <p>Pay: {order.paymentMethod}</p>
-                                                <p>Refund: {order.refundStatus}</p>
-                                                <p className="font-mono text-muted-foreground truncate" title={order.transactionId}>ID: {order.transactionId}</p>
-                                            </TableCell>
-                                            <TableCell className="text-right">₹{order.total.toFixed(2)}</TableCell>
-                                        </TableRow>
-                                    ))
-                                ) : (
-                                    <TableRow>
-                                        <TableCell colSpan={5} className="text-center h-24">No orders found.</TableCell>
-                                    </TableRow>
-                                )}
-                            </TableBody>
-                        </Table>
-                    </CardContent>
-                </Card>
-            );
-        case 'products':
-             return (
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Listed Products</CardTitle>
-                        <CardDescription>All products currently listed by {profileData.displayName}.</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>Product</TableHead>
-                                    <TableHead>Category</TableHead>
-                                    <TableHead className="text-right">Price</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {userProducts.length > 0 ? (
-                                    userProducts.map(product => (
-                                        <TableRow key={product.id}>
-                                            <TableCell className="font-medium">
-                                                <Link href={`/product/${product.key}`} className="hover:underline">{product.name}</Link>
-                                            </TableCell>
-                                            <TableCell>{product.category}</TableCell>
-                                            <TableCell className="text-right">₹{product.price.toLocaleString()}</TableCell>
-                                        </TableRow>
-                                    ))
-                                ) : (
-                                    <TableRow>
-                                        <TableCell colSpan={3} className="text-center h-24">No products listed.</TableCell>
-                                    </TableRow>
-                                )}
-                            </TableBody>
-                        </Table>
-                    </CardContent>
-                </Card>
-            );
-        default:
-            return <Card><CardContent className="p-6">Select a metric to view details.</CardContent></Card>;
-    }
-  }
-
+  const renderRevenueView = () => (
+    <div className="space-y-6">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <Card><CardHeader><CardTitle>Total Earnings</CardTitle><CardDescription>Gross revenue from sales</CardDescription></CardHeader><CardContent><p className="text-2xl font-bold">₹{sellerRevenueData.totalEarnings.toLocaleString()}</p></CardContent></Card>
+            <Card><CardHeader><CardTitle>Platform Commission</CardTitle><CardDescription>3% fee on earnings</CardDescription></CardHeader><CardContent><p className="text-2xl font-bold">₹{sellerRevenueData.platformCommission.toLocaleString()}</p></CardContent></Card>
+            <Card><CardHeader><CardTitle>Total Withdrawn</CardTitle><CardDescription>All completed payouts</CardDescription></CardHeader><CardContent><p className="text-2xl font-bold">₹{sellerRevenueData.totalWithdrawn.toLocaleString()}</p></CardContent></Card>
+            <Card><CardHeader><CardTitle>Pending Payouts</CardTitle><CardDescription>Awaiting admin approval</CardDescription></CardHeader><CardContent><p className="text-2xl font-bold">₹{sellerRevenueData.pendingPayouts.toLocaleString()}</p></CardContent></Card>
+        </div>
+         <Card>
+            <CardHeader>
+                <CardTitle>Seller Revenue Timeline</CardTitle>
+                <CardDescription>Monthly gross sales revenue for this seller.</CardDescription>
+            </CardHeader>
+            <CardContent>
+                <ResponsiveContainer width="100%" height={300}>
+                    <BarChart data={sellerRevenueData.chartData}>
+                        <XAxis dataKey="name" stroke="#888" fontSize={12} />
+                        <YAxis stroke="#888" fontSize={12} tickFormatter={(value) => `₹${value / 1000}k`} />
+                        <Tooltip formatter={(value: number) => `₹${value.toLocaleString()}`} />
+                        <Bar dataKey="revenue" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                    </BarChart>
+                </ResponsiveContainer>
+            </CardContent>
+        </Card>
+    </div>
+  );
 
   return (
     <Dialog onOpenChange={(open) => !open && setSelectedOrderForTimeline(null)}>
@@ -433,100 +334,62 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
                             <div className="flex items-center gap-2"><MapPin className="h-4 w-4 text-muted-foreground" /> <span>{profileData.location || 'N/A'}</span></div>
                         </CardContent>
                     </Card>
-                     <Card>
-                        <CardHeader>
-                            <CardTitle>User Metrics</CardTitle>
-                             <CardDescription>Click a metric to see details.</CardDescription>
-                        </CardHeader>
-                        <CardContent className="grid grid-cols-2 gap-2 text-sm">
-                            <Button variant={activeView === 'orders' ? 'secondary' : 'ghost'} className="justify-start h-auto p-2" onClick={() => setActiveView('orders')}>
-                                <div className="flex flex-col items-start">
-                                    <span className="text-xs text-muted-foreground">Total Orders</span>
-                                    <span className="text-lg font-bold">{userOrders.length}</span>
-                                </div>
-                            </Button>
-                             <Button variant="ghost" className="justify-start h-auto p-2 cursor-not-allowed opacity-50">
-                                <div className="flex flex-col items-start">
-                                    <span className="text-xs text-muted-foreground">Total Spent</span>
-                                    <span className="text-lg font-bold">₹{totalSpent.toLocaleString()}</span>
-                                </div>
-                            </Button>
-
-                            {profileData.role === 'seller' && (
-                                <>
-                                 <Button variant={activeView === 'products' ? 'secondary' : 'ghost'} className="justify-start h-auto p-2" onClick={() => setActiveView('products')}>
-                                    <div className="flex flex-col items-start">
-                                        <span className="text-xs text-muted-foreground">Products Listed</span>
-                                        <span className="text-lg font-bold">{userProducts.length}</span>
-                                    </div>
-                                </Button>
-                                <Button variant="ghost" className="justify-start h-auto p-2 cursor-not-allowed opacity-50">
-                                    <div className="flex flex-col items-start">
-                                        <span className="text-xs text-muted-foreground">Total Revenue</span>
-                                        <span className="text-lg font-bold">₹{totalSpent.toLocaleString()}</span>
-                                    </div>
-                                </Button>
-                                 <Button variant="ghost" className="justify-start h-auto p-2 cursor-not-allowed opacity-50">
-                                    <div className="flex flex-col items-start">
-                                        <span className="text-xs text-muted-foreground">Total Live Streams</span>
-                                        <span className="text-lg font-bold">0</span>
-                                    </div>
-                                </Button>
-                                </>
-                            )}
-                        </CardContent>
-                    </Card>
                 </div>
                  <div className="grid auto-rows-max items-start gap-4 lg:col-span-2">
-                    {renderActiveView()}
+                    <Tabs defaultValue="orders">
+                        <TabsList>
+                            <TabsTrigger value="orders">Orders</TabsTrigger>
+                            {profileData.role === 'seller' && <TabsTrigger value="products">Products</TabsTrigger>}
+                            {profileData.role === 'seller' && <TabsTrigger value="revenue">Revenue</TabsTrigger>}
+                        </TabsList>
+                        <TabsContent value="orders">
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle>Order History</CardTitle>
+                                    <CardDescription>A list of all orders placed by this user.</CardDescription>
+                                </CardHeader>
+                                <CardContent>
+                                    <Table>
+                                        <TableHeader><TableRow><TableHead>Order ID</TableHead><TableHead>Product</TableHead><TableHead>Status</TableHead><TableHead className="text-right">Total</TableHead></TableRow></TableHeader>
+                                        <TableBody>
+                                            {isLoading ? <TableRow><TableCell colSpan={4}><Skeleton className="h-10 w-full" /></TableCell></TableRow> : userOrders.length > 0 ? userOrders.map(order => (
+                                                <TableRow key={order.orderId}>
+                                                    <TableCell><Link href={`/admin/orders/${encodeURIComponent(order.orderId)}`} className="font-medium hover:underline">{order.orderId}</Link></TableCell>
+                                                    <TableCell><Link href={`/product/${order.products[0].key}`} className="hover:underline">{order.products[0].name}{order.products.length > 1 ? ` + ${order.products.length - 1}` : ''}</Link></TableCell>
+                                                    <TableCell><Badge variant={getStatusFromTimeline(order.timeline) === 'Delivered' ? 'success' : 'outline'}>{getStatusFromTimeline(order.timeline)}</Badge></TableCell>
+                                                    <TableCell className="text-right">₹{order.total.toFixed(2)}</TableCell>
+                                                </TableRow>
+                                            )) : <TableRow><TableCell colSpan={4} className="text-center h-24">No orders found.</TableCell></TableRow>}
+                                        </TableBody>
+                                    </Table>
+                                </CardContent>
+                            </Card>
+                        </TabsContent>
+                        <TabsContent value="products">
+                             <Card>
+                                <CardHeader><CardTitle>Listed Products</CardTitle><CardDescription>Products listed by {profileData.displayName}.</CardDescription></CardHeader>
+                                <CardContent>
+                                    <Table>
+                                        <TableHeader><TableRow><TableHead>Product</TableHead><TableHead>Category</TableHead><TableHead className="text-right">Price</TableHead></TableRow></TableHeader>
+                                        <TableBody>
+                                            {userProducts.length > 0 ? userProducts.map(product => (
+                                                <TableRow key={product.id}><TableCell className="font-medium"><Link href={`/product/${product.key}`} className="hover:underline">{product.name}</Link></TableCell><TableCell>{product.category}</TableCell><TableCell className="text-right">₹{product.price.toLocaleString()}</TableCell></TableRow>
+                                            )) : <TableRow><TableCell colSpan={3} className="text-center h-24">No products listed.</TableCell></TableRow>}
+                                        </TableBody>
+                                    </Table>
+                                </CardContent>
+                            </Card>
+                        </TabsContent>
+                        <TabsContent value="revenue">
+                            {renderRevenueView()}
+                        </TabsContent>
+                    </Tabs>
                 </div>
             </div>
         </main>
         <DialogContent>
-            <DialogHeader>
-                <DialogTitle>Order Timeline for {selectedOrderForTimeline?.orderId}</DialogTitle>
-                <DialogDescription>
-                   Review the step-by-step progress of this order from confirmation to delivery.
-                </DialogDescription>
-            </DialogHeader>
-            <div className="p-4">
-                 <ul className="space-y-2">
-                    {selectedOrderForTimeline?.timeline.map((item: any, index: number) => (
-                        <li key={index} className="flex items-start gap-4">
-                            <div className="flex flex-col items-center">
-                                <div className={cn(
-                                    "flex-shrink-0 h-8 w-8 rounded-full flex items-center justify-center mt-1 z-10",
-                                    item.completed ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
-                                )}>
-                                    {item.completed ? <CheckCircle2 className="h-5 w-5" /> : getStatusIcon(item.status) }
-                                </div>
-                                {index < selectedOrderForTimeline.timeline.length - 1 && (
-                                    <div className="w-0.5 h-10 bg-border" />
-                                )}
-                            </div>
-                            <div className="flex-grow pt-1">
-                                <p className={cn("font-semibold", !item.completed && "text-muted-foreground")}>
-                                    {item.status.split(':')[0]}
-                                </p>
-                                {index === selectedOrderForTimeline.timeline.length - 1 && item.status.includes(':') && (
-                                    <p className="text-sm text-muted-foreground">
-                                        {item.status.split(':').slice(1).join(':').trim()}
-                                    </p>
-                                )}
-                                {item.date && (
-                                    <p className="text-sm text-muted-foreground">
-                                        {item.date} {item.time && `- ${item.time}`}
-                                    </p>
-                                )}
-                            </div>
-                        </li>
-                    ))}
-                </ul>
-            </div>
         </DialogContent>
     </div>
     </Dialog>
   );
 };
-
-    
