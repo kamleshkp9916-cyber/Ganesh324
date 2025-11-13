@@ -70,6 +70,7 @@ import Image from "next/image"
 import { Input } from "@/components/ui/input"
 import { useDebounce } from "@/hooks/use-debounce";
 import { AdminLayout } from "@/components/admin/admin-layout"
+import { cn } from "@/lib/utils"
 
 
 const mockLiveStreams = [
@@ -97,23 +98,17 @@ export default function AdminLiveControlPage() {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
-  const [categoryFilter, setCategoryFilter] = useState<string | null>(null);
-  const [subcategoryFilter, setSubcategoryFilter] = useState<string | null>(null);
+  const [categoryFilter, setCategoryFilter] = useState<string>("All");
 
-  const availableCategories = useMemo(() => [...new Set(mockLiveStreams.map(s => s.category))], []);
-  const availableSubcategories = useMemo(() => {
-    if (!categoryFilter) return [];
-    return [...new Set(mockLiveStreams.filter(s => s.category === categoryFilter).map(s => s.subcategory))];
-  }, [categoryFilter]);
+  const availableCategories = useMemo(() => ["All", ...new Set(mockLiveStreams.map(s => s.category))], []);
 
   const filteredStreams = useMemo(() => {
     return liveStreams.filter(stream => {
       const searchMatch = stream.seller.name.toLowerCase().includes(debouncedSearchTerm.toLowerCase());
-      const categoryMatch = !categoryFilter || stream.category === categoryFilter;
-      const subcategoryMatch = !subcategoryFilter || stream.subcategory === subcategoryFilter;
-      return searchMatch && categoryMatch && subcategoryMatch;
+      const categoryMatch = categoryFilter === "All" || stream.category === categoryFilter;
+      return searchMatch && categoryMatch;
     });
-  }, [liveStreams, debouncedSearchTerm, categoryFilter, subcategoryFilter]);
+  }, [liveStreams, debouncedSearchTerm, categoryFilter]);
 
   const handleMonitorStream = (streamId: string) => {
     router.push(`/stream/${streamId}`);
@@ -141,62 +136,33 @@ export default function AdminLiveControlPage() {
         <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8">
             <Card>
                 <CardHeader>
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
                         <div>
                             <CardTitle>Realtime Live Stream Monitor</CardTitle>
                             <CardDescription>Monitor and manage all ongoing live sessions.</CardDescription>
                         </div>
-                        <div className="flex items-center gap-2">
-                           <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                    <Button variant="outline" size="sm" className="h-8 gap-1">
-                                        <ListFilter className="h-3.5 w-3.5" />
-                                        <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                                        Filter
-                                        </span>
-                                    </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                    <DropdownMenuLabel>Filter by Category</DropdownMenuLabel>
-                                    <DropdownMenuSeparator />
-                                     <DropdownMenuCheckboxItem checked={!categoryFilter} onSelect={() => {setCategoryFilter(null); setSubcategoryFilter(null);}}>
-                                        All Categories
-                                    </DropdownMenuCheckboxItem>
-                                    {availableCategories.map(cat => (
-                                        <DropdownMenuSub key={cat}>
-                                            <DropdownMenuSubTrigger
-                                                className={categoryFilter === cat ? "bg-secondary" : ""}
-                                                onSelect={(e) => { e.preventDefault(); setCategoryFilter(cat); setSubcategoryFilter(null); }}
-                                            >{cat}</DropdownMenuSubTrigger>
-                                            <DropdownMenuSubContent>
-                                                 <DropdownMenuCheckboxItem checked={!subcategoryFilter} onSelect={() => setSubcategoryFilter(null)}>
-                                                    All Subcategories
-                                                </DropdownMenuCheckboxItem>
-                                                {availableSubcategories.map(sub => (
-                                                    <DropdownMenuCheckboxItem
-                                                        key={sub}
-                                                        checked={subcategoryFilter === sub}
-                                                        onSelect={() => setSubcategoryFilter(sub)}
-                                                    >
-                                                        {sub}
-                                                    </DropdownMenuCheckboxItem>
-                                                ))}
-                                            </DropdownMenuSubContent>
-                                        </DropdownMenuSub>
-                                    ))}
-                                </DropdownMenuContent>
-                            </DropdownMenu>
-                            <div className="relative">
-                                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                                <Input
-                                type="search"
-                                placeholder="Search streams..."
-                                className="pl-8 sm:w-[300px] md:w-[200px] lg:w-[300px]"
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                />
-                            </div>
+                        <div className="relative">
+                            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                            <Input
+                            type="search"
+                            placeholder="Search by seller name..."
+                            className="pl-8 sm:w-[300px] md:w-[200px] lg:w-[300px]"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            />
                         </div>
+                    </div>
+                     <div className="flex flex-wrap gap-2 pt-4">
+                        {availableCategories.map(category => (
+                            <Button 
+                                key={category} 
+                                variant={categoryFilter === category ? "default" : "outline"}
+                                size="sm"
+                                onClick={() => setCategoryFilter(category)}
+                            >
+                                {category}
+                            </Button>
+                        ))}
                     </div>
                 </CardHeader>
                 <CardContent>
