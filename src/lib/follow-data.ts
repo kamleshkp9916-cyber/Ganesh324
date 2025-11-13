@@ -1,7 +1,7 @@
 
 "use client";
 
-import { doc, getDoc, setDoc, updateDoc, collection, query, where, getDocs, writeBatch, increment, limit } from "firebase/firestore";
+import { doc, getDoc, setDoc, updateDoc, collection, query, where, getDocs, writeBatch, increment, limit, serverTimestamp } from "firebase/firestore";
 import { getFirestoreDb } from "./firebase";
 import type { User } from "firebase/auth";
 
@@ -126,16 +126,12 @@ export const createUserData = async (user: User, role: 'customer' | 'seller' | '
     const userData: UserData = {
         ...defaultUserData(user.uid, user),
         role: userRole,
+        createdAt: serverTimestamp(),
         ...additionalData,
     } as UserData;
     
     delete (userData as any).password;
     delete (userData as any).confirmPassword;
-    delete (userData as any).aadharOtp;
-    delete (userData as any).passportPhoto;
-    delete (userData as any).signature;
-    delete (userData as any).aadhar;
-    delete (userData as any).pan;
 
     await setDoc(userDocRef, userData, { merge: true });
 };
