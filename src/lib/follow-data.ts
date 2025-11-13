@@ -80,6 +80,10 @@ const mockSellers: Record<string, UserData> = {
     'gamerguild-uid': { uid: 'gamerguild-uid', displayName: 'GamerGuild', email: 'gg@gamerguild.com', photoURL: 'https://placehold.co/128x128.png?text=G', role: 'seller', followers: 4200, following: 10, bio: 'Top-tier gaming gear and accessories.', location: 'Taipei, Taiwan', phone: '', addresses: [], color: '#ffffff', twitch: 'https://twitch.tv/gamerguild' },
 };
 
+// Function to get a list of all mock sellers
+export const getMockSellers = (): UserData[] => {
+    return Object.values(mockSellers);
+};
 
 export const getUserData = async (uid: string): Promise<UserData | null> => {
     if (!uid) return null;
