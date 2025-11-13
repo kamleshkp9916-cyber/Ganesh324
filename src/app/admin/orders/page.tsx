@@ -40,8 +40,8 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
+  CardFooter,
   CardTitle,
 } from "@/components/ui/card"
 import {
@@ -346,7 +346,7 @@ export default function AdminOrdersPage() {
                                         <DropdownMenuRadioItem value="Order Confirmed">Confirmed</DropdownMenuRadioItem>
                                         <DropdownMenuRadioItem value="Shipped">Shipped</DropdownMenuRadioItem>
                                         <DropdownMenuRadioItem value="Delivered">Delivered</DropdownMenuRadioItem>
-                                        <DropdownMenuRadioItem value="Cancelled by admin">Cancelled by admin</DropdownMenuRadioItem>
+                                        <DropdownMenuRadioItem value="Cancelled by admin">Cancelled</DropdownMenuRadioItem>
                                     </DropdownMenuRadioGroup>
                                     <DropdownMenuSeparator />
                                     <DropdownMenuLabel>Filter by Type</DropdownMenuLabel>
@@ -526,30 +526,32 @@ export default function AdminOrdersPage() {
                                         <CardDescription>This order has a return/refund request.</CardDescription>
                                     </CardHeader>
                                     <CardContent>
-                                         <ul className="space-y-4">
-                                            {selectedOrder.refundTimeline?.map((item, index) => (
-                                                <li key={index} className="flex items-start gap-4">
-                                                    <div className="flex flex-col items-center">
-                                                        <div className={cn(
-                                                            "flex-shrink-0 h-10 w-10 rounded-full flex items-center justify-center", 
-                                                            item.completed ? "bg-amber-500 text-white" : "bg-muted text-muted-foreground border-2"
-                                                        )}>
-                                                           <Undo2 className="h-5 w-5" />
+                                        <div className="space-y-4">
+                                            <ul className="space-y-4">
+                                                {selectedOrder.refundTimeline?.map((item: any, index: number) => (
+                                                    <li key={index} className="flex items-start gap-4">
+                                                        <div className="flex flex-col items-center">
+                                                            <div className={cn(
+                                                                "flex-shrink-0 h-10 w-10 rounded-full flex items-center justify-center", 
+                                                                item.completed ? "bg-amber-500 text-white" : "bg-muted text-muted-foreground border-2"
+                                                            )}>
+                                                            <Undo2 className="h-5 w-5" />
+                                                            </div>
+                                                            {index < selectedOrder.refundTimeline.length - 1 && (
+                                                                <div className="w-0.5 flex-1 bg-border" />
+                                                            )}
                                                         </div>
-                                                        {index < selectedOrder.refundTimeline.length - 1 && (
-                                                            <div className="w-0.5 flex-1 bg-border" />
-                                                        )}
-                                                    </div>
-                                                    <div>
-                                                        <p className="font-semibold">{item.status}</p>
-                                                        <p className="text-sm text-muted-foreground">{item.date} {item.time}</p>
-                                                    </div>
-                                                </li>
-                                            ))}
-                                        </ul>
-                                         <div className="mt-4 flex flex-col items-center justify-center text-center p-4 bg-muted/50 rounded-lg">
-                                            <p className="font-semibold">Current Status: <Badge variant={selectedOrder.returnRequest.status === 'picked_up' ? 'success' : 'warning'}>{selectedOrder.returnRequest.status.replace('_', ' ').toUpperCase()}</Badge></p>
-                                            {selectedOrder.returnRequest.status === 'requested' && <Button size="sm" className="mt-2" onClick={() => handleSimulatePickup(selectedOrder.orderId)}>Simulate Pickup</Button>}
+                                                        <div>
+                                                            <p className="font-semibold">{item.status}</p>
+                                                            <p className="text-sm text-muted-foreground">{item.date} {item.time}</p>
+                                                        </div>
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                            <div className="mt-4 flex flex-col items-center justify-center text-center p-4 bg-muted/50 rounded-lg">
+                                                <p className="font-semibold">Current Status: <Badge variant={selectedOrder.returnRequest.status === 'picked_up' ? 'success' : 'warning'}>{selectedOrder.returnRequest.status.replace(/_/g, ' ').toUpperCase()}</Badge></p>
+                                                {selectedOrder.returnRequest.status === 'requested' && <Button size="sm" className="mt-2" onClick={() => handleSimulatePickup(selectedOrder.orderId)}>Simulate Pickup</Button>}
+                                            </div>
                                         </div>
                                     </CardContent>
                                     {selectedOrder.returnRequest.status === 'picked_up' && (
@@ -568,5 +570,7 @@ export default function AdminOrdersPage() {
     </AdminLayout>
   );
 }
+
+    
 
     
