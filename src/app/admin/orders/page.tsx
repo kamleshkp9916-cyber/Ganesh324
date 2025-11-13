@@ -1,3 +1,4 @@
+
 "use client"
 
 import {
@@ -102,6 +103,7 @@ type Order = {
     paymentDetails?: any;
     sellerId?: string;
     refundTimeline?: any[];
+    returnRequest?: any;
 };
 
 const mockOrders: Order[] = [
@@ -169,7 +171,8 @@ const mockOrders: Order[] = [
             { status: "Refund Requested", date: "Jul 21, 2024", time: "11:35 AM", completed: true },
             { status: "Refund Approved", date: "Jul 21, 2024", time: "11:40 AM", completed: true },
             { status: "Refund Processed", date: "Jul 22, 2024", time: "10:00 AM", completed: false },
-        ]
+        ],
+        returnRequest: { status: 'requested' } // Add this to trigger refund section
     }
 ];
 
@@ -245,13 +248,29 @@ export default function AdminOrdersPage() {
   };
   
   const handleApproveRefund = (orderId: string) => {
-    setOrders(prev => prev.map(o => o.orderId === orderId ? {...o, refundStatus: 'Completed'} : o));
+    setOrders(prev => prev.map(o => o.orderId === orderId ? { ...o, refundStatus: 'Completed', returnRequest: { ...o.returnRequest, status: 'refunded'} } : o));
     toast({ title: 'Refund Approved', description: `Refund for ${orderId} has been processed.`});
+    if(selectedOrder?.orderId === orderId) {
+        setSelectedOrder(prev => prev ? {...prev, refundStatus: 'Completed', returnRequest: { ...prev.returnRequest, status: 'refunded'} } : null);
+    }
   };
   
   const handleRejectRefund = (orderId: string) => {
+    setOrders(prev => prev.map(o => o.orderId === orderId ? { ...o, refundStatus: 'N/A', returnRequest: { ...o.returnRequest, status: 'rejected'} } : o));
     toast({ title: 'Refund Rejected', description: `Refund for ${orderId} has been rejected.`, variant: 'destructive'});
+     if(selectedOrder?.orderId === orderId) {
+        setSelectedOrder(prev => prev ? {...prev, refundStatus: 'N/A', returnRequest: { ...prev.returnRequest, status: 'rejected'} } : null);
+    }
   };
+
+  const handleSimulatePickup = (orderId: string) => {
+      setOrders(prev => prev.map(o => o.orderId === orderId ? { ...o, returnRequest: { ...o.returnRequest, status: 'picked_up'} } : o));
+      if(selectedOrder?.orderId === orderId) {
+        setSelectedOrder(prev => prev ? {...prev, returnRequest: { ...prev.returnRequest, status: 'picked_up'} } : null);
+    }
+    toast({ title: "Pickup Simulated", description: "The returned item has been marked as picked up." });
+  };
+
 
   const filteredOrders = useMemo(() => {
     return orders.filter(order => {
@@ -327,7 +346,7 @@ export default function AdminOrdersPage() {
                                         <DropdownMenuRadioItem value="Order Confirmed">Confirmed</DropdownMenuRadioItem>
                                         <DropdownMenuRadioItem value="Shipped">Shipped</DropdownMenuRadioItem>
                                         <DropdownMenuRadioItem value="Delivered">Delivered</DropdownMenuRadioItem>
-                                        <DropdownMenuRadioItem value="Cancelled by admin">Cancelled</DropdownMenuRadioItem>
+                                        <DropdownMenuRadioItem value="Cancelled by admin">Cancelled by admin</DropdownMenuRadioItem>
                                     </DropdownMenuRadioGroup>
                                     <DropdownMenuSeparator />
                                     <DropdownMenuLabel>Filter by Type</DropdownMenuLabel>
@@ -500,11 +519,11 @@ export default function AdminOrdersPage() {
                                     </ul>
                                 </CardContent>
                             </Card>
-                            {selectedOrder.refundStatus === 'Pending' && (
+                            {selectedOrder.returnRequest && (
                                  <Card>
                                     <CardHeader>
                                         <CardTitle className="text-red-500">Refund Management</CardTitle>
-                                        <CardDescription>This order requires a refund action.</CardDescription>
+                                        <CardDescription>This order has a return/refund request.</CardDescription>
                                     </CardHeader>
                                     <CardContent>
                                          <ul className="space-y-4">
@@ -528,11 +547,17 @@ export default function AdminOrdersPage() {
                                                 </li>
                                             ))}
                                         </ul>
+                                         <div className="mt-4 flex flex-col items-center justify-center text-center p-4 bg-muted/50 rounded-lg">
+                                            <p className="font-semibold">Current Status: <Badge variant={selectedOrder.returnRequest.status === 'picked_up' ? 'success' : 'warning'}>{selectedOrder.returnRequest.status.replace('_', ' ').toUpperCase()}</Badge></p>
+                                            {selectedOrder.returnRequest.status === 'requested' && <Button size="sm" className="mt-2" onClick={() => handleSimulatePickup(selectedOrder.orderId)}>Simulate Pickup</Button>}
+                                        </div>
                                     </CardContent>
-                                    <CardFooter className="flex justify-end gap-2">
-                                        <Button variant="destructive" onClick={() => handleRejectRefund(selectedOrder.orderId)}>Reject Refund</Button>
-                                        <Button onClick={() => handleApproveRefund(selectedOrder.orderId)}>Approve Refund</Button>
-                                    </CardFooter>
+                                    {selectedOrder.returnRequest.status === 'picked_up' && (
+                                        <CardFooter className="flex justify-end gap-2">
+                                            <Button variant="destructive" onClick={() => handleRejectRefund(selectedOrder.orderId)}>Reject Refund</Button>
+                                            <Button onClick={() => handleApproveRefund(selectedOrder.orderId)}>Approve Refund</Button>
+                                        </CardFooter>
+                                    )}
                                 </Card>
                             )}
                         </div>
@@ -543,3 +568,5 @@ export default function AdminOrdersPage() {
     </AdminLayout>
   );
 }
+
+    
