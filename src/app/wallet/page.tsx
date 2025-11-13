@@ -129,7 +129,7 @@ export default function WalletPage() {
             <a href="#" className="hover:text-primary">Terms</a>
             <a href="#" className="hover:text-primary">Support</a>
         </div>
-        <p>© {new Date().getFullYear()} StreamCart. All Rights Reserved.</p>
+        <p>© {new Date().getFullYear()} Nipher. All Rights Reserved.</p>
       </footer>
     </div>
     </Dialog>

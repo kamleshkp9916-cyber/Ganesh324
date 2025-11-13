@@ -246,7 +246,7 @@ const FeedPost = ({
                 const blobUrl = window.URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = blobUrl;
-                a.download = "streamcart_image_" + Date.now() + ".jpg";
+                a.download = "nipher_image_" + Date.now() + ".jpg";
                 document.body.appendChild(a);
                 a.click();
                 window.URL.revokeObjectURL(blobUrl);
@@ -1328,21 +1328,3 @@ export default function FeedPage() {
     
 
     
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

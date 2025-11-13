@@ -57,8 +57,11 @@ import {
   List,
   Sparkles,
   Edit,
+  ArrowRight,
+  ShieldCheck,
+  RotateCcw,
+  Banknote,
   UserCheck,
-  ArrowLeft,
 } from 'lucide-react';
 import { Button, buttonVariants } from '@/components/ui/button';
 import Image from 'next/image';
@@ -66,7 +69,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card"
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/hooks/use-auth';
 import { useAuthActions } from '@/lib/auth';
@@ -105,12 +108,11 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/co
 import { GoLiveDialog } from '@/components/go-live-dialog';
 import { collection, query, orderBy, onSnapshot, Timestamp, deleteDoc, doc, updateDoc, increment, addDoc, serverTimestamp, where, getDocs, runTransaction, limit, Unsubscribe } from "firebase/firestore";
 import { getFirestoreDb } from '@/lib/firebase';
-import { format, formatDistanceToNow, isThisWeek, isThisYear } from 'date-fns';
+import { format, formatDistanceToNow } from 'date-fns';
 import { ref as storageRef, deleteObject } from 'firebase/storage';
 import { isFollowing, toggleFollow, UserData, getUserByDisplayName } from '@/lib/follow-data';
 import { productDetails } from '@/lib/product-data';
 import { PromotionalCarousel } from '@/components/promotional-carousel';
-import { Logo } from '@/components/logo';
 import { categories } from '@/lib/categories';
 import { Separator } from '@/components/ui/separator';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
@@ -124,6 +126,7 @@ import { CommentColumn } from '@/components/feed/comment-column';
 import { MainSidebar } from '@/components/main-sidebar';
 import { SidebarProvider, useSidebar } from '@/components/ui/sidebar';
 import { ConversationList, ChatWindow, Conversation, Message } from '@/components/messaging/common';
+import { Logo } from './logo';
 
 const liveSellers = [
     { id: '1', name: 'FashionFinds', avatarUrl: 'https://placehold.co/40x40.png', thumbnailUrl: 'https://placehold.co/300x450.png', category: 'Fashion', viewers: 1200, buyers: 25, rating: 4.8, reviews: 12, hint: 'woman posing stylish outfit', productId: 'prod_1' },
@@ -218,7 +221,7 @@ export const MainHeader = () => {
                      <div className="flex items-center gap-2">
                          <Link href="/live-selling" className="flex items-center gap-2">
                              <Logo />
-                            <span className="font-bold text-lg hidden sm:inline-block">StreamCart</span>
+                            <span className="font-bold text-lg hidden sm:inline-block">Nipher</span>
                         </Link>
                     </div>
 
@@ -375,427 +378,4 @@ export const MainHeader = () => {
                 </div>
         </header>
     )
-}
-```
-- src/components/mens-sidebar.tsx:
-```tsx
-
-"use client";
-
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion"
-import Link from "next/link";
-import { cn } from "@/lib/utils";
-
-const sidebarSections = [
-    { 
-        title: "Men's Clothing", 
-        isDefaultOpen: true,
-        links: [
-            "All Men's Clothing", "New Arrivals", "Activewear", "Blazers & Sport Coats", "Coats & Jackets", "Dress Shirts", "Hoodies & Sweatshirts", "Jeans", "Pants", "Polo Shirts", "Shirts", "Shorts", "Suits & Tuxedos", "Sweaters", "Swim Trunks & Board Shorts", "T-Shirts", "Underwear & Socks",
-        ] 
-    },
-    { title: "Shop By Size Range", links: ["Regular", "Big & Tall", "Short"] },
-    { title: "Men's Shoes", links: ["Boots", "Sneakers & Athletic", "Sandals & Flip-Flops", "Dress Shoes", "Loafers & Drivers"] },
-    { title: "Accessories", links: ["Bags", "Belts", "Hats", "Ties & Pocket Squares", "Wallets", "Sunglasses & Eyewear"] },
-    { title: "Grooming & Cologne", links: ["Cologne", "Skincare", "Shaving & Beard Care"] },
-    { title: "Men's Brands", links: ["Brand X", "Brand Y", "Brand Z"] },
-];
-
-export function MensSidebar() {
-    return (
-        <div className="w-full">
-            <h2 className="text-2xl font-bold mb-4">Men</h2>
-            
-            <Accordion type="multiple" defaultValue={["Men's Clothing"]} className="w-full">
-                {sidebarSections.map(section => (
-                    <AccordionItem value={section.title} key={section.title}>
-                        <AccordionTrigger className="text-base font-semibold">{section.title}</AccordionTrigger>
-                        <AccordionContent>
-                            <div className="flex flex-col space-y-2 pl-2">
-                                {section.links.map(link => {
-                                    const subCategorySlug = link.toLowerCase().replace(/\s+/g, '-').replace(/&/g, '%26');
-                                    return (
-                                        <Link key={link} href={`/men/${subCategorySlug}`} className="text-sm text-muted-foreground hover:text-foreground">
-                                            {link}
-                                        </Link>
-                                    )
-                                })}
-                            </div>
-                        </AccordionContent>
-                    </AccordionItem>
-                ))}
-            </Accordion>
-        </div>
-    );
-}
-
-```
-- src/components/womens-sidebar.tsx:
-```tsx
-
-"use client";
-
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion"
-import Link from "next/link";
-import { cn } from "@/lib/utils";
-
-const sidebarSections = [
-    { 
-        title: "Women's Clothing", 
-        isDefaultOpen: true,
-        links: [
-            "All Women's Clothing", "New Arrivals", "Activewear", "Blazers", "Bras, Underwear & Lingerie", "Coats & Jackets", "Dresses", "Hoodies & Sweatshirts", "Jeans", "Loungewear", "Pajamas & Robes", "Pants & Capris", "Shorts", "Skirts", "Suits & Suit Separates", "Sweaters", "Swimsuits & Cover-Ups", "Tights, Socks, & Hosiery", "Tops",
-        ] 
-    },
-    { title: "Shop By Size Range", links: ["Regular", "Plus", "Petite", "Maternity"] },
-    { title: "Juniors", links: ["Tops", "Dresses", "Jeans", "Activewear"] },
-    { title: "Women's Shoes", links: ["Boots", "Sneakers", "Sandals", "Heels"] },
-    { title: "Handbags & Accessories", links: ["Handbags", "Wallets", "Scarves", "Hats"] },
-    { title: "Jewelry & Watches", links: ["Fine Jewelry", "Fashion Jewelry", "Watches"] },
-    { title: "Beauty", links: ["Skincare", "Makeup", "Fragrance"] },
-    { title: "Women's Brands", links: ["Brand A", "Brand B", "Brand C"] },
-];
-
-export function WomensSidebar() {
-    return (
-        <div className="w-full">
-            <h2 className="text-2xl font-bold mb-4">Women</h2>
-            
-            <Accordion type="multiple" defaultValue={["Women's Clothing"]} className="w-full">
-                {sidebarSections.map(section => (
-                    <AccordionItem value={section.title} key={section.title}>
-                        <AccordionTrigger className="text-base font-semibold">{section.title}</AccordionTrigger>
-                        <AccordionContent>
-                            <div className="flex flex-col space-y-2 pl-2">
-                                {section.links.map(link => {
-                                    const subCategorySlug = link.toLowerCase().replace(/\s+/g, '-').replace(/&/g, '%26');
-                                    return (
-                                        <Link key={link} href={`/women/${subCategorySlug}`} className="text-sm text-muted-foreground hover:text-foreground">
-                                            {link}
-                                        </Link>
-                                    )
-                                })}
-                            </div>
-                        </AccordionContent>
-                    </AccordionItem>
-                ))}
-            </Accordion>
-        </div>
-    );
-}
-
-```
-- src/lib/categories.ts:
-```ts
-
-export const categories = [
-    { 
-        name: "Women", 
-        subcategories: [
-            { name: "Tops", description: "Blouses, T-shirts, tanks, and more." },
-            { name: "Dresses", description: "Casual, formal, and everything in between." },
-            { name: "Coats & Jackets", description: "Stay warm and stylish with our outerwear." },
-            { name: "Pants", description: "From casual chinos to professional trousers." },
-            { name: "Jeans", description: "Find your perfect fit and wash." },
-            { name: "Swim & Cover-Ups", description: "Get ready for the beach or pool." },
-            { name: "Bras, Underwear & Lingerie", description: "Comfortable and supportive essentials." },
-            { name: "Activewear", description: "Performance gear for your workouts." },
-            { name: "Pajamas & Robes", description: "Cozy up in our comfortable sleepwear." }
-        ] 
-    },
-    { 
-        name: "Men", 
-        subcategories: [
-            { name: "Shirts", description: "Casual, dress, and polo shirts." },
-            { name: "Pants & Shorts", description: "Chinos, trousers, and casual shorts." },
-            { name: "Coats & Jackets", description: "Outerwear for all seasons." },
-            { name: "Activewear", description: "Workout gear for the modern man." },
-            { name: "Jeans", description: "A wide range of fits and styles." },
-            { name: "Underwear & Socks", description: "Daily essentials for comfort." },
-            { name: "Pajamas & Robes", description: "Comfortable sleepwear and loungewear." },
-            { name: "Suits & Tuxedos", description: "Sharp looks for formal occasions." }
-        ] 
-    },
-    { 
-        name: "Kids", 
-        subcategories: [
-            { name: "Girls' Clothing", description: "Dresses, tops, and sets for girls." },
-            { name: "Boys' Clothing", description: "Shirts, pants, and outfits for boys." },
-            { name: "Baby Clothing", description: "Adorable and soft essentials for babies." },
-            { name: "Toys & Games", description: "Fun and educational toys for all ages." },
-            { name: "Backpacks", description: "Stylish and durable backpacks for school." }
-        ] 
-    },
-    { 
-        name: "Home", 
-        subcategories: [
-            { name: "Bedding", description: "Sheets, duvets, and comforters." },
-            { name: "Bath", description: "Towels, mats, and shower curtains." },
-            { name: "Rugs", description: "Area rugs for every room." },
-            { name: "Furniture", description: "Sofas, tables, and storage solutions." },
-            { name: "Home Decor", description: "Vases, wall art, and more." },
-            { name: "Kitchen", description: "Cookware, bakeware, and gadgets." }
-        ] 
-    },
-    { 
-        name: "Electronics", 
-        subcategories: [
-            { name: "Computers & Laptops", description: "The latest from top brands." },
-            { name: "Smartphones & Accessories", description: "Phones, cases, and chargers." },
-            { name: "TV & Home Theater", description: "Immerse yourself in entertainment." },
-            { name: "Cameras & Drones", description: "Capture life's best moments." },
-            { name: "Headphones & Audio", description: "High-fidelity sound on the go." },
-            { name: "Video Games", description: "Consoles, games, and accessories." }
-        ] 
-    },
-    { 
-        name: "Shoes", 
-        subcategories: [
-            { name: "Women's Shoes", description: "Heels, flats, boots, and sneakers." },
-            { name: "Men's Shoes", description: "Dress shoes, sneakers, and casuals." },
-            { name: "Kids' Shoes", description: "Durable and stylish shoes for kids." }
-        ] 
-    },
-    { 
-        name: "Handbags", 
-        subcategories: [
-            { name: "Totes", description: "Spacious and stylish tote bags." },
-            { name: "Crossbody Bags", description: "Hands-free convenience and style." },
-            { name: "Shoulder Bags", description: "Classic and elegant shoulder bags." },
-            { name: "Clutches", description: "Perfect for evenings and special events." },
-            { name: "Backpacks", description: "Fashionable and functional backpacks." }
-        ] 
-    },
-    { 
-        name: "Trending", 
-        subcategories: [
-            { name: "New Arrivals", description: "The latest additions to our store." },
-            { name: "Best Sellers", description: "See what's popular with our customers." },
-            { name: "Top Rated", description: "The highest-rated products." }
-        ] 
-    },
-    { 
-        name: "Sale", 
-        subcategories: [
-            { name: "Women's Sale", description: "Great deals on women's fashion." },
-            { name: "Men's Sale", description: "Discounts on men's clothing and more." },
-            { name: "Kids' Sale", description: "Savings on clothing and toys for kids." },
-            { name: "Home Sale", description: "Find deals for every room." }
-        ] 
-    },
-];
-```
-- tailwind.config.ts:
-```ts
-
-import type {Config} from 'tailwindcss';
-
-const { fontFamily } = require("tailwindcss/defaultTheme")
-
-export default {
-  darkMode: ['class'],
-  content: [
-    './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
-    './src/components/**/*.{js,ts,jsx,tsx,mdx}',
-    './src/app/**/*.{js,ts,jsx,tsx,mdx}',
-  ],
-  theme: {
-    container: {
-      center: true,
-      padding: "2rem",
-      screens: {
-        "2xl": "1400px",
-      },
-    },
-    extend: {
-      fontFamily: {
-        sans: ['var(--font-sans)', ...fontFamily.sans],
-        body: ['Inter', 'sans-serif'],
-        headline: ['Inter', 'sans-serif'],
-        code: ['monospace'],
-      },
-      colors: {
-        background: 'hsl(var(--background))',
-        foreground: 'hsl(var(--foreground))',
-        card: {
-          DEFAULT: 'hsl(var(--card))',
-          foreground: 'hsl(var(--card-foreground))',
-        },
-        popover: {
-          DEFAULT: 'hsl(var(--popover))',
-          foreground: 'hsl(var(--popover-foreground))',
-        },
-        primary: {
-          DEFAULT: 'hsl(var(--primary))',
-          foreground: 'hsl(var(--primary-foreground))',
-        },
-        secondary: {
-          DEFAULT: 'hsl(var(--secondary))',
-          foreground: 'hsl(var(--secondary-foreground))',
-        },
-        muted: {
-          DEFAULT: 'hsl(var(--muted))',
-          foreground: 'hsl(var(--muted-foreground))',
-        },
-        accent: {
-          DEFAULT: 'hsl(var(--accent))',
-          foreground: 'hsl(var(--accent-foreground))',
-        },
-        destructive: {
-          DEFAULT: 'hsl(var(--destructive))',
-          foreground: 'hsl(var(--destructive-foreground))',
-        },
-        success: {
-          DEFAULT: 'hsl(var(--success))',
-          foreground: 'hsl(var(--success-foreground))',
-        },
-        warning: {
-          DEFAULT: 'hsl(var(--warning))',
-          foreground: 'hsl(var(--warning-foreground))',
-        },
-        info: {
-          DEFAULT: 'hsl(var(--info))',
-          foreground: 'hsl(var(--info-foreground))',
-        },
-        purple: {
-            DEFAULT: 'hsl(var(--purple))',
-            foreground: 'hsl(var(--purple-foreground))',
-        },
-        gold: {
-          DEFAULT: "#f4b400",
-          foreground: "#111827"
-        },
-        border: 'hsl(var(--border))',
-        input: 'hsl(var(--input))',
-        ring: 'hsl(var(--ring))',
-        chart: {
-          '1': 'hsl(var(--chart-1))',
-          '2': 'hsl(var(--chart-2))',
-          '3': 'hsl(var(--chart-3))',
-          '4': 'hsl(var(--chart-4))',
-          '5': 'hsl(var(--chart-5))',
-        },
-        sidebar: {
-          DEFAULT: 'hsl(var(--sidebar-background))',
-          foreground: 'hsl(var(--sidebar-foreground))',
-          primary: 'hsl(var(--sidebar-primary))',
-          'primary-foreground': 'hsl(var(--sidebar-primary-foreground))',
-          accent: 'hsl(var(--sidebar-accent))',
-          'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
-          border: 'hsl(var(--sidebar-border))',
-          ring: 'hsl(var(--sidebar-ring))',
-        },
-      },
-      borderRadius: {
-        lg: 'var(--radius)',
-        md: 'calc(var(--radius) - 2px)',
-        sm: 'calc(var(--radius) - 4px)',
-      },
-      keyframes: {
-        'accordion-down': {
-          from: {
-            height: '0',
-          },
-          to: {
-            height: 'var(--radix-accordion-content-height)',
-          },
-        },
-        'accordion-up': {
-          from: {
-            height: 'var(--radix-accordion-content-height)',
-          },
-          to: {
-            height: '0',
-          },
-        },
-        "caret-blink": {
-          "0%,70%,100%": { opacity: "1" },
-          "20%,50%": { opacity: "0" },
-        },
-      },
-      animation: {
-        'accordion-down': 'accordion-down 0.2s ease-out',
-        'accordion-up': 'accordion-up 0.2s ease-out',
-        "caret-blink": "caret-blink 1.25s ease-out infinite",
-      },
-      spacing: {
-        '2.5': '0.625rem',
-      }
-    },
-  },
-  plugins: [require('tailwindcss-animate')],
-} satisfies Config;
-```Of course. I will update the sidebar navigation on the main category pages to make the accordion sections expandable and collapsible. I will also make the "Women's Clothing" and "Men's Clothing" sections open by default for easier access.
-
-Here are the changes for the relevant files:
-
-<changes>
-  <description>Updated the main category sidebars to be collapsible and set the main clothing sections to be open by default. This improves usability and declutters the navigation.</description>
-  <change>
-    <file>src/components/womens-sidebar.tsx</file>
-    <content><![CDATA[
-"use client";
-
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion"
-import Link from "next/link";
-import { cn } from "@/lib/utils";
-
-const sidebarSections = [
-    { 
-        title: "Women's Clothing", 
-        isDefaultOpen: true,
-        links: [
-            "All Women's Clothing", "New Arrivals", "Activewear", "Blazers", "Bras, Underwear & Lingerie", "Coats & Jackets", "Dresses", "Hoodies & Sweatshirts", "Jeans", "Loungewear", "Pajamas & Robes", "Pants & Capris", "Shorts", "Skirts", "Suits & Suit Separates", "Sweaters", "Swimsuits & Cover-Ups", "Tights, Socks, & Hosiery", "Tops",
-        ] 
-    },
-    { title: "Shop By Size Range", links: ["Regular", "Plus", "Petite", "Maternity"] },
-    { title: "Juniors", links: ["Tops", "Dresses", "Jeans", "Activewear"] },
-    { title: "Women's Shoes", links: ["Boots", "Sneakers", "Sandals", "Heels"] },
-    { title: "Handbags & Accessories", links: ["Handbags", "Wallets", "Scarves", "Hats"] },
-    { title: "Jewelry & Watches", links: ["Fine Jewelry", "Fashion Jewelry", "Watches"] },
-    { title: "Beauty", links: ["Skincare", "Makeup", "Fragrance"] },
-    { title: "Women's Brands", links: ["Brand A", "Brand B", "Brand C"] },
-];
-
-export function WomensSidebar() {
-    return (
-        <div className="w-full">
-            <h2 className="text-2xl font-bold mb-4">Women</h2>
-            
-            <Accordion type="multiple" defaultValue={["Women's Clothing"]} className="w-full">
-                {sidebarSections.map(section => (
-                    <AccordionItem value={section.title} key={section.title}>
-                        <AccordionTrigger className="text-base font-semibold">{section.title}</AccordionTrigger>
-                        <AccordionContent>
-                            <div className="flex flex-col space-y-2 pl-2">
-                                {section.links.map(link => {
-                                    const subCategorySlug = link.toLowerCase().replace(/\s+/g, '-').replace(/&/g, '%26');
-                                    return (
-                                        <Link key={link} href={`/women/${subCategorySlug}`} className="text-sm text-muted-foreground hover:text-foreground">
-                                            {link}
-                                        </Link>
-                                    )
-                                })}
-                            </div>
-                        </AccordionContent>
-                    </AccordionItem>
-                ))}
-            </Accordion>
-        </div>
-    );
 }

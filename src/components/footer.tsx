@@ -13,7 +13,7 @@ const defaultFooterContent: FooterContent = {
   description: "Your one-stop shop for live shopping. Discover, engage, and buy in real-time.",
   address: "123 Stream St, Commerce City, IN",
   phone: "(+91) 98765 43210",
-  email: "streamcartcom@gmail.com",
+  email: "support@nipher.in",
   facebook: "https://facebook.com",
   twitter: "https://twitter.com",
   linkedin: "https://linkedin.com",
@@ -99,11 +99,9 @@ export function Footer() {
 
         </div>
         <div className="mt-8 border-t border-border pt-6 text-center text-sm text-muted-foreground">
-          <p>&copy; {new Date().getFullYear()} StreamCart. All Rights Reserved.</p>
+          <p>&copy; {new Date().getFullYear()} Nipher. All Rights Reserved.</p>
         </div>
       </div>
     </footer>
   );
 }
-
-    

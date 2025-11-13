@@ -119,7 +119,7 @@ const InvoiceDialog = ({ transaction }: { transaction: typeof initialTransaction
                     <div className="flex items-center gap-4">
                         <Logo className="h-8 w-auto text-white" />
                         <div>
-                            <h1 className="text-2xl font-bold text-white">StreamCart Wallet</h1>
+                            <h1 className="text-2xl font-bold text-white">Nipher Wallet</h1>
                             <p className="text-sm text-gray-400">Invoice</p>
                         </div>
                     </div>
@@ -204,7 +204,7 @@ const InvoiceDialog = ({ transaction }: { transaction: typeof initialTransaction
 
                 {/* Footer */}
                 <div className="mt-8">
-                    <p className="text-sm text-gray-500">If you have any questions about this invoice, contact support@streamcart.app</p>
+                    <p className="text-sm text-gray-500">If you have any questions about this invoice, contact support@nipher.in</p>
                 </div>
             </div>
              <div className="w-full mx-auto p-6 flex justify-between items-center bg-gray-900 rounded-b-lg no-print">
@@ -335,7 +335,7 @@ export default function WalletPage() {
                              <div className="flex items-center gap-2">
                               <Coins className="h-6 w-6 text-yellow-400" />
                               <div>
-                                  <p className="text-xs text-gray-400">StreamCart Coins</p>
+                                  <p className="text-xs text-gray-400">Nipher Coins</p>
                                   <p className="text-lg font-bold text-white">1,250</p>
                               </div>
                              </div>
@@ -361,10 +361,10 @@ export default function WalletPage() {
                                   </DialogHeader>
                                   <div className="flex flex-col items-center gap-4 py-4">
                                       <div className="bg-white p-4 rounded-lg">
-                                          <Image src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=upi://pay?pa=streamcart@mock" alt="UPI QR Code" width={200} height={200} />
+                                          <Image src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=upi://pay?pa=nipher@mock" alt="UPI QR Code" width={200} height={200} />
                                       </div>
                                       <p className="text-sm text-muted-foreground">or pay to UPI ID:</p>
-                                      <p className="font-semibold">streamcart@mock</p>
+                                      <p className="font-semibold">nipher@mock</p>
                                   </div>
                               </DialogContent>
                           </Dialog>
@@ -507,7 +507,7 @@ export default function WalletPage() {
             <a href="#" className="hover:text-white">Terms</a>
             <a href="#" className="hover:text-white">Support</a>
         </div>
-        <p>© {new Date().getFullYear()} StreamCart. All Rights Reserved.</p>
+        <p>© {new Date().getFullYear()} Nipher. All Rights Reserved.</p>
       </footer>
     </div>
     </Dialog>

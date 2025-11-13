@@ -11,7 +11,7 @@ import { useLocalStorage } from "@/hooks/use-local-storage";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
 
-export const FOOTER_CONTENT_KEY = 'streamcart_footer_content';
+export const FOOTER_CONTENT_KEY = 'nipher_footer_content';
 
 export interface FooterContent {
   description: string;
@@ -28,7 +28,7 @@ const defaultFooterContent: FooterContent = {
   description: "Your one-stop shop for live shopping. Discover, engage, and buy in real-time.",
   address: "123 Stream St, Commerce City, IN",
   phone: "(+91) 98765 43210",
-  email: "streamcartcom@gmail.com",
+  email: "support@nipher.in",
   facebook: "https://facebook.com",
   twitter: "https://twitter.com",
   linkedin: "https://linkedin.com",
@@ -114,4 +114,3 @@ export function FooterContentSettings() {
     </Card>
   );
 }
-

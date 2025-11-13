@@ -1,7 +1,7 @@
 
 'use server';
 /**
- * @fileOverview Chat and conversation management flows for StreamCart.
+ * @fileOverview Chat and conversation management flows for Nipher.
  *
  * - getConversations: Fetches a list of conversations for the current user.
  * - getMessages: Fetches messages for a specific conversation.
