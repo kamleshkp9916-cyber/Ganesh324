@@ -107,7 +107,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
             );
             try {
                 const querySnapshot = await getDocs(q);
-                const users = querySnapshot.docs.map(doc => doc.data() as UserData);
+                const users = querySnapshot.docs.map(doc => ({...doc.data(), uid: doc.id} as UserData));
                 setSearchResults(users);
                 setIsPopoverOpen(users.length > 0);
             } catch (error) {
@@ -123,7 +123,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
     const handleUserSelect = (selectedUser: UserData) => {
         setIsPopoverOpen(false);
         setSearchTerm('');
-        router.push(`/admin/messages?userId=${selectedUser.uid}&userName=${selectedUser.displayName}`);
+        router.push(`/admin/users/${selectedUser.uid}`);
     }
 
     return (
@@ -292,7 +292,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
                                         <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                                         <Input
                                             type="search"
-                                            placeholder="Search users to message..."
+                                            placeholder="Search users..."
                                             className="w-full appearance-none bg-background pl-8 shadow-none md:w-2/3 lg:w-1/3"
                                             value={searchTerm}
                                             onChange={(e) => setSearchTerm(e.target.value)}
