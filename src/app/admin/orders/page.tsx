@@ -466,8 +466,11 @@ export default function AdminOrdersPage() {
                                         {selectedOrder.timeline.map((item, index) => (
                                             <li key={index} className="flex items-start gap-4">
                                                 <div className="flex flex-col items-center">
-                                                    <div className={cn("flex-shrink-0 h-10 w-10 rounded-full flex items-center justify-center bg-muted", item.completed && "bg-primary text-primary-foreground")}>
-                                                        {getStatusIcon(item.status)}
+                                                    <div className={cn(
+                                                        "flex-shrink-0 h-10 w-10 rounded-full flex items-center justify-center", 
+                                                        item.completed ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground border-2"
+                                                    )}>
+                                                        {item.completed ? <CheckCircle2 className="h-5 w-5" /> : getStatusIcon(item.status)}
                                                     </div>
                                                     {index < selectedOrder.timeline.length - 1 && (
                                                         <div className="w-0.5 flex-1 bg-border" />
@@ -490,4 +493,3 @@ export default function AdminOrdersPage() {
     </AdminLayout>
   );
 }
-
