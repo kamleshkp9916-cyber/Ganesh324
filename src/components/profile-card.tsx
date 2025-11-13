@@ -167,8 +167,6 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
         setIsAddressDialogOpen(false);
     }
 
-    const isPublicAdminView = profileData.role === 'admin' && !isOwnProfile;
-
     return (
         <Dialog open={isAddressDialogOpen} onOpenChange={setIsAddressDialogOpen}>
             <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-6 relative p-4 sm:p-6">
@@ -210,7 +208,7 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                 </div>
             </div>
 
-            {!isPublicAdminView && (
+            {profileData.role !== 'admin' && (
                 <div className="px-4 sm:px-6">
                     <Tabs defaultValue="posts" className="w-full">
                         <TabsList className="w-full overflow-x-auto no-scrollbar justify-start">
