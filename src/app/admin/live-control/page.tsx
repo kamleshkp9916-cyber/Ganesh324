@@ -1,4 +1,3 @@
-
 "use client"
 
 import {
@@ -11,12 +10,15 @@ import {
   MoreVertical,
   Search,
   Gavel,
+  AlertTriangle,
+  Clock,
+  Signal,
 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import React, { useState, useEffect, useMemo } from "react"
 import { useToast } from "@/hooks/use-toast"
-import { Badge } from "@/components/ui/badge"
+import { Badge, BadgeProps } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -65,10 +67,20 @@ import { AdminLayout } from "@/components/admin/admin-layout"
 
 
 const mockLiveStreams = [
-    { id: 1, seller: { name: 'FashionFinds', avatarUrl: 'https://placehold.co/40x40.png' }, product: { name: 'Vintage Camera', imageUrl: 'https://placehold.co/80x80.png', hint: 'vintage camera' }, viewers: 1200, streamId: '1', hasAuction: true },
-    { id: 2, seller: { name: 'GadgetGuru', avatarUrl: 'https://placehold.co/40x40.png' }, product: { name: 'Wireless Headphones', imageUrl: 'https://placehold.co/80x80.png', hint: 'headphones' }, viewers: 2500, streamId: '2', hasAuction: false },
-    { id: 3, seller: { name: 'BeautyBox', avatarUrl: 'https://placehold.co/40x40.png' }, product: { name: 'Skincare Set', imageUrl: 'https://placehold.co/80x80.png', hint: 'skincare' }, viewers: 3100, streamId: '4', hasAuction: true },
+    { id: 1, seller: { name: 'FashionFinds', avatarUrl: 'https://placehold.co/40x40.png' }, viewers: 1200, streamId: '1', duration: '00:45:12', bitrateHealth: 'Good', warnings: [] },
+    { id: 2, seller: { name: 'GadgetGuru', avatarUrl: 'https://placehold.co/40x40.png' }, viewers: 2500, streamId: '2', duration: '01:12:30', bitrateHealth: 'Medium', warnings: ['Stream disconnect warning'] },
+    { id: 3, seller: { name: 'BeautyBox', avatarUrl: 'https://placehold.co/40x40.png' }, viewers: 3100, streamId: '4', duration: '00:15:45', bitrateHealth: 'Poor', warnings: ['Chat flood warning', 'Stream disconnect warning'] },
 ];
+
+const getHealthBadgeVariant = (health: string): BadgeProps['variant'] => {
+    switch (health) {
+        case 'Good': return 'success';
+        case 'Medium': return 'warning';
+        case 'Poor': return 'destructive';
+        default: return 'outline';
+    }
+};
+
 
 export default function AdminLiveControlPage() {
   const { user, userData, loading } = useAuth();
@@ -81,14 +93,11 @@ export default function AdminLiveControlPage() {
 
   const filteredStreams = useMemo(() => {
     return liveStreams.filter(stream =>
-      stream.seller.name.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
-      stream.product.name.toLowerCase().includes(debouncedSearchTerm.toLowerCase())
+      stream.seller.name.toLowerCase().includes(debouncedSearchTerm.toLowerCase())
     );
   }, [liveStreams, debouncedSearchTerm]);
 
   const handleMonitorStream = (streamId: string) => {
-    // In a real app, this would join the stream with admin privileges.
-    // For this demo, we'll just navigate to the stream page.
     router.push(`/stream/${streamId}`);
     toast({
       title: "Monitoring Stream",
@@ -116,8 +125,8 @@ export default function AdminLiveControlPage() {
                 <CardHeader>
                     <div className="flex items-center justify-between">
                         <div>
-                            <CardTitle>Live Stream Control</CardTitle>
-                            <CardDescription>Monitor and manage all ongoing live streams.</CardDescription>
+                            <CardTitle>Realtime Live Stream Monitor</CardTitle>
+                            <CardDescription>Monitor and manage all ongoing live sessions.</CardDescription>
                         </div>
                         <div className="relative">
                             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -136,8 +145,10 @@ export default function AdminLiveControlPage() {
                         <TableHeader>
                             <TableRow>
                                 <TableHead>Seller</TableHead>
-                                <TableHead className="hidden sm:table-cell">Product</TableHead>
                                 <TableHead className="text-center">Viewers</TableHead>
+                                <TableHead>Duration</TableHead>
+                                <TableHead>Bitrate Health</TableHead>
+                                <TableHead>Active Alerts</TableHead>
                                 <TableHead><span className="sr-only">Actions</span></TableHead>
                             </TableRow>
                         </TableHeader>
@@ -146,9 +157,6 @@ export default function AdminLiveControlPage() {
                                 <TableRow key={stream.id}>
                                     <TableCell>
                                         <Link href={`/stream/${stream.streamId}`} className="flex items-center gap-3 group">
-                                            <div className="w-10 h-10 bg-muted rounded-md flex items-center justify-center">
-                                                <Video className="h-5 w-5 text-muted-foreground" />
-                                            </div>
                                             <Avatar>
                                                 <AvatarImage src={stream.seller.avatarUrl} />
                                                 <AvatarFallback>{stream.seller.name.charAt(0)}</AvatarFallback>
@@ -158,17 +166,33 @@ export default function AdminLiveControlPage() {
                                             </div>
                                         </Link>
                                     </TableCell>
-                                    <TableCell className="hidden sm:table-cell">
-                                        <Link href={`/stream/${stream.streamId}`} className="flex items-center gap-3 group">
-                                            <Image src={stream.product.imageUrl} alt={stream.product.name} width={40} height={40} className="rounded-md" data-ai-hint={stream.product.hint} />
-                                            <span className="group-hover:underline">{stream.product.name}</span>
-                                        </Link>
-                                    </TableCell>
                                     <TableCell className="text-center">
                                         <Badge variant="secondary" className="gap-1.5">
                                             <Users className="h-3 w-3"/>
                                             {stream.viewers}
                                         </Badge>
+                                    </TableCell>
+                                    <TableCell>
+                                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                            <Clock className="h-4 w-4" />
+                                            {stream.duration}
+                                        </div>
+                                    </TableCell>
+                                    <TableCell>
+                                        <Badge variant={getHealthBadgeVariant(stream.bitrateHealth)}>
+                                            <Signal className="mr-1 h-3 w-3" />
+                                            {stream.bitrateHealth}
+                                        </Badge>
+                                    </TableCell>
+                                    <TableCell>
+                                        <div className="flex flex-col gap-1">
+                                            {stream.warnings.map((warning, index) => (
+                                                <Badge key={index} variant="destructive" className="gap-1.5 text-xs">
+                                                    <AlertTriangle className="h-3 w-3" />
+                                                    {warning}
+                                                </Badge>
+                                            ))}
+                                        </div>
                                     </TableCell>
                                     <TableCell className="text-right">
                                         <DropdownMenu>
@@ -205,7 +229,7 @@ export default function AdminLiveControlPage() {
                                 </TableRow>
                             )) : (
                                 <TableRow>
-                                    <TableCell colSpan={4} className="h-24 text-center">No live streams found.</TableCell>
+                                    <TableCell colSpan={6} className="h-24 text-center">No active live streams found.</TableCell>
                                 </TableRow>
                             )}
                         </TableBody>
