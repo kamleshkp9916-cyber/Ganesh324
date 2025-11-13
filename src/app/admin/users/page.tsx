@@ -53,6 +53,16 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+  DialogClose,
+} from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import {
@@ -69,16 +79,6 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs"
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogHeader,
-    DialogTitle,
-    DialogTrigger,
-    DialogFooter,
-    DialogClose,
-} from "@/components/ui/dialog"
 import { useAuth } from "@/hooks/use-auth"
 import { LoadingSpinner } from "@/components/ui/loading-spinner"
 import { useAuthActions } from "@/lib/auth";
@@ -94,6 +94,7 @@ import { AdminLayout } from "@/components/admin/admin-layout";
 import { PAYOUT_REQUESTS_KEY } from "@/app/admin/settings/page";
 import { useLocalStorage } from "@/hooks/use-local-storage";
 import { Separator } from "@/components/ui/separator";
+
 
 const mockPayments = [
     { orderId: "#ORD5896", customer: { name: "Ganesh Prajapati" }, amount: 12500.00, status: 'holding' },
@@ -115,7 +116,7 @@ const PayoutSummaryDialog = ({ payout, onConfirm, onCancel }: { payout: any, onC
             <DialogHeader>
                 <DialogTitle>Confirm Payout for {payout.sellerName}</DialogTitle>
                 <DialogDescription>
-                    Review the fund sources and confirm the total payout amount. Fees have already been deducted at the time of transaction.
+                    Review the breakdown of available funds and confirm the total payout amount. Fees have already been deducted at the time of each transaction.
                 </DialogDescription>
             </DialogHeader>
             <div className="py-4 space-y-4">
@@ -144,7 +145,7 @@ const PayoutSummaryDialog = ({ payout, onConfirm, onCancel }: { payout: any, onC
             </div>
             <DialogFooter>
                 <Button variant="ghost" onClick={onCancel}>Cancel</Button>
-                <Button onClick={onConfirm}>Confirm & Pay</Button>
+                <Button onClick={onConfirm}>Confirm &amp; Pay</Button>
             </DialogFooter>
         </DialogContent>
     );
@@ -443,8 +444,8 @@ export default function AdminUsersPage() {
               <TabsContent value="payments">
                 <Card>
                     <CardHeader className="px-7">
-                        <CardTitle>Payments</CardTitle>
-                        <CardDescription>View all "on-hold", "released", and "refunded" payments.</CardDescription>
+                        <CardTitle>Order Payments</CardTitle>
+                        <CardDescription>View the status of funds from customer orders.</CardDescription>
                     </CardHeader>
                     <CardContent>
                         <Table>
@@ -457,12 +458,13 @@ export default function AdminUsersPage() {
                                         <TableCell>₹{p.amount.toFixed(2)}</TableCell>
                                         <TableCell><Badge variant={p.status === 'holding' ? 'warning' : p.status === 'released' ? 'success' : 'destructive'}>{p.status}</Badge></TableCell>
                                         <TableCell>
-                                            {p.status === 'holding' && <Button variant="secondary" size="sm">Release Payment</Button>}
+                                            {p.status === 'holding' && <Button variant="secondary" size="sm" disabled>Release Funds</Button>}
                                         </TableCell>
                                     </TableRow>
                                 ))}
                             </TableBody>
                         </Table>
+                         <p className="text-xs text-muted-foreground mt-4">Funds are automatically released to a seller's withdrawable balance 7 days after an order is successfully delivered.</p>
                     </CardContent>
                 </Card>
              </TabsContent>
@@ -504,3 +506,5 @@ export default function AdminUsersPage() {
     </>
   )
 }
+
+    

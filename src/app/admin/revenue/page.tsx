@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useMemo } from 'react';
@@ -174,7 +175,7 @@ export default function AdminRevenuePage() {
                                     </CardHeader>
                                     <CardContent>
                                         <div className="text-2xl font-bold">₹{totalRevenueData.promotions.toLocaleString()}</div>
-                                        <p className="text-xs text-muted-foreground">From sponsored products & banners</p>
+                                        <p className="text-xs text-muted-foreground">From sponsored products &amp; banners</p>
                                     </CardContent>
                                 </Card>
                             </button>
@@ -256,3 +257,5 @@ export default function AdminRevenuePage() {
     </AdminLayout>
   );
 }
+
+    
