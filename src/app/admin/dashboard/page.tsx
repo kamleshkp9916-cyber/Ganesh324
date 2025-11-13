@@ -386,7 +386,13 @@ export default function AdminDashboard() {
             <MetricCard title="Users Registered Today" value="18" description="Shows new user onboarding speed" icon={Users} />
             <MetricCard title="Active Live Streams" value="23" description="How many sellers are currently live" icon={RadioTower} />
             <MetricCard title="Peak Live Viewers Today" value="8,432" description="Shows traffic & engagement peak" icon={Activity} />
-            <MetricCard title="Products Sold Today" value="512" description="Useful to track busiest product categories" icon={Package} />
+            <MetricCard 
+                title="Products Listed" 
+                value="1,245" 
+                description="Total active products on platform" 
+                icon={Package}
+                onClick={() => router.push('/admin/products')}
+            />
             <MetricCard 
                 title="Failed Transactions Today" 
                 value="12" 
@@ -488,3 +494,5 @@ export default function AdminDashboard() {
     </AdminLayout>
   )
 }
+
+    
