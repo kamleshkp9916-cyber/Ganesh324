@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useMemo, useState, useEffect, useCallback, useRef } from "react";
@@ -20,6 +21,62 @@ import { getFirestore, collection, query, where, getDocs, updateDoc, doc } from 
 import { getFirestoreDb } from "@/lib/firebase";
 import { AdminLayout } from "@/components/admin/admin-layout";
 
+const mockApplications: UserData[] = [
+    {
+        uid: 'mock-seller-1',
+        displayName: 'Retro Finds',
+        legalName: 'Retro Finds Co.',
+        email: 'retro@example.com',
+        phone: '+91 9876543210',
+        about: 'Selling unique vintage items from the 70s and 80s.',
+        photoURL: 'https://placehold.co/128x128.png?text=R',
+        bizType: 'Sole Proprietor',
+        regNo: 'U123456789',
+        gstin: '27ABCDE1234F1Z5',
+        addresses: [{ id: 1, type: 'registered', line1: '123 Vintage Lane', city: 'Mumbai', state: 'Maharashtra', pin: '400001' }],
+        pan: 'ABCDE1234F',
+        ifsc: 'HDFC0000001',
+        accountNo: '123456789012',
+        accountName: 'Retro Finds Co.',
+        isNipherVerified: true,
+        termsAccepted: true,
+        verificationStatus: 'pending',
+        role: 'seller',
+        followers: 120,
+        following: 30,
+        bio: 'Vintage collectibles and more.',
+        location: 'Mumbai, India',
+        color: '#ffffff'
+    },
+    {
+        uid: 'mock-seller-2',
+        displayName: 'Artisan Crafts',
+        legalName: 'Artisan Crafts LLP',
+        email: 'artisan@example.com',
+        phone: '+91 9876543211',
+        about: 'Handmade crafts and home decor items.',
+        photoURL: 'https://placehold.co/128x128.png?text=A',
+        bizType: 'Partnership',
+        regNo: 'LLP98765',
+        gstin: '29HIJKL5678G1Z9',
+        addresses: [{ id: 1, type: 'registered', line1: '456 Craft Avenue', city: 'Bengaluru', state: 'Karnataka', pin: '560001' }],
+        pan: 'GHIJK5678L',
+        ifsc: 'ICIC0000002',
+        accountNo: '987654321098',
+        accountName: 'Artisan Crafts LLP',
+        isNipherVerified: false,
+        termsAccepted: true,
+        verificationStatus: 'pending',
+        role: 'seller',
+        followers: 450,
+        following: 80,
+        bio: 'Unique handmade goods.',
+        location: 'Bengaluru, India',
+        color: '#ffffff'
+    },
+];
+
+
 const steps = [
   { key: "basic", label: "Basic Info", icon: <User2 className="w-5 h-5"/> },
   { key: "biz", label: "Business", icon: <Building2 className="w-5 h-5"/> },
@@ -40,21 +97,10 @@ function AdminPanel() {
 
   const fetchApplications = useCallback(async () => {
     setIsLoading(true);
-    const db = getFirestoreDb();
-    const usersRef = collection(db, "users");
-    const q = query(usersRef, where("role", "==", "seller"), where("verificationStatus", "==", "pending"));
-    
-    try {
-        const querySnapshot = await getDocs(q);
-        const pendingApps = querySnapshot.docs.map(doc => doc.data() as UserData);
-        setApplications(pendingApps);
-    } catch (error) {
-        console.error("Error fetching pending applications:", error);
-        toast({ variant: 'destructive', title: "Error", description: "Could not fetch applications." });
-    } finally {
-        setIsLoading(false);
-    }
-  }, [toast]);
+    // Use mock data for now
+    setApplications(mockApplications);
+    setIsLoading(false);
+  }, []);
   
   useEffect(() => {
     fetchApplications();
@@ -269,7 +315,7 @@ export default function AdminKycPage() {
     const router = useRouter();
 
     if (loading) {
-        return <div className="flex items-center justify-center min-h-screen"><LoadingSpinner /></div>
+        return <AdminLayout><div className="flex items-center justify-center flex-1 p-8"><LoadingSpinner /></div></AdminLayout>
     }
 
     if (!user || userData?.role !== 'admin') {
