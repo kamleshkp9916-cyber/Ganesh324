@@ -1,4 +1,3 @@
-
 "use client"
 
 import React, { useState, useMemo, useEffect } from 'react';
@@ -8,12 +7,16 @@ import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuRadioGroup, DropdownMenuRadioItem } from "@/components/ui/dropdown-menu";
-import { File, ListFilter, Search } from "lucide-react";
+import { File, ListFilter, Search, Calendar as CalendarIcon } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useDebounce } from "@/hooks/use-debounce";
 import { getTransactions, Transaction } from '@/lib/transaction-history';
 import { useToast } from '@/hooks/use-toast';
-import { format, parseISO } from 'date-fns';
+import { format, parseISO, isWithinInterval, addDays } from 'date-fns';
+import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
+import { DateRange } from 'react-day-picker';
+import { cn } from '@/lib/utils';
 
 export default function AdminTransactionsPage() {
     const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -23,6 +26,7 @@ export default function AdminTransactionsPage() {
     const [searchTerm, setSearchTerm] = useState("");
     const debouncedSearchTerm = useDebounce(searchTerm, 300);
     const { toast } = useToast();
+    const [date, setDate] = React.useState<DateRange | undefined>(undefined);
 
     useEffect(() => {
         setIsClient(true);
@@ -39,6 +43,13 @@ export default function AdminTransactionsPage() {
             tempTransactions = tempTransactions.filter(t => t.type === typeFilter);
         }
 
+        if (date?.from && date?.to) {
+            tempTransactions = tempTransactions.filter(t => {
+                const transactionDate = parseISO(t.date);
+                return isWithinInterval(transactionDate, { start: date.from!, end: date.to! });
+            });
+        }
+
         if (debouncedSearchTerm) {
             const lowercasedQuery = debouncedSearchTerm.toLowerCase();
             tempTransactions = tempTransactions.filter(t =>
@@ -48,7 +59,7 @@ export default function AdminTransactionsPage() {
         }
         
         return tempTransactions;
-    }, [transactions, statusFilter, typeFilter, debouncedSearchTerm]);
+    }, [transactions, statusFilter, typeFilter, debouncedSearchTerm, date]);
     
     const handleExportCSV = () => {
         if (filteredTransactions.length === 0) {
@@ -90,6 +101,43 @@ export default function AdminTransactionsPage() {
                                 <CardDescription>A complete log of all financial transactions across the platform.</CardDescription>
                             </div>
                             <div className="flex items-center gap-2">
+                                 <Popover>
+                                    <PopoverTrigger asChild>
+                                      <Button
+                                        id="date"
+                                        variant={"outline"}
+                                        size="sm"
+                                        className={cn(
+                                          "h-8 gap-1 w-[240px] justify-start text-left font-normal",
+                                          !date && "text-muted-foreground"
+                                        )}
+                                      >
+                                        <CalendarIcon className="mr-2 h-3.5 w-3.5" />
+                                        {date?.from ? (
+                                          date.to ? (
+                                            <>
+                                              {format(date.from, "LLL dd, y")} -{" "}
+                                              {format(date.to, "LLL dd, y")}
+                                            </>
+                                          ) : (
+                                            format(date.from, "LLL dd, y")
+                                          )
+                                        ) : (
+                                          <span>Pick a date</span>
+                                        )}
+                                      </Button>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-auto p-0" align="end">
+                                      <Calendar
+                                        initialFocus
+                                        mode="range"
+                                        defaultMonth={date?.from}
+                                        selected={date}
+                                        onSelect={setDate}
+                                        numberOfMonths={2}
+                                      />
+                                    </PopoverContent>
+                                  </Popover>
                                 <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
                                         <Button variant="outline" size="sm" className="h-8 gap-1">
