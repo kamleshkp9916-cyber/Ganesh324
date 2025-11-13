@@ -56,6 +56,7 @@ import { AdminLayout } from '@/components/admin/admin-layout';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { ref as storageRef, uploadString, getDownloadURL, deleteObject } from 'firebase/storage';
 import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 
 function FeedPostSkeleton() {
@@ -254,6 +255,7 @@ export default function AdminFeedPage() {
   const [isFormSubmitting, setIsFormSubmitting] = useState(false);
   const [postToEdit, setPostToEdit] = useState<any | null>(null);
   const [savedPosts, setSavedPosts] = useState<any[]>([]);
+  const [feedTab, setFeedTab] = useState("for-you");
 
   useEffect(() => {
     if (!loading && userData?.role !== 'admin') {
@@ -422,7 +424,13 @@ export default function AdminFeedPage() {
         <div className="p-4 border-b flex flex-col gap-4 sticky top-0 bg-background z-10">
           <div className="flex items-center gap-4">
             <h1 className="text-xl font-bold">Global Feed</h1>
-             <div className="relative">
+             <Tabs defaultValue="for-you" value={feedTab} onValueChange={setFeedTab} className="w-auto">
+                <TabsList>
+                    <TabsTrigger value="for-you">For You</TabsTrigger>
+                    <TabsTrigger value="following">Following</TabsTrigger>
+                </TabsList>
+             </Tabs>
+             <div className="relative ml-auto">
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
                 placeholder="Search posts or users..."
@@ -471,3 +479,4 @@ export default function AdminFeedPage() {
   );
 }
 
+    
