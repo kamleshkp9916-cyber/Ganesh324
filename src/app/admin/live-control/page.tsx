@@ -89,6 +89,15 @@ const getHealthBadgeVariant = (health: string): BadgeProps['variant'] => {
     }
 };
 
+const categories = {
+    "All": [],
+    "Women": ["Dresses", "Tops", "Jeans"],
+    "Electronics": ["Smartphones", "Laptops", "Audio"],
+    "Beauty": ["Skincare", "Makeup"],
+    "Home": ["Decor", "Kitchen"]
+};
+
+type Category = keyof typeof categories;
 
 export default function AdminLiveControlPage() {
   const { user, userData, loading } = useAuth();
@@ -98,17 +107,22 @@ export default function AdminLiveControlPage() {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
-  const [categoryFilter, setCategoryFilter] = useState<string>("All");
-
-  const availableCategories = useMemo(() => ["All", ...new Set(mockLiveStreams.map(s => s.category))], []);
+  const [categoryFilter, setCategoryFilter] = useState<Category>("All");
+  const [subcategoryFilter, setSubcategoryFilter] = useState<string>("All");
 
   const filteredStreams = useMemo(() => {
     return liveStreams.filter(stream => {
       const searchMatch = stream.seller.name.toLowerCase().includes(debouncedSearchTerm.toLowerCase());
       const categoryMatch = categoryFilter === "All" || stream.category === categoryFilter;
-      return searchMatch && categoryMatch;
+      const subcategoryMatch = subcategoryFilter === "All" || stream.subcategory === subcategoryFilter;
+      return searchMatch && categoryMatch && subcategoryMatch;
     });
-  }, [liveStreams, debouncedSearchTerm, categoryFilter]);
+  }, [liveStreams, debouncedSearchTerm, categoryFilter, subcategoryFilter]);
+  
+  useEffect(() => {
+    setSubcategoryFilter("All");
+  }, [categoryFilter]);
+
 
   const handleMonitorStream = (streamId: string) => {
     router.push(`/stream/${streamId}`);
@@ -141,28 +155,49 @@ export default function AdminLiveControlPage() {
                             <CardTitle>Realtime Live Stream Monitor</CardTitle>
                             <CardDescription>Monitor and manage all ongoing live sessions.</CardDescription>
                         </div>
-                        <div className="relative">
-                            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                            <Input
-                            type="search"
-                            placeholder="Search by seller name..."
-                            className="pl-8 sm:w-[300px] md:w-[200px] lg:w-[300px]"
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            />
+                        <div className="flex items-center gap-2">
+                             <div className="relative">
+                                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                                <Input
+                                type="search"
+                                placeholder="Search by seller name..."
+                                className="pl-8 sm:w-[300px] md:w-[200px] lg:w-[300px]"
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                />
+                            </div>
+                             <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button variant="outline">
+                                        <ListFilter className="h-4 w-4 mr-2" />
+                                        Filter
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                    <DropdownMenuLabel>Filter by Category</DropdownMenuLabel>
+                                    <DropdownMenuSeparator />
+                                    {Object.keys(categories).map(cat => (
+                                        <DropdownMenuSub key={cat}>
+                                            <DropdownMenuSubTrigger
+                                                onSelect={(e) => {
+                                                    e.preventDefault();
+                                                    setCategoryFilter(cat as Category);
+                                                }}
+                                            >{cat}</DropdownMenuSubTrigger>
+                                            {categories[cat as Category].length > 0 && (
+                                                <DropdownMenuSubContent>
+                                                    <DropdownMenuItem onSelect={() => setSubcategoryFilter("All")}>All {cat}</DropdownMenuItem>
+                                                    <DropdownMenuSeparator />
+                                                    {categories[cat as Category].map(subcat => (
+                                                         <DropdownMenuItem key={subcat} onSelect={() => setSubcategoryFilter(subcat)}>{subcat}</DropdownMenuItem>
+                                                    ))}
+                                                </DropdownMenuSubContent>
+                                            )}
+                                        </DropdownMenuSub>
+                                    ))}
+                                </DropdownMenuContent>
+                            </DropdownMenu>
                         </div>
-                    </div>
-                     <div className="flex flex-wrap gap-2 pt-4">
-                        {availableCategories.map(category => (
-                            <Button 
-                                key={category} 
-                                variant={categoryFilter === category ? "default" : "outline"}
-                                size="sm"
-                                onClick={() => setCategoryFilter(category)}
-                            >
-                                {category}
-                            </Button>
-                        ))}
                     </div>
                 </CardHeader>
                 <CardContent>
@@ -271,3 +306,5 @@ export default function AdminLiveControlPage() {
     </AdminLayout>
   )
 }
+
+    
