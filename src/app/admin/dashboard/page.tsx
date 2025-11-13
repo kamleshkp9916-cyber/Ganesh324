@@ -394,6 +394,14 @@ export default function AdminDashboard() {
                 onClick={() => router.push('/admin/products')}
             />
             <MetricCard 
+                title="Payout Requests" 
+                value="4" 
+                description="Pending seller payout requests" 
+                icon={BadgeCent}
+                onClick={() => router.push('/admin/users?tab=payouts')}
+                className="border-blue-500/50 hover:bg-blue-500/10"
+            />
+            <MetricCard 
                 title="Failed Transactions Today" 
                 value="12" 
                 description="Click to see failure reasons" 
@@ -494,7 +502,3 @@ export default function AdminDashboard() {
     </AdminLayout>
   )
 }
-
-    
-
-    
