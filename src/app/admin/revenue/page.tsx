@@ -3,8 +3,6 @@
 
 import React, { useState, useMemo } from 'react';
 import {
-  AreaChart,
-  Area,
   Bar,
   BarChart,
   CartesianGrid,
@@ -13,6 +11,9 @@ import {
   Tooltip,
   XAxis,
   YAxis,
+  ComposedChart,
+  Area,
+  Line,
 } from "recharts"
 import {
   Card,
@@ -33,11 +34,14 @@ import {
   Ticket,
   Truck,
   ArrowLeft,
+  Calendar,
+  Undo2,
 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import Link from "next/link"
 import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 type ViewType = 'dashboard' | 'total' | 'platform-fees' | 'super-chat' | 'promotions' | 'shipping-fees';
 
@@ -49,13 +53,30 @@ const totalRevenueData = {
   promotions: 15000.00,
 };
 
+const dailyData = [
+  { day: 'Mon', totalRevenue: 12000, refunds: 1200, netRevenue: 10800, sellerShare: 8000, platformEarnings: 2800 },
+  { day: 'Tue', totalRevenue: 15000, refunds: 800, netRevenue: 14200, sellerShare: 11000, platformEarnings: 3200 },
+  { day: 'Wed', totalRevenue: 18000, refunds: 2000, netRevenue: 16000, sellerShare: 12000, platformEarnings: 4000 },
+  { day: 'Thu', totalRevenue: 13000, refunds: 500, netRevenue: 12500, sellerShare: 9500, platformEarnings: 3000 },
+  { day: 'Fri', totalRevenue: 22000, refunds: 1500, netRevenue: 20500, sellerShare: 16000, platformEarnings: 4500 },
+  { day: 'Sat', totalRevenue: 30000, refunds: 2500, netRevenue: 27500, sellerShare: 21000, platformEarnings: 6500 },
+  { day: 'Sun', totalRevenue: 28000, refunds: 1800, netRevenue: 26200, sellerShare: 20000, platformEarnings: 6200 },
+];
+
+const weeklyData = [
+    { week: 'W1', totalRevenue: 85000, refunds: 7000, netRevenue: 78000, sellerShare: 60000, platformEarnings: 18000 },
+    { week: 'W2', totalRevenue: 92000, refunds: 8000, netRevenue: 84000, sellerShare: 65000, platformEarnings: 19000 },
+    { week: 'W3', totalRevenue: 78000, refunds: 5000, netRevenue: 73000, sellerShare: 55000, platformEarnings: 18000 },
+    { week: 'W4', totalRevenue: 110000, refunds: 10000, netRevenue: 100000, sellerShare: 78000, platformEarnings: 22000 },
+];
+
 const monthlyData = [
-    { month: 'Jan', revenue: 4000 },
-    { month: 'Feb', revenue: 3000 },
-    { month: 'Mar', revenue: 5000 },
-    { month: 'Apr', revenue: 4500 },
-    { month: 'May', revenue: 6000 },
-    { month: 'Jun', revenue: 5500 },
+    { month: 'Jan', totalRevenue: 400000, refunds: 30000, netRevenue: 370000, sellerShare: 280000, platformEarnings: 90000 },
+    { month: 'Feb', totalRevenue: 380000, refunds: 25000, netRevenue: 355000, sellerShare: 270000, platformEarnings: 85000 },
+    { month: 'Mar', totalRevenue: 520000, refunds: 40000, netRevenue: 480000, sellerShare: 360000, platformEarnings: 120000 },
+    { month: 'Apr', totalRevenue: 480000, refunds: 35000, netRevenue: 445000, sellerShare: 330000, platformEarnings: 115000 },
+    { month: 'May', totalRevenue: 610000, refunds: 50000, netRevenue: 560000, sellerShare: 420000, platformEarnings: 140000 },
+    { month: 'Jun', totalRevenue: 580000, refunds: 45000, netRevenue: 535000, sellerShare: 400000, platformEarnings: 135000 },
 ];
 
 const recentTransactions = [
@@ -64,6 +85,7 @@ const recentTransactions = [
     { id: '#SHIP-003', type: 'Shipping Fee', amount: 50.00, from: 'Order', date: '2024-07-28' },
     { id: '#PROMO-002', type: 'Promotion', amount: 1500.00, from: 'Sponsored Product', date: '2024-07-28' },
     { id: '#ORD-002', type: 'Platform Fee', amount: 210.50, from: 'SellerOrder', date: '2024-07-27' },
+    { id: '#RFND-001', type: 'Refund', amount: -1200.00, from: 'Order #ORD-001', date: '2024-07-29' },
 ];
 
 const DetailView = ({ title, description, data, onBack }: { title: string, description: string, data: any[], onBack: () => void }) => (
@@ -97,7 +119,8 @@ const DetailView = ({ title, description, data, onBack }: { title: string, descr
                             <TableCell>
                                 <Badge variant={
                                     tx.type === 'Platform Fee' ? 'secondary' :
-                                    tx.type === 'Super Chat' ? 'purple' : 'outline'
+                                    tx.type === 'Super Chat' ? 'purple' : 
+                                    tx.type === 'Refund' ? 'destructive' : 'outline'
                                 }>{tx.type}</Badge>
                             </TableCell>
                             <TableCell>{tx.from}</TableCell>
@@ -111,8 +134,31 @@ const DetailView = ({ title, description, data, onBack }: { title: string, descr
     </Card>
 );
 
+const RevenueChart = ({ data, timeUnit, activeChart }: { data: any[], timeUnit: string, activeChart: string }) => {
+    return (
+        <ResponsiveContainer width="100%" height={350}>
+            <ComposedChart data={data}>
+                <CartesianGrid strokeDasharray="3 3" opacity={0.5} />
+                <XAxis dataKey={timeUnit} stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
+                <YAxis stroke="#888888" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `₹${value / 1000}k`} />
+                <Tooltip
+                    contentStyle={{ backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))' }}
+                    formatter={(value: number) => `₹${value.toLocaleString()}`}
+                />
+                <Legend />
+                <Bar dataKey="sellerShare" name="Seller Share" stackId="a" fill="hsl(var(--chart-1))" />
+                <Bar dataKey="platformEarnings" name="Platform Earnings" stackId="a" fill="hsl(var(--chart-2))" />
+                <Bar dataKey="refunds" name="Refunds" stackId="b" fill="hsl(var(--destructive))" />
+                <Line type="monotone" dataKey="totalRevenue" name="Total Revenue" stroke="hsl(var(--primary))" strokeWidth={2} dot={false} />
+                <Line type="monotone" dataKey="netRevenue" name="Net Revenue" stroke="hsl(var(--success))" strokeWidth={2} dot={false} />
+            </ComposedChart>
+        </ResponsiveContainer>
+    )
+}
+
 export default function AdminRevenuePage() {
     const [view, setView] = useState<ViewType>('dashboard');
+    const [activeTrend, setActiveTrend] = useState<'daily' | 'weekly' | 'monthly'>('monthly');
 
     const renderContent = () => {
         switch(view) {
@@ -128,9 +174,15 @@ export default function AdminRevenuePage() {
                  return <DetailView title="Total Revenue" description="A complete breakdown of all revenue streams." data={recentTransactions} onBack={() => setView('dashboard')} />;
             case 'dashboard':
             default:
+                const trendData = {
+                    daily: { data: dailyData, unit: 'day' },
+                    weekly: { data: weeklyData, unit: 'week' },
+                    monthly: { data: monthlyData, unit: 'month' },
+                };
+                
                 return (
                     <>
-                        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
                             <button onClick={() => setView('total')} className="w-full text-left">
                                 <Card className="hover:bg-muted/50 transition-colors">
                                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -192,58 +244,62 @@ export default function AdminRevenuePage() {
                                 </Card>
                             </button>
                         </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <Card>
-                                <CardHeader>
-                                    <CardTitle>Revenue Breakdown</CardTitle>
-                                    <CardDescription>Last 6 months</CardDescription>
-                                </CardHeader>
-                                <CardContent>
-                                    <ResponsiveContainer width="100%" height={300}>
-                                        <BarChart data={monthlyData}>
-                                            <XAxis dataKey="month" stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
-                                            <YAxis stroke="#888888" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `₹${value / 1000}k`} />
-                                            <Tooltip formatter={(value: number) => `₹${value.toLocaleString()}`} />
-                                            <Bar dataKey="revenue" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
-                                        </BarChart>
-                                    </ResponsiveContainer>
-                                </CardContent>
-                            </Card>
-                             <Card>
-                                <CardHeader>
-                                    <CardTitle>Recent Revenue Transactions</CardTitle>
-                                    <CardDescription>A log of recent income-generating activities.</CardDescription>
-                                </CardHeader>
-                                <CardContent>
-                                    <Table>
-                                        <TableHeader>
-                                            <TableRow>
-                                                <TableHead>Transaction ID</TableHead>
-                                                <TableHead>Type</TableHead>
-                                                <TableHead>Source</TableHead>
-                                                <TableHead className="text-right">Amount</TableHead>
+                        <Card>
+                            <CardHeader>
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <CardTitle>Revenue Trends</CardTitle>
+                                        <CardDescription>
+                                            A detailed look at your platform's financial performance.
+                                        </CardDescription>
+                                    </div>
+                                     <Tabs defaultValue="monthly" onValueChange={(value) => setActiveTrend(value as any)} className="w-auto">
+                                        <TabsList>
+                                            <TabsTrigger value="daily">Daily</TabsTrigger>
+                                            <TabsTrigger value="weekly">Weekly</TabsTrigger>
+                                            <TabsTrigger value="monthly">Monthly</TabsTrigger>
+                                        </TabsList>
+                                    </Tabs>
+                                </div>
+                            </CardHeader>
+                            <CardContent>
+                                <RevenueChart data={trendData[activeTrend].data} timeUnit={trendData[activeTrend].unit} activeChart={'revenue'} />
+                            </CardContent>
+                        </Card>
+                         <Card>
+                            <CardHeader>
+                                <CardTitle>Recent Revenue Transactions</CardTitle>
+                                <CardDescription>A log of recent income-generating activities.</CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead>Transaction ID</TableHead>
+                                            <TableHead>Type</TableHead>
+                                            <TableHead>Source</TableHead>
+                                            <TableHead className="text-right">Amount</TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {recentTransactions.map(tx => (
+                                            <TableRow key={tx.id}>
+                                                <TableCell className="font-mono text-xs">{tx.id}</TableCell>
+                                                <TableCell>
+                                                    <Badge variant={
+                                                        tx.type === 'Platform Fee' ? 'secondary' :
+                                                        tx.type === 'Super Chat' ? 'purple' : 
+                                                        tx.type === 'Refund' ? 'destructive' : 'outline'
+                                                    }>{tx.type}</Badge>
+                                                </TableCell>
+                                                <TableCell>{tx.from}</TableCell>
+                                                <TableCell className="text-right font-medium">₹{tx.amount.toFixed(2)}</TableCell>
                                             </TableRow>
-                                        </TableHeader>
-                                        <TableBody>
-                                            {recentTransactions.map(tx => (
-                                                <TableRow key={tx.id}>
-                                                    <TableCell className="font-mono text-xs">{tx.id}</TableCell>
-                                                    <TableCell>
-                                                        <Badge variant={
-                                                            tx.type === 'Platform Fee' ? 'secondary' :
-                                                            tx.type === 'Super Chat' ? 'purple' : 'outline'
-                                                        }>{tx.type}</Badge>
-                                                    </TableCell>
-                                                    <TableCell>{tx.from}</TableCell>
-                                                    <TableCell className="text-right font-medium">₹{tx.amount.toFixed(2)}</TableCell>
-                                                </TableRow>
-                                            ))}
-                                        </TableBody>
-                                    </Table>
-                                </CardContent>
-                            </Card>
-                        </div>
+                                        ))}
+                                    </TableBody>
+                                </Table>
+                            </CardContent>
+                        </Card>
                     </>
                 );
         }
