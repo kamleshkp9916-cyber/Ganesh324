@@ -22,7 +22,7 @@ import {
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import React, { useState, useEffect, useMemo } from "react"
-import { getFirestore, collection, query, getDocs, orderBy } from "firebase/firestore"
+import { getFirestore, collection, query, getDocs, orderBy, where } from "firebase/firestore"
 import { getFirestoreDb } from "@/lib/firebase"
 
 import { Badge, BadgeProps } from "@/components/ui/badge"
@@ -45,7 +45,9 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSub,
   DropdownMenuSubTrigger,
-  DropdownMenuSubContent
+  DropdownMenuSubContent,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem
 } from "@/components/ui/dropdown-menu"
 import {
   Pagination,
@@ -160,13 +162,15 @@ export default function AdminOrdersPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
   const { toast } = useToast();
+  const [statusFilter, setStatusFilter] = useState("All");
+  const [typeFilter, setTypeFilter] = useState("All");
 
   const fetchOrders = async () => {
     if (!loading && userData?.role === 'admin') {
         setIsLoading(true);
         const db = getFirestoreDb();
         const ordersRef = collection(db, "orders");
-        const q = query(ordersRef, orderBy("orderDate", "desc"));
+        let q = query(ordersRef, orderBy("orderDate", "desc"));
         
         try {
             const querySnapshot = await getDocs(q);
@@ -174,7 +178,6 @@ export default function AdminOrdersPage() {
                 ...doc.data(),
                 orderId: doc.id
             } as Order));
-            // Combine fetched orders with mock orders
             setOrders([...fetchedOrders, ...mockOrders]);
         } catch (error) {
             console.error("Error fetching orders:", error);
@@ -183,7 +186,6 @@ export default function AdminOrdersPage() {
                 title: "Error fetching orders",
                 description: "Could not retrieve orders from the database. Showing mock data."
             });
-            // If fetch fails, still show mock data
             setOrders(mockOrders);
         } finally {
             setIsLoading(false);
@@ -209,12 +211,19 @@ export default function AdminOrdersPage() {
   };
 
   const filteredOrders = useMemo(() => {
-    return orders.filter(order =>
-        order.orderId.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
-        order.address.name.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
-        (order.products && order.products.some(p => p.name.toLowerCase().includes(debouncedSearchTerm.toLowerCase())))
-    );
-  }, [orders, debouncedSearchTerm]);
+    return orders.filter(order => {
+        const status = getStatusFromTimeline(order.timeline);
+        const statusMatch = statusFilter === "All" || status === statusFilter;
+        const typeMatch = typeFilter === "All" || order.type === typeFilter;
+        const searchMatch = debouncedSearchTerm
+            ? order.orderId.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
+              order.address.name.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
+              (order.products && order.products.some(p => p.name.toLowerCase().includes(debouncedSearchTerm.toLowerCase())))
+            : true;
+        return statusMatch && typeMatch && searchMatch;
+    });
+  }, [orders, debouncedSearchTerm, statusFilter, typeFilter]);
+
 
   if (loading || isLoading || !userData || userData.role !== 'admin') {
     return <div className="flex items-center justify-center min-h-screen"><LoadingSpinner /></div>
@@ -225,7 +234,7 @@ export default function AdminOrdersPage() {
         case 'Delivered': return 'success';
         case 'Shipped': case 'In Transit': case 'Out for Delivery': return 'warning';
         case 'Cancelled by user': case 'Cancelled by admin': case 'Returned': return 'destructive';
-        case 'Pending': return 'info';
+        case 'Pending': case 'Order Confirmed': return 'info';
         default: return 'outline';
     }
   };
@@ -243,8 +252,52 @@ export default function AdminOrdersPage() {
       <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8">
             <Card>
                 <CardHeader>
-                    <CardTitle>All Orders</CardTitle>
-                    <CardDescription>Manage and view all customer orders.</CardDescription>
+                    <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+                        <div>
+                            <CardTitle>All Orders</CardTitle>
+                            <CardDescription>Manage and view all customer orders.</CardDescription>
+                        </div>
+                        <div className="flex flex-col sm:flex-row gap-2">
+                             <div className="relative flex-grow">
+                                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                                <Input
+                                type="search"
+                                placeholder="Search by Order ID, name..."
+                                className="pl-8 w-full"
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                />
+                            </div>
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button variant="outline">
+                                        <ListFilter className="h-4 w-4 mr-2" />
+                                        Filter
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end" className="w-56">
+                                    <DropdownMenuLabel>Filter by Status</DropdownMenuLabel>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuRadioGroup value={statusFilter} onValueChange={setStatusFilter}>
+                                        <DropdownMenuRadioItem value="All">All</DropdownMenuRadioItem>
+                                        <DropdownMenuRadioItem value="Pending">Pending</DropdownMenuRadioItem>
+                                        <DropdownMenuRadioItem value="Order Confirmed">Confirmed</DropdownMenuRadioItem>
+                                        <DropdownMenuRadioItem value="Shipped">Shipped</DropdownMenuRadioItem>
+                                        <DropdownMenuRadioItem value="Delivered">Delivered</DropdownMenuRadioItem>
+                                        <DropdownMenuRadioItem value="Cancelled by admin">Cancelled</DropdownMenuRadioItem>
+                                    </DropdownMenuRadioGroup>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuLabel>Filter by Type</DropdownMenuLabel>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuRadioGroup value={typeFilter} onValueChange={setTypeFilter}>
+                                        <DropdownMenuRadioItem value="All">All</DropdownMenuRadioItem>
+                                        <DropdownMenuRadioItem value="Live Stream">Live Stream</DropdownMenuRadioItem>
+                                        <DropdownMenuRadioItem value="Listed Product">Listed Product</DropdownMenuRadioItem>
+                                    </DropdownMenuRadioGroup>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                        </div>
+                    </div>
                 </CardHeader>
                 <CardContent>
                     <Table>
@@ -367,3 +420,4 @@ export default function AdminOrdersPage() {
     </AdminLayout>
   );
 }
+
