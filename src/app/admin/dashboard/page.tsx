@@ -27,6 +27,7 @@ import {
   BadgeCent,
   Server,
   Webhook,
+  RotateCcw, // Added for refund icon
 } from "lucide-react"
 import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
@@ -380,20 +381,28 @@ export default function AdminDashboard() {
         </div>
         <h2 className="text-2xl font-bold tracking-tight">Key Metrics</h2>
         <div className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-4">
-        <MetricCard title="Total Sales Today" value="₹1,25,840" description="Helps you track daily growth" icon={DollarSign} />
-        <MetricCard title="Total Orders Today" value="342" description="Quick view of order volume" icon={ShoppingBag} />
-        <MetricCard title="Users Registered Today" value="18" description="Shows new user onboarding speed" icon={Users} />
-        <MetricCard title="Active Live Streams" value="23" description="How many sellers are currently live" icon={RadioTower} />
-        <MetricCard title="Peak Live Viewers Today" value="8,432" description="Shows traffic & engagement peak" icon={Activity} />
-        <MetricCard title="Products Sold Today" value="512" description="Useful to track busiest product categories" icon={Package} />
-        <MetricCard 
-            title="Failed Transactions Today" 
-            value="12" 
-            description="Click to see failure reasons" 
-            icon={AlertTriangle}
-            onClick={() => router.push('/admin/transactions?status=Failed')}
-            className="border-destructive/50 hover:bg-destructive/10"
-        />
+            <MetricCard title="Total Sales Today" value="₹1,25,840" description="Helps you track daily growth" icon={DollarSign} />
+            <MetricCard title="Total Orders Today" value="342" description="Quick view of order volume" icon={ShoppingBag} />
+            <MetricCard title="Users Registered Today" value="18" description="Shows new user onboarding speed" icon={Users} />
+            <MetricCard title="Active Live Streams" value="23" description="How many sellers are currently live" icon={RadioTower} />
+            <MetricCard title="Peak Live Viewers Today" value="8,432" description="Shows traffic & engagement peak" icon={Activity} />
+            <MetricCard title="Products Sold Today" value="512" description="Useful to track busiest product categories" icon={Package} />
+            <MetricCard 
+                title="Failed Transactions Today" 
+                value="12" 
+                description="Click to see failure reasons" 
+                icon={AlertTriangle}
+                onClick={() => router.push('/admin/transactions?status=Failed')}
+                className="border-destructive/50 hover:bg-destructive/10"
+            />
+            <MetricCard 
+                title="Refunds Initiated" 
+                value="4" 
+                description="Click to manage refunds" 
+                icon={RotateCcw}
+                onClick={() => router.push('/admin/transactions?type=Refund&status=Processing')}
+                className="border-amber-500/50 hover:bg-amber-500/10"
+            />
         </div>
          <div className="grid gap-4 md:gap-8 lg:grid-cols-2 xl:grid-cols-3">
             <Card className="xl:col-span-2">
