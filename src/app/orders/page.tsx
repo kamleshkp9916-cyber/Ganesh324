@@ -3,7 +3,7 @@
 
 import React, { useEffect, useState, useRef, useCallback, useMemo } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, RefreshCw, CreditCard, Download, Lock, Coins, Loader2, Bell, ChevronRight, Briefcase, ShoppingBag, BarChart2, Plus, ArrowUp, ArrowDown, Search, Printer, CheckCircle2, Circle, Hourglass, Package, PackageCheck, PackageOpen, Truck, Home, XCircle, AlertTriangle, ShieldCheck, RotateCcw, Star, Edit, MoreVertical } from 'lucide-react';
+import { ArrowLeft, RefreshCw, CreditCard, Download, Lock, Coins, Loader2, Bell, ChevronRight, Briefcase, ShoppingBag, BarChart2, Plus, ArrowUp, ArrowDown, Search, Printer, CheckCircle2, Circle, Hourglass, Package, PackageCheck, PackageOpen, Truck, Home, XCircle, AlertTriangle, ShieldCheck, RotateCcw, Star, Edit, MoreVertical, FileText } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Footer } from '@/components/footer';
@@ -155,6 +155,16 @@ function OrderDetail({ order, onBack, onRequestReturn, onSimulatePickup }: any) 
     const showReviewButton = currentStatus === 'Delivered';
     
     const showCancelButton = !['Out for Delivery', 'Delivered', 'Return Initiated', 'Return package picked up', 'Returned', 'Cancelled by user'].includes(currentStatus) && !isCancelled;
+    
+    const isPastReturnWindow = useMemo(() => {
+        if (!order || currentStatus !== 'Delivered') return false;
+        const deliveredStep = order.timeline.find(step => step.status.startsWith('Delivered'));
+        if (!deliveredStep || !deliveredStep.date) return false;
+        try {
+            const deliveryDate = parse(deliveredStep.date, 'MMM dd, yyyy', new Date());
+            return differenceInDays(new Date(), deliveryDate) > 7;
+        } catch { return false; }
+    }, [currentStatus, order]);
 
     const handleReviewSubmit = (review: Review) => {
         if (myReview) {
@@ -218,6 +228,11 @@ function OrderDetail({ order, onBack, onRequestReturn, onSimulatePickup }: any) 
             </div>
 
              <div className="mt-6 flex flex-wrap gap-2 justify-end">
+                 {isPastReturnWindow && (
+                    <Button asChild variant="outline" size="sm">
+                        <Link href={`/invoice/${order.transactionId}`}><FileText className="mr-2 h-4 w-4" />View Invoice</Link>
+                    </Button>
+                )}
                 {showCancelButton && (
                     <Button variant="destructive" size="sm" onClick={() => onRequestReturn('cancel')}>Cancel Order</Button>
                 )}
@@ -797,5 +812,3 @@ function OrdersPageContent() {
 export default function OrdersPage() {
     return <OrdersPageContent />
 }
-
-    
