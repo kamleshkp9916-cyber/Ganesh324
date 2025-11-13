@@ -1,3 +1,4 @@
+
 "use client"
 
 import {
@@ -77,7 +78,8 @@ import { cn } from "@/lib/utils";
 import { useDebounce } from "@/hooks/use-debounce";
 import { createImpersonationToken } from "@/ai/flows/impersonation-flow";
 import { AdminLayout } from "@/components/admin/admin-layout";
-
+import { PAYOUT_REQUESTS_KEY } from "@/app/admin/settings/page";
+import { useLocalStorage } from "@/hooks/use-local-storage";
 
 const mockPayments = [
     { orderId: "#ORD5896", customer: { name: "Ganesh Prajapati" }, amount: 12500.00, status: 'holding' },
@@ -171,6 +173,13 @@ export default function AdminUsersPage() {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || "");
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
+  const [payoutRequests, setPayoutRequests] = useLocalStorage<any[]>(PAYOUT_REQUESTS_KEY, []);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && payoutRequests.length === 0) {
+        setPayoutRequests(mockPayouts);
+    }
+  }, [payoutRequests, setPayoutRequests]);
 
   const fetchUsers = async () => {
     const db = getFirestoreDb();
@@ -261,6 +270,17 @@ export default function AdminUsersPage() {
     router.push(`/admin/users/${userToShow.uid}`);
   };
 
+  const handlePayoutStatusChange = (requestId: number, newStatus: 'paid' | 'rejected') => {
+    const updatedRequests = payoutRequests.map(req => 
+        req.id === requestId ? { ...req, status: newStatus } : req
+    );
+    setPayoutRequests(updatedRequests);
+    toast({
+        title: `Request ${newStatus === 'paid' ? 'Approved' : 'Rejected'}`,
+        description: `The payout request has been updated.`,
+    });
+  };
+
   const customers = filteredUsers.filter(u => u.role === 'customer');
   const sellers = filteredUsers.filter(u => u.role === 'seller');
   const admins = filteredUsers.filter(u => u.role === 'admin');
@@ -307,6 +327,8 @@ export default function AdminUsersPage() {
                     <TabsTrigger value="customers">Customers ({customers.length})</TabsTrigger>
                     <TabsTrigger value="sellers">Sellers ({sellers.length})</TabsTrigger>
                     <TabsTrigger value="admins">Admins ({admins.length})</TabsTrigger>
+                    <TabsTrigger value="payments">Payments</TabsTrigger>
+                    <TabsTrigger value="payouts">Payouts</TabsTrigger>
                 </TabsList>
                  <div className="flex gap-2">
                     <Button size="sm" variant="outline" className="h-8 gap-1">
@@ -348,9 +370,67 @@ export default function AdminUsersPage() {
                     </CardContent>
                 </Card>
              </TabsContent>
+              <TabsContent value="payments">
+                <Card>
+                    <CardHeader className="px-7">
+                        <CardTitle>Payments</CardTitle>
+                        <CardDescription>View all "on-hold", "released", and "refunded" payments.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <Table>
+                            <TableHeader><TableRow><TableHead>Order ID</TableHead><TableHead>Customer</TableHead><TableHead>Amount</TableHead><TableHead>Status</TableHead><TableHead>Action</TableHead></TableRow></TableHeader>
+                            <TableBody>
+                                {mockPayments.map(p => (
+                                    <TableRow key={p.orderId}>
+                                        <TableCell>{p.orderId}</TableCell>
+                                        <TableCell>{p.customer.name}</TableCell>
+                                        <TableCell>₹{p.amount.toFixed(2)}</TableCell>
+                                        <TableCell><Badge variant={p.status === 'holding' ? 'warning' : p.status === 'released' ? 'success' : 'destructive'}>{p.status}</Badge></TableCell>
+                                        <TableCell>
+                                            {p.status === 'holding' && <Button variant="secondary" size="sm">Release Payment</Button>}
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </CardContent>
+                </Card>
+             </TabsContent>
+             <TabsContent value="payouts">
+                <Card>
+                    <CardHeader className="px-7">
+                        <CardTitle>Payouts</CardTitle>
+                        <CardDescription>Approve or deny seller withdrawal requests.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                         <Table>
+                            <TableHeader><TableRow><TableHead>Seller</TableHead><TableHead>Amount Requested</TableHead><TableHead>Status</TableHead><TableHead>Action</TableHead></TableRow></TableHeader>
+                            <TableBody>
+                                {payoutRequests.map(p => (
+                                    <TableRow key={p.id}>
+                                        <TableCell>{p.sellerName}</TableCell>
+                                        <TableCell>₹{p.amount.toFixed(2)}</TableCell>
+                                        <TableCell><Badge variant={p.status === 'pending' ? 'warning' : p.status === 'paid' ? 'success' : 'destructive'}>{p.status}</Badge></TableCell>
+                                        <TableCell>
+                                            {p.status === 'pending' && (
+                                                <div className="flex gap-2">
+                                                    <Button variant="default" size="sm" onClick={() => handlePayoutStatusChange(p.id, 'paid')}><CheckCircle className="mr-2 h-4 w-4" />Approve</Button>
+                                                    <Button variant="destructive" size="sm" onClick={() => handlePayoutStatusChange(p.id, 'rejected')}><XCircle className="mr-2 h-4 w-4" />Deny</Button>
+                                                </div>
+                                            )}
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </CardContent>
+                </Card>
+             </TabsContent>
         </Tabs>
       </main>
     </AdminLayout>
     </>
   )
 }
+
+    

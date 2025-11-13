@@ -39,7 +39,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import Link from "next/link"
 import { Button } from '@/components/ui/button';
 
-type ViewType = 'dashboard' | 'total' | 'platform-fees' | 'super-chat' | 'promotions';
+type ViewType = 'dashboard' | 'total' | 'platform-fees' | 'super-chat' | 'promotions' | 'shipping-fees';
 
 const totalRevenueData = {
   total: 125430.50,
@@ -122,6 +122,8 @@ export default function AdminRevenuePage() {
                 return <DetailView title="Super Chat Commissions" description="Breakdown of all 16% commissions earned from Super Chats in live streams." data={recentTransactions.filter(t => t.type === 'Super Chat')} onBack={() => setView('dashboard')} />;
             case 'promotions':
                  return <DetailView title="Promotions Revenue" description="Details of revenue generated from sponsored products and banners." data={recentTransactions.filter(t => t.type === 'Promotion')} onBack={() => setView('dashboard')} />;
+            case 'shipping-fees':
+                return <DetailView title="Shipping Fees" description="Breakdown of all shipping fees collected from orders." data={recentTransactions.filter(t => t.type === 'Shipping Fee')} onBack={() => setView('dashboard')} />;
             case 'total':
                  return <DetailView title="Total Revenue" description="A complete breakdown of all revenue streams." data={recentTransactions} onBack={() => setView('dashboard')} />;
             case 'dashboard':
@@ -174,6 +176,18 @@ export default function AdminRevenuePage() {
                                     <CardContent>
                                         <div className="text-2xl font-bold">₹{totalRevenueData.promotions.toLocaleString()}</div>
                                         <p className="text-xs text-muted-foreground">From sponsored products & banners</p>
+                                    </CardContent>
+                                </Card>
+                            </button>
+                            <button onClick={() => setView('shipping-fees')} className="w-full text-left">
+                                <Card className="hover:bg-muted/50 transition-colors">
+                                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                        <CardTitle className="text-sm font-medium">Shipping Fees</CardTitle>
+                                        <Truck className="h-4 w-4 text-muted-foreground" />
+                                    </CardHeader>
+                                    <CardContent>
+                                        <div className="text-2xl font-bold">₹{totalRevenueData.shippingFees.toLocaleString()}</div>
+                                        <p className="text-xs text-muted-foreground">Collected from customer orders</p>
                                     </CardContent>
                                 </Card>
                             </button>
@@ -243,5 +257,7 @@ export default function AdminRevenuePage() {
     </AdminLayout>
   );
 }
+
+    
 
     

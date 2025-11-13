@@ -12,6 +12,7 @@ import {
     Sparkles,
     ChevronRight,
     ArrowLeft,
+    Banknote,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -25,7 +26,9 @@ import { PoliciesSettings } from "@/components/settings/policies-settings";
 import { ContentModerationSettings } from "@/components/settings/content-moderation-settings";
 import { UserNotificationsSettings } from "@/components/settings/user-notifications";
 
-type SettingView = 'main' | 'categories' | 'promotions' | 'shipping' | 'policies' | 'moderation' | 'notifications';
+export const PAYOUT_REQUESTS_KEY = 'streamcart_payout_requests';
+
+export type SettingView = 'main' | 'categories' | 'promotions' | 'shipping' | 'policies' | 'moderation' | 'notifications' | 'payouts';
 
 const settingsLinks = [
     { id: 'categories', href: "#", icon: LayoutGrid, title: "Category Management", description: "Add, edit, or delete product categories and subcategories." },
@@ -34,6 +37,7 @@ const settingsLinks = [
     { id: 'policies', href: "#", icon: FileText, title: "Content & Policies", description: "Edit your Terms of Service and Privacy Policy." },
     { id: 'moderation', href: "#", icon: Flag, title: "Content Moderation", description: "Review and act on content flagged by users." },
     { id: 'notifications', href: "#", icon: MessageSquare, title: "User Notifications", description: "Send announcements or warnings to users." },
+    { id: 'payouts', href: "/admin/users?tab=payouts", icon: Banknote, title: "Payout Settings", description: "Configure seller payout options and fees." },
 ];
 
 export default function AdminSettingsHubPage() {
@@ -65,7 +69,7 @@ export default function AdminSettingsHubPage() {
                     <CardContent className="space-y-4">
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                             {settingsLinks.map(link => (
-                                <button key={link.id} onClick={() => setActiveView(link.id as SettingView)} className="w-full text-left">
+                                <Link key={link.id} href={link.href} onClick={(e) => { if(link.href==="#") { e.preventDefault(); setActiveView(link.id as SettingView) } }}>
                                     <Card className="hover:bg-muted/50 hover:shadow-lg transition-all h-full">
                                         <CardHeader className="flex flex-row items-center justify-between">
                                             <div className="space-y-1">
@@ -80,7 +84,7 @@ export default function AdminSettingsHubPage() {
                                             <ChevronRight className="h-5 w-5 text-muted-foreground" />
                                         </CardHeader>
                                     </Card>
-                                </button>
+                                </Link>
                             ))}
                         </div>
                     </CardContent>
@@ -111,3 +115,5 @@ export default function AdminSettingsHubPage() {
     </AdminLayout>
   );
 }
+
+    
