@@ -30,7 +30,7 @@ export default function Home() {
     <div className="w-full min-h-screen grid lg:grid-cols-2">
       <div className="hidden lg:flex flex-col items-center justify-center bg-gray-100 dark:bg-gray-900 text-foreground p-8">
         <div className="max-w-md text-center">
-            <h1 className="text-4xl font-bold">Welcome to StreamCart</h1>
+            <h1 className="text-4xl font-bold">Welcome to Nipher</h1>
             <p className="mt-4 text-lg text-muted-foreground">
                 Your one-stop shop for live shopping. Discover, engage, and buy in real-time.
             </p>

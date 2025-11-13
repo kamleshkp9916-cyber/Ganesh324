@@ -128,7 +128,7 @@ const FeedPost = ({ post, onDelete, onEdit, onSaveToggle, isSaved, currentUserId
                                   <span className="font-semibold group-hover:underline">{post.sellerName}</span>
                                   {post.role === 'admin' && (
                                     <>
-                                      <span className="text-sm text-muted-foreground">• Nipher.in</span>
+                                      <span className="text-sm text-muted-foreground">• nipher.in</span>
                                       <Badge variant="destructive">Admin</Badge>
                                     </>
                                   )}
@@ -377,7 +377,7 @@ export default function AdminFeedPage() {
             content: postData.content,
             taggedProducts: postData.taggedProducts,
             sellerId: user.uid,
-            sellerName: "Nipher.in", // Set name to Nipher.in for admins
+            sellerName: "nipher.in", // Set name to nipher.in for admins
             avatarUrl: userData.photoURL,
             role: userData.role,
             timestamp: serverTimestamp(),
@@ -516,11 +516,3 @@ export default function AdminFeedPage() {
     </AdminLayout>
   );
 }
-
-    
-
-    
-
-    
-
-    

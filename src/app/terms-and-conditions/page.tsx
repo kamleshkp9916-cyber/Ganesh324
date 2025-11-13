@@ -21,11 +21,11 @@ export default function TermsAndConditionsPage() {
       <main className="flex-grow p-4 md:p-8">
         <div className="max-w-4xl mx-auto space-y-8 text-sm text-muted-foreground">
             <div className="text-center space-y-1">
-                <h2 className="text-2xl font-bold text-foreground">Terms and Conditions for StreamCart</h2>
+                <h2 className="text-2xl font-bold text-foreground">Terms and Conditions for Nipher</h2>
                 <p>Effective Date: [26/08/2025]</p>
             </div>
 
-            <p>These Terms and Conditions (“Terms”) govern your access to and use of the StreamCart mobile application, website, and related services (collectively, the “Platform”). By registering an account or otherwise using the Platform, you agree to be bound by these Terms. If you do not agree, you must not use StreamCart.</p>
+            <p>These Terms and Conditions (“Terms”) govern your access to and use of the Nipher mobile application, website, and related services (collectively, the “Platform”). By registering an account or otherwise using the Platform, you agree to be bound by these Terms. If you do not agree, you must not use Nipher.</p>
 
             <div className="space-y-4">
                 <h3 className="text-lg font-semibold text-foreground">1. Eligibility</h3>

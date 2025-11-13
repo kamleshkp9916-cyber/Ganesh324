@@ -151,7 +151,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
                     <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
                         <Link href="/" className="flex items-center gap-2 font-semibold">
                             <ShieldCheck className="h-6 w-6 text-primary" />
-                            <span className="">StreamCart Admin</span>
+                            <span className="">Nipher Admin</span>
                         </Link>
                         <Button variant="outline" size="icon" className="ml-auto h-8 w-8">
                             <Bell className="h-4 w-4" />
@@ -235,7 +235,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
                             <nav className="grid gap-6 text-lg font-medium">
                                  <Link href="/" className="flex items-center gap-2 font-semibold mb-4">
                                     <ShieldCheck className="h-6 w-6 text-primary" />
-                                    <span className="">StreamCart Admin</span>
+                                    <span className="">Nipher Admin</span>
                                 </Link>
                                  <div className="relative">
                                     <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
