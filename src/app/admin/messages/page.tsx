@@ -91,6 +91,11 @@ export default function AdminMessagePage() {
   const handleSelectConversation = (convo: Conversation) => {
     setSelectedConversation(convo);
   }
+
+  const filteredConversations = useMemo(() => {
+    if (!debouncedSearchTerm) return conversations;
+    return conversations.filter(convo => convo.userName.toLowerCase().includes(debouncedSearchTerm.toLowerCase()));
+  }, [conversations, debouncedSearchTerm]);
   
   if (loading || isLoading) {
     return <div className="h-screen w-full flex items-center justify-center"><LoadingSpinner /></div>;
@@ -100,11 +105,6 @@ export default function AdminMessagePage() {
       router.push('/');
       return null;
   }
-  
-  const filteredConversations = useMemo(() => {
-    if (!debouncedSearchTerm) return conversations;
-    return conversations.filter(convo => convo.userName.toLowerCase().includes(debouncedSearchTerm.toLowerCase()));
-  }, [conversations, debouncedSearchTerm]);
 
   return (
     <AdminLayout>
@@ -143,3 +143,4 @@ export default function AdminMessagePage() {
     </AdminLayout>
   );
 }
+
