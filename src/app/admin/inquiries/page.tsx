@@ -67,10 +67,41 @@ import { cn } from "@/lib/utils"
 import { AdminLayout } from "@/components/admin/admin-layout"
 
 
+const mockInquiries: (Inquiry & { id: string })[] = [
+    {
+        id: '1',
+        name: 'Ganesh Prajapati',
+        email: 'ganesh@example.com',
+        subject: 'Question about my order #ORD5896',
+        message: 'Hi, I was wondering when my order for the Vintage Camera will be shipped. Thanks!',
+        createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+        isRead: false,
+    },
+    {
+        id: '2',
+        name: 'Jane Doe',
+        email: 'jane.d@example.com',
+        subject: 'Partnership Inquiry',
+        message: 'Hello StreamCart team, I represent a fashion brand and we would love to explore a partnership opportunity to sell on your platform.',
+        createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+        isRead: false,
+    },
+    {
+        id: '3',
+        name: 'David Garcia',
+        email: 'david.g@example.com',
+        subject: 'Problem with payment',
+        message: 'I am unable to complete my payment. It keeps showing an error. Can you please help?',
+        createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+        isRead: true,
+    }
+];
+
+
 export default function AdminInquiriesPage() {
   const { user, userData, loading } = useAuth();
   const router = useRouter();
-  const [inquiries, setInquiries] = useState<(Inquiry & { id: string })[]>([]);
+  const [inquiries, setInquiries] = useState<(Inquiry & { id: string })[]>(mockInquiries);
   const [selectedInquiry, setSelectedInquiry] = useState<(Inquiry & { id: string }) | null>(null);
 
   useEffect(() => {
@@ -79,20 +110,22 @@ export default function AdminInquiriesPage() {
             router.replace('/');
             return;
         }
-        const fetchInquiries = async () => {
-            const data = await getInquiries();
-            setInquiries(data);
-        };
-        fetchInquiries();
+        // You can re-enable this to fetch live data instead of mock data
+        // const fetchInquiries = async () => {
+        //     const data = await getInquiries();
+        //     setInquiries(data.length > 0 ? data : mockInquiries);
+        // };
+        // fetchInquiries();
     }
   }, [loading, user, userData, router]);
 
   const handleViewInquiry = (inquiry: Inquiry & { id: string }) => {
     setSelectedInquiry(inquiry);
     if (!inquiry.isRead) {
-        markInquiryRead(inquiry.id).then(() => {
-            setInquiries(prev => prev.map(i => i.id === inquiry.id ? { ...i, isRead: true } : i));
-        });
+        // In a real app, this would also update the backend.
+        // For the mock, we just update the local state.
+        setInquiries(prev => prev.map(i => i.id === inquiry.id ? { ...i, isRead: true } : i));
+        // markInquiryRead(inquiry.id) 
     }
   };
 
