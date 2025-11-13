@@ -25,6 +25,8 @@ import {
   MessageCircle,
   FileText,
   BadgeCent,
+  Server,
+  Webhook,
 } from "lucide-react"
 import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
@@ -182,6 +184,39 @@ const recentSales = [
   },
 ]
 
+const failedTransactionsData = [
+  {
+    customer: { name: "Emily Carter", email: "emily.c@example.com" },
+    reason: "Insufficient Funds",
+    time: "1 minute ago",
+    amount: 2300.00,
+  },
+  {
+    customer: { name: "Michael Bui", email: "michael.b@example.com" },
+    reason: "Incorrect CVV",
+    time: "1 minute ago",
+    amount: 899.00,
+  },
+  {
+    customer: { name: "Sophia Loren", email: "sophia.l@example.com" },
+    reason: "Transaction Blocked by Bank",
+    time: "1 minute ago",
+    amount: 15400.00,
+  },
+  {
+    customer: { name: "Daniel Radcliffe", email: "dan.r@example.com" },
+    reason: "Payment Gateway Timeout",
+    time: "1 minute ago",
+    amount: 500.00,
+  },
+    {
+    customer: { name: "Aisha Sharma", email: "aisha.s@example.com" },
+    reason: "Invalid UPI PIN",
+    time: "1 minute ago",
+    amount: 1250.00,
+  },
+];
+
 const MetricCard = ({ title, value, description, icon: Icon, onClick, className }: { title: string, value: string, description: string, icon: React.ElementType, onClick?: () => void, className?: string }) => (
     <Card onClick={onClick} className={cn(onClick && "cursor-pointer hover:bg-muted/50 transition-colors", className)}>
         <CardHeader className="pb-2">
@@ -199,6 +234,50 @@ const MetricCard = ({ title, value, description, icon: Icon, onClick, className 
     </Card>
 );
 
+const FailedTransactionsView = ({ onBack }: { onBack: () => void }) => (
+    <Card>
+        <CardHeader>
+             <div className="flex items-center gap-4">
+                <Button variant="outline" size="icon" className="h-7 w-7" onClick={onBack}>
+                    <ArrowLeft className="h-4 w-4" />
+                    <span className="sr-only">Back</span>
+                </Button>
+                <div>
+                    <CardTitle>Failed Transactions Today</CardTitle>
+                    <CardDescription>A log of all payment attempts that failed today.</CardDescription>
+                </div>
+            </div>
+        </CardHeader>
+        <CardContent>
+             <Table>
+                <TableHeader>
+                <TableRow>
+                    <TableHead>Customer</TableHead>
+                    <TableHead>Reason for Failure</TableHead>
+                    <TableHead>Time</TableHead>
+                    <TableHead className="text-right">Amount</TableHead>
+                </TableRow>
+                </TableHeader>
+                <TableBody>
+                {failedTransactionsData.map((transaction, index) => (
+                    <TableRow key={index}>
+                        <TableCell>
+                            <div className="font-medium">{transaction.customer.name}</div>
+                            <div className="hidden text-sm text-muted-foreground md:inline">
+                                {transaction.customer.email}
+                            </div>
+                        </TableCell>
+                        <TableCell>{transaction.reason}</TableCell>
+                        <TableCell>{transaction.time}</TableCell>
+                        <TableCell className="text-right">₹{transaction.amount.toFixed(2)}</TableCell>
+                    </TableRow>
+                ))}
+                </TableBody>
+            </Table>
+        </CardContent>
+    </Card>
+);
+
 export default function AdminDashboard() {
   const { user, userData, loading } = useAuth();
   const { signOut } = useAuthActions();
@@ -208,6 +287,7 @@ export default function AdminDashboard() {
   const [allOrders, setAllOrders] = useState<Order[]>([]);
   const [accountsFilter, setAccountsFilter] = useState("Last 6 Months");
   const [isMounted, setIsMounted] = useState(false);
+  const [view, setView] = useState<'dashboard' | 'failed-transactions'>('dashboard');
 
   useEffect(() => {
     setIsMounted(true);
@@ -254,6 +334,23 @@ export default function AdminDashboard() {
     { label: "Sellers who need approval", count: 5, href: "/admin/kyc", icon: Users },
     { label: "Disbursements pending", count: 4, href: "/admin/users?tab=payouts", icon: BadgeCent },
   ]
+  
+  const systemHealth = [
+    { name: 'Payment Gateway', status: 'Operational', icon: CreditCard, color: 'text-green-500' },
+    { name: 'LiveKit / Stream Server', status: 'Operational', icon: RadioTower, color: 'text-green-500' },
+    { name: 'Firebase Functions', status: 'Operational', icon: Webhook, color: 'text-green-500' },
+    { name: 'Database Read/Write', status: 'Operational', icon: Server, color: 'text-green-500' },
+  ];
+
+  if (view === 'failed-transactions') {
+      return (
+          <AdminLayout>
+              <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
+                  <FailedTransactionsView onBack={() => setView('dashboard')} />
+              </main>
+          </AdminLayout>
+      )
+  }
 
   return (
     <AdminLayout>
@@ -298,91 +395,51 @@ export default function AdminDashboard() {
             className="border-destructive/50 hover:bg-destructive/10"
         />
         </div>
-        <div className="grid gap-4 md:gap-8 lg:grid-cols-2 xl:grid-cols-3">
-        <Card className="xl:col-span-2">
-            <CardHeader className="flex flex-row items-center">
-            <div className="grid gap-2">
-                <CardTitle>Recent Transactions</CardTitle>
-                <CardDescription>
-                Recent transactions from your store.
-                </CardDescription>
-            </div>
-            <Button asChild size="sm" className="ml-auto gap-1">
-                <Link href="/admin/transactions">
-                View All
-                <ArrowUpRight className="h-4 w-4" />
-                </Link>
-            </Button>
-            </CardHeader>
-            <CardContent>
-            <Table>
-                <TableHeader>
-                <TableRow>
-                    <TableHead>Customer</TableHead>
-                    <TableHead className="hidden xl:table-cell">
-                    Type
-                    </TableHead>
-                    <TableHead className="hidden xl:table-cell">
-                    Status
-                    </TableHead>
-                    <TableHead className="hidden xl:table-cell">
-                    Date
-                    </TableHead>
-                    <TableHead className="text-right">Amount</TableHead>
-                </TableRow>
-                </TableHeader>
-                <TableBody>
-                {filteredTransactions.map((transaction) => (
-                    <TableRow key={transaction.orderId}>
-                        <TableCell>
-                            <div className="font-medium">{transaction.customer.name}</div>
-                            <div className="hidden text-sm text-muted-foreground md:inline">
-                                {transaction.customer.email}
+         <div className="grid gap-4 md:gap-8 lg:grid-cols-2 xl:grid-cols-3">
+            <Card className="xl:col-span-2">
+                <CardHeader>
+                    <CardTitle>System Health</CardTitle>
+                    <CardDescription>Real-time status of internal services.</CardDescription>
+                </CardHeader>
+                <CardContent className="grid gap-4">
+                    {systemHealth.map((service) => (
+                         <div key={service.name} className="flex items-center justify-between p-3 rounded-lg bg-muted/40">
+                             <div className="flex items-center gap-3">
+                                <service.icon className={cn("h-5 w-5", service.color)} />
+                                <span className="font-medium text-sm">{service.name}</span>
                             </div>
-                        </TableCell>
-                        <TableCell className="hidden xl:table-cell">
-                            <Badge variant={transaction.type === 'Live Stream' ? 'destructive' : 'secondary'} className="text-xs">
-                                {transaction.type}
+                             <Badge variant={service.status === 'Operational' ? 'success' : 'destructive'}>
+                                {service.status}
                             </Badge>
-                        </TableCell>
-                        <TableCell className="hidden xl:table-cell">
-                            <Badge variant="outline">{transaction.status}</Badge>
-                        </TableCell>
-                        <TableCell className="hidden md:table-cell lg:hidden xl:table-cell">
-                        {formatDistanceToNow(parseISO(transaction.date), { addSuffix: true })}
-                        </TableCell>
-                        <TableCell className="text-right">₹{transaction.total.toFixed(2)}</TableCell>
-                    </TableRow>
-                ))}
-                </TableBody>
-            </Table>
-            </CardContent>
-        </Card>
-        <Card>
-            <CardHeader>
-            <CardTitle>Recent Sales</CardTitle>
-            <CardDescription>
-                You made 265 sales this month.
-            </CardDescription>
-            </CardHeader>
-            <CardContent className="grid gap-8">
-            {recentSales.map((sale, index) => (
-                <div key={index} className="flex items-center gap-4">
-                    <Avatar className="hidden h-9 w-9 sm:flex">
-                    <AvatarImage src={sale.avatar} alt="Avatar" />
-                    <AvatarFallback>{sale.name.charAt(0)}</AvatarFallback>
-                    </Avatar>
-                    <div className="grid gap-1">
-                    <p className="text-sm font-medium leading-none">{sale.name}</p>
-                    <p className="text-sm text-muted-foreground">
-                        {sale.email}
-                    </p>
+                        </div>
+                    ))}
+                </CardContent>
+            </Card>
+            <Card>
+                <CardHeader>
+                <CardTitle>Recent Sales</CardTitle>
+                <CardDescription>
+                    You made 265 sales this month.
+                </CardDescription>
+                </CardHeader>
+                <CardContent className="grid gap-8">
+                {recentSales.map((sale, index) => (
+                    <div key={index} className="flex items-center gap-4">
+                        <Avatar className="hidden h-9 w-9 sm:flex">
+                        <AvatarImage src={sale.avatar} alt="Avatar" />
+                        <AvatarFallback>{sale.name.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                        <div className="grid gap-1">
+                        <p className="text-sm font-medium leading-none">{sale.name}</p>
+                        <p className="text-sm text-muted-foreground">
+                            {sale.email}
+                        </p>
+                        </div>
+                        <div className="ml-auto font-medium">{sale.amount}</div>
                     </div>
-                    <div className="ml-auto font-medium">{sale.amount}</div>
-                </div>
-            ))}
-            </CardContent>
-        </Card>
+                ))}
+                </CardContent>
+            </Card>
         </div>
         <Card className="col-span-1 lg:col-span-full">
             <CardHeader>
