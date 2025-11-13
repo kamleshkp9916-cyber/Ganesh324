@@ -19,6 +19,7 @@ import {
   MessageSquare,
   X,
   ArrowLeft,
+  ChevronUp,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
@@ -39,7 +40,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { collection, query, orderBy, onSnapshot, Timestamp, deleteDoc, doc, addDoc, serverTimestamp, updateDoc } from "firebase/firestore";
 import { getFirestoreDb, getFirebaseStorage } from '@/lib/firebase';
@@ -256,6 +257,8 @@ export default function AdminFeedPage() {
   const [postToEdit, setPostToEdit] = useState<any | null>(null);
   const [savedPosts, setSavedPosts] = useState<any[]>([]);
   const [feedTab, setFeedTab] = useState("for-you");
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const [showScrollTop, setShowScrollTop] = useState(false);
 
   useEffect(() => {
     if (!loading && userData?.role !== 'admin') {
@@ -269,6 +272,17 @@ export default function AdminFeedPage() {
     window.addEventListener('storage', handleStorageChange);
     return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
+  
+  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    setShowScrollTop(e.currentTarget.scrollTop > 300);
+  };
+  
+  const scrollToTop = () => {
+    const viewport = scrollAreaRef.current?.querySelector('div[data-radix-scroll-area-viewport]');
+    if (viewport) {
+      viewport.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
 
   const handleSaveToggle = (post: any) => {
     toggleSavePost(post);
@@ -420,7 +434,7 @@ export default function AdminFeedPage() {
 
   return (
     <AdminLayout>
-      <main className="flex-1 flex flex-col overflow-hidden">
+      <main className="flex-1 flex flex-col overflow-hidden relative">
         <div className="p-4 border-b flex flex-col gap-4 sticky top-0 bg-background z-10">
           <div className="flex items-center gap-4">
             <h1 className="text-xl font-bold">Global Feed</h1>
@@ -448,7 +462,7 @@ export default function AdminFeedPage() {
             showTagProduct={false}
           />
         </div>
-        <ScrollArea className="flex-grow">
+        <ScrollArea className="flex-grow" onScroll={handleScroll} ref={scrollAreaRef}>
             <div className="max-w-2xl mx-auto space-y-4 py-6 px-4">
             {isLoadingFeed ? (
                 <div className="space-y-4">
@@ -474,10 +488,21 @@ export default function AdminFeedPage() {
             )}
             </div>
         </ScrollArea>
+        {showScrollTop && (
+          <Button
+            onClick={scrollToTop}
+            className="fixed bottom-6 right-6 h-12 w-12 rounded-full shadow-lg"
+            size="icon"
+          >
+            <ChevronUp className="h-6 w-6" />
+          </Button>
+        )}
       </main>
     </AdminLayout>
   );
 }
+
+    
 
     
 
