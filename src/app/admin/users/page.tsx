@@ -152,7 +152,7 @@ const PayoutSummaryDialog = ({ payout, onConfirm, onCancel }: { payout: any, onC
 };
 
 
-const UserTable = ({ users, onViewDetails, onDelete, onMakeAdmin, onImpersonate }: { users: any[], onViewDetails: (user: any) => void, onDelete: (user: any) => void, onMakeAdmin: (user: any) => void, onImpersonate: (user: any) => void }) => {
+const UserTable = ({ users, onViewDetails, onDelete, onImpersonate }: { users: any[], onViewDetails: (user: any) => void, onDelete: (user: any) => void, onImpersonate: (user: any) => void }) => {
     const [isMounted, setIsMounted] = useState(false);
     useEffect(() => setIsMounted(true), []);
 
@@ -193,12 +193,6 @@ const UserTable = ({ users, onViewDetails, onDelete, onMakeAdmin, onImpersonate 
                                             <LogIn className="mr-2 h-4 w-4" />
                                             Login as User
                                         </DropdownMenuItem>
-                                        {u.role !== 'admin' && (
-                                            <DropdownMenuItem onSelect={() => onMakeAdmin(u)}>
-                                                <ShieldAlert className="mr-2 h-4 w-4" />
-                                                Make Admin
-                                            </DropdownMenuItem>
-                                        )}
                                         <DropdownMenuSeparator />
                                         <DropdownMenuItem className="text-destructive" onSelect={() => onDelete(u)}>
                                             <Trash2 className="mr-2 h-4 w-4" />
@@ -227,9 +221,7 @@ export default function AdminUsersPage() {
   const searchParams = useSearchParams();
   const [allUsersState, setAllUsersState] = useState<any[]>([]);
   const [userToDelete, setUserToDelete] = useState<any | null>(null);
-  const [userToPromote, setUserToPromote] = useState<any | null>(null);
   const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false);
-  const [isPromoteAlertOpen, setIsPromoteAlertOpen] = useState(false);
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || "");
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
@@ -276,11 +268,6 @@ export default function AdminUsersPage() {
       setUserToDelete(userToDelete);
       setIsDeleteAlertOpen(true);
   };
-  
-  const handleMakeAdminClick = (userToPromote: any) => {
-      setUserToPromote(userToPromote);
-      setIsPromoteAlertOpen(true);
-  };
 
   const handleImpersonateUser = async (userToImpersonate: any) => {
     if (!user || user.uid === userToImpersonate.uid) {
@@ -318,15 +305,6 @@ export default function AdminUsersPage() {
       setUserToDelete(null);
   }
   
-  const confirmMakeAdmin = async () => {
-      if (!userToPromote) return;
-      await updateUserData(userToPromote.uid, { role: 'admin' });
-      setAllUsersState(prev => prev.map(u => u.uid === userToPromote.uid ? { ...u, role: 'admin'} : u));
-      toast({ title: "Success!", description: `${userToPromote.displayName} is now an administrator.` });
-      setIsPromoteAlertOpen(false);
-      setUserToPromote(null);
-  };
-  
   const handleViewDetails = (userToShow: any) => {
     router.push(`/admin/users/${userToShow.uid}`);
   };
@@ -345,7 +323,6 @@ export default function AdminUsersPage() {
 
   const customers = filteredUsers.filter(u => u.role === 'customer');
   const sellers = filteredUsers.filter(u => u.role === 'seller');
-  const admins = filteredUsers.filter(u => u.role === 'admin');
 
   return (
     <>
@@ -367,20 +344,6 @@ export default function AdminUsersPage() {
             </AlertDialogFooter>
         </AlertDialogContent>
     </AlertDialog>
-     <AlertDialog open={isPromoteAlertOpen} onOpenChange={setIsPromoteAlertOpen}>
-        <AlertDialogContent>
-            <AlertDialogHeader>
-                <AlertDialogTitle>Confirm Admin Promotion</AlertDialogTitle>
-                <AlertDialogDescription>
-                    Are you sure you want to grant administrator privileges to <strong className="px-1">{userToPromote?.displayName}</strong>? This action is irreversible.
-                </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction onClick={confirmMakeAdmin}>Confirm</AlertDialogAction>
-            </AlertDialogFooter>
-        </AlertDialogContent>
-    </AlertDialog>
     <Dialog open={!!selectedPayout} onOpenChange={(open) => !open && setSelectedPayout(null)}>
         {selectedPayout && (
             <PayoutSummaryDialog 
@@ -397,7 +360,6 @@ export default function AdminUsersPage() {
                 <TabsList>
                     <TabsTrigger value="customers">Customers ({customers.length})</TabsTrigger>
                     <TabsTrigger value="sellers">Sellers ({sellers.length})</TabsTrigger>
-                    <TabsTrigger value="admins">Admins ({admins.length})</TabsTrigger>
                     <TabsTrigger value="payments">Payments</TabsTrigger>
                     <TabsTrigger value="payouts">Payouts</TabsTrigger>
                 </TabsList>
@@ -415,7 +377,7 @@ export default function AdminUsersPage() {
                         <CardDescription>Manage all customer accounts.</CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <UserTable users={customers} onViewDetails={handleViewDetails} onDelete={handleDeleteUserClick} onMakeAdmin={handleMakeAdminClick} onImpersonate={handleImpersonateUser}/>
+                        <UserTable users={customers} onViewDetails={handleViewDetails} onDelete={handleDeleteUserClick} onImpersonate={handleImpersonateUser}/>
                     </CardContent>
                 </Card>
              </TabsContent>
@@ -426,18 +388,7 @@ export default function AdminUsersPage() {
                         <CardDescription>Manage all verified seller accounts.</CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <UserTable users={sellers} onViewDetails={handleViewDetails} onDelete={handleDeleteUserClick} onMakeAdmin={handleMakeAdminClick} onImpersonate={handleImpersonateUser}/>
-                    </CardContent>
-                </Card>
-             </TabsContent>
-              <TabsContent value="admins">
-                <Card>
-                    <CardHeader className="px-7">
-                        <CardTitle>Administrators</CardTitle>
-                        <CardDescription>Manage all site administrators.</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <UserTable users={admins} onViewDetails={handleViewDetails} onDelete={handleDeleteUserClick} onMakeAdmin={handleMakeAdminClick} onImpersonate={handleImpersonateUser}/>
+                        <UserTable users={sellers} onViewDetails={handleViewDetails} onDelete={handleDeleteUserClick} onImpersonate={handleImpersonateUser}/>
                     </CardContent>
                 </Card>
              </TabsContent>
@@ -506,5 +457,3 @@ export default function AdminUsersPage() {
     </>
   )
 }
-
-    
