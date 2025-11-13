@@ -54,29 +54,29 @@ const totalRevenueData = {
 };
 
 const dailyData = [
-  { day: 'Mon', totalRevenue: 12000, netRevenue: 10800, platformFees: 2000, superChat: 300, shipping: 500, promotions: 0 },
-  { day: 'Tue', totalRevenue: 15000, netRevenue: 14200, platformFees: 2500, superChat: 200, shipping: 500, promotions: 0 },
-  { day: 'Wed', totalRevenue: 18000, netRevenue: 16000, platformFees: 3000, superChat: 500, shipping: 500, promotions: 0 },
-  { day: 'Thu', totalRevenue: 13000, netRevenue: 12500, platformFees: 2200, superChat: 300, shipping: 500, promotions: 0 },
-  { day: 'Fri', totalRevenue: 22000, netRevenue: 20500, platformFees: 3500, superChat: 500, shipping: 500, promotions: 0 },
-  { day: 'Sat', totalRevenue: 30000, netRevenue: 27500, platformFees: 5000, superChat: 1000, shipping: 500, promotions: 0 },
-  { day: 'Sun', totalRevenue: 28000, netRevenue: 26200, platformFees: 4800, superChat: 900, shipping: 500, promotions: 0 },
+  { day: 'Mon', totalRevenue: 12000, netRevenue: 10800, platformFees: 2000, superChat: 300, shipping: 500, promotions: 0, sellerShare: 7000, refunds: 1200, cancellations: 500 },
+  { day: 'Tue', totalRevenue: 15000, netRevenue: 14200, platformFees: 2500, superChat: 200, shipping: 500, promotions: 0, sellerShare: 11000, refunds: 800, cancellations: 300 },
+  { day: 'Wed', totalRevenue: 18000, netRevenue: 16000, platformFees: 3000, superChat: 500, shipping: 500, promotions: 0, sellerShare: 12000, refunds: 2000, cancellations: 1000 },
+  { day: 'Thu', totalRevenue: 13000, netRevenue: 12500, platformFees: 2200, superChat: 300, shipping: 500, promotions: 0, sellerShare: 9500, refunds: 500, cancellations: 200 },
+  { day: 'Fri', totalRevenue: 22000, netRevenue: 20500, platformFees: 3500, superChat: 500, shipping: 500, promotions: 0, sellerShare: 16000, refunds: 1500, cancellations: 800 },
+  { day: 'Sat', totalRevenue: 30000, netRevenue: 27500, platformFees: 5000, superChat: 1000, shipping: 500, promotions: 0, sellerShare: 21000, refunds: 2500, cancellations: 1200 },
+  { day: 'Sun', totalRevenue: 28000, netRevenue: 26200, platformFees: 4800, superChat: 900, shipping: 500, promotions: 0, sellerShare: 20000, refunds: 1800, cancellations: 900 },
 ];
 
 const weeklyData = [
-    { week: 'W1', totalRevenue: 85000, netRevenue: 78000, platformFees: 12000, superChat: 2000, shipping: 3500, promotions: 500 },
-    { week: 'W2', totalRevenue: 92000, netRevenue: 84000, platformFees: 13000, superChat: 2500, shipping: 3500, promotions: 0 },
-    { week: 'W3', totalRevenue: 78000, netRevenue: 73000, platformFees: 11000, superChat: 1500, shipping: 3500, promotions: 2000 },
-    { week: 'W4', totalRevenue: 110000, netRevenue: 100000, platformFees: 15000, superChat: 3000, shipping: 3500, promotions: 500 },
+    { week: 'W1', totalRevenue: 85000, netRevenue: 78000, platformFees: 12000, superChat: 2000, shipping: 3500, promotions: 500, sellerShare: 60000, refunds: 7000, cancellations: 3000 },
+    { week: 'W2', totalRevenue: 92000, netRevenue: 84000, platformFees: 13000, superChat: 2500, shipping: 3500, promotions: 0, sellerShare: 65000, refunds: 8000, cancellations: 4000 },
+    { week: 'W3', totalRevenue: 78000, netRevenue: 73000, platformFees: 11000, superChat: 1500, shipping: 3500, promotions: 2000, sellerShare: 55000, refunds: 5000, cancellations: 2500 },
+    { week: 'W4', totalRevenue: 110000, netRevenue: 100000, platformFees: 15000, superChat: 3000, shipping: 3500, promotions: 500, sellerShare: 78000, refunds: 10000, cancellations: 5000 },
 ];
 
 const monthlyData = [
-    { month: 'Jan', totalRevenue: 400000, netRevenue: 370000, platformFees: 60000, superChat: 10000, shipping: 15000, promotions: 5000 },
-    { month: 'Feb', totalRevenue: 380000, netRevenue: 355000, platformFees: 55000, superChat: 12000, shipping: 15000, promotions: 3000 },
-    { month: 'Mar', totalRevenue: 520000, netRevenue: 480000, platformFees: 80000, superChat: 15000, shipping: 15000, promotions: 10000 },
-    { month: 'Apr', totalRevenue: 480000, netRevenue: 445000, platformFees: 75000, superChat: 13000, shipping: 15000, promotions: 12000 },
-    { month: 'May', totalRevenue: 610000, netRevenue: 560000, platformFees: 95000, superChat: 20000, shipping: 15000, promotions: 10000 },
-    { month: 'Jun', totalRevenue: 580000, netRevenue: 535000, platformFees: 90000, superChat: 18000, shipping: 15000, promotions: 12000 },
+    { month: 'Jan', totalRevenue: 400000, netRevenue: 370000, platformFees: 60000, superChat: 10000, shipping: 15000, promotions: 5000, sellerShare: 280000, refunds: 30000, cancellations: 15000 },
+    { month: 'Feb', totalRevenue: 380000, netRevenue: 355000, platformFees: 55000, superChat: 12000, shipping: 15000, promotions: 3000, sellerShare: 270000, refunds: 25000, cancellations: 12000 },
+    { month: 'Mar', totalRevenue: 520000, netRevenue: 480000, platformFees: 80000, superChat: 15000, shipping: 15000, promotions: 10000, sellerShare: 360000, refunds: 40000, cancellations: 20000 },
+    { month: 'Apr', totalRevenue: 480000, netRevenue: 445000, platformFees: 75000, superChat: 13000, shipping: 15000, promotions: 12000, sellerShare: 330000, refunds: 35000, cancellations: 18000 },
+    { month: 'May', totalRevenue: 610000, netRevenue: 560000, platformFees: 95000, superChat: 20000, shipping: 15000, promotions: 10000, sellerShare: 420000, refunds: 50000, cancellations: 25000 },
+    { month: 'Jun', totalRevenue: 580000, netRevenue: 535000, platformFees: 90000, superChat: 18000, shipping: 15000, promotions: 12000, sellerShare: 400000, refunds: 45000, cancellations: 22000 },
 ];
 
 const recentTransactions = [
@@ -134,7 +134,7 @@ const DetailView = ({ title, description, data, onBack }: { title: string, descr
     </Card>
 );
 
-const RevenueChart = ({ data, timeUnit, activeChart }: { data: any[], timeUnit: string, activeChart: string }) => {
+const RevenueChart = ({ data, timeUnit }: { data: any[], timeUnit: string }) => {
     return (
         <ResponsiveContainer width="100%" height={350}>
             <ComposedChart data={data}>
@@ -150,8 +150,27 @@ const RevenueChart = ({ data, timeUnit, activeChart }: { data: any[], timeUnit: 
                 <Bar dataKey="superChat" name="Super Chat" stackId="a" fill="hsl(var(--chart-2))" />
                 <Bar dataKey="shipping" name="Shipping" stackId="a" fill="hsl(var(--chart-3))" />
                 <Bar dataKey="promotions" name="Promotions" stackId="a" fill="hsl(var(--chart-4))" />
-                <Line type="monotone" dataKey="totalRevenue" name="Total Revenue (GMV)" stroke="hsl(var(--primary))" strokeWidth={2} dot={false} />
-                <Line type="monotone" dataKey="netRevenue" name="Net Revenue" stroke="hsl(var(--success))" strokeWidth={2} dot={false} />
+                <Line type="monotone" dataKey="netRevenue" name="Net Revenue" stroke="hsl(var(--primary))" strokeWidth={2} dot={false} />
+            </ComposedChart>
+        </ResponsiveContainer>
+    )
+}
+
+const SellerChart = ({ data, timeUnit }: { data: any[], timeUnit: string }) => {
+    return (
+        <ResponsiveContainer width="100%" height={350}>
+            <ComposedChart data={data}>
+                <CartesianGrid strokeDasharray="3 3" opacity={0.5} />
+                <XAxis dataKey={timeUnit} stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
+                <YAxis stroke="#888888" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `₹${value / 1000}k`} />
+                <Tooltip
+                    contentStyle={{ backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))' }}
+                    formatter={(value: number) => `₹${value.toLocaleString()}`}
+                />
+                <Legend />
+                <Area type="monotone" dataKey="sellerShare" name="Seller Share" stroke="hsl(var(--chart-1))" fill="hsl(var(--chart-1))" fillOpacity={0.3} />
+                <Bar dataKey="refunds" name="Refunds" stackId="a" fill="hsl(var(--destructive))" />
+                <Bar dataKey="cancellations" name="Cancellations" stackId="a" fill="hsl(var(--warning))" />
             </ComposedChart>
         </ResponsiveContainer>
     )
@@ -249,7 +268,7 @@ export default function AdminRevenuePage() {
                             <CardHeader>
                                 <div className="flex items-center justify-between">
                                     <div>
-                                        <CardTitle>Revenue Trends</CardTitle>
+                                        <CardTitle>Platform Revenue Trends</CardTitle>
                                         <CardDescription>
                                             A detailed look at your platform's financial performance.
                                         </CardDescription>
@@ -264,7 +283,22 @@ export default function AdminRevenuePage() {
                                 </div>
                             </CardHeader>
                             <CardContent>
-                                <RevenueChart data={trendData[activeTrend].data} timeUnit={trendData[activeTrend].unit} activeChart={'revenue'} />
+                                <RevenueChart data={trendData[activeTrend].data} timeUnit={trendData[activeTrend].unit} />
+                            </CardContent>
+                        </Card>
+                        <Card>
+                            <CardHeader>
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <CardTitle>Seller Financials Overview</CardTitle>
+                                        <CardDescription>
+                                            A summary of seller earnings, refunds, and cancellations.
+                                        </CardDescription>
+                                    </div>
+                                </div>
+                            </CardHeader>
+                            <CardContent>
+                                <SellerChart data={trendData[activeTrend].data} timeUnit={trendData[activeTrend].unit} />
                             </CardContent>
                         </Card>
                          <Card>
