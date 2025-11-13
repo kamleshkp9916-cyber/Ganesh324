@@ -167,6 +167,8 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
         setIsAddressDialogOpen(false);
     }
 
+    const isPublicAdminView = profileData.role === 'admin' && !isOwnProfile;
+
     return (
         <Dialog open={isAddressDialogOpen} onOpenChange={setIsAddressDialogOpen}>
             <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-6 relative p-4 sm:p-6">
@@ -175,7 +177,10 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                     <AvatarFallback className="text-4xl">{profileData.displayName.charAt(0)}</AvatarFallback>
                 </Avatar>
                 <div className="flex flex-col items-center sm:items-start text-foreground flex-grow text-center sm:text-left">
-                    <h2 className="text-2xl sm:text-3xl font-bold">{profileData.displayName}</h2>
+                    <div className="flex items-center gap-2">
+                        <h2 className="text-2xl sm:text-3xl font-bold">{profileData.displayName}</h2>
+                        {profileData.role === 'admin' && <Badge variant="destructive">Admin</Badge>}
+                    </div>
                     <div className="flex gap-2 items-center">
                         <p className="text-sm text-muted-foreground">@{profileData.displayName.toLowerCase().replace(' ', '')}</p>
                         {profileData.role === 'seller' && (
@@ -183,7 +188,6 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                                 <Star className="h-3 w-3" /> 4.8
                             </Badge>
                         )}
-                         {profileData.role === 'admin' && <Badge variant="destructive">Admin</Badge>}
                     </div>
                     <div className="flex gap-4 pt-2 sm:pt-4">
                         <div className="text-center">
@@ -195,7 +199,7 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                             <p className="text-xs sm:text-sm text-muted-foreground">Followers</p>
                         </div>
                     </div>
-                    {!isOwnProfile && profileData.role === 'seller' && (
+                    {!isOwnProfile && profileData.role !== 'admin' && (
                         <div className="flex gap-2 mt-4">
                             <Button onClick={handleFollowToggle} variant={isFollowed ? "outline" : "default"}>
                                 {isFollowed ? <UserCheck className="mr-2 h-4 w-4" /> : <UserPlus className="mr-2 h-4 w-4" />}
@@ -206,152 +210,154 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                 </div>
             </div>
 
-            <div className="px-4 sm:px-6">
-                <Tabs defaultValue="posts" className="w-full">
-                    <TabsList className="w-full overflow-x-auto no-scrollbar justify-start">
-                        {profileData.role === 'seller' && <TabsTrigger value="products">Listed Products</TabsTrigger>}
-                        <TabsTrigger value="posts">Posts</TabsTrigger>
-                        {profileData.role === 'seller' && <TabsTrigger value="sessions">Sessions</TabsTrigger>}
-                        <TabsTrigger value="about">About</TabsTrigger>
-                        {isOwnProfile && <TabsTrigger value="achievements">Achievements</TabsTrigger>}
-                        {isOwnProfile && <TabsTrigger value="orders" onClick={() => router.push(profileData.role === 'seller' ? '/seller/orders' : '/orders')}>Orders</TabsTrigger>}
-                    </TabsList>
-                    <TabsContent value="products" className="mt-4">
-                        {isLoadingContent ? <ProductSkeletonGrid /> : filteredProducts.length > 0 ? (
-                            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-                                {filteredProducts.map(p => (
-                                    <Card key={p.id} className="w-full">
+            {!isPublicAdminView && (
+                <div className="px-4 sm:px-6">
+                    <Tabs defaultValue="posts" className="w-full">
+                        <TabsList className="w-full overflow-x-auto no-scrollbar justify-start">
+                            {profileData.role === 'seller' && <TabsTrigger value="products">Listed Products</TabsTrigger>}
+                            <TabsTrigger value="posts">Posts</TabsTrigger>
+                            {profileData.role === 'seller' && <TabsTrigger value="sessions">Sessions</TabsTrigger>}
+                            <TabsTrigger value="about">About</TabsTrigger>
+                            {isOwnProfile && <TabsTrigger value="achievements">Achievements</TabsTrigger>}
+                            {isOwnProfile && <TabsTrigger value="orders" onClick={() => router.push(profileData.role === 'seller' ? '/seller/orders' : '/orders')}>Orders</TabsTrigger>}
+                        </TabsList>
+                        <TabsContent value="products" className="mt-4">
+                            {isLoadingContent ? <ProductSkeletonGrid /> : filteredProducts.length > 0 ? (
+                                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                                    {filteredProducts.map(p => (
+                                        <Card key={p.id} className="w-full">
+                                            <CardContent className="p-0">
+                                                <div className="aspect-square bg-muted rounded-t-lg overflow-hidden relative">
+                                                    <Image src={p.images[0]?.preview || 'https://placehold.co/200x200.png'} alt={p.name} fill className="object-cover" />
+                                                </div>
+                                                <div className="p-3">
+                                                    <h4 className="font-semibold truncate text-sm">{p.name}</h4>
+                                                    <p className="font-bold text-foreground">₹{p.price.toLocaleString()}</p>
+                                                </div>
+                                            </CardContent>
+                                        </Card>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="text-center py-12 text-muted-foreground">This seller hasn't listed any products yet.</div>
+                            )}
+                        </TabsContent>
+                        <TabsContent value="posts" className="mt-4">
+                        <div className="space-y-4">
+                            {userPosts.map(post => (
+                                <Card key={post.id}>
+                                    <CardContent className="p-4">
+                                    <div className="flex items-start gap-3">
+                                        <Avatar>
+                                        <AvatarImage src={post.avatarUrl} />
+                                        <AvatarFallback>{post.sellerName?.charAt(0)}</AvatarFallback>
+                                        </Avatar>
+                                        <div className="flex-grow">
+                                        <div className="flex items-center justify-between">
+                                            <div>
+                                            <p className="font-semibold">{post.sellerName}</p>
+                                            <p className="text-xs text-muted-foreground">
+                                                <RealtimeTimestamp date={post.timestamp.toDate()} isEdited={post.lastEditedAt} />
+                                            </p>
+                                            </div>
+                                        </div>
+                                        <p className="text-sm mt-2 whitespace-pre-wrap">{renderContentWithHashtags(post.content)}</p>
+                                        {post.images && post.images.length > 0 && (
+                                                <div className="mt-2 rounded-lg overflow-hidden border">
+                                                    <Image src={post.images[0].url} alt="Post image" width={400} height={300} className="w-full h-auto object-cover" />
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                    </CardContent>
+                                </Card>
+                            ))}
+                            {userPosts.length === 0 && (
+                                <div className="text-center py-12 text-muted-foreground">This user hasn't posted anything yet.</div>
+                            )}
+                        </div>
+                        </TabsContent>
+                        <TabsContent value="sessions" className="mt-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {mockPastStreams.filter(s => s.id === profileData.uid).map(stream => (
+                                    <Card key={stream.id}>
                                         <CardContent className="p-0">
-                                            <div className="aspect-square bg-muted rounded-t-lg overflow-hidden relative">
-                                                <Image src={p.images[0]?.preview || 'https://placehold.co/200x200.png'} alt={p.name} fill className="object-cover" />
+                                            <div className="aspect-video bg-muted rounded-t-lg overflow-hidden relative">
+                                                <Image src={stream.thumbnailUrl} alt={stream.title} fill className="object-cover" />
+                                                <div className="absolute bottom-2 right-2 bg-black/50 text-white text-xs px-1.5 py-0.5 rounded-sm">{stream.duration}</div>
                                             </div>
                                             <div className="p-3">
-                                                <h4 className="font-semibold truncate text-sm">{p.name}</h4>
-                                                <p className="font-bold text-foreground">₹{p.price.toLocaleString()}</p>
+                                                <h4 className="font-semibold truncate">{stream.title}</h4>
+                                                <p className="text-sm text-muted-foreground">{stream.views} views • {stream.date}</p>
                                             </div>
                                         </CardContent>
                                     </Card>
                                 ))}
+                                {mockPastStreams.filter(s => s.id === profileData.uid).length === 0 && (
+                                    <div className="col-span-full text-center py-12 text-muted-foreground">This seller has no past streams.</div>
+                                )}
                             </div>
-                        ) : (
-                            <div className="text-center py-12 text-muted-foreground">This seller hasn't listed any products yet.</div>
-                        )}
-                    </TabsContent>
-                    <TabsContent value="posts" className="mt-4">
-                       <div className="space-y-4">
-                          {userPosts.map(post => (
-                              <Card key={post.id}>
-                                <CardContent className="p-4">
-                                  <div className="flex items-start gap-3">
-                                    <Avatar>
-                                      <AvatarImage src={post.avatarUrl} />
-                                      <AvatarFallback>{post.sellerName?.charAt(0)}</AvatarFallback>
-                                    </Avatar>
-                                    <div className="flex-grow">
-                                      <div className="flex items-center justify-between">
-                                        <div>
-                                          <p className="font-semibold">{post.sellerName}</p>
-                                          <p className="text-xs text-muted-foreground">
-                                              <RealtimeTimestamp date={post.timestamp.toDate()} isEdited={post.lastEditedAt} />
-                                          </p>
-                                        </div>
-                                      </div>
-                                      <p className="text-sm mt-2 whitespace-pre-wrap">{renderContentWithHashtags(post.content)}</p>
-                                       {post.images && post.images.length > 0 && (
-                                            <div className="mt-2 rounded-lg overflow-hidden border">
-                                                <Image src={post.images[0].url} alt="Post image" width={400} height={300} className="w-full h-auto object-cover" />
-                                            </div>
-                                        )}
-                                    </div>
-                                  </div>
-                                </CardContent>
-                              </Card>
-                          ))}
-                          {userPosts.length === 0 && (
-                              <div className="text-center py-12 text-muted-foreground">This user hasn't posted anything yet.</div>
-                          )}
-                       </div>
-                    </TabsContent>
-                    <TabsContent value="sessions" className="mt-4">
-                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            {mockPastStreams.filter(s => s.id === profileData.uid).map(stream => (
-                                <Card key={stream.id}>
-                                    <CardContent className="p-0">
-                                        <div className="aspect-video bg-muted rounded-t-lg overflow-hidden relative">
-                                            <Image src={stream.thumbnailUrl} alt={stream.title} fill className="object-cover" />
-                                            <div className="absolute bottom-2 right-2 bg-black/50 text-white text-xs px-1.5 py-0.5 rounded-sm">{stream.duration}</div>
-                                        </div>
-                                        <div className="p-3">
-                                            <h4 className="font-semibold truncate">{stream.title}</h4>
-                                            <p className="text-sm text-muted-foreground">{stream.views} views • {stream.date}</p>
-                                        </div>
-                                    </CardContent>
-                                </Card>
-                            ))}
-                             {mockPastStreams.filter(s => s.id === profileData.uid).length === 0 && (
-                                <div className="col-span-full text-center py-12 text-muted-foreground">This seller has no past streams.</div>
-                             )}
-                         </div>
-                    </TabsContent>
-                     <TabsContent value="about" className="mt-4">
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>About {profileData.displayName}</CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                                {profileData.bio && <p className="text-sm text-muted-foreground">{profileData.bio}</p>}
-                                <Separator />
-                                <div className="space-y-2 text-sm">
-                                    {profileData.location && <div className="flex items-center gap-2"><MapPin className="h-4 w-4 text-muted-foreground" /> <span>{profileData.location}</span></div>}
-                                    {profileData.email && <div className="flex items-center gap-2"><Mail className="h-4 w-4 text-muted-foreground" /> <a href={`mailto:${profileData.email}`} className="hover:underline">{profileData.email}</a></div>}
-                                    {profileData.phone && <div className="flex items-center gap-2"><Phone className="h-4 w-4 text-muted-foreground" /> <span>{profileData.phone}</span></div>}
-                                    {profileData.addresses && profileData.addresses.length > 0 && 
-                                        <div className="flex items-start gap-2 pt-2">
-                                            <Home className="h-4 w-4 text-muted-foreground mt-1" /> 
-                                            <div>
-                                                <div className="flex items-center gap-2">
-                                                    <p className="font-semibold text-foreground">Address</p>
-                                                    {isOwnProfile && (
-                                                         <DialogTrigger asChild>
-                                                            <Button variant="link" size="sm" className="h-auto p-0 text-xs" onClick={() => setIsAddressDialogOpen(true)}>
-                                                                <Edit className="mr-1 h-3 w-3" /> Manage
-                                                            </Button>
-                                                        </DialogTrigger>
-                                                    )}
+                        </TabsContent>
+                        <TabsContent value="about" className="mt-4">
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle>About {profileData.displayName}</CardTitle>
+                                </CardHeader>
+                                <CardContent className="space-y-4">
+                                    {profileData.bio && <p className="text-sm text-muted-foreground">{profileData.bio}</p>}
+                                    <Separator />
+                                    <div className="space-y-2 text-sm">
+                                        {profileData.location && <div className="flex items-center gap-2"><MapPin className="h-4 w-4 text-muted-foreground" /> <span>{profileData.location}</span></div>}
+                                        {profileData.email && <div className="flex items-center gap-2"><Mail className="h-4 w-4 text-muted-foreground" /> <a href={`mailto:${profileData.email}`} className="hover:underline">{profileData.email}</a></div>}
+                                        {profileData.phone && <div className="flex items-center gap-2"><Phone className="h-4 w-4 text-muted-foreground" /> <span>{profileData.phone}</span></div>}
+                                        {profileData.addresses && profileData.addresses.length > 0 && 
+                                            <div className="flex items-start gap-2 pt-2">
+                                                <Home className="h-4 w-4 text-muted-foreground mt-1" /> 
+                                                <div>
+                                                    <div className="flex items-center gap-2">
+                                                        <p className="font-semibold text-foreground">Address</p>
+                                                        {isOwnProfile && (
+                                                            <DialogTrigger asChild>
+                                                                <Button variant="link" size="sm" className="h-auto p-0 text-xs" onClick={() => setIsAddressDialogOpen(true)}>
+                                                                    <Edit className="mr-1 h-3 w-3" /> Manage
+                                                                </Button>
+                                                            </DialogTrigger>
+                                                        )}
+                                                    </div>
+                                                    <p>{profileData.addresses[0].village}, {profileData.addresses[0].district}</p>
+                                                    <p>{profileData.addresses[0].city}, {profileData.addresses[0].state} - {profileData.addresses[0].pincode}</p>
                                                 </div>
-                                                <p>{profileData.addresses[0].village}, {profileData.addresses[0].district}</p>
-                                                <p>{profileData.addresses[0].city}, {profileData.addresses[0].state} - {profileData.addresses[0].pincode}</p>
                                             </div>
-                                        </div>
-                                    }
+                                        }
+                                    </div>
+                                    <div className="flex items-center gap-2 flex-wrap">
+                                        {profileData.instagram && <Button asChild variant="outline" size="sm"><Link href={profileData.instagram} target="_blank"><Instagram className="mr-2 h-4 w-4" /> Instagram</Link></Button>}
+                                        {profileData.twitter && <Button asChild variant="outline" size="sm"><Link href={profileData.twitter} target="_blank"><Twitter className="mr-2 h-4 w-4" /> Twitter</Link></Button>}
+                                        {profileData.youtube && <Button asChild variant="outline" size="sm"><Link href={profileData.youtube} target="_blank"><Youtube className="mr-2 h-4 w-4" /> YouTube</Link></Button>}
+                                        {profileData.facebook && <Button asChild variant="outline" size="sm"><Link href={profileData.facebook} target="_blank"><Facebook className="mr-2 h-4 w-4" /> Facebook</Link></Button>}
+                                        {profileData.twitch && <Button asChild variant="outline" size="sm"><Link href={profileData.twitch} target="_blank"><Twitch className="mr-2 h-4 w-4" /> Twitch</Link></Button>}
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        </TabsContent>
+                        {isOwnProfile && (
+                            <>
+                            <TabsContent value="achievements" className="mt-4">
+                                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                                    {mockAchievements.map(ach => (
+                                        <Card key={ach.id} className="text-center p-4 flex flex-col items-center justify-center">
+                                        <div className="p-3 bg-primary/10 rounded-full mb-2 text-primary">{ach.icon}</div>
+                                        <p className="font-semibold text-sm">{ach.name}</p>
+                                        <p className="text-xs text-muted-foreground">{ach.description}</p>
+                                        </Card>
+                                    ))}
                                 </div>
-                                <div className="flex items-center gap-2 flex-wrap">
-                                    {profileData.instagram && <Button asChild variant="outline" size="sm"><Link href={profileData.instagram} target="_blank"><Instagram className="mr-2 h-4 w-4" /> Instagram</Link></Button>}
-                                    {profileData.twitter && <Button asChild variant="outline" size="sm"><Link href={profileData.twitter} target="_blank"><Twitter className="mr-2 h-4 w-4" /> Twitter</Link></Button>}
-                                    {profileData.youtube && <Button asChild variant="outline" size="sm"><Link href={profileData.youtube} target="_blank"><Youtube className="mr-2 h-4 w-4" /> YouTube</Link></Button>}
-                                    {profileData.facebook && <Button asChild variant="outline" size="sm"><Link href={profileData.facebook} target="_blank"><Facebook className="mr-2 h-4 w-4" /> Facebook</Link></Button>}
-                                    {profileData.twitch && <Button asChild variant="outline" size="sm"><Link href={profileData.twitch} target="_blank"><Twitch className="mr-2 h-4 w-4" /> Twitch</Link></Button>}
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </TabsContent>
-                     {isOwnProfile && (
-                        <>
-                           <TabsContent value="achievements" className="mt-4">
-                              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                                  {mockAchievements.map(ach => (
-                                    <Card key={ach.id} className="text-center p-4 flex flex-col items-center justify-center">
-                                      <div className="p-3 bg-primary/10 rounded-full mb-2 text-primary">{ach.icon}</div>
-                                      <p className="font-semibold text-sm">{ach.name}</p>
-                                      <p className="text-xs text-muted-foreground">{ach.description}</p>
-                                    </Card>
-                                  ))}
-                              </div>
-                            </TabsContent>
-                        </>
-                    )}
-                </Tabs>
-            </div>
+                                </TabsContent>
+                            </>
+                        )}
+                    </Tabs>
+                </div>
+            )}
             <DialogContent>
                 <DialogHeader>
                     <DialogTitle>Manage Delivery Addresses</DialogTitle>
@@ -366,5 +372,3 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
         </Dialog>
     );
 }
-
-    
