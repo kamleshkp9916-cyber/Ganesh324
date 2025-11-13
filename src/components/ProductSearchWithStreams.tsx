@@ -1,4 +1,3 @@
-
 "use client"
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
@@ -8,7 +7,7 @@ import { useDebounce } from '@/hooks/use-debounce';
 import { normalize, unique, generateKeywords } from '@/lib/generateKeywords';
 import { Input } from './ui/input';
 import { Popover, PopoverAnchor, PopoverContent } from './ui/popover';
-import { Loader2, Search, Video, ShoppingBag, Sparkles, ArrowRight } from 'lucide-react';
+import { Loader2, Search, Video, ShoppingBag, Sparkles, ArrowRight, User } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Badge } from './ui/badge';
@@ -17,6 +16,8 @@ import { productDetails, mockStreams } from '@/lib/product-data';
 import { Separator } from './ui/separator';
 import { useRouter } from 'next/navigation';
 import { defaultCategories } from '@/lib/categories';
+import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
+import { UserData } from '@/lib/follow-data';
 
 export function ProductSearchWithStreams() {
   const [q, setQ] = useState('');
@@ -25,6 +26,7 @@ export function ProductSearchWithStreams() {
   
   const [productSuggestions, setProductSuggestions] = useState<any[]>([]);
   const [streamHints, setStreamHints] = useState<any[]>([]);
+  const [userSuggestions, setUserSuggestions] = useState<UserData[]>([]);
   const [categoryStreamPath, setCategoryStreamPath] = useState<string | null>(null);
   
   const [popoverOpen, setPopoverOpen] = useState(false);
@@ -42,6 +44,7 @@ export function ProductSearchWithStreams() {
     if (!queryText || !queryText.trim()) {
       setProductSuggestions([]);
       setStreamHints([]);
+      setUserSuggestions([]);
       setCategoryStreamPath(null);
       setLoading(false);
       setPopoverOpen(false);
@@ -92,10 +95,23 @@ export function ProductSearchWithStreams() {
       });
       const sortedStreams = scoredStreams.map(x => x.st);
       
+      // Fetch users
+      const db = getFirestoreDb();
+      const usersRef = collection(db, "users");
+      const userQuery = query(usersRef, 
+        where("displayName", ">=", queryText),
+        where("displayName", "<=", queryText + '\uf8ff'),
+        where("role", "!=", "admin"), // Exclude admins
+        limit(3)
+      );
+      const userSnapshot = await getDocs(userQuery);
+      const users = userSnapshot.docs.map(doc => doc.data() as UserData);
+
       setProductSuggestions(sortedProducts);
       setStreamHints(sortedStreams);
+      setUserSuggestions(users);
       
-      setPopoverOpen(sortedProducts.length > 0 || sortedStreams.length > 0 || !!foundPath);
+      setPopoverOpen(sortedProducts.length > 0 || sortedStreams.length > 0 || users.length > 0 || !!foundPath);
 
     } catch (e) {
       console.error('Search error', e);
@@ -108,7 +124,7 @@ export function ProductSearchWithStreams() {
     runSearch(debouncedQuery);
   }, [debouncedQuery, runSearch]);
 
-  const hasResults = productSuggestions.length > 0 || streamHints.length > 0 || categoryStreamPath;
+  const hasResults = productSuggestions.length > 0 || streamHints.length > 0 || userSuggestions.length > 0 || categoryStreamPath;
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -138,6 +154,24 @@ export function ProductSearchWithStreams() {
         <PopoverContent className="w-[--radix-popover-trigger-width] mt-2 max-h-[70vh] overflow-y-auto p-4" onOpenAutoFocus={(e) => e.preventDefault()}>
             {hasResults ? (
                 <div className="space-y-4">
+                    {userSuggestions.length > 0 && (
+                         <div>
+                             <h3 className="text-sm font-semibold text-muted-foreground px-2 mb-2">Users</h3>
+                             {userSuggestions.map((user) => (
+                                 <Link key={user.uid} href={`/seller/profile?userId=${user.uid}`} className="flex items-center gap-4 p-2 rounded-lg hover:bg-secondary">
+                                     <Avatar>
+                                         <AvatarImage src={user.photoURL} alt={user.displayName} />
+                                         <AvatarFallback>{user.displayName.charAt(0)}</AvatarFallback>
+                                     </Avatar>
+                                     <div>
+                                         <p className="font-semibold text-sm">{user.displayName}</p>
+                                         <p className="text-xs text-muted-foreground">@{user.displayName.toLowerCase().replace(' ','')}</p>
+                                     </div>
+                                 </Link>
+                             ))}
+                         </div>
+                     )}
+
                      {categoryStreamPath && (
                         <div>
                             <Link href={categoryStreamPath} className="group flex items-center justify-between p-2 -m-2 rounded-lg hover:bg-secondary">
@@ -154,7 +188,7 @@ export function ProductSearchWithStreams() {
                             </Link>
                         </div>
                     )}
-                    {(categoryStreamPath && productSuggestions.length > 0) && <Separator />}
+                    {(categoryStreamPath || userSuggestions.length > 0) && productSuggestions.length > 0 && <Separator />}
                     {productSuggestions.length > 0 && (
                         <div>
                             <Link href={`/listed-products?search=${encodeURIComponent(q)}`} className="group flex items-center justify-between p-2 -m-2 rounded-lg hover:bg-secondary">
