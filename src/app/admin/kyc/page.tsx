@@ -20,6 +20,8 @@ import { updateUserData, UserData } from "@/lib/follow-data";
 import { getFirestore, collection, query, where, getDocs, updateDoc, doc } from "firebase/firestore";
 import { getFirestoreDb } from "@/lib/firebase";
 import { AdminLayout } from "@/components/admin/admin-layout";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 
 const mockApplications: UserData[] = [
     {
@@ -93,6 +95,7 @@ function AdminPanel() {
   const [finalDecision, setFinalDecision] = useState<string | null>(null);
   const [tab, setTab] = useState("basic");
   const [reason, setReason] = useState("");
+  const [fixSteps, setFixSteps] = useState<string[]>([]);
   const { toast } = useToast();
 
   const fetchApplications = useCallback(async () => {
@@ -113,6 +116,7 @@ function AdminPanel() {
     let status;
     let toastTitle = "";
     let toastDescription = "";
+    let resubmissionData: any = {};
     
     switch (decision.type) {
       case "APPROVE":
@@ -129,6 +133,10 @@ function AdminPanel() {
         status = "needs-resubmission";
         toastTitle = "Fixes Requested";
         toastDescription = `A request for more information has been sent to ${application.displayName}.`;
+        resubmissionData = {
+            resubmissionReason: reason,
+            stepsToFix: fixSteps,
+        };
         break;
       default:
         return;
@@ -140,7 +148,7 @@ function AdminPanel() {
         await updateUserData(application.uid, { 
             verificationStatus: status, 
             rejectionReason: decision.type === 'REJECT' ? reason : undefined,
-            resubmissionReason: decision.type === 'FIX' ? reason : undefined,
+            ...resubmissionData
         });
         toast({ title: toastTitle, description: toastDescription });
     } catch (error) {
@@ -153,6 +161,7 @@ function AdminPanel() {
   const nextApplication = () => {
     setFinalDecision(null);
     setReason('');
+    setFixSteps([]);
     setCurrentAppIndex(prev => (prev + 1) % applications.length);
      if (currentAppIndex >= applications.length - 1) {
         fetchApplications(); // Refresh list when we're at the end
@@ -294,11 +303,30 @@ function AdminPanel() {
 
       <Card className="rounded-2xl">
         <CardHeader className="pb-2"><CardTitle>Decision</CardTitle></CardHeader>
-        <CardContent className="space-y-3">
+        <CardContent className="space-y-4">
+            <div>
+                 <Label>Select steps that need fixing (for "Request Fix")</Label>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mt-2">
+                    {steps.map(s => (
+                        <div key={s.key} className="flex items-center space-x-2">
+                            <Checkbox 
+                                id={s.key} 
+                                checked={fixSteps.includes(s.key)}
+                                onCheckedChange={(checked) => {
+                                    setFixSteps(prev => checked ? [...prev, s.key] : prev.filter(step => step !== s.key))
+                                }}
+                            />
+                            <Label htmlFor={s.key} className="text-sm font-medium leading-none">
+                                {s.label}
+                            </Label>
+                        </div>
+                    ))}
+                </div>
+            </div>
             <Textarea placeholder="Reason / notes (required for Fix/Reject)" value={reason} onChange={(e)=>setReason(e.target.value)}/>
              <div className="flex flex-col md:flex-row items-start md:items-center gap-3">
                 <div className="flex gap-2">
-                    <Button variant="secondary" onClick={()=>handleDecision({ type: "FIX", reason })} disabled={!reason}><AlertTriangle className="w-4 h-4 mr-2"/>Request Fix</Button>
+                    <Button variant="secondary" onClick={()=>handleDecision({ type: "FIX", reason })} disabled={!reason || fixSteps.length === 0}><AlertTriangle className="w-4 h-4 mr-2"/>Request Fix</Button>
                     <Button variant="destructive" onClick={()=>handleDecision({ type: "REJECT", reason })} disabled={!reason}><ShieldAlert className="w-4 h-4 mr-2"/>Reject</Button>
                     <Button onClick={()=>handleDecision({ type: "APPROVE" })}><UserCheck className="w-4 h-4 mr-2"/>Approve</Button>
                 </div>

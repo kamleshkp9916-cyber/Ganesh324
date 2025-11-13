@@ -30,12 +30,13 @@ import { useAuthActions } from "@/lib/auth";
 import { getFirestore, collection, query, where, getDocs } from "firebase/firestore";
 import { getFirestoreDb } from "@/lib/firebase";
 
-const Section = ({ title, children, icon }: { title: string, children: React.ReactNode, icon: React.ReactNode }) => (
-  <Card className="shadow-lg border rounded-2xl">
+const Section = ({ title, children, icon, hasError }: { title: string, children: React.ReactNode, icon: React.ReactNode, hasError?: boolean }) => (
+  <Card className={`shadow-lg border rounded-2xl ${hasError ? 'border-destructive' : ''}`}>
     <CardHeader className="pb-2">
       <div className="flex items-center gap-2">
         {icon}
         <CardTitle className="text-xl font-semibold">{title}</CardTitle>
+        {hasError && <Badge variant="destructive">Fixes Needed</Badge>}
       </div>
     </CardHeader>
     <CardContent>{children}</CardContent>
@@ -58,53 +59,53 @@ const steps = [
   { key: "policies", label: "Policies & Preview", icon: <ClipboardList className="w-5 h-5"/> },
 ];
 
-function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
+function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => void, existingData?: UserData | null }) {
   const { user } = useAuth();
   const { toast } = useToast();
   const { handleSellerSignUp } = useAuthActions();
-  const [current, setCurrent] = useState(0);
+  const [current, setCurrent] = useState(existingData?.stepsToFix?.[0] ? steps.findIndex(s => s.key === existingData.stepsToFix[0]) : 0);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   
   const initialFormState = {
-    photoUrl: "",
-    legalName: "",
-    displayName: "",
-    email: user?.email || "",
-    phone: "",
+    photoUrl: existingData?.photoURL || "",
+    legalName: existingData?.legalName || "",
+    displayName: existingData?.displayName || "",
+    email: existingData?.email || user?.email || "",
+    phone: existingData?.phone?.replace('+91 ','') || "",
     password: "",
     confirmPassword: "",
     emailOtp: "",
     phoneOtp: "",
-    emailVerified: false,
-    phoneVerified: false,
+    emailVerified: !!existingData?.email,
+    phoneVerified: !!existingData?.phone,
     categories: [],
-    about: "",
-    bizType: "Individual",
-    regNo: "",
-    gstin: "",
+    about: existingData?.about || "",
+    bizType: existingData?.bizType || "Individual",
+    regNo: existingData?.regNo || "",
+    gstin: existingData?.gstin || "",
     incorporation: "",
     supportEmail: "",
     supportPhone: "",
-    regAddr: { line1: "", line2: "", city: "", state: "", pin: "" },
-    pickupAddr: { same: true, line1: "", line2: "", city: "", state: "", pin: "" },
+    regAddr: existingData?.addresses?.find(a => a.type === 'registered') || { line1: "", line2: "", city: "", state: "", pin: "" },
+    pickupAddr: existingData?.addresses?.find(a => a.type === 'pickup') || { same: true, line1: "", line2: "", city: "", state: "", pin: "" },
     serviceRegions: [],
-    pan: "",
-    ifsc: "",
-    accountNo: "",
-    accountName: "",
-    auctionEnabled: false,
-    termsAccepted: false,
+    pan: existingData?.pan || "",
+    ifsc: existingData?.bank?.ifsc || "",
+    accountNo: existingData?.bank?.acct || "",
+    accountName: existingData?.bank?.name || "",
+    auctionEnabled: (existingData as any)?.auctionEnabled || false,
+    termsAccepted: existingData?.termsAccepted || false,
     aadhaarNumber: "",
     aadhaarOtp: "",
   };
 
   const [form, setForm] = useState(initialFormState);
   
-  const [verif, setVerif] = useState<{ state: "IDLE" | "PENDING" | "VERIFIED" | "FAILED", message: string }>({ state: "IDLE", message: "" });
+  const [verif, setVerif] = useState<{ state: "IDLE" | "PENDING" | "VERIFIED" | "FAILED", message: string }>({ state: existingData?.isNipherVerified ? 'VERIFIED' : "IDLE", message: existingData?.isNipherVerified ? 'Verification previously completed.' : '' });
   const [otpSent, setOtpSent] = useState({ email: false, phone: false, aadhaar: false });
   const [isVerifying, setIsVerifying] = useState({ email: false, phone: false, aadhaar: false, face: false });
   const [qrCodeUrl, setQrCodeUrl] = useState<string | null>(null);
-  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(existingData?.photoURL || null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const [selfiePreview, setSelfiePreview] = useState<string | null>(null);
@@ -114,8 +115,8 @@ function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
   const [phoneError, setPhoneError] = useState('');
 
   const isStep1Valid = useMemo(() => {
-    return form.legalName && form.displayName && /.+@.+\..+/.test(form.email) && /^\d{10}$/.test(form.phone) && form.emailVerified && form.phoneVerified && form.photoUrl && form.password.length >= 8 && form.password === form.confirmPassword && !emailError && !phoneError;
-  }, [form, emailError, phoneError]);
+    return form.legalName && form.displayName && /.+@.+\..+/.test(form.email) && /^\d{10}$/.test(form.phone) && form.emailVerified && form.phoneVerified && form.photoUrl && (!!existingData || (form.password.length >= 8 && form.password === form.confirmPassword)) && !emailError && !phoneError;
+  }, [form, emailError, phoneError, existingData]);
 
   const isStep2Valid = useMemo(() => {
     return form.bizType && /.+@.+\..+/.test(form.supportEmail) && /^\d{10}$/.test(form.supportPhone);
@@ -166,7 +167,7 @@ function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
   };
 
   const checkEmailExists = useCallback(async () => {
-    if (!/.+@.+\..+/.test(form.email)) return;
+    if (!/.+@.+\..+/.test(form.email) || form.email === existingData?.email) return;
     const db = getFirestoreDb();
     const usersRef = collection(db, "users");
     const q = query(usersRef, where("email", "==", form.email));
@@ -176,20 +177,21 @@ function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
     } else {
       setEmailError("");
     }
-  }, [form.email]);
+  }, [form.email, existingData?.email]);
 
   const checkPhoneExists = useCallback(async () => {
-    if (!/^\d{10}$/.test(form.phone)) return;
+    const phone = `+91 ${form.phone}`;
+    if (!/^\d{10}$/.test(form.phone) || phone === existingData?.phone) return;
     const db = getFirestoreDb();
     const usersRef = collection(db, "users");
-    const q = query(usersRef, where("phone", "==", `+91 ${form.phone}`));
+    const q = query(usersRef, where("phone", "==", phone));
     const querySnapshot = await getDocs(q);
     if (!querySnapshot.empty) {
       setPhoneError("This phone number is already registered. Please use a different one.");
     } else {
       setPhoneError("");
     }
-  }, [form.phone]);
+  }, [form.phone, existingData?.phone]);
 
   const handleSendOtp = (type: 'email' | 'phone' | 'aadhaar') => {
       setOtpSent(prev => ({...prev, [type]: true}));
@@ -263,13 +265,21 @@ function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
             {...form.regAddr, id: 1, type: 'registered' },
             !form.pickupAddr.same ? {...form.pickupAddr, id: 2, type: 'pickup'} : null
         ].filter(Boolean),
+        verificationStatus: 'pending', // Re-submit as pending
     };
+    
+    delete (finalData as any).stepsToFix; // Clear fix request on re-submission
 
     try {
-        await handleSellerSignUp(finalData);
-        onSubmit({ status: "SUBMITTED", payload: finalData });
+        if(existingData) {
+            await updateUserData(existingData.uid, finalData);
+            onSubmit({ status: "SUBMITTED", payload: finalData });
+        } else {
+            await handleSellerSignUp(finalData);
+            onSubmit({ status: "SUBMITTED", payload: finalData });
+        }
     } catch (error) {
-        console.error("Seller sign up failed:", error);
+        console.error("Seller sign up/update failed:", error);
     }
   };
 
@@ -292,7 +302,7 @@ function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
         <Card className="rounded-2xl">
           <CardHeader className="pb-2"><CardTitle>Application Status</CardTitle></CardHeader>
           <CardContent className="space-y-2">
-            <div className="flex items-center gap-2 text-sm"><Badge>Draft</Badge></div>
+            <div className="flex items-center gap-2 text-sm"><Badge>{existingData?.verificationStatus?.toUpperCase() || 'Draft'}</Badge></div>
             <div className="text-xs text-muted-foreground">You can submit after finishing KYC and accepting terms.</div>
           </CardContent>
         </Card>
@@ -305,7 +315,7 @@ function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
         <AnimatePresence mode="popLayout">
           <motion.div key={current} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} className="space-y-4">
             {steps[current].key === "basic" && (
-              <Section title="Basic Info" icon={<User2 className="w-5 h-5"/>}>
+              <Section title="Basic Info" icon={<User2 className="w-5 h-5"/>} hasError={existingData?.stepsToFix?.includes('basic')}>
                 <div className="space-y-4">
                   <div className="flex items-center gap-4">
                       <Avatar className="h-24 w-24">
@@ -330,68 +340,72 @@ function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
                       <Input value={form.displayName} onChange={(e)=>setField("displayName", e.target.value)} placeholder="Unique store name"/>
                     </div>
                   </div>
-                  <div className="grid md:grid-cols-[1fr,auto] gap-2 items-end">
-                      <div>
-                        <label className="text-sm">Email</label>
-                        <Input value={form.email} onChange={(e) => { setEmailError(''); setField("email", e.target.value); }} onBlur={checkEmailExists} placeholder="you@shop.com" disabled={form.emailVerified} />
-                         {emailError && <p className="text-xs text-destructive mt-1">{emailError}</p>}
-                      </div>
-                      <Button type="button" onClick={() => handleSendOtp('email')} disabled={otpSent.email || form.emailVerified || !!emailError || !/.+@.+\..+/.test(form.email)}>
-                          {form.emailVerified ? <Check className="mr-2 h-4 w-4"/> : <Send className="mr-2 h-4 w-4"/>}
-                          {form.emailVerified ? 'Verified' : otpSent.email ? 'Resend OTP' : 'Send OTP'}
-                      </Button>
-                  </div>
-                   {otpSent.email && !form.emailVerified && (
-                      <div className="flex items-center gap-2">
-                          <InputOTP maxLength={4} value={form.emailOtp} onChange={(val) => setField("emailOtp", val)}>
-                              <InputOTPGroup>
-                                  <InputOTPSlot index={0} /><InputOTPSlot index={1} /><InputOTPSlot index={2} /><InputOTPSlot index={3} />
-                              </InputOTPGroup>
-                          </InputOTP>
-                          <Button type="button" variant="secondary" onClick={() => handleVerifyOtp('email')} disabled={form.emailOtp.length < 4 || isVerifying.email}>
-                            {isVerifying.email && <Loader2 className="mr-2 h-4 w-4 animate-spin"/>}
-                            Verify Email
-                          </Button>
-                      </div>
-                  )}
+                  {!existingData && (
+                    <>
+                    <div className="grid md:grid-cols-[1fr,auto] gap-2 items-end">
+                        <div>
+                          <label className="text-sm">Email</label>
+                          <Input value={form.email} onChange={(e) => { setEmailError(''); setField("email", e.target.value); }} onBlur={checkEmailExists} placeholder="you@shop.com" disabled={form.emailVerified} />
+                           {emailError && <p className="text-xs text-destructive mt-1">{emailError}</p>}
+                        </div>
+                        <Button type="button" onClick={() => handleSendOtp('email')} disabled={otpSent.email || form.emailVerified || !!emailError || !/.+@.+\..+/.test(form.email)}>
+                            {form.emailVerified ? <Check className="mr-2 h-4 w-4"/> : <Send className="mr-2 h-4 w-4"/>}
+                            {form.emailVerified ? 'Verified' : otpSent.email ? 'Resend OTP' : 'Send OTP'}
+                        </Button>
+                    </div>
+                     {otpSent.email && !form.emailVerified && (
+                        <div className="flex items-center gap-2">
+                            <InputOTP maxLength={4} value={form.emailOtp} onChange={(val) => setField("emailOtp", val)}>
+                                <InputOTPGroup>
+                                    <InputOTPSlot index={0} /><InputOTPSlot index={1} /><InputOTPSlot index={2} /><InputOTPSlot index={3} />
+                                </InputOTPGroup>
+                            </InputOTP>
+                            <Button type="button" variant="secondary" onClick={() => handleVerifyOtp('email')} disabled={form.emailOtp.length < 4 || isVerifying.email}>
+                              {isVerifying.email && <Loader2 className="mr-2 h-4 w-4 animate-spin"/>}
+                              Verify Email
+                            </Button>
+                        </div>
+                    )}
 
-                  <div className="grid md:grid-cols-[1fr,auto] gap-2 items-end">
-                      <div>
-                        <label className="text-sm">Phone</label>
-                        <Input value={form.phone} onChange={(e) => { setPhoneError(''); setField("phone", e.target.value.replace(/[^0-9]/g, "").slice(0,10)); }} onBlur={checkPhoneExists} placeholder="10‑digit mobile" disabled={form.phoneVerified}/>
-                        {phoneError && <p className="text-xs text-destructive mt-1">{phoneError}</p>}
-                      </div>
-                      <Button type="button" onClick={() => handleSendOtp('phone')} disabled={otpSent.phone || form.phoneVerified || !!phoneError || form.phone.length !== 10}>
-                         {form.phoneVerified ? <Check className="mr-2 h-4 w-4"/> : <Send className="mr-2 h-4 w-4"/>}
-                         {form.phoneVerified ? 'Verified' : otpSent.phone ? 'Resend OTP' : 'Send OTP'}
-                      </Button>
-                  </div>
-                  {otpSent.phone && !form.phoneVerified && (
-                      <div className="flex items-center gap-2">
-                          <InputOTP maxLength={4} value={form.phoneOtp} onChange={(val) => setField("phoneOtp", val)}>
-                               <InputOTPGroup>
-                                  <InputOTPSlot index={0} /><InputOTPSlot index={1} /><InputOTPSlot index={2} /><InputOTPSlot index={3} />
-                              </InputOTPGroup>
-                          </InputOTP>
-                          <Button type="button" variant="secondary" onClick={() => handleVerifyOtp('phone')} disabled={form.phoneOtp.length < 4 || isVerifying.phone}>
-                             {isVerifying.phone && <Loader2 className="mr-2 h-4 w-4 animate-spin"/>}
-                            Verify Phone
-                          </Button>
-                      </div>
+                    <div className="grid md:grid-cols-[1fr,auto] gap-2 items-end">
+                        <div>
+                          <label className="text-sm">Phone</label>
+                          <Input value={form.phone} onChange={(e) => { setPhoneError(''); setField("phone", e.target.value.replace(/[^0-9]/g, "").slice(0,10)); }} onBlur={checkPhoneExists} placeholder="10‑digit mobile" disabled={form.phoneVerified}/>
+                          {phoneError && <p className="text-xs text-destructive mt-1">{phoneError}</p>}
+                        </div>
+                        <Button type="button" onClick={() => handleSendOtp('phone')} disabled={otpSent.phone || form.phoneVerified || !!phoneError || form.phone.length !== 10}>
+                           {form.phoneVerified ? <Check className="mr-2 h-4 w-4"/> : <Send className="mr-2 h-4 w-4"/>}
+                           {form.phoneVerified ? 'Verified' : otpSent.phone ? 'Resend OTP' : 'Send OTP'}
+                        </Button>
+                    </div>
+                    {otpSent.phone && !form.phoneVerified && (
+                        <div className="flex items-center gap-2">
+                            <InputOTP maxLength={4} value={form.phoneOtp} onChange={(val) => setField("phoneOtp", val)}>
+                                 <InputOTPGroup>
+                                    <InputOTPSlot index={0} /><InputOTPSlot index={1} /><InputOTPSlot index={2} /><InputOTPSlot index={3} />
+                                </InputOTPGroup>
+                            </InputOTP>
+                            <Button type="button" variant="secondary" onClick={() => handleVerifyOtp('phone')} disabled={form.phoneOtp.length < 4 || isVerifying.phone}>
+                               {isVerifying.phone && <Loader2 className="mr-2 h-4 w-4 animate-spin"/>}
+                              Verify Phone
+                            </Button>
+                        </div>
+                    )}
+                    
+                    <div className="grid md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="text-sm">Password</label>
+                          <Input type="password" value={form.password} onChange={(e)=>setField("password", e.target.value)} placeholder="Minimum 8 characters"/>
+                           {form.password && form.password.length < 8 && <p className="text-xs text-destructive mt-1">Password must be at least 8 characters.</p>}
+                        </div>
+                         <div>
+                          <label className="text-sm">Confirm Password</label>
+                          <Input type="password" value={form.confirmPassword} onChange={(e)=>setField("confirmPassword", e.target.value)} placeholder="Re-enter your password"/>
+                          {form.confirmPassword && form.password !== form.confirmPassword && <p className="text-xs text-destructive mt-1">Passwords do not match.</p>}
+                        </div>
+                    </div>
+                    </>
                   )}
-                  
-                  <div className="grid md:grid-cols-2 gap-4">
-                      <div>
-                        <label className="text-sm">Password</label>
-                        <Input type="password" value={form.password} onChange={(e)=>setField("password", e.target.value)} placeholder="Minimum 8 characters"/>
-                         {form.password && form.password.length < 8 && <p className="text-xs text-destructive mt-1">Password must be at least 8 characters.</p>}
-                      </div>
-                       <div>
-                        <label className="text-sm">Confirm Password</label>
-                        <Input type="password" value={form.confirmPassword} onChange={(e)=>setField("confirmPassword", e.target.value)} placeholder="Re-enter your password"/>
-                        {form.confirmPassword && form.password !== form.confirmPassword && <p className="text-xs text-destructive mt-1">Passwords do not match.</p>}
-                      </div>
-                  </div>
 
                   <div>
                     <label className="text-sm">About shop</label>
@@ -402,7 +416,7 @@ function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
             )}
 
             {steps[current].key === "biz" && (
-              <Section title="Business Details" icon={<Building2 className="w-5 h-5"/>}>
+              <Section title="Business Details" icon={<Building2 className="w-5 h-5"/>} hasError={existingData?.stepsToFix?.includes('biz')}>
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
                     <label className="text-sm">Business type</label>
@@ -437,7 +451,7 @@ function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
             )}
 
             {steps[current].key === "addr" && (
-              <Section title="Address & Pickup" icon={<MapPin className="w-5 h-5"/>}>
+              <Section title="Address & Pickup" icon={<MapPin className="w-5 h-5"/>} hasError={existingData?.stepsToFix?.includes('address')}>
                 <div className="grid md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <div className="font-medium">Registered address</div>
@@ -471,7 +485,7 @@ function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
             )}
 
             {steps[current].key === "bank" && (
-              <Section title="Tax & Bank" icon={<Banknote className="w-5 h-5"/>}>
+              <Section title="Tax & Bank" icon={<Banknote className="w-5 h-5"/>} hasError={existingData?.stepsToFix?.includes('bank')}>
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
                     <label className="text-sm">PAN</label>
@@ -494,7 +508,7 @@ function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
             )}
 
             {steps[current].key === "kyc" && (
-              <Section title="Identity — 0DIDit" icon={<ShieldCheck className="w-5 h-5"/>}>
+              <Section title="Identity — 0DIDit" icon={<ShieldCheck className="w-5 h-5"/>} hasError={existingData?.stepsToFix?.includes('kyc')}>
                 <div className="space-y-4 text-center flex flex-col items-center">
                     {verif.state === 'IDLE' && (
                         <>
@@ -541,7 +555,7 @@ function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
             )}
 
             {steps[current].key === "policies" && (
-                <Section title="Policies & Preview" icon={<FileSignature className="w-5 h-5"/>}>
+                <Section title="Policies & Preview" icon={<FileSignature className="w-5 h-5"/>} hasError={existingData?.stepsToFix?.includes('policies')}>
                   <div className="space-y-4">
                     <div className="p-3 bg-gray-50 rounded-xl text-sm">
                       By enabling auctions you agree to comply with platform rules and local regulations.
@@ -569,7 +583,7 @@ function SellerWizard({ onSubmit }: { onSubmit: (data: any) => void }) {
                 )}
                 {current === steps.length - 1 && (
                   <Button disabled={!canSubmit} onClick={submit}>
-                    Submit to Nipher for Review
+                    Submit for Review
                   </Button>
                 )}
               </div>
@@ -723,9 +737,19 @@ export default function KYCPage() {
                         </CardHeader>
                         <CardContent className="text-center font-medium text-amber-800">
                              <p>"{userData.resubmissionReason || 'No reason provided.'}"</p>
+                             {(userData as any).stepsToFix && (
+                                 <div className="mt-2 text-sm">
+                                    <p className="font-bold">Please correct the following sections:</p>
+                                    <div className="flex justify-center gap-2 mt-1">
+                                    {(userData as any).stepsToFix.map((stepKey: string) => (
+                                         <Badge key={stepKey} variant="warning">{steps.find(s => s.key === stepKey)?.label}</Badge>
+                                    ))}
+                                    </div>
+                                 </div>
+                             )}
                         </CardContent>
                     </Card>
-                    <SellerWizard onSubmit={handleSubmission} />
+                    <SellerWizard onSubmit={handleSubmission} existingData={userData} />
                 </div>
             </div>
         )
