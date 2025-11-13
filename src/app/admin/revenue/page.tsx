@@ -148,8 +148,7 @@ const RevenueChart = ({ data, timeUnit, activeChart }: { data: any[], timeUnit: 
                 <Legend />
                 <Bar dataKey="sellerShare" name="Seller Share" stackId="a" fill="hsl(var(--chart-1))" />
                 <Bar dataKey="platformEarnings" name="Platform Earnings" stackId="a" fill="hsl(var(--chart-2))" />
-                <Bar dataKey="refunds" name="Refunds" stackId="b" fill="hsl(var(--destructive))" />
-                <Line type="monotone" dataKey="totalRevenue" name="Total Revenue" stroke="hsl(var(--primary))" strokeWidth={2} dot={false} />
+                <Line type="monotone" dataKey="totalRevenue" name="Total Revenue (GMV)" stroke="hsl(var(--primary))" strokeWidth={2} dot={false} />
                 <Line type="monotone" dataKey="netRevenue" name="Net Revenue" stroke="hsl(var(--success))" strokeWidth={2} dot={false} />
             </ComposedChart>
         </ResponsiveContainer>
@@ -313,5 +312,7 @@ export default function AdminRevenuePage() {
     </AdminLayout>
   );
 }
+
+    
 
     
