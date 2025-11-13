@@ -22,8 +22,9 @@ import {
   CreditCard,
   FileText,
   Rss, // Added Rss icon
+  Loader2,
 } from "lucide-react"
-
+import { useState, useEffect, useMemo } from "react";
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -48,6 +49,12 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { usePathname, useRouter } from "next/navigation"
 import { useAuthActions } from "@/lib/auth"
 import { cn } from "@/lib/utils"
+import { useDebounce } from "@/hooks/use-debounce";
+import { getFirestoreDb } from "@/lib/firebase";
+import { collection, query, where, limit, getDocs } from "firebase/firestore";
+import { UserData } from "@/lib/follow-data";
+import { Popover, PopoverAnchor, PopoverContent } from "../ui/popover";
+import { ScrollArea } from "../ui/scroll-area";
 
 const navItems = [
     { href: "/admin/dashboard", icon: Home, label: "Dashboard" },
@@ -75,6 +82,49 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
     const { signOut } = useAuthActions();
     const pathname = usePathname();
     const router = useRouter();
+    const [searchTerm, setSearchTerm] = useState("");
+    const debouncedSearchTerm = useDebounce(searchTerm, 300);
+    const [searchResults, setSearchResults] = useState<UserData[]>([]);
+    const [isSearching, setIsSearching] = useState(false);
+    const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+
+    useEffect(() => {
+        const searchUsers = async () => {
+            if (debouncedSearchTerm.trim().length < 2) {
+                setSearchResults([]);
+                setIsPopoverOpen(false);
+                return;
+            }
+            setIsSearching(true);
+            const db = getFirestoreDb();
+            const usersRef = collection(db, "users");
+            const q = query(
+                usersRef,
+                where("displayName", ">=", debouncedSearchTerm),
+                where("displayName", "<=", debouncedSearchTerm + '\uf8ff'),
+                where("role", "!=", "admin"),
+                limit(5)
+            );
+            try {
+                const querySnapshot = await getDocs(q);
+                const users = querySnapshot.docs.map(doc => doc.data() as UserData);
+                setSearchResults(users);
+                setIsPopoverOpen(users.length > 0);
+            } catch (error) {
+                console.error("Search failed:", error);
+            } finally {
+                setIsSearching(false);
+            }
+        };
+
+        searchUsers();
+    }, [debouncedSearchTerm]);
+    
+    const handleUserSelect = (selectedUser: UserData) => {
+        setIsPopoverOpen(false);
+        setSearchTerm('');
+        router.push(`/admin/messages?userId=${selectedUser.uid}&userName=${selectedUser.displayName}`);
+    }
 
     return (
         <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
@@ -164,7 +214,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
                             </Button>
                         </SheetTrigger>
                         <SheetContent side="left" className="flex flex-col">
-                            <nav className="grid gap-2 text-lg font-medium">
+                            <nav className="grid gap-6 text-lg font-medium">
                                  <Link href="/" className="flex items-center gap-2 font-semibold mb-4">
                                     <ShieldCheck className="h-6 w-6 text-primary" />
                                     <span className="">StreamCart Admin</span>
@@ -235,16 +285,49 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
                         </SheetContent>
                     </Sheet>
                     <div className="w-full flex-1">
-                        <form>
-                            <div className="relative">
-                                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                                <Input
-                                    type="search"
-                                    placeholder="Search..."
-                                    className="w-full appearance-none bg-background pl-8 shadow-none md:w-2/3 lg:w-1/3"
-                                />
-                            </div>
-                        </form>
+                        <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
+                            <PopoverAnchor>
+                                <form onSubmit={(e) => e.preventDefault()}>
+                                    <div className="relative">
+                                        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                                        <Input
+                                            type="search"
+                                            placeholder="Search users to message..."
+                                            className="w-full appearance-none bg-background pl-8 shadow-none md:w-2/3 lg:w-1/3"
+                                            value={searchTerm}
+                                            onChange={(e) => setSearchTerm(e.target.value)}
+                                        />
+                                         {isSearching && <Loader2 className="absolute right-3 top-2.5 h-4 w-4 animate-spin" />}
+                                    </div>
+                                </form>
+                            </PopoverAnchor>
+                            <PopoverContent className="w-[--radix-popover-trigger-width] mt-2 p-0">
+                                <ScrollArea className="max-h-80">
+                                     {searchResults.length > 0 ? (
+                                        searchResults.map(userResult => (
+                                            <button 
+                                                key={userResult.uid}
+                                                onClick={() => handleUserSelect(userResult)}
+                                                className="flex items-center gap-3 w-full text-left p-3 hover:bg-secondary"
+                                            >
+                                                <Avatar className="h-9 w-9">
+                                                    <AvatarImage src={userResult.photoURL} />
+                                                    <AvatarFallback>{userResult.displayName.charAt(0)}</AvatarFallback>
+                                                </Avatar>
+                                                <div>
+                                                    <p className="font-semibold text-sm">{userResult.displayName}</p>
+                                                    <p className="text-xs text-muted-foreground">{userResult.email}</p>
+                                                </div>
+                                            </button>
+                                        ))
+                                     ) : (
+                                        <p className="p-4 text-center text-sm text-muted-foreground">
+                                            {debouncedSearchTerm.trim().length > 1 ? 'No users found.' : 'Start typing to search...'}
+                                        </p>
+                                     )}
+                                </ScrollArea>
+                            </PopoverContent>
+                        </Popover>
                     </div>
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
@@ -269,7 +352,4 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
                 {children}
             </div>
         </div>
-    )
-}
-
     
