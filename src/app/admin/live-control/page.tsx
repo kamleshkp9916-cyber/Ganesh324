@@ -52,6 +52,8 @@ import {
   DropdownMenuSub,
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem
 } from "@/components/ui/dropdown-menu"
 import {
   Table,
@@ -71,6 +73,7 @@ import { Input } from "@/components/ui/input"
 import { useDebounce } from "@/hooks/use-debounce";
 import { AdminLayout } from "@/components/admin/admin-layout"
 import { cn } from "@/lib/utils"
+import { defaultCategories } from "@/lib/categories"
 
 
 const mockLiveStreams = [
@@ -89,25 +92,14 @@ const getHealthBadgeVariant = (health: string): BadgeProps['variant'] => {
     }
 };
 
-const categories = {
-    "All": [],
-    "Women": ["Dresses", "Tops", "Jeans"],
-    "Electronics": ["Smartphones", "Laptops", "Audio"],
-    "Beauty": ["Skincare", "Makeup"],
-    "Home": ["Decor", "Kitchen"]
-};
-
-type Category = keyof typeof categories;
-
 export default function AdminLiveControlPage() {
   const { user, userData, loading } = useAuth();
-  const { signOut } = useAuthActions();
   const router = useRouter();
   const [liveStreams, setLiveStreams] = useState(mockLiveStreams);
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
-  const [categoryFilter, setCategoryFilter] = useState<Category>("All");
+  const [categoryFilter, setCategoryFilter] = useState<string>("All");
   const [subcategoryFilter, setSubcategoryFilter] = useState<string>("All");
 
   const filteredStreams = useMemo(() => {
@@ -170,31 +162,33 @@ export default function AdminLiveControlPage() {
                                 <DropdownMenuTrigger asChild>
                                     <Button variant="outline">
                                         <ListFilter className="h-4 w-4 mr-2" />
-                                        Filter
+                                        Filter: {categoryFilter === 'All' ? 'All' : `${categoryFilter}${subcategoryFilter !== 'All' ? ` > ${subcategoryFilter}` : ''}`}
                                     </Button>
                                 </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                    <DropdownMenuLabel>Filter by Category</DropdownMenuLabel>
-                                    <DropdownMenuSeparator />
-                                    {Object.keys(categories).map(cat => (
-                                        <DropdownMenuSub key={cat}>
-                                            <DropdownMenuSubTrigger
-                                                onSelect={(e) => {
-                                                    e.preventDefault();
-                                                    setCategoryFilter(cat as Category);
-                                                }}
-                                            >{cat}</DropdownMenuSubTrigger>
-                                            {categories[cat as Category].length > 0 && (
-                                                <DropdownMenuSubContent>
-                                                    <DropdownMenuItem onSelect={() => setSubcategoryFilter("All")}>All {cat}</DropdownMenuItem>
-                                                    <DropdownMenuSeparator />
-                                                    {categories[cat as Category].map(subcat => (
-                                                         <DropdownMenuItem key={subcat} onSelect={() => setSubcategoryFilter(subcat)}>{subcat}</DropdownMenuItem>
-                                                    ))}
-                                                </DropdownMenuSubContent>
-                                            )}
-                                        </DropdownMenuSub>
-                                    ))}
+                                <DropdownMenuContent align="end" className="w-56">
+                                    <DropdownMenuRadioGroup value={categoryFilter} onValueChange={setCategoryFilter}>
+                                        <DropdownMenuRadioItem value="All">All Categories</DropdownMenuRadioItem>
+                                        <DropdownMenuSeparator />
+                                        {defaultCategories.map((cat, index) => (
+                                            <DropdownMenuSub key={cat.id}>
+                                                <DropdownMenuSubTrigger>{cat.name}</DropdownMenuSubTrigger>
+                                                <DropdownMenuPortal>
+                                                    <DropdownMenuSubContent>
+                                                        <DropdownMenuRadioGroup value={subcategoryFilter} onValueChange={(value) => {
+                                                            setCategoryFilter(cat.name);
+                                                            setSubcategoryFilter(value);
+                                                        }}>
+                                                            <DropdownMenuRadioItem value="All">All {cat.name}</DropdownMenuRadioItem>
+                                                            <DropdownMenuSeparator />
+                                                            {cat.subcategories.map(subcat => (
+                                                                <DropdownMenuRadioItem key={subcat.name} value={subcat.name}>{subcat.name}</DropdownMenuRadioItem>
+                                                            ))}
+                                                        </DropdownMenuRadioGroup>
+                                                    </DropdownMenuSubContent>
+                                                </DropdownMenuPortal>
+                                            </DropdownMenuSub>
+                                        ))}
+                                    </DropdownMenuRadioGroup>
                                 </DropdownMenuContent>
                             </DropdownMenu>
                         </div>
@@ -306,5 +300,3 @@ export default function AdminLiveControlPage() {
     </AdminLayout>
   )
 }
-
-    
