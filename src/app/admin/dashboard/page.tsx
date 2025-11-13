@@ -18,6 +18,8 @@ import {
   Video,
   MoreHorizontal,
   Calendar as CalendarIcon,
+  AlertTriangle,
+  Eye,
 } from "lucide-react"
 import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
@@ -79,25 +81,6 @@ import { getFirestore, collection, query, getDocs, orderBy } from "firebase/fire
 import { getFirestoreDb } from "@/lib/firebase";
 import { AdminLayout } from "@/components/admin/admin-layout";
 
-
-const salesData = [
-  { name: "Jan", sales: 400000 },
-  { name: "Feb", sales: 300000 },
-  { name: "Mar", sales: 500000 },
-  { name: "Apr", sales: 450000 },
-  { name: "May", sales: 600000 },
-  { name: "Jun", sales: 550000 },
-]
-
-const newAccountsData = [
-  { name: "Jan", accounts: 120 },
-  { name: "Feb", accounts: 180 },
-  { name: "Mar", accounts: 250 },
-  { name: "Apr", accounts: 210 },
-  { name: "May", accounts: 320 },
-  { name: "Jun", accounts: 450 },
-];
-
 type Order = {
     orderId: string;
     userId: string;
@@ -108,6 +91,14 @@ type Order = {
     timeline: any[];
 };
 
+const newAccountsData = [
+  { name: "Jan", accounts: 120 },
+  { name: "Feb", accounts: 180 },
+  { name: "Mar", accounts: 250 },
+  { name: "Apr", accounts: 210 },
+  { name: "May", accounts: 320 },
+  { name: "Jun", accounts: 450 },
+];
 
 const recentTransactionsData = [
     {
@@ -185,6 +176,22 @@ const recentSales = [
   },
 ]
 
+const MetricCard = ({ title, value, description, icon: Icon, change, changeType }: { title: string, value: string, description: string, icon: React.ElementType, change?: string, changeType?: 'increase' | 'decrease' }) => (
+    <Card>
+        <CardHeader className="pb-2">
+            <div className="flex items-start justify-between">
+                <CardTitle className="text-sm font-medium">{title}</CardTitle>
+                <div className="p-1.5 bg-primary/10 rounded-full text-primary">
+                    <Icon className="h-4 w-4" />
+                </div>
+            </div>
+        </CardHeader>
+        <CardContent>
+            <div className="text-2xl font-bold">{value}</div>
+            <p className="text-xs text-muted-foreground">{description}</p>
+        </CardContent>
+    </Card>
+);
 
 export default function AdminDashboard() {
   const { user, userData, loading } = useAuth();
@@ -192,7 +199,6 @@ export default function AdminDashboard() {
   const router = useRouter();
   const [searchTerm, setSearchTerm] = useState("");
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
-  const [salesFilter, setSalesFilter] = useState("This Month");
   const [allOrders, setAllOrders] = useState<Order[]>([]);
   const [accountsFilter, setAccountsFilter] = useState("Last 6 Months");
   const [isMounted, setIsMounted] = useState(false);
@@ -225,46 +231,6 @@ export default function AdminDashboard() {
       transaction.customer.email.toLowerCase().includes(debouncedSearchTerm.toLowerCase())
     );
   }, [debouncedSearchTerm]);
-
-  const totalRevenue = useMemo(() => {
-    return allOrders.reduce((acc, order) => acc + order.total, 0);
-  }, [allOrders]);
-
-  const salesFigures = useMemo(() => {
-    if (!isMounted) return { sales: '+0', percent: '+0%' }; // Return default value on server
-    
-    const now = new Date();
-    let filteredOrders = allOrders;
-
-    switch (salesFilter) {
-      case 'Today':
-        filteredOrders = allOrders.filter(order => {
-            try { return isSameDay(parseISO(order.orderDate), now) } catch { return false }
-        });
-        break;
-      case 'This Month':
-        filteredOrders = allOrders.filter(order => {
-            try { return isSameMonth(parseISO(order.orderDate), now) } catch { return false }
-        });
-        break;
-      case 'This Year':
-        filteredOrders = allOrders.filter(order => {
-            try { return isSameYear(parseISO(order.orderDate), now) } catch { return false }
-        });
-        break;
-      case 'Custom Range':
-        // Custom range logic would go here
-        break;
-      default:
-        break;
-    }
-    
-    // For now, we only show the count. The percentage can be a future enhancement.
-    return {
-      sales: `+${filteredOrders.length}`,
-      percent: "+0%" // Placeholder
-    };
-  }, [salesFilter, allOrders, isMounted]);
   
   if (loading || !userData || userData.role !== 'admin' || !isMounted) {
     return (
@@ -281,70 +247,15 @@ export default function AdminDashboard() {
   return (
     <AdminLayout>
       <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
-        <div className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-3">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Total Revenue
-              </CardTitle>
-              <span className="h-4 w-4 text-muted-foreground">₹</span>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">₹{totalRevenue.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
-              <p className="text-xs text-muted-foreground">
-                +20.1% from last month
-              </p>
-            </CardContent>
-          </Card>
-           <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <div className="flex flex-col">
-                  <CardTitle className="text-sm font-medium">Sales</CardTitle>
-                  <CardDescription className="text-xs">{salesFilter}</CardDescription>
-              </div>
-               <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button size="icon" variant="ghost" className="h-6 w-6">
-                      <MoreHorizontal className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem onSelect={() => setSalesFilter("Today")}>Today</DropdownMenuItem>
-                    <DropdownMenuItem onSelect={() => setSalesFilter("This Month")}>This Month</DropdownMenuItem>
-                    <DropdownMenuItem onSelect={() => setSalesFilter("This Year")}>This Year</DropdownMenuItem>
-                    <DropdownMenuSub>
-                        <DropdownMenuSubTrigger>
-                          <CalendarIcon className="mr-2 h-4 w-4" />
-                          Custom Range
-                        </DropdownMenuSubTrigger>
-                        <DropdownMenuSubContent>
-                          <p className="p-2 text-xs text-muted-foreground">Custom date range picker coming soon.</p>
-                        </DropdownMenuSubContent>
-                    </DropdownMenuSub>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{salesFigures.sales}</div>
-              <p className="text-xs text-muted-foreground">
-                {salesFigures.percent} from last period
-              </p>
-            </CardContent>
-          </Card>
-          <Link href="/admin/live-control">
-            <Card className="hover:bg-muted/50 transition-colors cursor-pointer h-full">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Active Streams</CardTitle>
-                <RadioTower className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">+573</div>
-                <p className="text-xs text-muted-foreground">
-                  +201 since last hour
-                </p>
-              </CardContent>
-            </Card>
-          </Link>
+        <h2 className="text-2xl font-bold tracking-tight">Key Metrics</h2>
+        <div className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-4">
+          <MetricCard title="Total Sales Today" value="₹1,25,840" description="Helps you track daily growth" icon={DollarSign} />
+          <MetricCard title="Total Orders Today" value="342" description="Quick view of order volume" icon={ShoppingCart} />
+          <MetricCard title="Users Registered Today" value="18" description="Shows new user onboarding speed" icon={Users} />
+          <MetricCard title="Active Live Streams" value="23" description="How many sellers are currently live" icon={RadioTower} />
+          <MetricCard title="Peak Live Viewers Today" value="8,432" description="Shows traffic & engagement peak" icon={Activity} />
+          <MetricCard title="Products Sold Today" value="512" description="Useful to track busiest product categories" icon={Package} />
+          <MetricCard title="Failed Transactions Today" value="12" description="Helps you fix payment issues instantly" icon={AlertTriangle} />
         </div>
         <div className="grid gap-4 md:gap-8 lg:grid-cols-2 xl:grid-cols-3">
           <Card className="xl:col-span-2">
