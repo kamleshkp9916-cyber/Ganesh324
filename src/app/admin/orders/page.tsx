@@ -18,12 +18,20 @@ import {
   RotateCcw,
   Video,
   Hash,
+  Truck,
+  PackageOpen,
+  Hourglass,
+  Package,
+  PackageCheck,
+  CheckCircle2,
+  Circle,
 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import React, { useState, useEffect, useMemo } from "react"
 import { getFirestore, collection, query, getDocs, orderBy, where } from "firebase/firestore"
 import { getFirestoreDb } from "@/lib/firebase"
+import { format } from "date-fns"
 
 import { Badge, BadgeProps } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -69,11 +77,13 @@ import { getStatusFromTimeline } from "@/lib/order-data"
 import { useAuthActions } from "@/lib/auth"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Input } from "@/components/ui/input"
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet"
 import { useToast } from "@/hooks/use-toast"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
 import { useDebounce } from "@/hooks/use-debounce";
 import { AdminLayout } from "@/components/admin/admin-layout"
+import { Separator } from "@/components/ui/separator"
+import { cn } from "@/lib/utils"
 
 type Order = {
     orderId: string;
@@ -90,6 +100,7 @@ type Order = {
     transactionId?: string;
     paymentStatus?: 'holding' | 'released' | 'refunded';
     paymentDetails?: any;
+    sellerId?: string;
 };
 
 const mockOrders: Order[] = [
@@ -114,6 +125,7 @@ const mockOrders: Order[] = [
         type: 'Listed Product',
         transactionId: 'txn_1a2b3c4d5e6f',
         paymentStatus: 'holding',
+        sellerId: 'fashionfinds-uid',
     },
      {
         orderId: "#MOCK5905",
@@ -132,6 +144,7 @@ const mockOrders: Order[] = [
         type: 'Live Stream',
         transactionId: 'txn_7g8h9i0j1k2l',
         paymentStatus: 'released',
+        sellerId: 'gadgetguru-uid',
     },
     {
         orderId: "#MOCK5903",
@@ -150,8 +163,22 @@ const mockOrders: Order[] = [
         type: 'Listed Product',
         transactionId: 'txn_3m4n5o6p7q8r',
         paymentStatus: 'refunded',
+        sellerId: 'homehaven-uid',
     }
 ];
+
+const getStatusIcon = (status: string) => {
+    if (status.toLowerCase().includes("pending")) return <Hourglass className="h-5 w-5" />;
+    if (status.toLowerCase().includes("confirmed")) return <PackageOpen className="h-5 w-5" />;
+    if (status.toLowerCase().includes("packed")) return <Package className="h-5 w-5" />;
+    if (status.toLowerCase().includes("dispatch")) return <PackageCheck className="h-5 w-5" />;
+    if (status.toLowerCase().includes("shipped")) return <Truck className="h-5 w-5" />;
+    if (status.toLowerCase().includes("in transit")) return <Truck className="h-5 w-5" />;
+    if (status.toLowerCase().includes("out for delivery")) return <Truck className="h-5 w-5" />;
+    if (status.toLowerCase().includes("delivered")) return <Home className="h-5 w-5" />;
+    if (status.toLowerCase().includes('cancelled') || status.toLowerCase().includes('undelivered') || status.toLowerCase().includes('failed delivery attempt') || status.toLowerCase().includes('return')) return <XCircle className="h-5 w-5" />;
+    return <Circle className="h-5 w-5" />;
+};
 
 
 export default function AdminOrdersPage() {
@@ -164,6 +191,7 @@ export default function AdminOrdersPage() {
   const { toast } = useToast();
   const [statusFilter, setStatusFilter] = useState("All");
   const [typeFilter, setTypeFilter] = useState("All");
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
 
   const fetchOrders = async () => {
     if (!loading && userData?.role === 'admin') {
@@ -225,7 +253,7 @@ export default function AdminOrdersPage() {
   }, [orders, debouncedSearchTerm, statusFilter, typeFilter]);
 
 
-  if (loading || isLoading || !userData || userData.role !== 'admin') {
+  if (loading || isLoading || !userData || userData?.role !== 'admin') {
     return <div className="flex items-center justify-center min-h-screen"><LoadingSpinner /></div>
   }
   
@@ -289,7 +317,7 @@ export default function AdminOrdersPage() {
                                     <DropdownMenuSeparator />
                                     <DropdownMenuLabel>Filter by Type</DropdownMenuLabel>
                                     <DropdownMenuSeparator />
-                                    <DropdownMenuRadioGroup value={typeFilter} onValueChange={setTypeFilter}>
+                                     <DropdownMenuRadioGroup value={typeFilter} onValueChange={setTypeFilter}>
                                         <DropdownMenuRadioItem value="All">All</DropdownMenuRadioItem>
                                         <DropdownMenuRadioItem value="Live Stream">Live Stream</DropdownMenuRadioItem>
                                         <DropdownMenuRadioItem value="Listed Product">Listed Product</DropdownMenuRadioItem>
@@ -315,12 +343,14 @@ export default function AdminOrdersPage() {
                         <TableBody>
                             {filteredOrders.length > 0 ? filteredOrders.map(order => (
                                 <TableRow key={order.orderId}>
-                                    <TableCell className="font-medium">
-                                        <Link href={`/admin/orders/${order.orderId}`} className="hover:underline">
-                                            {order.orderId}
+                                    <TableCell className="font-medium cursor-pointer hover:underline" onClick={() => setSelectedOrder(order)}>
+                                        {order.orderId}
+                                    </TableCell>
+                                    <TableCell>
+                                        <Link href={`/admin/users/${order.userId}`} className="hover:underline">
+                                            {order.address.name}
                                         </Link>
                                     </TableCell>
-                                    <TableCell>{order.address.name}</TableCell>
                                     <TableCell>
                                         <div className="flex flex-col">
                                             {order.products.map((p, index) => (
@@ -345,36 +375,7 @@ export default function AdminOrdersPage() {
                                             <DropdownMenuTrigger asChild><Button aria-haspopup="true" size="icon" variant="ghost"><MoreVertical className="h-4 w-4" /><span className="sr-only">Toggle menu</span></Button></DropdownMenuTrigger>
                                             <DropdownMenuContent align="end">
                                                 <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                                <DropdownMenuItem onSelect={() => router.push(`/admin/orders/${order.orderId}`)}>View Order Details</DropdownMenuItem>
-                                                <DropdownMenuSub>
-                                                    <DropdownMenuSubTrigger>Transaction Details</DropdownMenuSubTrigger>
-                                                    <DropdownMenuSubContent className="p-2 w-72">
-                                                        <div className="space-y-2 text-sm">
-                                                             <div className="flex items-start gap-2">
-                                                                <Hash className="h-4 w-4 mt-0.5 text-muted-foreground"/>
-                                                                <div>
-                                                                    <p className="font-semibold">Transaction ID</p>
-                                                                    <p className="text-muted-foreground font-mono text-xs">{order.transactionId || 'N/A'}</p>
-                                                                </div>
-                                                            </div>
-                                                            <div className="flex items-start gap-2">
-                                                                <Home className="h-4 w-4 mt-0.5 text-muted-foreground"/>
-                                                                <div>
-                                                                    <p className="font-semibold">Address</p>
-                                                                    <p className="text-muted-foreground">{order.address.village}, {order.address.city}, {order.address.state} - {order.address.pincode}</p>
-                                                                </div>
-                                                            </div>
-                                                            <div className="flex items-center gap-2">
-                                                                <CreditCard className="h-4 w-4 text-muted-foreground"/>
-                                                                <p><span className="font-semibold">Payment:</span> {order.paymentMethod || 'N/A'} (<Badge variant={order.paymentStatus === 'holding' ? 'warning' : order.paymentStatus === 'released' ? 'success' : 'destructive'} className="text-xs">{order.paymentStatus || 'N/A'}</Badge>)</p>
-                                                            </div>
-                                                             <div className="flex items-center gap-2">
-                                                                <RotateCcw className="h-4 w-4 text-muted-foreground"/>
-                                                                <p><span className="font-semibold">Refund:</span> {order.refundStatus || 'N/A'}</p>
-                                                            </div>
-                                                        </div>
-                                                    </DropdownMenuSubContent>
-                                                </DropdownMenuSub>
+                                                <DropdownMenuItem onSelect={() => setSelectedOrder(order)}>View Order Details</DropdownMenuItem>
                                                 <DropdownMenuItem onSelect={() => copyToClipboard(order.orderId)}>Copy Order ID</DropdownMenuItem>
                                                 <DropdownMenuSeparator />
                                                 <AlertDialog>
@@ -421,6 +422,72 @@ export default function AdminOrdersPage() {
                 </CardFooter>
             </Card>
         </main>
+        <Sheet open={!!selectedOrder} onOpenChange={(open) => !open && setSelectedOrder(null)}>
+            <SheetContent className="w-full sm:max-w-xl md:max-w-2xl lg:max-w-3xl">
+                {selectedOrder && (
+                     <>
+                        <SheetHeader className="mb-4">
+                            <SheetTitle>Order Details</SheetTitle>
+                            <SheetDescription>
+                                Order ID: {selectedOrder.orderId} • Date: {format(new Date(selectedOrder.orderDate), "PP")}
+                            </SheetDescription>
+                        </SheetHeader>
+                        <Separator />
+                        <div className="py-4 space-y-6">
+                            <div className="grid gap-4 md:grid-cols-2">
+                                 <Card>
+                                    <CardHeader className="pb-2">
+                                        <CardTitle className="text-base">Buyer Information</CardTitle>
+                                    </CardHeader>
+                                    <CardContent className="text-sm">
+                                         <Link href={`/admin/users/${selectedOrder.userId}`} className="font-medium hover:underline">{selectedOrder.address.name}</Link>
+                                        <address className="not-italic text-muted-foreground">
+                                            {selectedOrder.address.village}<br />
+                                            {selectedOrder.address.city}, {selectedOrder.address.state} {selectedOrder.address.pincode}<br/>
+                                            {selectedOrder.address.phone}
+                                        </address>
+                                    </CardContent>
+                                </Card>
+                                 <Card>
+                                    <CardHeader className="pb-2">
+                                        <CardTitle className="text-base">Seller Information</CardTitle>
+                                    </CardHeader>
+                                    <CardContent className="text-sm">
+                                        <Link href={`/admin/users/${selectedOrder.sellerId}`} className="font-medium hover:underline">{selectedOrder.products[0].sellerName || 'N/A'}</Link>
+                                    </CardContent>
+                                </Card>
+                            </div>
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle>Delivery Timeline</CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    <ul className="space-y-4">
+                                        {selectedOrder.timeline.map((item, index) => (
+                                            <li key={index} className="flex items-start gap-4">
+                                                <div className="flex flex-col items-center">
+                                                    <div className={cn("flex-shrink-0 h-10 w-10 rounded-full flex items-center justify-center bg-muted", item.completed && "bg-primary text-primary-foreground")}>
+                                                        {getStatusIcon(item.status)}
+                                                    </div>
+                                                    {index < selectedOrder.timeline.length - 1 && (
+                                                        <div className="w-0.5 flex-1 bg-border" />
+                                                    )}
+                                                </div>
+                                                <div>
+                                                    <p className="font-semibold">{item.status}</p>
+                                                    <p className="text-sm text-muted-foreground">{item.date} {item.time}</p>
+                                                </div>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </CardContent>
+                            </Card>
+                        </div>
+                    </>
+                )}
+            </SheetContent>
+        </Sheet>
     </AdminLayout>
   );
 }
+
