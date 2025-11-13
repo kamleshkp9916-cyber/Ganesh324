@@ -98,18 +98,36 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
             setIsSearching(true);
             const db = getFirestoreDb();
             const usersRef = collection(db, "users");
-            const q = query(
+
+            const customerQuery = query(
                 usersRef,
                 where("displayName", ">=", debouncedSearchTerm),
                 where("displayName", "<=", debouncedSearchTerm + '\uf8ff'),
-                where("role", "!=", "admin"),
+                where("role", "==", "customer"),
                 limit(5)
             );
+            
+            const sellerQuery = query(
+                usersRef,
+                where("displayName", ">=", debouncedSearchTerm),
+                where("displayName", "<=", debouncedSearchTerm + '\uf8ff'),
+                where("role", "==", "seller"),
+                limit(5)
+            );
+
             try {
-                const querySnapshot = await getDocs(q);
-                const users = querySnapshot.docs.map(doc => ({...doc.data(), uid: doc.id} as UserData));
-                setSearchResults(users);
-                setIsPopoverOpen(users.length > 0);
+                const [customerSnapshot, sellerSnapshot] = await Promise.all([
+                    getDocs(customerQuery),
+                    getDocs(sellerQuery)
+                ]);
+
+                const customers = customerSnapshot.docs.map(doc => ({...doc.data(), uid: doc.id} as UserData));
+                const sellers = sellerSnapshot.docs.map(doc => ({...doc.data(), uid: doc.id} as UserData));
+
+                const combinedResults = [...customers, ...sellers].slice(0, 5);
+                setSearchResults(combinedResults);
+                setIsPopoverOpen(combinedResults.length > 0);
+
             } catch (error) {
                 console.error("Search failed:", error);
             } finally {
@@ -352,5 +370,5 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
                 {children}
             </div>
         </div>
-    )
+    );
 }
