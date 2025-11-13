@@ -23,6 +23,7 @@ import {
   LogIn,
   DollarSign,
   Receipt,
+  MessageSquare,
 } from "lucide-react"
 import { useEffect, useState, useRef, useMemo } from "react";
 import Link from "next/link"
@@ -109,22 +110,12 @@ const PayoutSummaryDialog = ({ payout, onConfirm, onCancel }: { payout: any, onC
     // Mock a separate super chat balance for this seller for calculation demonstration
     const mockSuperChatBalance = 1250.00;
     
-    // Platform fee is on the product sales payout amount
-    const platformFee = payout.amount * 0.03;
-    
-    // Super chat commission is on the separate super chat balance
-    const superChatFee = mockSuperChatBalance * 0.16;
-
-    const netPayout = payout.amount - platformFee;
-    const totalDeductions = platformFee + superChatFee;
-    const finalAmountToSeller = (payout.amount + mockSuperChatBalance) - totalDeductions;
-
     return (
         <DialogContent>
             <DialogHeader>
                 <DialogTitle>Confirm Payout for {payout.sellerName}</DialogTitle>
                 <DialogDescription>
-                    Review the fee deductions and confirm the final payout amount.
+                    Review the fund sources and confirm the total payout amount. Fees have already been deducted at the time of transaction.
                 </DialogDescription>
             </DialogHeader>
             <div className="py-4 space-y-4">
@@ -132,30 +123,23 @@ const PayoutSummaryDialog = ({ payout, onConfirm, onCancel }: { payout: any, onC
                     <Card className="bg-muted/30">
                         <CardHeader className="pb-2">
                             <CardTitle className="text-xl font-bold">₹{payout.amount.toFixed(2)}</CardTitle>
-                            <CardDescription>Product Sales Revenue</CardDescription>
+                            <CardDescription>From Product Sales</CardDescription>
                         </CardHeader>
                     </Card>
                     <Card className="bg-muted/30">
                         <CardHeader className="pb-2">
                             <CardTitle className="text-xl font-bold">₹{mockSuperChatBalance.toFixed(2)}</CardTitle>
-                            <CardDescription>Super Chat Revenue</CardDescription>
+                            <CardDescription>From Super Chats</CardDescription>
                         </CardHeader>
                     </Card>
                 </div>
+                <Separator />
                 <div className="space-y-2 text-sm">
-                    <div className="flex justify-between items-center">
-                        <span className="text-muted-foreground">Platform Fee (3% of Product Sales)</span>
-                        <span className="font-medium text-destructive">- ₹{platformFee.toFixed(2)}</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                        <span className="text-muted-foreground">Super Chat Commission (16%)</span>
-                        <span className="font-medium text-destructive">- ₹{superChatFee.toFixed(2)}</span>
-                    </div>
-                    <Separator />
                     <div className="flex justify-between items-center text-base font-bold">
                         <span>Net Payout Amount</span>
-                        <span>₹{finalAmountToSeller.toFixed(2)}</span>
+                        <span>₹{(payout.amount + mockSuperChatBalance).toFixed(2)}</span>
                     </div>
+                     <p className="text-xs text-muted-foreground">This is the final amount that will be transferred to the seller's bank account.</p>
                 </div>
             </div>
             <DialogFooter>

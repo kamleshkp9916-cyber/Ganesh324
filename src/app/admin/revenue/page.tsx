@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useMemo } from 'react';
@@ -257,7 +256,3 @@ export default function AdminRevenuePage() {
     </AdminLayout>
   );
 }
-
-    
-
-    
