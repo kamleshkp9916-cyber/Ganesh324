@@ -106,9 +106,18 @@ const mockPayouts = [
 ];
 
 const PayoutSummaryDialog = ({ payout, onConfirm, onCancel }: { payout: any, onConfirm: () => void, onCancel: () => void }) => {
+    // Mock a separate super chat balance for this seller for calculation demonstration
+    const mockSuperChatBalance = 1250.00;
+    
+    // Platform fee is on the product sales payout amount
     const platformFee = payout.amount * 0.03;
-    const superChatFee = payout.amount * 0.16;
-    const netPayout = payout.amount - platformFee - superChatFee;
+    
+    // Super chat commission is on the separate super chat balance
+    const superChatFee = mockSuperChatBalance * 0.16;
+
+    const netPayout = payout.amount - platformFee;
+    const totalDeductions = platformFee + superChatFee;
+    const finalAmountToSeller = (payout.amount + mockSuperChatBalance) - totalDeductions;
 
     return (
         <DialogContent>
@@ -119,15 +128,23 @@ const PayoutSummaryDialog = ({ payout, onConfirm, onCancel }: { payout: any, onC
                 </DialogDescription>
             </DialogHeader>
             <div className="py-4 space-y-4">
-                <Card className="bg-muted/30">
-                    <CardHeader className="pb-2">
-                        <CardTitle className="text-2xl font-bold">₹{payout.amount.toFixed(2)}</CardTitle>
-                        <CardDescription>Total Amount Requested</CardDescription>
-                    </CardHeader>
-                </Card>
+                <div className="grid grid-cols-2 gap-4">
+                    <Card className="bg-muted/30">
+                        <CardHeader className="pb-2">
+                            <CardTitle className="text-xl font-bold">₹{payout.amount.toFixed(2)}</CardTitle>
+                            <CardDescription>Product Sales Revenue</CardDescription>
+                        </CardHeader>
+                    </Card>
+                    <Card className="bg-muted/30">
+                        <CardHeader className="pb-2">
+                            <CardTitle className="text-xl font-bold">₹{mockSuperChatBalance.toFixed(2)}</CardTitle>
+                            <CardDescription>Super Chat Revenue</CardDescription>
+                        </CardHeader>
+                    </Card>
+                </div>
                 <div className="space-y-2 text-sm">
                     <div className="flex justify-between items-center">
-                        <span className="text-muted-foreground">Platform Fee (3%)</span>
+                        <span className="text-muted-foreground">Platform Fee (3% of Product Sales)</span>
                         <span className="font-medium text-destructive">- ₹{platformFee.toFixed(2)}</span>
                     </div>
                     <div className="flex justify-between items-center">
@@ -137,7 +154,7 @@ const PayoutSummaryDialog = ({ payout, onConfirm, onCancel }: { payout: any, onC
                     <Separator />
                     <div className="flex justify-between items-center text-base font-bold">
                         <span>Net Payout Amount</span>
-                        <span>₹{netPayout.toFixed(2)}</span>
+                        <span>₹{finalAmountToSeller.toFixed(2)}</span>
                     </div>
                 </div>
             </div>
