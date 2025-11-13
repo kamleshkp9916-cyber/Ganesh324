@@ -1,3 +1,4 @@
+
 "use client"
 
 import {
@@ -13,6 +14,7 @@ import {
   AlertTriangle,
   Clock,
   Signal,
+  ListFilter,
 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
@@ -46,6 +48,10 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuCheckboxItem,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
 } from "@/components/ui/dropdown-menu"
 import {
   Table,
@@ -67,9 +73,10 @@ import { AdminLayout } from "@/components/admin/admin-layout"
 
 
 const mockLiveStreams = [
-    { id: 1, seller: { name: 'FashionFinds', avatarUrl: 'https://placehold.co/40x40.png' }, viewers: 1200, streamId: '1', duration: '00:45:12', bitrateHealth: 'Good', warnings: [] },
-    { id: 2, seller: { name: 'GadgetGuru', avatarUrl: 'https://placehold.co/40x40.png' }, viewers: 2500, streamId: '2', duration: '01:12:30', bitrateHealth: 'Medium', warnings: ['Stream disconnect warning'] },
-    { id: 3, seller: { name: 'BeautyBox', avatarUrl: 'https://placehold.co/40x40.png' }, viewers: 3100, streamId: '4', duration: '00:15:45', bitrateHealth: 'Poor', warnings: ['Chat flood warning', 'Stream disconnect warning'] },
+    { id: 1, seller: { name: 'FashionFinds', avatarUrl: 'https://placehold.co/40x40.png' }, viewers: 1200, streamId: '1', duration: '00:45:12', bitrateHealth: 'Good', warnings: [], category: "Women", subcategory: "Dresses" },
+    { id: 2, seller: { name: 'GadgetGuru', avatarUrl: 'https://placehold.co/40x40.png' }, viewers: 2500, streamId: '2', duration: '01:12:30', bitrateHealth: 'Medium', warnings: ['Stream disconnect warning'], category: "Electronics", subcategory: "Smartphones" },
+    { id: 3, seller: { name: 'BeautyBox', avatarUrl: 'https://placehold.co/40x40.png' }, viewers: 3100, streamId: '4', duration: '00:15:45', bitrateHealth: 'Poor', warnings: ['Chat flood warning', 'Stream disconnect warning'], category: "Beauty", subcategory: "Skincare" },
+    { id: 4, seller: { name: 'HomeDecor', avatarUrl: 'https://placehold.co/40x40.png' }, viewers: 800, streamId: '5', duration: '02:30:00', bitrateHealth: 'Good', warnings: [], category: "Home", subcategory: "Decor" },
 ];
 
 const getHealthBadgeVariant = (health: string): BadgeProps['variant'] => {
@@ -90,12 +97,23 @@ export default function AdminLiveControlPage() {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
+  const [categoryFilter, setCategoryFilter] = useState<string | null>(null);
+  const [subcategoryFilter, setSubcategoryFilter] = useState<string | null>(null);
+
+  const availableCategories = useMemo(() => [...new Set(mockLiveStreams.map(s => s.category))], []);
+  const availableSubcategories = useMemo(() => {
+    if (!categoryFilter) return [];
+    return [...new Set(mockLiveStreams.filter(s => s.category === categoryFilter).map(s => s.subcategory))];
+  }, [categoryFilter]);
 
   const filteredStreams = useMemo(() => {
-    return liveStreams.filter(stream =>
-      stream.seller.name.toLowerCase().includes(debouncedSearchTerm.toLowerCase())
-    );
-  }, [liveStreams, debouncedSearchTerm]);
+    return liveStreams.filter(stream => {
+      const searchMatch = stream.seller.name.toLowerCase().includes(debouncedSearchTerm.toLowerCase());
+      const categoryMatch = !categoryFilter || stream.category === categoryFilter;
+      const subcategoryMatch = !subcategoryFilter || stream.subcategory === subcategoryFilter;
+      return searchMatch && categoryMatch && subcategoryMatch;
+    });
+  }, [liveStreams, debouncedSearchTerm, categoryFilter, subcategoryFilter]);
 
   const handleMonitorStream = (streamId: string) => {
     router.push(`/stream/${streamId}`);
@@ -128,15 +146,56 @@ export default function AdminLiveControlPage() {
                             <CardTitle>Realtime Live Stream Monitor</CardTitle>
                             <CardDescription>Monitor and manage all ongoing live sessions.</CardDescription>
                         </div>
-                        <div className="relative">
-                            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                            <Input
-                              type="search"
-                              placeholder="Search streams..."
-                              className="pl-8 sm:w-[300px] md:w-[200px] lg:w-[300px]"
-                              value={searchTerm}
-                              onChange={(e) => setSearchTerm(e.target.value)}
-                            />
+                        <div className="flex items-center gap-2">
+                           <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button variant="outline" size="sm" className="h-8 gap-1">
+                                        <ListFilter className="h-3.5 w-3.5" />
+                                        <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+                                        Filter
+                                        </span>
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                    <DropdownMenuLabel>Filter by Category</DropdownMenuLabel>
+                                    <DropdownMenuSeparator />
+                                     <DropdownMenuCheckboxItem checked={!categoryFilter} onSelect={() => {setCategoryFilter(null); setSubcategoryFilter(null);}}>
+                                        All Categories
+                                    </DropdownMenuCheckboxItem>
+                                    {availableCategories.map(cat => (
+                                        <DropdownMenuSub key={cat}>
+                                            <DropdownMenuSubTrigger
+                                                className={categoryFilter === cat ? "bg-secondary" : ""}
+                                                onSelect={(e) => { e.preventDefault(); setCategoryFilter(cat); setSubcategoryFilter(null); }}
+                                            >{cat}</DropdownMenuSubTrigger>
+                                            <DropdownMenuSubContent>
+                                                 <DropdownMenuCheckboxItem checked={!subcategoryFilter} onSelect={() => setSubcategoryFilter(null)}>
+                                                    All Subcategories
+                                                </DropdownMenuCheckboxItem>
+                                                {availableSubcategories.map(sub => (
+                                                    <DropdownMenuCheckboxItem
+                                                        key={sub}
+                                                        checked={subcategoryFilter === sub}
+                                                        onSelect={() => setSubcategoryFilter(sub)}
+                                                    >
+                                                        {sub}
+                                                    </DropdownMenuCheckboxItem>
+                                                ))}
+                                            </DropdownMenuSubContent>
+                                        </DropdownMenuSub>
+                                    ))}
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                            <div className="relative">
+                                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                                <Input
+                                type="search"
+                                placeholder="Search streams..."
+                                className="pl-8 sm:w-[300px] md:w-[200px] lg:w-[300px]"
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                />
+                            </div>
                         </div>
                     </div>
                 </CardHeader>
@@ -163,6 +222,7 @@ export default function AdminLiveControlPage() {
                                             </Avatar>
                                             <div className="flex flex-col">
                                                 <span className="font-medium group-hover:underline">{stream.seller.name}</span>
+                                                <span className="text-xs text-muted-foreground">{stream.category} {stream.subcategory && `> ${stream.subcategory}`}</span>
                                             </div>
                                         </Link>
                                     </TableCell>
