@@ -315,7 +315,11 @@ export default function AdminOrdersPage() {
                         <TableBody>
                             {filteredOrders.length > 0 ? filteredOrders.map(order => (
                                 <TableRow key={order.orderId}>
-                                    <TableCell className="font-medium">{order.orderId}</TableCell>
+                                    <TableCell className="font-medium">
+                                        <Link href={`/admin/orders/${order.orderId}`} className="hover:underline">
+                                            {order.orderId}
+                                        </Link>
+                                    </TableCell>
                                     <TableCell>{order.address.name}</TableCell>
                                     <TableCell>
                                         <div className="flex flex-col">
@@ -341,7 +345,7 @@ export default function AdminOrdersPage() {
                                             <DropdownMenuTrigger asChild><Button aria-haspopup="true" size="icon" variant="ghost"><MoreVertical className="h-4 w-4" /><span className="sr-only">Toggle menu</span></Button></DropdownMenuTrigger>
                                             <DropdownMenuContent align="end">
                                                 <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                                <DropdownMenuItem onSelect={() => router.push(`/delivery-information/${order.orderId}`)}>View Order Details</DropdownMenuItem>
+                                                <DropdownMenuItem onSelect={() => router.push(`/admin/orders/${order.orderId}`)}>View Order Details</DropdownMenuItem>
                                                 <DropdownMenuSub>
                                                     <DropdownMenuSubTrigger>Transaction Details</DropdownMenuSubTrigger>
                                                     <DropdownMenuSubContent className="p-2 w-72">
@@ -420,4 +424,3 @@ export default function AdminOrdersPage() {
     </AdminLayout>
   );
 }
-
