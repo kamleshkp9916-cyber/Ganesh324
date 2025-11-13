@@ -350,7 +350,7 @@ export default function AdminFeedPage() {
             content: postData.content,
             taggedProducts: postData.taggedProducts,
             sellerId: user.uid,
-            sellerName: userData.displayName,
+            sellerName: "Nipher.in", // Set name to Nipher.in for admins
             avatarUrl: userData.photoURL,
             role: userData.role,
             timestamp: serverTimestamp(),
@@ -419,7 +419,7 @@ export default function AdminFeedPage() {
   return (
     <AdminLayout>
       <main className="flex-1 flex flex-col overflow-hidden">
-        <header className="p-4 border-b flex items-center gap-4 sticky top-0 bg-background z-10">
+        <div className="p-4 border-b flex flex-col gap-4 sticky top-0 bg-background z-10">
           <div className="flex items-center gap-4">
             <h1 className="text-xl font-bold">Global Feed</h1>
              <div className="relative">
@@ -432,7 +432,14 @@ export default function AdminFeedPage() {
                 />
             </div>
           </div>
-        </header>
+          <CreatePostForm
+            onPost={handlePostSubmit}
+            postToEdit={postToEdit}
+            onFinishEditing={onFinishEditing}
+            isSubmitting={isFormSubmitting}
+            showTagProduct={false}
+          />
+        </div>
         <ScrollArea className="flex-grow">
             <div className="max-w-2xl mx-auto space-y-4 py-6 px-4">
             {isLoadingFeed ? (
@@ -459,18 +466,8 @@ export default function AdminFeedPage() {
             )}
             </div>
         </ScrollArea>
-        <div className="flex-shrink-0 p-3 bg-background/80 backdrop-blur-sm border-t">
-          <div className="max-w-2xl mx-auto">
-            <CreatePostForm
-              onPost={handlePostSubmit}
-              postToEdit={postToEdit}
-              onFinishEditing={onFinishEditing}
-              isSubmitting={isFormSubmitting}
-              showTagProduct={false}
-            />
-          </div>
-        </div>
       </main>
     </AdminLayout>
   );
 }
+
