@@ -53,7 +53,7 @@ export async function getOrCreateConversation(currentUserId: string, otherUserId
 export async function getConversations(currentUserId: string): Promise<Conversation[]> {
     const db = getFirestore(getFirebaseAdminApp());
     const conversationsRef = db.collection('conversations');
-    const q = query(conversationsRef, where('participants', 'array-contains', currentUserId));
+    const q = conversationsRef.where('participants', 'array-contains', currentUserId);
     
     const snapshot = await getDocs(q);
     if (snapshot.empty) {
@@ -150,4 +150,3 @@ export async function getOrderStatus(orderId: string): Promise<string> {
     console.log(`Getting status for order ${orderId}`);
     return "Not Implemented";
 }
-
