@@ -14,7 +14,7 @@ import { useEffect, useMemo, useRef, useState, useCallback, forwardRef } from "r
 import { Skeleton } from "../ui/skeleton";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useSidebar } from "../ui/sidebar";
-import { onSnapshot, collection, query, orderBy, getFirestore, doc, Timestamp } from 'firebase/firestore';
+import { onSnapshot, collection, query, orderBy, getFirestore, doc, Timestamp, addDoc, serverTimestamp, updateDoc, increment } from 'firebase/firestore';
 import { getFirestoreDb } from "@/lib/firebase";
 import { format } from "date-fns";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from "../ui/dropdown-menu";
@@ -205,10 +205,10 @@ export const ConversationList = ({ conversations, selectedConversation, onSelect
                 <div className="p-2 space-y-1">
                     {filteredConversations.map(convo => (
                         <ConversationItem
-                            key={convo.userId}
+                            key={convo.isExecutive ? `exec-${convo.userId}` : convo.conversationId}
                             convo={convo}
                             onClick={() => onSelectConversation(convo)}
-                            isSelected={selectedConversation?.userId === convo.userId}
+                            isSelected={selectedConversation?.conversationId === convo.conversationId}
                             onDelete={onDeleteConversation ? () => onDeleteConversation(convo.conversationId) : undefined}
                         />
                     ))}
@@ -219,12 +219,11 @@ export const ConversationList = ({ conversations, selectedConversation, onSelect
 };
 
 
-export const ChatWindow = ({ conversation, userData, onBack, messages: initialMessages, onSendMessage, isFullScreen = false }: {
+export const ChatWindow = ({ conversation, userData, onBack, messages: initialMessages, isFullScreen = false }: {
     conversation: Conversation;
     userData: UserData;
     onBack: () => void;
     messages?: Message[];
-    onSendMessage?: (text: string) => void;
     isFullScreen?: boolean;
 }) => {
     const [messages, setMessages] = useState<Message[]>(initialMessages || []);
@@ -233,6 +232,32 @@ export const ChatWindow = ({ conversation, userData, onBack, messages: initialMe
     const chatContainerRef = useRef<HTMLDivElement>(null);
     const isMobile = useIsMobile();
     const { user } = useAuth();
+    
+    const sendMessage = async (conversationId: string, senderId: string, message: { text?: string; imageUrl?: string }) => {
+        const db = getFirestoreDb();
+        const conversationRef = doc(db, 'conversations', conversationId);
+        const messagesRef = collection(conversationRef, 'messages');
+    
+        const newMessagePayload = {
+            ...message,
+            senderId: senderId,
+            timestamp: serverTimestamp(),
+        };
+    
+        await addDoc(messagesRef, newMessagePayload);
+    
+        const conversationDoc = await getDoc(conversationRef);
+        const conversationData = conversationDoc.data();
+        if (conversationData) {
+            const otherParticipantId = conversationData.participants.find((p: string) => p !== senderId);
+            
+            await updateDoc(conversationRef, {
+                lastMessage: message.text || 'Image Sent',
+                lastMessageTimestamp: serverTimestamp(),
+                [`unreadCount.${otherParticipantId}`]: increment(1)
+            });
+        }
+    };
     
     useEffect(() => {
         if (!conversation) return;
@@ -268,11 +293,24 @@ export const ChatWindow = ({ conversation, userData, onBack, messages: initialMe
 
     const handleSendMessage = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!newMessage.trim() || !conversation || !user || !onSendMessage) return;
+        if (!newMessage.trim() || !conversation || !user) return;
         
+        const optimisticMessage: Message = {
+            id: Math.random(),
+            text: newMessage,
+            senderId: user?.uid,
+            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        };
+        setMessages(prev => [...prev, optimisticMessage]);
         const currentMessage = newMessage;
         setNewMessage("");
-        onSendMessage(currentMessage);
+
+        try {
+            await sendMessage(conversation.conversationId, user.uid, { text: currentMessage });
+        } catch (error) {
+            console.error("Failed to send message", error);
+            setMessages(prev => prev.filter(m => m.id !== optimisticMessage.id)); // Revert on error
+        }
     };
     
     if (!user) return null;

@@ -45,23 +45,27 @@ export default function AdminMessagePage() {
         let allConvos = [...convos];
         let convoToSelect: Conversation | null = null;
         
-        // This is a temporary solution to pre-select a user from an inquiry
-        if (preselectUserId && preselectUserName && userData) {
-            const otherUser: Partial<UserData> = { uid: preselectUserId, displayName: preselectUserName, photoURL: '' };
+        if (preselectUserId && userData) {
+            // Attempt to find or create a conversation with the preselected user.
+            // This is primarily for replying to inquiries where the user might not exist in Firestore yet.
+            const otherUser: Partial<UserData> = { uid: preselectUserId, displayName: preselectUserName || 'New User', photoURL: '' };
             const conversationId = await getOrCreateConversation(user.uid, preselectUserId, userData, otherUser as UserData);
+            
             const existingConvo = allConvos.find(c => c.conversationId === conversationId);
+            
             if (existingConvo) {
                 convoToSelect = existingConvo;
             } else {
-                 const newConvo = {
+                 // If the conversation was just created, it might not be in the initial fetch.
+                 // We create a temporary object to represent it in the UI until the next fetch.
+                 const newConvo: Conversation = {
                     conversationId: conversationId,
                     userId: preselectUserId,
-                    userName: preselectUserName || 'Live Chat User',
+                    userName: preselectUserName || 'Customer',
                     avatarUrl: `https://placehold.co/40x40.png?text=${(preselectUserName || 'U').charAt(0)}`,
                     lastMessage: 'New inquiry.',
                     lastMessageTimestamp: 'now',
                     unreadCount: 1,
-                    isExecutive: true,
                 };
                 allConvos = [newConvo, ...allConvos];
                 convoToSelect = newConvo;
@@ -126,7 +130,7 @@ export default function AdminMessagePage() {
             )}>
                 {selectedConversation && userData ? (
                     <ChatWindow 
-                        key={selectedConversation.userId}
+                        key={selectedConversation.conversationId}
                         conversation={selectedConversation}
                         userData={userData}
                         onBack={() => setSelectedConversation(null)}
@@ -134,8 +138,8 @@ export default function AdminMessagePage() {
                 ) : (
                     <div className="hidden md:flex flex-col items-center justify-center h-full text-muted-foreground">
                         <MessageSquare className="h-16 w-16 mb-4"/>
-                        <h2 className="text-xl font-semibold">Select a chat</h2>
-                        <p>Choose a conversation to start messaging.</p>
+                        <h2 className="text-xl font-semibold">Support Center</h2>
+                        <p>Select a conversation to start messaging with customers and sellers.</p>
                     </div>
                 )}
             </div>
@@ -143,4 +147,3 @@ export default function AdminMessagePage() {
     </AdminLayout>
   );
 }
-
