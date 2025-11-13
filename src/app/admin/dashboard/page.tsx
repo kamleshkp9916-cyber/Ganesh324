@@ -21,6 +21,7 @@ import {
   AlertTriangle,
   Eye,
   ShoppingCart,
+  ArrowLeft,
 } from "lucide-react"
 import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
@@ -92,6 +93,8 @@ type Order = {
     timeline: any[];
 };
 
+type ViewType = "dashboard" | "failed-transactions";
+
 const newAccountsData = [
   { name: "Jan", accounts: 120 },
   { name: "Feb", accounts: 180 },
@@ -144,6 +147,14 @@ const recentTransactionsData = [
     }
 ];
 
+const failedTransactionsData = [
+  { orderId: "#FTX8345", customer: { name: "Emily Carter", email: "emily.c@example.com" }, reason: "Insufficient Funds", amount: 2300.00, date: new Date().toISOString() },
+  { orderId: "#FTX8346", customer: { name: "Michael Bui", email: "michael.b@example.com" }, reason: "Incorrect CVV", amount: 899.00, date: new Date().toISOString() },
+  { orderId: "#FTX8347", customer: { name: "Sophia Loren", email: "sophia.l@example.com" }, reason: "Transaction Blocked by Bank", amount: 15400.00, date: new Date().toISOString() },
+  { orderId: "#FTX8348", customer: { name: "Daniel Radcliffe", email: "dan.r@example.com" }, reason: "Payment Gateway Timeout", amount: 500.00, date: new Date().toISOString() },
+  { orderId: "#FTX8349", customer: { name: "Aisha Sharma", email: "aisha.s@example.com" }, reason: "Invalid UPI PIN", amount: 1250.00, date: new Date().toISOString() },
+];
+
 const recentSales = [
   {
     name: "Olivia Martin",
@@ -177,8 +188,8 @@ const recentSales = [
   },
 ]
 
-const MetricCard = ({ title, value, description, icon: Icon, change, changeType }: { title: string, value: string, description: string, icon: React.ElementType, change?: string, changeType?: 'increase' | 'decrease' }) => (
-    <Card>
+const MetricCard = ({ title, value, description, icon: Icon, onClick, className }: { title: string, value: string, description: string, icon: React.ElementType, onClick?: () => void, className?: string }) => (
+    <Card onClick={onClick} className={cn(onClick && "cursor-pointer hover:bg-muted/50 transition-colors", className)}>
         <CardHeader className="pb-2">
             <div className="flex items-start justify-between">
                 <CardTitle className="text-sm font-medium">{title}</CardTitle>
@@ -194,6 +205,54 @@ const MetricCard = ({ title, value, description, icon: Icon, change, changeType 
     </Card>
 );
 
+const FailedTransactionsView = ({ onBack }: { onBack: () => void }) => {
+    return (
+        <Card>
+            <CardHeader>
+                <div className="flex items-center gap-4">
+                     <Button variant="outline" size="icon" className="h-7 w-7" onClick={onBack}>
+                        <ArrowLeft className="h-4 w-4" />
+                        <span className="sr-only">Back</span>
+                    </Button>
+                    <div className="flex-1">
+                        <CardTitle>Failed Transactions Today</CardTitle>
+                        <CardDescription>
+                            A log of all payment attempts that failed today.
+                        </CardDescription>
+                    </div>
+                </div>
+            </CardHeader>
+            <CardContent>
+                <Table>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead>Customer</TableHead>
+                            <TableHead>Reason for Failure</TableHead>
+                            <TableHead>Time</TableHead>
+                            <TableHead className="text-right">Amount</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {failedTransactionsData.map(tx => (
+                            <TableRow key={tx.orderId}>
+                                <TableCell>
+                                    <div className="font-medium">{tx.customer.name}</div>
+                                    <div className="text-xs text-muted-foreground">{tx.customer.email}</div>
+                                </TableCell>
+                                <TableCell>
+                                    <Badge variant="destructive">{tx.reason}</Badge>
+                                </TableCell>
+                                <TableCell>{formatDistanceToNow(parseISO(tx.date), { addSuffix: true })}</TableCell>
+                                <TableCell className="text-right">₹{tx.amount.toFixed(2)}</TableCell>
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                </Table>
+            </CardContent>
+        </Card>
+    );
+};
+
 export default function AdminDashboard() {
   const { user, userData, loading } = useAuth();
   const { signOut } = useAuthActions();
@@ -203,6 +262,7 @@ export default function AdminDashboard() {
   const [allOrders, setAllOrders] = useState<Order[]>([]);
   const [accountsFilter, setAccountsFilter] = useState("Last 6 Months");
   const [isMounted, setIsMounted] = useState(false);
+  const [view, setView] = useState<ViewType>('dashboard');
 
   useEffect(() => {
     setIsMounted(true);
@@ -241,143 +301,152 @@ export default function AdminDashboard() {
     )
   }
 
-  const handleAdminSignOut = () => {
-    signOut();
-  }
-
   return (
     <AdminLayout>
       <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
-        <h2 className="text-2xl font-bold tracking-tight">Key Metrics</h2>
-        <div className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-4">
-          <MetricCard title="Total Sales Today" value="₹1,25,840" description="Helps you track daily growth" icon={DollarSign} />
-          <MetricCard title="Total Orders Today" value="342" description="Quick view of order volume" icon={ShoppingCart} />
-          <MetricCard title="Users Registered Today" value="18" description="Shows new user onboarding speed" icon={Users} />
-          <MetricCard title="Active Live Streams" value="23" description="How many sellers are currently live" icon={RadioTower} />
-          <MetricCard title="Peak Live Viewers Today" value="8,432" description="Shows traffic & engagement peak" icon={Activity} />
-          <MetricCard title="Products Sold Today" value="512" description="Useful to track busiest product categories" icon={Package} />
-          <MetricCard title="Failed Transactions Today" value="12" description="Helps you fix payment issues instantly" icon={AlertTriangle} />
-        </div>
-        <div className="grid gap-4 md:gap-8 lg:grid-cols-2 xl:grid-cols-3">
-          <Card className="xl:col-span-2">
-            <CardHeader className="flex flex-row items-center">
-              <div className="grid gap-2">
-                <CardTitle>Recent Transactions</CardTitle>
-                <CardDescription>
-                  Recent transactions from your store.
-                </CardDescription>
-              </div>
-              <Button asChild size="sm" className="ml-auto gap-1">
-                <Link href="/admin/transactions">
-                  View All
-                  <ArrowUpRight className="h-4 w-4" />
-                </Link>
-              </Button>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Customer</TableHead>
-                    <TableHead className="hidden xl:table-cell">
-                      Type
-                    </TableHead>
-                    <TableHead className="hidden xl:table-cell">
-                      Status
-                    </TableHead>
-                    <TableHead className="hidden xl:table-cell">
-                      Date
-                    </TableHead>
-                    <TableHead className="text-right">Amount</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredTransactions.map((transaction) => (
-                    <TableRow key={transaction.orderId}>
-                        <TableCell>
-                            <div className="font-medium">{transaction.customer.name}</div>
-                            <div className="hidden text-sm text-muted-foreground md:inline">
-                                {transaction.customer.email}
-                            </div>
-                        </TableCell>
-                        <TableCell className="hidden xl:table-cell">
-                            <Badge variant={transaction.type === 'Live Stream' ? 'destructive' : 'secondary'} className="text-xs">
-                                {transaction.type}
-                            </Badge>
-                        </TableCell>
-                        <TableCell className="hidden xl:table-cell">
-                             <Badge variant="outline">{transaction.status}</Badge>
-                        </TableCell>
-                         <TableCell className="hidden md:table-cell lg:hidden xl:table-cell">
-                           {formatDistanceToNow(parseISO(transaction.date), { addSuffix: true })}
-                        </TableCell>
-                        <TableCell className="text-right">₹{transaction.total.toFixed(2)}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader>
-              <CardTitle>Recent Sales</CardTitle>
-              <CardDescription>
-                You made 265 sales this month.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="grid gap-8">
-               {recentSales.map((sale, index) => (
-                <div key={index} className="flex items-center gap-4">
-                    <Avatar className="hidden h-9 w-9 sm:flex">
-                    <AvatarImage src={sale.avatar} alt="Avatar" />
-                    <AvatarFallback>{sale.name.charAt(0)}</AvatarFallback>
-                    </Avatar>
-                    <div className="grid gap-1">
-                    <p className="text-sm font-medium leading-none">{sale.name}</p>
-                    <p className="text-sm text-muted-foreground">
-                        {sale.email}
-                    </p>
-                    </div>
-                    <div className="ml-auto font-medium">{sale.amount}</div>
+        {view === 'dashboard' ? (
+        <>
+            <h2 className="text-2xl font-bold tracking-tight">Key Metrics</h2>
+            <div className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-4">
+            <MetricCard title="Total Sales Today" value="₹1,25,840" description="Helps you track daily growth" icon={DollarSign} />
+            <MetricCard title="Total Orders Today" value="342" description="Quick view of order volume" icon={ShoppingCart} />
+            <MetricCard title="Users Registered Today" value="18" description="Shows new user onboarding speed" icon={Users} />
+            <MetricCard title="Active Live Streams" value="23" description="How many sellers are currently live" icon={RadioTower} />
+            <MetricCard title="Peak Live Viewers Today" value="8,432" description="Shows traffic & engagement peak" icon={Activity} />
+            <MetricCard title="Products Sold Today" value="512" description="Useful to track busiest product categories" icon={Package} />
+            <MetricCard 
+                title="Failed Transactions Today" 
+                value="12" 
+                description="Helps you fix payment issues instantly" 
+                icon={AlertTriangle}
+                onClick={() => setView('failed-transactions')}
+                className="border-destructive/50 hover:bg-destructive/10"
+            />
+            </div>
+            <div className="grid gap-4 md:gap-8 lg:grid-cols-2 xl:grid-cols-3">
+            <Card className="xl:col-span-2">
+                <CardHeader className="flex flex-row items-center">
+                <div className="grid gap-2">
+                    <CardTitle>Recent Transactions</CardTitle>
+                    <CardDescription>
+                    Recent transactions from your store.
+                    </CardDescription>
                 </div>
-              ))}
-            </CardContent>
-          </Card>
-        </div>
-         <Card className="col-span-1 lg:col-span-full">
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                  <div>
-                      <CardTitle>New Accounts Overview</CardTitle>
-                      <CardDescription>Showing new user sign-ups for the {accountsFilter.toLowerCase()}.</CardDescription>
-                  </div>
-                   <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button size="icon" variant="ghost" className="h-6 w-6">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onSelect={() => setAccountsFilter("Today")}>Today</DropdownMenuItem>
-                        <DropdownMenuItem onSelect={() => setAccountsFilter("This Month")}>This Month</DropdownMenuItem>
-                        <DropdownMenuItem onSelect={() => setAccountsFilter("Last 6 Months")}>Last 6 Months</DropdownMenuItem>
-                        <DropdownMenuItem onSelect={() => setAccountsFilter("This Year")}>This Year</DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-              </div>
-            </CardHeader>
-            <CardContent>
-                 <ResponsiveContainer width="100%" height={300}>
-                    <LineChart data={newAccountsData}>
-                      <XAxis dataKey="name" />
-                      <YAxis />
-                      <Tooltip />
-                      <Legend />
-                      <Line type="monotone" dataKey="accounts" stroke="hsl(var(--primary))" strokeWidth={2} activeDot={{ r: 8 }} />
-                    </LineChart>
-                </ResponsiveContainer>
-            </CardContent>
-        </Card>
+                <Button asChild size="sm" className="ml-auto gap-1">
+                    <Link href="/admin/transactions">
+                    View All
+                    <ArrowUpRight className="h-4 w-4" />
+                    </Link>
+                </Button>
+                </CardHeader>
+                <CardContent>
+                <Table>
+                    <TableHeader>
+                    <TableRow>
+                        <TableHead>Customer</TableHead>
+                        <TableHead className="hidden xl:table-cell">
+                        Type
+                        </TableHead>
+                        <TableHead className="hidden xl:table-cell">
+                        Status
+                        </TableHead>
+                        <TableHead className="hidden xl:table-cell">
+                        Date
+                        </TableHead>
+                        <TableHead className="text-right">Amount</TableHead>
+                    </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                    {filteredTransactions.map((transaction) => (
+                        <TableRow key={transaction.orderId}>
+                            <TableCell>
+                                <div className="font-medium">{transaction.customer.name}</div>
+                                <div className="hidden text-sm text-muted-foreground md:inline">
+                                    {transaction.customer.email}
+                                </div>
+                            </TableCell>
+                            <TableCell className="hidden xl:table-cell">
+                                <Badge variant={transaction.type === 'Live Stream' ? 'destructive' : 'secondary'} className="text-xs">
+                                    {transaction.type}
+                                </Badge>
+                            </TableCell>
+                            <TableCell className="hidden xl:table-cell">
+                                <Badge variant="outline">{transaction.status}</Badge>
+                            </TableCell>
+                            <TableCell className="hidden md:table-cell lg:hidden xl:table-cell">
+                            {formatDistanceToNow(parseISO(transaction.date), { addSuffix: true })}
+                            </TableCell>
+                            <TableCell className="text-right">₹{transaction.total.toFixed(2)}</TableCell>
+                        </TableRow>
+                    ))}
+                    </TableBody>
+                </Table>
+                </CardContent>
+            </Card>
+            <Card>
+                <CardHeader>
+                <CardTitle>Recent Sales</CardTitle>
+                <CardDescription>
+                    You made 265 sales this month.
+                </CardDescription>
+                </CardHeader>
+                <CardContent className="grid gap-8">
+                {recentSales.map((sale, index) => (
+                    <div key={index} className="flex items-center gap-4">
+                        <Avatar className="hidden h-9 w-9 sm:flex">
+                        <AvatarImage src={sale.avatar} alt="Avatar" />
+                        <AvatarFallback>{sale.name.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                        <div className="grid gap-1">
+                        <p className="text-sm font-medium leading-none">{sale.name}</p>
+                        <p className="text-sm text-muted-foreground">
+                            {sale.email}
+                        </p>
+                        </div>
+                        <div className="ml-auto font-medium">{sale.amount}</div>
+                    </div>
+                ))}
+                </CardContent>
+            </Card>
+            </div>
+            <Card className="col-span-1 lg:col-span-full">
+                <CardHeader>
+                <div className="flex items-center justify-between">
+                    <div>
+                        <CardTitle>New Accounts Overview</CardTitle>
+                        <CardDescription>Showing new user sign-ups for the {accountsFilter.toLowerCase()}.</CardDescription>
+                    </div>
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button size="icon" variant="ghost" className="h-6 w-6">
+                            <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                            <DropdownMenuItem onSelect={() => setAccountsFilter("Today")}>Today</DropdownMenuItem>
+                            <DropdownMenuItem onSelect={() => setAccountsFilter("This Month")}>This Month</DropdownMenuItem>
+                            <DropdownMenuItem onSelect={() => setAccountsFilter("Last 6 Months")}>Last 6 Months</DropdownMenuItem>
+                            <DropdownMenuItem onSelect={() => setAccountsFilter("This Year")}>This Year</DropdownMenuItem>
+                        </DropdownMenuContent>
+                        </DropdownMenu>
+                </div>
+                </CardHeader>
+                <CardContent>
+                    <ResponsiveContainer width="100%" height={300}>
+                        <LineChart data={newAccountsData}>
+                        <XAxis dataKey="name" />
+                        <YAxis />
+                        <Tooltip />
+                        <Legend />
+                        <Line type="monotone" dataKey="accounts" stroke="hsl(var(--primary))" strokeWidth={2} activeDot={{ r: 8 }} />
+                        </LineChart>
+                    </ResponsiveContainer>
+                </CardContent>
+            </Card>
+        </>
+        ) : view === 'failed-transactions' ? (
+          <FailedTransactionsView onBack={() => setView('dashboard')} />
+        ) : null}
       </main>
     </AdminLayout>
   )
