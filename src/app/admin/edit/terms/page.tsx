@@ -14,8 +14,7 @@ const initialContent = `These Terms and Conditions (“Terms”) govern your acc
 1. Eligibility
 Users must be at least 18 years of age, or the age of majority in their jurisdiction, in order to buy, sell, or participate in auctions through the Platform. By creating an account, you represent and warrant that you meet these eligibility requirements and that all information you provide is accurate and truthful.
 
-... (rest of the terms) ...
-`;
+... (rest of the terms) ...`;
 
 export default function EditTermsPage() {
   const router = useRouter();

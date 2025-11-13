@@ -14,8 +14,7 @@ const initialContent = `This Privacy Policy describes how StreamCart ("we," "us,
 1. Information We Collect
 We collect information you provide directly to us, such as when you create an account, list a product, make a purchase, or communicate with us. This may include your name, email address, phone number, shipping address, and payment information.
 
-... (rest of the policy) ...
-`;
+... (rest of the policy) ...`;
 
 export default function EditPrivacyPage() {
   const router = useRouter();
