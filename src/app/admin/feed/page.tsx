@@ -20,6 +20,7 @@ import {
   X,
   ArrowLeft,
   ChevronUp,
+  RefreshCw, // Added RefreshCw
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
@@ -292,7 +293,7 @@ export default function AdminFeedPage() {
     return savedPosts.some(p => p.id === postId);
   };
 
-  useEffect(() => {
+  const fetchFeed = useCallback(() => {
     setIsLoadingFeed(true);
     const db = getFirestoreDb();
     const postsQuery = query(collection(db, "posts"), orderBy("timestamp", "desc"));
@@ -314,8 +315,18 @@ export default function AdminFeedPage() {
         setIsLoadingFeed(false);
     });
 
-    return () => unsubscribe();
+    return unsubscribe;
   }, [toast]);
+
+  useEffect(() => {
+    const unsubscribe = fetchFeed();
+    return () => unsubscribe();
+  }, [fetchFeed]);
+
+  const handleRefresh = () => {
+      toast({ title: "Refreshing feed..." });
+      fetchFeed();
+  };
   
   const handleDeletePost = async (post: any) => {
       if (!post || !post.id) return;
@@ -444,7 +455,7 @@ export default function AdminFeedPage() {
                     <TabsTrigger value="following">Following</TabsTrigger>
                 </TabsList>
              </Tabs>
-             <div className="relative ml-auto">
+             <div className="relative ml-auto flex items-center gap-2">
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
                 placeholder="Search posts or users..."
@@ -452,6 +463,10 @@ export default function AdminFeedPage() {
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 />
+                 <Button variant="outline" size="icon" onClick={handleRefresh}>
+                    <RefreshCw className="h-4 w-4" />
+                    <span className="sr-only">Refresh feed</span>
+                </Button>
             </div>
           </div>
           <CreatePostForm
@@ -501,6 +516,8 @@ export default function AdminFeedPage() {
     </AdminLayout>
   );
 }
+
+    
 
     
 
