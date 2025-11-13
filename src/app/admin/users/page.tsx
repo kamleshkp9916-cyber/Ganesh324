@@ -83,7 +83,7 @@ import { useAuth } from "@/hooks/use-auth"
 import { LoadingSpinner } from "@/components/ui/loading-spinner"
 import { useAuthActions } from "@/lib/auth";
 import { useToast } from "@/hooks/use-toast"
-import { getUserData, UserData, updateUserData } from "@/lib/follow-data";
+import { getUserData, UserData, updateUserData, getMockSellers } from "@/lib/follow-data";
 import { getFirestore, collection, query, where, getDocs,getCountFromServer } from "firebase/firestore";
 import { getFirestoreDb } from "@/lib/firebase";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
@@ -240,6 +240,13 @@ export default function AdminUsersPage() {
     const allUsersQuery = query(usersRef);
     const allUsersSnapshot = await getDocs(allUsersQuery);
     const usersList = allUsersSnapshot.docs.map(doc => ({ ...doc.data(), uid: doc.id }));
+    
+    // If no sellers are found in Firestore, add the mock sellers.
+    if (!usersList.some(u => u.role === 'seller')) {
+        const mockSellers = getMockSellers();
+        usersList.push(...mockSellers);
+    }
+    
     setAllUsersState(usersList as UserData[]);
   };
 
