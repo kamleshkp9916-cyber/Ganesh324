@@ -247,28 +247,29 @@ export default function AdminOrdersPage() {
     // Logic for cancelling real orders would go here
   };
   
-  const handleApproveRefund = (orderId: string) => {
-    setOrders(prev => prev.map(o => o.orderId === orderId ? { ...o, refundStatus: 'Completed', returnRequest: { ...o.returnRequest, status: 'refunded'} } : o));
-    toast({ title: 'Refund Approved', description: `Refund for ${orderId} has been processed.`});
-    if(selectedOrder?.orderId === orderId) {
-        setSelectedOrder(prev => prev ? {...prev, refundStatus: 'Completed', returnRequest: { ...prev.returnRequest, status: 'refunded'} } : null);
-    }
-  };
-  
-  const handleRejectRefund = (orderId: string) => {
-    setOrders(prev => prev.map(o => o.orderId === orderId ? { ...o, refundStatus: 'N/A', returnRequest: { ...o.returnRequest, status: 'rejected'} } : o));
-    toast({ title: 'Refund Rejected', description: `Refund for ${orderId} has been rejected.`, variant: 'destructive'});
-     if(selectedOrder?.orderId === orderId) {
-        setSelectedOrder(prev => prev ? {...prev, refundStatus: 'N/A', returnRequest: { ...prev.returnRequest, status: 'rejected'} } : null);
-    }
-  };
-
   const handleSimulatePickup = (orderId: string) => {
-      setOrders(prev => prev.map(o => o.orderId === orderId ? { ...o, returnRequest: { ...o.returnRequest, status: 'picked_up'} } : o));
-      if(selectedOrder?.orderId === orderId) {
-        setSelectedOrder(prev => prev ? {...prev, returnRequest: { ...prev.returnRequest, status: 'picked_up'} } : null);
-    }
-    toast({ title: "Pickup Simulated", description: "The returned item has been marked as picked up." });
+      setOrders(prev => prev.map(o => {
+          if (o.orderId === orderId && o.returnRequest?.status === 'requested') {
+              const newReturnRequest = { ...o.returnRequest, status: 'picked_up' };
+              const newTimeline = [...(o.refundTimeline || [])];
+              if (!newTimeline.some(item => item.status === "Return Pickup Confirmed")) {
+                  newTimeline.push({ status: "Return Pickup Confirmed", date: new Date().toLocaleDateString(), time: new Date().toLocaleTimeString(), completed: true });
+              }
+               // Auto-approve refund logic
+              if (!newTimeline.some(item => item.status === "Refund Approved")) {
+                newTimeline.push({ status: "Refund Approved", date: new Date().toLocaleDateString(), time: new Date().toLocaleTimeString(), completed: true });
+                newTimeline.push({ status: "Refund Processed", date: new Date().toLocaleDateString(), time: new Date().toLocaleTimeString(), completed: true });
+              }
+              const updatedOrder = { ...o, returnRequest: newReturnRequest, refundTimeline: newTimeline, refundStatus: 'Completed' as const };
+              if(selectedOrder?.orderId === orderId) {
+                setSelectedOrder(updatedOrder);
+              }
+              return updatedOrder;
+          }
+          return o;
+      }));
+    
+    toast({ title: "Pickup Simulated & Refund Processed", description: "The returned item has been marked as picked up and the refund has been automatically processed." });
   };
 
 
@@ -551,15 +552,10 @@ export default function AdminOrdersPage() {
                                             <div className="mt-4 flex flex-col items-center justify-center text-center p-4 bg-muted/50 rounded-lg">
                                                 <p className="font-semibold">Current Status: <Badge variant={selectedOrder.returnRequest.status === 'picked_up' ? 'success' : 'warning'}>{selectedOrder.returnRequest.status.replace(/_/g, ' ').toUpperCase()}</Badge></p>
                                                 {selectedOrder.returnRequest.status === 'requested' && <Button size="sm" className="mt-2" onClick={() => handleSimulatePickup(selectedOrder.orderId)}>Simulate Pickup</Button>}
+                                                {selectedOrder.returnRequest.status === 'picked_up' && <p className="text-sm text-muted-foreground mt-2">Refund processed automatically upon pickup confirmation.</p>}
                                             </div>
                                         </div>
                                     </CardContent>
-                                    {selectedOrder.returnRequest.status === 'picked_up' && (
-                                        <CardFooter className="flex justify-end gap-2">
-                                            <Button variant="destructive" onClick={() => handleRejectRefund(selectedOrder.orderId)}>Reject Refund</Button>
-                                            <Button onClick={() => handleApproveRefund(selectedOrder.orderId)}>Approve Refund</Button>
-                                        </CardFooter>
-                                    )}
                                 </Card>
                             )}
                         </div>
@@ -570,6 +566,8 @@ export default function AdminOrdersPage() {
     </AdminLayout>
   );
 }
+
+    
 
     
 
