@@ -2,21 +2,18 @@
 'use strict';
 
 const admin = require('firebase-admin');
+const { onCall, HttpsError } = require("firebase-functions/v2/https");
 const { onRequest } = require('firebase-functions/v2/onRequest');
 const functions = require('firebase-functions'); // if you use env/secret config in firebase.json
 const sgMail = require('@sendgrid/mail');
 const vision = require('@google-cloud/vision');
 
 /**
- * Admin SDK initialization:
- * - If FIREBASE_CLIENT_EMAIL and FIREBASE_PRIVATE_KEY are present, use cert init (useful locally).
- * - Otherwise fall back to default application credentials (GCP runtime service account).
+ * Admin SDK initialization
  */
 if (!admin.apps.length) {
   if (process.env.FIREBASE_CLIENT_EMAIL && process.env.FIREBASE_PRIVATE_KEY && process.env.FIREBASE_PROJECT_ID) {
-    // private key will usually have literal "\n" sequences when stored in env; convert them
     const fixedPrivateKey = (process.env.FIREBASE_PRIVATE_KEY || '').replace(/\\n/g, '\n');
-
     admin.initializeApp({
       credential: admin.credential.cert({
         projectId: process.env.FIREBASE_PROJECT_ID,
@@ -24,17 +21,71 @@ if (!admin.apps.length) {
         privateKey: fixedPrivateKey,
       }),
     });
-    console.log('Admin SDK initialized from env cert');
   } else {
     admin.initializeApp();
-    console.log('Admin SDK initialized with default application credentials');
   }
 }
 
 /**
+ * NEW: Callable function to create an admin user.
+ * This function handles user creation, sets a custom claim for the 'admin' role,
+ * and creates the corresponding user document in Firestore.
+ */
+exports.createAdminUser = onCall(async (request) => {
+    // Check if the calling user is an admin.
+    if (request.auth?.token?.role !== 'admin') {
+        throw new HttpsError('permission-denied', 'You must be an admin to create other admins.');
+    }
+
+    const { email, password, firstName, lastName, userId, phone } = request.data;
+    if (!email || !password || !firstName || !lastName) {
+        throw new HttpsError('invalid-argument', 'Missing required user information.');
+    }
+
+    try {
+        // 1. Create the user in Firebase Authentication
+        const userRecord = await admin.auth().createUser({
+            email,
+            password,
+            displayName: `${firstName} ${lastName}`,
+            phoneNumber: phone,
+        });
+
+        // 2. Set the custom 'admin' claim on the user's token
+        await admin.auth().setCustomUserClaims(userRecord.uid, { role: 'admin' });
+
+        // 3. Create the user document in Firestore
+        const userDocRef = admin.firestore().collection('users').doc(userRecord.uid);
+        await userDocRef.set({
+            uid: userRecord.uid,
+            email: email,
+            displayName: `${firstName} ${lastName}`,
+            userId: userId,
+            phone: phone,
+            role: 'admin',
+            createdAt: admin.firestore.FieldValue.serverTimestamp(),
+            // Add any other default fields here
+            followers: 0,
+            following: 0,
+            bio: "Administrator Account",
+            location: "",
+            addresses: [],
+        });
+
+        return { success: true, uid: userRecord.uid };
+
+    } catch (error) {
+        console.error("Error creating admin user:", error);
+        if (error.code === 'auth/email-already-exists') {
+            throw new HttpsError('already-exists', 'The email address is already in use by another account.');
+        }
+        throw new HttpsError('internal', 'An unexpected error occurred while creating the admin user.');
+    }
+});
+
+
+/**
  * Configure SendGrid API key.
- * In Cloud Functions you should configure SENDGRID_KEY as a Secret (you already have this).
- * Locally you can set SENDGRID_KEY env var.
  */
 if (process.env.SENDGRID_KEY) {
   sgMail.setApiKey(process.env.SENDGRID_KEY);
@@ -44,9 +95,6 @@ if (process.env.SENDGRID_KEY) {
 
 /**
  * Utility: normalize recipients.
- * Accept either:
- *   to: "single@domain" OR to: ["one@domain","two@domain"]
- * Returns array of { email } for personalizations or a single string for simple send.
  */
 function normalizeRecipients(to) {
   if (!to) return [];
@@ -56,24 +104,6 @@ function normalizeRecipients(to) {
 
 /**
  * Main function: sendEmail
- *
- * POST payload (JSON) examples:
- * Single recipient:
- * {
- *   "to":"user@example.com",
- *   "subject":"Hello",
- *   "text":"plain text body",
- *   "html":"<b>HTML body</b>"
- * }
- *
- * Multiple recipients (keeps recipients private via personalizations):
- * {
- *   "to":["a@example.com","b@example.com"],
- *   "subject":"Announcement",
- *   "text":"announcement text"
- * }
- *
- * Optional: overrideFrom: "verified@your-sender.com" (if you want to change per-call)
  */
 exports.sendEmail = onRequest(
   { secrets: ['SENDGRID_KEY'] },
@@ -93,20 +123,14 @@ exports.sendEmail = onRequest(
         return res.status(400).json({ error: 'Missing required fields: to, subject, and text or html' });
       }
 
-      // Sender email: use env if set (recommended), otherwise fallback to your verified single sender
       const FROM_EMAIL = process.env.SENDER_EMAIL || 'kamleshkp9916@gmail.com';
 
-      // ensure SendGrid key present
       if (!process.env.SENDGRID_KEY) {
         console.error('SENDGRID_KEY is not set in environment; aborting send.');
         return res.status(500).json({ error: 'SendGrid API key not configured' });
       }
 
-      // Build message
-      // If multiple recipients provided, use personalizations so recipients cannot see each other.
       const recipients = normalizeRecipients(to);
-
-      // Build content array ensuring non-empty strings (SendGrid rejects empty content items)
       const content = [];
       if (text && String(text).trim().length > 0) content.push({ type: 'text/plain', value: String(text) });
       if (html && String(html).trim().length > 0) content.push({ type: 'text/html', value: String(html) });
@@ -115,33 +139,20 @@ exports.sendEmail = onRequest(
         return res.status(400).json({ error: 'Both text and html are empty after trimming' });
       }
 
-      let msg = {
-        from: FROM_EMAIL,
-        subject: subject,
-        content: content,
-        mail_settings: {
-          /* example: sandbox_mode: { enable: true } */
-        },
-      };
+      let msg = { from: FROM_EMAIL, subject: subject, content: content };
 
       if (recipients.length === 1) {
-        // Single recipient -> simple to field
         msg.to = recipients[0].email;
       } else {
-        // Multiple recipients -> personalizations: each recipient gets its own personalization
         msg.personalizations = recipients.map((r) => ({ to: [r] }));
       }
 
-      // Optional: reply-to (if provided)
       if (body.replyTo) msg.replyTo = { email: body.replyTo };
 
-      // Send
-      const result = await sgMail.send(msg, false); // second param false avoids implicit multiple sends
-      // sgMail.send returns an array for multiple recipients; include helpful info
+      const result = await sgMail.send(msg, false); 
       console.log('SendGrid result:', Array.isArray(result) ? result.map(r => r.statusCode) : result && result.statusCode);
       return res.status(200).json({ success: true, debug: Array.isArray(result) ? result.map(r => r.statusCode) : result && result.statusCode });
     } catch (err) {
-      // grab SendGrid response body if present
       let sgBody = null;
       try {
         if (err && err.response && (err.response.body || err.response.data)) {
@@ -154,7 +165,6 @@ exports.sendEmail = onRequest(
       console.error('sendEmail error:', err && err.toString ? err.toString() : err);
       if (sgBody) console.error('SendGrid response body (debug):', JSON.stringify(sgBody, null, 2));
 
-      // Return structured error for debugging
       return res.status(500).json({
         error: 'Email sending failed',
         sendgrid_error: sgBody || (err && err.toString ? err.toString() : 'no sendgrid body available'),
@@ -176,7 +186,7 @@ exports.addBankAccount = onRequest(async (req, res) => {
         const db = admin.firestore();
         await db.collection('bankAccounts').add({
             userId,
-            accountNumber, // Storing unmasked, to be masked on retrieval
+            accountNumber,
             ifscCode,
             bankName,
             createdAt: admin.firestore.FieldValue.serverTimestamp(),
@@ -206,7 +216,6 @@ exports.getBankAccounts = onRequest(async (req, res) => {
         }
         const accounts = snapshot.docs.map(doc => {
             const data = doc.data();
-            // Mask account number
             const maskedAccountNumber = '****' + data.accountNumber.slice(-4);
             return {
                 id: doc.id,
@@ -223,10 +232,8 @@ exports.getBankAccounts = onRequest(async (req, res) => {
 });
 
 exports.notifyDeliveryPartner = onRequest(async (req, res) => {
-    // Allow CORS for development
     res.set('Access-Control-Allow-Origin', '*');
     if (req.method === 'OPTIONS') {
-        // Pre-flight request
         res.set('Access-Control-Allow-Methods', 'POST');
         res.set('Access-Control-Allow-Headers', 'Content-Type');
         res.set('Access-Control-Max-Age', '3600');
@@ -242,11 +249,8 @@ exports.notifyDeliveryPartner = onRequest(async (req, res) => {
         return res.status(400).json({ error: 'Missing orderId or status' });
     }
 
-    // In a real app, this would integrate with a delivery partner's API
-    // (e.g., ShipRocket, Delhivery, etc.)
     console.log(`Notifying delivery partner for order ${orderId} with status: ${status}`);
 
-    // Simulate an API call
     await new Promise(resolve => setTimeout(resolve, 500));
     
     console.log(`Successfully notified delivery partner for order ${orderId}.`);
@@ -281,8 +285,6 @@ exports.faceMatch = onRequest({ cors: true }, async (req, res) => {
             return res.status(200).json({ score: 0, status: 'failed', message: 'Could not detect a face in one or both images.' });
         }
         
-        // This is a simplified "match". A real implementation would compare face landmarks.
-        // For this demo, we'll consider it a "match" if both images contain a face with high detection confidence.
         const selfieConfidence = selfieFaces[0].detectionConfidence || 0;
         const aadhaarConfidence = aadhaarFaces[0].detectionConfidence || 0;
         
@@ -298,5 +300,3 @@ exports.faceMatch = onRequest({ cors: true }, async (req, res) => {
         res.status(500).send('Error during face detection.');
     }
 });
-
-    

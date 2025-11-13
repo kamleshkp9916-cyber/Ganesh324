@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 import { createUserData, updateUserData, UserData, getUserData } from "./follow-data";
 import { ref, uploadString, getDownloadURL, deleteObject } from "firebase/storage";
+import { getFunctions, httpsCallable } from "firebase/functions";
 
 export function useAuthActions() {
     const router = useRouter();
@@ -18,8 +19,6 @@ export function useAuthActions() {
             await firebaseSignOut(auth);
             
             if (isSeller) {
-                // Set a flag to indicate a seller has just signed out.
-                // This can be used by the login page to adjust its UI.
                 sessionStorage.setItem('sellerSignedOut', 'true');
             }
 
@@ -118,7 +117,7 @@ export function useAuthActions() {
         }
     };
 
-    const signUpUser = async (values: any, role: 'customer' | 'admin') => {
+    const handleCustomerSignUp = async (values: any) => {
         const auth = getFirebaseAuth();
         try {
             const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
@@ -127,7 +126,7 @@ export function useAuthActions() {
             
             await updateProfile(user, { displayName: displayName });
             
-            await createUserData(user, role, { userId: values.userId, phone: values.phone });
+            await createUserData(user, 'customer', { userId: values.userId, phone: values.phone });
             
             await sendEmailVerification(user);
             
@@ -136,38 +135,41 @@ export function useAuthActions() {
                 description: "A verification email has been sent. Please check your inbox.",
             });
         } catch (error: any) {
-            let errorMessage = "An unknown error occurred.";
+             let errorMessage = "An unknown error occurred.";
             switch (error.code) {
                 case 'auth/email-already-in-use':
                     errorMessage = "This email address is already in use by another account.";
                     break;
-                case 'auth/invalid-email':
-                    errorMessage = "The email address is not valid.";
-                    break;
-                case 'auth/operation-not-allowed':
-                    errorMessage = "Email/password accounts are not enabled.";
-                    break;
-                case 'auth/weak-password':
-                    errorMessage = "The password is too weak.";
-                    break;
                 default:
-                    errorMessage = error.message;
+                    errorMessage = "Failed to create account. Please try again.";
             }
             toast({
                 title: "Sign Up Failed",
                 description: errorMessage,
                 variant: "destructive",
             });
-            throw error; // Re-throw to be caught by the form handler
+            throw error;
         }
     };
     
-    const handleCustomerSignUp = async (values: any) => {
-        await signUpUser(values, 'customer');
-    };
-    
     const handleAdminSignUp = async (values: any) => {
-        await signUpUser(values, 'admin');
+        const functions = getFunctions();
+        const createAdmin = httpsCallable(functions, 'createAdminUser');
+        try {
+            await createAdmin(values);
+            toast({
+                title: "Admin Account Created!",
+                description: `${values.email} has been granted admin privileges.`,
+            });
+        } catch (error: any) {
+            console.error("Admin creation failed:", error);
+            toast({
+                title: "Admin Creation Failed",
+                description: error.message || "An unexpected error occurred.",
+                variant: "destructive",
+            });
+            throw error;
+        }
     };
     
     const handleSellerSignUp = async (values: any) => {
@@ -175,7 +177,6 @@ export function useAuthActions() {
         let user: User | null = auth.currentUser;
         
         try {
-            // Check if a user is already logged in (customer upgrading)
             if (!user) {
                 const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
                 user = userCredential.user;
@@ -199,20 +200,6 @@ export function useAuthActions() {
             delete (sellerData as any).password;
             delete (sellerData as any).confirmPassword;
             
-            const storage = getFirebaseStorage();
-
-            if (values.passportPhoto) {
-                 const photoRef = ref(storage, `seller-documents/${user.uid}/passport-photo`);
-                 const photoUrl = await uploadString(photoRef, values.passportPhoto.preview, 'data_url').then(snap => getDownloadURL(snap.ref));
-                 (sellerData as any).passportPhoto = photoUrl;
-            }
-
-            if (values.signature) {
-                 const signatureRef = ref(storage, `seller-documents/${user.uid}/signature`);
-                 const signatureUrl = await uploadString(signatureRef, values.signature, 'data_url').then(snap => getDownloadURL(snap.ref));
-                 (sellerData as any).signature = signatureUrl;
-            }
-
             await createUserData(user, 'seller', sellerData);
             
             toast({
@@ -220,8 +207,8 @@ export function useAuthActions() {
                 description: "Welcome! You can now access your seller dashboard.",
             });
 
-            router.push('/seller/dashboard'); // Redirect directly to dashboard
-            
+            router.push('/seller/dashboard');
+
         } catch (error: any) {
             let errorMessage = "An unknown error occurred.";
              if (error.code === 'auth/email-already-in-use') {
@@ -243,8 +230,8 @@ export function useAuthActions() {
         let { photoURL } = data;
         
         const { id, dismiss, update } = toast({
-            title: "Updating Profile...",
-            description: "Please wait while we update your details.",
+            title: 'Updating Profile...',
+            description: 'Please wait while we update your details.',
         });
 
         try {
@@ -252,18 +239,15 @@ export function useAuthActions() {
             const oldUserData = await getUserData(user.uid);
             const oldPhotoURL = oldUserData?.photoURL;
 
-            // Check if there's an old photo to delete and it's not a default placeholder
             if (oldPhotoURL && oldPhotoURL.includes('firebasestorage.googleapis.com') && oldPhotoURL !== photoURL) {
                 try {
                     const oldStorageRef = ref(storage, oldPhotoURL);
                     await deleteObject(oldStorageRef);
                 } catch (error: any) {
-                    // It's okay if deletion fails (e.g., file not found), just log it
                     console.warn("Could not delete old profile picture:", error.message);
                 }
             }
             
-            // Check if photoURL is a new base64 upload
             if (photoURL && photoURL.startsWith('data:image')) {
                 update({ description: "Uploading image... Please wait." });
                 const storageRef = ref(storage, `profile-pictures/${user.uid}`);
@@ -279,15 +263,12 @@ export function useAuthActions() {
                 await updateProfile(user, authUpdates as any);
             }
 
-            // Update Firestore with all data, including the new URL
             const firestoreUpdates = { ...data };
             if(photoURL !== undefined) {
                 firestoreUpdates.photoURL = photoURL;
             }
             await updateUserData(user.uid, firestoreUpdates);
             
-            // Force a refresh of the user's token to get the latest profile data
-            // This makes the useAuth hook update with the new info.
             await user.getIdToken(true);
 
             update({
@@ -304,9 +285,8 @@ export function useAuthActions() {
                 description: "Could not update your profile. Please try again.",
                 variant: "destructive",
             });
-            throw error; // re-throw to be caught by the form handler
+            throw error;
         } finally {
-             // Dismiss the toast after a delay
              setTimeout(() => dismiss(), 3000);
         }
     };
