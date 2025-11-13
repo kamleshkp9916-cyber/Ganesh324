@@ -21,6 +21,8 @@ import {
   Send,
   ShieldAlert,
   LogIn,
+  DollarSign,
+  Receipt,
 } from "lucide-react"
 import { useEffect, useState, useRef, useMemo } from "react";
 import Link from "next/link"
@@ -66,6 +68,16 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs"
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+    DialogFooter,
+    DialogClose,
+} from "@/components/ui/dialog"
 import { useAuth } from "@/hooks/use-auth"
 import { LoadingSpinner } from "@/components/ui/loading-spinner"
 import { useAuthActions } from "@/lib/auth";
@@ -80,6 +92,7 @@ import { createImpersonationToken } from "@/ai/flows/impersonation-flow";
 import { AdminLayout } from "@/components/admin/admin-layout";
 import { PAYOUT_REQUESTS_KEY } from "@/app/admin/settings/page";
 import { useLocalStorage } from "@/hooks/use-local-storage";
+import { Separator } from "@/components/ui/separator";
 
 const mockPayments = [
     { orderId: "#ORD5896", customer: { name: "Ganesh Prajapati" }, amount: 12500.00, status: 'holding' },
@@ -91,6 +104,51 @@ const mockPayouts = [
     { id: 1, sellerId: 'fashionfinds-uid', sellerName: 'FashionFinds', amount: 52340.50, status: 'pending', requestedAt: new Date().toISOString() },
     { id: 2, sellerId: 'gadgetguru-uid', sellerName: 'GadgetGuru', amount: 128900.00, status: 'paid', requestedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString() },
 ];
+
+const PayoutSummaryDialog = ({ payout, onConfirm, onCancel }: { payout: any, onConfirm: () => void, onCancel: () => void }) => {
+    const platformFee = payout.amount * 0.03;
+    const superChatFee = payout.amount * 0.16;
+    const netPayout = payout.amount - platformFee - superChatFee;
+
+    return (
+        <DialogContent>
+            <DialogHeader>
+                <DialogTitle>Confirm Payout for {payout.sellerName}</DialogTitle>
+                <DialogDescription>
+                    Review the fee deductions and confirm the final payout amount.
+                </DialogDescription>
+            </DialogHeader>
+            <div className="py-4 space-y-4">
+                <Card className="bg-muted/30">
+                    <CardHeader className="pb-2">
+                        <CardTitle className="text-2xl font-bold">₹{payout.amount.toFixed(2)}</CardTitle>
+                        <CardDescription>Total Amount Requested</CardDescription>
+                    </CardHeader>
+                </Card>
+                <div className="space-y-2 text-sm">
+                    <div className="flex justify-between items-center">
+                        <span className="text-muted-foreground">Platform Fee (3%)</span>
+                        <span className="font-medium text-destructive">- ₹{platformFee.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                        <span className="text-muted-foreground">Super Chat Commission (16%)</span>
+                        <span className="font-medium text-destructive">- ₹{superChatFee.toFixed(2)}</span>
+                    </div>
+                    <Separator />
+                    <div className="flex justify-between items-center text-base font-bold">
+                        <span>Net Payout Amount</span>
+                        <span>₹{netPayout.toFixed(2)}</span>
+                    </div>
+                </div>
+            </div>
+            <DialogFooter>
+                <Button variant="ghost" onClick={onCancel}>Cancel</Button>
+                <Button onClick={onConfirm}>Confirm & Pay</Button>
+            </DialogFooter>
+        </DialogContent>
+    );
+};
+
 
 const UserTable = ({ users, onViewDetails, onDelete, onMakeAdmin, onImpersonate }: { users: any[], onViewDetails: (user: any) => void, onDelete: (user: any) => void, onMakeAdmin: (user: any) => void, onImpersonate: (user: any) => void }) => {
     const [isMounted, setIsMounted] = useState(false);
@@ -174,6 +232,7 @@ export default function AdminUsersPage() {
   const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || "");
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
   const [payoutRequests, setPayoutRequests] = useLocalStorage<any[]>(PAYOUT_REQUESTS_KEY, []);
+  const [selectedPayout, setSelectedPayout] = useState<any | null>(null);
 
   useEffect(() => {
     if (typeof window !== 'undefined' && payoutRequests.length === 0) {
@@ -279,6 +338,7 @@ export default function AdminUsersPage() {
         title: `Request ${newStatus === 'paid' ? 'Approved' : 'Rejected'}`,
         description: `The payout request has been updated.`,
     });
+    setSelectedPayout(null);
   };
 
   const customers = filteredUsers.filter(u => u.role === 'customer');
@@ -319,6 +379,15 @@ export default function AdminUsersPage() {
             </AlertDialogFooter>
         </AlertDialogContent>
     </AlertDialog>
+    <Dialog open={!!selectedPayout} onOpenChange={(open) => !open && setSelectedPayout(null)}>
+        {selectedPayout && (
+            <PayoutSummaryDialog 
+                payout={selectedPayout}
+                onConfirm={() => handlePayoutStatusChange(selectedPayout.id, 'paid')}
+                onCancel={() => setSelectedPayout(null)}
+            />
+        )}
+    </Dialog>
     <AdminLayout>
       <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
         <Tabs defaultValue="customers">
@@ -414,7 +483,9 @@ export default function AdminUsersPage() {
                                         <TableCell>
                                             {p.status === 'pending' && (
                                                 <div className="flex gap-2">
-                                                    <Button variant="default" size="sm" onClick={() => handlePayoutStatusChange(p.id, 'paid')}><CheckCircle className="mr-2 h-4 w-4" />Approve</Button>
+                                                    <Button variant="default" size="sm" onClick={() => setSelectedPayout(p)}>
+                                                        <CheckCircle className="mr-2 h-4 w-4" />Approve
+                                                    </Button>
                                                     <Button variant="destructive" size="sm" onClick={() => handlePayoutStatusChange(p.id, 'rejected')}><XCircle className="mr-2 h-4 w-4" />Deny</Button>
                                                 </div>
                                             )}
@@ -432,5 +503,3 @@ export default function AdminUsersPage() {
     </>
   )
 }
-
-    
