@@ -18,6 +18,7 @@ import Image from "next/image";
 import { updateUserData, UserData } from "@/lib/follow-data";
 import { getFirestore, collection, query, where, getDocs, updateDoc, doc } from "firebase/firestore";
 import { getFirestoreDb } from "@/lib/firebase";
+import { AdminLayout } from "@/components/admin/admin-layout";
 
 const steps = [
   { key: "basic", label: "Basic Info", icon: <User2 className="w-5 h-5"/> },
@@ -277,21 +278,10 @@ export default function AdminKycPage() {
     }
 
   return (
-    <div className="min-h-screen p-6 md:p-10 bg-gradient-to-br from-gray-50 to-white">
-      <div className="max-w-7xl mx-auto space-y-6">
-        <div className="flex items-center justify-between">
-            <Link href="/admin/dashboard">
-                <Button variant="outline">
-                    <ChevronLeft className="w-4 h-4 mr-2"/> Back to Dashboard
-                </Button>
-            </Link>
-          <div>
-            <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">Admin KYC Review</h1>
-            <p className="text-sm text-muted-foreground">Review and approve new seller applications.</p>
-          </div>
-        </div>
+    <AdminLayout>
+      <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8">
         <AdminPanel />
-      </div>
-    </div>
+      </main>
+    </AdminLayout>
   );
 }
