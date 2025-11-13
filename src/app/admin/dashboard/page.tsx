@@ -82,6 +82,7 @@ import { useDebounce } from "@/hooks/use-debounce";
 import { getFirestore, collection, query, getDocs, orderBy } from "firebase/firestore";
 import { getFirestoreDb } from "@/lib/firebase";
 import { AdminLayout } from "@/components/admin/admin-layout";
+import { cn } from "@/lib/utils"
 
 type Order = {
     orderId: string;
@@ -451,5 +452,3 @@ export default function AdminDashboard() {
     </AdminLayout>
   )
 }
-
-    
