@@ -1,4 +1,3 @@
-
 "use client"
 
 import {
@@ -25,6 +24,7 @@ import {
   PackageCheck,
   CheckCircle2,
   Circle,
+  Undo2,
 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
@@ -101,6 +101,7 @@ type Order = {
     paymentStatus?: 'holding' | 'released' | 'refunded';
     paymentDetails?: any;
     sellerId?: string;
+    refundTimeline?: any[];
 };
 
 const mockOrders: Order[] = [
@@ -159,11 +160,16 @@ const mockOrders: Order[] = [
              { status: "Cancelled by admin", date: "Jul 21, 2024", time: "11:30 AM", completed: true },
         ],
         paymentMethod: 'Net Banking',
-        refundStatus: 'Completed',
+        refundStatus: 'Pending',
         type: 'Listed Product',
         transactionId: 'txn_3m4n5o6p7q8r',
         paymentStatus: 'refunded',
         sellerId: 'homehaven-uid',
+        refundTimeline: [
+            { status: "Refund Requested", date: "Jul 21, 2024", time: "11:35 AM", completed: true },
+            { status: "Refund Approved", date: "Jul 21, 2024", time: "11:40 AM", completed: true },
+            { status: "Refund Processed", date: "Jul 22, 2024", time: "10:00 AM", completed: false },
+        ]
     }
 ];
 
@@ -236,6 +242,15 @@ export default function AdminOrdersPage() {
         return;
     }
     // Logic for cancelling real orders would go here
+  };
+  
+  const handleApproveRefund = (orderId: string) => {
+    setOrders(prev => prev.map(o => o.orderId === orderId ? {...o, refundStatus: 'Completed'} : o));
+    toast({ title: 'Refund Approved', description: `Refund for ${orderId} has been processed.`});
+  };
+  
+  const handleRejectRefund = (orderId: string) => {
+    toast({ title: 'Refund Rejected', description: `Refund for ${orderId} has been rejected.`, variant: 'destructive'});
   };
 
   const filteredOrders = useMemo(() => {
@@ -453,7 +468,7 @@ export default function AdminOrdersPage() {
                                         <CardTitle className="text-base">Seller Information</CardTitle>
                                     </CardHeader>
                                     <CardContent className="text-sm">
-                                        <Link href={`/admin/users/${selectedOrder.sellerId}`} className="font-medium hover:underline">{selectedOrder.products[0].sellerName || 'N/A'}</Link>
+                                        <Link href={`/admin/users/${selectedOrder.sellerId}`} className="font-medium hover:underline">{selectedOrder.sellerId || 'N/A'}</Link>
                                     </CardContent>
                                 </Card>
                             </div>
@@ -485,6 +500,41 @@ export default function AdminOrdersPage() {
                                     </ul>
                                 </CardContent>
                             </Card>
+                            {selectedOrder.refundStatus === 'Pending' && (
+                                 <Card>
+                                    <CardHeader>
+                                        <CardTitle className="text-red-500">Refund Management</CardTitle>
+                                        <CardDescription>This order requires a refund action.</CardDescription>
+                                    </CardHeader>
+                                    <CardContent>
+                                         <ul className="space-y-4">
+                                            {selectedOrder.refundTimeline?.map((item, index) => (
+                                                <li key={index} className="flex items-start gap-4">
+                                                    <div className="flex flex-col items-center">
+                                                        <div className={cn(
+                                                            "flex-shrink-0 h-10 w-10 rounded-full flex items-center justify-center", 
+                                                            item.completed ? "bg-amber-500 text-white" : "bg-muted text-muted-foreground border-2"
+                                                        )}>
+                                                           <Undo2 className="h-5 w-5" />
+                                                        </div>
+                                                        {index < selectedOrder.refundTimeline.length - 1 && (
+                                                            <div className="w-0.5 flex-1 bg-border" />
+                                                        )}
+                                                    </div>
+                                                    <div>
+                                                        <p className="font-semibold">{item.status}</p>
+                                                        <p className="text-sm text-muted-foreground">{item.date} {item.time}</p>
+                                                    </div>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </CardContent>
+                                    <CardFooter className="flex justify-end gap-2">
+                                        <Button variant="destructive" onClick={() => handleRejectRefund(selectedOrder.orderId)}>Reject Refund</Button>
+                                        <Button onClick={() => handleApproveRefund(selectedOrder.orderId)}>Approve Refund</Button>
+                                    </CardFooter>
+                                </Card>
+                            )}
                         </div>
                     </>
                 )}

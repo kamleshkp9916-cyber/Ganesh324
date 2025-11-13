@@ -7,7 +7,7 @@ import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuRadioGroup, DropdownMenuRadioItem } from "@/components/ui/dropdown-menu";
-import { File, ListFilter, Search, Calendar as CalendarIcon } from "lucide-react";
+import { File, ListFilter, Search, Calendar as CalendarIcon, MoreVertical } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useDebounce } from "@/hooks/use-debounce";
 import { getTransactions, Transaction } from '@/lib/transaction-history';
@@ -17,6 +17,47 @@ import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover
 import { Calendar } from '@/components/ui/calendar';
 import { DateRange } from 'react-day-picker';
 import { cn } from '@/lib/utils';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
+
+const RefundDialog = ({ transaction, onApprove, onReject }: { transaction: Transaction, onApprove: (id: string) => void, onReject: (id: string) => void }) => {
+    const [reason, setReason] = useState("");
+
+    return (
+        <AlertDialogContent>
+            <AlertDialogHeader>
+                <AlertDialogTitle>Manage Refund for {transaction.transactionId}</AlertDialogTitle>
+                <AlertDialogDescription>
+                    Review the details and approve or reject this refund request.
+                </AlertDialogDescription>
+            </AlertDialogHeader>
+             <div className="py-4 space-y-2">
+                <p className="text-sm"><strong>Amount:</strong> {new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(transaction.amount)}</p>
+                <p className="text-sm"><strong>Reason:</strong> {transaction.description}</p>
+                <p className="text-sm"><strong>Date:</strong> {format(parseISO(transaction.date), 'dd MMM, yyyy, p')}</p>
+                 <Input 
+                    placeholder="Optional: Reason for rejection..."
+                    value={reason}
+                    onChange={(e) => setReason(e.target.value)}
+                />
+            </div>
+            <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={() => onReject(transaction.transactionId)} className={cn("bg-destructive text-destructive-foreground hover:bg-destructive/90")} disabled={!reason}>Reject</AlertDialogAction>
+                <AlertDialogAction onClick={() => onApprove(transaction.transactionId)}>Approve</AlertDialogAction>
+            </AlertDialogFooter>
+        </AlertDialogContent>
+    )
+}
 
 export default function AdminTransactionsPage() {
     const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -27,11 +68,39 @@ export default function AdminTransactionsPage() {
     const debouncedSearchTerm = useDebounce(searchTerm, 300);
     const { toast } = useToast();
     const [date, setDate] = React.useState<DateRange | undefined>(undefined);
+    const [managingRefund, setManagingRefund] = useState<Transaction | null>(null);
 
     useEffect(() => {
         setIsClient(true);
-        setTransactions(getTransactions());
+        const storedTransactions = getTransactions();
+        // Add a mock refund if none exists
+        if (!storedTransactions.some(t => t.type === 'Refund' && t.status === 'Processing')) {
+             const mockRefund = {
+                id: Date.now(),
+                transactionId: 'REF-MOCK123',
+                type: 'Refund' as const,
+                description: 'Customer request - wrong item',
+                date: new Date().toISOString(),
+                time: new Date().toLocaleTimeString(),
+                amount: 1500.00,
+                status: 'Processing' as const,
+            };
+            storedTransactions.unshift(mockRefund);
+        }
+        setTransactions(storedTransactions);
     }, []);
+
+    const handleApproveRefund = (id: string) => {
+        setTransactions(prev => prev.map(t => t.transactionId === id ? { ...t, status: 'Completed' } : t));
+        toast({ title: "Refund Approved", description: `Transaction ${id} has been marked as completed.`});
+        setManagingRefund(null);
+    };
+
+    const handleRejectRefund = (id: string) => {
+        setTransactions(prev => prev.map(t => t.transactionId === id ? { ...t, status: 'Failed' } : t));
+        toast({ title: "Refund Rejected", description: `Transaction ${id} has been marked as failed.`, variant: "destructive"});
+        setManagingRefund(null);
+    };
 
     const filteredTransactions = useMemo(() => {
         let tempTransactions = transactions;
@@ -91,6 +160,7 @@ export default function AdminTransactionsPage() {
     };
 
     return (
+        <AlertDialog>
         <AdminLayout>
             <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8">
                 <Card>
@@ -194,6 +264,7 @@ export default function AdminTransactionsPage() {
                                     <TableHead>Date</TableHead>
                                     <TableHead>Status</TableHead>
                                     <TableHead className="text-right">Amount</TableHead>
+                                    <TableHead className="text-right">Actions</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -212,11 +283,18 @@ export default function AdminTransactionsPage() {
                                                     {t.amount > 0 ? '+' : ''}{new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(t.amount)}
                                                 </span>
                                             </TableCell>
+                                            <TableCell className="text-right">
+                                                {t.type === 'Refund' && t.status === 'Processing' && (
+                                                    <AlertDialogTrigger asChild>
+                                                        <Button variant="secondary" size="sm" onClick={() => setManagingRefund(t)}>Manage</Button>
+                                                    </AlertDialogTrigger>
+                                                )}
+                                            </TableCell>
                                         </TableRow>
                                     ))
                                 ) : (
                                     <TableRow>
-                                        <TableCell colSpan={6} className="h-24 text-center">
+                                        <TableCell colSpan={7} className="h-24 text-center">
                                             {isClient ? 'No transactions found.' : 'Loading transactions...'}
                                         </TableCell>
                                     </TableRow>
@@ -231,7 +309,8 @@ export default function AdminTransactionsPage() {
                     </CardFooter>
                 </Card>
             </main>
+            {managingRefund && <RefundDialog transaction={managingRefund} onApprove={handleApproveRefund} onReject={handleRejectRefund} />}
         </AdminLayout>
+        </AlertDialog>
     );
 }
-
