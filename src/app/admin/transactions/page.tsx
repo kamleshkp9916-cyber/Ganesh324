@@ -284,11 +284,7 @@ export default function AdminTransactionsPage() {
                                                 </span>
                                             </TableCell>
                                             <TableCell className="text-right">
-                                                {t.type === 'Refund' && t.status === 'Processing' && (
-                                                    <AlertDialogTrigger asChild>
-                                                        <Button variant="secondary" size="sm" onClick={() => setManagingRefund(t)}>Manage</Button>
-                                                    </AlertDialogTrigger>
-                                                )}
+                                                {/* Manage button removed */}
                                             </TableCell>
                                         </TableRow>
                                     ))
