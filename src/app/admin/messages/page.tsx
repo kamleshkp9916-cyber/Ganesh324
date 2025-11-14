@@ -50,33 +50,58 @@ export default function AdminMessagePage() {
         let allConvos = [...convos];
         let convoToSelect: Conversation | null = null;
         
-        if (preselectUserId) {
+        if (preselectUserId && preselectUserName) {
             const otherUser = await getUserData(preselectUserId);
             if (!otherUser) {
                 console.error("Could not find user data for pre-selected user.");
-                setConversations(allConvos);
-                setIsLoading(false);
-                return;
-            }
-            
-            const conversationId = await getOrCreateConversation(user.uid, preselectUserId, userData, otherUser);
-            
-            const existingConvo = allConvos.find(c => c.conversationId === conversationId);
-            
-            if (existingConvo) {
-                convoToSelect = existingConvo;
-            } else {
-                 const newConvo: Conversation = {
+                 // Create a temporary user data object if one doesn't exist.
+                const tempOtherUser = {
+                    uid: preselectUserId,
+                    displayName: preselectUserName,
+                    photoURL: '', // Provide a default or leave empty
+                    email: preselectUserId, // Use email as a placeholder
+                    // Add other required UserData fields with default values
+                    role: 'customer',
+                    followers: 0,
+                    following: 0,
+                    bio: '',
+                    location: '',
+                    phone: '',
+                    addresses: [],
+                    color: '#ffffff'
+                } as UserData;
+                const conversationId = await getOrCreateConversation(user.uid, preselectUserId, userData, tempOtherUser);
+                const newConvo: Conversation = {
                     conversationId: conversationId,
                     userId: preselectUserId,
-                    userName: otherUser.displayName || 'Customer',
-                    avatarUrl: otherUser.photoURL || `https://placehold.co/40x40.png?text=${(otherUser.displayName || 'U').charAt(0)}`,
+                    userName: preselectUserName,
+                    avatarUrl: tempOtherUser.photoURL || `https://placehold.co/40x40.png?text=${(preselectUserName || 'U').charAt(0)}`,
                     lastMessage: 'New inquiry.',
                     lastMessageTimestamp: 'now',
                     unreadCount: 1,
                 };
                 allConvos = [newConvo, ...allConvos];
                 convoToSelect = newConvo;
+
+            } else {
+                const conversationId = await getOrCreateConversation(user.uid, preselectUserId, userData, otherUser);
+                const existingConvo = allConvos.find(c => c.conversationId === conversationId);
+                
+                if (existingConvo) {
+                    convoToSelect = existingConvo;
+                } else {
+                     const newConvo: Conversation = {
+                        conversationId: conversationId,
+                        userId: preselectUserId,
+                        userName: otherUser.displayName || 'Customer',
+                        avatarUrl: otherUser.photoURL || `https://placehold.co/40x40.png?text=${(otherUser.displayName || 'U').charAt(0)}`,
+                        lastMessage: 'New inquiry.',
+                        lastMessageTimestamp: 'now',
+                        unreadCount: 1,
+                    };
+                    allConvos = [newConvo, ...allConvos];
+                    convoToSelect = newConvo;
+                }
             }
         } else if (allConvos.length > 0) {
             convoToSelect = allConvos[0];
@@ -92,7 +117,7 @@ export default function AdminMessagePage() {
     } finally {
         setIsLoading(false);
     }
-  }, [user, preselectUserId, userData, isMobile]);
+  }, [user, preselectUserId, preselectUserName, userData, isMobile]);
 
   useEffect(() => {
     if (!loading && user && userData?.role === 'admin') {
@@ -208,7 +233,7 @@ export default function AdminMessagePage() {
                 isMobile && selectedConversation && "hidden"
             )}>
                  <div className="p-4 border-b flex items-center gap-2 sticky top-0 bg-background z-10 shrink-0 h-16">
-                    <Button variant="ghost" size="icon" onClick={() => router.back()} className="md:hidden">
+                    <Button variant="ghost" size="icon" onClick={() => router.back()}>
                         <ArrowLeft className="h-5 w-5"/>
                     </Button>
                     <h1 className="text-xl font-bold">Chats</h1>
