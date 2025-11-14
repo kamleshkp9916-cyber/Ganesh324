@@ -139,7 +139,6 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
             const db = getFirestoreDb();
             
             const ordersRef = collection(db, "orders");
-            // Temporarily removing orderBy to fix missing index error
             const ordersQuery = query(ordersRef, where("userId", "==", userId));
             const ordersSnapshot = await getDocs(ordersQuery);
             const fetchedOrders: Order[] = ordersSnapshot.docs.map(doc => ({
@@ -262,50 +261,43 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
 
   return (
     <Dialog onOpenChange={(open) => !open && setSelectedOrderForTimeline(null)}>
-    <div className="flex min-h-screen w-full flex-col bg-muted/40">
-        <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6 py-4">
-            <Button size="icon" variant="outline" className="sm:hidden" onClick={() => router.back()}>
-                <ArrowLeft className="h-5 w-5" />
-            </Button>
-             <Button size="icon" variant="ghost" className="hidden sm:inline-flex" onClick={() => router.push('/admin/users')}>
-                <ArrowLeft className="h-5 w-5" />
-            </Button>
-            <h1 className="flex-1 shrink-0 whitespace-nowrap text-xl font-semibold tracking-tight sm:grow-0">
-                User Profile
-            </h1>
-            <div className="ml-auto flex items-center gap-2">
-                <Button variant="outline" asChild>
-                    <Link href={`/admin/messages?userId=${profileData.uid}&userName=${profileData.displayName}`}>
-                        <MessageSquare className="mr-2 h-4 w-4" />
-                        Message
-                    </Link>
-                </Button>
-                <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                        <Button variant="destructive">
-                            <Ban className="mr-2 h-4 w-4" />
-                            Terminate User
-                        </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                        <AlertDialogHeader>
-                            <AlertDialogTitle>Terminate User Account</AlertDialogTitle>
-                            <AlertDialogDescription>
-                                You can temporarily suspend or permanently delete this user's account. Permanent deletion cannot be undone.
-                            </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                             <Button variant="outline">Suspend for 7 days</Button>
-                             <AlertDialogAction asChild>
-                                <Button variant="destructive">Permanently Delete</Button>
-                            </AlertDialogAction>
-                        </AlertDialogFooter>
-                    </AlertDialogContent>
-                </AlertDialog>
-            </div>
-        </header>
         <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8">
+             <div className="flex items-center justify-between">
+                <h1 className="text-xl font-semibold tracking-tight sm:grow-0">
+                    User Profile
+                </h1>
+                <div className="ml-auto flex items-center gap-2">
+                    <Button variant="outline" asChild>
+                        <Link href={`/admin/messages?userId=${profileData.uid}&userName=${profileData.displayName}`}>
+                            <MessageSquare className="mr-2 h-4 w-4" />
+                            Message
+                        </Link>
+                    </Button>
+                    <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                            <Button variant="destructive">
+                                <Ban className="mr-2 h-4 w-4" />
+                                Terminate User
+                            </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                            <AlertDialogHeader>
+                                <AlertDialogTitle>Terminate User Account</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                    You can temporarily suspend or permanently delete this user's account. Permanent deletion cannot be undone.
+                                </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <Button variant="outline">Suspend for 7 days</Button>
+                                <AlertDialogAction asChild>
+                                    <Button variant="destructive">Permanently Delete</Button>
+                                </AlertDialogAction>
+                            </AlertDialogFooter>
+                        </AlertDialogContent>
+                    </AlertDialog>
+                </div>
+            </div>
             <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-3">
                 <div className="grid auto-rows-max items-start gap-4 lg:col-span-1">
                     <Card>
@@ -426,7 +418,6 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
                 </div>
             </div>
         </main>
-    </div>
     </Dialog>
   );
 };
