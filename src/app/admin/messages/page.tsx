@@ -226,29 +226,21 @@ export default function AdminMessagePage() {
 
   return (
     <AdminLayout>
-        <main className="flex flex-col flex-1 gap-4 p-4 md:p-8 h-[calc(100vh-120px)]">
-             {preselectUserId && (
-                <Button variant="outline" size="sm" onClick={() => router.back()} className="flex items-center gap-2 w-fit -mt-2">
-                    <ArrowLeft className="h-4 w-4" />
-                    Back
-                </Button>
-            )}
-            <div className="h-full w-full flex bg-background text-foreground overflow-hidden border rounded-lg">
+        <main className="grid flex-1 items-start gap-4 p-4 md:p-0 md:pt-4 md:gap-8 h-[calc(100vh-120px)] md:h-[calc(100vh-100px)]">
+            <div className="h-full w-full flex bg-background text-foreground overflow-hidden border md:rounded-lg">
                 <div className={cn(
                     "h-full w-full flex-col border-r md:flex md:w-1/3 lg:w-1/4",
                     isMobile && selectedConversation && "hidden"
                 )}>
-                    <div className="p-4 border-b">
-                        <div className="relative">
-                            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                            <Input
-                                type="search"
-                                placeholder="Search conversations..."
-                                className="pl-8 w-full"
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                            />
-                        </div>
+                    <div className="relative p-4 border-b">
+                        <Search className="absolute left-6 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input
+                            type="search"
+                            placeholder="Search conversations..."
+                            className="pl-8 w-full"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                        />
                     </div>
                     <ConversationList 
                         conversations={filteredConversations} 
@@ -266,7 +258,8 @@ export default function AdminMessagePage() {
                             key={selectedConversation.conversationId}
                             conversation={selectedConversation}
                             userData={userData}
-                            onBack={() => setSelectedConversation(null)}
+                            onBack={() => preselectUserId ? router.back() : setSelectedConversation(null)}
+                            showBackButton={!!preselectUserId}
                         />
                     ) : (
                         <div className="hidden md:flex flex-col items-center justify-center h-full text-muted-foreground">
@@ -281,3 +274,4 @@ export default function AdminMessagePage() {
     </AdminLayout>
   );
 }
+
