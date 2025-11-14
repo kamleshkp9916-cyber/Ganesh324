@@ -232,12 +232,6 @@ export default function AdminMessagePage() {
                 "h-full w-full flex-col border-r md:flex md:w-1/3 lg:w-1/4",
                 isMobile && selectedConversation && "hidden"
             )}>
-                 <div className="p-4 border-b flex items-center gap-2 sticky top-0 bg-background z-10 shrink-0 h-16">
-                    <Button variant="ghost" size="icon" onClick={() => router.back()}>
-                        <ArrowLeft className="h-5 w-5"/>
-                    </Button>
-                    <h1 className="text-xl font-bold">Chats</h1>
-                </div>
                 <ConversationList 
                     conversations={filteredConversations} 
                     selectedConversation={selectedConversation}
