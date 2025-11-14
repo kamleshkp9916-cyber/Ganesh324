@@ -241,7 +241,7 @@ export default function AdminUsersPage() {
     const allUsersSnapshot = await getDocs(allUsersQuery);
     const usersList = allUsersSnapshot.docs.map(doc => ({ ...doc.data(), uid: doc.id }));
     
-    // Always add mock sellers for demonstration purposes
+    // Correctly combine real users with mock sellers
     const mockSellers = getMockSellers();
     const combinedList = [...usersList];
 
@@ -468,3 +468,5 @@ export default function AdminUsersPage() {
     </>
   )
 }
+
+    
