@@ -11,7 +11,7 @@
 
 import { z } from 'genkit';
 import { getFirebaseAdminApp } from '@/lib/firebase-server';
-import { getFirestore, Timestamp, FieldValue, Filter, doc, collection, query, where, getDocs, orderBy, addDoc, updateDoc, increment } from 'firebase-admin/firestore';
+import { getFirestore, Timestamp, FieldValue, Filter, doc, collection, query, where, getDocs as adminGetDocs, orderBy, addDoc, updateDoc, increment } from 'firebase-admin/firestore';
 import { UserData } from '@/lib/follow-data';
 import { Message, Conversation } from '@/components/messaging/common';
 import { format } from 'date-fns';
@@ -55,7 +55,7 @@ export async function getConversations(currentUserId: string): Promise<Conversat
     const conversationsRef = db.collection('conversations');
     const q = conversationsRef.where('participants', 'array-contains', currentUserId);
     
-    const snapshot = await getDocs(q);
+    const snapshot = await q.get();
     if (snapshot.empty) {
         return [];
     }
@@ -84,7 +84,7 @@ export async function getMessages(conversationId: string): Promise<Message[]> {
     const messagesRef = collection(db, `conversations/${conversationId}/messages`);
     const q = query(messagesRef, orderBy("timestamp", "asc"));
     
-    const snapshot = await getDocs(q);
+    const snapshot = await adminGetDocs(q);
     if (snapshot.empty) {
         return [];
     }
