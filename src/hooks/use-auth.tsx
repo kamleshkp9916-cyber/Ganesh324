@@ -26,43 +26,55 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const auth = getFirebaseAuth();
     const db = getFirestoreDb();
     
+    // This is the primary listener for Firebase Auth state changes.
     const unsubscribeAuth = onAuthStateChanged(auth, async (firebaseUser) => {
-      setLoading(true); // Start loading whenever auth state changes
+      // Whenever auth state might change, we are no longer "ready" and are "loading".
       setAuthReady(false);
+      setLoading(true);
+      setUser(firebaseUser); // Set user immediately, can be null
 
       if (firebaseUser) {
-        setUser(firebaseUser);
-        
+        // If a user is logged in, listen for changes to their user document in Firestore.
         const userDocRef = doc(db, 'users', firebaseUser.uid);
         const unsubscribeFirestore = onSnapshot(userDocRef, async (doc) => {
             if (doc.exists()) {
+                // User document exists, set the data.
                 setUserData(doc.data() as UserData);
             } else {
+                // User document does not exist, so we need to create it.
+                // This can happen on first sign-up.
                 let data = await getUserData(firebaseUser.uid);
                 if (!data) {
                     await createUserData(firebaseUser, 'customer');
+                    // After creation, fetch it again to be sure.
                     data = await getUserData(firebaseUser.uid);
                 }
                 setUserData(data);
             }
+            // Once user data is fetched/set, we are done loading for this user.
             setLoading(false);
-            setAuthReady(true); // User and their data are loaded
+            setAuthReady(true);
         }, (error) => {
             console.error("Error listening to user data:", error);
+            setUserData(null);
             setLoading(false);
-            setAuthReady(true); // Still ready, even with an error
+            setAuthReady(true);
         });
 
+        // This function will be called when the onAuthStateChanged listener is cleaned up.
+        // It's crucial for unsubscribing from the Firestore listener to prevent memory leaks.
         return () => unsubscribeFirestore();
 
       } else {
+        // No user is logged in.
         setUser(null);
         setUserData(null);
         setLoading(false);
-        setAuthReady(true); // Ready, because we know there's no user
+        setAuthReady(true); // We are "ready" because we know for sure there is no user.
       }
     });
 
+    // Cleanup the main auth listener on component unmount.
     return () => unsubscribeAuth();
   }, []);
 
