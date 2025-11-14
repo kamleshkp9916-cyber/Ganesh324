@@ -337,30 +337,53 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
                             </CardContent>
                         </Card>
                         <Card>
-                                <CardHeader>
-                                <CardTitle>User Stats</CardTitle>
+                            <CardHeader>
+                                <CardTitle>{profileData.role === 'seller' ? "Seller Stats" : "User Stats"}</CardTitle>
                             </CardHeader>
-                            <CardContent className="space-y-4">
-                                    <div className="flex items-center justify-between">
-                                    <span className="text-muted-foreground">Total Spent</span>
-                                    <span className="font-semibold">₹{totalSpent.toLocaleString()}</span>
-                                </div>
-                                    <div className="flex items-center justify-between">
-                                    <span className="text-muted-foreground">Total Orders</span>
-                                    <span className="font-semibold">{totalOrders}</span>
-                                </div>
-                                    <div className="flex items-center justify-between">
-                                    <span className="text-muted-foreground">Cancelled Orders</span>
-                                    <span className="font-semibold">{cancelledOrders}</span>
-                                </div>
-                                    <div className="flex items-center justify-between">
-                                    <span className="text-muted-foreground">Returned Orders</span>
-                                    <span className="font-semibold">{returnedOrders}</span>
-                                </div>
-                                    <div className="flex items-center justify-between">
-                                    <span className="text-muted-foreground">Avg. Order Value</span>
-                                    <span className="font-semibold">₹{avgOrderValue.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
-                                </div>
+                             <CardContent className="space-y-4 text-sm">
+                                {profileData.role === 'seller' ? (
+                                    <>
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-muted-foreground">Total Earnings</span>
+                                            <span className="font-semibold">₹{sellerRevenueData.totalEarnings.toLocaleString()}</span>
+                                        </div>
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-muted-foreground">Products Listed</span>
+                                            <span className="font-semibold">{userProducts.length}</span>
+                                        </div>
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-muted-foreground">Total Orders</span>
+                                            <span className="font-semibold">{totalOrders}</span>
+                                        </div>
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-muted-foreground">Avg. Rating</span>
+                                            <span className="font-semibold flex items-center gap-1">{sellerAverageRating} <Star className="h-4 w-4 text-yellow-400" /></span>
+                                        </div>
+                                    </>
+                                ) : (
+                                    <>
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-muted-foreground">Total Spent</span>
+                                            <span className="font-semibold">₹{totalSpent.toLocaleString()}</span>
+                                        </div>
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-muted-foreground">Total Orders</span>
+                                            <span className="font-semibold">{totalOrders}</span>
+                                        </div>
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-muted-foreground">Cancelled Orders</span>
+                                            <span className="font-semibold">{cancelledOrders}</span>
+                                        </div>
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-muted-foreground">Returned Orders</span>
+                                            <span className="font-semibold">{returnedOrders}</span>
+                                        </div>
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-muted-foreground">Avg. Order Value</span>
+                                            <span className="font-semibold">₹{avgOrderValue.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
+                                        </div>
+                                    </>
+                                )}
                             </CardContent>
                         </Card>
                     </div>
