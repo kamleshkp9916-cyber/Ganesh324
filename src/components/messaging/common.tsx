@@ -190,11 +190,6 @@ export const ConversationList = ({ conversations, selectedConversation, onSelect
 
     return (
         <>
-            <header className="p-4 border-b flex items-center justify-between sticky top-0 bg-background z-10 shrink-0 h-16">
-                <div className="flex items-center gap-2">
-                    <h1 className="text-xl font-bold">Chats</h1>
-                </div>
-            </header>
             <div className="p-4 border-b">
                  <div className="relative">
                     <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />

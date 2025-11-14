@@ -232,9 +232,6 @@ export default function AdminMessagePage() {
                     "h-full w-full flex-col border-r md:flex md:w-1/3 lg:w-1/4",
                     isMobile && selectedConversation && "hidden"
                 )}>
-                    <div className="p-4 border-b">
-                        <h1 className="text-xl font-bold">Chats</h1>
-                    </div>
                     <ConversationList 
                         conversations={filteredConversations} 
                         selectedConversation={selectedConversation}
