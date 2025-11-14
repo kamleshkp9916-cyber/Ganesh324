@@ -254,7 +254,7 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
   return (
     <Dialog onOpenChange={(open) => !open && setSelectedOrderForTimeline(null)}>
         <div className="space-y-6">
-             <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between">
                 <h1 className="text-xl font-semibold tracking-tight sm:grow-0">
                     User Profile
                 </h1>
@@ -439,5 +439,3 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
     </Dialog>
   );
 };
-
-    
