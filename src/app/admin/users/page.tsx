@@ -240,18 +240,7 @@ export default function AdminUsersPage() {
     const allUsersQuery = query(usersRef);
     const allUsersSnapshot = await getDocs(allUsersQuery);
     const usersList = allUsersSnapshot.docs.map(doc => ({ ...doc.data(), uid: doc.id }));
-    
-    // Correctly combine real users with mock sellers
-    const mockSellers = getMockSellers();
-    const combinedList = [...usersList];
-
-    mockSellers.forEach(mockSeller => {
-      if (!combinedList.some(user => user.uid === mockSeller.uid)) {
-        combinedList.push(mockSeller);
-      }
-    });
-
-    setAllUsersState(combinedList as UserData[]);
+    setAllUsersState(usersList as UserData[]);
   };
 
   useEffect(() => {
