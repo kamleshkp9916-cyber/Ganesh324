@@ -1,69 +1,103 @@
 
+/**
+ * @file Firestore Security Rules for StreamCart User Data
+ *
+ * Core Philosophy:
+ * This ruleset enforces a strict user-ownership model. Each user can only access their own data stored under their specific user ID.
+ *
+ */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    // Helper function to check if the user is signed in.
     function isSignedIn() {
       return request.auth != null;
     }
 
+    // Helper function to check if the requested user ID matches the authenticated user's ID.
     function isOwner(userId) {
       return isSignedIn() && request.auth.uid == userId;
     }
 
-    // UPDATED: Check for the 'admin' role directly on the auth token's custom claims.
-    // This is more secure and efficient than reading the user document.
+    // Helper function to check if the user has an 'admin' role.
     function isAdmin() {
-      return isSignedIn() && request.auth.token.role == 'admin';
+      return isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
 
+    /**
+     * @description Enforces access control for individual user documents.
+     * @path /users/{userId}
+     * @allow (create) User with UID 'user_abc' can create their own document at /users/user_abc.
+     * @allow (get) User with UID 'user_abc' can read their own document at /users/user_abc. An admin can also read any user's document.
+     * @allow (update) User with UID 'user_abc' can update their own document at /users/user_abc.
+     * @allow (delete) User with UID 'user_abc' can delete their own document at /users/user_abc.
+     * @deny (create) User with UID 'user_xyz' cannot create a document at /users/user_abc.
+     * @deny (get) User with UID 'user_xyz' cannot read document at /users/user_abc.
+     * @deny (update) User with UID 'user_xyz' cannot update document at /users/user_abc.
+     * @deny (delete) User with UID 'user_xyz' cannot delete document at /users/user_abc.
+     * @principle Enforces document ownership for all operations, with admin read access.
+     */
     match /users/{userId} {
+      // A user can create their own document if the userId matches their auth.uid
+      allow create: if isOwner(userId);
+
+      // A user can read their own document, or an admin can read any user document.
       allow read: if isOwner(userId) || isAdmin();
-      allow create, update, delete: if isOwner(userId);
-      // Deny non-admins from listing all users
+      
+      // Allows a user to update their own document.
+      allow update: if isOwner(userId);
+
+      // Allows a user to delete their own document.
+      allow delete: if isOwner(userId);
+
+      // Prevents listing of user documents by non-admins.
       allow list: if isAdmin();
-    }
-    
-    match /users/{userId}/{allPaths=**} {
-      allow read, write: if isOwner(userId) || isAdmin();
+
+       /**
+       * @description Enforces access control for a seller's orders subcollection.
+       * @path /users/{userId}/orders/{orderId}
+       */
+      match /orders/{orderId} {
+        // Only the seller (owner of the user document) or an admin can manage orders in this subcollection.
+        allow read, write: if isOwner(userId) || isAdmin();
+      }
+
+      /**
+       * @description Enforces access control for a seller's products subcollection.
+       * @path /users/{userId}/products/{productId}
+       */
+      match /products/{productId} {
+          // Products are publicly readable.
+          allow read, list: if true;
+
+          // Only the owner of the user document (the seller) can create, update, or delete their own products.
+          // Role check ensures only sellers can perform these actions.
+          allow create, update, delete: if isOwner(userId) && get(/databases/$(database)/documents/users/$(userId)).data.role == 'seller';
+      }
     }
 
-    // Publicly readable collections
-    match /products/{productId} {
-      allow get: if true;
-      allow list: if true;
-      allow write: if false; // Managed by sellers in their own subcollection
-    }
-    
-    match /posts/{postId} {
-        allow read: if true;
-        allow list: if true;
-        allow create: if isSignedIn() && request.resource.data.sellerId == request.auth.uid;
-        allow update: if isSignedIn() && resource.data.sellerId == request.auth.uid;
-        allow delete: if (isSignedIn() && resource.data.sellerId == request.auth.uid) || isAdmin();
-    }
-    
-     match /orders/{orderId} {
+    /**
+     * @description Enforces access control for the orders collection.
+     * @path /orders/{orderId}
+     */
+    match /orders/{orderId} {
       // Users can create orders for themselves.
       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+
       // A user can read an order if they are the customer, the seller, OR an admin.
       allow get: if isSignedIn() && (resource.data.userId == request.auth.uid || resource.data.sellerId == request.auth.uid || isAdmin());
-      // Customers can query their own orders. Sellers can query orders they are the seller for.
+      
+      // Customers can query their own orders.
+      // Sellers can query orders they are the seller for.
+      // Admins can list all orders.
       allow list: if (isSignedIn() && 
                     (request.query.where.userId == request.auth.uid || 
                      (request.query.where.sellerId != null && request.query.where.sellerId == request.auth.uid))) || isAdmin();
-      // Only admins can update or delete raw order documents.
+
+      // Users should not be able to update or delete orders directly.
+      // Updates should happen via Cloud Functions for status changes.
       allow update, delete: if isAdmin();
-    }
-
-    // Allow admins to access the payouts collection
-    match /payouts/{payoutId} {
-      allow read, list, write: if isAdmin();
-    }
-
-    match /inquiries/{inquiryId} {
-      allow read, write, list: if isAdmin();
-      allow create: if true;
     }
   }
 }
