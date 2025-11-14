@@ -16,7 +16,7 @@ import { useAuthActions } from '@/lib/auth';
 import { useDebounce } from '@/hooks/use-debounce';
 import { ChatWindow, ConversationList, Conversation, Message } from '@/components/messaging/common';
 import { getConversations, getOrCreateConversation } from '@/ai/flows/chat-flow';
-import { getUserByDisplayName, UserData } from '@/lib/follow-data';
+import { getUserByDisplayName, UserData, getUserData } from '@/lib/follow-data';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-is-mobile';
 import { AdminLayout } from '@/components/admin/admin-layout';
@@ -44,15 +44,22 @@ export default function AdminMessagePage() {
   const preselectUserName = searchParams.get('userName');
 
   const fetchConversations = useCallback(async () => {
-    if (!user) return;
+    if (!user || !userData) return;
     try {
         const convos = await getConversations(user.uid);
         let allConvos = [...convos];
         let convoToSelect: Conversation | null = null;
         
-        if (preselectUserId && userData) {
-            const otherUser: Partial<UserData> = { uid: preselectUserId, displayName: preselectUserName || 'New User', photoURL: '' };
-            const conversationId = await getOrCreateConversation(user.uid, preselectUserId, userData, otherUser as UserData);
+        if (preselectUserId) {
+            const otherUser = await getUserData(preselectUserId);
+            if (!otherUser) {
+                console.error("Could not find user data for pre-selected user.");
+                setConversations(allConvos);
+                setIsLoading(false);
+                return;
+            }
+            
+            const conversationId = await getOrCreateConversation(user.uid, preselectUserId, userData, otherUser);
             
             const existingConvo = allConvos.find(c => c.conversationId === conversationId);
             
@@ -62,8 +69,8 @@ export default function AdminMessagePage() {
                  const newConvo: Conversation = {
                     conversationId: conversationId,
                     userId: preselectUserId,
-                    userName: preselectUserName || 'Customer',
-                    avatarUrl: `https://placehold.co/40x40.png?text=${(preselectUserName || 'U').charAt(0)}`,
+                    userName: otherUser.displayName || 'Customer',
+                    avatarUrl: otherUser.photoURL || `https://placehold.co/40x40.png?text=${(otherUser.displayName || 'U').charAt(0)}`,
                     lastMessage: 'New inquiry.',
                     lastMessageTimestamp: 'now',
                     unreadCount: 1,
@@ -85,7 +92,7 @@ export default function AdminMessagePage() {
     } finally {
         setIsLoading(false);
     }
-  }, [user, preselectUserId, preselectUserName, userData, isMobile]);
+  }, [user, preselectUserId, userData, isMobile]);
 
   useEffect(() => {
     if (!loading && user && userData?.role === 'admin') {
