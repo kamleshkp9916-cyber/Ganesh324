@@ -57,7 +57,7 @@ import {
 } from "@/components/ui/table"
 import { useAuth } from "@/hooks/use-auth"
 import { LoadingSpinner } from "@/components/ui/loading-spinner"
-import { getUserData, UserData, updateUserData } from "@/lib/follow-data";
+import { getUserData, UserData, updateUserData, getMockSellers } from "@/lib/follow-data";
 import { getFirestoreDb } from "@/lib/firebase";
 import { getStatusFromTimeline, Order } from "@/lib/order-data";
 import Image from "next/image"
@@ -126,7 +126,7 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
         try {
             const fetchedUserData = await getUserData(userId);
             if (!fetchedUserData) {
-                // If getUserData returns null (which it shouldn't anymore), handle it.
+                // If getUserData returns null, handle it.
                 toast({ variant: 'destructive', title: 'Error', description: 'Could not load user profile.' });
                 setIsLoading(false);
                 return;
@@ -136,7 +136,8 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
             const db = getFirestoreDb();
             
             const ordersRef = collection(db, "orders");
-            const ordersQuery = query(ordersRef, where("userId", "==", userId), orderBy("orderDate", "desc"));
+            // Temporarily removing orderBy to fix missing index error
+            const ordersQuery = query(ordersRef, where("userId", "==", userId));
             const ordersSnapshot = await getDocs(ordersQuery);
             const fetchedOrders: Order[] = ordersSnapshot.docs.map(doc => ({
                 ...doc.data(),
@@ -145,13 +146,12 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
             setUserOrders(fetchedOrders.length > 0 ? fetchedOrders : []);
 
             if (fetchedUserData.role === 'seller') {
-                const productsKey = `sellerProducts_${fetchedUserData.displayName}`;
-                const storedProducts = localStorage.getItem(productsKey);
-                if (storedProducts && JSON.parse(storedProducts).length > 0) {
-                    setUserProducts(JSON.parse(storedProducts));
-                } else {
-                     setUserProducts([]);
-                }
+                const sellerId = fetchedUserData.uid;
+                const mockSellers = getMockSellers();
+                const mockSellerData = mockSellers.find(s => s.uid === sellerId);
+                const sellerProducts = mockSellerData ? mockProducts : [];
+                setUserProducts(sellerProducts);
+
 
                 // Fetch payouts
                  const payoutsQuery = query(collection(db, "payouts"), where("sellerId", "==", userId), orderBy("requestedAt", "desc"));
@@ -395,3 +395,5 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
     </Dialog>
   );
 };
+
+    
