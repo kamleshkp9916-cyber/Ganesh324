@@ -3,7 +3,9 @@
 
 import { doc, getDoc, setDoc, updateDoc, collection, query, where, getDocs, writeBatch, increment, limit, serverTimestamp } from "firebase/firestore";
 import { getFirestoreDb } from "./firebase";
-import type { User } from "firebase/auth";
+import { User } from "firebase/auth";
+import { getFirebaseAuth } from "./firebase";
+
 
 export interface UserData {
     uid: string;
@@ -87,7 +89,7 @@ export const getMockSellers = (): UserData[] => {
 
 export const getUserData = async (uid: string): Promise<UserData | null> => {
     if (!uid) return null;
-    
+
     if (mockSellers[uid]) {
         return mockSellers[uid];
     }
@@ -100,7 +102,16 @@ export const getUserData = async (uid: string): Promise<UserData | null> => {
         if (userDoc.exists()) {
             return { ...userDoc.data(), uid: userDoc.id } as UserData;
         } else {
-            console.warn(`No user document found for UID: ${uid}`);
+             // If document doesn't exist, create a default one based on Auth info
+            console.warn(`No user document for UID: ${uid}. Creating default.`);
+            const auth = getFirebaseAuth(); // You'll need to import this
+            // This is a placeholder; in a real app, you might need to fetch the auth user record
+            // from the server if you're on the server. For client-side, this is fine.
+            const authUser = auth.currentUser;
+            if (authUser && authUser.uid === uid) {
+                const defaultData = defaultUserData(uid, authUser) as UserData;
+                return defaultData;
+            }
             return null;
         }
     } catch (error) {
