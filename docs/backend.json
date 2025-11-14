@@ -30,6 +30,43 @@
         "id",
         "email"
       ]
+    },
+    "Conversation": {
+      "title": "Conversation",
+      "type": "object",
+      "description": "Represents a private chat conversation between two or more users.",
+      "properties": {
+        "participants": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "An array of user UIDs participating in the conversation."
+        },
+        "participantData": {
+          "type": "object",
+          "description": "A map of participant data, keyed by UID."
+        },
+        "lastMessage": { "type": "string" },
+        "lastMessageTimestamp": { "type": "string", "format": "date-time" },
+        "unreadCount": { "type": "object" },
+        "status": {
+          "type": "string",
+          "enum": ["open", "closed"],
+          "description": "The status of the conversation, acting as a support ticket state."
+        }
+      },
+      "required": ["participants", "status"]
+    },
+    "Message": {
+      "title": "Message",
+      "type": "object",
+      "description": "Represents a single message within a conversation.",
+      "properties": {
+        "senderId": { "type": "string" },
+        "text": { "type": "string" },
+        "imageUrl": { "type": "string", "format": "uri" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["senderId", "timestamp"]
     }
   },
   "auth": {
@@ -55,8 +92,28 @@
             }
           ]
         }
+      },
+      {
+        "path": "/conversations/{conversationId}",
+        "definition": {
+          "entityName": "Conversation",
+          "schema": {
+            "$ref": "#/backend/entities/Conversation"
+          },
+          "description": "Stores metadata for a single conversation."
+        }
+      },
+      {
+        "path": "/conversations/{conversationId}/messages/{messageId}",
+        "definition": {
+          "entityName": "Message",
+          "schema": {
+            "$ref": "#/backend/entities/Message"
+          },
+          "description": "Sub-collection storing all messages for a given conversation."
+        }
       }
     ],
-    "reasoning": "The data structure is designed to store user information securely and efficiently. It prioritizes authorization independence by leveraging path-based ownership. The structure ensures that access control is straightforward and doesn't rely on complex hierarchical `get()` calls, which improves security and simplifies debugging. The segregation of user data into individual user documents provides a homogeneous security posture for each user's information. This design facilitates secure `list` operations, as access is determined by the path structure."
+    "reasoning": "The data structure is designed to store user information and conversations securely and efficiently. It prioritizes authorization independence by leveraging path-based ownership. The structure ensures that access control is straightforward and doesn't rely on complex hierarchical `get()` calls, which improves security and simplifies debugging. The segregation of user data into individual user documents and conversations into their own collections provides a homogeneous security posture for each user's information. This design facilitates secure `list` operations, as access is determined by the path structure."
   }
 }
