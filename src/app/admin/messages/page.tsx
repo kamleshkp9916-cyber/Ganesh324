@@ -226,9 +226,9 @@ export default function AdminMessagePage() {
 
   return (
     <AdminLayout>
-        <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8 h-[calc(100vh-60px)]">
+        <main className="flex flex-col flex-1 gap-4 p-4 md:p-8 h-[calc(100vh-120px)]">
              {preselectUserId && (
-                <Button variant="outline" size="sm" onClick={() => router.back()} className="flex items-center gap-2 w-fit mb-2 -mt-2">
+                <Button variant="outline" size="sm" onClick={() => router.back()} className="flex items-center gap-2 w-fit -mt-2">
                     <ArrowLeft className="h-4 w-4" />
                     Back
                 </Button>
