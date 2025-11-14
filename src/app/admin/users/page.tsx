@@ -241,13 +241,17 @@ export default function AdminUsersPage() {
     const allUsersSnapshot = await getDocs(allUsersQuery);
     const usersList = allUsersSnapshot.docs.map(doc => ({ ...doc.data(), uid: doc.id }));
     
-    // If no sellers are found in Firestore, add the mock sellers.
-    if (!usersList.some(u => u.role === 'seller')) {
-        const mockSellers = getMockSellers();
-        usersList.push(...mockSellers);
-    }
-    
-    setAllUsersState(usersList as UserData[]);
+    // Always add mock sellers for demonstration purposes
+    const mockSellers = getMockSellers();
+    const combinedList = [...usersList];
+
+    mockSellers.forEach(mockSeller => {
+      if (!combinedList.some(user => user.uid === mockSeller.uid)) {
+        combinedList.push(mockSeller);
+      }
+    });
+
+    setAllUsersState(combinedList as UserData[]);
   };
 
   useEffect(() => {
