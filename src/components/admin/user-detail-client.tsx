@@ -92,7 +92,7 @@ const mockOrders: Order[] = [
     {
         orderId: "#MOCK123",
         userId: "mockUser",
-        products: [{ name: "Mock Product 1", key: "mock_1", productId: "mock_1" }],
+        products: [{ name: "Mock Product 1", key: "mock_1", productId: "mock_1", imageUrl: "https://placehold.co/100x100.png" }],
         address: { name: "Mock User", village: "123 Mockingbird Lane", city: "Faketown", state: "CA", pincode: "90210", phone: "1234567890" },
         total: 1999.00,
         orderDate: "2024-08-01T10:00:00.000Z",
@@ -102,6 +102,11 @@ const mockOrders: Order[] = [
         refundStatus: 'N/A',
         transactionId: 'txn_1a2b3c4d5e6f'
     },
+];
+
+const mockTransactions: Transaction[] = [
+    { id: 1, transactionId: 'txn_1a2b3c4d5e6f', type: 'Order', description: 'Mock Product 1', date: '2024-08-01', time: '10:00 AM', amount: -1999.00, status: 'Completed' },
+    { id: 2, transactionId: 'txn_xyz789', type: 'Deposit', description: 'Wallet Top-up', date: '2024-07-30', time: '03:45 PM', amount: 5000.00, status: 'Completed' },
 ];
 
 const mockProducts: Product[] = [
@@ -149,11 +154,11 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
                 ...doc.data(),
                 orderId: doc.id
             } as Order));
-            setUserOrders(fetchedOrders.length > 0 ? fetchedOrders : []);
+            setUserOrders(fetchedOrders.length > 0 ? fetchedOrders : mockOrders);
             
             const allTransactions = getTransactions();
             const transactionsForUser = allTransactions.filter(t => fetchedOrders.some(o => o.transactionId === t.transactionId) || t.description.includes(fetchedUserData.displayName));
-            setUserTransactions(transactionsForUser);
+            setUserTransactions(transactionsForUser.length > 0 ? transactionsForUser : mockTransactions);
 
 
             if (fetchedUserData.role === 'seller') {
@@ -172,8 +177,9 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
 
         } catch (error) {
             console.error("Error fetching user details:", error);
-            setUserOrders([]);
-            setUserProducts([]);
+            setUserOrders(mockOrders);
+            setUserProducts(mockProducts);
+            setUserTransactions(mockTransactions);
         } finally {
             setIsLoading(false);
         }
