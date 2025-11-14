@@ -223,12 +223,13 @@ export const ConversationList = ({ conversations, selectedConversation, onSelect
 };
 
 
-export const ChatWindow = ({ conversation, userData, onBack, messages: initialMessages, isFullScreen = false }: {
+export const ChatWindow = ({ conversation, userData, onBack, messages: initialMessages, isFullScreen = false, showBackButton = false }: {
     conversation: Conversation;
     userData: UserData;
     onBack: () => void;
     messages?: Message[];
     isFullScreen?: boolean;
+    showBackButton?: boolean;
 }) => {
     const [messages, setMessages] = useState<Message[]>(initialMessages || []);
     const [isChatLoading, setIsChatLoading] = useState(true);
@@ -332,7 +333,7 @@ export const ChatWindow = ({ conversation, userData, onBack, messages: initialMe
         <div className="h-full flex flex-col">
             <header className="p-3 border-b flex items-center justify-between shrink-0 h-16">
                 <div className="flex items-center gap-3">
-                    {(isMobile || isFullScreen) && (
+                    {(isMobile || isFullScreen || showBackButton) && (
                         <Button variant="ghost" size="icon" onClick={onBack}>
                             <ArrowLeft className="h-6 w-6" />
                         </Button>
