@@ -9,12 +9,12 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useAuth } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
 import { UserData } from "@/lib/follow-data";
-import { ArrowLeft, Menu, MoreVertical, Search, Send, Trash2, CheckCheck, Check, Flag, Paperclip, FileText, PlusCircle, Home, Pin, Award, History, Gavel, ShoppingBag, X, Smile, Reply } from "lucide-react";
+import { ArrowLeft, Menu, MoreVertical, Search, Send, Trash2, CheckCheck, Check, Flag, Paperclip, FileText, PlusCircle, Home, Pin, Award, History, Gavel, ShoppingBag, X, Smile, Reply, TicketX } from "lucide-react";
 import { useEffect, useMemo, useRef, useState, useCallback, forwardRef } from "react";
 import { Skeleton } from "../ui/skeleton";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { useIsMobile } from "@/hooks/use-is-mobile";
 import { useSidebar } from "../ui/sidebar";
-import { onSnapshot, collection, query, orderBy, getFirestore, doc, Timestamp, addDoc, serverTimestamp, updateDoc, increment } from 'firebase/firestore';
+import { onSnapshot, collection, query, orderBy, getFirestore, doc, Timestamp, addDoc, serverTimestamp, updateDoc, increment, getDoc } from 'firebase/firestore';
 import { getFirestoreDb } from "@/lib/firebase";
 import { format } from "date-fns";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from "../ui/dropdown-menu";
@@ -64,6 +64,7 @@ export interface Conversation {
   lastMessageTimestamp: string;
   unreadCount: number;
   isExecutive?: boolean;
+  status?: 'open' | 'closed';
 }
 
 const emojis = [
@@ -86,7 +87,8 @@ export const ConversationItem = ({ convo, isSelected, onClick, onDelete }: { con
         <div
             className={cn(
                 "group relative w-full text-left p-2 flex items-center gap-3 rounded-lg cursor-pointer",
-                isSelected ? "bg-secondary" : "hover:bg-secondary/50"
+                isSelected ? "bg-secondary" : "hover:bg-secondary/50",
+                convo.status === 'closed' && 'opacity-60'
             )}
             onClick={onClick}
         >
@@ -100,9 +102,11 @@ export const ConversationItem = ({ convo, isSelected, onClick, onDelete }: { con
                      <p className="text-xs text-muted-foreground flex-shrink-0 ml-2">{convo.lastMessageTimestamp}</p>
                 </div>
                 <div className="flex justify-between items-start mt-0.5">
-                    <p className="text-xs text-muted-foreground truncate pr-2">{truncatedMessage}</p>
+                    <p className={cn("text-xs text-muted-foreground truncate pr-2", convo.status === 'closed' && "italic")}>
+                        {convo.status === 'closed' ? "This conversation is closed." : truncatedMessage}
+                    </p>
                     <div className="flex items-center gap-2 flex-shrink-0">
-                        {convo.unreadCount > 0 && (
+                        {convo.unreadCount > 0 && convo.status !== 'closed' && (
                             <div className="w-4 h-4 bg-primary text-primary-foreground text-xs flex items-center justify-center rounded-full">
                                 {convo.unreadCount}
                             </div>
@@ -258,6 +262,13 @@ export const ChatWindow = ({ conversation, userData, onBack, messages: initialMe
             });
         }
     };
+
+    const handleResolveTicket = async () => {
+        const db = getFirestoreDb();
+        const conversationRef = doc(db, 'conversations', conversation.conversationId);
+        await updateDoc(conversationRef, { status: 'closed' });
+        // The onSnapshot listener should update the local state automatically.
+    };
     
     useEffect(() => {
         if (!conversation) return;
@@ -315,6 +326,8 @@ export const ChatWindow = ({ conversation, userData, onBack, messages: initialMe
     
     if (!user) return null;
 
+    const isChatClosed = conversation.status === 'closed';
+
     return (
         <div className="h-full flex flex-col">
             <header className="p-3 border-b flex items-center justify-between shrink-0 h-16">
@@ -341,9 +354,10 @@ export const ChatWindow = ({ conversation, userData, onBack, messages: initialMe
                             <MoreVertical className="h-5 w-5" />
                         </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent>
-                        <DropdownMenuItem>
-                            <Flag className="mr-2 h-4 w-4" /> Report User
+                    <DropdownMenuContent align="end">
+                         <DropdownMenuItem onClick={handleResolveTicket} disabled={isChatClosed}>
+                            <TicketX className="mr-2 h-4 w-4" />
+                            {isChatClosed ? 'Ticket Resolved' : 'Mark as Resolved'}
                         </DropdownMenuItem>
                     </DropdownMenuContent>
                 </DropdownMenu>
@@ -361,13 +375,18 @@ export const ChatWindow = ({ conversation, userData, onBack, messages: initialMe
                     ) : (
                         <div className="text-center text-muted-foreground py-8">Start the conversation!</div>
                     )}
+                    {isChatClosed && (
+                         <div className="text-center text-xs text-muted-foreground italic py-4">
+                            This conversation has been closed and is now read-only.
+                        </div>
+                    )}
                 </div>
             </ScrollArea>
             <footer className="p-4 border-t shrink-0">
                 <form onSubmit={handleSendMessage} className="flex items-center gap-3">
                      <Popover>
                         <PopoverTrigger asChild>
-                             <Button variant="ghost" size="icon" type="button" className="flex-shrink-0 rounded-full">
+                             <Button variant="ghost" size="icon" type="button" className="flex-shrink-0 rounded-full" disabled={isChatClosed}>
                                 <PlusCircle className="h-5 w-5" />
                             </Button>
                         </PopoverTrigger>
@@ -384,16 +403,17 @@ export const ChatWindow = ({ conversation, userData, onBack, messages: initialMe
                     </Popover>
                      <div className="relative flex-grow">
                         <Input 
-                            placeholder="Type a message" 
+                            placeholder={isChatClosed ? "This chat is closed" : "Type a message"} 
                             className="flex-grow rounded-full bg-muted border-transparent focus:bg-background focus:border-border pr-10" 
                             value={newMessage}
                             onChange={(e) => setNewMessage(e.target.value)}
+                            disabled={isChatClosed}
                         />
-                         <Button variant="ghost" size="icon" type="button" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 text-muted-foreground">
+                         <Button variant="ghost" size="icon" type="button" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 text-muted-foreground" disabled={isChatClosed}>
                             <Smile className="h-5 w-5"/>
                         </Button>
                     </div>
-                    <Button type="submit" size="icon" disabled={!newMessage.trim()} className="rounded-full flex-shrink-0">
+                    <Button type="submit" size="icon" disabled={!newMessage.trim() || isChatClosed} className="rounded-full flex-shrink-0">
                         <Send className="h-5 w-5"/>
                     </Button>
                 </form>

@@ -28,51 +28,20 @@ service cloud.firestore {
     /**
      * @description Enforces access control for individual user documents.
      * @path /users/{userId}
-     * @allow (create) User with UID 'user_abc' can create their own document at /users/user_abc.
-     * @allow (get) User with UID 'user_abc' can read their own document at /users/user_abc. An admin can also read any user's document.
-     * @allow (update) User with UID 'user_abc' can update their own document at /users/user_abc.
-     * @allow (delete) User with UID 'user_abc' can delete their own document at /users/user_abc.
-     * @deny (create) User with UID 'user_xyz' cannot create a document at /users/user_abc.
-     * @deny (get) User with UID 'user_xyz' cannot read document at /users/user_abc.
-     * @deny (update) User with UID 'user_xyz' cannot update document at /users/user_abc.
-     * @deny (delete) User with UID 'user_xyz' cannot delete document at /users/user_abc.
-     * @principle Enforces document ownership for all operations, with admin read access.
      */
     match /users/{userId} {
-      // A user can create their own document if the userId matches their auth.uid
-      allow create: if isOwner(userId);
-
-      // A user can read their own document, or an admin can read any user document.
+      allow create: if isOwner(userId) && request.resource.data.id == request.auth.uid;
       allow read: if isOwner(userId) || isAdmin();
-      
-      // Allows a user to update their own document.
       allow update: if isOwner(userId);
-
-      // Allows a user to delete their own document.
       allow delete: if isOwner(userId);
-
-      // Prevents listing of user documents by non-admins.
       allow list: if isAdmin();
 
-       /**
-       * @description Enforces access control for a seller's orders subcollection.
-       * @path /users/{userId}/orders/{orderId}
-       */
       match /orders/{orderId} {
-        // Only the seller (owner of the user document) or an admin can manage orders in this subcollection.
         allow read, write: if isOwner(userId) || isAdmin();
       }
 
-      /**
-       * @description Enforces access control for a seller's products subcollection.
-       * @path /users/{userId}/products/{productId}
-       */
       match /products/{productId} {
-          // Products are publicly readable.
           allow read, list: if true;
-
-          // Only the owner of the user document (the seller) can create, update, or delete their own products.
-          // Role check ensures only sellers can perform these actions.
           allow create, update, delete: if isOwner(userId) && get(/databases/$(database)/documents/users/$(userId)).data.role == 'seller';
       }
     }
@@ -82,22 +51,31 @@ service cloud.firestore {
      * @path /orders/{orderId}
      */
     match /orders/{orderId} {
-      // Users can create orders for themselves.
       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
-
-      // A user can read an order if they are the customer, the seller, OR an admin.
       allow get: if isSignedIn() && (resource.data.userId == request.auth.uid || resource.data.sellerId == request.auth.uid || isAdmin());
-      
-      // Customers can query their own orders.
-      // Sellers can query orders they are the seller for.
-      // Admins can list all orders.
       allow list: if (isSignedIn() && 
                     (request.query.where.userId == request.auth.uid || 
                      (request.query.where.sellerId != null && request.query.where.sellerId == request.auth.uid))) || isAdmin();
-
-      // Users should not be able to update or delete orders directly.
-      // Updates should happen via Cloud Functions for status changes.
       allow update, delete: if isAdmin();
+    }
+
+    /**
+     * @description Enforces access control for conversations.
+     * @path /conversations/{conversationId}
+     */
+    match /conversations/{conversationId} {
+      // Allow read/write if the user is a participant or an admin.
+      allow read, update: if (isSignedIn() && request.auth.uid in resource.data.participants) || isAdmin();
+      allow create: if (isSignedIn() && request.auth.uid in request.resource.data.participants);
+
+      // Messages sub-collection rules
+      match /messages/{messageId} {
+        // Allow read/write to messages if the user is part of the parent conversation or is an admin.
+        // A new message can only be created if the conversation is not closed.
+        allow read: if (isSignedIn() && get(/databases/$(database)/documents/conversations/$(conversationId)).data.participants.hasAny([request.auth.uid])) || isAdmin();
+        allow create: if (isSignedIn() && get(/databases/$(database)/documents/conversations/$(conversationId)).data.participants.hasAny([request.auth.uid]) && get(/databases/$(database)/documents/conversations/$(conversationId)).data.status != 'closed') || isAdmin();
+        allow update, delete: if isAdmin();
+      }
     }
   }
 }
