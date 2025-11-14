@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useAuth } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
-import { UserData } from "@/lib/follow-data";
+import { UserData, getUserData } from "@/lib/follow-data";
 import { ArrowLeft, Menu, MoreVertical, Search, Send, Trash2, CheckCheck, Check, Flag, Paperclip, FileText, PlusCircle, Home, Pin, Award, History, Gavel, ShoppingBag, X, Smile, Reply, TicketX } from "lucide-react";
 import { useEffect, useMemo, useRef, useState, useCallback, forwardRef } from "react";
 import { Skeleton } from "../ui/skeleton";
@@ -65,6 +65,7 @@ export interface Conversation {
   unreadCount: number;
   isExecutive?: boolean;
   status?: 'open' | 'closed';
+  role?: 'customer' | 'seller' | 'admin';
 }
 
 const emojis = [
@@ -232,6 +233,17 @@ export const ChatWindow = ({ conversation, userData, onBack, messages: initialMe
     const chatContainerRef = useRef<HTMLDivElement>(null);
     const isMobile = useIsMobile();
     const { user } = useAuth();
+    const [otherUser, setOtherUser] = useState<UserData | null>(null);
+
+    useEffect(() => {
+        const fetchOtherUserData = async () => {
+            if (conversation.userId) {
+                const userData = await getUserData(conversation.userId);
+                setOtherUser(userData);
+            }
+        };
+        fetchOtherUserData();
+    }, [conversation.userId]);
     
     const sendMessage = async (conversationId: string, senderId: string, message: { text?: string; imageUrl?: string }) => {
         const db = getFirestoreDb();
@@ -338,9 +350,13 @@ export const ChatWindow = ({ conversation, userData, onBack, messages: initialMe
                             <AvatarImage src={conversation.avatarUrl} />
                             <AvatarFallback>{conversation.userName.charAt(0)}</AvatarFallback>
                         </Avatar>
-                        <div>
-                            <h2 className="font-semibold">{conversation.userName}</h2>
-                            <p className="text-xs text-muted-foreground">Online</p>
+                         <div>
+                            <div className="flex items-center gap-2">
+                                <h2 className="font-semibold">{conversation.userName}</h2>
+                                {otherUser?.role && (
+                                    <Badge variant={otherUser.role === 'seller' ? 'secondary' : 'outline'} className="capitalize">{otherUser.role}</Badge>
+                                )}
+                            </div>
                         </div>
                     </div>
                 </div>
