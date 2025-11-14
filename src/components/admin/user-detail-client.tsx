@@ -65,7 +65,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog"
 import { cn } from "@/lib/utils"
 import { useToast } from "@/hooks/use-toast";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip, Legend } from "recharts"
 import { collection, query, where, getDocs, orderBy, onSnapshot } from "firebase/firestore";
@@ -126,6 +126,8 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
         try {
             const fetchedUserData = await getUserData(userId);
             if (!fetchedUserData) {
+                // If getUserData returns null (which it shouldn't anymore), handle it.
+                toast({ variant: 'destructive', title: 'Error', description: 'Could not load user profile.' });
                 setIsLoading(false);
                 return;
             }
@@ -140,7 +142,7 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
                 ...doc.data(),
                 orderId: doc.id
             } as Order));
-            setUserOrders(fetchedOrders.length > 0 ? fetchedOrders : mockOrders);
+            setUserOrders(fetchedOrders.length > 0 ? fetchedOrders : []);
 
             if (fetchedUserData.role === 'seller') {
                 const productsKey = `sellerProducts_${fetchedUserData.displayName}`;
@@ -148,7 +150,7 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
                 if (storedProducts && JSON.parse(storedProducts).length > 0) {
                     setUserProducts(JSON.parse(storedProducts));
                 } else {
-                     setUserProducts(mockProducts);
+                     setUserProducts([]);
                 }
 
                 // Fetch payouts
@@ -161,15 +163,15 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
 
         } catch (error) {
             console.error("Error fetching user details:", error);
-            setUserOrders(mockOrders);
-            setUserProducts(mockProducts);
+            setUserOrders([]);
+            setUserProducts([]);
         } finally {
             setIsLoading(false);
         }
     };
     
     fetchAllData();
-  }, [userId]);
+  }, [userId, toast]);
   
   const handleMakeAdmin = async () => {
     if (!profileData) return;
