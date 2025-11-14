@@ -28,6 +28,9 @@ import {
   ShieldAlert,
   Banknote,
   Percent,
+  Slash,
+  Calendar,
+  Ban,
 } from "lucide-react"
 import { useEffect, useState, useMemo } from "react";
 import Link from "next/link"
@@ -173,17 +176,6 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
     fetchAllData();
   }, [userId, toast]);
   
-  const handleMakeAdmin = async () => {
-    if (!profileData) return;
-    
-    await updateUserData(profileData.uid, { role: 'admin' });
-    setProfileData(prev => prev ? { ...prev, role: 'admin' } : null);
-
-    toast({
-        title: "Success!",
-        description: `${profileData.displayName} is now an administrator.`
-    });
-  };
 
   const sellerRevenueData = useMemo(() => {
     const deliveredOrders = userOrders.filter(o => getStatusFromTimeline(o.timeline) === 'Delivered');
@@ -222,6 +214,10 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
   }
 
   const totalSpent = userOrders.reduce((sum, order) => sum + order.total, 0);
+  const totalOrders = userOrders.length;
+  const cancelledOrders = userOrders.filter(o => getStatusFromTimeline(o.timeline).toLowerCase().includes('cancelled')).length;
+  const returnedOrders = userOrders.filter(o => getStatusFromTimeline(o.timeline).toLowerCase().includes('return')).length;
+  const avgOrderValue = totalOrders > 0 ? totalSpent / totalOrders : 0;
   const sellerAverageRating = 4.8;
 
   const getStatusIcon = (status: string) => {
@@ -284,28 +280,29 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
                         Message
                     </Link>
                 </Button>
-                 {profileData.role !== 'admin' && (
-                     <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                            <Button>
-                                <ShieldAlert className="mr-2 h-4 w-4" />
-                                Make Admin
-                            </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                            <AlertDialogHeader>
-                                <AlertDialogTitle>Confirm Admin Promotion</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                    Are you sure you want to grant administrator privileges to {profileData.displayName}? This action is irreversible.
-                                </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                <AlertDialogAction onClick={handleMakeAdmin}>Confirm</AlertDialogAction>
-                            </AlertDialogFooter>
-                        </AlertDialogContent>
-                    </AlertDialog>
-                )}
+                <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                        <Button variant="destructive">
+                            <Ban className="mr-2 h-4 w-4" />
+                            Terminate User
+                        </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                        <AlertDialogHeader>
+                            <AlertDialogTitle>Terminate User Account</AlertDialogTitle>
+                            <AlertDialogDescription>
+                                You can temporarily suspend or permanently delete this user's account. Permanent deletion cannot be undone.
+                            </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                             <Button variant="outline">Suspend for 7 days</Button>
+                             <AlertDialogAction asChild>
+                                <Button variant="destructive">Permanently Delete</Button>
+                            </AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
             </div>
         </header>
         <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8">
@@ -333,7 +330,47 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
                         <CardContent className="space-y-2 text-sm">
                             <div className="flex items-center gap-2"><Mail className="h-4 w-4 text-muted-foreground" /> <span>{profileData.email}</span></div>
                             <div className="flex items-center gap-2"><Phone className="h-4 w-4 text-muted-foreground" /> <span>{profileData.phone || 'N/A'}</span></div>
-                            <div className="flex items-center gap-2"><MapPin className="h-4 w-4 text-muted-foreground" /> <span>{profileData.location || 'N/A'}</span></div>
+                             <div className="flex items-start gap-2 pt-2">
+                                <Home className="h-4 w-4 text-muted-foreground mt-1" /> 
+                                <div>
+                                    <p className="font-semibold text-foreground">Address</p>
+                                    {profileData.addresses && profileData.addresses.length > 0 ? (
+                                        <address className="not-italic text-muted-foreground">
+                                            {profileData.addresses[0].name}<br/>
+                                            {profileData.addresses[0].village}, {profileData.addresses[0].district}<br/>
+                                            {profileData.addresses[0].city}, {profileData.addresses[0].state} - {profileData.addresses[0].pincode}<br/>
+                                            Phone: {profileData.addresses[0].phone}
+                                        </address>
+                                    ) : <p className="text-muted-foreground">No address on file.</p>}
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+                    <Card>
+                         <CardHeader>
+                            <CardTitle>User Stats</CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                             <div className="flex items-center justify-between">
+                                <span className="text-muted-foreground">Total Spent</span>
+                                <span className="font-semibold">₹{totalSpent.toLocaleString()}</span>
+                            </div>
+                             <div className="flex items-center justify-between">
+                                <span className="text-muted-foreground">Total Orders</span>
+                                <span className="font-semibold">{totalOrders}</span>
+                            </div>
+                             <div className="flex items-center justify-between">
+                                <span className="text-muted-foreground">Cancelled Orders</span>
+                                <span className="font-semibold">{cancelledOrders}</span>
+                            </div>
+                             <div className="flex items-center justify-between">
+                                <span className="text-muted-foreground">Returned Orders</span>
+                                <span className="font-semibold">{returnedOrders}</span>
+                            </div>
+                             <div className="flex items-center justify-between">
+                                <span className="text-muted-foreground">Avg. Order Value</span>
+                                <span className="font-semibold">₹{avgOrderValue.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
+                            </div>
                         </CardContent>
                     </Card>
                 </div>
@@ -389,11 +426,7 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
                 </div>
             </div>
         </main>
-        <DialogContent>
-        </DialogContent>
     </div>
     </Dialog>
   );
 };
-
-    
