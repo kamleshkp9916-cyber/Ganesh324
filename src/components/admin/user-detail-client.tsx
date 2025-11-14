@@ -196,7 +196,7 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
 
 
   if (adminLoading) {
-    return <div className="flex h-screen items-center justify-center"><LoadingSpinner /></div>
+    return <div className="flex h-full items-center justify-center"><LoadingSpinner /></div>
   }
 
   if (!adminUser || adminUserData?.role !== 'admin') {
@@ -205,11 +205,11 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
   }
 
   if (isLoading) {
-    return <div className="flex h-screen items-center justify-center"><LoadingSpinner /></div>;
+    return <div className="flex h-full items-center justify-center"><LoadingSpinner /></div>;
   }
 
   if (!profileData) {
-      return <div className="flex h-screen items-center justify-center"><p>User not found.</p></div>
+      return <div className="flex h-full items-center justify-center"><p>User not found.</p></div>
   }
 
   const totalSpent = userOrders.reduce((sum, order) => sum + order.total, 0);
@@ -261,163 +261,163 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
 
   return (
     <Dialog onOpenChange={(open) => !open && setSelectedOrderForTimeline(null)}>
-        <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8">
-             <div className="flex items-center justify-between">
-                <h1 className="text-xl font-semibold tracking-tight sm:grow-0">
-                    User Profile
-                </h1>
-                <div className="ml-auto flex items-center gap-2">
-                    <Button variant="outline" asChild>
-                        <Link href={`/admin/messages?userId=${profileData.uid}&userName=${profileData.displayName}`}>
-                            <MessageSquare className="mr-2 h-4 w-4" />
-                            Message
-                        </Link>
-                    </Button>
-                    <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                            <Button variant="destructive">
-                                <Ban className="mr-2 h-4 w-4" />
-                                Terminate User
-                            </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                            <AlertDialogHeader>
-                                <AlertDialogTitle>Terminate User Account</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                    You can temporarily suspend or permanently delete this user's account. Permanent deletion cannot be undone.
-                                </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                <Button variant="outline">Suspend for 7 days</Button>
-                                <AlertDialogAction asChild>
-                                    <Button variant="destructive">Permanently Delete</Button>
-                                </AlertDialogAction>
-                            </AlertDialogFooter>
-                        </AlertDialogContent>
-                    </AlertDialog>
-                </div>
+        <div className="flex items-center justify-between">
+            <h1 className="text-xl font-semibold tracking-tight sm:grow-0">
+                User Profile
+            </h1>
+            <div className="ml-auto flex items-center gap-2">
+                <Button variant="outline" asChild>
+                    <Link href={`/admin/messages?userId=${profileData.uid}&userName=${profileData.displayName}`}>
+                        <MessageSquare className="mr-2 h-4 w-4" />
+                        Message
+                    </Link>
+                </Button>
+                <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                        <Button variant="destructive">
+                            <Ban className="mr-2 h-4 w-4" />
+                            Terminate User
+                        </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                        <AlertDialogHeader>
+                            <AlertDialogTitle>Terminate User Account</AlertDialogTitle>
+                            <AlertDialogDescription>
+                                You can temporarily suspend or permanently delete this user's account. Permanent deletion cannot be undone.
+                            </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <Button variant="outline">Suspend for 7 days</Button>
+                            <AlertDialogAction asChild>
+                                <Button variant="destructive">Permanently Delete</Button>
+                            </AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
             </div>
-            <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-3">
-                <div className="grid auto-rows-max items-start gap-4 lg:col-span-1">
-                    <Card>
+        </div>
+        <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-3 mt-4">
+            <div className="grid auto-rows-max items-start gap-4 lg:col-span-1">
+                <Card>
+                    <CardHeader>
+                        <div className="flex items-center gap-4">
+                            <Avatar className="h-16 w-16">
+                                <AvatarImage src={profileData.photoURL} />
+                                <AvatarFallback>{profileData.displayName?.charAt(0)}</AvatarFallback>
+                            </Avatar>
+                            <div>
+                                <CardTitle className="flex items-center gap-2">{profileData.displayName}
+                                    {profileData.role === 'seller' && (
+                                    <Badge variant="secondary" className="flex items-center gap-1">
+                                        <Star className="h-3 w-3" /> {sellerAverageRating}
+                                    </Badge>
+                                )}
+                                </CardTitle>
+                                    <Badge variant={profileData.role === 'admin' ? 'destructive' : profileData.role === 'seller' ? 'secondary' : 'outline'}>{profileData.role}</Badge>
+                            </div>
+                        </div>
+                    </CardHeader>
+                    <CardContent className="space-y-2 text-sm">
+                        <div className="flex items-center gap-2"><Mail className="h-4 w-4 text-muted-foreground" /> <span>{profileData.email}</span></div>
+                        <div className="flex items-center gap-2"><Phone className="h-4 w-4 text-muted-foreground" /> <span>{profileData.phone || 'N/A'}</span></div>
+                            <div className="flex items-start gap-2 pt-2">
+                            <Home className="h-4 w-4 text-muted-foreground mt-1" /> 
+                            <div>
+                                <p className="font-semibold text-foreground">Address</p>
+                                {profileData.addresses && profileData.addresses.length > 0 ? (
+                                    <address className="not-italic text-muted-foreground">
+                                        {profileData.addresses[0].name}<br/>
+                                        {profileData.addresses[0].village}, {profileData.addresses[0].district}<br/>
+                                        {profileData.addresses[0].city}, {profileData.addresses[0].state} - {profileData.addresses[0].pincode}<br/>
+                                        Phone: {profileData.addresses[0].phone}
+                                    </address>
+                                ) : <p className="text-muted-foreground">No address on file.</p>}
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+                <Card>
                         <CardHeader>
-                            <div className="flex items-center gap-4">
-                                <Avatar className="h-16 w-16">
-                                    <AvatarImage src={profileData.photoURL} />
-                                    <AvatarFallback>{profileData.displayName?.charAt(0)}</AvatarFallback>
-                                </Avatar>
-                                <div>
-                                    <CardTitle className="flex items-center gap-2">{profileData.displayName}
-                                     {profileData.role === 'seller' && (
-                                        <Badge variant="secondary" className="flex items-center gap-1">
-                                            <Star className="h-3 w-3" /> {sellerAverageRating}
-                                        </Badge>
-                                    )}
-                                    </CardTitle>
-                                     <Badge variant={profileData.role === 'admin' ? 'destructive' : profileData.role === 'seller' ? 'secondary' : 'outline'}>{profileData.role}</Badge>
-                                </div>
-                            </div>
-                        </CardHeader>
-                        <CardContent className="space-y-2 text-sm">
-                            <div className="flex items-center gap-2"><Mail className="h-4 w-4 text-muted-foreground" /> <span>{profileData.email}</span></div>
-                            <div className="flex items-center gap-2"><Phone className="h-4 w-4 text-muted-foreground" /> <span>{profileData.phone || 'N/A'}</span></div>
-                             <div className="flex items-start gap-2 pt-2">
-                                <Home className="h-4 w-4 text-muted-foreground mt-1" /> 
-                                <div>
-                                    <p className="font-semibold text-foreground">Address</p>
-                                    {profileData.addresses && profileData.addresses.length > 0 ? (
-                                        <address className="not-italic text-muted-foreground">
-                                            {profileData.addresses[0].name}<br/>
-                                            {profileData.addresses[0].village}, {profileData.addresses[0].district}<br/>
-                                            {profileData.addresses[0].city}, {profileData.addresses[0].state} - {profileData.addresses[0].pincode}<br/>
-                                            Phone: {profileData.addresses[0].phone}
-                                        </address>
-                                    ) : <p className="text-muted-foreground">No address on file.</p>}
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
-                    <Card>
-                         <CardHeader>
-                            <CardTitle>User Stats</CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                             <div className="flex items-center justify-between">
-                                <span className="text-muted-foreground">Total Spent</span>
-                                <span className="font-semibold">₹{totalSpent.toLocaleString()}</span>
-                            </div>
-                             <div className="flex items-center justify-between">
-                                <span className="text-muted-foreground">Total Orders</span>
-                                <span className="font-semibold">{totalOrders}</span>
-                            </div>
-                             <div className="flex items-center justify-between">
-                                <span className="text-muted-foreground">Cancelled Orders</span>
-                                <span className="font-semibold">{cancelledOrders}</span>
-                            </div>
-                             <div className="flex items-center justify-between">
-                                <span className="text-muted-foreground">Returned Orders</span>
-                                <span className="font-semibold">{returnedOrders}</span>
-                            </div>
-                             <div className="flex items-center justify-between">
-                                <span className="text-muted-foreground">Avg. Order Value</span>
-                                <span className="font-semibold">₹{avgOrderValue.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
-                            </div>
-                        </CardContent>
-                    </Card>
-                </div>
-                 <div className="grid auto-rows-max items-start gap-4 lg:col-span-2">
-                    <Tabs defaultValue="orders">
-                        <TabsList>
-                            <TabsTrigger value="orders">Orders</TabsTrigger>
-                            {profileData.role === 'seller' && <TabsTrigger value="products">Products</TabsTrigger>}
-                            {profileData.role === 'seller' && <TabsTrigger value="revenue">Revenue</TabsTrigger>}
-                        </TabsList>
-                        <TabsContent value="orders">
-                            <Card>
-                                <CardHeader>
-                                    <CardTitle>Order History</CardTitle>
-                                    <CardDescription>A list of all orders placed by this user.</CardDescription>
-                                </CardHeader>
-                                <CardContent>
-                                    <Table>
-                                        <TableHeader><TableRow><TableHead>Order ID</TableHead><TableHead>Product</TableHead><TableHead>Status</TableHead><TableHead className="text-right">Total</TableHead></TableRow></TableHeader>
-                                        <TableBody>
-                                            {isLoading ? <TableRow><TableCell colSpan={4}><Skeleton className="h-10 w-full" /></TableCell></TableRow> : userOrders.length > 0 ? userOrders.map(order => (
-                                                <TableRow key={order.orderId}>
-                                                    <TableCell><Link href={`/admin/orders/${encodeURIComponent(order.orderId)}`} className="font-medium hover:underline">{order.orderId}</Link></TableCell>
-                                                    <TableCell><Link href={`/product/${order.products[0].key}`} className="hover:underline">{order.products[0].name}{order.products.length > 1 ? ` + ${order.products.length - 1}` : ''}</Link></TableCell>
-                                                    <TableCell><Badge variant={getStatusFromTimeline(order.timeline) === 'Delivered' ? 'success' : 'outline'}>{getStatusFromTimeline(order.timeline)}</Badge></TableCell>
-                                                    <TableCell className="text-right">₹{order.total.toFixed(2)}</TableCell>
-                                                </TableRow>
-                                            )) : <TableRow><TableCell colSpan={4} className="text-center h-24">No orders found.</TableCell></TableRow>}
-                                        </TableBody>
-                                    </Table>
-                                </CardContent>
-                            </Card>
-                        </TabsContent>
-                        <TabsContent value="products">
-                             <Card>
-                                <CardHeader><CardTitle>Listed Products</CardTitle><CardDescription>Products listed by {profileData.displayName}.</CardDescription></CardHeader>
-                                <CardContent>
-                                    <Table>
-                                        <TableHeader><TableRow><TableHead>Product</TableHead><TableHead>Category</TableHead><TableHead className="text-right">Price</TableHead></TableRow></TableHeader>
-                                        <TableBody>
-                                            {userProducts.length > 0 ? userProducts.map(product => (
-                                                <TableRow key={product.id}><TableCell className="font-medium"><Link href={`/product/${product.key}`} className="hover:underline">{product.name}</Link></TableCell><TableCell>{product.category}</TableCell><TableCell className="text-right">₹{product.price.toLocaleString()}</TableCell></TableRow>
-                                            )) : <TableRow><TableCell colSpan={3} className="text-center h-24">No products listed.</TableCell></TableRow>}
-                                        </TableBody>
-                                    </Table>
-                                </CardContent>
-                            </Card>
-                        </TabsContent>
-                        <TabsContent value="revenue">
-                            {renderRevenueView()}
-                        </TabsContent>
-                    </Tabs>
-                </div>
+                        <CardTitle>User Stats</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                            <div className="flex items-center justify-between">
+                            <span className="text-muted-foreground">Total Spent</span>
+                            <span className="font-semibold">₹{totalSpent.toLocaleString()}</span>
+                        </div>
+                            <div className="flex items-center justify-between">
+                            <span className="text-muted-foreground">Total Orders</span>
+                            <span className="font-semibold">{totalOrders}</span>
+                        </div>
+                            <div className="flex items-center justify-between">
+                            <span className="text-muted-foreground">Cancelled Orders</span>
+                            <span className="font-semibold">{cancelledOrders}</span>
+                        </div>
+                            <div className="flex items-center justify-between">
+                            <span className="text-muted-foreground">Returned Orders</span>
+                            <span className="font-semibold">{returnedOrders}</span>
+                        </div>
+                            <div className="flex items-center justify-between">
+                            <span className="text-muted-foreground">Avg. Order Value</span>
+                            <span className="font-semibold">₹{avgOrderValue.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
+                        </div>
+                    </CardContent>
+                </Card>
             </div>
-        </main>
+                <div className="grid auto-rows-max items-start gap-4 lg:col-span-2">
+                <Tabs defaultValue="orders">
+                    <TabsList>
+                        <TabsTrigger value="orders">Orders</TabsTrigger>
+                        {profileData.role === 'seller' && <TabsTrigger value="products">Products</TabsTrigger>}
+                        {profileData.role === 'seller' && <TabsTrigger value="revenue">Revenue</TabsTrigger>}
+                    </TabsList>
+                    <TabsContent value="orders">
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Order History</CardTitle>
+                                <CardDescription>A list of all orders placed by this user.</CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <Table>
+                                    <TableHeader><TableRow><TableHead>Order ID</TableHead><TableHead>Product</TableHead><TableHead>Status</TableHead><TableHead className="text-right">Total</TableHead></TableRow></TableHeader>
+                                    <TableBody>
+                                        {isLoading ? <TableRow><TableCell colSpan={4}><Skeleton className="h-10 w-full" /></TableCell></TableRow> : userOrders.length > 0 ? userOrders.map(order => (
+                                            <TableRow key={order.orderId}>
+                                                <TableCell><Link href={`/admin/orders/${encodeURIComponent(order.orderId)}`} className="font-medium hover:underline">{order.orderId}</Link></TableCell>
+                                                <TableCell><Link href={`/product/${order.products[0].key}`} className="hover:underline">{order.products[0].name}{order.products.length > 1 ? ` + ${order.products.length - 1}` : ''}</Link></TableCell>
+                                                <TableCell><Badge variant={getStatusFromTimeline(order.timeline) === 'Delivered' ? 'success' : 'outline'}>{getStatusFromTimeline(order.timeline)}</Badge></TableCell>
+                                                <TableCell className="text-right">₹{order.total.toFixed(2)}</TableCell>
+                                            </TableRow>
+                                        )) : <TableRow><TableCell colSpan={4} className="text-center h-24">No orders found.</TableCell></TableRow>}
+                                    </TableBody>
+                                </Table>
+                            </CardContent>
+                        </Card>
+                    </TabsContent>
+                    <TabsContent value="products">
+                            <Card>
+                            <CardHeader><CardTitle>Listed Products</CardTitle><CardDescription>Products listed by {profileData.displayName}.</CardDescription></CardHeader>
+                            <CardContent>
+                                <Table>
+                                    <TableHeader><TableRow><TableHead>Product</TableHead><TableHead>Category</TableHead><TableHead className="text-right">Price</TableHead></TableRow></TableHeader>
+                                    <TableBody>
+                                        {userProducts.length > 0 ? userProducts.map(product => (
+                                            <TableRow key={product.id}><TableCell className="font-medium"><Link href={`/product/${product.key}`} className="hover:underline">{product.name}</Link></TableCell><TableCell>{product.category}</TableCell><TableCell className="text-right">₹{product.price.toLocaleString()}</TableCell></TableRow>
+                                        )) : <TableRow><TableCell colSpan={3} className="text-center h-24">No products listed.</TableCell></TableRow>}
+                                    </TableBody>
+                                </Table>
+                            </CardContent>
+                        </Card>
+                    </TabsContent>
+                    <TabsContent value="revenue">
+                        {renderRevenueView()}
+                    </TabsContent>
+                </Tabs>
+            </div>
+        </div>
     </Dialog>
   );
 };
+
+    
