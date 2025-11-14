@@ -1,5 +1,4 @@
 
-
 "use client"
 
 import {
@@ -34,7 +33,7 @@ import {
   Ban,
   Receipt, // Added Receipt
 } from "lucide-react"
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 
@@ -121,6 +120,8 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
   const [selectedOrderForTimeline, setSelectedOrderForTimeline] = useState<Order | null>(null);
   const { toast } = useToast();
   const [payouts, setPayouts] = useState<any[]>([]);
+  const [revenueDetailView, setRevenueDetailView] = useState<string | null>(null);
+
 
   useEffect(() => {
     const fetchAllData = async () => {
@@ -224,31 +225,112 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
   const returnedOrders = userOrders.filter(o => getStatusFromTimeline(o.timeline).toLowerCase().includes('return')).length;
   const avgOrderValue = totalOrders > 0 ? totalSpent / totalOrders : 0;
   const sellerAverageRating = 4.8;
+  
+  const renderRevenueDetailView = () => {
+        let title = '';
+        let data: any[] = [];
+        let columns: { key: string, label: string, type?: 'currency' | 'date' | 'badge' }[] = [];
+
+        switch(revenueDetailView) {
+            case 'earnings':
+                title = 'Total Earnings Breakdown';
+                data = userOrders.filter(o => getStatusFromTimeline(o.timeline) === 'Delivered');
+                columns = [
+                    { key: 'orderId', label: 'Order ID' },
+                    { key: 'orderDate', label: 'Date', type: 'date' },
+                    { key: 'total', label: 'Amount', type: 'currency' }
+                ];
+                break;
+            case 'withdrawn':
+                 title = 'Completed Payouts';
+                 data = payouts.filter(p => p.status === 'paid');
+                 columns = [
+                    { key: 'payoutDate', label: 'Date Paid', type: 'date' },
+                    { key: 'amount', label: 'Amount', type: 'currency' }
+                 ];
+                 break;
+            case 'pending':
+                title = 'Pending Payouts';
+                data = payouts.filter(p => p.status === 'pending');
+                columns = [
+                    { key: 'requestedAt', label: 'Date Requested', type: 'date' },
+                    { key: 'amount', label: 'Amount', type: 'currency' }
+                ];
+                break;
+            default:
+                return null;
+        }
+        
+        return (
+            <Card>
+                <CardHeader>
+                    <div className="flex items-center gap-2">
+                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setRevenueDetailView(null)}>
+                            <ArrowLeft className="h-4 w-4"/>
+                        </Button>
+                        <CardTitle>{title}</CardTitle>
+                    </div>
+                </CardHeader>
+                <CardContent>
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                {columns.map(col => <TableHead key={col.key}>{col.label}</TableHead>)}
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {data.length > 0 ? data.map((item, index) => (
+                                <TableRow key={index}>
+                                    {columns.map(col => (
+                                        <TableCell key={col.key}>
+                                            {col.type === 'currency' ? `₹${item[col.key].toLocaleString()}` :
+                                             col.type === 'date' && item[col.key] ? format(item[col.key].toDate ? item[col.key].toDate() : new Date(item[col.key]), 'dd MMM, yyyy') :
+                                             item[col.key]?.toString()}
+                                        </TableCell>
+                                    ))}
+                                </TableRow>
+                            )) : <TableRow><TableCell colSpan={columns.length} className="text-center h-24">No data available.</TableCell></TableRow>}
+                        </TableBody>
+                    </Table>
+                </CardContent>
+            </Card>
+        )
+  };
+
 
   const renderRevenueView = () => (
     <div className="space-y-6">
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            <Card><CardHeader><CardTitle>Total Earnings</CardTitle><CardDescription>Gross revenue from sales</CardDescription></CardHeader><CardContent><p className="text-2xl font-bold">₹{sellerRevenueData.totalEarnings.toLocaleString()}</p></CardContent></Card>
-            <Card><CardHeader><CardTitle>Platform Commission</CardTitle><CardDescription>3% fee on earnings</CardDescription></CardHeader><CardContent><p className="text-2xl font-bold">₹{sellerRevenueData.platformCommission.toLocaleString()}</p></CardContent></Card>
-            <Card><CardHeader><CardTitle>Total Withdrawn</CardTitle><CardDescription>All completed payouts</CardDescription></CardHeader><CardContent><p className="text-2xl font-bold">₹{sellerRevenueData.totalWithdrawn.toLocaleString()}</p></CardContent></Card>
-            <Card><CardHeader><CardTitle>Pending Payouts</CardTitle><CardDescription>Awaiting admin approval</CardDescription></CardHeader><CardContent><p className="text-2xl font-bold">₹{sellerRevenueData.pendingPayouts.toLocaleString()}</p></CardContent></Card>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <button className="text-left w-full" onClick={() => setRevenueDetailView('earnings')}>
+                <Card className="hover:bg-muted/50 transition-colors"><CardHeader><CardTitle>Total Earnings</CardTitle><CardDescription>Gross revenue from sales</CardDescription></CardHeader><CardContent><p className="text-2xl font-bold">₹{sellerRevenueData.totalEarnings.toLocaleString()}</p></CardContent></Card>
+            </button>
+             <Card><CardHeader><CardTitle>Platform Commission</CardTitle><CardDescription>3% fee on earnings</CardDescription></CardHeader><CardContent><p className="text-2xl font-bold">₹{sellerRevenueData.platformCommission.toLocaleString()}</p></CardContent></Card>
+            <button className="text-left w-full" onClick={() => setRevenueDetailView('withdrawn')}>
+                <Card className="hover:bg-muted/50 transition-colors"><CardHeader><CardTitle>Total Withdrawn</CardTitle><CardDescription>All completed payouts</CardDescription></CardHeader><CardContent><p className="text-2xl font-bold">₹{sellerRevenueData.totalWithdrawn.toLocaleString()}</p></CardContent></Card>
+            </button>
+             <button className="text-left w-full" onClick={() => setRevenueDetailView('pending')}>
+                <Card className="hover:bg-muted/50 transition-colors"><CardHeader><CardTitle>Pending Payouts</CardTitle><CardDescription>Awaiting admin approval</CardDescription></CardHeader><CardContent><p className="text-2xl font-bold">₹{sellerRevenueData.pendingPayouts.toLocaleString()}</p></CardContent></Card>
+            </button>
         </div>
-         <Card>
-            <CardHeader>
-                <CardTitle>Seller Revenue Timeline</CardTitle>
-                <CardDescription>Monthly gross sales revenue for this seller.</CardDescription>
-            </CardHeader>
-            <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={sellerRevenueData.chartData}>
-                        <XAxis dataKey="name" stroke="#888" fontSize={12} />
-                        <YAxis stroke="#888" fontSize={12} tickFormatter={(value) => `₹${value / 1000}k`} />
-                        <Tooltip formatter={(value: number) => `₹${value.toLocaleString()}`} />
-                        <Bar dataKey="revenue" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
-                    </BarChart>
-                </ResponsiveContainer>
-            </CardContent>
-        </Card>
+
+        {revenueDetailView ? renderRevenueDetailView() : (
+            <Card>
+                <CardHeader>
+                    <CardTitle>Seller Revenue Timeline</CardTitle>
+                    <CardDescription>Monthly gross sales revenue for this seller.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <ResponsiveContainer width="100%" height={300}>
+                        <BarChart data={sellerRevenueData.chartData}>
+                            <XAxis dataKey="name" stroke="#888" fontSize={12} />
+                            <YAxis stroke="#888" fontSize={12} tickFormatter={(value) => `₹${value / 1000}k`} />
+                            <Tooltip formatter={(value: number) => `₹${value.toLocaleString()}`} />
+                            <Bar dataKey="revenue" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                        </BarChart>
+                    </ResponsiveContainer>
+                </CardContent>
+            </Card>
+        )}
     </div>
   );
 
