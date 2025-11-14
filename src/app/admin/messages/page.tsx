@@ -227,38 +227,46 @@ export default function AdminMessagePage() {
 
   return (
     <AdminLayout>
-        <div className="h-full w-full flex bg-background text-foreground overflow-hidden">
-            <div className={cn(
-                "h-full w-full flex-col border-r md:flex md:w-1/3 lg:w-1/4",
-                isMobile && selectedConversation && "hidden"
-            )}>
-                <ConversationList 
-                    conversations={filteredConversations} 
-                    selectedConversation={selectedConversation}
-                    onSelectConversation={handleSelectConversation}
-                />
-            </div>
-            
-            <div className={cn(
-                "h-full w-full flex-col md:flex md:w-2/3 lg:w-3/4",
-                isMobile && !selectedConversation && "hidden"
-            )}>
-                {selectedConversation && userData ? (
-                    <ChatWindow 
-                        key={selectedConversation.conversationId}
-                        conversation={selectedConversation}
-                        userData={userData}
-                        onBack={() => setSelectedConversation(null)}
-                    />
-                ) : (
-                    <div className="hidden md:flex flex-col items-center justify-center h-full text-muted-foreground">
-                        <MessageSquare className="h-16 w-16 mb-4"/>
-                        <h2 className="text-xl font-semibold">Support Center</h2>
-                        <p>Select a conversation or search for a user to start messaging.</p>
+        <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8 h-[calc(100vh-60px)]">
+            <div className="h-full w-full flex bg-background text-foreground overflow-hidden border rounded-lg">
+                <div className={cn(
+                    "h-full w-full flex-col border-r md:flex md:w-1/3 lg:w-1/4",
+                    isMobile && selectedConversation && "hidden"
+                )}>
+                    <div className="p-4 border-b flex items-center gap-2 sticky top-0 bg-background z-10 shrink-0 h-16">
+                        <Button variant="ghost" size="icon" className="md:hidden" onClick={() => router.back()}>
+                            <ArrowLeft className="h-6 w-6" />
+                        </Button>
+                        <h1 className="text-xl font-bold">Chats</h1>
                     </div>
-                )}
+                    <ConversationList 
+                        conversations={filteredConversations} 
+                        selectedConversation={selectedConversation}
+                        onSelectConversation={handleSelectConversation}
+                    />
+                </div>
+                
+                <div className={cn(
+                    "h-full w-full flex-col md:flex md:w-2/3 lg:w-3/4",
+                    isMobile && !selectedConversation && "hidden"
+                )}>
+                    {selectedConversation && userData ? (
+                        <ChatWindow 
+                            key={selectedConversation.conversationId}
+                            conversation={selectedConversation}
+                            userData={userData}
+                            onBack={() => setSelectedConversation(null)}
+                        />
+                    ) : (
+                        <div className="hidden md:flex flex-col items-center justify-center h-full text-muted-foreground">
+                            <MessageSquare className="h-16 w-16 mb-4"/>
+                            <h2 className="text-xl font-semibold">Support Center</h2>
+                            <p>Select a conversation or search for a user to start messaging.</p>
+                        </div>
+                    )}
+                </div>
             </div>
-        </div>
+        </main>
     </AdminLayout>
   );
 }
