@@ -15,12 +15,12 @@ import { Sheet, SheetTrigger, SheetContent, SheetHeader, SheetTitle } from '@/co
 import { useAuthActions } from '@/lib/auth';
 import { useDebounce } from '@/hooks/use-debounce';
 import { ChatWindow, ConversationList, Conversation, Message } from '@/components/messaging/common';
-import { getConversations, getOrCreateConversation } from '@/ai/flows/chat-flow';
+import { getConversations, getOrCreateConversation, getMessages } from '@/ai/flows/chat-flow';
 import { getUserByDisplayName, UserData, getUserData } from '@/lib/follow-data';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-is-mobile';
 import { AdminLayout } from '@/components/admin/admin-layout';
-import { getFirestore, collection, query, where, getDocs, limit } from 'firebase/firestore';
+import { getFirestore, collection, query, where, getDocs, limit, doc, onSnapshot, orderBy } from 'firebase/firestore';
 import { getFirestoreDb } from '@/lib/firebase';
 import { Separator } from '@/components/ui/separator';
 
@@ -54,13 +54,12 @@ export default function AdminMessagePage() {
             const otherUser = await getUserData(preselectUserId);
             if (!otherUser) {
                 console.error("Could not find user data for pre-selected user.");
-                 // Create a temporary user data object if one doesn't exist.
-                const tempOtherUser = {
+                
+                const conversationId = await getOrCreateConversation(user.uid, preselectUserId, userData, {
                     uid: preselectUserId,
                     displayName: preselectUserName,
-                    photoURL: '', // Provide a default or leave empty
-                    email: preselectUserId, // Use email as a placeholder
-                    // Add other required UserData fields with default values
+                    email: preselectUserId, // Using email/id as placeholder
+                    photoURL: '',
                     role: 'customer',
                     followers: 0,
                     following: 0,
@@ -69,18 +68,18 @@ export default function AdminMessagePage() {
                     phone: '',
                     addresses: [],
                     color: '#ffffff'
-                } as UserData;
-                const conversationId = await getOrCreateConversation(user.uid, preselectUserId, userData, tempOtherUser);
+                });
+
                 const newConvo: Conversation = {
-                    conversationId: conversationId,
+                    conversationId,
                     userId: preselectUserId,
                     userName: preselectUserName,
-                    avatarUrl: tempOtherUser.photoURL || `https://placehold.co/40x40.png?text=${(preselectUserName || 'U').charAt(0)}`,
+                    avatarUrl: `https://placehold.co/40x40.png?text=${preselectUserName.charAt(0)}`,
                     lastMessage: 'New inquiry.',
                     lastMessageTimestamp: 'now',
                     unreadCount: 1,
                 };
-                allConvos = [newConvo, ...allConvos];
+                allConvos.unshift(newConvo); // Add to the top
                 convoToSelect = newConvo;
 
             } else {
@@ -99,7 +98,7 @@ export default function AdminMessagePage() {
                         lastMessageTimestamp: 'now',
                         unreadCount: 1,
                     };
-                    allConvos = [newConvo, ...allConvos];
+                    allConvos.unshift(newConvo); // Add to the top
                     convoToSelect = newConvo;
                 }
             }
@@ -228,16 +227,28 @@ export default function AdminMessagePage() {
   return (
     <AdminLayout>
         <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8 h-[calc(100vh-60px)]">
+             {preselectUserId && (
+                <Button variant="outline" size="sm" onClick={() => router.back()} className="flex items-center gap-2 w-fit mb-2 -mt-2">
+                    <ArrowLeft className="h-4 w-4" />
+                    Back
+                </Button>
+            )}
             <div className="h-full w-full flex bg-background text-foreground overflow-hidden border rounded-lg">
                 <div className={cn(
                     "h-full w-full flex-col border-r md:flex md:w-1/3 lg:w-1/4",
                     isMobile && selectedConversation && "hidden"
                 )}>
-                    <div className="p-4 border-b flex items-center gap-2 sticky top-0 bg-background z-10 shrink-0 h-16">
-                        <Button variant="ghost" size="icon" className="md:hidden" onClick={() => router.back()}>
-                            <ArrowLeft className="h-6 w-6" />
-                        </Button>
-                        <h1 className="text-xl font-bold">Chats</h1>
+                    <div className="p-4 border-b">
+                        <div className="relative">
+                            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                            <Input
+                                type="search"
+                                placeholder="Search conversations..."
+                                className="pl-8 w-full"
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                            />
+                        </div>
                     </div>
                     <ConversationList 
                         conversations={filteredConversations} 
