@@ -70,6 +70,7 @@ interface Product {
     seller?: string;
     views?: number;
     sold?: number;
+    keywords?: string;
 }
 
 const initialProducts: Product[] = [
@@ -85,6 +86,7 @@ const initialProducts: Product[] = [
         seller: "FashionFinds",
         views: 12456,
         sold: 125,
+        keywords: "camera, vintage, retro, film, photography"
     },
     {
         id: 'prod_2',
@@ -98,6 +100,7 @@ const initialProducts: Product[] = [
         seller: "GadgetGuru",
         views: 25890,
         sold: 830,
+        keywords: "audio, headphones, wireless, bluetooth, tech"
     },
     {
         id: 'prod_3',
@@ -111,6 +114,7 @@ const initialProducts: Product[] = [
         seller: "FashionFinds",
         views: 5600,
         sold: 98,
+        keywords: "bag, leather, backpack, handmade, fashion"
     },
      {
         id: 'prod_4',
@@ -124,6 +128,7 @@ const initialProducts: Product[] = [
         seller: "GadgetGuru",
         views: 18340,
         sold: 450,
+        keywords: "watch, smart, fitness, tech, wearable"
     },
 ];
 
@@ -211,6 +216,10 @@ const ProductTable = ({ products, onViewDetails }: { products: Product[], onView
 );
 
 const ProductDetailView = ({ product, onBack }: { product: Product, onBack: () => void }) => {
+    const grossRevenue = (product.sold || 0) * product.price;
+    const platformFee = grossRevenue * 0.03; // 3% platform fee
+    const netRevenue = grossRevenue - platformFee;
+
     return (
         <Card>
             <CardHeader>
@@ -235,6 +244,16 @@ const ProductDetailView = ({ product, onBack }: { product: Product, onBack: () =
                                 <ImageIcon className="h-16 w-16 text-muted-foreground" />
                             </div>
                         )}
+                        {product.keywords && (
+                            <div className="mt-4">
+                                <h3 className="font-semibold mb-2">Keywords</h3>
+                                <div className="flex flex-wrap gap-2">
+                                    {product.keywords.split(',').map((kw, i) => (
+                                        <Badge key={i} variant="secondary">{kw.trim()}</Badge>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
                     </div>
                     <div className="space-y-6">
                         <div>
@@ -252,18 +271,18 @@ const ProductDetailView = ({ product, onBack }: { product: Product, onBack: () =
                              <CardHeader className="pb-2">
                                 <CardTitle className="text-base">Analytics</CardTitle>
                             </CardHeader>
-                            <CardContent className="grid grid-cols-3 gap-2 text-center text-sm">
-                                <div>
-                                    <p className="text-2xl font-bold">{product.views?.toLocaleString() || 0}</p>
-                                    <p className="text-xs text-muted-foreground">Views</p>
+                            <CardContent className="space-y-3">
+                                <div className="grid grid-cols-3 gap-2 text-center text-sm">
+                                    <div><p className="text-2xl font-bold">{product.views?.toLocaleString() || 0}</p><p className="text-xs text-muted-foreground">Views</p></div>
+                                    <div><p className="text-2xl font-bold">{product.sold?.toLocaleString() || 0}</p><p className="text-xs text-muted-foreground">Sales</p></div>
                                 </div>
-                                <div>
-                                    <p className="text-2xl font-bold">{product.sold?.toLocaleString() || 0}</p>
-                                    <p className="text-xs text-muted-foreground">Sales</p>
-                                </div>
-                                <div>
-                                    <p className="text-2xl font-bold">₹{((product.sold || 0) * product.price).toLocaleString()}</p>
-                                    <p className="text-xs text-muted-foreground">Revenue</p>
+                                <div className="border-t pt-3 mt-3">
+                                    <h4 className="font-semibold mb-2 text-sm">Revenue Breakdown</h4>
+                                    <div className="space-y-1 text-sm">
+                                        <div className="flex justify-between"><span className="text-muted-foreground">Gross Revenue:</span><span>₹{grossRevenue.toLocaleString('en-IN', {minimumFractionDigits: 2})}</span></div>
+                                        <div className="flex justify-between"><span className="text-muted-foreground">Platform Fee (3%):</span><span className="text-destructive">- ₹{platformFee.toLocaleString('en-IN', {minimumFractionDigits: 2})}</span></div>
+                                        <div className="flex justify-between font-bold"><span className="text-muted-foreground">Net Revenue:</span><span>₹{netRevenue.toLocaleString('en-IN', {minimumFractionDigits: 2})}</span></div>
+                                    </div>
                                 </div>
                             </CardContent>
                         </Card>
