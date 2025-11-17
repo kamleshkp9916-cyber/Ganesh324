@@ -365,14 +365,14 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
     <main className="flex-1 flex flex-col gap-4 p-4 md:gap-8 md:p-8">
         <Dialog onOpenChange={(open) => !open && setSelectedOrderForTimeline(null)}>
             <div className="flex flex-col gap-6">
-                <div className="flex items-start justify-between gap-4">
+                 <div className="flex items-start justify-between gap-4">
                      <Button variant="outline" size="sm" onClick={() => router.back()} className="flex items-center gap-1">
                         <ArrowLeft className="h-4 w-4" />
                         Back to Users
                     </Button>
                 </div>
-                 <div className="grid gap-6 md:grid-cols-3 lg:grid-cols-4">
-                    <div className="grid auto-rows-max items-start gap-6 lg:col-span-1">
+                 <div className="grid grid-cols-1 xl:grid-cols-[280px_1fr] gap-6">
+                    <div className="grid auto-rows-max items-start gap-6">
                         <Card>
                              <CardHeader>
                                 <div className="flex items-center justify-between">
@@ -382,7 +382,7 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
                                             <AvatarFallback>{profileData.displayName?.charAt(0)}</AvatarFallback>
                                         </Avatar>
                                         <div>
-                                            <CardTitle className="text-lg">{profileData.displayName}</CardTitle>
+                                            <CardTitle className="text-base">{profileData.displayName}</CardTitle>
                                             <p className="text-xs text-muted-foreground">{profileData.publicId || profileData.uid}</p>
                                         </div>
                                     </div>
@@ -510,7 +510,7 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
                             </CardContent>
                         </Card>
                     </div>
-                        <div className="grid auto-rows-max items-start gap-4 lg:col-span-3">
+                    <div className="grid auto-rows-max items-start gap-4 lg:col-span-1 xl:col-span-3">
                         <Tabs defaultValue="orders">
                             <TabsList>
                                 <TabsTrigger value="orders">Orders</TabsTrigger>
