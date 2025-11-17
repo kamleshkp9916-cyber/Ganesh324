@@ -42,20 +42,19 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
 import { Badge } from "../ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { Rocket, Sparkles, Flame } from "lucide-react";
+import {
+    PROMOTIONAL_SLIDES_KEY,
+    COUPONS_KEY,
+    CATEGORY_BANNERS_KEY,
+    CATEGORY_HUB_BANNER_KEY,
+    PAYOUT_REQUESTS_KEY,
+    type Slide,
+    type Coupon,
+    type Banner,
+    type CategoryBanners,
+    type HubBanner,
+} from './keys';
 
-export const PROMOTIONAL_SLIDES_KEY = 'streamcart_promotional_slides';
-export const COUPONS_KEY = 'streamcart_coupons';
-export const CATEGORY_BANNERS_KEY = 'streamcart_category_banners';
-export const CATEGORY_HUB_BANNER_KEY = 'streamcart_category_hub_banner';
-export const PAYOUT_REQUESTS_KEY = 'streamcart_payout_requests';
-
-export interface Slide {
-  id: number;
-  imageUrl: string;
-  title: string;
-  description: string;
-  expiresAt?: Date;
-}
 
 const slideSchema = z.object({
   id: z.number().optional(),
@@ -115,26 +114,6 @@ const couponSchema = z.object({
   applicableCategories: z.array(z.string()).default(['All']),
 });
 
-export type Coupon = z.infer<typeof couponSchema> & { status: 'active' | 'archived' };
-
-export interface Banner {
-  title: string;
-  description: string;
-  imageUrl: string;
-}
-
-export interface CategoryBanners {
-  [categoryName: string]: {
-    banner1: Banner;
-    banner2: Banner;
-  };
-}
-
-export interface HubBanner {
-  title: string;
-  description: string;
-  imageUrl: string;
-}
 
 const initialCoupons: Coupon[] = [
     { id: 1, code: 'STREAM10', description: '10% off on all orders', discountType: 'percentage', discountValue: 10, expiresAt: new Date('2025-11-13'), applicableCategories: ['All'], status: 'active' },

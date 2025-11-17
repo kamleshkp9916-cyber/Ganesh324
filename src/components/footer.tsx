@@ -7,7 +7,9 @@ import { Logo } from './logo';
 import { useAuth } from '@/hooks/use-auth';
 import React, { useState, useEffect } from 'react';
 import { useLocalStorage } from '@/hooks/use-local-storage';
-import { FOOTER_CONTENT_KEY, FooterContent } from '@/app/admin/settings/page';
+import { FOOTER_CONTENT_KEY } from '@/components/settings/keys';
+import type { FooterContent } from '@/components/settings/keys';
+
 
 const defaultFooterContent: FooterContent = {
   description: "Your one-stop shop for live shopping. Discover, engage, and buy in real-time.",
