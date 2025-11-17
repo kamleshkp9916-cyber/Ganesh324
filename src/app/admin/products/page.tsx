@@ -219,7 +219,7 @@ const ProductDetailView = ({ product, onBack }: { product: Product, onBack: () =
                 </div>
             </CardHeader>
             <CardContent>
-                <div className="grid md:grid-cols-2 gap-6">
+                <div className="grid md:grid-cols-2 gap-8">
                     <div>
                         {product.images && product.images.length > 0 ? (
                              <div className="w-full aspect-square bg-muted rounded-lg overflow-hidden relative">
@@ -236,18 +236,37 @@ const ProductDetailView = ({ product, onBack }: { product: Product, onBack: () =
                             </div>
                         )}
                     </div>
-                    <div className="space-y-4">
+                    <div className="space-y-6">
                         <div>
                             <Badge variant="secondary">{product.key}</Badge>
                             <h1 className="text-3xl font-bold mt-2">{product.name}</h1>
-                            <p className="text-muted-foreground">{product.description}</p>
+                            <p className="text-muted-foreground mt-2">{product.description}</p>
                         </div>
-                         <div className="grid grid-cols-2 gap-4 text-sm">
-                            <div><span className="font-semibold">Price:</span> ₹{product.price.toLocaleString()}</div>
-                            <div><span className="font-semibold">Stock:</span> {product.stock}</div>
-                            <div><span className="font-semibold">Seller:</span> {product.seller || 'N/A'}</div>
-                            <div><span className="font-semibold">Status:</span> <Badge variant={product.status === 'active' ? 'success' : 'outline'}>{product.status}</Badge></div>
+                         <div className="grid grid-cols-2 gap-4 text-sm border-t pt-4">
+                            <div><span className="font-semibold text-muted-foreground">Price:</span><br/> ₹{product.price.toLocaleString()}</div>
+                            <div><span className="font-semibold text-muted-foreground">Stock:</span><br/> {product.stock}</div>
+                            <div><span className="font-semibold text-muted-foreground">Seller:</span><br/> {product.seller || 'N/A'}</div>
+                            <div><span className="font-semibold text-muted-foreground">Status:</span><br/> <Badge variant={product.status === 'active' ? 'success' : 'outline'}>{product.status}</Badge></div>
                         </div>
+                         <Card className="bg-muted/40">
+                             <CardHeader className="pb-2">
+                                <CardTitle className="text-base">Analytics</CardTitle>
+                            </CardHeader>
+                            <CardContent className="grid grid-cols-3 gap-2 text-center text-sm">
+                                <div>
+                                    <p className="text-2xl font-bold">{product.views?.toLocaleString() || 0}</p>
+                                    <p className="text-xs text-muted-foreground">Views</p>
+                                </div>
+                                <div>
+                                    <p className="text-2xl font-bold">{product.sold?.toLocaleString() || 0}</p>
+                                    <p className="text-xs text-muted-foreground">Sales</p>
+                                </div>
+                                <div>
+                                    <p className="text-2xl font-bold">₹{((product.sold || 0) * product.price).toLocaleString()}</p>
+                                    <p className="text-xs text-muted-foreground">Revenue</p>
+                                </div>
+                            </CardContent>
+                        </Card>
                     </div>
                 </div>
             </CardContent>
