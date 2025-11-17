@@ -18,7 +18,6 @@ import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import Image from "next/image";
 import { updateUserData, UserData } from "@/lib/follow-data";
 import { getFirestore, collection, query, where, getDocs, updateDoc, doc } from "firebase/firestore";
-import { getFirestoreDb } from "@/lib/firebase-db";
 import { AdminLayout } from "@/components/admin/admin-layout";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
@@ -292,7 +291,7 @@ function AdminPanel() {
                   <div className="text-xs text-muted-foreground">Full KYC data from 0DIDit is not stored. Only the verification status is recorded.</div>
                 </TabsContent>
                 <TabsContent value="policies" className="pt-4 text-sm space-y-3">
-                    <div>Auctions: {application.auctionEnabled ? 'Enabled' : 'Disabled'}</div>
+                    <div>Auctions: {(application as any).auctionEnabled ? 'Enabled' : 'Disabled'}</div>
                     <div>Terms Accepted: {application.termsAccepted ? 'Yes' : 'No'}</div>
                 </TabsContent>
               </Tabs>
@@ -359,3 +358,5 @@ export default function AdminKycPage() {
     </AdminLayout>
   );
 }
+
+    

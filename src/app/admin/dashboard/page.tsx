@@ -86,7 +86,6 @@ import { useAuthActions } from "@/lib/auth";
 import { formatDistanceToNow, isSameDay, isSameMonth, isSameYear, parseISO } from "date-fns";
 import { useDebounce } from "@/hooks/use-debounce";
 import { getFirestore, collection, query, getDocs, orderBy, where } from "firebase/firestore";
-import { getFirestoreDb } from "@/lib/firebase-db";
 import { AdminLayout } from "@/components/admin/admin-layout";
 import { cn } from "@/lib/utils"
 import { Transaction, getTransactions } from "@/lib/transaction-history";
@@ -181,7 +180,7 @@ export default function AdminDashboard() {
   useEffect(() => {
     const fetchOrders = async () => {
         if (!loading && userData?.role === 'admin') {
-            const db = getFirestoreDb();
+            const db = getFirestore();
             const ordersRef = collection(db, "orders");
             const q = query(ordersRef, orderBy("orderDate", "desc"));
             const querySnapshot = await getDocs(q);
@@ -372,3 +371,5 @@ export default function AdminDashboard() {
     </AdminLayout>
   )
 }
+
+    

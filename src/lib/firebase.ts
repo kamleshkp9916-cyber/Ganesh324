@@ -1,3 +1,5 @@
-// This file is deprecated and can be safely deleted.
-// The correct Firebase configuration is located in /src/firebase/index.ts
-export {};
+
+// This file is deprecated. Imports should be moved to use src/firebase/index.ts
+// or src/lib/firebase-db.ts
+
+    

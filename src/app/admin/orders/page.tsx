@@ -566,9 +566,3 @@ export default function AdminOrdersPage() {
     </AdminLayout>
   );
 }
-
-    
-
-    
-
-    

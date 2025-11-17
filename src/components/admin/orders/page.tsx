@@ -1,3 +1,4 @@
+
 "use client"
 
 import {
@@ -22,7 +23,7 @@ import { useRouter } from "next/navigation"
 import Link from "next/link"
 import React, { useState, useEffect, useMemo } from "react"
 import { getFirestore, collection, query, getDocs, orderBy } from "firebase/firestore"
-import { getFirestoreDb } from "@/lib/firebase"
+import { getFirestoreDb } from "@/lib/firebase-db"
 
 import { Badge, BadgeProps } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -215,7 +216,7 @@ export default function AdminOrdersPage() {
     );
   }, [orders, debouncedSearchTerm]);
 
-  if (loading || isLoading || !userData || userData.role !== 'admin') {
+  if (loading || isLoading || !userData || userData?.role !== 'admin') {
     return <div className="flex items-center justify-center min-h-screen"><LoadingSpinner /></div>
   }
   
@@ -255,7 +256,7 @@ export default function AdminOrdersPage() {
             <Sheet>
                 <SheetTrigger asChild><Button variant="outline" size="icon" className="shrink-0 md:hidden"><Menu className="h-5 w-5" /><span className="sr-only">Menu</span></Button></SheetTrigger>
                 <SheetContent side="left">
-                     <SheetHeader>
+                    <SheetHeader>
                         <SheetTitle className="sr-only">Admin Navigation Menu</SheetTitle>
                     </SheetHeader>
                     <nav className="grid gap-6 text-lg font-medium">
@@ -420,5 +421,3 @@ export default function AdminOrdersPage() {
     </div>
   );
 }
-
-    

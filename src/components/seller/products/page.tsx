@@ -7,7 +7,6 @@ import {
   MoreHorizontal,
   ListFilter,
   ImageIcon,
-  ArrowLeft,
   MessageSquare,
   HelpCircle,
 } from "lucide-react"
@@ -52,63 +51,19 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-  DialogFooter,
-  DialogClose,
 } from "@/components/ui/dialog"
 import Image from "next/image"
 import { useState, useEffect, useMemo } from "react"
 import { ProductForm, Product } from "@/components/seller/product-form"
-import { useAuth } from "@/hooks/use-auth.tsx"
+import { useAuth } from "@/hooks/use-auth"
 import { LoadingSpinner } from "@/components/ui/loading-spinner"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { useToast } from "@/hooks/use-toast"
-import { cn } from "@/lib/utils"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Textarea } from "@/components/ui/textarea"
-
-const initialProducts: Product[] = [
-    {
-        id: 'prod_1',
-        key: 'prod_1',
-        name: "Vintage Camera",
-        description: "A classic 35mm film camera from the 70s. Fully functional.",
-        price: 12500,
-        stock: 15,
-        images: [{ file: undefined, preview: "https://placehold.co/80x80.png" }],
-        status: "active"
-    },
-    {
-        id: 'prod_2',
-        key: 'prod_2',
-        name: "Wireless Headphones",
-        description: "Noise-cancelling over-ear headphones with 20-hour battery life.",
-        price: 4999,
-        stock: 50,
-        images: [{ file: undefined, preview: "https://placehold.co/80x80.png" }],
-        status: "active"
-    },
-    {
-        id: 'prod_3',
-        key: 'prod_3',
-        name: "Leather Backpack",
-        description: "Handmade genuine leather backpack, perfect for daily use.",
-        price: 6200,
-        stock: 0,
-        images: [{ file: undefined, preview: "https://placehold.co/80x80.png" }],
-        status: "archived"
-    },
-     {
-        id: 'prod_4',
-        key: 'prod_4',
-        name: "Smart Watch",
-        description: "Fitness tracker and smartwatch with a vibrant AMOLED display.",
-        price: 8750,
-        stock: 30,
-        images: [],
-        status: "draft"
-    },
-];
+import { SellerHeader } from "@/components/seller/seller-header"
+import { collection, onSnapshot, query, where, deleteDoc, doc, getFirestore } from "firebase/firestore"
 
 const mockQandA = [
     { id: 1, question: "Does this camera come with a roll of film?", questioner: "Alice", answer: "Yes, it comes with one 24-exposure roll of color film to get you started!", answerer: "GadgetGuru" },
@@ -194,12 +149,12 @@ const ProductTable = ({ products, onEdit, onDelete, onManageQna }: { products: P
               <TableRow key={product.id}>
                 <TableCell className="hidden sm:table-cell">
                   <Link href={`/product/${product.key}`}>
-                    {product.images && product.images.length > 0 ? (
+                    {product.media && product.media.length > 0 ? (
                       <Image
                         alt={product.name}
                         className="aspect-square rounded-md object-cover"
                         height="64"
-                        src={product.images[0].preview}
+                        src={product.media[0].url}
                         width="64"
                       />
                     ) : (
@@ -272,28 +227,42 @@ export default function SellerProductsPage() {
     const [editingProduct, setEditingProduct] = useState<Product | undefined>(undefined);
     const { user, loading } = useAuth();
     const router = useRouter();
-    
+    const [stockFilter, setStockFilter] = useState<('inStock' | 'outOfStock')[]>(['inStock', 'outOfStock']);
+    const { toast } = useToast();
+
     useEffect(() => {
         setIsMounted(true);
-        if (typeof window !== 'undefined') {
-            const storedProducts = localStorage.getItem('sellerProducts');
-            if (storedProducts) {
-                setProducts(JSON.parse(storedProducts));
-            } else {
-                setProducts(initialProducts);
-            }
+        if (user) {
+            const db = getFirestore();
+            const q = query(collection(db, "users", user.uid, "products"));
+            const unsubscribe = onSnapshot(q, (querySnapshot) => {
+                const fetchedProducts: Product[] = [];
+                querySnapshot.forEach((doc) => {
+                    fetchedProducts.push({ id: doc.id, ...doc.data() } as Product);
+                });
+                setProducts(fetchedProducts);
+            });
+            return () => unsubscribe();
         }
-    }, []);
-    
-    useEffect(() => {
-        if (isMounted) {
-            localStorage.setItem('sellerProducts', JSON.stringify(products));
-        }
-    }, [products, isMounted]);
+    }, [user]);
 
-    const activeProducts = useMemo(() => products.filter(p => p.status === 'active'), [products]);
-    const draftProducts = useMemo(() => products.filter(p => p.status === 'draft'), [products]);
-    const archivedProducts = useMemo(() => products.filter(p => p.status === 'archived'), [products]);
+    const filterProductsByStock = (products: Product[]) => {
+        if (stockFilter.length === 2 || stockFilter.length === 0) {
+            return products;
+        }
+        if (stockFilter.includes('inStock')) {
+            return products.filter(p => p.stock > 0);
+        }
+        if (stockFilter.includes('outOfStock')) {
+            return products.filter(p => p.stock === 0);
+        }
+        return [];
+    };
+
+    const activeProducts = useMemo(() => filterProductsByStock(products.filter(p => p.status === 'active')), [products, stockFilter]);
+    const draftProducts = useMemo(() => filterProductsByStock(products.filter(p => p.status === 'draft')), [products, stockFilter]);
+    const archivedProducts = useMemo(() => filterProductsByStock(products.filter(p => p.status === 'archived')), [products, stockFilter]);
+    const allFilteredProducts = useMemo(() => filterProductsByStock(products), [products, stockFilter]);
 
     if (!isMounted || loading) {
         return <div className="flex h-screen items-center justify-center"><LoadingSpinner /></div>
@@ -305,11 +274,6 @@ export default function SellerProductsPage() {
     }
 
     const handleSaveProduct = (product: Product) => {
-        if (editingProduct) {
-            setProducts(products.map(p => p.id === product.id ? product : p));
-        } else {
-            setProducts(prev => [...prev, { ...product, id: `prod_${Date.now()}` }]);
-        }
         setIsFormOpen(false);
         setEditingProduct(undefined);
     };
@@ -319,8 +283,23 @@ export default function SellerProductsPage() {
         setIsFormOpen(true);
     };
 
-    const handleDeleteProduct = (productId: string) => {
-        setProducts(products.filter(p => p.id !== productId));
+    const handleDeleteProduct = async (productId: string) => {
+        if (!user) return;
+        const db = getFirestore();
+        try {
+            await deleteDoc(doc(db, "users", user.uid, "products", productId));
+            toast({
+                title: "Product Deleted",
+                description: "The product has been successfully removed.",
+            });
+        } catch (error) {
+            console.error("Error deleting product:", error);
+            toast({
+                variant: 'destructive',
+                title: "Error",
+                description: "Could not delete the product.",
+            });
+        }
     };
 
     const handleOpenChange = (open: boolean) => {
@@ -334,42 +313,96 @@ export default function SellerProductsPage() {
         setSelectedProduct(product);
         setIsQnaOpen(true);
     };
+
+    const handleStockFilterChange = (filter: 'inStock' | 'outOfStock') => {
+        setStockFilter(prev => {
+            const newFilters = prev.includes(filter) ? prev.filter(f => f !== filter) : [...prev, filter];
+            return newFilters.length === 0 ? ['inStock', 'outOfStock'] : newFilters;
+        });
+    };
+    
+    const handleExport = () => {
+        if (allFilteredProducts.length === 0) {
+            toast({ title: "No data to export", variant: "destructive" });
+            return;
+        }
+
+        const headers = ["ID", "Name", "Status", "Price", "Stock", "Category", "Sub-category", "Brand"];
+        const rows = allFilteredProducts.map(p => [
+            p.id,
+            `"${p.name.replace(/"/g, '""')}"`,
+            p.status,
+            p.price,
+            p.stock,
+            p.category || "",
+            p.subcategory || "",
+            p.brand || ""
+        ]);
+
+        const csvContent = "data:text/csv;charset=utf-8," 
+            + [headers.join(","), ...rows.map(e => e.join(","))].join("\n");
+
+        const link = document.createElement("a");
+        link.setAttribute("href", encodeURI(csvContent));
+        link.setAttribute("download", `products_export_${new Date().toISOString()}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        toast({ title: "Export Started", description: "Your products CSV is downloading." });
+    };
   
   return (
     <>
       <Dialog open={isFormOpen} onOpenChange={handleOpenChange}>
         <div className="flex min-h-screen w-full flex-col bg-muted/40">
-           <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6 py-4">
-               <Button size="icon" variant="outline" className="sm:hidden h-8 w-8" onClick={() => router.back()}>
-                  <ArrowLeft className="h-4 w-4" />
-                  <span className="sr-only">Back</span>
-               </Button>
-              <div className="hidden sm:flex items-center gap-4">
-                   <Link href="/seller/dashboard" className="text-muted-foreground hover:text-foreground">Dashboard</Link>
-                   <Link href="/seller/orders" className="text-muted-foreground hover:text-foreground">Orders</Link>
-                   <Link href="/seller/products" className="font-semibold text-foreground">Products</Link>
-                   <Link href="/seller/messages" className="text-muted-foreground hover:text-foreground">Messages</Link>
-                   <Link href="#" className="text-muted-foreground hover:text-foreground">Analytics</Link>
-              </div>
-
-              <div className="ml-auto flex items-center gap-2">
-                  <DialogTrigger asChild>
-                      <Button size="sm" className="h-8 gap-1">
-                          <PlusCircle className="h-3.5 w-3.5" />
-                          <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                          Add Product
-                          </span>
-                      </Button>
-                  </DialogTrigger>
-              </div>
-           </header>
+           <SellerHeader />
           <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8">
               <Card>
                   <CardHeader>
-                      <CardTitle>Products</CardTitle>
-                      <CardDescription>
-                      Manage your products and view their sales performance.
-                      </CardDescription>
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <CardTitle>Products</CardTitle>
+                            <CardDescription>
+                            Manage your products and view their sales performance.
+                            </CardDescription>
+                        </div>
+                         <div className="ml-auto flex items-center gap-2">
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                <Button variant="outline" size="sm" className="h-8 gap-1">
+                                    <ListFilter className="h-3.5 w-3.5" />
+                                    <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+                                    Filter
+                                    </span>
+                                </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                    <DropdownMenuLabel>Filter by Stock</DropdownMenuLabel>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuCheckboxItem checked={stockFilter.includes('inStock')} onCheckedChange={() => handleStockFilterChange('inStock')}>
+                                        In Stock
+                                    </DropdownMenuCheckboxItem>
+                                    <DropdownMenuCheckboxItem checked={stockFilter.includes('outOfStock')} onCheckedChange={() => handleStockFilterChange('outOfStock')}>
+                                        Out of Stock
+                                    </DropdownMenuCheckboxItem>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                            <Button size="sm" variant="outline" className="h-8 gap-1" onClick={handleExport}>
+                                <File className="h-3.5 w-3.5" />
+                                <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+                                Export
+                                </span>
+                            </Button>
+                             <DialogTrigger asChild>
+                              <Button size="sm" className="h-8 gap-1">
+                                  <PlusCircle className="h-3.5 w-3.5" />
+                                  <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+                                  Add Product
+                                  </span>
+                              </Button>
+                            </DialogTrigger>
+                        </div>
+                    </div>
                   </CardHeader>
                   <CardContent>
                       <Tabs defaultValue="all">
@@ -382,38 +415,10 @@ export default function SellerProductsPage() {
                               Archived
                           </TabsTrigger>
                           </TabsList>
-                          <div className="ml-auto flex items-center gap-2">
-                          <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                              <Button variant="outline" size="sm" className="h-8 gap-1">
-                                  <ListFilter className="h-3.5 w-3.5" />
-                                  <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                                  Filter
-                                  </span>
-                              </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                              <DropdownMenuLabel>Filter by</DropdownMenuLabel>
-                              <DropdownMenuSeparator />
-                              <DropdownMenuCheckboxItem checked>
-                                  Available
-                              </DropdownMenuCheckboxItem>
-                              <DropdownMenuCheckboxItem>
-                                  Out of Stock
-                              </DropdownMenuCheckboxItem>
-                              </DropdownMenuContent>
-                          </DropdownMenu>
-                          <Button size="sm" variant="outline" className="h-8 gap-1">
-                              <File className="h-3.5 w-3.5" />
-                              <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                              Export
-                              </span>
-                          </Button>
-                          </div>
                       </div>
                       <div className="mt-4">
                           <TabsContent value="all">
-                               <ProductTable products={products} onEdit={handleEditProduct} onDelete={handleDeleteProduct} onManageQna={handleManageQna} />
+                               <ProductTable products={allFilteredProducts} onEdit={handleEditProduct} onDelete={handleDeleteProduct} onManageQna={handleManageQna} />
                           </TabsContent>
                           <TabsContent value="active">
                               <ProductTable products={activeProducts} onEdit={handleEditProduct} onDelete={handleDeleteProduct} onManageQna={handleManageQna} />
@@ -429,16 +434,16 @@ export default function SellerProductsPage() {
                   </CardContent>
               </Card>
           </main>
-          <DialogContent className="sm:max-w-2xl h-[90vh] flex flex-col">
-              <DialogHeader>
-                  <DialogTitle>{editingProduct ? "Edit Product" : "Add New Product"}</DialogTitle>
-                  <DialogDescription>
-                      {editingProduct ? "Update the details of your product." : "Fill in the details to add a new product to your store."}
-                  </DialogDescription>
-              </DialogHeader>
-              <ProductForm onSave={handleSaveProduct} productToEdit={editingProduct} />
-          </DialogContent>
         </div>
+        <DialogContent className="sm:max-w-3xl h-[90vh] flex flex-col">
+          <DialogHeader>
+              <DialogTitle>{editingProduct ? "Edit Product" : "Add New Product"}</DialogTitle>
+              <DialogDescription>
+                  {editingProduct ? "Update the details of your product." : "Fill in the details to add a new product to your store."}
+              </DialogDescription>
+          </DialogHeader>
+          <ProductForm onSave={handleSaveProduct} productToEdit={editingProduct} />
+        </DialogContent>
       </Dialog>
       <Dialog open={isQnaOpen} onOpenChange={setIsQnaOpen}>
         {selectedProduct && <ManageQnaDialog product={selectedProduct} />}
@@ -446,3 +451,5 @@ export default function SellerProductsPage() {
     </>
   )
 }
+
+    
