@@ -22,7 +22,10 @@ export function useAuthActions() {
                 sessionStorage.setItem('sellerSignedOut', 'true');
             }
 
-            router.push('/');
+            // Force a full page reload to the login page
+            window.location.href = '/';
+
+            // Toast will likely not be seen, but it's good practice to leave it.
             toast({
                 title: "Signed Out",
                 description: "You have been successfully signed out.",
