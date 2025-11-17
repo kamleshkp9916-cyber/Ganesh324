@@ -1,3 +1,4 @@
+
 "use client"
 
 import React, { useState, useMemo, useEffect, useRef } from 'react';
@@ -12,7 +13,7 @@ import { Input } from "@/components/ui/input";
 import { useDebounce } from "@/hooks/use-debounce";
 import { getTransactions, Transaction } from '@/lib/transaction-history';
 import { useToast } from '@/hooks/use-toast';
-import { format, parseISO, isWithinInterval, addDays } from 'date-fns';
+import { format, parseISO, isWithinInterval, addDays, type DateRange } from 'date-fns';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
@@ -27,13 +28,14 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from '@/components/ui/dialog';
 import Link from 'next/link';
 import { Pagination, PaginationContent, PaginationItem, PaginationPrevious, PaginationNext } from '@/components/ui/pagination';
 import { Logo } from '@/components/logo';
 import { Separator } from '@/components/ui/separator';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 const RefundDialog = ({ transaction, onApprove, onReject }: { transaction: Transaction, onApprove: (id: string) => void, onReject: (id: string) => void }) => {
     const [reason, setReason] = useState("");
@@ -67,7 +69,7 @@ const RefundDialog = ({ transaction, onApprove, onReject }: { transaction: Trans
 
 const InvoiceComponent = React.forwardRef<HTMLDivElement, { transaction: Transaction, onPrint: () => void, onDownload: () => void }>(({ transaction, onPrint, onDownload }, ref) => {
     return (
-        <DialogContent className="max-w-4xl p-0" id="printable-order">
+        <DialogContent className="max-w-3xl p-0" id="printable-order">
              <style>
                 {`
                 @media print {
@@ -89,90 +91,92 @@ const InvoiceComponent = React.forwardRef<HTMLDivElement, { transaction: Transac
                 }
                 `}
             </style>
-            <div ref={ref} className="bg-background text-foreground p-8 rounded-lg">
-                <div className="flex justify-between items-start mb-8">
-                    <div>
-                        <h1 className="text-3xl font-bold">INVOICE</h1>
-                        <p className="text-muted-foreground">{transaction.transactionId}</p>
+             <ScrollArea className="max-h-[85vh]">
+                <div ref={ref} className="bg-background text-foreground p-8 rounded-lg">
+                    <div className="flex justify-between items-start mb-8">
+                        <div>
+                            <h1 className="text-3xl font-bold">INVOICE</h1>
+                            <p className="text-muted-foreground">{transaction.transactionId}</p>
+                        </div>
+                        <Logo className="h-10 w-auto" />
                     </div>
-                     <Logo className="h-10 w-auto" />
-                </div>
-                
-                 <div className="grid grid-cols-3 gap-8 mb-8 text-sm">
-                    <div>
-                        <h2 className="font-semibold text-muted-foreground mb-1">Issued</h2>
-                        <p>{format(parseISO(transaction.date), "dd MMM, yyyy")}</p>
+                    
+                    <div className="grid grid-cols-3 gap-8 mb-8 text-sm">
+                        <div>
+                            <h2 className="font-semibold text-muted-foreground mb-1">Issued</h2>
+                            <p>{format(parseISO(transaction.date), "dd MMM, yyyy")}</p>
+                        </div>
+                        <div>
+                            <h2 className="font-semibold text-muted-foreground mb-1">Due</h2>
+                            <p>{format(addDays(parseISO(transaction.date), 15), "dd MMM, yyyy")}</p>
+                        </div>
                     </div>
-                     <div>
-                        <h2 className="font-semibold text-muted-foreground mb-1">Due</h2>
-                        <p>{format(addDays(parseISO(transaction.date), 15), "dd MMM, yyyy")}</p>
-                    </div>
-                </div>
 
-                <div className="grid grid-cols-3 gap-8 mb-8 text-sm">
-                     <div className="space-y-1">
-                        <h2 className="font-semibold text-muted-foreground mb-1">Billed to</h2>
-                        <p className="font-bold">{transaction.buyerName || 'N/A'}</p>
-                        <p>123 Customer Lane</p>
-                        <p>City, Country - 00000</p>
-                        <p>+0 (000) 123-4567</p>
+                    <div className="grid grid-cols-3 gap-8 mb-8 text-sm">
+                        <div className="space-y-1">
+                            <h2 className="font-semibold text-muted-foreground mb-1">Billed to</h2>
+                            <p className="font-bold">{transaction.buyerName || 'N/A'}</p>
+                            <p>123 Customer Lane</p>
+                            <p>City, Country - 00000</p>
+                            <p>+0 (000) 123-4567</p>
+                        </div>
+                        <div className="space-y-1">
+                            <h2 className="font-semibold text-muted-foreground mb-1">From</h2>
+                            <p className="font-bold">Nipher Inc.</p>
+                            <p>456 Business Road</p>
+                            <p>City, State, IN - 000 000</p>
+                            <p>TAX ID: D0XXXXXX1234XDXX</p>
+                        </div>
                     </div>
-                    <div className="space-y-1">
-                        <h2 className="font-semibold text-muted-foreground mb-1">From</h2>
-                        <p className="font-bold">Nipher Inc.</p>
-                        <p>456 Business Road</p>
-                        <p>City, State, IN - 000 000</p>
-                        <p>TAX ID: D0XXXXXX1234XDXX</p>
+                    
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Service</TableHead>
+                                <TableHead className="text-center">Qty</TableHead>
+                                <TableHead className="text-right">Rate</TableHead>
+                                <TableHead className="text-right">Line Total</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            <TableRow>
+                                <TableCell>
+                                    <p className="font-medium">{transaction.description}</p>
+                                    <p className="text-xs text-muted-foreground">Order ID: {transaction.orderId}</p>
+                                </TableCell>
+                                <TableCell className="text-center">1</TableCell>
+                                <TableCell className="text-right">{new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(Math.abs(transaction.amount))}</TableCell>
+                                <TableCell className="text-right">{new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(Math.abs(transaction.amount))}</TableCell>
+                            </TableRow>
+                        </TableBody>
+                    </Table>
+                    
+                    <div className="flex justify-end mt-8">
+                        <div className="w-full max-w-sm space-y-3">
+                            <div className="flex justify-between items-center"><span className="text-muted-foreground">Subtotal</span><span>{new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(Math.abs(transaction.amount))}</span></div>
+                            <div className="flex justify-between items-center"><span className="text-muted-foreground">Tax (0%)</span><span>₹0.00</span></div>
+                            <Separator />
+                            <div className="flex justify-between items-center font-bold text-lg"><span>Total</span><span>{new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(Math.abs(transaction.amount))}</span></div>
+                            <div className="flex justify-between items-center text-primary font-bold text-lg p-2 bg-primary/10 rounded-md"><span>Amount due</span><span>{new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(Math.abs(transaction.amount))}</span></div>
+                        </div>
                     </div>
-                </div>
-                
-                 <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead>Service</TableHead>
-                            <TableHead className="text-center">Qty</TableHead>
-                            <TableHead className="text-right">Rate</TableHead>
-                            <TableHead className="text-right">Line Total</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        <TableRow>
-                            <TableCell>
-                                <p className="font-medium">{transaction.description}</p>
-                                <p className="text-xs text-muted-foreground">Order ID: {transaction.orderId}</p>
-                            </TableCell>
-                            <TableCell className="text-center">1</TableCell>
-                            <TableCell className="text-right">{new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(transaction.amount)}</TableCell>
-                            <TableCell className="text-right">{new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(transaction.amount)}</TableCell>
-                        </TableRow>
-                    </TableBody>
-                </Table>
-                
-                 <div className="flex justify-end mt-8">
-                    <div className="w-full max-w-sm space-y-3">
-                        <div className="flex justify-between items-center"><span className="text-muted-foreground">Subtotal</span><span>{new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(transaction.amount)}</span></div>
-                        <div className="flex justify-between items-center"><span className="text-muted-foreground">Tax (0%)</span><span>₹0.00</span></div>
-                        <Separator />
-                        <div className="flex justify-between items-center font-bold text-lg"><span>Total</span><span>{new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(transaction.amount)}</span></div>
-                        <div className="flex justify-between items-center text-primary font-bold text-lg p-2 bg-primary/10 rounded-md"><span>Amount due</span><span>{new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(transaction.amount)}</span></div>
-                    </div>
-                </div>
 
-                <div className="mt-12 text-sm text-muted-foreground">
-                    <p className="font-semibold">Thank you for the business!</p>
-                    <p>Please pay within 15 days of receiving this invoice.</p>
-                </div>
-
-                 <Separator className="my-8" />
-                 <div className="flex justify-between items-center text-xs text-muted-foreground">
-                    <span>Digital Product Designer, IN</span>
-                    <div className="flex gap-4">
-                        <span>+91 00000 00000</span>
-                        <span>hello@email.com</span>
+                    <div className="mt-12 text-sm text-muted-foreground">
+                        <p className="font-semibold">Thank you for the business!</p>
+                        <p>Please pay within 15 days of receiving this invoice.</p>
                     </div>
-                 </div>
-            </div>
-            <div className="flex justify-end p-6 pt-0 gap-2 no-print">
+
+                    <Separator className="my-8" />
+                    <div className="flex justify-between items-center text-xs text-muted-foreground">
+                        <span>Digital Product Designer, IN</span>
+                        <div className="flex gap-4">
+                            <span>+91 00000 00000</span>
+                            <span>hello@email.com</span>
+                        </div>
+                    </div>
+                </div>
+             </ScrollArea>
+            <div className="flex justify-end p-6 pt-0 gap-2 no-print border-t">
                 <Button variant="outline" onClick={onPrint}><Printer className="mr-2 h-4 w-4"/> Print</Button>
                 <Button onClick={onDownload}><Download className="mr-2 h-4 w-4"/> Download PDF</Button>
             </div>
@@ -530,4 +534,6 @@ export default function AdminTransactionsPage() {
         </AlertDialog>
     );
 }
+    
+
     
