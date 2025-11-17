@@ -1,5 +1,4 @@
 
-
 "use client"
 
 import {
@@ -330,14 +329,14 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
     <div className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <button className="text-left w-full" onClick={() => setRevenueDetailView('earnings')}>
-                <Card className="hover:bg-muted/50 transition-colors"><CardHeader><CardTitle>Total Earnings</CardTitle><CardDescription>Gross revenue from sales</CardDescription></CardHeader><CardContent><p className="text-2xl font-bold">₹{sellerRevenueData.totalEarnings.toLocaleString()}</p></CardContent></Card>
+                <Card className="hover:bg-muted/50 transition-colors"><CardHeader><CardTitle>Total Earnings</CardTitle><CardDescription>Gross revenue from sales</CardDescription></CardHeader><CardContent><p className="text-xl font-bold">₹{sellerRevenueData.totalEarnings.toLocaleString()}</p></CardContent></Card>
             </button>
-             <Card><CardHeader><CardTitle>Platform Commission</CardTitle><CardDescription>3% fee on earnings</CardDescription></CardHeader><CardContent><p className="text-2xl font-bold">₹{sellerRevenueData.platformCommission.toLocaleString()}</p></CardContent></Card>
+             <Card><CardHeader><CardTitle>Platform Commission</CardTitle><CardDescription>3% fee on earnings</CardDescription></CardHeader><CardContent><p className="text-xl font-bold">₹{sellerRevenueData.platformCommission.toLocaleString()}</p></CardContent></Card>
             <button className="text-left w-full" onClick={() => setRevenueDetailView('withdrawn')}>
-                <Card className="hover:bg-muted/50 transition-colors"><CardHeader><CardTitle>Total Withdrawn</CardTitle><CardDescription>All completed payouts</CardDescription></CardHeader><CardContent><p className="text-2xl font-bold">₹{sellerRevenueData.totalWithdrawn.toLocaleString()}</p></CardContent></Card>
+                <Card className="hover:bg-muted/50 transition-colors"><CardHeader><CardTitle>Total Withdrawn</CardTitle><CardDescription>All completed payouts</CardDescription></CardHeader><CardContent><p className="text-xl font-bold">₹{sellerRevenueData.totalWithdrawn.toLocaleString()}</p></CardContent></Card>
             </button>
              <button className="text-left w-full" onClick={() => setRevenueDetailView('pending')}>
-                <Card className="hover:bg-muted/50 transition-colors"><CardHeader><CardTitle>Pending Payouts</CardTitle><CardDescription>Awaiting admin approval</CardDescription></CardHeader><CardContent><p className="text-2xl font-bold">₹{sellerRevenueData.pendingPayouts.toLocaleString()}</p></CardContent></Card>
+                <Card className="hover:bg-muted/50 transition-colors"><CardHeader><CardTitle>Pending Payouts</CardTitle><CardDescription>Awaiting admin approval</CardDescription></CardHeader><CardContent><p className="text-xl font-bold">₹{sellerRevenueData.pendingPayouts.toLocaleString()}</p></CardContent></Card>
             </button>
         </div>
 
@@ -371,7 +370,7 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
                         <ArrowLeft className="h-4 w-4" />
                         Back to Users
                     </Button>
-                    <h1 className="text-xl font-semibold tracking-tight sm:grow-0">
+                    <h1 className="text-lg font-semibold tracking-tight sm:grow-0">
                         User Profile
                     </h1>
                 </div>
@@ -386,8 +385,8 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
                                             <AvatarFallback>{profileData.displayName?.charAt(0)}</AvatarFallback>
                                         </Avatar>
                                         <div>
-                                            <CardTitle className="flex items-center gap-2">{profileData.displayName}</CardTitle>
-                                            <p className="text-sm text-muted-foreground">{profileData.publicId || profileData.uid}</p>
+                                            <CardTitle className="flex items-center gap-2 text-xl">{profileData.displayName}</CardTitle>
+                                            <p className="text-xs text-muted-foreground">{profileData.publicId || profileData.uid}</p>
                                         </div>
                                     </div>
                                     <Button asChild size="sm">
@@ -397,7 +396,7 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
                                     </Button>
                                 </div>
                             </CardHeader>
-                             <CardContent className="space-y-3 text-sm">
+                             <CardContent className="space-y-3 text-xs">
                                 <div className="font-semibold">Contact Information</div>
                                 <div className="flex items-center gap-2 text-muted-foreground"><Mail className="h-4 w-4" /> {profileData.email}</div>
                                 <div className="flex items-center gap-2 text-muted-foreground"><Phone className="h-4 w-4" /> {profileData.phone}</div>
@@ -422,9 +421,9 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
                         </Card>
                         <Card>
                             <CardHeader>
-                                <CardTitle>{profileData.role === 'seller' ? "Seller Stats" : "User Stats"}</CardTitle>
+                                <CardTitle className="text-base">{profileData.role === 'seller' ? "Seller Stats" : "User Stats"}</CardTitle>
                             </CardHeader>
-                             <CardContent className="space-y-4 text-sm">
+                             <CardContent className="space-y-3 text-sm">
                                 {profileData.role === 'seller' ? (
                                     <>
                                         <div className="flex items-center justify-between">
@@ -476,12 +475,12 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
                         </Card>
                          <Card>
                             <CardHeader>
-                                <CardTitle>Admin Controls</CardTitle>
+                                <CardTitle className="text-base">Admin Controls</CardTitle>
                             </CardHeader>
                             <CardContent className="space-y-4">
                                 <div className="flex items-center justify-between">
                                     <Label htmlFor="ban-user" className="flex flex-col space-y-1">
-                                        <span>Ban User</span>
+                                        <span className="font-medium">Ban User</span>
                                         <span className="font-normal leading-snug text-muted-foreground text-xs">
                                             Prevent this user from logging in.
                                         </span>
@@ -490,7 +489,7 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
                                 </div>
                                 <div className="flex items-center justify-between">
                                     <Label htmlFor="restrict-chat" className="flex flex-col space-y-1">
-                                        <span>Restrict Chat Ability</span>
+                                        <span className="font-medium">Restrict Chat Ability</span>
                                         <span className="font-normal leading-snug text-muted-foreground text-xs">
                                             Block this user from sending messages.
                                         </span>
@@ -507,7 +506,7 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
                                     </AlertDialogContent>
                                 </AlertDialog>
                                  <div className="space-y-2 pt-2">
-                                     <Label>Admin Notes</Label>
+                                     <Label className="font-medium">Admin Notes</Label>
                                      <Textarea placeholder="Add private notes about this user..." value={adminNotes} onChange={(e) => setAdminNotes(e.target.value)} />
                                      <Button size="sm" onClick={handleSaveAdminNotes}>Save Notes</Button>
                                  </div>
@@ -525,8 +524,8 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
                             <TabsContent value="orders">
                                 <Card>
                                     <CardHeader>
-                                        <CardTitle>Order History</CardTitle>
-                                        <CardDescription>A list of all orders placed by this user.</CardDescription>
+                                        <CardTitle className="text-base">Order History</CardTitle>
+                                        <CardDescription className="text-sm">A list of all orders placed by this user.</CardDescription>
                                     </CardHeader>
                                     <CardContent>
                                         <Table>
@@ -534,10 +533,10 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
                                             <TableBody>
                                                 {isLoading ? <TableRow><TableCell colSpan={4}><Skeleton className="h-10 w-full" /></TableCell></TableRow> : userOrders.length > 0 ? userOrders.map(order => (
                                                     <TableRow key={order.orderId}>
-                                                        <TableCell><Link href={`/admin/orders/${encodeURIComponent(order.orderId)}`} className="font-medium hover:underline">{order.orderId}</Link></TableCell>
-                                                        <TableCell><Link href={`/product/${order.products[0].key}`} className="hover:underline">{order.products[0].name}{order.products.length > 1 ? ` + ${order.products.length - 1}` : ''}</Link></TableCell>
-                                                        <TableCell><Badge variant={getStatusFromTimeline(order.timeline) === 'Delivered' ? 'success' : 'outline'}>{getStatusFromTimeline(order.timeline)}</Badge></TableCell>
-                                                        <TableCell className="text-right">₹{order.total.toFixed(2)}</TableCell>
+                                                        <TableCell><Link href={`/admin/orders/${encodeURIComponent(order.orderId)}`} className="font-medium hover:underline text-xs">{order.orderId}</Link></TableCell>
+                                                        <TableCell className="text-xs"><Link href={`/product/${order.products[0].key}`} className="hover:underline">{order.products[0].name}{order.products.length > 1 ? ` + ${order.products.length - 1}` : ''}</Link></TableCell>
+                                                        <TableCell><Badge variant={getStatusFromTimeline(order.timeline) === 'Delivered' ? 'success' : 'outline'} className="text-xs">{getStatusFromTimeline(order.timeline)}</Badge></TableCell>
+                                                        <TableCell className="text-right text-xs">₹{order.total.toFixed(2)}</TableCell>
                                                     </TableRow>
                                                 )) : <TableRow><TableCell colSpan={4} className="text-center h-24">No orders found.</TableCell></TableRow>}
                                             </TableBody>
@@ -548,8 +547,8 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
                             <TabsContent value="transactions">
                                 <Card>
                                     <CardHeader>
-                                        <CardTitle>Transaction History</CardTitle>
-                                        <CardDescription>A list of all financial transactions associated with this user.</CardDescription>
+                                        <CardTitle className="text-base">Transaction History</CardTitle>
+                                        <CardDescription className="text-sm">A list of all financial transactions associated with this user.</CardDescription>
                                     </CardHeader>
                                     <CardContent>
                                         <Table>
@@ -558,9 +557,9 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
                                                 {userTransactions.length > 0 ? userTransactions.map(t => (
                                                     <TableRow key={t.id}>
                                                         <TableCell className="font-mono text-xs">{t.transactionId}</TableCell>
-                                                        <TableCell><Badge variant="outline">{t.type}</Badge></TableCell>
-                                                        <TableCell><Badge variant={t.status === 'Completed' ? 'success' : t.status === 'Processing' ? 'warning' : 'destructive'}>{t.status}</Badge></TableCell>
-                                                        <TableCell className={cn("text-right font-medium", t.amount > 0 ? "text-green-600" : "text-foreground")}>
+                                                        <TableCell><Badge variant="outline" className="text-xs">{t.type}</Badge></TableCell>
+                                                        <TableCell><Badge variant={t.status === 'Completed' ? 'success' : t.status === 'Processing' ? 'warning' : 'destructive'} className="text-xs">{t.status}</Badge></TableCell>
+                                                        <TableCell className={cn("text-right font-medium text-xs", t.amount > 0 ? "text-green-600" : "text-foreground")}>
                                                             {t.amount > 0 ? '+' : ''}₹{t.amount.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}
                                                         </TableCell>
                                                     </TableRow>
@@ -572,13 +571,13 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
                             </TabsContent>
                             <TabsContent value="products">
                                     <Card>
-                                    <CardHeader><CardTitle>Listed Products</CardTitle><CardDescription>Products listed by {profileData.displayName}.</CardDescription></CardHeader>
+                                    <CardHeader><CardTitle className="text-base">Listed Products</CardTitle><CardDescription className="text-sm">Products listed by {profileData.displayName}.</CardDescription></CardHeader>
                                     <CardContent>
                                         <Table>
                                             <TableHeader><TableRow><TableHead>Product</TableHead><TableHead>Category</TableHead><TableHead className="text-right">Price</TableHead></TableRow></TableHeader>
                                             <TableBody>
                                                 {userProducts.length > 0 ? userProducts.map(product => (
-                                                    <TableRow key={product.id}><TableCell className="font-medium"><Link href={`/product/${product.key}`} className="hover:underline">{product.name}</Link></TableCell><TableCell>{product.category}</TableCell><TableCell className="text-right">₹{product.price.toLocaleString()}</TableCell></TableRow>
+                                                    <TableRow key={product.id}><TableCell className="font-medium text-xs"><Link href={`/product/${product.key}`} className="hover:underline">{product.name}</Link></TableCell><TableCell className="text-xs">{product.category}</TableCell><TableCell className="text-right text-xs">₹{product.price.toLocaleString()}</TableCell></TableRow>
                                                 )) : <TableRow><TableCell colSpan={3} className="text-center h-24">No products listed.</TableCell></TableRow>}
                                             </TableBody>
                                         </Table>
