@@ -1,3 +1,4 @@
+
 "use client"
 
 import React, { useState, useMemo, useEffect } from 'react';
@@ -6,13 +7,13 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter }
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuRadioGroup, DropdownMenuRadioItem } from "@/components/ui/dropdown-menu";
-import { File, ListFilter, Search, Calendar as CalendarIcon, MoreVertical } from "lucide-react";
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuItem } from "@/components/ui/dropdown-menu";
+import { File, ListFilter, Search, Calendar as CalendarIcon, MoreVertical, Link as LinkIcon, Undo2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useDebounce } from "@/hooks/use-debounce";
 import { getTransactions, Transaction } from '@/lib/transaction-history';
 import { useToast } from '@/hooks/use-toast';
-import { format, parseISO, isWithinInterval, addDays } from 'date-fns';
+import { format, parseISO, isWithinInterval } from 'date-fns';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { DateRange } from 'react-day-picker';
@@ -27,7 +28,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"
+} from "@/components/ui/alert-dialog";
+import Link from 'next/link';
 
 const RefundDialog = ({ transaction, onApprove, onReject }: { transaction: Transaction, onApprove: (id: string) => void, onReject: (id: string) => void }) => {
     const [reason, setReason] = useState("");
@@ -73,7 +75,7 @@ export default function AdminTransactionsPage() {
     useEffect(() => {
         setIsClient(true);
         const storedTransactions = getTransactions();
-        // Add a mock refund if none exists
+        
         if (!storedTransactions.some(t => t.type === 'Refund' && t.status === 'Processing')) {
              const mockRefund = {
                 id: Date.now(),
@@ -123,7 +125,9 @@ export default function AdminTransactionsPage() {
             const lowercasedQuery = debouncedSearchTerm.toLowerCase();
             tempTransactions = tempTransactions.filter(t =>
                 t.transactionId.toLowerCase().includes(lowercasedQuery) ||
-                t.description.toLowerCase().includes(lowercasedQuery)
+                t.description.toLowerCase().includes(lowercasedQuery) ||
+                t.orderId?.toLowerCase().includes(lowercasedQuery) ||
+                t.buyerName?.toLowerCase().includes(lowercasedQuery)
             );
         }
         
@@ -136,16 +140,21 @@ export default function AdminTransactionsPage() {
             return;
         }
 
-        const headers = ["ID", "Transaction ID", "Type", "Description", "Date", "Time", "Amount", "Status"];
+        const headers = ["ID", "Transaction ID", "Order ID", "Buyer", "Type", "Description", "Date", "Time", "Amount", "Status", "Reason", "Payment Info", "Refund ID"];
         const rows = filteredTransactions.map(t => [
             t.id,
             t.transactionId,
+            t.orderId || 'N/A',
+            t.buyerName || 'N/A',
             t.type,
             `"${t.description.replace(/"/g, '""')}"`,
             t.date,
             t.time,
             t.amount,
-            t.status
+            t.status,
+            t.reasonForFailure || 'N/A',
+            t.paymentMethodDetails || 'N/A',
+            t.refundId || 'N/A',
         ]);
 
         const csvContent = "data:text/csv;charset=utf-8," 
@@ -247,7 +256,7 @@ export default function AdminTransactionsPage() {
                             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                             <Input
                               type="search"
-                              placeholder="Search by ID or description..."
+                              placeholder="Search by ID, buyer, or description..."
                               className="pl-8 sm:w-[300px] md:w-[200px] lg:w-full"
                               value={searchTerm}
                               onChange={(e) => setSearchTerm(e.target.value)}
@@ -259,11 +268,11 @@ export default function AdminTransactionsPage() {
                             <TableHeader>
                                 <TableRow>
                                     <TableHead>Transaction ID</TableHead>
-                                    <TableHead>Type</TableHead>
-                                    <TableHead>Description</TableHead>
-                                    <TableHead>Date</TableHead>
+                                    <TableHead>Buyer</TableHead>
+                                    <TableHead>Amount</TableHead>
                                     <TableHead>Status</TableHead>
-                                    <TableHead className="text-right">Amount</TableHead>
+                                    <TableHead>Reason</TableHead>
+                                    <TableHead>Date</TableHead>
                                     <TableHead className="text-right">Actions</TableHead>
                                 </TableRow>
                             </TableHeader>
@@ -271,20 +280,44 @@ export default function AdminTransactionsPage() {
                                 {isClient && filteredTransactions.length > 0 ? (
                                     filteredTransactions.map(t => (
                                         <TableRow key={t.id}>
-                                            <TableCell className="font-mono text-xs">{t.transactionId}</TableCell>
-                                            <TableCell><Badge variant="outline">{t.type}</Badge></TableCell>
-                                            <TableCell>{t.description}</TableCell>
-                                            <TableCell>{format(parseISO(t.date), 'dd MMM, yyyy, p')}</TableCell>
+                                            <TableCell>
+                                                <p className="font-mono text-xs">{t.transactionId}</p>
+                                                {t.orderId && <p className="text-xs text-muted-foreground">Order: <Link href={`/admin/orders/${t.orderId}`} className="hover:underline">{t.orderId}</Link></p>}
+                                            </TableCell>
+                                            <TableCell>{t.buyerName || 'N/A'}</TableCell>
+                                            <TableCell className={cn("font-medium", t.amount > 0 ? 'text-green-600' : 'text-foreground')}>
+                                                {t.amount > 0 ? '+' : ''}{new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(t.amount)}
+                                            </TableCell>
                                             <TableCell>
                                                 <Badge variant={t.status === 'Completed' ? 'success' : t.status === 'Processing' ? 'warning' : 'destructive'}>{t.status}</Badge>
                                             </TableCell>
-                                            <TableCell className="text-right font-medium">
-                                                <span className={t.amount > 0 ? 'text-green-600' : 'text-foreground'}>
-                                                    {t.amount > 0 ? '+' : ''}{new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(t.amount)}
-                                                </span>
-                                            </TableCell>
+                                             <TableCell className="text-xs">{t.reasonForFailure || '-'}</TableCell>
+                                            <TableCell>{format(parseISO(t.date), 'dd MMM, yyyy, p')}</TableCell>
                                             <TableCell className="text-right">
-                                                {/* Manage button removed */}
+                                                <DropdownMenu>
+                                                    <DropdownMenuTrigger asChild>
+                                                        <Button size="icon" variant="ghost">
+                                                            <MoreVertical className="h-4 w-4" />
+                                                        </Button>
+                                                    </DropdownMenuTrigger>
+                                                    <DropdownMenuContent align="end">
+                                                        <DropdownMenuLabel>Details</DropdownMenuLabel>
+                                                        <DropdownMenuItem disabled>{t.paymentMethodDetails || 'No details'}</DropdownMenuItem>
+                                                        {t.refundId && <DropdownMenuItem disabled>Refund ID: {t.refundId}</DropdownMenuItem>}
+                                                        <DropdownMenuSeparator />
+                                                         {t.type === 'Refund' && t.status === 'Processing' && (
+                                                            <AlertDialogTrigger asChild>
+                                                                <DropdownMenuItem onSelect={(e) => { e.preventDefault(); setManagingRefund(t); }}>
+                                                                    <Undo2 className="mr-2 h-4 w-4"/>
+                                                                    Manage Refund
+                                                                </DropdownMenuItem>
+                                                            </AlertDialogTrigger>
+                                                        )}
+                                                         <DropdownMenuItem asChild>
+                                                            <Link href={`/invoice/${t.transactionId}`}><LinkIcon className="mr-2 h-4 w-4" /> View Invoice</Link>
+                                                         </DropdownMenuItem>
+                                                    </DropdownMenuContent>
+                                                </DropdownMenu>
                                             </TableCell>
                                         </TableRow>
                                     ))
