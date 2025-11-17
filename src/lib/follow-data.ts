@@ -10,6 +10,7 @@ import { getFirebaseAuth } from "./firebase";
 export interface UserData {
     uid: string;
     userId?: string; // The @handle
+    publicId?: string; // The C-0001 ID
     displayName: string;
     email: string;
     photoURL: string;
@@ -70,16 +71,16 @@ const defaultUserData = (uid: string, defaults?: Partial<User>): Partial<UserDat
 });
 
 const mockSellers: Record<string, UserData> = {
-    'fashionfinds-uid': { uid: 'fashionfinds-uid', displayName: 'FashionFinds', email: 'fashion@finds.com', photoURL: 'https://placehold.co/128x128.png?text=F', role: 'seller', followers: 1200, following: 150, bio: 'Curator of vintage and modern fashion.', location: 'Paris, France', phone: '', addresses: [], color: '#ffffff', instagram: 'https://instagram.com/fashionfinds' },
-    'gadgetguru-uid': { uid: 'gadgetguru-uid', displayName: 'GadgetGuru', email: 'guru@gadgets.com', photoURL: 'https://placehold.co/128x128.png?text=G', role: 'seller', followers: 2500, following: 50, bio: 'Latest and greatest in tech reviewed.', location: 'San Francisco, USA', phone: '', addresses: [], color: '#ffffff', twitter: 'https://twitter.com/gadgetguru' },
-    'homehaven-uid': { uid: 'homehaven-uid', displayName: 'HomeHaven', email: 'contact@homehaven.com', photoURL: 'https://placehold.co/128x128.png?text=H', role: 'seller', followers: 850, following: 200, bio: 'Making your house a home, one decor piece at a time.', location: 'Stockholm, Sweden', phone: '', addresses: [], color: '#ffffff' },
-    'beautybox-uid': { uid: 'beautybox-uid', displayName: 'BeautyBox', email: 'info@beautybox.com', photoURL: 'https://placehold.co/128x128.png?text=B', role: 'seller', followers: 3100, following: 80, bio: 'Your one-stop shop for cosmetics and skincare.', location: 'Seoul, South Korea', phone: '', addresses: [], color: '#ffffff', youtube: 'https://youtube.com/beautybox' },
-    'kitchenwiz-uid': { uid: 'kitchenwiz-uid', displayName: 'KitchenWiz', email: 'support@kitchenwiz.com', photoURL: 'https://placehold.co/128x128.png?text=K', role: 'seller', followers: 975, following: 120, bio: 'Innovative tools for the modern chef.', location: 'Milan, Italy', phone: '', addresses: [], color: '#ffffff' },
-    'fitflow-uid': { uid: 'fitflow-uid', displayName: 'FitFlow', email: 'getfit@fitflow.com', photoURL: 'https://placehold.co/128x128.png?text=F', role: 'seller', followers: 1500, following: 300, bio: 'Activewear and equipment for your fitness journey.', location: 'Los Angeles, USA', phone: '', addresses: [], color: '#ffffff' },
-    'artisanalley-uid': { uid: 'artisanalley-uid', displayName: 'ArtisanAlley', email: 'hello@artisanalley.com', photoURL: 'https://placehold.co/128x128.png?text=A', role: 'seller', followers: 450, following: 450, bio: 'Handcrafted goods with a story.', location: 'Kyoto, Japan', phone: '', addresses: [], color: '#ffffff' },
-    'petpalace-uid': { uid: 'petpalace-uid', displayName: 'PetPalace', email: 'woof@petpalace.com', photoURL: 'https://placehold.co/128x128.png?text=P', role: 'seller', followers: 1800, following: 220, bio: 'Everything your furry friends could ever want.', location: 'London, UK', phone: '', addresses: [], color: '#ffffff' },
-    'booknook-uid': { uid: 'booknook-uid', displayName: 'BookNook', email: 'read@booknook.com', photoURL: 'https://placehold.co/128x128.png?text=B', role: 'seller', followers: 620, following: 500, bio: 'A cozy corner for book lovers.', location: 'Edinburgh, Scotland', phone: '', addresses: [], color: '#ffffff' },
-    'gamerguild-uid': { uid: 'gamerguild-uid', displayName: 'GamerGuild', email: 'gg@gamerguild.com', photoURL: 'https://placehold.co/128x128.png?text=G', role: 'seller', followers: 4200, following: 10, bio: 'Top-tier gaming gear and accessories.', location: 'Taipei, Taiwan', phone: '', addresses: [], color: '#ffffff', twitch: 'https://twitch.tv/gamerguild' },
+    'fashionfinds-uid': { uid: 'fashionfinds-uid', publicId: 'S-0001', displayName: 'FashionFinds', email: 'fashion@finds.com', photoURL: 'https://placehold.co/128x128.png?text=F', role: 'seller', followers: 1200, following: 150, bio: 'Curator of vintage and modern fashion.', location: 'Paris, France', phone: '', addresses: [], color: '#ffffff', instagram: 'https://instagram.com/fashionfinds' },
+    'gadgetguru-uid': { uid: 'gadgetguru-uid', publicId: 'S-0002', displayName: 'GadgetGuru', email: 'guru@gadgets.com', photoURL: 'https://placehold.co/128x128.png?text=G', role: 'seller', followers: 2500, following: 50, bio: 'Latest and greatest in tech reviewed.', location: 'San Francisco, USA', phone: '', addresses: [], color: '#ffffff', twitter: 'https://twitter.com/gadgetguru' },
+    'homehaven-uid': { uid: 'homehaven-uid', publicId: 'S-0003', displayName: 'HomeHaven', email: 'contact@homehaven.com', photoURL: 'https://placehold.co/128x128.png?text=H', role: 'seller', followers: 850, following: 200, bio: 'Making your house a home, one decor piece at a time.', location: 'Stockholm, Sweden', phone: '', addresses: [], color: '#ffffff' },
+    'beautybox-uid': { uid: 'beautybox-uid', publicId: 'S-0004', displayName: 'BeautyBox', email: 'info@beautybox.com', photoURL: 'https://placehold.co/128x128.png?text=B', role: 'seller', followers: 3100, following: 80, bio: 'Your one-stop shop for cosmetics and skincare.', location: 'Seoul, South Korea', phone: '', addresses: [], color: '#ffffff', youtube: 'https://youtube.com/beautybox' },
+    'kitchenwiz-uid': { uid: 'kitchenwiz-uid', publicId: 'S-0005', displayName: 'KitchenWiz', email: 'support@kitchenwiz.com', photoURL: 'https://placehold.co/128x128.png?text=K', role: 'seller', followers: 975, following: 120, bio: 'Innovative tools for the modern chef.', location: 'Milan, Italy', phone: '', addresses: [], color: '#ffffff' },
+    'fitflow-uid': { uid: 'fitflow-uid', publicId: 'S-0006', displayName: 'FitFlow', email: 'getfit@fitflow.com', photoURL: 'https://placehold.co/128x128.png?text=F', role: 'seller', followers: 1500, following: 300, bio: 'Activewear and equipment for your fitness journey.', location: 'Los Angeles, USA', phone: '', addresses: [], color: '#ffffff' },
+    'artisanalley-uid': { uid: 'artisanalley-uid', publicId: 'S-0007', displayName: 'ArtisanAlley', email: 'hello@artisanalley.com', photoURL: 'https://placehold.co/128x128.png?text=A', role: 'seller', followers: 450, following: 450, bio: 'Handcrafted goods with a story.', location: 'Kyoto, Japan', phone: '', addresses: [], color: '#ffffff' },
+    'petpalace-uid': { uid: 'petpalace-uid', publicId: 'S-0008', displayName: 'PetPalace', email: 'woof@petpalace.com', photoURL: 'https://placehold.co/128x128.png?text=P', role: 'seller', followers: 1800, following: 220, bio: 'Everything your furry friends could ever want.', location: 'London, UK', phone: '', addresses: [], color: '#ffffff' },
+    'booknook-uid': { uid: 'booknook-uid', publicId: 'S-0009', displayName: 'BookNook', email: 'read@booknook.com', photoURL: 'https://placehold.co/128x128.png?text=B', role: 'seller', followers: 620, following: 500, bio: 'A cozy corner for book lovers.', location: 'Edinburgh, Scotland', phone: '', addresses: [], color: '#ffffff' },
+    'gamerguild-uid': { uid: 'gamerguild-uid', publicId: 'S-0010', displayName: 'GamerGuild', email: 'gg@gamerguild.com', photoURL: 'https://placehold.co/128x128.png?text=G', role: 'seller', followers: 4200, following: 10, bio: 'Top-tier gaming gear and accessories.', location: 'Taipei, Taiwan', phone: '', addresses: [], color: '#ffffff', twitch: 'https://twitch.tv/gamerguild' },
 };
 
 // Function to get a list of all mock sellers
@@ -228,3 +229,5 @@ export const getUserByDisplayName = async (displayName: string): Promise<UserDat
 };
 
 export { getOrCreateConversation } from '@/ai/flows/chat-flow';
+
+    

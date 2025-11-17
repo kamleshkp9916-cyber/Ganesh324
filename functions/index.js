@@ -7,6 +7,7 @@ const { onRequest } = require('firebase-functions/v2/onRequest');
 const functions = require('firebase-functions'); // if you use env/secret config in firebase.json
 const sgMail = require('@sendgrid/mail');
 const vision = require('@google-cloud/vision');
+const { onDocumentWritten } = require("firebase-functions/v2/firestore");
 
 /**
  * Admin SDK initialization
@@ -25,6 +26,59 @@ if (!admin.apps.length) {
     admin.initializeApp();
   }
 }
+
+/**
+ * NEW: Firestore trigger to generate a public sequential ID for new users.
+ */
+exports.generatePublicId = onDocumentWritten("users/{userId}", async (event) => {
+    // Only act on document creation
+    if (event.data.before.exists()) {
+        return null;
+    }
+
+    const userData = event.data.after.data();
+    const userRole = userData.role;
+    const userId = event.params.userId;
+
+    if (!userRole || (userRole !== 'customer' && userRole !== 'seller')) {
+        return null;
+    }
+
+    const db = admin.firestore();
+    const counterRef = db.collection('_counters').doc('user_ids');
+    
+    let newPublicId;
+
+    try {
+        await db.runTransaction(async (transaction) => {
+            const counterDoc = await transaction.get(counterRef);
+            
+            let currentCount = 0;
+            const fieldName = userRole === 'seller' ? 'sellerCount' : 'customerCount';
+
+            if (counterDoc.exists) {
+                currentCount = counterDoc.data()[fieldName] || 0;
+            }
+            
+            const newCount = currentCount + 1;
+
+            const prefix = userRole === 'seller' ? 'S-' : 'C-';
+            newPublicId = `${prefix}${String(newCount).padStart(4, '0')}`;
+            
+            transaction.set(counterRef, { [fieldName]: newCount }, { merge: true });
+        });
+
+        if (newPublicId) {
+            await db.collection('users').doc(userId).update({ publicId: newPublicId });
+            console.log(`Assigned public ID ${newPublicId} to user ${userId}`);
+        }
+
+    } catch (error) {
+        console.error(`Failed to generate publicId for user ${userId}:`, error);
+    }
+     return null;
+});
+
 
 /**
  * NEW: Callable function to create an admin user.
@@ -300,3 +354,5 @@ exports.faceMatch = onRequest({ cors: true }, async (req, res) => {
         res.status(500).send('Error during face detection.');
     }
 });
+
+    
