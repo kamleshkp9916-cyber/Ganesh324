@@ -134,6 +134,12 @@ const initialProducts: Product[] = [
 
 const ProductTable = ({ products, onViewDetails }: { products: Product[], onViewDetails: (product: Product) => void }) => (
     <Card>
+      <CardHeader>
+        <CardTitle>Products</CardTitle>
+        <CardDescription>
+            A global view of all active products on the platform. Click a row to see details.
+        </CardDescription>
+      </CardHeader>
       <CardContent className="p-0">
         <Table>
           <TableHeader>
@@ -220,6 +226,11 @@ const ProductDetailView = ({ product, onBack }: { product: Product, onBack: () =
     const platformFee = grossRevenue * 0.03; // 3% platform fee
     const netRevenue = grossRevenue - platformFee;
 
+    const mockReports = [
+        { id: 1, reason: "Inaccurate Description", reportedBy: "user_xyz" },
+        { id: 2, reason: "Misleading Image", reportedBy: "user_abc" },
+    ];
+
     return (
         <Card>
             <CardHeader>
@@ -286,6 +297,26 @@ const ProductDetailView = ({ product, onBack }: { product: Product, onBack: () =
                                 </div>
                             </CardContent>
                         </Card>
+                         <Card>
+                            <CardHeader className="pb-2">
+                                <CardTitle className="text-base">Product Reports</CardTitle>
+                                <CardDescription>Reports submitted by users for this product.</CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="space-y-2 text-sm">
+                                    {mockReports.map((report) => (
+                                        <div key={report.id} className="flex justify-between items-center p-2 bg-muted/50 rounded-md">
+                                            <div>
+                                                <p className="font-medium">{report.reason}</p>
+                                                <p className="text-xs text-muted-foreground">Reported by: {report.reportedBy}</p>
+                                            </div>
+                                            <Button variant="outline" size="sm">Review</Button>
+                                        </div>
+                                    ))}
+                                    {mockReports.length === 0 && <p className="text-center text-muted-foreground text-xs py-4">No reports for this product.</p>}
+                                </div>
+                            </CardContent>
+                        </Card>
                     </div>
                 </div>
             </CardContent>
@@ -334,49 +365,7 @@ export default function AdminProductsPage() {
   return (
     <AdminLayout>
         <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8">
-            <Card>
-                <CardHeader>
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <CardTitle>Products</CardTitle>
-                            <CardDescription>
-                                A global view of all active products on the platform. Click a row to see details.
-                            </CardDescription>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                    <Button variant="outline" size="sm" className="h-8 gap-1">
-                                        <ListFilter className="h-3.5 w-3.5" />
-                                        <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                                        Filter
-                                        </span>
-                                    </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                    <DropdownMenuLabel>Filter by</DropdownMenuLabel>
-                                    <DropdownMenuSeparator />
-                                    <DropdownMenuCheckboxItem checked>
-                                        Available
-                                    </DropdownMenuCheckboxItem>
-                                    <DropdownMenuCheckboxItem>
-                                        Out of Stock
-                                    </DropdownMenuCheckboxItem>
-                                </DropdownMenuContent>
-                            </DropdownMenu>
-                            <Button size="sm" variant="outline" className="h-8 gap-1">
-                                <File className="h-3.5 w-3.5" />
-                                <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                                Export
-                                </span>
-                            </Button>
-                        </div>
-                    </div>
-                </CardHeader>
-                <CardContent>
-                    <ProductTable products={activeProducts} onViewDetails={setSelectedProduct} />
-                </CardContent>
-            </Card>
+            <ProductTable products={activeProducts} onViewDetails={setSelectedProduct} />
         </main>
     </AdminLayout>
   )
