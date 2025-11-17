@@ -398,6 +398,12 @@ export default function AdminUsersPage() {
                         <File className="h-3.5 w-3.5" />
                         <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">Export</span>
                     </Button>
+                    <Button size="sm" asChild className="h-8 gap-1">
+                        <Link href="/admin/create-account">
+                            <PlusCircle className="h-3.5 w-3.5" />
+                            <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">Create Admin</span>
+                        </Link>
+                    </Button>
                 </div>
             </div>
              <TabsContent value="customers">
@@ -487,3 +493,5 @@ export default function AdminUsersPage() {
     </>
   )
 }
+
+    
