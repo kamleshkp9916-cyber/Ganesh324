@@ -12,6 +12,8 @@ import {
   Users,
   Eye,
   DollarSign,
+  ArrowLeft,
+  Package,
 } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
@@ -125,7 +127,7 @@ const initialProducts: Product[] = [
     },
 ];
 
-const ProductTable = ({ products }: { products: Product[] }) => (
+const ProductTable = ({ products, onViewDetails }: { products: Product[], onViewDetails: (product: Product) => void }) => (
     <Card>
       <CardContent className="p-0">
         <Table>
@@ -144,9 +146,8 @@ const ProductTable = ({ products }: { products: Product[] }) => (
           </TableHeader>
           <TableBody>
             {products.length > 0 ? products.map(product => (
-              <TableRow key={product.id}>
+              <TableRow key={product.id} onClick={() => onViewDetails(product)} className="cursor-pointer">
                 <TableCell className="hidden sm:table-cell">
-                  <Link href={`/product/${product.key}`}>
                     {product.images && product.images.length > 0 ? (
                       <Image
                         alt={product.name}
@@ -160,19 +161,16 @@ const ProductTable = ({ products }: { products: Product[] }) => (
                         <ImageIcon className="h-6 w-6 text-muted-foreground" />
                       </div>
                     )}
-                  </Link>
                 </TableCell>
                 <TableCell className="font-medium">
-                  <Link href={`/product/${product.key}`} className="hover:underline">
-                    {product.name}
-                  </Link>
+                  {product.name}
                    <p className="text-xs text-muted-foreground font-mono">{product.key}</p>
                 </TableCell>
                 <TableCell>
                     {product.seller ? (
-                         <Link href={`/admin/users?search=${product.seller}`} className="hover:underline text-muted-foreground">
+                         <span className="text-muted-foreground">
                             {product.seller}
-                         </Link>
+                         </span>
                     ): (
                         <span className="text-muted-foreground">N/A</span>
                     )}
@@ -212,11 +210,57 @@ const ProductTable = ({ products }: { products: Product[] }) => (
     </Card>
 );
 
+const ProductDetailView = ({ product, onBack }: { product: Product, onBack: () => void }) => {
+    return (
+        <Card>
+            <CardHeader>
+                <div className="flex items-center justify-between">
+                    <Button variant="outline" size="sm" onClick={onBack}><ArrowLeft className="mr-2 h-4 w-4"/>Back to Products</Button>
+                </div>
+            </CardHeader>
+            <CardContent>
+                <div className="grid md:grid-cols-2 gap-6">
+                    <div>
+                        {product.images && product.images.length > 0 ? (
+                             <div className="w-full aspect-square bg-muted rounded-lg overflow-hidden relative">
+                                <Image
+                                    alt={product.name}
+                                    className="object-cover"
+                                    layout="fill"
+                                    src={product.images[0].preview}
+                                />
+                            </div>
+                        ) : (
+                            <div className="w-full aspect-square bg-muted rounded-lg flex items-center justify-center">
+                                <ImageIcon className="h-16 w-16 text-muted-foreground" />
+                            </div>
+                        )}
+                    </div>
+                    <div className="space-y-4">
+                        <div>
+                            <Badge variant="secondary">{product.key}</Badge>
+                            <h1 className="text-3xl font-bold mt-2">{product.name}</h1>
+                            <p className="text-muted-foreground">{product.description}</p>
+                        </div>
+                         <div className="grid grid-cols-2 gap-4 text-sm">
+                            <div><span className="font-semibold">Price:</span> ₹{product.price.toLocaleString()}</div>
+                            <div><span className="font-semibold">Stock:</span> {product.stock}</div>
+                            <div><span className="font-semibold">Seller:</span> {product.seller || 'N/A'}</div>
+                            <div><span className="font-semibold">Status:</span> <Badge variant={product.status === 'active' ? 'success' : 'outline'}>{product.status}</Badge></div>
+                        </div>
+                    </div>
+                </div>
+            </CardContent>
+        </Card>
+    );
+};
+
 export default function AdminProductsPage() {
     const { user, userData, loading } = useAuth();
     const router = useRouter();
     const [searchTerm, setSearchTerm] = useState("");
     const debouncedSearchTerm = useDebounce(searchTerm, 300);
+    const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
     const activeProducts = useMemo(() => {
         let products = initialProducts.filter(p => p.status === 'active');
@@ -238,6 +282,16 @@ export default function AdminProductsPage() {
         router.push('/');
         return null;
     }
+    
+    if(selectedProduct) {
+        return (
+            <AdminLayout>
+                <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8">
+                    <ProductDetailView product={selectedProduct} onBack={() => setSelectedProduct(null)} />
+                </main>
+            </AdminLayout>
+        );
+    }
   
   return (
     <AdminLayout>
@@ -248,7 +302,7 @@ export default function AdminProductsPage() {
                         <div>
                             <CardTitle>Products</CardTitle>
                             <CardDescription>
-                                A global view of all active products on the platform.
+                                A global view of all active products on the platform. Click a row to see details.
                             </CardDescription>
                         </div>
                         <div className="flex items-center gap-2">
@@ -282,7 +336,7 @@ export default function AdminProductsPage() {
                     </div>
                 </CardHeader>
                 <CardContent>
-                    <ProductTable products={activeProducts} />
+                    <ProductTable products={activeProducts} onViewDetails={setSelectedProduct} />
                 </CardContent>
             </Card>
         </main>
