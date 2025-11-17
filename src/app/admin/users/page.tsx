@@ -111,6 +111,7 @@ const UserTable = ({ users, onViewDetails, onDelete }: { users: any[], onViewDet
                     <TableRow>
                         <TableHead>User</TableHead>
                         <TableHead>Role</TableHead>
+                        <TableHead className="hidden md:table-cell">Public ID</TableHead>
                         <TableHead className="hidden md:table-cell">Signup Date</TableHead>
                         <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
@@ -133,6 +134,7 @@ const UserTable = ({ users, onViewDetails, onDelete }: { users: any[], onViewDet
                             <TableCell>
                                 <Badge variant={u.role === 'admin' ? 'destructive' : u.role === 'seller' ? 'secondary' : 'outline'} className="capitalize">{u.role}</Badge>
                             </TableCell>
+                            <TableCell className="hidden md:table-cell font-mono text-xs">{u.publicId || 'N/A'}</TableCell>
                             <TableCell className="hidden md:table-cell">{isMounted && u.createdAt ? new Date(u.createdAt.seconds * 1000).toLocaleDateString() : 'N/A'}</TableCell>
                             <TableCell className="text-right">
                                 <div className="flex items-center justify-end gap-2">
@@ -198,14 +200,15 @@ export default function AdminUsersPage() {
   const filteredUsers = useMemo(() => {
     return allUsersState.filter(u =>
       (u.displayName && u.displayName.toLowerCase().includes(debouncedSearchTerm.toLowerCase())) ||
-      (u.email && u.email.toLowerCase().includes(debouncedSearchTerm.toLowerCase()))
+      (u.email && u.email.toLowerCase().includes(debouncedSearchTerm.toLowerCase())) ||
+      (u.publicId && u.publicId.toLowerCase().includes(debouncedSearchTerm.toLowerCase()))
     );
   }, [allUsersState, debouncedSearchTerm]);
   
   const handleExport = () => {
       let dataToExport: any[] = [];
       let filename = "users.csv";
-      let headers = ["uid", "name", "email", "role"];
+      let headers = ["uid", "publicId", "displayName", "email", "role"];
 
       switch(activeTab) {
           case 'customers':
@@ -231,7 +234,7 @@ export default function AdminUsersPage() {
       }
 
       const csvContent = "data:text/csv;charset=utf-8," 
-          + [headers.join(","), ...dataToExport.map(item => headers.map(header => JSON.stringify(item[header])).join(","))].join("\n");
+          + [headers.join(","), ...dataToExport.map(item => headers.map(header => JSON.stringify(item[header])).join(","))].join("\\n");
 
       const link = document.createElement("a");
       link.setAttribute("href", encodeURI(csvContent));
@@ -336,3 +339,5 @@ export default function AdminUsersPage() {
     </>
   )
 }
+
+    
