@@ -38,7 +38,7 @@ import {
   Gavel,
   Shield,
   Notebook,
-  BarChart, // Added BarChart icon
+  BarChart,
 } from "lucide-react"
 import { useEffect, useState, useMemo, useCallback } from "react";
 import Link from "next/link"
@@ -95,6 +95,7 @@ type Product = {
     price: number;
     category: string;
     images: { preview: string }[];
+    sold?: number; // Add sold for analytics
 };
 
 type ViewType = 'orders' | 'products' | 'revenue';
@@ -118,7 +119,7 @@ const mockTransactions: Transaction[] = [
 ];
 
 const mockProducts: Product[] = [
-    { id: 'mock_1', key: 'mock_1', name: 'Mock Seller Product A', price: 1999.00, category: 'Electronics', images: [{ preview: 'https://placehold.co/100x100.png' }] },
+    { id: 'mock_1', key: 'mock_1', name: 'Mock Seller Product A', price: 1999.00, category: 'Electronics', images: [{ preview: 'https://placehold.co/100x100.png' }], sold: 15 },
 ];
 
 
@@ -365,7 +366,7 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
   );
   
   return (
-     <main className="flex-1 flex flex-col gap-4 p-4 md:gap-6 md:p-6">
+    <main className="flex-1 flex flex-col gap-4 p-4 md:gap-6 md:p-6">
         <Dialog onOpenChange={(open) => !open && setSelectedOrderForTimeline(null)}>
             <div className="flex flex-col gap-6">
                  <div className="flex items-start justify-between gap-4">
@@ -382,76 +383,75 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
                     </div>
                 </div>
                 
-                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-                    <div className="lg:col-span-12">
-                         <Card>
-                            <CardHeader>
-                                <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-4">
-                                        <Avatar className="h-20 w-20">
-                                            <AvatarImage src={profileData.photoURL} />
-                                            <AvatarFallback className="text-3xl">{profileData.displayName?.charAt(0)}</AvatarFallback>
-                                        </Avatar>
-                                        <div>
-                                            <CardTitle className="text-3xl">{profileData.displayName}</CardTitle>
-                                            <p className="text-sm text-muted-foreground">{profileData.publicId || profileData.uid}</p>
-                                        </div>
-                                    </div>
+                <Card>
+                    <CardHeader>
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-4">
+                                <Avatar className="h-20 w-20">
+                                    <AvatarImage src={profileData.photoURL} />
+                                    <AvatarFallback className="text-3xl">{profileData.displayName?.charAt(0)}</AvatarFallback>
+                                </Avatar>
+                                <div>
+                                    <CardTitle className="text-3xl">{profileData.displayName}</CardTitle>
+                                    <p className="text-sm text-muted-foreground">{profileData.publicId || profileData.uid}</p>
                                 </div>
-                            </CardHeader>
-                        </Card>
-                    </div>
+                            </div>
+                        </div>
+                    </CardHeader>
+                </Card>
 
-                    <div className="lg:col-span-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                        <Card>
-                            <CardHeader><CardTitle className="text-lg">Contact Information</CardTitle></CardHeader>
-                            <CardContent className="space-y-3 text-sm">
-                                <div className="flex items-center gap-3"><Mail className="h-4 w-4 flex-shrink-0 text-muted-foreground" /> <span className="truncate">{profileData.email}</span></div>
-                                <div className="flex items-center gap-3"><Phone className="h-4 w-4 flex-shrink-0 text-muted-foreground" /> {profileData.phone}</div>
-                                {profileData.addresses && profileData.addresses.length > 0 && (
-                                    <div className="flex items-start gap-3 pt-1">
-                                        <MapPin className="h-4 w-4 mt-0.5 flex-shrink-0 text-muted-foreground" /> 
-                                        <address className="not-italic">
-                                            {profileData.addresses[0].village}, {profileData.addresses[0].district}, {profileData.addresses[0].city}, {profileData.addresses[0].state} - {profileData.addresses[0].pincode}
-                                        </address>
-                                    </div>
-                                )}
-                                 <Separator className="my-3"/>
-                                 <div className="grid grid-cols-2 gap-x-4 gap-y-2">
-                                    <span className="font-medium text-muted-foreground">Role:</span> <Badge variant={profileData.role === 'admin' ? 'destructive' : profileData.role === 'seller' ? 'secondary' : 'outline'}>{profileData.role}</Badge>
-                                    <span className="font-medium text-muted-foreground">KYC:</span> <Badge variant={profileData.kycStatus === 'verified' ? 'success' : 'warning'}>{profileData.kycStatus || 'pending'}</Badge>
-                                    <span className="font-medium text-muted-foreground">Live Status:</span> {isLive ? <Badge variant="destructive" className="animate-pulse">LIVE</Badge> : <Badge variant="outline">Offline</Badge>}
-                                    <span className="font-medium text-muted-foreground">Last Active:</span> <span>{profileData.lastLogin ? format(profileData.lastLogin.toDate(), 'dd MMM, p') : 'N/A'}</span>
-                                    <span className="font-medium text-muted-foreground">Joined:</span> <span>{profileData.createdAt ? format(profileData.createdAt.toDate(), 'dd MMM, yyyy') : 'N/A'}</span>
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <Card>
+                        <CardHeader><CardTitle className="text-lg">Contact Information</CardTitle></CardHeader>
+                        <CardContent className="space-y-3 text-sm">
+                            <div className="flex items-center gap-3"><Mail className="h-4 w-4 flex-shrink-0 text-muted-foreground" /> <span className="truncate">{profileData.email}</span></div>
+                            <div className="flex items-center gap-3"><Phone className="h-4 w-4 flex-shrink-0 text-muted-foreground" /> {profileData.phone}</div>
+                            {profileData.addresses && profileData.addresses.length > 0 && (
+                                <div className="flex items-start gap-3 pt-1">
+                                    <MapPin className="h-4 w-4 mt-0.5 flex-shrink-0 text-muted-foreground" /> 
+                                    <address className="not-italic">
+                                        {profileData.addresses[0].village}, {profileData.addresses[0].district}, {profileData.addresses[0].city}, {profileData.addresses[0].state} - {profileData.addresses[0].pincode}
+                                    </address>
                                 </div>
-                            </CardContent>
-                        </Card>
+                            )}
+                                <Separator className="my-3"/>
+                                <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+                                <span className="font-medium text-muted-foreground">Role:</span> <Badge variant={profileData.role === 'admin' ? 'destructive' : profileData.role === 'seller' ? 'secondary' : 'outline'}>{profileData.role}</Badge>
+                                <span className="font-medium text-muted-foreground">KYC:</span> <Badge variant={profileData.kycStatus === 'verified' ? 'success' : 'warning'}>{profileData.kycStatus || 'pending'}</Badge>
+                                <span className="font-medium text-muted-foreground">Live Status:</span> {isLive ? <Badge variant="destructive" className="animate-pulse">LIVE</Badge> : <Badge variant="outline">Offline</Badge>}
+                                <span className="font-medium text-muted-foreground">Last Active:</span> <span>{profileData.lastLogin ? format(profileData.lastLogin.toDate(), 'dd MMM, p') : 'N/A'}</span>
+                                <span className="font-medium text-muted-foreground">Joined:</span> <span>{profileData.createdAt ? format(profileData.createdAt.toDate(), 'dd MMM, yyyy') : 'N/A'}</span>
+                            </div>
+                        </CardContent>
+                    </Card>
 
-                        <Card>
-                            <CardHeader><CardTitle className="text-lg">{profileData.role === 'seller' ? "Seller Stats" : "User Stats"}</CardTitle></CardHeader>
-                            <CardContent className="space-y-2 text-sm">
-                                {profileData.role === 'seller' ? (
-                                    <>
-                                        <div className="flex items-center justify-between"><span className="text-muted-foreground">Total Earnings</span><span className="font-semibold">₹{sellerRevenueData.totalEarnings.toLocaleString()}</span></div>
-                                        <div className="flex items-center justify-between"><span className="text-muted-foreground">Products Listed</span><span className="font-semibold">{userProducts.length}</span></div>
-                                        <div className="flex items-center justify-between"><span className="text-muted-foreground">Total Orders</span><span className="font-semibold">{totalOrders}</span></div>
-                                        <div className="flex items-center justify-between"><span className="text-muted-foreground">Total Streams</span><span className="font-semibold">{totalStreams}</span></div>
-                                        <div className="flex items-center justify-between"><span className="text-muted-foreground">Avg. Rating</span><span className="font-semibold flex items-center gap-1">{sellerAverageRating} <Star className="h-4 w-4 text-yellow-400" /></span></div>
-                                    </>
-                                ) : (
-                                    <>
-                                        <div className="flex items-center justify-between"><span className="text-muted-foreground">Total Spent</span><span className="font-semibold">₹{totalSpent.toLocaleString()}</span></div>
-                                        <div className="flex items-center justify-between"><span className="text-muted-foreground">Total Orders</span><span className="font-semibold">{totalOrders}</span></div>
-                                        <div className="flex items-center justify-between"><span className="text-muted-foreground">Cancelled</span><span className="font-semibold">{cancelledOrders}</span></div>
-                                        <div className="flex items-center justify-between"><span className="text-muted-foreground">Returned</span><span className="font-semibold">{returnedOrders}</span></div>
-                                        <div className="flex items-center justify-between"><span className="text-muted-foreground">Avg. Order Value</span><span className="font-semibold">₹{avgOrderValue.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span></div>
-                                    </>
-                                )}
-                            </CardContent>
-                        </Card>
-                         {profileData.role === 'customer' && (
+                    <Card>
+                        <CardHeader><CardTitle className="text-lg">{profileData.role === 'seller' ? "Seller Stats" : "User Stats"}</CardTitle></CardHeader>
+                        <CardContent className="space-y-2 text-sm">
+                            {profileData.role === 'seller' ? (
+                                <>
+                                    <div className="flex items-center justify-between"><span className="text-muted-foreground">Total Earnings</span><span className="font-semibold">₹{sellerRevenueData.totalEarnings.toLocaleString()}</span></div>
+                                    <div className="flex items-center justify-between"><span className="text-muted-foreground">Products Listed</span><span className="font-semibold">{userProducts.length}</span></div>
+                                    <div className="flex items-center justify-between"><span className="text-muted-foreground">Total Orders</span><span className="font-semibold">{totalOrders}</span></div>
+                                    <div className="flex items-center justify-between"><span className="text-muted-foreground">Total Streams</span><span className="font-semibold">{totalStreams}</span></div>
+                                    <div className="flex items-center justify-between"><span className="text-muted-foreground">Avg. Rating</span><span className="font-semibold flex items-center gap-1">{sellerAverageRating} <Star className="h-4 w-4 text-yellow-400" /></span></div>
+                                </>
+                            ) : (
+                                <>
+                                    <div className="flex items-center justify-between"><span className="text-muted-foreground">Total Spent</span><span className="font-semibold">₹{totalSpent.toLocaleString()}</span></div>
+                                    <div className="flex items-center justify-between"><span className="text-muted-foreground">Total Orders</span><span className="font-semibold">{totalOrders}</span></div>
+                                    <div className="flex items-center justify-between"><span className="text-muted-foreground">Cancelled</span><span className="font-semibold">{cancelledOrders}</span></div>
+                                    <div className="flex items-center justify-between"><span className="text-muted-foreground">Returned</span><span className="font-semibold">{returnedOrders}</span></div>
+                                    <div className="flex items-center justify-between"><span className="text-muted-foreground">Avg. Order Value</span><span className="font-semibold">₹{avgOrderValue.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span></div>
+                                </>
+                            )}
+                        </CardContent>
+                    </Card>
+                     
+                    <div className="grid grid-rows-2 gap-6">
+                        {profileData.role === 'customer' && (
                             <Card>
-                                <CardHeader><CardTitle className="text-lg">Behaviour Analytics</CardTitle><CardDescription className="text-sm">Helps detect risk & fraud.</CardDescription></CardHeader>
+                                <CardHeader><CardTitle className="text-lg">Behaviour Analytics</CardTitle></CardHeader>
                                 <CardContent className="space-y-2 text-sm">
                                     <div className="flex items-center justify-between"><span className="text-muted-foreground">Streams Watched</span><span className="font-semibold">5</span></div>
                                     <div className="flex items-center justify-between"><span className="text-muted-foreground">Avg. Watch Time</span><span className="font-semibold">12 mins</span></div>
@@ -463,12 +463,12 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
                         <Card>
                             <CardHeader><CardTitle className="text-lg">Admin Controls</CardTitle></CardHeader>
                             <CardContent className="space-y-3">
-                                <div className="flex items-center justify-between p-3 border rounded-lg">
-                                    <Label htmlFor="ban-user" className="flex flex-col space-y-1"><span className="font-medium">Ban User</span><span className="font-normal leading-snug text-muted-foreground text-xs">Prevent this user from logging in.</span></Label>
+                                <div className="flex items-center justify-between">
+                                    <Label htmlFor="ban-user" className="font-medium">Ban User</Label>
                                     <Switch id="ban-user" />
                                 </div>
-                                <div className="flex items-center justify-between p-3 border rounded-lg">
-                                    <Label htmlFor="restrict-chat" className="flex flex-col space-y-1"><span className="font-medium">Restrict Chat</span><span className="font-normal leading-snug text-muted-foreground text-xs">Block this user from sending messages.</span></Label>
+                                 <div className="flex items-center justify-between">
+                                    <Label htmlFor="restrict-chat" className="font-medium">Restrict Chat</Label>
                                     <Switch id="restrict-chat" />
                                 </div>
                             </CardContent>
@@ -532,11 +532,17 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
                                 <CardHeader><CardTitle>Listed Products</CardTitle><CardDescription>Products listed by {profileData.displayName}.</CardDescription></CardHeader>
                                 <CardContent>
                                     <Table>
-                                        <TableHeader><TableRow><TableHead>Product</TableHead><TableHead>Category</TableHead><TableHead className="text-right">Price</TableHead></TableRow></TableHeader>
+                                        <TableHeader><TableRow><TableHead>Product</TableHead><TableHead>Category</TableHead><TableHead>Stock</TableHead><TableHead>Sales</TableHead><TableHead className="text-right">Price</TableHead></TableRow></TableHeader>
                                         <TableBody>
                                             {userProducts.length > 0 ? userProducts.map(product => (
-                                                <TableRow key={product.id}><TableCell className="font-medium"><Link href={`/product/${product.key}`} className="hover:underline">{product.name}</Link></TableCell><TableCell>{product.category}</TableCell><TableCell className="text-right">₹{product.price.toLocaleString()}</TableCell></TableRow>
-                                            )) : <TableRow><TableCell colSpan={3} className="text-center h-24">No products listed.</TableCell></TableRow>}
+                                                <TableRow key={product.id}>
+                                                    <TableCell className="font-medium"><Link href={`/product/${product.key}`} className="hover:underline">{product.name}</Link></TableCell>
+                                                    <TableCell>{product.category}</TableCell>
+                                                    <TableCell>{product.stock}</TableCell>
+                                                    <TableCell>{product.sold || 0}</TableCell>
+                                                    <TableCell className="text-right">₹{product.price.toLocaleString()}</TableCell>
+                                                </TableRow>
+                                            )) : <TableRow><TableCell colSpan={5} className="text-center h-24">No products listed.</TableCell></TableRow>}
                                         </TableBody>
                                     </Table>
                                 </CardContent>
@@ -563,5 +569,3 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
     </main>
   );
 }
-
-    
