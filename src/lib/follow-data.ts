@@ -53,6 +53,7 @@ export interface UserData {
     pan?: string;
     accountNumber?: string;
     ifsc?: string;
+    createdAt?: any;
 }
 
 const defaultUserData = (uid: string, defaults?: Partial<User>): Partial<UserData> => ({
@@ -81,9 +82,12 @@ const mockSellers: Record<string, UserData> = {
     'petpalace-uid': { uid: 'petpalace-uid', publicId: 'S-0008', displayName: 'PetPalace', email: 'woof@petpalace.com', photoURL: 'https://placehold.co/128x128.png?text=P', role: 'seller', followers: 1800, following: 220, bio: 'Everything your furry friends could ever want.', location: 'London, UK', phone: '', addresses: [], color: '#ffffff' },
     'booknook-uid': { uid: 'booknook-uid', publicId: 'S-0009', displayName: 'BookNook', email: 'read@booknook.com', photoURL: 'https://placehold.co/128x128.png?text=B', role: 'seller', followers: 620, following: 500, bio: 'A cozy corner for book lovers.', location: 'Edinburgh, Scotland', phone: '', addresses: [], color: '#ffffff' },
     'gamerguild-uid': { uid: 'gamerguild-uid', publicId: 'S-0010', displayName: 'GamerGuild', email: 'gg@gamerguild.com', photoURL: 'https://placehold.co/128x128.png?text=G', role: 'seller', followers: 4200, following: 10, bio: 'Top-tier gaming gear and accessories.', location: 'Taipei, Taiwan', phone: '', addresses: [], color: '#ffffff', twitch: 'https://twitch.tv/gamerguild' },
+    'mockUser1': { uid: 'mockUser1', displayName: 'Ganesh Prajapati', email: 'ganesh@example.com', photoURL: 'https://placehold.co/128x128.png?text=G', role: 'customer', followers: 10, following: 25, bio: 'Love finding unique items!', location: 'Pune, India', phone: '9876543210', addresses: [{ id: 1, name: 'Ganesh Prajapati', village: '123 Sunshine Apts', city: 'Pune', state: 'MH', pincode: '411001', phone: '9876543210' }], color: '#ffffff' },
+    'mockUser2': { uid: 'mockUser2', displayName: 'Peter Jones', email: 'peter.j@example.com', photoURL: 'https://placehold.co/128x128.png?text=P', role: 'customer', followers: 5, following: 12, bio: '', location: 'Jaipur, India', phone: '9876543213', addresses: [], color: '#ffffff' },
+    'mockUser3': { uid: 'mockUser3', displayName: 'Jessica Rodriguez', email: 'jessica.r@example.com', photoURL: 'https://placehold.co/128x128.png?text=J', role: 'customer', followers: 22, following: 40, bio: 'Tech and home decor enthusiast.', location: 'Chennai, India', phone: '9876543214', addresses: [], color: '#ffffff' },
 };
 
-// Function to get a list of all mock sellers
+// Function to get a list of all mock users (sellers and customers)
 export const getMockSellers = (): UserData[] => {
     return Object.values(mockSellers);
 };
@@ -91,11 +95,13 @@ export const getMockSellers = (): UserData[] => {
 export const getUserData = async (uid: string): Promise<UserData | null> => {
     if (!uid) return null;
 
+    // First, check our combined mock data object
     if (mockSellers[uid]) {
         return mockSellers[uid];
     }
     
     try {
+        // If not in mock data, try fetching from Firestore
         const db = getFirestoreDb();
         const userDocRef = doc(db, "users", uid);
         const userDoc = await getDoc(userDocRef);
@@ -103,16 +109,7 @@ export const getUserData = async (uid: string): Promise<UserData | null> => {
         if (userDoc.exists()) {
             return { ...userDoc.data(), uid: userDoc.id } as UserData;
         } else {
-             // If document doesn't exist, create a default one based on Auth info
-            console.warn(`No user document for UID: ${uid}. Creating default.`);
-            const auth = getFirebaseAuth(); // You'll need to import this
-            // This is a placeholder; in a real app, you might need to fetch the auth user record
-            // from the server if you're on the server. For client-side, this is fine.
-            const authUser = auth.currentUser;
-            if (authUser && authUser.uid === uid) {
-                const defaultData = defaultUserData(uid, authUser) as UserData;
-                return defaultData;
-            }
+            console.warn(`No user document or mock data found for UID: ${uid}.`);
             return null;
         }
     } catch (error) {
@@ -229,5 +226,3 @@ export const getUserByDisplayName = async (displayName: string): Promise<UserDat
 };
 
 export { getOrCreateConversation } from '@/ai/flows/chat-flow';
-
-    
