@@ -295,7 +295,7 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
                         <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setRevenueDetailView(null)}>
                             <ArrowLeft className="h-4 w-4"/>
                         </Button>
-                        <CardTitle>{title}</CardTitle>
+                        <CardTitle className="text-base">{title}</CardTitle>
                     </div>
                 </CardHeader>
                 <CardContent>
@@ -309,7 +309,7 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
                             {data.length > 0 ? data.map((item, index) => (
                                 <TableRow key={index}>
                                     {columns.map(col => (
-                                        <TableCell key={col.key}>
+                                        <TableCell key={col.key} className="text-xs">
                                             {col.type === 'currency' ? `₹${item[col.key].toLocaleString()}` :
                                              col.type === 'date' && item[col.key] ? format(item[col.key].toDate ? item[col.key].toDate() : new Date(item[col.key]), 'dd MMM, yyyy') :
                                              item[col.key]?.toString()}
@@ -329,21 +329,21 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
     <div className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <button className="text-left w-full" onClick={() => setRevenueDetailView('earnings')}>
-                <Card className="hover:bg-muted/50 transition-colors"><CardHeader><CardTitle className="text-sm font-medium">Total Earnings</CardTitle><CardDescription className="text-xs">Gross revenue from sales</CardDescription></CardHeader><CardContent><p className="text-2xl font-bold">₹{sellerRevenueData.totalEarnings.toLocaleString()}</p></CardContent></Card>
+                <Card className="hover:bg-muted/50 transition-colors"><CardHeader><CardTitle className="text-sm font-medium">Total Earnings</CardTitle><CardDescription className="text-xs">Gross revenue from sales</CardDescription></CardHeader><CardContent><p className="text-xl font-bold">₹{sellerRevenueData.totalEarnings.toLocaleString()}</p></CardContent></Card>
             </button>
-             <Card><CardHeader><CardTitle className="text-sm font-medium">Platform Commission</CardTitle><CardDescription className="text-xs">3% fee on earnings</CardDescription></CardHeader><CardContent><p className="text-2xl font-bold">₹{sellerRevenueData.platformCommission.toLocaleString()}</p></CardContent></Card>
+             <Card><CardHeader><CardTitle className="text-sm font-medium">Platform Commission</CardTitle><CardDescription className="text-xs">3% fee on earnings</CardDescription></CardHeader><CardContent><p className="text-xl font-bold">₹{sellerRevenueData.platformCommission.toLocaleString()}</p></CardContent></Card>
             <button className="text-left w-full" onClick={() => setRevenueDetailView('withdrawn')}>
-                <Card className="hover:bg-muted/50 transition-colors"><CardHeader><CardTitle className="text-sm font-medium">Total Withdrawn</CardTitle><CardDescription className="text-xs">All completed payouts</CardDescription></CardHeader><CardContent><p className="text-2xl font-bold">₹{sellerRevenueData.totalWithdrawn.toLocaleString()}</p></CardContent></Card>
+                <Card className="hover:bg-muted/50 transition-colors"><CardHeader><CardTitle className="text-sm font-medium">Total Withdrawn</CardTitle><CardDescription className="text-xs">All completed payouts</CardDescription></CardHeader><CardContent><p className="text-xl font-bold">₹{sellerRevenueData.totalWithdrawn.toLocaleString()}</p></CardContent></Card>
             </button>
              <button className="text-left w-full" onClick={() => setRevenueDetailView('pending')}>
-                <Card className="hover:bg-muted/50 transition-colors"><CardHeader><CardTitle className="text-sm font-medium">Pending Payouts</CardTitle><CardDescription className="text-xs">Awaiting admin approval</CardDescription></CardHeader><CardContent><p className="text-2xl font-bold">₹{sellerRevenueData.pendingPayouts.toLocaleString()}</p></CardContent></Card>
+                <Card className="hover:bg-muted/50 transition-colors"><CardHeader><CardTitle className="text-sm font-medium">Pending Payouts</CardTitle><CardDescription className="text-xs">Awaiting admin approval</CardDescription></CardHeader><CardContent><p className="text-xl font-bold">₹{sellerRevenueData.pendingPayouts.toLocaleString()}</p></CardContent></Card>
             </button>
         </div>
 
         {revenueDetailView ? renderRevenueDetailView() : (
             <Card>
                 <CardHeader>
-                    <CardTitle>Seller Revenue Timeline</CardTitle>
+                    <CardTitle className="text-base">Seller Revenue Timeline</CardTitle>
                     <CardDescription>Monthly gross sales revenue for this seller.</CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -362,7 +362,7 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
   );
 
   return (
-    <main className="flex-1 flex flex-col gap-4 p-4 md:gap-8 md:p-8">
+    <main className="flex-1 flex flex-col gap-4 p-4 md:gap-6 md:p-6">
         <Dialog onOpenChange={(open) => !open && setSelectedOrderForTimeline(null)}>
             <div className="flex flex-col gap-6">
                  <div className="flex items-start justify-between gap-4">
@@ -371,8 +371,8 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
                         Back to Users
                     </Button>
                 </div>
-                 <div className="grid grid-cols-1 xl:grid-cols-[280px_1fr] gap-6">
-                    <div className="grid auto-rows-max items-start gap-6">
+                 <div className="grid grid-cols-1 xl:grid-cols-[280px_1fr_280px] gap-6">
+                    <div className="grid auto-rows-max items-start gap-6 lg:col-span-1">
                         <Card>
                              <CardHeader>
                                 <div className="flex items-center justify-between">
@@ -394,7 +394,7 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
                                 </div>
                             </CardHeader>
                              <CardContent className="space-y-3 text-xs">
-                                <div className="font-semibold">Contact Information</div>
+                                <div className="font-semibold text-sm">Contact Information</div>
                                 <div className="flex items-center gap-2 text-muted-foreground"><Mail className="h-4 w-4" /> {profileData.email}</div>
                                 <div className="flex items-center gap-2 text-muted-foreground"><Phone className="h-4 w-4" /> {profileData.phone}</div>
                                 
@@ -409,9 +409,9 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
                                 
                                 <Separator className="my-3"/>
                                 
-                                <div className="flex items-center justify-between"><span>Role:</span> <Badge variant={profileData.role === 'admin' ? 'destructive' : profileData.role === 'seller' ? 'secondary' : 'outline'}>{profileData.role}</Badge></div>
-                                <div className="flex items-center justify-between"><span>KYC:</span> <Badge variant={profileData.kycStatus === 'verified' ? 'success' : 'warning'}>{profileData.kycStatus || 'pending'}</Badge></div>
-                                <div className="flex items-center justify-between"><span>Live Status:</span> {isLive ? <Badge variant="destructive" className="animate-pulse">LIVE</Badge> : <Badge variant="outline">Offline</Badge>}</div>
+                                <div className="flex items-center justify-between"><span>Role:</span> <Badge variant={profileData.role === 'admin' ? 'destructive' : profileData.role === 'seller' ? 'secondary' : 'outline'} className="text-xs">{profileData.role}</Badge></div>
+                                <div className="flex items-center justify-between"><span>KYC:</span> <Badge variant={profileData.kycStatus === 'verified' ? 'success' : 'warning'} className="text-xs">{profileData.kycStatus || 'pending'}</Badge></div>
+                                <div className="flex items-center justify-between"><span>Live Status:</span> {isLive ? <Badge variant="destructive" className="animate-pulse text-xs">LIVE</Badge> : <Badge variant="outline" className="text-xs">Offline</Badge>}</div>
                                 <div className="flex items-center justify-between"><span>Last Active:</span> <span>{profileData.lastLogin ? format(profileData.lastLogin.toDate(), 'dd MMM, p') : 'N/A'}</span></div>
                                 <div className="flex items-center justify-between"><span>Joined:</span> <span>{profileData.createdAt ? format(profileData.createdAt.toDate(), 'dd MMM, yyyy') : 'N/A'}</span></div>
                             </CardContent>
@@ -420,7 +420,7 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
                             <CardHeader>
                                 <CardTitle className="text-base">{profileData.role === 'seller' ? "Seller Stats" : "User Stats"}</CardTitle>
                             </CardHeader>
-                             <CardContent className="space-y-3 text-sm">
+                             <CardContent className="space-y-3 text-xs">
                                 {profileData.role === 'seller' ? (
                                     <>
                                         <div className="flex items-center justify-between">
@@ -470,53 +470,15 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
                                 )}
                             </CardContent>
                         </Card>
-                         <Card>
-                            <CardHeader>
-                                <CardTitle className="text-base">Admin Controls</CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                                <div className="flex items-center justify-between">
-                                    <Label htmlFor="ban-user" className="flex flex-col space-y-1">
-                                        <span className="font-medium text-sm">Ban User</span>
-                                        <span className="font-normal leading-snug text-muted-foreground text-xs">
-                                            Prevent this user from logging in.
-                                        </span>
-                                    </Label>
-                                    <Switch id="ban-user" />
-                                </div>
-                                <div className="flex items-center justify-between">
-                                    <Label htmlFor="restrict-chat" className="flex flex-col space-y-1">
-                                        <span className="font-medium text-sm">Restrict Chat Ability</span>
-                                        <span className="font-normal leading-snug text-muted-foreground text-xs">
-                                            Block this user from sending messages.
-                                        </span>
-                                    </Label>
-                                    <Switch id="restrict-chat" />
-                                </div>
-                                 <AlertDialog>
-                                    <AlertDialogTrigger asChild>
-                                        <Button variant="outline" size="sm" className="w-full">Remove Abusive Chat Messages</Button>
-                                    </AlertDialogTrigger>
-                                    <AlertDialogContent>
-                                        <AlertDialogHeader><AlertDialogTitle>Confirm Removal</AlertDialogTitle><AlertDialogDescription>This will permanently delete all chat messages sent by this user. This action cannot be undone.</AlertDialogDescription></AlertDialogHeader>
-                                        <AlertDialogFooter><AlertDialogCancel>Cancel</AlertDialogCancel><AlertDialogAction>Confirm & Delete</AlertDialogAction></AlertDialogFooter>
-                                    </AlertDialogContent>
-                                </AlertDialog>
-                                 <div className="space-y-2 pt-2">
-                                     <Label className="font-medium text-sm">Admin Notes</Label>
-                                     <Textarea placeholder="Add private notes about this user..." value={adminNotes} onChange={(e) => setAdminNotes(e.target.value)} />
-                                     <Button size="sm" onClick={handleSaveAdminNotes}>Save Notes</Button>
-                                 </div>
-                            </CardContent>
-                        </Card>
                     </div>
-                    <div className="grid auto-rows-max items-start gap-4 lg:col-span-1 xl:col-span-3">
+                    <div className="grid auto-rows-max items-start gap-4 xl:col-span-2">
                         <Tabs defaultValue="orders">
                             <TabsList>
                                 <TabsTrigger value="orders">Orders</TabsTrigger>
                                 <TabsTrigger value="transactions">Transactions</TabsTrigger>
                                 {profileData.role === 'seller' && <TabsTrigger value="products">Products</TabsTrigger>}
                                 {profileData.role === 'seller' && <TabsTrigger value="revenue">Revenue</TabsTrigger>}
+                                <TabsTrigger value="notes">Admin Notes</TabsTrigger>
                             </TabsList>
                             <TabsContent value="orders">
                                 <Card>
@@ -583,6 +545,51 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
                             </TabsContent>
                             <TabsContent value="revenue">
                                 {renderRevenueView()}
+                            </TabsContent>
+                             <TabsContent value="notes">
+                                <Card>
+                                    <CardHeader>
+                                        <CardTitle className="text-base">Admin Notes & Controls</CardTitle>
+                                        <CardDescription className="text-sm">Internal notes and moderation actions for this user.</CardDescription>
+                                    </CardHeader>
+                                    <CardContent className="space-y-4">
+                                        <div className="space-y-2">
+                                            <Label htmlFor="admin-notes">Private Notes</Label>
+                                            <Textarea id="admin-notes" placeholder="Add private notes about this user..." value={adminNotes} onChange={(e) => setAdminNotes(e.target.value)} />
+                                            <Button size="sm" onClick={handleSaveAdminNotes}>Save Notes</Button>
+                                        </div>
+                                         <Separator />
+                                         <div className="space-y-4">
+                                            <div className="flex items-center justify-between">
+                                                <Label htmlFor="ban-user" className="flex flex-col space-y-1">
+                                                    <span className="font-medium text-sm">Ban User</span>
+                                                    <span className="font-normal leading-snug text-muted-foreground text-xs">
+                                                        Prevent this user from logging in.
+                                                    </span>
+                                                </Label>
+                                                <Switch id="ban-user" />
+                                            </div>
+                                            <div className="flex items-center justify-between">
+                                                <Label htmlFor="restrict-chat" className="flex flex-col space-y-1">
+                                                    <span className="font-medium text-sm">Restrict Chat Ability</span>
+                                                    <span className="font-normal leading-snug text-muted-foreground text-xs">
+                                                        Block this user from sending messages.
+                                                    </span>
+                                                </Label>
+                                                <Switch id="restrict-chat" />
+                                            </div>
+                                            <AlertDialog>
+                                                <AlertDialogTrigger asChild>
+                                                    <Button variant="outline" size="sm" className="w-full">Remove Abusive Chat Messages</Button>
+                                                </AlertDialogTrigger>
+                                                <AlertDialogContent>
+                                                    <AlertDialogHeader><AlertDialogTitle>Confirm Removal</AlertDialogTitle><AlertDialogDescription>This will permanently delete all chat messages sent by this user. This action cannot be undone.</AlertDialogDescription></AlertDialogHeader>
+                                                    <AlertDialogFooter><AlertDialogCancel>Cancel</AlertDialogCancel><AlertDialogAction>Confirm & Delete</AlertDialogAction></AlertDialogFooter>
+                                                </AlertDialogContent>
+                                            </AlertDialog>
+                                         </div>
+                                    </CardContent>
+                                </Card>
                             </TabsContent>
                         </Tabs>
                     </div>
