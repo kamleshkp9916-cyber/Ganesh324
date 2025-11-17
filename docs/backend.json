@@ -24,6 +24,11 @@
           "type": "string",
           "description": "The date and time the user signed up.",
           "format": "date-time"
+        },
+        "lastLogin": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The timestamp of the user's last login, used for session management."
         }
       },
       "required": [

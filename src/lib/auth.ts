@@ -1,7 +1,7 @@
 
 "use client";
 
-import { GoogleAuthProvider, signInWithPopup, signOut as firebaseSignOut, sendPasswordResetEmail, User, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendEmailVerification, getAdditionalUserInfo, updateProfile } from "firebase/auth";
+import { GoogleAuthProvider, signInWithPopup, signOut as firebaseSignOut, sendPasswordResetEmail, User, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendEmailVerification, getAdditionalUserInfo, updateProfile, setPersistence, browserSessionPersistence } from "firebase/auth";
 import { getFirebaseAuth, getFirebaseStorage } from "./firebase";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
@@ -86,6 +86,17 @@ export function useAuthActions() {
     const handleEmailSignIn = async (values: any) => {
         const auth = getFirebaseAuth();
         try {
+            // Check if the user is an admin to set session persistence
+            const db = getFirestoreDb();
+            const q = query(collection(db, "users"), where("email", "==", values.email), limit(1));
+            const querySnapshot = await getDocs(q);
+            if (!querySnapshot.empty) {
+                const userData = querySnapshot.docs[0].data();
+                if (userData.role === 'admin') {
+                    await setPersistence(auth, browserSessionPersistence);
+                }
+            }
+
             await signInWithEmailAndPassword(auth, values.email, values.password);
              toast({
                 title: "Logged In!",
