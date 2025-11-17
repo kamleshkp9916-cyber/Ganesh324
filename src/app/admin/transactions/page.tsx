@@ -92,6 +92,10 @@ const InvoiceComponent = React.forwardRef<HTMLDivElement, { transaction: Transac
 
     return (
         <DialogContent className="max-w-3xl p-0" id="printable-order">
+            <DialogHeader className="sr-only">
+                <DialogTitle>Invoice {transaction.transactionId}</DialogTitle>
+                <DialogDescription>A summary of the transaction for {transaction.buyerName}.</DialogDescription>
+            </DialogHeader>
              <style>
                 {`
                 @media print {
@@ -177,12 +181,12 @@ const InvoiceComponent = React.forwardRef<HTMLDivElement, { transaction: Transac
                     </Table>
                     
                     <div className="flex justify-end mt-8">
-                        <div className="w-full max-w-sm space-y-3">
-                            <div className="flex justify-between items-center"><span className="text-muted-foreground">Subtotal</span><span>{new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(subtotal)}</span></div>
-                            {isOrder && <div className="flex justify-between items-center"><span className="text-muted-foreground">Shipping</span><span>{new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(shippingFee)}</span></div>}
+                         <div className="w-full max-w-sm space-y-3">
+                             <div className="flex justify-between items-center"><span className="text-muted-foreground">Subtotal</span><span>{new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(subtotal)}</span></div>
+                             {isOrder && <div className="flex justify-between items-center"><span className="text-muted-foreground">Shipping</span><span>{new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(shippingFee)}</span></div>}
                             {isOrder && <div className="flex justify-between items-center"><span className="text-muted-foreground">Tax (5%)</span><span>{new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(tax)}</span></div>}
-                            <Separator />
-                            <div className="flex justify-between items-center font-bold text-lg">
+                             <Separator />
+                             <div className="flex justify-between items-center font-bold text-lg">
                                 <span>{transaction.type === 'Refund' ? 'Amount Refunded' : 'Total'}</span>
                                 <span>{new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(isOrder ? total : Math.abs(transaction.amount))}</span>
                             </div>
