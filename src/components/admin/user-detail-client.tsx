@@ -363,9 +363,9 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
   );
 
   return (
-    <main className="flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
+    <main className="flex-1 flex flex-col gap-4 p-4 md:gap-8 md:p-8">
         <Dialog onOpenChange={(open) => !open && setSelectedOrderForTimeline(null)}>
-            <div className="space-y-6">
+            <div className="flex flex-col gap-6">
                  <div className="flex items-center justify-between gap-4">
                      <Button variant="outline" size="sm" onClick={() => router.back()} className="flex items-center gap-1">
                         <ArrowLeft className="h-4 w-4" />
@@ -510,7 +510,7 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
                                      <Label>Admin Notes</Label>
                                      <Textarea placeholder="Add private notes about this user..." value={adminNotes} onChange={(e) => setAdminNotes(e.target.value)} />
                                      <Button size="sm" onClick={handleSaveAdminNotes}>Save Notes</Button>
-                                </div>
+                                 </div>
                             </CardContent>
                         </Card>
                     </div>
