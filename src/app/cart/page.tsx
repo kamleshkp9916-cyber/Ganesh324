@@ -19,7 +19,7 @@ import { EditAddressForm } from '@/components/edit-address-form';
 import { productDetails } from '@/lib/product-data';
 import { UserData, updateUserData } from '@/lib/follow-data';
 import { SHIPPING_SETTINGS_KEY, ShippingSettings } from '@/components/settings/shipping-settings';
-import { Coupon, COUPONS_KEY } from '@/components/settings/promotions-settings';
+import { Coupon, COUPONS_KEY, AdditionalCharge, ADDITIONAL_CHARGES_KEY } from '@/components/settings/keys';
 import { useLocalStorage } from '@/hooks/use-local-storage';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -47,6 +47,8 @@ const defaultShippingSettings: ShippingSettings = {
     deliveryCharge: 50.00
 };
 
+const defaultAdditionalCharges: AdditionalCharge[] = [];
+
 export default function CartPage() {
   const router = useRouter();
   const { user, userData, loading } = useAuth();
@@ -64,6 +66,7 @@ export default function CartPage() {
   
   const [shippingSettings] = useLocalStorage<ShippingSettings>(SHIPPING_SETTINGS_KEY, defaultShippingSettings);
   const [storedCoupons] = useLocalStorage<Coupon[]>(COUPONS_KEY, []);
+  const [additionalCharges] = useLocalStorage<AdditionalCharge[]>(ADDITIONAL_CHARGES_KEY, defaultAdditionalCharges);
 
   useEffect(() => {
     setIsClient(true);
@@ -172,9 +175,25 @@ export default function CartPage() {
     return discount;
 }, [appliedCoupon, cartItems, subtotal]);
 
+    const applicableCharges = useMemo(() => {
+        return additionalCharges.filter(charge => charge.displayLocation.includes('Cart Summary'));
+    }, [additionalCharges]);
+
+    const totalAdditionalCharges = useMemo(() => {
+        return applicableCharges.reduce((acc, charge) => {
+            if (charge.type === 'fixed') {
+                return acc + charge.value;
+            }
+            if (charge.type === 'percentage') {
+                return acc + (subtotal * (charge.value / 100));
+            }
+            return acc;
+        }, 0);
+    }, [applicableCharges, subtotal]);
+
   const shippingCost = shippingSettings?.deliveryCharge ?? 50.00;
   const estimatedTaxes = subtotal * 0.05;
-  const total = subtotal - couponDiscount + shippingCost + estimatedTaxes;
+  const total = subtotal - couponDiscount + shippingCost + estimatedTaxes + totalAdditionalCharges;
 
   const handleApplyCoupon = (code: string) => {
     const couponToApply = availableCoupons.find(c => c.code.toLowerCase() === code.toLowerCase());
@@ -346,6 +365,12 @@ export default function CartPage() {
                                 <span className="text-muted-foreground">Subtotal</span>
                                 <span>₹{subtotal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                             </div>
+                            {applicableCharges.map(charge => (
+                                <div key={charge.id} className="flex justify-between">
+                                    <span className="text-muted-foreground">{charge.name}</span>
+                                    <span>{charge.type === 'fixed' ? `₹${charge.value.toFixed(2)}` : `${charge.value}%`}</span>
+                                </div>
+                            ))}
                             {appliedCoupon && (
                                 <div className="flex justify-between items-center text-green-600 dark:text-green-400">
                                     <span className="flex items-center gap-1.5"><Tag className="h-4 w-4"/> Coupon ({appliedCoupon.code})</span>
