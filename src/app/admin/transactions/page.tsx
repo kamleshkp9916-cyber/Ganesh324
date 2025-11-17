@@ -83,6 +83,13 @@ const InvoiceComponent = React.forwardRef<HTMLDivElement, { transaction: Transac
     }
     const statusInfo = getStatusInfo();
 
+    const isOrder = transaction.type === 'Order';
+    const shippingFee = isOrder ? 50.00 : 0;
+    const subtotal = isOrder ? Math.abs(transaction.amount) - shippingFee : Math.abs(transaction.amount);
+    const tax = isOrder ? subtotal * 0.05 : 0;
+    const total = subtotal + shippingFee + tax;
+
+
     return (
         <DialogContent className="max-w-3xl p-0" id="printable-order">
              <style>
@@ -160,23 +167,24 @@ const InvoiceComponent = React.forwardRef<HTMLDivElement, { transaction: Transac
                             <TableRow>
                                 <TableCell>
                                     <p className="font-medium">{transaction.description}</p>
-                                    <p className="text-xs text-muted-foreground">Order ID: {transaction.orderId}</p>
+                                    {transaction.orderId && <p className="text-xs text-muted-foreground">Order ID: {transaction.orderId}</p>}
                                 </TableCell>
                                 <TableCell className="text-center">1</TableCell>
-                                <TableCell className="text-right">{new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(Math.abs(transaction.amount))}</TableCell>
-                                <TableCell className="text-right">{new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(Math.abs(transaction.amount))}</TableCell>
+                                <TableCell className="text-right">{new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(subtotal)}</TableCell>
+                                <TableCell className="text-right">{new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(subtotal)}</TableCell>
                             </TableRow>
                         </TableBody>
                     </Table>
                     
                     <div className="flex justify-end mt-8">
                         <div className="w-full max-w-sm space-y-3">
-                            <div className="flex justify-between items-center"><span className="text-muted-foreground">Subtotal</span><span>{new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(Math.abs(transaction.amount))}</span></div>
-                            <div className="flex justify-between items-center"><span className="text-muted-foreground">Tax (0%)</span><span>₹0.00</span></div>
+                            <div className="flex justify-between items-center"><span className="text-muted-foreground">Subtotal</span><span>{new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(subtotal)}</span></div>
+                            {isOrder && <div className="flex justify-between items-center"><span className="text-muted-foreground">Shipping</span><span>{new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(shippingFee)}</span></div>}
+                            {isOrder && <div className="flex justify-between items-center"><span className="text-muted-foreground">Tax (5%)</span><span>{new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(tax)}</span></div>}
                             <Separator />
                             <div className="flex justify-between items-center font-bold text-lg">
-                                <span>{transaction.type === 'Refund' ? 'Amount Refunded' : 'Total Paid'}</span>
-                                <span>{new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(Math.abs(transaction.amount))}</span>
+                                <span>{transaction.type === 'Refund' ? 'Amount Refunded' : 'Total'}</span>
+                                <span>{new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(isOrder ? total : Math.abs(transaction.amount))}</span>
                             </div>
                             {transaction.status === 'Failed' && (
                                  <div className="flex justify-between items-center text-destructive font-bold text-lg p-2 bg-destructive/10 rounded-md"><span>Payment Failed</span></div>
@@ -573,5 +581,3 @@ export default function AdminTransactionsPage() {
         </AlertDialog>
     );
 }
-
-    
