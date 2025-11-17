@@ -1,4 +1,5 @@
 
+
 "use client"
 
 import {
@@ -76,7 +77,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip, Legend } from "recharts"
 import { collection, query, where, getDocs, orderBy, onSnapshot } from "firebase/firestore";
 import { format, parseISO } from "date-fns";
-import { liveSellers } from "@/app/stream/[streamId]/page"
+import { liveSellers } from "@/lib/product-data"
 
 
 type Product = {
