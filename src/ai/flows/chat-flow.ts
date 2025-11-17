@@ -11,7 +11,7 @@
 
 import { z } from 'genkit';
 import { getFirebaseAdminApp } from '@/lib/firebase-server';
-import { getFirestore, Timestamp, FieldValue, Filter, doc, collection, query, where, getDocs as adminGetDocs, orderBy, addDoc, updateDoc, increment } from 'firebase-admin/firestore';
+import { getFirestore, Timestamp, FieldValue, Filter, doc, collection, query, where, getDocs as adminGetDocs, orderBy, addDoc, updateDoc, increment, getDoc } from 'firebase-admin/firestore';
 import { UserData } from '@/lib/follow-data';
 import { Message, Conversation } from '@/components/messaging/common';
 import { format } from 'date-fns';
@@ -25,27 +25,31 @@ export async function getOrCreateConversation(currentUserId: string, otherUserId
     const db = getFirestore(getFirebaseAdminApp());
     const conversationId = getConversationId(currentUserId, otherUserId);
     const conversationRef = db.collection('conversations').doc(conversationId);
-    const conversationDoc = await conversationRef.get();
-
-    if (!conversationDoc.exists) {
-        await conversationRef.set({
-            participants: [currentUserId, otherUserId],
-            participantData: {
-                [currentUserId]: {
-                    displayName: currentUserData.displayName,
-                    photoURL: currentUserData.photoURL
+    
+    // Use a transaction to prevent race conditions
+    const conversationDoc = await db.runTransaction(async (transaction) => {
+        const doc = await transaction.get(conversationRef);
+        if (!doc.exists) {
+            transaction.set(conversationRef, {
+                participants: [currentUserId, otherUserId],
+                participantData: {
+                    [currentUserId]: {
+                        displayName: currentUserData.displayName,
+                        photoURL: currentUserData.photoURL
+                    },
+                    [otherUserId]: {
+                        displayName: otherUserData.displayName,
+                        photoURL: otherUserData.photoURL
+                    }
                 },
-                [otherUserId]: {
-                    displayName: otherUserData.displayName,
-                    photoURL: otherUserData.photoURL
-                }
-            },
-            lastMessage: "Conversation started.",
-            lastMessageTimestamp: FieldValue.serverTimestamp(),
-            unreadCount: { [currentUserId]: 0, [otherUserId]: 0 },
-            status: "open",
-        });
-    }
+                lastMessage: "Conversation started.",
+                lastMessageTimestamp: FieldValue.serverTimestamp(),
+                unreadCount: { [currentUserId]: 0, [otherUserId]: 0 },
+                status: "open",
+            });
+        }
+        return doc; // Return the doc for consistency, even though we refetch below
+    });
 
     return conversationId;
 }
@@ -117,7 +121,7 @@ export async function sendMessage(
 
     await addDoc(messagesRef, newMessage);
 
-    const conversationDoc = await conversationRef.get();
+    const conversationDoc = await getDoc(conversationRef);
     const conversationData = conversationDoc.data();
     if (conversationData) {
         const otherParticipantId = conversationData.participants.find((p: string) => p !== senderId);
