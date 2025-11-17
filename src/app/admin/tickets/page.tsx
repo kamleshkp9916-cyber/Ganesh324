@@ -166,18 +166,6 @@ export default function SupportDashboardPage() {
                             <CardDescription>{selectedTicket.id} • {selectedTicket.role}</CardDescription>
                         </div>
                         <div className="flex items-center gap-3">
-                            <div className="text-sm">
-                                <Label>Assignee</Label>
-                                <Select value={selectedTicket.assignee} onValueChange={(val) => toggleAssign(selectedTicket.id, val)}>
-                                    <SelectTrigger className="h-8 w-32 mt-1"><SelectValue /></SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="Unassigned">Unassigned</SelectItem>
-                                        <SelectItem value="Admin A">Admin A</SelectItem>
-                                        <SelectItem value="Admin B">Admin B</SelectItem>
-                                        <SelectItem value="Support Bot">Support Bot</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </div>
                              <div className="text-sm">
                                 <Label>Status</Label>
                                 <div className="mt-1 flex items-center gap-1">
@@ -248,5 +236,3 @@ export default function SupportDashboardPage() {
     </AdminLayout>
   );
 }
-
-    
