@@ -4,28 +4,28 @@
 export interface Transaction {
     id: number;
     transactionId: string;
+    orderId?: string;
+    buyerName?: string;
     type: 'Order' | 'Refund' | 'Deposit' | 'Withdrawal' | 'Bid';
     description: string;
     date: string;
     time: string;
     amount: number;
-    avatar?: string;
     status: 'Completed' | 'Processing' | 'Failed';
-    items?: any[];
-    discount?: number;
-    paymentMethod?: string;
-    gatewayTransactionId?: string;
+    reasonForFailure?: string;
+    paymentMethodDetails?: string; // For Bank/UPI info
+    refundId?: string;
 }
 
 const TRANSACTIONS_KEY = 'streamcart_transactions';
 
 const defaultTransactions: Transaction[] = [
-    { id: 1, transactionId: 'TXN-984213', type: 'Order', description: 'Paid via Wallet', date: '2025-09-09T22:30:00.000Z', time: '10:30 PM', amount: -2336.40, avatar: 'https://placehold.co/40x40.png?text=O', status: 'Completed', discount: -120.00, items: [{ key: 'prod_1', name: 'Noise Cancelling Headphones', qty: 1, unitPrice: 1980.00 }, { key: 'prod_1_ship', name: 'Express Shipping', qty: 1, unitPrice: 120.00 }], paymentMethod: 'Wallet', gatewayTransactionId: 'PAY-ABC123XYZ' },
-    { id: 2, transactionId: 'TXN-984112', type: 'Order', description: 'Paid via UPI', date: '2025-09-08T08:15:00.000Z', time: '08:15 AM', amount: -7240.00, avatar: 'https://placehold.co/40x40.png?text=O', status: 'Completed', items: [{ key: 'prod_2', name: 'Vintage Camera', qty: 1, unitPrice: 7240.00 }], paymentMethod: 'UPI', gatewayTransactionId: 'PAY-DEF456ABC' },
-    { id: 3, transactionId: 'REF-MOCK5678', type: 'Refund', description: 'For cancelled order #MOCK5678', date: '2025-09-08T09:00:00.000Z', time: '09:00 AM', amount: 5200.00, avatar: 'https://placehold.co/40x40.png?text=R', status: 'Completed', paymentMethod: 'Wallet', gatewayTransactionId: 'REF-GHI789DEF' },
-    { id: 4, transactionId: 'TXN-001244', type: 'Deposit', description: 'PhonePe Deposit', date: '2025-09-10T11:00:00.000Z', time: '11:00 AM', amount: 1000.00, avatar: 'https://placehold.co/40x40.png?text=D', status: 'Failed', paymentMethod: 'UPI', gatewayTransactionId: 'PAY-JKL012GHI' },
-    { id: 5, transactionId: 'AUC-5721', type: 'Bid', description: 'Auction Hold + Wallet', date: '2025-09-07T19:45:00.000Z', time: '07:45 PM', amount: -9900.00, avatar: 'https://placehold.co/40x40.png?text=B', status: 'Processing', paymentMethod: 'Wallet', gatewayTransactionId: 'PAY-MNO345JKL' },
-    { id: 6, transactionId: 'WD-3319', type: 'Withdrawal', description: 'To Bank + IMPS', date: '2025-09-06T14:00:00.000Z', time: '02:00 PM', amount: -20000.00, avatar: 'https://placehold.co/40x40.png?text=W', status: 'Completed', paymentMethod: 'Bank Transfer', gatewayTransactionId: 'PAY-PQR678MNO' },
+    { id: 1, transactionId: 'txn_1a2b3c4d5e6f', orderId: '#ORD5896', buyerName: 'Ganesh Prajapati', type: 'Order', description: 'Vintage Camera', date: '2024-07-29T10:00:00.000Z', time: '10:00 AM', amount: 12500.00, status: 'Completed', paymentMethodDetails: 'UPI: ganesh@okhdfc' },
+    { id: 2, transactionId: 'txn_7g8h9i0j1k2l', orderId: '#ORD5897', buyerName: 'Jane Doe', type: 'Order', description: 'Wireless Headphones', date: '2024-07-28T12:30:00.000Z', time: '12:30 PM', amount: 4999.00, status: 'Completed', paymentMethodDetails: 'Card: **** 4567' },
+    { id: 3, transactionId: 'txn_3m4n5o6p7q8r', orderId: '#ORD5903', buyerName: 'Jessica Rodriguez', type: 'Order', description: 'Coffee Maker', date: '2024-07-19T11:45:00.000Z', time: '11:45 AM', amount: 4500.00, status: 'Completed', refundId: 'ref_jess456', paymentMethodDetails: 'Netbanking' },
+    { id: 4, transactionId: 'txn_a1b2c3d4e5f6', orderId: '#ORD5910', buyerName: 'Michael Bui', type: 'Order', description: 'Smart Watch', date: '2024-07-30T09:00:00.000Z', time: '09:00 AM', amount: 899.00, status: 'Failed', reasonForFailure: 'Incorrect CVV', paymentMethodDetails: 'Card: **** 1121' },
+    { id: 5, transactionId: 'txn_f6e5d4c3b2a1', orderId: '#ORD5911', buyerName: 'Emily Carter', type: 'Order', description: 'Leather Backpack', date: '2024-07-30T09:05:00.000Z', time: '09:05 AM', amount: 2300.00, status: 'Failed', reasonForFailure: 'Insufficient Funds', paymentMethodDetails: 'UPI: emilyc@okaxis' },
+    { id: 6, transactionId: 'txn_p0o9i8u7y6t5', type: 'Refund', description: 'For order #ORD5903', date: '2024-07-20T14:00:00.000Z', time: '02:00 PM', amount: 4500.00, status: 'Completed', refundId: 'ref_jess456' },
 ];
 
 export const getTransactions = (): Transaction[] => {
@@ -33,7 +33,6 @@ export const getTransactions = (): Transaction[] => {
     try {
         const items = localStorage.getItem(TRANSACTIONS_KEY);
         const parsedItems = items ? JSON.parse(items) : defaultTransactions;
-        // Ensure default transactions are present if local storage is empty or invalid
         return Array.isArray(parsedItems) && parsedItems.length > 0 ? parsedItems : defaultTransactions;
     } catch (error) {
         console.warn("Could not read transactions from local storage, falling back to default.", error);
