@@ -42,7 +42,8 @@ export async function getOrCreateConversation(currentUserId: string, otherUserId
             },
             lastMessage: "Conversation started.",
             lastMessageTimestamp: FieldValue.serverTimestamp(),
-            unreadCount: { [currentUserId]: 0, [otherUserId]: 0 }
+            unreadCount: { [currentUserId]: 0, [otherUserId]: 0 },
+            status: "open",
         });
     }
 

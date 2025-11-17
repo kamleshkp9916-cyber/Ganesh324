@@ -24,6 +24,7 @@ import {
   Rss,
   Loader2,
   Banknote,
+  Ticket,
 } from "lucide-react"
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { Badge } from "@/components/ui/badge"
@@ -70,6 +71,7 @@ const navItems = [
     { href: "/admin/messages", icon: MessageSquare, label: "Messages" },
     { href: "/admin/inquiries", icon: FileText, label: "Inquiries" },
     { href: "/admin/feed", icon: Rss, label: "Feed" },
+    { href: "/admin/tickets", icon: Ticket, label: "Tickets" },
 ];
 
 const featuresItems = [
@@ -143,7 +145,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
             try {
                 const [customerSnapshot, sellerSnapshot] = await Promise.all([
                     getDocs(customerQuery),
-                    getDocs(sellerQuery)
+                    getDocs(sellerSnapshot)
                 ]);
 
                 const customers = customerSnapshot.docs.map(doc => ({...doc.data(), uid: doc.id} as UserData));
