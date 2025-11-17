@@ -1,11 +1,15 @@
 
+
 export const PROMOTIONAL_SLIDES_KEY = 'streamcart_promotional_slides';
 export const COUPONS_KEY = 'streamcart_coupons';
 export const CATEGORY_BANNERS_KEY = 'streamcart_category_banners';
 export const CATEGORY_HUB_BANNER_KEY = 'streamcart_category_hub_banner';
 export const PAYOUT_REQUESTS_KEY = 'streamcart_payout_requests';
+export const PLATFORM_FEES_KEY = 'streamcart_platform_fees';
+export const ADDITIONAL_CHARGES_KEY = 'streamcart_additional_charges';
 
-// Type definitions that were in promotions-settings.tsx
+
+// Type definitions
 export interface Slide {
   id: number;
   imageUrl: string;
@@ -44,4 +48,17 @@ export interface HubBanner {
   title: string;
   description: string;
   imageUrl: string;
+}
+
+export interface PlatformFees {
+  orderCommission: number;
+  superChatCommission: number;
+}
+
+export interface AdditionalCharge {
+  id: number;
+  name: string;
+  type: 'fixed' | 'percentage';
+  value: number;
+  displayLocation: ('Cart Summary' | 'Payment Page' | 'Order Invoice')[];
 }

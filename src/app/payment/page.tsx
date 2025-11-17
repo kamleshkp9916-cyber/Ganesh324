@@ -18,7 +18,7 @@ import { getCart, CartProduct, saveCart } from '@/lib/product-history';
 import { useAuth } from '@/hooks/use-auth';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { ShippingSettings, SHIPPING_SETTINGS_KEY } from '@/components/settings/shipping-settings';
-import { Coupon, COUPONS_KEY } from '@/components/settings/promotions-settings';
+import { Coupon, COUPONS_KEY, AdditionalCharge, ADDITIONAL_CHARGES_KEY } from '@/components/settings/keys';
 import { useLocalStorage } from '@/hooks/use-local-storage';
 import { productDetails, productToSellerMapping } from '@/lib/product-data';
 import Link from 'next/link';
@@ -43,9 +43,11 @@ const defaultShippingSettings: ShippingSettings = {
 };
 
 const initialCoupons: Coupon[] = [
-    { id: 1, code: 'STREAM10', description: '10% off on all orders', discountType: 'percentage', discountValue: 10, expiresAt: new Date(new Date().setDate(new Date().getDate() + 7)), applicableCategories: ['All'], minOrderValue: 0, status: 'active' },
+    { id: 1, code: 'STREAM10', description: '10% off on all orders', discountType: 'percentage', discountValue: 10, expiresAt: new Date(new Date().setDate(new Date().getDate() + 7)), applicableCategories: ['All'], status: 'active' },
     { id: 2, code: 'SAVE100', description: '₹100 off on orders above ₹1000', discountType: 'fixed', discountValue: 100, minOrderValue: 1000, applicableCategories: ['All'], status: 'active' },
 ];
+
+const defaultAdditionalCharges: AdditionalCharge[] = [];
 
 type PaymentMethod = 'upi' | 'cod' | 'debit' | 'credit' | 'wallet' | 'coins';
 
@@ -155,6 +157,7 @@ export default function PaymentPage() {
 
   const [shippingSettings] = useLocalStorage<ShippingSettings>(SHIPPING_SETTINGS_KEY, defaultShippingSettings);
   const [allOffers, setAllOffers] = useLocalStorage<Coupon[]>(COUPONS_KEY, []);
+  const [additionalCharges] = useLocalStorage<AdditionalCharge[]>(ADDITIONAL_CHARGES_KEY, defaultAdditionalCharges);
   
   const [isHelpChatOpen, setIsHelpChatOpen] = useState(false);
 
@@ -205,7 +208,7 @@ export default function PaymentPage() {
   }, [isClient, searchParams, router, toast, userData]);
 
 
-  const { subtotal, shippingCost, estimatedTaxes, total, couponDiscount } = useMemo(() => {
+  const { subtotal, shippingCost, estimatedTaxes, total, couponDiscount, totalAdditionalCharges, applicableCharges } = useMemo(() => {
     const sub = cartItems.reduce((acc, item) => {
         const price = parseFloat(item.price.replace(/[^0-9.-]+/g,""));
         return acc + (item.quantity * price);
@@ -250,16 +253,29 @@ export default function PaymentPage() {
         }
     }
 
-    const tot = sub - discount + ship + tax;
+    const filteredCharges = additionalCharges.filter(charge => charge.displayLocation.includes('Payment Page'));
+    const additionalChargesTotal = filteredCharges.reduce((acc, charge) => {
+        if (charge.type === 'fixed') {
+            return acc + charge.value;
+        }
+        if (charge.type === 'percentage') {
+            return acc + (sub * (charge.value / 100));
+        }
+        return acc;
+    }, 0);
+
+    const tot = sub - discount + ship + tax + additionalChargesTotal;
     
     return {
         subtotal: sub,
         shippingCost: ship,
         estimatedTaxes: tax,
         total: tot,
-        couponDiscount: discount
+        couponDiscount: discount,
+        totalAdditionalCharges: additionalChargesTotal,
+        applicableCharges: filteredCharges
     };
-  }, [cartItems, shippingSettings, appliedCoupon, allOffers]);
+  }, [cartItems, shippingSettings, appliedCoupon, allOffers, additionalCharges]);
 
     const availableOffers = useMemo(() => {
         if (!allOffers || allOffers.length === 0) return [];
@@ -764,6 +780,12 @@ export default function PaymentPage() {
                                     <span className="text-muted-foreground">Subtotal</span>
                                     <span>₹{subtotal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                                 </div>
+                                {applicableCharges.map(charge => (
+                                <div key={charge.id} className="flex justify-between">
+                                    <span className="text-muted-foreground">{charge.name}</span>
+                                    <span>+ ₹{charge.type === 'fixed' ? charge.value.toFixed(2) : (subtotal * charge.value / 100).toFixed(2)}</span>
+                                </div>
+                                ))}
                                 {couponDiscount > 0 && (
                                      <div className="flex justify-between text-green-600">
                                         <span className="text-muted-foreground">Discount</span>
