@@ -30,6 +30,8 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import Link from 'next/link';
+import { Pagination, PaginationContent, PaginationItem, PaginationPrevious, PaginationNext } from '@/components/ui/pagination';
+
 
 const RefundDialog = ({ transaction, onApprove, onReject }: { transaction: Transaction, onApprove: (id: string) => void, onReject: (id: string) => void }) => {
     const [reason, setReason] = useState("");
@@ -71,6 +73,9 @@ export default function AdminTransactionsPage() {
     const { toast } = useToast();
     const [date, setDate] = React.useState<DateRange | undefined>(undefined);
     const [managingRefund, setManagingRefund] = useState<Transaction | null>(null);
+
+    const [currentPage, setCurrentPage] = useState(1);
+    const TRANSACTIONS_PER_PAGE = 20;
 
     useEffect(() => {
         setIsClient(true);
@@ -114,10 +119,11 @@ export default function AdminTransactionsPage() {
             tempTransactions = tempTransactions.filter(t => t.type === typeFilter);
         }
 
-        if (date?.from && date?.to) {
-            tempTransactions = tempTransactions.filter(t => {
+        if (date?.from) {
+             const toDate = date.to ? date.to : date.from; // If only one date is selected, treat it as a single-day range
+             tempTransactions = tempTransactions.filter(t => {
                 const transactionDate = parseISO(t.date);
-                return isWithinInterval(transactionDate, { start: date.from!, end: date.to! });
+                return isWithinInterval(transactionDate, { start: date.from!, end: toDate });
             });
         }
 
@@ -134,6 +140,21 @@ export default function AdminTransactionsPage() {
         return tempTransactions;
     }, [transactions, statusFilter, typeFilter, debouncedSearchTerm, date]);
     
+    const totalPages = Math.ceil(filteredTransactions.length / TRANSACTIONS_PER_PAGE);
+
+    const paginatedTransactions = useMemo(() => {
+        const startIndex = (currentPage - 1) * TRANSACTIONS_PER_PAGE;
+        const endIndex = startIndex + TRANSACTIONS_PER_PAGE;
+        return filteredTransactions.slice(startIndex, endIndex);
+    }, [filteredTransactions, currentPage]);
+
+    const handlePageChange = (page: number) => {
+        if (page > 0 && page <= totalPages) {
+            setCurrentPage(page);
+        }
+    };
+
+
     const handleExportCSV = () => {
         if (filteredTransactions.length === 0) {
             toast({ title: "No data to export", variant: "destructive" });
@@ -207,6 +228,9 @@ export default function AdminTransactionsPage() {
                                       </Button>
                                     </PopoverTrigger>
                                     <PopoverContent className="w-auto p-0" align="end">
+                                        <div className="p-2 border-b">
+                                            <Button variant="ghost" size="sm" className="w-full justify-start" onClick={() => setDate(undefined)}>Clear</Button>
+                                        </div>
                                       <Calendar
                                         initialFocus
                                         mode="range"
@@ -277,8 +301,8 @@ export default function AdminTransactionsPage() {
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {isClient && filteredTransactions.length > 0 ? (
-                                    filteredTransactions.map(t => (
+                                {isClient && paginatedTransactions.length > 0 ? (
+                                    paginatedTransactions.map(t => (
                                         <TableRow key={t.id}>
                                             <TableCell>
                                                 <p className="font-mono text-xs">{t.transactionId}</p>
@@ -333,8 +357,25 @@ export default function AdminTransactionsPage() {
                     </CardContent>
                     <CardFooter>
                          <div className="text-xs text-muted-foreground">
-                            Showing <strong>{filteredTransactions.length}</strong> transactions
+                            Showing <strong>{paginatedTransactions.length}</strong> of <strong>{filteredTransactions.length}</strong> transactions
                         </div>
+                        {totalPages > 1 && (
+                            <Pagination className="ml-auto mr-0 w-auto">
+                                <PaginationContent>
+                                    <PaginationItem>
+                                        <Button variant="outline" onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1}>Previous</Button>
+                                    </PaginationItem>
+                                     <PaginationItem>
+                                        <span className="p-2 text-sm font-medium">
+                                            Page {currentPage} of {totalPages}
+                                        </span>
+                                    </PaginationItem>
+                                    <PaginationItem>
+                                        <Button variant="outline" onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages}>Next</Button>
+                                    </PaginationItem>
+                                </PaginationContent>
+                            </Pagination>
+                        )}
                     </CardFooter>
                 </Card>
             </main>
@@ -343,3 +384,5 @@ export default function AdminTransactionsPage() {
         </AlertDialog>
     );
 }
+
+    
