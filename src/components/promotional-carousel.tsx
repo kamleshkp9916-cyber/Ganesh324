@@ -13,11 +13,11 @@ import {
 } from "@/components/ui/carousel";
 import Autoplay from "embla-carousel-autoplay";
 import { useLocalStorage } from '@/hooks/use-local-storage';
-import { PROMOTIONAL_SLIDES_KEY, Slide } from '@/app/admin/settings/page';
 import { Skeleton } from './ui/skeleton';
 import { Button } from './ui/button';
 import { cn } from '@/lib/utils';
 import { Zap } from 'lucide-react';
+import { Slide, PROMOTIONAL_SLIDES_KEY } from './settings/promotions-settings';
 
 const defaultSlides: Slide[] = [
   { id: 1, imageUrl: 'https://images.unsplash.com/photo-1568252542512-9fe8fe9c87bb?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxmYXNoaW9uJTIwbW9kZWx8ZW58MHx8fHwxNzYxNTYyNzc5fDA&ixlib=rb-4.1.0&q=80&w=1080', title: "Discover products you'll love", description: "Curated picks, timeless design, and everyday prices. Start exploring our latest arrivals and best sellers." },

@@ -47,7 +47,7 @@ export const PROMOTIONAL_SLIDES_KEY = 'streamcart_promotional_slides';
 export const COUPONS_KEY = 'streamcart_coupons';
 export const CATEGORY_BANNERS_KEY = 'streamcart_category_banners';
 export const CATEGORY_HUB_BANNER_KEY = 'streamcart_category_hub_banner';
-
+export const PAYOUT_REQUESTS_KEY = 'streamcart_payout_requests';
 
 export interface Slide {
   id: number;

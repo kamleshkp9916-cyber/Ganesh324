@@ -91,9 +91,9 @@ import { cn } from "@/lib/utils";
 import { useDebounce } from "@/hooks/use-debounce";
 import { createImpersonationToken } from "@/ai/flows/impersonation-flow";
 import { AdminLayout } from "@/components/admin/admin-layout";
-import { PAYOUT_REQUESTS_KEY } from "@/app/admin/settings/page";
 import { useLocalStorage } from "@/hooks/use-local-storage";
 import { Separator } from "@/components/ui/separator";
+import { PAYOUT_REQUESTS_KEY } from "@/components/settings/promotions-settings";
 
 
 const mockPayments = [
