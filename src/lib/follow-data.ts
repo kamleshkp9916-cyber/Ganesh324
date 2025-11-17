@@ -143,7 +143,7 @@ export const createUserData = async (user: User, role: 'customer' | 'seller' | '
 
     const userData: UserData = {
         ...defaultUserData(user.uid, user),
-        id: user.uid, // Add this line
+        id: user.uid, // Explicitly set the id field for the security rule
         role: userRole,
         createdAt: serverTimestamp(),
         lastLogin: serverTimestamp(),
@@ -154,17 +154,19 @@ export const createUserData = async (user: User, role: 'customer' | 'seller' | '
     delete (userData as any).password;
     delete (userData as any).confirmPassword;
 
-    // Use a non-blocking write with error handling
-    setDoc(userDocRef, userData, { merge: true }).catch(async (error) => {
+    try {
+        await setDoc(userDocRef, userData, { merge: true });
+    } catch (error) {
+        // Emit a detailed error for debugging security rule issues
         const permissionError = new FirestorePermissionError({
             path: userDocRef.path,
             operation: 'create', // or 'write'
             requestResourceData: userData,
         });
         errorEmitter.emit('permission-error', permissionError);
-        // We throw the original error as well so the calling function knows about the failure
+        // Re-throw the original error to ensure the calling function knows about the failure
         throw error;
-    });
+    }
 };
 
 
