@@ -329,14 +329,14 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
     <div className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <button className="text-left w-full" onClick={() => setRevenueDetailView('earnings')}>
-                <Card className="hover:bg-muted/50 transition-colors"><CardHeader><CardTitle>Total Earnings</CardTitle><CardDescription>Gross revenue from sales</CardDescription></CardHeader><CardContent><p className="text-xl font-bold">₹{sellerRevenueData.totalEarnings.toLocaleString()}</p></CardContent></Card>
+                <Card className="hover:bg-muted/50 transition-colors"><CardHeader><CardTitle className="text-sm font-medium">Total Earnings</CardTitle><CardDescription className="text-xs">Gross revenue from sales</CardDescription></CardHeader><CardContent><p className="text-2xl font-bold">₹{sellerRevenueData.totalEarnings.toLocaleString()}</p></CardContent></Card>
             </button>
-             <Card><CardHeader><CardTitle>Platform Commission</CardTitle><CardDescription>3% fee on earnings</CardDescription></CardHeader><CardContent><p className="text-xl font-bold">₹{sellerRevenueData.platformCommission.toLocaleString()}</p></CardContent></Card>
+             <Card><CardHeader><CardTitle className="text-sm font-medium">Platform Commission</CardTitle><CardDescription className="text-xs">3% fee on earnings</CardDescription></CardHeader><CardContent><p className="text-2xl font-bold">₹{sellerRevenueData.platformCommission.toLocaleString()}</p></CardContent></Card>
             <button className="text-left w-full" onClick={() => setRevenueDetailView('withdrawn')}>
-                <Card className="hover:bg-muted/50 transition-colors"><CardHeader><CardTitle>Total Withdrawn</CardTitle><CardDescription>All completed payouts</CardDescription></CardHeader><CardContent><p className="text-xl font-bold">₹{sellerRevenueData.totalWithdrawn.toLocaleString()}</p></CardContent></Card>
+                <Card className="hover:bg-muted/50 transition-colors"><CardHeader><CardTitle className="text-sm font-medium">Total Withdrawn</CardTitle><CardDescription className="text-xs">All completed payouts</CardDescription></CardHeader><CardContent><p className="text-2xl font-bold">₹{sellerRevenueData.totalWithdrawn.toLocaleString()}</p></CardContent></Card>
             </button>
              <button className="text-left w-full" onClick={() => setRevenueDetailView('pending')}>
-                <Card className="hover:bg-muted/50 transition-colors"><CardHeader><CardTitle>Pending Payouts</CardTitle><CardDescription>Awaiting admin approval</CardDescription></CardHeader><CardContent><p className="text-xl font-bold">₹{sellerRevenueData.pendingPayouts.toLocaleString()}</p></CardContent></Card>
+                <Card className="hover:bg-muted/50 transition-colors"><CardHeader><CardTitle className="text-sm font-medium">Pending Payouts</CardTitle><CardDescription className="text-xs">Awaiting admin approval</CardDescription></CardHeader><CardContent><p className="text-2xl font-bold">₹{sellerRevenueData.pendingPayouts.toLocaleString()}</p></CardContent></Card>
             </button>
         </div>
 
@@ -365,33 +365,30 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
     <main className="flex-1 flex flex-col gap-4 p-4 md:gap-8 md:p-8">
         <Dialog onOpenChange={(open) => !open && setSelectedOrderForTimeline(null)}>
             <div className="flex flex-col gap-6">
-                 <div className="flex items-center justify-between gap-4">
+                <div className="flex items-start justify-between gap-4">
                      <Button variant="outline" size="sm" onClick={() => router.back()} className="flex items-center gap-1">
                         <ArrowLeft className="h-4 w-4" />
                         Back to Users
                     </Button>
-                    <h1 className="text-lg font-semibold tracking-tight sm:grow-0">
-                        User Profile
-                    </h1>
                 </div>
-                <div className="grid gap-6 md:grid-cols-3 lg:grid-cols-3">
+                 <div className="grid gap-6 md:grid-cols-3 lg:grid-cols-4">
                     <div className="grid auto-rows-max items-start gap-6 lg:col-span-1">
                         <Card>
                              <CardHeader>
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-4">
-                                        <Avatar className="h-16 w-16">
+                                        <Avatar className="h-12 w-12">
                                             <AvatarImage src={profileData.photoURL} />
                                             <AvatarFallback>{profileData.displayName?.charAt(0)}</AvatarFallback>
                                         </Avatar>
                                         <div>
-                                            <CardTitle className="flex items-center gap-2 text-xl">{profileData.displayName}</CardTitle>
+                                            <CardTitle className="text-lg">{profileData.displayName}</CardTitle>
                                             <p className="text-xs text-muted-foreground">{profileData.publicId || profileData.uid}</p>
                                         </div>
                                     </div>
-                                    <Button asChild size="sm">
+                                    <Button asChild size="sm" className="h-7">
                                         <Link href={`/admin/messages?userId=${profileData.uid}&userName=${profileData.displayName}`}>
-                                            <MessageSquare className="mr-2 h-4 w-4" /> Message
+                                            <MessageSquare className="mr-2 h-3 w-3" /> Message
                                         </Link>
                                     </Button>
                                 </div>
@@ -480,7 +477,7 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
                             <CardContent className="space-y-4">
                                 <div className="flex items-center justify-between">
                                     <Label htmlFor="ban-user" className="flex flex-col space-y-1">
-                                        <span className="font-medium">Ban User</span>
+                                        <span className="font-medium text-sm">Ban User</span>
                                         <span className="font-normal leading-snug text-muted-foreground text-xs">
                                             Prevent this user from logging in.
                                         </span>
@@ -489,7 +486,7 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
                                 </div>
                                 <div className="flex items-center justify-between">
                                     <Label htmlFor="restrict-chat" className="flex flex-col space-y-1">
-                                        <span className="font-medium">Restrict Chat Ability</span>
+                                        <span className="font-medium text-sm">Restrict Chat Ability</span>
                                         <span className="font-normal leading-snug text-muted-foreground text-xs">
                                             Block this user from sending messages.
                                         </span>
@@ -498,7 +495,7 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
                                 </div>
                                  <AlertDialog>
                                     <AlertDialogTrigger asChild>
-                                        <Button variant="outline" className="w-full">Remove Abusive Chat Messages</Button>
+                                        <Button variant="outline" size="sm" className="w-full">Remove Abusive Chat Messages</Button>
                                     </AlertDialogTrigger>
                                     <AlertDialogContent>
                                         <AlertDialogHeader><AlertDialogTitle>Confirm Removal</AlertDialogTitle><AlertDialogDescription>This will permanently delete all chat messages sent by this user. This action cannot be undone.</AlertDialogDescription></AlertDialogHeader>
@@ -506,14 +503,14 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
                                     </AlertDialogContent>
                                 </AlertDialog>
                                  <div className="space-y-2 pt-2">
-                                     <Label className="font-medium">Admin Notes</Label>
+                                     <Label className="font-medium text-sm">Admin Notes</Label>
                                      <Textarea placeholder="Add private notes about this user..." value={adminNotes} onChange={(e) => setAdminNotes(e.target.value)} />
                                      <Button size="sm" onClick={handleSaveAdminNotes}>Save Notes</Button>
                                  </div>
                             </CardContent>
                         </Card>
                     </div>
-                        <div className="grid auto-rows-max items-start gap-4 lg:col-span-2">
+                        <div className="grid auto-rows-max items-start gap-4 lg:col-span-3">
                         <Tabs defaultValue="orders">
                             <TabsList>
                                 <TabsTrigger value="orders">Orders</TabsTrigger>
