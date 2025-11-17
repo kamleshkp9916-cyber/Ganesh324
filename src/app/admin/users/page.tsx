@@ -152,7 +152,7 @@ const PayoutSummaryDialog = ({ payout, onConfirm, onCancel }: { payout: any, onC
 };
 
 
-const UserTable = ({ users, onViewDetails, onDelete, onImpersonate }: { users: any[], onViewDetails: (user: any) => void, onDelete: (user: any) => void, onImpersonate: (user: any) => void }) => {
+const UserTable = ({ users, onViewDetails, onDelete }: { users: any[], onViewDetails: (user: any) => void, onDelete: (user: any) => void }) => {
     const [isMounted, setIsMounted] = useState(false);
     useEffect(() => setIsMounted(true), []);
 
@@ -191,11 +191,6 @@ const UserTable = ({ users, onViewDetails, onDelete, onImpersonate }: { users: a
                                     </Button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end">
-                                    <DropdownMenuItem onSelect={() => onImpersonate(u)}>
-                                        <LogIn className="mr-2 h-4 w-4" />
-                                        Login as User
-                                    </DropdownMenuItem>
-                                    <DropdownMenuSeparator />
                                     <DropdownMenuItem className="text-destructive" onSelect={() => onDelete(u)}>
                                         <Trash2 className="mr-2 h-4 w-4" />
                                         Delete Account
@@ -274,31 +269,6 @@ export default function AdminUsersPage() {
       setUserToPromote(userToPromote);
       setIsPromoteAlertOpen(true);
   };
-
-  const handleImpersonateUser = async (userToImpersonate: any) => {
-    if (!user || user.uid === userToImpersonate.uid) {
-        toast({ variant: 'destructive', title: "Cannot impersonate yourself."});
-        return;
-    }
-    
-    try {
-        toast({ title: "Generating login token..." });
-        const { token } = await createImpersonationToken(userToImpersonate.uid);
-        
-        localStorage.setItem('impersonationToken', token);
-        localStorage.setItem('adminToken', await user.getIdToken()); 
-
-        const newTab = window.open('/', '_blank');
-        if (newTab) {
-            newTab.focus();
-        } else {
-             toast({ variant: 'destructive', title: "Popup blocked", description: "Please allow popups for this site."});
-        }
-    } catch (error) {
-        console.error("Impersonation error:", error);
-        toast({ variant: 'destructive', title: "Impersonation Failed", description: "Could not log in as the selected user." });
-    }
-  }
 
   const confirmDeleteUser = async () => {
       if (!userToDelete) return;
@@ -407,7 +377,7 @@ export default function AdminUsersPage() {
                         <CardDescription>Manage all customer accounts.</CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <UserTable users={customers} onViewDetails={handleViewDetails} onDelete={handleDeleteUserClick} onImpersonate={handleImpersonateUser}/>
+                        <UserTable users={customers} onViewDetails={handleViewDetails} onDelete={handleDeleteUserClick} onMakeAdmin={handleMakeAdminClick} onImpersonate={() => {}}/>
                     </CardContent>
                 </Card>
              </TabsContent>
@@ -418,7 +388,7 @@ export default function AdminUsersPage() {
                         <CardDescription>Manage all verified seller accounts.</CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <UserTable users={sellers} onViewDetails={handleViewDetails} onDelete={handleDeleteUserClick} onImpersonate={handleImpersonateUser}/>
+                        <UserTable users={sellers} onViewDetails={handleViewDetails} onDelete={handleDeleteUserClick} onMakeAdmin={handleMakeAdminClick} onImpersonate={() => {}}/>
                     </CardContent>
                 </Card>
              </TabsContent>
@@ -487,5 +457,7 @@ export default function AdminUsersPage() {
     </>
   )
 }
+
+    
 
     
