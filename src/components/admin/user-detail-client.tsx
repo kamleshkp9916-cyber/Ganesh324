@@ -256,75 +256,75 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
   }
 
   const renderRevenueDetailView = () => {
-        let title = '';
-        let data: any[] = [];
-        let columns: { key: string, label: string, type?: 'currency' | 'date' | 'badge' }[] = [];
+    let title = '';
+    let data: any[] = [];
+    let columns: { key: string, label: string, type?: 'currency' | 'date' | 'badge' }[] = [];
 
-        switch(revenueDetailView) {
-            case 'earnings':
-                title = 'Total Earnings Breakdown';
-                data = userOrders.filter(o => getStatusFromTimeline(o.timeline) === 'Delivered');
-                columns = [
-                    { key: 'orderId', label: 'Order ID' },
-                    { key: 'orderDate', label: 'Date', type: 'date' },
-                    { key: 'total', label: 'Amount', type: 'currency' }
-                ];
-                break;
-            case 'withdrawn':
-                 title = 'Completed Payouts';
-                 data = payouts.filter(p => p.status === 'paid');
-                 columns = [
-                    { key: 'payoutDate', label: 'Date Paid', type: 'date' },
-                    { key: 'amount', label: 'Amount', type: 'currency' }
-                 ];
-                 break;
-            case 'pending':
-                title = 'Pending Payouts';
-                data = payouts.filter(p => p.status === 'pending');
-                columns = [
-                    { key: 'requestedAt', label: 'Date Requested', type: 'date' },
-                    { key: 'amount', label: 'Amount', type: 'currency' }
-                ];
-                break;
-            default:
-                return null;
-        }
-        
-        return (
-            <Card>
-                <CardHeader>
-                    <div className="flex items-center gap-2">
-                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setRevenueDetailView(null)}>
-                            <ArrowLeft className="h-4 w-4"/>
-                        </Button>
-                        <CardTitle className="text-base">{title}</CardTitle>
-                    </div>
-                </CardHeader>
-                <CardContent>
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                {columns.map(col => <TableHead key={col.key}>{col.label}</TableHead>)}
+    switch(revenueDetailView) {
+        case 'earnings':
+            title = 'Total Earnings Breakdown';
+            data = userOrders.filter(o => getStatusFromTimeline(o.timeline) === 'Delivered');
+            columns = [
+                { key: 'orderId', label: 'Order ID' },
+                { key: 'orderDate', label: 'Date', type: 'date' },
+                { key: 'total', label: 'Amount', type: 'currency' }
+            ];
+            break;
+        case 'withdrawn':
+             title = 'Completed Payouts';
+             data = payouts.filter(p => p.status === 'paid');
+             columns = [
+                { key: 'payoutDate', label: 'Date Paid', type: 'date' },
+                { key: 'amount', label: 'Amount', type: 'currency' }
+             ];
+             break;
+        case 'pending':
+            title = 'Pending Payouts';
+            data = payouts.filter(p => p.status === 'pending');
+            columns = [
+                { key: 'requestedAt', label: 'Date Requested', type: 'date' },
+                { key: 'amount', label: 'Amount', type: 'currency' }
+            ];
+            break;
+        default:
+            return null;
+    }
+    
+    return (
+        <Card>
+            <CardHeader>
+                <div className="flex items-center gap-2">
+                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setRevenueDetailView(null)}>
+                        <ArrowLeft className="h-4 w-4"/>
+                    </Button>
+                    <CardTitle className="text-base">{title}</CardTitle>
+                </div>
+            </CardHeader>
+            <CardContent>
+                <Table>
+                    <TableHeader>
+                        <TableRow>
+                            {columns.map(col => <TableHead key={col.key}>{col.label}</TableHead>)}
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {data.length > 0 ? data.map((item, index) => (
+                            <TableRow key={index}>
+                                {columns.map(col => (
+                                    <TableCell key={col.key} className="text-xs">
+                                        {col.type === 'currency' ? `₹${item[col.key].toLocaleString()}` :
+                                         col.type === 'date' && item[col.key] ? format(item[col.key].toDate ? item[col.key].toDate() : new Date(item[col.key]), 'dd MMM, yyyy') :
+                                         item[col.key]?.toString()}
+                                    </TableCell>
+                                ))}
                             </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {data.length > 0 ? data.map((item, index) => (
-                                <TableRow key={index}>
-                                    {columns.map(col => (
-                                        <TableCell key={col.key} className="text-xs">
-                                            {col.type === 'currency' ? `₹${item[col.key].toLocaleString()}` :
-                                             col.type === 'date' && item[col.key] ? format(item[col.key].toDate ? item[col.key].toDate() : new Date(item[col.key]), 'dd MMM, yyyy') :
-                                             item[col.key]?.toString()}
-                                        </TableCell>
-                                    ))}
-                                </TableRow>
-                            )) : <TableRow><TableCell colSpan={columns.length} className="text-center h-24">No data available.</TableCell></TableRow>}
-                        </TableBody>
-                    </Table>
-                </CardContent>
-            </Card>
-        )
-    };
+                        )) : <TableRow><TableCell colSpan={columns.length} className="text-center h-24">No data available.</TableCell></TableRow>}
+                    </TableBody>
+                </Table>
+            </CardContent>
+        </Card>
+    );
+  };
 
   const renderRevenueView = () => (
     <div className="space-y-6">
@@ -365,122 +365,117 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
   );
   
   return (
-    <main className="flex-1 flex flex-col gap-4 p-4 md:gap-6 md:p-6">
+     <main className="flex-1 flex flex-col gap-4 p-4 md:gap-6 md:p-6">
         <Dialog onOpenChange={(open) => !open && setSelectedOrderForTimeline(null)}>
             <div className="flex flex-col gap-6">
-                <div className="flex items-start justify-between gap-4">
+                 <div className="flex items-start justify-between gap-4">
                     <Button variant="outline" size="sm" onClick={() => router.back()} className="flex items-center gap-1">
                         <ArrowLeft className="h-4 w-4" />
                         Back to Users
                     </Button>
+                     <div className="flex items-center gap-2">
+                        <Button asChild size="sm" className="h-8">
+                            <Link href={`/admin/messages?userId=${profileData.uid}&userName=${profileData.displayName}`}>
+                                <MessageSquare className="mr-2 h-4 w-4" /> Message
+                            </Link>
+                        </Button>
+                    </div>
                 </div>
-                 
-                <Card>
-                    <CardHeader>
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-4">
-                                <Avatar className="h-16 w-16">
-                                    <AvatarImage src={profileData.photoURL} />
-                                    <AvatarFallback className="text-xl">{profileData.displayName?.charAt(0)}</AvatarFallback>
-                                </Avatar>
-                                <div>
-                                    <CardTitle className="text-2xl">{profileData.displayName}</CardTitle>
-                                    <p className="text-sm text-muted-foreground">{profileData.publicId || profileData.uid}</p>
+                
+                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                    <div className="lg:col-span-12">
+                         <Card>
+                            <CardHeader>
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-4">
+                                        <Avatar className="h-20 w-20">
+                                            <AvatarImage src={profileData.photoURL} />
+                                            <AvatarFallback className="text-3xl">{profileData.displayName?.charAt(0)}</AvatarFallback>
+                                        </Avatar>
+                                        <div>
+                                            <CardTitle className="text-3xl">{profileData.displayName}</CardTitle>
+                                            <p className="text-sm text-muted-foreground">{profileData.publicId || profileData.uid}</p>
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
-                             <Button asChild size="sm" className="h-8">
-                                <Link href={`/admin/messages?userId=${profileData.uid}&userName=${profileData.displayName}`}>
-                                    <MessageSquare className="mr-2 h-4 w-4" /> Message
-                                </Link>
-                            </Button>
-                        </div>
-                    </CardHeader>
-                    <CardContent className="space-y-3 text-sm">
-                        <div>
-                            <h4 className="font-semibold mb-1 text-xs uppercase text-muted-foreground">Contact Information</h4>
-                            <div className="space-y-1 text-muted-foreground">
-                                <div className="flex items-center gap-2"><Mail className="h-4 w-4" /> {profileData.email}</div>
-                                <div className="flex items-center gap-2"><Phone className="h-4 w-4" /> {profileData.phone}</div>
+                            </CardHeader>
+                        </Card>
+                    </div>
+
+                    <div className="lg:col-span-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <Card>
+                            <CardHeader><CardTitle className="text-lg">Contact Information</CardTitle></CardHeader>
+                            <CardContent className="space-y-3 text-sm">
+                                <div className="flex items-center gap-3"><Mail className="h-4 w-4 flex-shrink-0 text-muted-foreground" /> <span className="truncate">{profileData.email}</span></div>
+                                <div className="flex items-center gap-3"><Phone className="h-4 w-4 flex-shrink-0 text-muted-foreground" /> {profileData.phone}</div>
                                 {profileData.addresses && profileData.addresses.length > 0 && (
-                                    <div className="flex items-start gap-2 pt-1">
-                                        <MapPin className="h-4 w-4 mt-0.5" /> 
+                                    <div className="flex items-start gap-3 pt-1">
+                                        <MapPin className="h-4 w-4 mt-0.5 flex-shrink-0 text-muted-foreground" /> 
                                         <address className="not-italic">
                                             {profileData.addresses[0].village}, {profileData.addresses[0].district}, {profileData.addresses[0].city}, {profileData.addresses[0].state} - {profileData.addresses[0].pincode}
                                         </address>
                                     </div>
                                 )}
-                            </div>
-                        </div>
-                        <Separator className="my-3"/>
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-2">
-                            <span className="font-medium text-muted-foreground">Role:</span> <Badge variant={profileData.role === 'admin' ? 'destructive' : profileData.role === 'seller' ? 'secondary' : 'outline'}>{profileData.role}</Badge>
-                            <span className="font-medium text-muted-foreground">KYC:</span> <Badge variant={profileData.kycStatus === 'verified' ? 'success' : 'warning'}>{profileData.kycStatus || 'pending'}</Badge>
-                            <span className="font-medium text-muted-foreground">Live Status:</span> {isLive ? <Badge variant="destructive" className="animate-pulse">LIVE</Badge> : <Badge variant="outline">Offline</Badge>}
-                            <span className="font-medium text-muted-foreground">Last Active:</span> <span>{profileData.lastLogin ? format(profileData.lastLogin.toDate(), 'dd MMM, p') : 'N/A'}</span>
-                            <span className="font-medium text-muted-foreground">Joined:</span> <span>{profileData.createdAt ? format(profileData.createdAt.toDate(), 'dd MMM, yyyy') : 'N/A'}</span>
-                        </div>
-                    </CardContent>
-                </Card>
-                
-                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                     <Card>
-                        <CardHeader><CardTitle className="text-lg">{profileData.role === 'seller' ? "Seller Stats" : "User Stats"}</CardTitle></CardHeader>
-                        <CardContent className="space-y-2 text-sm">
-                            {profileData.role === 'seller' ? (
-                                <>
-                                    <div className="flex items-center justify-between"><span className="text-muted-foreground">Total Earnings</span><span className="font-semibold">₹{sellerRevenueData.totalEarnings.toLocaleString()}</span></div>
-                                    <div className="flex items-center justify-between"><span className="text-muted-foreground">Products Listed</span><span className="font-semibold">{userProducts.length}</span></div>
-                                    <div className="flex items-center justify-between"><span className="text-muted-foreground">Total Orders</span><span className="font-semibold">{totalOrders}</span></div>
-                                    <div className="flex items-center justify-between"><span className="text-muted-foreground">Total Streams</span><span className="font-semibold">{totalStreams}</span></div>
-                                    <div className="flex items-center justify-between"><span className="text-muted-foreground">Avg. Rating</span><span className="font-semibold flex items-center gap-1">{sellerAverageRating} <Star className="h-4 w-4 text-yellow-400" /></span></div>
-                                </>
-                            ) : (
-                                <>
-                                    <div className="flex items-center justify-between"><span className="text-muted-foreground">Total Spent</span><span className="font-semibold">₹{totalSpent.toLocaleString()}</span></div>
-                                    <div className="flex items-center justify-between"><span className="text-muted-foreground">Total Orders</span><span className="font-semibold">{totalOrders}</span></div>
-                                    <div className="flex items-center justify-between"><span className="text-muted-foreground">Cancelled</span><span className="font-semibold">{cancelledOrders}</span></div>
-                                    <div className="flex items-center justify-between"><span className="text-muted-foreground">Returned</span><span className="font-semibold">{returnedOrders}</span></div>
-                                    <div className="flex items-center justify-between"><span className="text-muted-foreground">Avg. Order Value</span><span className="font-semibold">₹{avgOrderValue.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span></div>
-                                </>
-                            )}
-                        </CardContent>
-                    </Card>
-                    
-                    {profileData.role === 'customer' && (
-                        <Card>
-                            <CardHeader><CardTitle className="text-lg">Behaviour Analytics</CardTitle><CardDescription className="text-sm">Helps detect risk & fraud.</CardDescription></CardHeader>
-                            <CardContent className="space-y-2 text-sm">
-                                <div className="flex items-center justify-between"><span className="text-muted-foreground">Streams Watched</span><span className="font-semibold">5</span></div>
-                                <div className="flex items-center justify-between"><span className="text-muted-foreground">Avg. Watch Time</span><span className="font-semibold">12 mins</span></div>
-                                <div className="flex items-center justify-between"><span className="text-muted-foreground">Items Bought</span><span className="font-semibold">{totalOrders}</span></div>
-                                <div className="flex items-center justify-between"><span className="text-muted-foreground">Cancel/Refunds</span><span className="font-semibold">{cancelledOrders + returnedOrders}</span></div>
+                                 <Separator className="my-3"/>
+                                 <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+                                    <span className="font-medium text-muted-foreground">Role:</span> <Badge variant={profileData.role === 'admin' ? 'destructive' : profileData.role === 'seller' ? 'secondary' : 'outline'}>{profileData.role}</Badge>
+                                    <span className="font-medium text-muted-foreground">KYC:</span> <Badge variant={profileData.kycStatus === 'verified' ? 'success' : 'warning'}>{profileData.kycStatus || 'pending'}</Badge>
+                                    <span className="font-medium text-muted-foreground">Live Status:</span> {isLive ? <Badge variant="destructive" className="animate-pulse">LIVE</Badge> : <Badge variant="outline">Offline</Badge>}
+                                    <span className="font-medium text-muted-foreground">Last Active:</span> <span>{profileData.lastLogin ? format(profileData.lastLogin.toDate(), 'dd MMM, p') : 'N/A'}</span>
+                                    <span className="font-medium text-muted-foreground">Joined:</span> <span>{profileData.createdAt ? format(profileData.createdAt.toDate(), 'dd MMM, yyyy') : 'N/A'}</span>
+                                </div>
                             </CardContent>
                         </Card>
-                    )}
 
-                    <Card>
-                        <CardHeader><CardTitle className="text-lg">Admin Controls</CardTitle></CardHeader>
-                        <CardContent className="space-y-3">
-                            <div className="flex items-center justify-between p-3 border rounded-lg">
-                                <Label htmlFor="ban-user" className="flex flex-col space-y-1"><span className="font-medium">Ban User</span><span className="font-normal leading-snug text-muted-foreground text-xs">Prevent this user from logging in.</span></Label>
-                                <Switch id="ban-user" />
-                            </div>
-                            <div className="flex items-center justify-between p-3 border rounded-lg">
-                                <Label htmlFor="restrict-chat" className="flex flex-col space-y-1"><span className="font-medium">Restrict Chat Ability</span><span className="font-normal leading-snug text-muted-foreground text-xs">Block this user from sending messages.</span></Label>
-                                <Switch id="restrict-chat" />
-                            </div>
-                             <AlertDialog>
-                                <AlertDialogTrigger asChild>
-                                    <Button variant="outline" size="sm" className="w-full">Remove Abusive Chat Messages</Button>
-                                </AlertDialogTrigger>
-                                <AlertDialogContent>
-                                    <AlertDialogHeader><AlertDialogTitle>Are you sure?</AlertDialogTitle><AlertDialogDescription>This will permanently delete all chat messages sent by this user across the platform.</AlertDialogDescription></AlertDialogHeader>
-                                    <AlertDialogFooter><AlertDialogCancel>Cancel</AlertDialogCancel><AlertDialogAction>Confirm</AlertDialogAction></AlertDialogContent>
-                            </AlertDialog>
-                        </CardContent>
-                    </Card>
-                 </div>
-
+                        <Card>
+                            <CardHeader><CardTitle className="text-lg">{profileData.role === 'seller' ? "Seller Stats" : "User Stats"}</CardTitle></CardHeader>
+                            <CardContent className="space-y-2 text-sm">
+                                {profileData.role === 'seller' ? (
+                                    <>
+                                        <div className="flex items-center justify-between"><span className="text-muted-foreground">Total Earnings</span><span className="font-semibold">₹{sellerRevenueData.totalEarnings.toLocaleString()}</span></div>
+                                        <div className="flex items-center justify-between"><span className="text-muted-foreground">Products Listed</span><span className="font-semibold">{userProducts.length}</span></div>
+                                        <div className="flex items-center justify-between"><span className="text-muted-foreground">Total Orders</span><span className="font-semibold">{totalOrders}</span></div>
+                                        <div className="flex items-center justify-between"><span className="text-muted-foreground">Total Streams</span><span className="font-semibold">{totalStreams}</span></div>
+                                        <div className="flex items-center justify-between"><span className="text-muted-foreground">Avg. Rating</span><span className="font-semibold flex items-center gap-1">{sellerAverageRating} <Star className="h-4 w-4 text-yellow-400" /></span></div>
+                                    </>
+                                ) : (
+                                    <>
+                                        <div className="flex items-center justify-between"><span className="text-muted-foreground">Total Spent</span><span className="font-semibold">₹{totalSpent.toLocaleString()}</span></div>
+                                        <div className="flex items-center justify-between"><span className="text-muted-foreground">Total Orders</span><span className="font-semibold">{totalOrders}</span></div>
+                                        <div className="flex items-center justify-between"><span className="text-muted-foreground">Cancelled</span><span className="font-semibold">{cancelledOrders}</span></div>
+                                        <div className="flex items-center justify-between"><span className="text-muted-foreground">Returned</span><span className="font-semibold">{returnedOrders}</span></div>
+                                        <div className="flex items-center justify-between"><span className="text-muted-foreground">Avg. Order Value</span><span className="font-semibold">₹{avgOrderValue.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span></div>
+                                    </>
+                                )}
+                            </CardContent>
+                        </Card>
+                         {profileData.role === 'customer' && (
+                            <Card>
+                                <CardHeader><CardTitle className="text-lg">Behaviour Analytics</CardTitle><CardDescription className="text-sm">Helps detect risk & fraud.</CardDescription></CardHeader>
+                                <CardContent className="space-y-2 text-sm">
+                                    <div className="flex items-center justify-between"><span className="text-muted-foreground">Streams Watched</span><span className="font-semibold">5</span></div>
+                                    <div className="flex items-center justify-between"><span className="text-muted-foreground">Avg. Watch Time</span><span className="font-semibold">12 mins</span></div>
+                                    <div className="flex items-center justify-between"><span className="text-muted-foreground">Items Bought</span><span className="font-semibold">{totalOrders}</span></div>
+                                    <div className="flex items-center justify-between"><span className="text-muted-foreground">Cancel/Refunds</span><span className="font-semibold">{cancelledOrders + returnedOrders}</span></div>
+                                </CardContent>
+                            </Card>
+                        )}
+                        <Card>
+                            <CardHeader><CardTitle className="text-lg">Admin Controls</CardTitle></CardHeader>
+                            <CardContent className="space-y-3">
+                                <div className="flex items-center justify-between p-3 border rounded-lg">
+                                    <Label htmlFor="ban-user" className="flex flex-col space-y-1"><span className="font-medium">Ban User</span><span className="font-normal leading-snug text-muted-foreground text-xs">Prevent this user from logging in.</span></Label>
+                                    <Switch id="ban-user" />
+                                </div>
+                                <div className="flex items-center justify-between p-3 border rounded-lg">
+                                    <Label htmlFor="restrict-chat" className="flex flex-col space-y-1"><span className="font-medium">Restrict Chat</span><span className="font-normal leading-snug text-muted-foreground text-xs">Block this user from sending messages.</span></Label>
+                                    <Switch id="restrict-chat" />
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </div>
+                </div>
+                
                 <div className="grid auto-rows-max items-start gap-6">
                     <Tabs defaultValue="orders">
                         <TabsList>
