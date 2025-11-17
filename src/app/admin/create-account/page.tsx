@@ -9,9 +9,9 @@ export default function AdminCreateAccountPage() {
   return (
     <div className="w-full min-h-screen flex items-center justify-center bg-background p-4 relative">
        <div className="absolute top-4 left-4 flex items-center gap-4">
-          <Link href="/" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
+          <Link href="/admin/users" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
             <ChevronLeft className="h-4 w-4" />
-            Back to Login
+            Back to Users
           </Link>
         </div>
       <div className="mx-auto grid w-[400px] gap-6">
