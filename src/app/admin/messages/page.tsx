@@ -21,7 +21,7 @@ import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-is-mobile';
 import { AdminLayout } from '@/components/admin/admin-layout';
 import { getFirestore, collection, query, where, getDocs, limit, doc, onSnapshot, orderBy } from 'firebase/firestore';
-import { getFirestoreDb } from '@/lib/firebase';
+import { getFirestoreDb } from "@/lib/firebase-db";
 import { Separator } from '@/components/ui/separator';
 
 

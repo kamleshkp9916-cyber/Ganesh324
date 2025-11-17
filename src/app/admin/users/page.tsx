@@ -85,7 +85,7 @@ import { useAuthActions } from "@/lib/auth";
 import { useToast } from "@/hooks/use-toast"
 import { getUserData, UserData, updateUserData } from "@/lib/follow-data";
 import { getFirestore, collection, query, where, getDocs,getCountFromServer } from "firebase/firestore";
-import { getFirestoreDb } from "@/lib/firebase";
+import { getFirestoreDb } from "@/lib/firebase-db";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
 import { useDebounce } from "@/hooks/use-debounce";

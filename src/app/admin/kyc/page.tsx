@@ -18,7 +18,7 @@ import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import Image from "next/image";
 import { updateUserData, UserData } from "@/lib/follow-data";
 import { getFirestore, collection, query, where, getDocs, updateDoc, doc } from "firebase/firestore";
-import { getFirestoreDb } from "@/lib/firebase";
+import { getFirestoreDb } from "@/lib/firebase-db";
 import { AdminLayout } from "@/components/admin/admin-layout";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";

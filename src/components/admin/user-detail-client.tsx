@@ -64,7 +64,7 @@ import {
 import { useAuth } from "@/hooks/use-auth"
 import { LoadingSpinner } from "@/components/ui/loading-spinner"
 import { getUserData, UserData, updateUserData, getMockSellers } from "@/lib/follow-data";
-import { getFirestoreDb } from "@/lib/firebase";
+import { getFirestoreDb } from "@/lib/firebase-db";
 import { getStatusFromTimeline, Order } from "@/lib/order-data";
 import { Transaction, getTransactions } from "@/lib/transaction-history";
 import Image from "next/image"
