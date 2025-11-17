@@ -25,7 +25,7 @@ import {
   Loader2,
   Banknote,
 } from "lucide-react"
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -47,15 +47,16 @@ import { Input } from "@/components/ui/input"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { useAuth } from "@/hooks/use-auth"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { usePathname, useRouter } from "next/navigation"
+import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { useAuthActions } from "@/lib/auth"
 import { cn } from "@/lib/utils"
 import { useDebounce } from "@/hooks/use-debounce";
 import { getFirestoreDb } from "@/lib/firebase";
 import { collection, query, where, limit, getDocs } from "firebase/firestore";
-import { UserData } from "@/lib/follow-data";
+import { UserData, getUserData } from "@/lib/follow-data";
 import { Popover, PopoverAnchor, PopoverContent } from "../ui/popover";
 import { ScrollArea } from "../ui/scroll-area";
+import { LoadingSpinner } from "../ui/loading-spinner";
 
 const navItems = [
     { href: "/admin/dashboard", icon: Home, label: "Dashboard" },
@@ -86,16 +87,29 @@ const mockNotifications = [
 ];
 
 export function AdminLayout({ children }: { children: React.ReactNode }) {
-    const { user } = useAuth();
+    const { user, userData, loading } = useAuth();
     const { signOut } = useAuthActions();
     const pathname = usePathname();
     const router = useRouter();
-    const [searchTerm, setSearchTerm] = useState("");
+    const searchParams = useSearchParams();
+    const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || "");
     const debouncedSearchTerm = useDebounce(searchTerm, 300);
     const [searchResults, setSearchResults] = useState<UserData[]>([]);
     const [isSearching, setIsSearching] = useState(false);
     const [isPopoverOpen, setIsPopoverOpen] = useState(false);
     const [notifications, setNotifications] = useState(mockNotifications);
+    const [blockedPaths, setBlockedPaths] = useState<string[]>([]);
+    
+    useEffect(() => {
+        if(userData?.blockedPaths) {
+            setBlockedPaths(userData.blockedPaths);
+        }
+    }, [userData]);
+    
+    const visibleNavItems = useMemo(() => navItems.filter(item => !blockedPaths.includes(item.href)), [blockedPaths]);
+    const visibleFeaturesItems = useMemo(() => featuresItems.filter(item => !blockedPaths.includes(item.href)), [blockedPaths]);
+    const visibleGeneralItems = useMemo(() => generalItems.filter(item => !blockedPaths.includes(item.href)), [blockedPaths]);
+
 
     const unreadCount = useMemo(() => notifications.filter(n => !n.read).length, [notifications]);
 
@@ -159,12 +173,25 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
         setNotifications(current => current.map(n => n.id === id ? { ...n, read: true } : n));
     };
 
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center h-screen">
+                <LoadingSpinner />
+            </div>
+        );
+    }
+    
+    if (!user || !userData || userData.role !== 'admin') {
+        router.replace('/');
+        return null;
+    }
+
     return (
         <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
             <div className="hidden border-r bg-muted/40 md:block md:sticky md:top-0 h-screen">
                 <div className="flex h-full max-h-screen flex-col gap-2">
                     <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
-                        <Link href="/" className="flex items-center gap-2 font-semibold">
+                        <Link href="/admin/dashboard" className="flex items-center gap-2 font-semibold">
                             <ShieldCheck className="h-6 w-6 text-primary" />
                             <span className="">Nipher Admin</span>
                         </Link>
@@ -204,7 +231,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
                                     MAIN MENU
                                 </h2>
                                 <div className="space-y-1">
-                                    {navItems.map(item => (
+                                    {visibleNavItems.map(item => (
                                          <Link key={item.href} href={item.href}>
                                             <Button
                                                 variant={pathname === item.href ? "secondary" : "ghost"}
@@ -222,7 +249,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
                                     FEATURES
                                 </h2>
                                 <div className="space-y-1">
-                                    {featuresItems.map(item => (
+                                    {visibleFeaturesItems.map(item => (
                                          <Link key={item.href} href={item.href}>
                                             <Button
                                                 variant={pathname === item.href ? "secondary" : "ghost"}
@@ -240,7 +267,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
                                     GENERAL
                                 </h2>
                                 <div className="space-y-1">
-                                    {generalItems.map(item => (
+                                    {visibleGeneralItems.map(item => (
                                          <Link key={item.href} href={item.href}>
                                             <Button
                                                 variant={pathname === item.href ? "secondary" : "ghost"}
@@ -271,72 +298,23 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
                             </Button>
                         </SheetTrigger>
                         <SheetContent side="left" className="flex flex-col">
-                            <nav className="grid gap-6 text-lg font-medium">
-                                 <Link href="/" className="flex items-center gap-2 font-semibold mb-4">
+                             <nav className="grid gap-2 text-lg font-medium">
+                                <Link href="/admin/dashboard" className="flex items-center gap-2 text-lg font-semibold mb-4">
                                     <ShieldCheck className="h-6 w-6 text-primary" />
                                     <span className="">Nipher Admin</span>
                                 </Link>
-                                 <div className="relative">
-                                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                                    <Input
-                                        type="search"
-                                        placeholder="Search..."
-                                        className="w-full appearance-none bg-background pl-8 shadow-none"
-                                    />
-                                </div>
-                                 <div className="px-3 py-2">
-                                    <h2 className="mb-2 px-4 text-lg font-semibold tracking-tight">
-                                        MAIN MENU
-                                    </h2>
-                                    <div className="space-y-1">
-                                        {navItems.map(item => (
-                                            <Link key={item.href} href={item.href}>
-                                                <Button
-                                                    variant={pathname === item.href ? "secondary" : "ghost"}
-                                                    className="w-full justify-start"
-                                                >
-                                                    <item.icon className="mr-2 h-4 w-4" />
-                                                    {item.label}
-                                                </Button>
-                                            </Link>
-                                        ))}
-                                    </div>
-                                </div>
-                                <div className="px-3 py-2">
-                                    <h2 className="mb-2 px-4 text-lg font-semibold tracking-tight">
-                                        FEATURES
-                                    </h2>
-                                    <div className="space-y-1">
-                                        {featuresItems.map(item => (
-                                            <Link key={item.href} href={item.href}>
-                                                <Button
-                                                    variant={pathname === item.href ? "secondary" : "ghost"}
-                                                    className="w-full justify-start"
-                                                >
-                                                    <item.icon className="mr-2 h-4 w-4" />
-                                                    {item.label}
-                                                </Button>
-                                            </Link>
-                                        ))}
-                                    </div>
-                                </div>
-                                 <div className="px-3 py-2">
-                                    <h2 className="mb-2 px-4 text-lg font-semibold tracking-tight">
-                                        GENERAL
-                                    </h2>
-                                    <div className="space-y-1">
-                                        {generalItems.map(item => (
-                                            <Link key={item.href} href={item.href}>
-                                                <Button
-                                                    variant={pathname === item.href ? "secondary" : "ghost"}
-                                                    className="w-full justify-start"
-                                                >
-                                                    <item.icon className="mr-2 h-4 w-4" />
-                                                    {item.label}
-                                                </Button>
-                                            </Link>
-                                        ))}
-                                    </div>
+                                <div className="space-y-1">
+                                    {visibleNavItems.map(item => (
+                                        <Link key={item.href} href={item.href}>
+                                            <Button
+                                                variant={pathname === item.href ? "secondary" : "ghost"}
+                                                className="w-full justify-start text-base"
+                                            >
+                                                <item.icon className="mr-2 h-5 w-5" />
+                                                {item.label}
+                                            </Button>
+                                        </Link>
+                                    ))}
                                 </div>
                             </nav>
                         </SheetContent>
@@ -400,7 +378,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
                             <DropdownMenuLabel>My Account</DropdownMenuLabel>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem onClick={() => router.push('/profile')}>Profile</DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => router.push('/settings')}>Settings</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => router.push('/admin/settings')}>Settings</DropdownMenuItem>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem onClick={() => signOut()}>Logout</DropdownMenuItem>
                         </DropdownMenuContent>

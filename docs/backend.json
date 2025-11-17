@@ -29,6 +29,13 @@
           "type": "string",
           "format": "date-time",
           "description": "The timestamp of the user's last login, used for session management."
+        },
+        "blockedPaths": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            },
+            "description": "An array of navigation paths that are blocked for this user, used for role-based access control in the admin panel."
         }
       },
       "required": [
