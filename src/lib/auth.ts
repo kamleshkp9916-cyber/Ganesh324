@@ -2,7 +2,7 @@
 "use client";
 
 import { GoogleAuthProvider, signInWithPopup, signOut as firebaseSignOut, sendPasswordResetEmail, User, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendEmailVerification, getAdditionalUserInfo, updateProfile, setPersistence, browserSessionPersistence } from "firebase/auth";
-import { getFirebaseAuth, getFirestoreDb } from "./firebase";
+import { initializeFirebase } from "@/firebase"; // Changed import
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 import { createUserData, updateUserData, UserData, getUserData } from "./follow-data";
@@ -15,7 +15,7 @@ export function useAuthActions() {
     const { toast } = useToast();
     
     const signOut = async (isSeller = false) => {
-        const auth = getFirebaseAuth();
+        const { auth } = initializeFirebase();
         try {
             await firebaseSignOut(auth);
             
@@ -43,7 +43,7 @@ export function useAuthActions() {
     };
     
     const sendPasswordResetLink = async (email: string) => {
-        const auth = getFirebaseAuth();
+        const { auth } = initializeFirebase();
         try {
             await sendPasswordResetEmail(auth, email);
             toast({
@@ -62,7 +62,7 @@ export function useAuthActions() {
     };
 
     const handleGoogleSignIn = async () => {
-        const auth = getFirebaseAuth();
+        const { auth } = initializeFirebase();
         const provider = new GoogleAuthProvider();
         try {
             const result = await signInWithPopup(auth, provider);
@@ -88,10 +88,9 @@ export function useAuthActions() {
     };
 
     const handleEmailSignIn = async (values: any) => {
-        const auth = getFirebaseAuth();
+        const { auth, firestore: db } = initializeFirebase();
         try {
             // Check if the user is an admin to set session persistence
-            const db = getFirestoreDb();
             const q = query(collection(db, "users"), where("email", "==", values.email), limit(1));
             const querySnapshot = await getDocs(q);
             if (!querySnapshot.empty) {
@@ -133,7 +132,7 @@ export function useAuthActions() {
     };
 
     const handleCustomerSignUp = async (values: any) => {
-        const auth = getFirebaseAuth();
+        const { auth } = initializeFirebase();
         try {
             const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
             const user = userCredential.user;
@@ -188,7 +187,7 @@ export function useAuthActions() {
     };
     
     const handleSellerSignUp = async (values: any) => {
-        const auth = getFirebaseAuth();
+        const { auth } = initializeFirebase();
         let user: User | null = auth.currentUser;
         
         try {
@@ -241,6 +240,8 @@ export function useAuthActions() {
     };
     
     const updateUserProfile = async (user: User, data: Partial<UserData>) => {
+        const { firestore, firebaseApp } = initializeFirebase();
+        const storage = getStorage(firebaseApp);
         const { displayName } = data;
         let { photoURL } = data;
         
@@ -250,7 +251,6 @@ export function useAuthActions() {
         });
 
         try {
-            const storage = getFirebaseStorage();
             const oldUserData = await getUserData(user.uid);
             const oldPhotoURL = oldUserData?.photoURL;
 

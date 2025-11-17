@@ -3,7 +3,7 @@
 
 import { useEffect, useState, createContext, useContext, useMemo } from 'react';
 import { onAuthStateChanged, User } from 'firebase/auth';
-import { getFirebaseAuth, getFirestoreDb } from '@/lib/firebase';
+import { initializeFirebase } from '@/firebase'; // Changed import
 import { createUserData, getUserData, UserData } from "@/lib/follow-data";
 import { doc, onSnapshot } from 'firebase/firestore';
 
@@ -23,8 +23,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [authReady, setAuthReady] = useState(false); // Track if both auth and firestore data are ready
 
   useEffect(() => {
-    const auth = getFirebaseAuth();
-    const db = getFirestoreDb();
+    const { auth, firestore: db } = initializeFirebase(); // Changed to get instances from the central source
     
     // This is the primary listener for Firebase Auth state changes.
     const unsubscribeAuth = onAuthStateChanged(auth, async (firebaseUser) => {
