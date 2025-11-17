@@ -47,8 +47,6 @@ export default function SupportDashboardPage() {
   ]);
 
   const [selectedTicketId, setSelectedTicketId] = useState(tickets[0]?.id || null);
-  const [newTicketTitle, setNewTicketTitle] = useState("");
-  const [newTicketRole, setNewTicketRole] = useState("customer");
   const [composerText, setComposerText] = useState("");
 
   const [presence, setPresence] = useState<{ [key: string]: { customer?: boolean, seller?: boolean, admin?: boolean } }>({});
@@ -69,24 +67,6 @@ export default function SupportDashboardPage() {
         };
       })
     );
-  }
-
-  function createTicket() {
-    if (!newTicketTitle.trim()) return;
-    const id = `TCK-${1000 + tickets.length + 1}`;
-    const ticket = {
-      id,
-      title: newTicketTitle.trim(),
-      role: newTicketRole,
-      status: "open",
-      assignee: "Unassigned",
-      lastMessage: "Ticket created",
-      updatedAt: Date.now(),
-      messages: [{ from: newTicketRole, text: newTicketTitle.trim(), ts: Date.now() }],
-    };
-    setTickets((p) => [ticket, ...p]);
-    setNewTicketTitle("");
-    setSelectedTicketId(id);
   }
 
   function toggleAssign(ticketId: string | null, adminName: string) {
@@ -123,29 +103,9 @@ export default function SupportDashboardPage() {
           <Card>
             <CardHeader>
               <CardTitle>Tickets</CardTitle>
-              <CardDescription>Create or select a ticket to view the conversation.</CardDescription>
+              <CardDescription>Select a ticket to view the conversation.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
-              <div className="border rounded-lg p-3 bg-muted/50">
-                <label className="block text-xs text-muted-foreground">Create New Ticket</label>
-                <Input
-                  className="w-full mt-2 p-2 rounded border bg-background text-sm"
-                  placeholder="Issue summary"
-                  value={newTicketTitle}
-                  onChange={(e) => setNewTicketTitle(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && createTicket()}
-                />
-                <div className="flex items-center gap-2 mt-2">
-                  <Select value={newTicketRole} onValueChange={setNewTicketRole}>
-                      <SelectTrigger className="text-sm h-8"><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="customer">Customer</SelectItem>
-                        <SelectItem value="seller">Seller</SelectItem>
-                      </SelectContent>
-                  </Select>
-                  <Button size="sm" className="ml-auto" onClick={createTicket}><PlusCircle className="mr-2 h-4 w-4" />Create</Button>
-                </div>
-              </div>
               <div className="space-y-2">
                 {tickets.map((t) => (
                   <button
