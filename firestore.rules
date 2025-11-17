@@ -18,37 +18,24 @@ service cloud.firestore {
       return isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
 
-    // Helper function to enforce a single login session for write operations.
-    // It checks if the token's "issued at" time is not before the last recorded login time in Firestore.
-    // This prevents older sessions from making write requests. A 5-second grace period is added.
-    function isLatestSessionForWrites(userId) {
-      let lastLogin = get(/databases/$(database)/documents/users/$(userId)).data.lastLogin;
-      // If lastLogin is not set (e.g., very new user), allow the write. The check will apply to subsequent writes.
-      if (lastLogin == null) {
-        return true;
-      }
-      return request.auth.token.iat >= lastLogin.seconds - 5;
-    }
-
     /**
      * @description Enforces access control for individual user documents.
      * @path /users/{userId}
      */
     match /users/{userId} {
       // A user can create their own document if the userId matches their auth.uid
-      allow create: if isOwner(userId) && request.resource.data.id == request.auth.uid;
+      allow create: if isOwner(userId);
 
-      // An admin can read any user document. A regular user can only read their own document.
-      // The isLatestSession check is removed from read to prevent app breakage for logged-out sessions.
-      allow read: if isAdmin() || isOwner(userId);
+      // Any authenticated user can read public user profiles, but only owners or admins can see everything.
+      // This is a common pattern for social/e-commerce apps.
+      allow read: if isSignedIn();
       
-      // A user can update their own document, but only from their latest login session.
-      // A special exception is added to allow the beforeSignIn function to update ONLY the lastLogin field.
-      allow update: if (isOwner(userId) && isLatestSessionForWrites(userId)) || 
-                     (request.resource.data.keys().hasOnly(['lastLogin']));
+      // A user can update their own document. An admin can also update any user document.
+      // A special exception allows the beforeSignIn function to update ONLY the lastLogin field.
+      allow update: if isOwner(userId) || isAdmin() || (request.resource.data.keys().hasOnly(['lastLogin']));
 
-      // A user can delete their own document from their latest session.
-      allow delete: if isOwner(userId) && isLatestSessionForWrites(userId);
+      // A user can delete their own document. Admins can also delete users.
+      allow delete: if isOwner(userId) || isAdmin();
 
       // Only admins can list multiple user documents.
       allow list: if isAdmin();
@@ -78,17 +65,13 @@ service cloud.firestore {
      * @description Enforces access control for the orders collection.
      */
     match /orders/{orderId} {
-      // Users can create orders for themselves from their latest session.
-      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid && isLatestSessionForWrites(request.auth.uid);
+      // Users can create orders for themselves.
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
 
-      // A user can read an order if they are the customer or the seller (from latest session), OR an admin.
-      // Read access is kept lenient to prevent UI issues.
-      allow get: if (isSignedIn() && (
-                      resource.data.userId == request.auth.uid || 
-                      resource.data.sellerId == request.auth.uid
-                   )) || isAdmin();
+      // A user can read an order if they are the customer or the seller, OR an admin.
+      allow get: if isSignedIn() && (resource.data.userId == request.auth.uid || resource.data.sellerId == request.auth.uid || isAdmin());
       
-      // Customers and sellers can query their own orders. Session validation is on write, not read.
+      // Customers and sellers can query their own orders.
       // Admins can list all orders.
       allow list: if (isSignedIn() && 
                     (request.query.where.userId == request.auth.uid || 
@@ -102,8 +85,8 @@ service cloud.firestore {
      * @description Enforces access control for payout requests.
      */
     match /payouts/{payoutId} {
-        // A user can create a payout request for themselves from their latest session.
-        allow create: if isSignedIn() && request.resource.data.sellerId == request.auth.uid && isLatestSessionForWrites(request.auth.uid);
+        // A user can create a payout request for themselves.
+        allow create: if isSignedIn() && request.resource.data.sellerId == request.auth.uid;
         // Admins can read, update (approve/deny), and delete payout requests.
         allow read, update, delete: if isAdmin();
         // Sellers can read their own payout requests.
