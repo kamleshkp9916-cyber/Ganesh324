@@ -2,10 +2,7 @@
 import type {NextConfig} from 'next';
 
 const nextConfig: NextConfig = {
-  experimental: {
-    // This is required for the Studio to work.
-    serverComponentsExternalPackages: ['@genkit-ai/google-genai'],
-  },
+  serverExternalPackages: ['@genkit-ai/google-genai'],
   images: {
     remotePatterns: [
       {
