@@ -90,66 +90,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { cn } from "@/lib/utils";
 import { useDebounce } from "@/hooks/use-debounce";
 import { AdminLayout } from "@/components/admin/admin-layout";
-import { useLocalStorage } from "@/hooks/use-local-storage";
 import { Separator } from "@/components/ui/separator";
-import { PAYOUT_REQUESTS_KEY } from "@/components/settings/promotions-settings";
-
-
-const mockPayments = [
-    { orderId: "#ORD5896", customer: { name: "Ganesh Prajapati" }, amount: 12500.00, status: 'holding' },
-    { orderId: "#ORD5897", customer: { name: "Jane Doe" }, amount: 4999.00, status: 'released' },
-    { orderId: "#ORD5903", customer: { name: "Jessica Rodriguez" }, amount: 4500.00, status: 'refunded' },
-];
-
-const mockPayouts = [
-    { id: 1, sellerId: 'fashionfinds-uid', sellerName: 'FashionFinds', amount: 52340.50, status: 'pending', requestedAt: new Date().toISOString() },
-    { id: 2, sellerId: 'gadgetguru-uid', sellerName: 'GadgetGuru', amount: 128900.00, status: 'paid', requestedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString() },
-];
-
-const PayoutSummaryDialog = ({ payout, onConfirm, onCancel }: { payout: any, onConfirm: () => void, onCancel: () => void }) => {
-    // Mock a separate super chat balance for this seller for calculation demonstration
-    const mockSuperChatBalance = 1250.00;
-    
-    return (
-        <DialogContent>
-            <DialogHeader>
-                <DialogTitle>Confirm Payout for {payout.sellerName}</DialogTitle>
-                <DialogDescription>
-                    Review the breakdown of available funds and confirm the total payout amount. Fees have already been deducted at the time of each transaction.
-                </DialogDescription>
-            </DialogHeader>
-            <div className="py-4 space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                    <Card className="bg-muted/30">
-                        <CardHeader className="pb-2">
-                            <CardTitle className="text-xl font-bold">₹{payout.amount.toFixed(2)}</CardTitle>
-                            <CardDescription>From Product Sales</CardDescription>
-                        </CardHeader>
-                    </Card>
-                    <Card className="bg-muted/30">
-                        <CardHeader className="pb-2">
-                            <CardTitle className="text-xl font-bold">₹{mockSuperChatBalance.toFixed(2)}</CardTitle>
-                            <CardDescription>From Super Chats</CardDescription>
-                        </CardHeader>
-                    </Card>
-                </div>
-                <Separator />
-                <div className="space-y-2 text-sm">
-                    <div className="flex justify-between items-center text-base font-bold">
-                        <span>Net Payout Amount</span>
-                        <span>₹{(payout.amount + mockSuperChatBalance).toFixed(2)}</span>
-                    </div>
-                     <p className="text-xs text-muted-foreground">This is the final amount that will be transferred to the seller's bank account.</p>
-                </div>
-            </div>
-            <DialogFooter>
-                <Button variant="ghost" onClick={onCancel}>Cancel</Button>
-                <Button onClick={onConfirm}>Confirm &amp; Pay</Button>
-            </DialogFooter>
-        </DialogContent>
-    );
-};
-
 
 const UserTable = ({ users, onViewDetails, onDelete }: { users: any[], onViewDetails: (user: any) => void, onDelete: (user: any) => void }) => {
     const [isMounted, setIsMounted] = useState(false);
@@ -237,15 +178,7 @@ export default function AdminUsersPage() {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || "");
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
-  const [payoutRequests, setPayoutRequests] = useLocalStorage<any[]>(PAYOUT_REQUESTS_KEY, []);
-  const [selectedPayout, setSelectedPayout] = useState<any | null>(null);
   const [activeTab, setActiveTab] = useState("customers");
-
-  useEffect(() => {
-    if (typeof window !== 'undefined' && payoutRequests.length === 0) {
-        setPayoutRequests(mockPayouts);
-    }
-  }, [payoutRequests, setPayoutRequests]);
 
   const fetchUsers = async () => {
     const db = getFirestoreDb();
@@ -286,11 +219,6 @@ export default function AdminUsersPage() {
           case 'admins':
               dataToExport = admins;
               filename = "admins_export.csv";
-              break;
-          case 'payouts':
-              dataToExport = payoutRequests;
-              filename = "payouts_export.csv";
-              headers = ["id", "sellerName", "amount", "status", "requestedAt"];
               break;
           default:
               toast({ title: "Export Failed", description: "No data to export for this tab.", variant: "destructive"});
@@ -341,18 +269,6 @@ export default function AdminUsersPage() {
     router.push(`/admin/users/${userToShow.uid}`);
   };
 
-  const handlePayoutStatusChange = (requestId: number, newStatus: 'paid' | 'rejected') => {
-    const updatedRequests = payoutRequests.map(req => 
-        req.id === requestId ? { ...req, status: newStatus } : req
-    );
-    setPayoutRequests(updatedRequests);
-    toast({
-        title: `Request ${newStatus === 'paid' ? 'Approved' : 'Rejected'}`,
-        description: `The payout request has been updated.`,
-    });
-    setSelectedPayout(null);
-  };
-
   const customers = filteredUsers.filter(u => u.role === 'customer');
   const sellers = filteredUsers.filter(u => u.role === 'seller');
   const admins = filteredUsers.filter(u => u.role === 'admin');
@@ -377,15 +293,6 @@ export default function AdminUsersPage() {
             </AlertDialogFooter>
         </AlertDialogContent>
     </AlertDialog>
-    <Dialog open={!!selectedPayout} onOpenChange={(open) => !open && setSelectedPayout(null)}>
-        {selectedPayout && (
-            <PayoutSummaryDialog 
-                payout={selectedPayout}
-                onConfirm={() => handlePayoutStatusChange(selectedPayout.id, 'paid')}
-                onCancel={() => setSelectedPayout(null)}
-            />
-        )}
-    </Dialog>
     <AdminLayout>
       <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
         <Tabs defaultValue="customers" value={activeTab} onValueChange={setActiveTab}>
@@ -393,7 +300,6 @@ export default function AdminUsersPage() {
                 <TabsList>
                     <TabsTrigger value="customers">Customers ({customers.length})</TabsTrigger>
                     <TabsTrigger value="sellers">Sellers ({sellers.length})</TabsTrigger>
-                    <TabsTrigger value="payouts">Payouts</TabsTrigger>
                 </TabsList>
                  <div className="flex gap-2">
                     <Button size="sm" variant="outline" className="h-8 gap-1" onClick={handleExport}>
@@ -421,65 +327,6 @@ export default function AdminUsersPage() {
                     </CardHeader>
                     <CardContent>
                         <UserTable users={sellers} onViewDetails={handleViewDetails} onDelete={handleDeleteUserClick} />
-                    </CardContent>
-                </Card>
-             </TabsContent>
-              <TabsContent value="payments">
-                <Card>
-                    <CardHeader className="px-7">
-                        <CardTitle>Order Payments</CardTitle>
-                        <CardDescription>View the status of funds from customer orders.</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <Table>
-                            <TableHeader><TableRow><TableHead>Order ID</TableHead><TableHead>Customer</TableHead><TableHead>Amount</TableHead><TableHead>Status</TableHead><TableHead>Action</TableHead></TableRow></TableHeader>
-                            <TableBody>
-                                {mockPayments.map(p => (
-                                    <TableRow key={p.orderId}>
-                                        <TableCell>{p.orderId}</TableCell>
-                                        <TableCell>{p.customer.name}</TableCell>
-                                        <TableCell>₹{p.amount.toFixed(2)}</TableCell>
-                                        <TableCell><Badge variant={p.status === 'holding' ? 'warning' : p.status === 'released' ? 'success' : 'destructive'}>{p.status}</Badge></TableCell>
-                                        <TableCell>
-                                            {p.status === 'holding' && <Button variant="secondary" size="sm" disabled>Release Funds</Button>}
-                                        </TableCell>
-                                    </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
-                         <p className="text-xs text-muted-foreground mt-4">Funds are automatically released to a seller's withdrawable balance 7 days after an order is successfully delivered.</p>
-                    </CardContent>
-                </Card>
-             </TabsContent>
-             <TabsContent value="payouts">
-                <Card>
-                    <CardHeader className="px-7">
-                        <CardTitle>Payouts</CardTitle>
-                        <CardDescription>Approve or deny seller withdrawal requests.</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                         <Table>
-                            <TableHeader><TableRow><TableHead>Seller</TableHead><TableHead>Amount Requested</TableHead><TableHead>Status</TableHead><TableHead>Action</TableHead></TableRow></TableHeader>
-                            <TableBody>
-                                {payoutRequests.map(p => (
-                                    <TableRow key={p.id}>
-                                        <TableCell>{p.sellerName}</TableCell>
-                                        <TableCell>₹{p.amount.toFixed(2)}</TableCell>
-                                        <TableCell><Badge variant={p.status === 'pending' ? 'warning' : p.status === 'paid' ? 'success' : 'destructive'}>{p.status}</Badge></TableCell>
-                                        <TableCell>
-                                            {p.status === 'pending' && (
-                                                <div className="flex gap-2">
-                                                    <Button variant="default" size="sm" onClick={() => setSelectedPayout(p)}>
-                                                        <CheckCircle className="mr-2 h-4 w-4" />Approve
-                                                    </Button>
-                                                    <Button variant="destructive" size="sm" onClick={() => handlePayoutStatusChange(p.id, 'rejected')}><XCircle className="mr-2 h-4 w-4" />Deny</Button>
-                                                </div>
-                                            )}
-                                        </TableCell>
-                                    </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
                     </CardContent>
                 </Card>
              </TabsContent>
