@@ -25,6 +25,7 @@ export interface UserData {
     verificationStatus?: 'pending' | 'verified' | 'rejected' | 'needs-resubmission';
     rejectionReason?: string;
     resubmissionReason?: string;
+    stepsToFix?: string[];
     // Social links
     instagram?: string;
     twitter?: string;
@@ -94,14 +95,7 @@ export const getMockSellers = (): UserData[] => {
 
 export const getUserData = async (uid: string): Promise<UserData | null> => {
     if (!uid) return null;
-
-    // First, check our combined mock data object
-    if (mockSellers[uid]) {
-        return mockSellers[uid];
-    }
-    
     try {
-        // If not in mock data, try fetching from Firestore
         const db = getFirestoreDb();
         const userDocRef = doc(db, "users", uid);
         const userDoc = await getDoc(userDocRef);
@@ -109,11 +103,19 @@ export const getUserData = async (uid: string): Promise<UserData | null> => {
         if (userDoc.exists()) {
             return { ...userDoc.data(), uid: userDoc.id } as UserData;
         } else {
+            // Fallback to mock data if not found in Firestore
+            if (mockSellers[uid]) {
+                return mockSellers[uid];
+            }
             console.warn(`No user document or mock data found for UID: ${uid}.`);
             return null;
         }
     } catch (error) {
         console.error("Error getting user data:", error);
+        // Fallback to mock data on error as well
+        if (mockSellers[uid]) {
+            return mockSellers[uid];
+        }
         return null;
     }
 };
