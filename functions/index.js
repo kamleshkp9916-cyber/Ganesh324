@@ -35,9 +35,7 @@ exports.updateLastLogin = functions.auth.user().beforeSignIn((user) => {
     if (user.uid) {
         return admin.firestore().collection('users').doc(user.uid).set({
             lastLogin: admin.firestore.FieldValue.serverTimestamp()
-        }, { merge: true }).catch(err => {
-            console.error(`Failed to update lastLogin for user ${user.uid}:`, err);
-        });
+        }, { merge: true });
     }
     return;
 });
