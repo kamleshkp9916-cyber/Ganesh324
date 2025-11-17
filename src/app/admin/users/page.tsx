@@ -83,7 +83,7 @@ import { useAuth } from "@/hooks/use-auth"
 import { LoadingSpinner } from "@/components/ui/loading-spinner"
 import { useAuthActions } from "@/lib/auth";
 import { useToast } from "@/hooks/use-toast"
-import { getUserData, UserData, updateUserData, getMockSellers } from "@/lib/follow-data";
+import { getUserData, UserData, updateUserData } from "@/lib/follow-data";
 import { getFirestore, collection, query, where, getDocs,getCountFromServer } from "firebase/firestore";
 import { getFirestoreDb } from "@/lib/firebase";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
@@ -126,7 +126,7 @@ const UserTable = ({ users, onViewDetails, onDelete }: { users: any[], onViewDet
                                         <AvatarFallback>{u.displayName.charAt(0)}</AvatarFallback>
                                     </Avatar>
                                     <div>
-                                        <div className="font-medium">{u.name || u.displayName}</div>
+                                        <div className="font-medium">{u.displayName}</div>
                                         <div className="text-sm text-muted-foreground">{u.email}</div>
                                     </div>
                                 </div>
@@ -135,7 +135,7 @@ const UserTable = ({ users, onViewDetails, onDelete }: { users: any[], onViewDet
                                 <Badge variant={u.role === 'admin' ? 'destructive' : u.role === 'seller' ? 'secondary' : 'outline'} className="capitalize">{u.role}</Badge>
                             </TableCell>
                             <TableCell className="hidden md:table-cell font-mono text-xs">{u.publicId || 'N/A'}</TableCell>
-                            <TableCell className="hidden md:table-cell">{isMounted && u.createdAt ? new Date(u.createdAt.seconds * 1000).toLocaleDateString() : 'N/A'}</TableCell>
+                            <TableCell className="hidden md:table-cell">{isMounted && u.createdAt?.seconds ? new Date(u.createdAt.seconds * 1000).toLocaleDateString() : 'N/A'}</TableCell>
                             <TableCell className="text-right">
                                 <div className="flex items-center justify-end gap-2">
                                     <Button variant="outline" size="sm" onClick={() => onViewDetails(u)}>
@@ -303,6 +303,7 @@ export default function AdminUsersPage() {
                 <TabsList>
                     <TabsTrigger value="customers">Customers ({customers.length})</TabsTrigger>
                     <TabsTrigger value="sellers">Sellers ({sellers.length})</TabsTrigger>
+                    <TabsTrigger value="admins">Admins ({admins.length})</TabsTrigger>
                 </TabsList>
                  <div className="flex gap-2">
                     <Button size="sm" variant="outline" className="h-8 gap-1" onClick={handleExport}>
@@ -333,6 +334,17 @@ export default function AdminUsersPage() {
                     </CardContent>
                 </Card>
              </TabsContent>
+             <TabsContent value="admins">
+                <Card>
+                    <CardHeader className="px-7">
+                        <CardTitle>Administrators</CardTitle>
+                        <CardDescription>Manage all site administrators.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <UserTable users={admins} onViewDetails={handleViewDetails} onDelete={handleDeleteUserClick} />
+                    </CardContent>
+                </Card>
+            </TabsContent>
         </Tabs>
       </main>
     </AdminLayout>
@@ -340,4 +352,3 @@ export default function AdminUsersPage() {
   )
 }
 
-    
