@@ -1,4 +1,5 @@
 
+
 "use client"
 
 import {
@@ -376,19 +377,41 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
                 <div className="grid gap-6 md:grid-cols-3 lg:grid-cols-3">
                     <div className="grid auto-rows-max items-start gap-6 lg:col-span-1">
                         <Card>
-                            <CardHeader>
-                                <div className="flex items-center gap-4">
-                                    <Avatar className="h-16 w-16">
-                                        <AvatarImage src={profileData.photoURL} />
-                                        <AvatarFallback>{profileData.displayName?.charAt(0)}</AvatarFallback>
-                                    </Avatar>
-                                    <div>
-                                        <CardTitle className="flex items-center gap-2">{profileData.displayName}</CardTitle>
-                                        <p className="text-sm text-muted-foreground">{profileData.publicId || profileData.uid}</p>
+                             <CardHeader>
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-4">
+                                        <Avatar className="h-16 w-16">
+                                            <AvatarImage src={profileData.photoURL} />
+                                            <AvatarFallback>{profileData.displayName?.charAt(0)}</AvatarFallback>
+                                        </Avatar>
+                                        <div>
+                                            <CardTitle className="flex items-center gap-2">{profileData.displayName}</CardTitle>
+                                            <p className="text-sm text-muted-foreground">{profileData.publicId || profileData.uid}</p>
+                                        </div>
                                     </div>
+                                    <Button asChild size="sm">
+                                        <Link href={`/admin/messages?userId=${profileData.uid}&userName=${profileData.displayName}`}>
+                                            <MessageSquare className="mr-2 h-4 w-4" /> Message
+                                        </Link>
+                                    </Button>
                                 </div>
                             </CardHeader>
-                             <CardContent className="space-y-2 text-sm">
+                             <CardContent className="space-y-3 text-sm">
+                                <div className="font-semibold">Contact Information</div>
+                                <div className="flex items-center gap-2 text-muted-foreground"><Mail className="h-4 w-4" /> {profileData.email}</div>
+                                <div className="flex items-center gap-2 text-muted-foreground"><Phone className="h-4 w-4" /> {profileData.phone}</div>
+                                
+                                {profileData.addresses && profileData.addresses.length > 0 && (
+                                    <div className="flex items-start gap-2 pt-2">
+                                        <MapPin className="h-4 w-4 text-muted-foreground mt-0.5" /> 
+                                        <address className="not-italic text-muted-foreground">
+                                             {profileData.addresses[0].village}, {profileData.addresses[0].city}, {profileData.addresses[0].state} - {profileData.addresses[0].pincode}
+                                        </address>
+                                    </div>
+                                )}
+                                
+                                <Separator className="my-3"/>
+                                
                                 <div className="flex items-center justify-between"><span>Role:</span> <Badge variant={profileData.role === 'admin' ? 'destructive' : profileData.role === 'seller' ? 'secondary' : 'outline'}>{profileData.role}</Badge></div>
                                 <div className="flex items-center justify-between"><span>KYC:</span> <Badge variant={profileData.kycStatus === 'verified' ? 'success' : 'warning'}>{profileData.kycStatus || 'pending'}</Badge></div>
                                 <div className="flex items-center justify-between"><span>Live Status:</span> {isLive ? <Badge variant="destructive" className="animate-pulse">LIVE</Badge> : <Badge variant="outline">Offline</Badge>}</div>
@@ -572,5 +595,3 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
     </main>
   );
 };
-
-    
