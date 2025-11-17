@@ -58,21 +58,6 @@ service cloud.firestore {
                      (request.query.where.sellerId != null && request.query.where.sellerId == request.auth.uid))) || isAdmin();
       allow update, delete: if isAdmin();
     }
-
-    /**
-     * @description Enforces access control for conversations.
-     * @path /conversations/{conversationId}
-     */
-    match /conversations/{conversationId} {
-      allow read, update: if (isSignedIn() && request.auth.uid in resource.data.participants) || isAdmin();
-      allow create: if (isSignedIn() && request.auth.uid in request.resource.data.participants);
-
-      match /messages/{messageId} {
-        allow read: if (isSignedIn() && get(/databases/$(database)/documents/conversations/$(conversationId)).data.participants.hasAny([request.auth.uid])) || isAdmin();
-        allow create: if (isSignedIn() && get(/databases/$(database)/documents/conversations/$(conversationId)).data.participants.hasAny([request.auth.uid]) && get(/databases/$(database)/documents/conversations/$(conversationId)).data.status != 'closed') || isAdmin();
-        allow update, delete: if isAdmin();
-      }
-    }
     
     /**
      * @description Enforces access control for payout requests.
