@@ -84,6 +84,7 @@ import { format, parseISO } from "date-fns";
 import { liveSellers } from "@/lib/product-data"
 import { Textarea } from "../ui/textarea";
 import { Switch } from "../ui/switch";
+import { Label } from "../ui/label";
 
 
 type Product = {
@@ -571,3 +572,5 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
     </main>
   );
 };
+
+    
