@@ -75,6 +75,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip, Legend } from "recharts"
 import { collection, query, where, getDocs, orderBy, onSnapshot } from "firebase/firestore";
 import { format, parseISO } from "date-fns";
+import { liveSellers } from "@/app/stream/[streamId]/page"
 
 
 type Product = {
@@ -231,6 +232,8 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
   const returnedOrders = userOrders.filter(o => getStatusFromTimeline(o.timeline).toLowerCase().includes('return')).length;
   const avgOrderValue = totalOrders > 0 ? totalSpent / totalOrders : 0;
   const sellerAverageRating = 4.8;
+  const totalStreams = liveSellers.filter(s => s.id === profileData.uid).length;
+  const isLive = liveSellers.some(s => s.id === profileData.uid && s.status === 'live');
   
   const renderRevenueDetailView = () => {
         let title = '';
@@ -395,6 +398,7 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
                                     </Avatar>
                                     <div>
                                         <CardTitle className="flex items-center gap-2">{profileData.displayName}
+                                            {isLive && <Badge variant="destructive" className="flex items-center gap-1 animate-pulse"><RadioTower className="h-3 w-3"/> LIVE</Badge>}
                                             {profileData.role === 'seller' && (
                                             <Badge variant="secondary" className="flex items-center gap-1">
                                                 <Star className="h-3 w-3" /> {sellerAverageRating}
@@ -442,6 +446,10 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
                                         <div className="flex items-center justify-between">
                                             <span className="text-muted-foreground">Total Orders</span>
                                             <span className="font-semibold">{totalOrders}</span>
+                                        </div>
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-muted-foreground">Total Streams</span>
+                                            <span className="font-semibold">{totalStreams}</span>
                                         </div>
                                         <div className="flex items-center justify-between">
                                             <span className="text-muted-foreground">Avg. Rating</span>
@@ -557,3 +565,5 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
     </main>
   );
 };
+
+    
