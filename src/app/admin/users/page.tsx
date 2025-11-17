@@ -336,9 +336,17 @@ export default function AdminUsersPage() {
              </TabsContent>
              <TabsContent value="admins">
                 <Card>
-                    <CardHeader className="px-7">
-                        <CardTitle>Administrators</CardTitle>
-                        <CardDescription>Manage all site administrators.</CardDescription>
+                    <CardHeader className="px-7 flex flex-row items-center justify-between">
+                         <div>
+                            <CardTitle>Administrators</CardTitle>
+                            <CardDescription>Manage all site administrators.</CardDescription>
+                        </div>
+                        <Button asChild size="sm">
+                            <Link href="/admin/create-account">
+                                <PlusCircle className="mr-2 h-4 w-4" />
+                                Create New Admin
+                            </Link>
+                        </Button>
                     </CardHeader>
                     <CardContent>
                         <UserTable users={admins} onViewDetails={handleViewDetails} onDelete={handleDeleteUserClick} />
@@ -351,4 +359,3 @@ export default function AdminUsersPage() {
     </>
   )
 }
-

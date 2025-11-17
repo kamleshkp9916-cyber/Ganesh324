@@ -6,7 +6,6 @@ const { onCall, HttpsError } = require("firebase-functions/v2/https");
 const { onRequest } = require('firebase-functions/v2/onRequest');
 const functions = require('firebase-functions'); // if you use env/secret config in firebase.json
 const sgMail = require('@sendgrid/mail');
-const vision = require('@google-cloud/vision');
 const { onDocumentWritten } = require("firebase-functions/v2/firestore");
 
 /**
@@ -311,48 +310,3 @@ exports.notifyDeliveryPartner = onRequest(async (req, res) => {
 
     res.status(200).json({ success: true, message: `Delivery partner notified for order ${orderId}` });
 });
-
-exports.faceMatch = onRequest({ cors: true }, async (req, res) => {
-    if (req.method !== 'POST') {
-        return res.status(405).send('Method Not Allowed');
-    }
-    
-    if (!req.auth) {
-        return res.status(401).send('Unauthorized');
-    }
-
-    const { selfieUrl, aadhaarPhotoUrl } = req.body;
-    if (!selfieUrl || !aadhaarPhotoUrl) {
-        return res.status(400).send('Missing selfieUrl or aadhaarPhotoUrl');
-    }
-
-    try {
-        const client = new vision.ImageAnnotatorClient();
-
-        const [selfieResult] = await client.faceDetection(selfieUrl);
-        const [aadhaarResult] = await client.faceDetection(aadhaarPhotoUrl);
-
-        const selfieFaces = selfieResult.faceAnnotations;
-        const aadhaarFaces = aadhaarResult.faceAnnotations;
-
-        if (!selfieFaces.length || !aadhaarFaces.length) {
-            return res.status(200).json({ score: 0, status: 'failed', message: 'Could not detect a face in one or both images.' });
-        }
-        
-        const selfieConfidence = selfieFaces[0].detectionConfidence || 0;
-        const aadhaarConfidence = aadhaarFaces[0].detectionConfidence || 0;
-        
-        const score = (selfieConfidence + aadhaarConfidence) / 2;
-
-        if (score >= 0.8) {
-            res.status(200).json({ score, status: 'passed' });
-        } else {
-            res.status(200).json({ score, status: 'failed' });
-        }
-    } catch (error) {
-        console.error('Face match error:', error);
-        res.status(500).send('Error during face detection.');
-    }
-});
-
-    
