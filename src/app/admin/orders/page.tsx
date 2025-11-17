@@ -31,7 +31,7 @@ import { useRouter } from "next/navigation"
 import Link from "next/link"
 import React, { useState, useEffect, useMemo } from "react"
 import { getFirestore, collection, query, getDocs, orderBy, where } from "firebase/firestore"
-import { getFirestoreDb } from "@/lib/firebase"
+import { getFirestoreDb } from "@/lib/firebase-db"
 import { format } from "date-fns"
 
 import { Badge, BadgeProps } from "@/components/ui/badge"
