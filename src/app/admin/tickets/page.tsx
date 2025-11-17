@@ -11,14 +11,30 @@ import { PlusCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Label } from "@/components/ui/label";
+import { useAuth } from "@/hooks/use-auth";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
 
-// Real-time Support Dashboard (for admin)
-// - Integrated into the admin layout
-// - Uses local state to simulate realtime updates and presence
+type Message = {
+    from: 'customer' | 'seller' | 'admin';
+    text: string;
+    ts: number;
+};
+
+type Ticket = {
+    id: string;
+    title: string;
+    role: 'customer' | 'seller';
+    status: 'open' | 'pending' | 'closed';
+    assignee: string;
+    lastMessage: string;
+    updatedAt: number;
+    messages: Message[];
+};
+
 
 export default function SupportDashboardPage() {
-  // sample tickets: role: "customer" or "seller"
-  const [tickets, setTickets] = useState([
+  const { user, loading } = useAuth();
+  const [tickets, setTickets] = useState<Ticket[]>([
     {
       id: "TCK-1001",
       title: "Order not delivered",
@@ -46,19 +62,19 @@ export default function SupportDashboardPage() {
     },
   ]);
 
-  const [selectedTicketId, setSelectedTicketId] = useState(tickets[0]?.id || null);
+  const [selectedTicketId, setSelectedTicketId] = useState<string | null>(tickets[0]?.id || null);
   const [composerText, setComposerText] = useState("");
-
   const [presence, setPresence] = useState<{ [key: string]: { customer?: boolean, seller?: boolean, admin?: boolean } }>({});
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const selectedTicket = tickets.find((t) => t.id === selectedTicketId) || null;
 
-  function postMessage(ticketId: string | null, from: string, text: string) {
+  function postMessage(ticketId: string | null, from: 'admin', text: string) {
     if (!ticketId) return;
     setTickets((prev) =>
       prev.map((t) => {
         if (t.id !== ticketId) return t;
-        const msg = { from, text, ts: Date.now() };
+        const msg: Message = { from, text, ts: Date.now() };
         return {
           ...t,
           messages: [...t.messages, msg],
@@ -74,7 +90,7 @@ export default function SupportDashboardPage() {
     setTickets((prev) => prev.map((t) => (t.id === ticketId ? { ...t, assignee: adminName } : t)));
   }
 
-  function changeStatus(ticketId: string | null, status: string) {
+  function changeStatus(ticketId: string | null, status: 'open' | 'pending' | 'closed') {
     if (!ticketId) return;
     setTickets((prev) => prev.map((t) => (t.id === ticketId ? { ...t, status } : t)));
   }
@@ -84,17 +100,24 @@ export default function SupportDashboardPage() {
       if (!selectedTicketId) return;
       setPresence((p) => ({ ...p, [selectedTicketId]: { customer: Math.random() > 0.5, admin: true } }));
 
-      if (Math.random() > 0.85 && selectedTicketId) {
-        postMessage(selectedTicketId, "admin", "Thank you — I'm looking into this and will update shortly.");
+      if (Math.random() > 0.95 && selectedTicketId) {
+        postMessage(selectedTicketId, "admin", "This is an automated follow-up. Is there anything else I can help with?");
       }
-    }, 12000);
+    }, 15000);
     return () => clearInterval(iv);
   }, [selectedTicketId]);
 
-  const messagesEndRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [selectedTicket?.messages?.length]);
+
+  if (loading) {
+    return (
+        <div className="flex items-center justify-center min-h-screen">
+            <LoadingSpinner />
+        </div>
+    );
+  }
 
   return (
     <AdminLayout>
@@ -175,10 +198,10 @@ export default function SupportDashboardPage() {
                           )}
                           <div className={cn("max-w-md rounded-lg px-3 py-2", m.from === "admin" ? "bg-primary text-primary-foreground" : "bg-muted")}>
                             <p className="text-sm">{m.text}</p>
-                            <p className="text-xs text-right mt-1 opacity-70">{new Date(m.ts).toLocaleTimeString()}</p>
+                            <p className="text-xs text-right mt-1 opacity-70">{new Date(m.ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
                           </div>
                            {m.from === 'admin' && (
-                            <Avatar className="h-8 w-8"><AvatarFallback>A</AvatarFallback></Avatar>
+                            <Avatar className="h-8 w-8"><AvatarImage src={user?.photoURL || ''} /><AvatarFallback>A</AvatarFallback></Avatar>
                           )}
                         </div>
                       ))}
@@ -195,19 +218,22 @@ export default function SupportDashboardPage() {
                           value={composerText}
                           onChange={(e) => setComposerText(e.target.value)}
                           onKeyDown={(e) => {
-                            if (e.key === "Enter") {
+                            if (e.key === "Enter" && !e.shiftKey) {
+                              e.preventDefault();
                               postMessage(selectedTicket.id, "admin", composerText);
                               setComposerText("");
                             }
                           }}
                           className="flex-1"
                           placeholder="Write a message as Admin... Press Enter to send"
+                          disabled={selectedTicket.status === 'closed'}
                         />
                         <Button
                           onClick={() => {
                             postMessage(selectedTicket.id, "admin", composerText);
                             setComposerText("");
                           }}
+                          disabled={selectedTicket.status === 'closed' || !composerText.trim()}
                         >
                           Send
                         </Button>
@@ -222,3 +248,5 @@ export default function SupportDashboardPage() {
     </AdminLayout>
   );
 }
+
+    
