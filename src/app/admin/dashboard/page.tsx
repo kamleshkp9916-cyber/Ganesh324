@@ -89,6 +89,7 @@ import { getFirestore, collection, query, getDocs, orderBy, where } from "fireba
 import { getFirestoreDb } from "@/lib/firebase";
 import { AdminLayout } from "@/components/admin/admin-layout";
 import { cn } from "@/lib/utils"
+import { Transaction, getTransactions } from "@/lib/transaction-history";
 
 type Order = {
     orderId: string;
@@ -107,49 +108,6 @@ const newAccountsData = [
   { name: "Apr", accounts: 210 },
   { name: "May", accounts: 320 },
   { name: "Jun", accounts: 450 },
-];
-
-const recentTransactionsData = [
-    {
-        orderId: "#ORD5896",
-        customer: { name: "Ganesh Prajapati", email: "ganesh@example.com" },
-        status: "Fulfilled",
-        total: 12500.00,
-        type: "Listed Product",
-        date: "2024-07-29T10:00:00.000Z",
-    },
-    {
-        orderId: "#ORD5897",
-        customer: { name: "Jane Doe", email: "jane.d@example.com" },
-        status: "Fulfilled",
-        total: 4999.00,
-        type: "Live Stream",
-        date: "2024-07-28T12:30:00.000Z",
-    },
-    {
-        orderId: "#ORD5902",
-        customer: { name: "David Garcia", email: "david.g@example.com" },
-        status: "Processing",
-        total: 3200.00,
-        type: "Live Stream",
-        date: "2024-07-26T18:00:00.000Z",
-    },
-     {
-        orderId: "#ORD5905",
-        customer: { name: "Peter Jones", email: "peter.j@example.com" },
-        status: "Pending",
-        total: 7800.00,
-        type: "Listed Product",
-        date: "2024-07-24T09:15:00.000Z",
-    },
-    {
-        orderId: "#ORD5903",
-        customer: { name: "Jessica Rodriguez", email: "jessica.r@example.com" },
-        status: "Cancelled",
-        total: 4500.00,
-        type: "Listed Product",
-        date: "2024-07-19T11:45:00.000Z",
-    }
 ];
 
 const recentSales = [
@@ -185,39 +143,6 @@ const recentSales = [
   },
 ]
 
-const failedTransactionsData = [
-  {
-    customer: { name: "Emily Carter", email: "emily.c@example.com" },
-    reason: "Insufficient Funds",
-    time: "1 minute ago",
-    amount: 2300.00,
-  },
-  {
-    customer: { name: "Michael Bui", email: "michael.b@example.com" },
-    reason: "Incorrect CVV",
-    time: "1 minute ago",
-    amount: 899.00,
-  },
-  {
-    customer: { name: "Sophia Loren", email: "sophia.l@example.com" },
-    reason: "Transaction Blocked by Bank",
-    time: "1 minute ago",
-    amount: 15400.00,
-  },
-  {
-    customer: { name: "Daniel Radcliffe", email: "dan.r@example.com" },
-    reason: "Payment Gateway Timeout",
-    time: "1 minute ago",
-    amount: 500.00,
-  },
-    {
-    customer: { name: "Aisha Sharma", email: "aisha.s@example.com" },
-    reason: "Invalid UPI PIN",
-    time: "1 minute ago",
-    amount: 1250.00,
-  },
-];
-
 const MetricCard = ({ title, value, description, icon: Icon, onClick, className }: { title: string, value: string, description: string, icon: React.ElementType, onClick?: () => void, className?: string }) => (
     <Card onClick={onClick} className={cn(onClick && "cursor-pointer hover:bg-muted/50 transition-colors", className)}>
         <CardHeader className="pb-2">
@@ -235,50 +160,6 @@ const MetricCard = ({ title, value, description, icon: Icon, onClick, className 
     </Card>
 );
 
-const FailedTransactionsView = ({ onBack }: { onBack: () => void }) => (
-    <Card>
-        <CardHeader>
-             <div className="flex items-center gap-4">
-                <Button variant="outline" size="icon" className="h-7 w-7" onClick={onBack}>
-                    <ArrowLeft className="h-4 w-4" />
-                    <span className="sr-only">Back</span>
-                </Button>
-                <div>
-                    <CardTitle>Failed Transactions Today</CardTitle>
-                    <CardDescription>A log of all payment attempts that failed today.</CardDescription>
-                </div>
-            </div>
-        </CardHeader>
-        <CardContent>
-             <Table>
-                <TableHeader>
-                <TableRow>
-                    <TableHead>Customer</TableHead>
-                    <TableHead>Reason for Failure</TableHead>
-                    <TableHead>Time</TableHead>
-                    <TableHead className="text-right">Amount</TableHead>
-                </TableRow>
-                </TableHeader>
-                <TableBody>
-                {failedTransactionsData.map((transaction, index) => (
-                    <TableRow key={index}>
-                        <TableCell>
-                            <div className="font-medium">{transaction.customer.name}</div>
-                            <div className="hidden text-sm text-muted-foreground md:inline">
-                                {transaction.customer.email}
-                            </div>
-                        </TableCell>
-                        <TableCell>{transaction.reason}</TableCell>
-                        <TableCell>{transaction.time}</TableCell>
-                        <TableCell className="text-right">₹{transaction.amount.toFixed(2)}</TableCell>
-                    </TableRow>
-                ))}
-                </TableBody>
-            </Table>
-        </CardContent>
-    </Card>
-);
-
 export default function AdminDashboard() {
   const { user, userData, loading } = useAuth();
   const { signOut } = useAuthActions();
@@ -288,10 +169,13 @@ export default function AdminDashboard() {
   const [allOrders, setAllOrders] = useState<Order[]>([]);
   const [accountsFilter, setAccountsFilter] = useState("Last 6 Months");
   const [isMounted, setIsMounted] = useState(false);
-  const [view, setView] = useState<'dashboard' | 'failed-transactions'>('dashboard');
+  const [failedTransactionsCount, setFailedTransactionsCount] = useState(0);
 
   useEffect(() => {
     setIsMounted(true);
+    const transactions = getTransactions();
+    const failed = transactions.filter(t => t.status === 'Failed').length;
+    setFailedTransactionsCount(failed);
   }, []);
 
   useEffect(() => {
@@ -311,13 +195,6 @@ export default function AdminDashboard() {
     fetchOrders();
   }, [loading, userData]);
 
-
-  const filteredTransactions = useMemo(() => {
-    return recentTransactionsData.filter(transaction =>
-      transaction.customer.name.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
-      transaction.customer.email.toLowerCase().includes(debouncedSearchTerm.toLowerCase())
-    );
-  }, [debouncedSearchTerm]);
   
   if (loading || !userData || userData.role !== 'admin' || !isMounted) {
     return (
@@ -339,19 +216,10 @@ export default function AdminDashboard() {
   const systemHealth = [
     { name: 'Payment Gateway', status: 'Operational', icon: CreditCard, color: 'text-green-500' },
     { name: 'LiveKit / Stream Server', status: 'Operational', icon: RadioTower, color: 'text-green-500' },
-    { name: 'Firebase Functions', status: 'Operational', icon: Webhook, color: 'text-green-500' },
+    { name: 'Firebase Functions', status: 'Operational', icon: Server, color: 'text-green-500' },
     { name: 'Database Read/Write', status: 'Operational', icon: Server, color: 'text-green-500' },
+    { name: 'Webhooks', status: 'Degraded', icon: Webhook, color: 'text-amber-500', href: '/admin/transactions?tab=webhooks' },
   ];
-
-  if (view === 'failed-transactions') {
-      return (
-          <AdminLayout>
-              <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
-                  <FailedTransactionsView onBack={() => setView('dashboard')} />
-              </main>
-          </AdminLayout>
-      )
-  }
 
   return (
     <AdminLayout>
@@ -398,12 +266,12 @@ export default function AdminDashboard() {
                 value="4" 
                 description="Pending seller payout requests" 
                 icon={BadgeCent}
-                onClick={() => router.push('/admin/users?tab=payouts')}
+                onClick={() => router.push('/admin/payouts')}
                 className="border-blue-500/50 hover:bg-blue-500/10"
             />
             <MetricCard 
-                title="Failed Transactions Today" 
-                value="12" 
+                title="Failed Transactions" 
+                value={failedTransactionsCount.toString()}
                 description="Click to see failure reasons" 
                 icon={AlertTriangle}
                 onClick={() => router.push('/admin/transactions?status=Failed')}
@@ -426,15 +294,17 @@ export default function AdminDashboard() {
                 </CardHeader>
                 <CardContent className="grid gap-4">
                     {systemHealth.map((service) => (
-                         <div key={service.name} className="flex items-center justify-between p-3 rounded-lg bg-muted/40">
-                             <div className="flex items-center gap-3">
-                                <service.icon className={cn("h-5 w-5", service.color)} />
-                                <span className="font-medium text-sm">{service.name}</span>
+                         <Link key={service.name} href={service.href || '#'} className={cn(!service.href && "pointer-events-none")}>
+                            <div className={cn("flex items-center justify-between p-3 rounded-lg bg-muted/40", service.href && "hover:bg-muted/80 transition-colors")}>
+                                <div className="flex items-center gap-3">
+                                    <service.icon className={cn("h-5 w-5", service.color)} />
+                                    <span className="font-medium text-sm">{service.name}</span>
+                                </div>
+                                <Badge variant={service.status === 'Operational' ? 'success' : 'destructive'}>
+                                    {service.status}
+                                </Badge>
                             </div>
-                             <Badge variant={service.status === 'Operational' ? 'success' : 'destructive'}>
-                                {service.status}
-                            </Badge>
-                        </div>
+                        </Link>
                     ))}
                 </CardContent>
             </Card>
