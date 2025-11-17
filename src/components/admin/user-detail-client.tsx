@@ -38,6 +38,7 @@ import {
   Gavel,
   Shield,
   Notebook,
+  Separator
 } from "lucide-react"
 import { useEffect, useState, useMemo, useCallback } from "react";
 import Link from "next/link"
@@ -85,8 +86,6 @@ import { liveSellers } from "@/lib/product-data"
 import { Textarea } from "../ui/textarea";
 import { Switch } from "../ui/switch";
 import { Label } from "../ui/label";
-import { Separator } from "../ui/separator";
-
 
 type Product = {
     id: string;
@@ -322,7 +321,7 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
                 </CardContent>
             </Card>
         )
-  };
+    };
 
 
   const renderRevenueView = () => (
@@ -370,9 +369,14 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
                         <ArrowLeft className="h-4 w-4" />
                         Back to Users
                     </Button>
+                     <Button asChild size="sm" className="h-8">
+                        <Link href={`/admin/messages?userId=${profileData.uid}&userName=${profileData.displayName}`}>
+                            <MessageSquare className="mr-2 h-4 w-4" /> Message
+                        </Link>
+                    </Button>
                 </div>
                  <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-                    <Card>
+                    <Card className="col-span-1">
                         <CardHeader>
                              <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-4">
@@ -381,23 +385,18 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
                                         <AvatarFallback className="text-2xl">{profileData.displayName?.charAt(0)}</AvatarFallback>
                                     </Avatar>
                                     <div>
-                                        <CardTitle className="text-lg">{profileData.displayName}</CardTitle>
+                                        <CardTitle className="text-xl">{profileData.displayName}</CardTitle>
                                         <p className="text-xs text-muted-foreground">{profileData.publicId || profileData.uid}</p>
                                     </div>
                                 </div>
-                                <Button asChild size="sm" className="h-8">
-                                    <Link href={`/admin/messages?userId=${profileData.uid}&userName=${profileData.displayName}`}>
-                                        <MessageSquare className="mr-2 h-4 w-4" /> Message
-                                    </Link>
-                                </Button>
                             </div>
                         </CardHeader>
                          <CardContent className="space-y-3 text-sm">
                              <div>
                                 <h4 className="font-semibold mb-2 text-xs uppercase text-muted-foreground">Contact Information</h4>
                                 <div className="space-y-2 text-muted-foreground">
-                                    <div className="flex items-center gap-2"><Mail className="h-4 w-4" /> {profileData.email}</div>
-                                    <div className="flex items-center gap-2"><Phone className="h-4 w-4" /> {profileData.phone}</div>
+                                    <div className="flex items-center gap-2 text-sm"><Mail className="h-4 w-4" /> {profileData.email}</div>
+                                    <div className="flex items-center gap-2 text-sm"><Phone className="h-4 w-4" /> {profileData.phone}</div>
                                     {profileData.addresses && profileData.addresses.length > 0 && (
                                         <div className="flex items-start gap-2 pt-1">
                                             <MapPin className="h-4 w-4 mt-0.5" /> 
@@ -412,41 +411,41 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
                             <Separator className="my-3"/>
                             
                             <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-xs">
-                                <span className="font-medium">Role:</span> <Badge variant={profileData.role === 'admin' ? 'destructive' : profileData.role === 'seller' ? 'secondary' : 'outline'}>{profileData.role}</Badge>
-                                <span className="font-medium">KYC:</span> <Badge variant={profileData.kycStatus === 'verified' ? 'success' : 'warning'}>{profileData.kycStatus || 'pending'}</Badge>
-                                <span className="font-medium">Live Status:</span> {isLive ? <Badge variant="destructive" className="animate-pulse">LIVE</Badge> : <Badge variant="outline">Offline</Badge>}
-                                <span className="font-medium">Last Active:</span> <span>{profileData.lastLogin ? format(profileData.lastLogin.toDate(), 'dd MMM, p') : 'N/A'}</span>
-                                <span className="font-medium">Joined:</span> <span>{profileData.createdAt ? format(profileData.createdAt.toDate(), 'dd MMM, yyyy') : 'N/A'}</span>
+                                <span className="font-medium text-muted-foreground">Role:</span> <Badge variant={profileData.role === 'admin' ? 'destructive' : profileData.role === 'seller' ? 'secondary' : 'outline'} className="text-xs">{profileData.role}</Badge>
+                                <span className="font-medium text-muted-foreground">KYC:</span> <Badge variant={profileData.kycStatus === 'verified' ? 'success' : 'warning'} className="text-xs">{profileData.kycStatus || 'pending'}</Badge>
+                                <span className="font-medium text-muted-foreground">Live Status:</span> {isLive ? <Badge variant="destructive" className="animate-pulse text-xs">LIVE</Badge> : <Badge variant="outline" className="text-xs">Offline</Badge>}
+                                <span className="font-medium text-muted-foreground">Last Active:</span> <span>{profileData.lastLogin ? format(profileData.lastLogin.toDate(), 'dd MMM, p') : 'N/A'}</span>
+                                <span className="font-medium text-muted-foreground">Joined:</span> <span>{profileData.createdAt ? format(profileData.createdAt.toDate(), 'dd MMM, yyyy') : 'N/A'}</span>
                             </div>
                         </CardContent>
                     </Card>
 
-                    <Card>
+                    <Card className="col-span-1">
                         <CardHeader>
                             <CardTitle className="text-base">{profileData.role === 'seller' ? "Seller Stats" : "User Stats"}</CardTitle>
                         </CardHeader>
                          <CardContent className="space-y-2 text-sm">
                             {profileData.role === 'seller' ? (
                                 <>
-                                    <div className="flex items-center justify-between"><span className="text-muted-foreground">Total Earnings</span><span className="font-semibold">₹{sellerRevenueData.totalEarnings.toLocaleString()}</span></div>
-                                    <div className="flex items-center justify-between"><span className="text-muted-foreground">Products Listed</span><span className="font-semibold">{userProducts.length}</span></div>
-                                    <div className="flex items-center justify-between"><span className="text-muted-foreground">Total Orders</span><span className="font-semibold">{totalOrders}</span></div>
-                                    <div className="flex items-center justify-between"><span className="text-muted-foreground">Total Streams</span><span className="font-semibold">{totalStreams}</span></div>
-                                    <div className="flex items-center justify-between"><span className="text-muted-foreground">Avg. Rating</span><span className="font-semibold flex items-center gap-1">{sellerAverageRating} <Star className="h-4 w-4 text-yellow-400" /></span></div>
+                                    <div className="flex items-center justify-between"><span className="text-muted-foreground">Total Earnings</span><span className="font-semibold text-sm">₹{sellerRevenueData.totalEarnings.toLocaleString()}</span></div>
+                                    <div className="flex items-center justify-between"><span className="text-muted-foreground">Products Listed</span><span className="font-semibold text-sm">{userProducts.length}</span></div>
+                                    <div className="flex items-center justify-between"><span className="text-muted-foreground">Total Orders</span><span className="font-semibold text-sm">{totalOrders}</span></div>
+                                    <div className="flex items-center justify-between"><span className="text-muted-foreground">Total Streams</span><span className="font-semibold text-sm">{totalStreams}</span></div>
+                                    <div className="flex items-center justify-between"><span className="text-muted-foreground">Avg. Rating</span><span className="font-semibold flex items-center gap-1 text-sm">{sellerAverageRating} <Star className="h-4 w-4 text-yellow-400" /></span></div>
                                 </>
                             ) : (
                                 <>
-                                    <div className="flex items-center justify-between"><span className="text-muted-foreground">Total Spent</span><span className="font-semibold">₹{totalSpent.toLocaleString()}</span></div>
-                                    <div className="flex items-center justify-between"><span className="text-muted-foreground">Total Orders</span><span className="font-semibold">{totalOrders}</span></div>
-                                    <div className="flex items-center justify-between"><span className="text-muted-foreground">Cancelled Orders</span><span className="font-semibold">{cancelledOrders}</span></div>
-                                    <div className="flex items-center justify-between"><span className="text-muted-foreground">Returned Orders</span><span className="font-semibold">{returnedOrders}</span></div>
-                                    <div className="flex items-center justify-between"><span className="text-muted-foreground">Avg. Order Value</span><span className="font-semibold">₹{avgOrderValue.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span></div>
+                                    <div className="flex items-center justify-between"><span className="text-muted-foreground">Total Spent</span><span className="font-semibold text-sm">₹{totalSpent.toLocaleString()}</span></div>
+                                    <div className="flex items-center justify-between"><span className="text-muted-foreground">Total Orders</span><span className="font-semibold text-sm">{totalOrders}</span></div>
+                                    <div className="flex items-center justify-between"><span className="text-muted-foreground">Cancelled Orders</span><span className="font-semibold text-sm">{cancelledOrders}</span></div>
+                                    <div className="flex items-center justify-between"><span className="text-muted-foreground">Returned Orders</span><span className="font-semibold text-sm">{returnedOrders}</span></div>
+                                    <div className="flex items-center justify-between"><span className="text-muted-foreground">Avg. Order Value</span><span className="font-semibold text-sm">₹{avgOrderValue.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span></div>
                                 </>
                             )}
                         </CardContent>
                     </Card>
 
-                    <Card>
+                    <Card className="col-span-1">
                         <CardHeader>
                             <CardTitle className="text-base">Admin Controls</CardTitle>
                         </CardHeader>
@@ -475,7 +474,8 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
                                 </AlertDialogTrigger>
                                 <AlertDialogContent>
                                     <AlertDialogHeader><AlertDialogTitle>Confirm Removal</AlertDialogTitle><AlertDialogDescription>This will permanently delete all chat messages sent by this user. This action cannot be undone.</AlertDialogDescription></AlertDialogHeader>
-                                    <AlertDialogFooter><AlertDialogCancel>Cancel</AlertDialogCancel><AlertDialogAction>Confirm & Delete</AlertDialogAction></AlertDialogContent>
+                                    <AlertDialogFooter><AlertDialogCancel>Cancel</AlertDialogCancel><AlertDialogAction>Confirm &amp; Delete</AlertDialogAction></AlertDialogFooter>
+                                </AlertDialogContent>
                             </AlertDialog>
                         </CardContent>
                     </Card>
@@ -485,8 +485,8 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
                         <TabsList>
                             <TabsTrigger value="orders">Orders</TabsTrigger>
                             <TabsTrigger value="transactions">Transactions</TabsTrigger>
-                            {profileData.role === 'seller' && <TabsTrigger value="products">Products</TabsTrigger>}
-                            {profileData.role === 'seller' && <TabsTrigger value="revenue">Revenue</TabsTrigger>}
+                            {profileData.role === 'seller' &amp;&amp; <TabsTrigger value="products">Products</TabsTrigger>}
+                            {profileData.role === 'seller' &amp;&amp; <TabsTrigger value="revenue">Revenue</TabsTrigger>}
                             <TabsTrigger value="notes">Admin Notes</TabsTrigger>
                         </TabsList>
                         <TabsContent value="orders">
