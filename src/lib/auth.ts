@@ -2,13 +2,12 @@
 "use client";
 
 import { GoogleAuthProvider, signInWithPopup, signOut as firebaseSignOut, sendPasswordResetEmail, User, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendEmailVerification, getAdditionalUserInfo, updateProfile, setPersistence, browserSessionPersistence } from "firebase/auth";
-import { initializeFirebase } from "@/firebase"; // Changed import
+import { initializeFirebase } from "@/firebase";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 import { createUserData, updateUserData, UserData, getUserData } from "./follow-data";
-import { ref, uploadString, getDownloadURL, deleteObject } from "firebase/storage";
+import { getStorage, ref, uploadString, getDownloadURL, deleteObject } from "firebase/storage";
 import { getFunctions, httpsCallable } from "firebase/functions";
-import { getFirestore, collection, query, where, limit, getDocs } from "firebase/firestore";
 
 export function useAuthActions() {
     const router = useRouter();
@@ -88,18 +87,8 @@ export function useAuthActions() {
     };
 
     const handleEmailSignIn = async (values: any) => {
-        const { auth, firestore: db } = initializeFirebase();
+        const { auth } = initializeFirebase();
         try {
-            // Check if the user is an admin to set session persistence
-            const q = query(collection(db, "users"), where("email", "==", values.email), limit(1));
-            const querySnapshot = await getDocs(q);
-            if (!querySnapshot.empty) {
-                const userData = querySnapshot.docs[0].data();
-                if (userData.role === 'admin') {
-                    await setPersistence(auth, browserSessionPersistence);
-                }
-            }
-
             await signInWithEmailAndPassword(auth, values.email, values.password);
              toast({
                 title: "Logged In!",
@@ -240,7 +229,7 @@ export function useAuthActions() {
     };
     
     const updateUserProfile = async (user: User, data: Partial<UserData>) => {
-        const { firestore, firebaseApp } = initializeFirebase();
+        const { firebaseApp } = initializeFirebase();
         const storage = getStorage(firebaseApp);
         const { displayName } = data;
         let { photoURL } = data;
