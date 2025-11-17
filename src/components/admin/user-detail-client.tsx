@@ -79,7 +79,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip, Legend } from "recharts"
 import { collection, query, where, getDocs, orderBy, onSnapshot, doc } from "firebase/firestore";
-import { getFirestoreDb } from "@/lib/firebase-db";
+import { getFirestoreDb } from "@/lib/firebase";
 import { format, parseISO } from "date-fns";
 import { liveSellers } from "@/lib/product-data"
 import { Textarea } from "../ui/textarea";
@@ -329,14 +329,14 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
     <div className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <button className="text-left w-full" onClick={() => setRevenueDetailView('earnings')}>
-                <Card className="hover:bg-muted/50 transition-colors"><CardHeader><CardTitle className="text-sm font-medium">Total Earnings</CardTitle><CardDescription className="text-xs">Gross revenue from sales</CardDescription></CardHeader><CardContent><p className="text-xl font-bold">₹{sellerRevenueData.totalEarnings.toLocaleString()}</p></CardContent></Card>
+                <Card className="hover:bg-muted/50 transition-colors"><CardHeader><CardTitle className="text-sm font-medium">Total Earnings</CardTitle><CardDescription className="text-xs">Gross revenue from sales</CardDescription></CardHeader><CardContent><p className="text-2xl font-bold">₹{sellerRevenueData.totalEarnings.toLocaleString()}</p></CardContent></Card>
             </button>
-             <Card><CardHeader><CardTitle className="text-sm font-medium">Platform Commission</CardTitle><CardDescription className="text-xs">3% fee on earnings</CardDescription></CardHeader><CardContent><p className="text-xl font-bold">₹{sellerRevenueData.platformCommission.toLocaleString()}</p></CardContent></Card>
+             <Card><CardHeader><CardTitle className="text-sm font-medium">Platform Commission</CardTitle><CardDescription className="text-xs">3% fee on earnings</CardDescription></CardHeader><CardContent><p className="text-2xl font-bold">₹{sellerRevenueData.platformCommission.toLocaleString()}</p></CardContent></Card>
             <button className="text-left w-full" onClick={() => setRevenueDetailView('withdrawn')}>
-                <Card className="hover:bg-muted/50 transition-colors"><CardHeader><CardTitle className="text-sm font-medium">Total Withdrawn</CardTitle><CardDescription className="text-xs">All completed payouts</CardDescription></CardHeader><CardContent><p className="text-xl font-bold">₹{sellerRevenueData.totalWithdrawn.toLocaleString()}</p></CardContent></Card>
+                <Card className="hover:bg-muted/50 transition-colors"><CardHeader><CardTitle className="text-sm font-medium">Total Withdrawn</CardTitle><CardDescription className="text-xs">All completed payouts</CardDescription></CardHeader><CardContent><p className="text-2xl font-bold">₹{sellerRevenueData.totalWithdrawn.toLocaleString()}</p></CardContent></Card>
             </button>
              <button className="text-left w-full" onClick={() => setRevenueDetailView('pending')}>
-                <Card className="hover:bg-muted/50 transition-colors"><CardHeader><CardTitle className="text-sm font-medium">Pending Payouts</CardTitle><CardDescription className="text-xs">Awaiting admin approval</CardDescription></CardHeader><CardContent><p className="text-xl font-bold">₹{sellerRevenueData.pendingPayouts.toLocaleString()}</p></CardContent></Card>
+                <Card className="hover:bg-muted/50 transition-colors"><CardHeader><CardTitle className="text-sm font-medium">Pending Payouts</CardTitle><CardDescription className="text-xs">Awaiting admin approval</CardDescription></CardHeader><CardContent><p className="text-2xl font-bold">₹{sellerRevenueData.pendingPayouts.toLocaleString()}</p></CardContent></Card>
             </button>
         </div>
 
@@ -371,17 +371,17 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
                         Back to Users
                     </Button>
                 </div>
-                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                    <Card>
+                 <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+                    <Card className="xl:col-span-1">
                         <CardHeader>
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-4">
-                                    <Avatar className="h-12 w-12">
+                                    <Avatar className="h-16 w-16">
                                         <AvatarImage src={profileData.photoURL} />
                                         <AvatarFallback>{profileData.displayName?.charAt(0)}</AvatarFallback>
                                     </Avatar>
                                     <div>
-                                        <CardTitle className="text-base">{profileData.displayName}</CardTitle>
+                                        <CardTitle className="text-xl">{profileData.displayName}</CardTitle>
                                         <p className="text-xs text-muted-foreground">{profileData.publicId || profileData.uid}</p>
                                     </div>
                                 </div>
@@ -392,8 +392,8 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
                                 </Button>
                             </div>
                         </CardHeader>
-                         <CardContent className="space-y-3 text-xs">
-                            <div className="font-semibold text-sm">Contact Information</div>
+                         <CardContent className="space-y-3 text-sm">
+                            <div className="font-semibold">Contact Information</div>
                             <div className="flex items-center gap-2 text-muted-foreground"><Mail className="h-4 w-4" /> {profileData.email}</div>
                             <div className="flex items-center gap-2 text-muted-foreground"><Phone className="h-4 w-4" /> {profileData.phone}</div>
                             
@@ -408,77 +408,49 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
                             
                             <Separator className="my-3"/>
                             
-                            <div className="flex items-center justify-between"><span>Role:</span> <Badge variant={profileData.role === 'admin' ? 'destructive' : profileData.role === 'seller' ? 'secondary' : 'outline'} className="text-xs">{profileData.role}</Badge></div>
-                            <div className="flex items-center justify-between"><span>KYC:</span> <Badge variant={profileData.kycStatus === 'verified' ? 'success' : 'warning'} className="text-xs">{profileData.kycStatus || 'pending'}</Badge></div>
-                            <div className="flex items-center justify-between"><span>Live Status:</span> {isLive ? <Badge variant="destructive" className="animate-pulse text-xs">LIVE</Badge> : <Badge variant="outline" className="text-xs">Offline</Badge>}</div>
-                            <div className="flex items-center justify-between"><span>Last Active:</span> <span>{profileData.lastLogin ? format(profileData.lastLogin.toDate(), 'dd MMM, p') : 'N/A'}</span></div>
-                            <div className="flex items-center justify-between"><span>Joined:</span> <span>{profileData.createdAt ? format(profileData.createdAt.toDate(), 'dd MMM, yyyy') : 'N/A'}</span></div>
+                            <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+                                <span className="font-medium">Role:</span> <Badge variant={profileData.role === 'admin' ? 'destructive' : profileData.role === 'seller' ? 'secondary' : 'outline'}>{profileData.role}</Badge>
+                                <span className="font-medium">KYC:</span> <Badge variant={profileData.kycStatus === 'verified' ? 'success' : 'warning'}>{profileData.kycStatus || 'pending'}</Badge>
+                                <span className="font-medium">Live Status:</span> {isLive ? <Badge variant="destructive" className="animate-pulse">LIVE</Badge> : <Badge variant="outline">Offline</Badge>}
+                                <span className="font-medium">Last Active:</span> <span>{profileData.lastLogin ? format(profileData.lastLogin.toDate(), 'dd MMM, p') : 'N/A'}</span>
+                                <span className="font-medium">Joined:</span> <span>{profileData.createdAt ? format(profileData.createdAt.toDate(), 'dd MMM, yyyy') : 'N/A'}</span>
+                            </div>
                         </CardContent>
                     </Card>
 
-                    <Card>
+                    <Card className="xl:col-span-1">
                         <CardHeader>
                             <CardTitle className="text-base">{profileData.role === 'seller' ? "Seller Stats" : "User Stats"}</CardTitle>
                         </CardHeader>
-                         <CardContent className="space-y-3 text-xs">
+                         <CardContent className="space-y-3 text-sm">
                             {profileData.role === 'seller' ? (
                                 <>
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-muted-foreground">Total Earnings</span>
-                                        <span className="font-semibold">₹{sellerRevenueData.totalEarnings.toLocaleString()}</span>
-                                    </div>
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-muted-foreground">Products Listed</span>
-                                        <span className="font-semibold">{userProducts.length}</span>
-                                    </div>
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-muted-foreground">Total Orders</span>
-                                        <span className="font-semibold">{totalOrders}</span>
-                                    </div>
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-muted-foreground">Total Streams</span>
-                                        <span className="font-semibold">{totalStreams}</span>
-                                    </div>
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-muted-foreground">Avg. Rating</span>
-                                        <span className="font-semibold flex items-center gap-1">{sellerAverageRating} <Star className="h-4 w-4 text-yellow-400" /></span>
-                                    </div>
+                                    <div className="flex items-center justify-between"><span className="text-muted-foreground">Total Earnings</span><span className="font-semibold">₹{sellerRevenueData.totalEarnings.toLocaleString()}</span></div>
+                                    <div className="flex items-center justify-between"><span className="text-muted-foreground">Products Listed</span><span className="font-semibold">{userProducts.length}</span></div>
+                                    <div className="flex items-center justify-between"><span className="text-muted-foreground">Total Orders</span><span className="font-semibold">{totalOrders}</span></div>
+                                    <div className="flex items-center justify-between"><span className="text-muted-foreground">Total Streams</span><span className="font-semibold">{totalStreams}</span></div>
+                                    <div className="flex items-center justify-between"><span className="text-muted-foreground">Avg. Rating</span><span className="font-semibold flex items-center gap-1">{sellerAverageRating} <Star className="h-4 w-4 text-yellow-400" /></span></div>
                                 </>
                             ) : (
                                 <>
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-muted-foreground">Total Spent</span>
-                                        <span className="font-semibold">₹{totalSpent.toLocaleString()}</span>
-                                    </div>
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-muted-foreground">Total Orders</span>
-                                        <span className="font-semibold">{totalOrders}</span>
-                                    </div>
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-muted-foreground">Cancelled Orders</span>
-                                        <span className="font-semibold">{cancelledOrders}</span>
-                                    </div>
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-muted-foreground">Returned Orders</span>
-                                        <span className="font-semibold">{returnedOrders}</span>
-                                    </div>
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-muted-foreground">Avg. Order Value</span>
-                                        <span className="font-semibold">₹{avgOrderValue.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
-                                    </div>
+                                    <div className="flex items-center justify-between"><span className="text-muted-foreground">Total Spent</span><span className="font-semibold">₹{totalSpent.toLocaleString()}</span></div>
+                                    <div className="flex items-center justify-between"><span className="text-muted-foreground">Total Orders</span><span className="font-semibold">{totalOrders}</span></div>
+                                    <div className="flex items-center justify-between"><span className="text-muted-foreground">Cancelled Orders</span><span className="font-semibold">{cancelledOrders}</span></div>
+                                    <div className="flex items-center justify-between"><span className="text-muted-foreground">Returned Orders</span><span className="font-semibold">{returnedOrders}</span></div>
+                                    <div className="flex items-center justify-between"><span className="text-muted-foreground">Avg. Order Value</span><span className="font-semibold">₹{avgOrderValue.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span></div>
                                 </>
                             )}
                         </CardContent>
                     </Card>
 
-                    <Card>
+                    <Card className="xl:col-span-1">
                         <CardHeader>
                             <CardTitle className="text-base">Admin Controls</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
                             <div className="flex items-center justify-between">
                                 <Label htmlFor="ban-user" className="flex flex-col space-y-1">
-                                    <span className="font-medium text-sm">Ban User</span>
+                                    <span className="font-medium">Ban User</span>
                                     <span className="font-normal leading-snug text-muted-foreground text-xs">
                                         Prevent this user from logging in.
                                     </span>
@@ -487,7 +459,7 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
                             </div>
                             <div className="flex items-center justify-between">
                                 <Label htmlFor="restrict-chat" className="flex flex-col space-y-1">
-                                    <span className="font-medium text-sm">Restrict Chat Ability</span>
+                                    <span className="font-medium">Restrict Chat Ability</span>
                                     <span className="font-normal leading-snug text-muted-foreground text-xs">
                                         Block this user from sending messages.
                                     </span>
@@ -527,10 +499,10 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
                                         <TableBody>
                                             {isLoading ? <TableRow><TableCell colSpan={4}><Skeleton className="h-10 w-full" /></TableCell></TableRow> : userOrders.length > 0 ? userOrders.map(order => (
                                                 <TableRow key={order.orderId}>
-                                                    <TableCell><Link href={`/admin/orders/${encodeURIComponent(order.orderId)}`} className="font-medium hover:underline text-xs">{order.orderId}</Link></TableCell>
-                                                    <TableCell className="text-xs"><Link href={`/product/${order.products[0].key}`} className="hover:underline">{order.products[0].name}{order.products.length > 1 ? ` + ${order.products.length - 1}` : ''}</Link></TableCell>
+                                                    <TableCell><Link href={`/admin/orders/${encodeURIComponent(order.orderId)}`} className="font-medium hover:underline text-sm">{order.orderId}</Link></TableCell>
+                                                    <TableCell className="text-sm"><Link href={`/product/${order.products[0].key}`} className="hover:underline">{order.products[0].name}{order.products.length > 1 ? ` + ${order.products.length - 1}` : ''}</Link></TableCell>
                                                     <TableCell><Badge variant={getStatusFromTimeline(order.timeline) === 'Delivered' ? 'success' : 'outline'} className="text-xs">{getStatusFromTimeline(order.timeline)}</Badge></TableCell>
-                                                    <TableCell className="text-right text-xs">₹{order.total.toFixed(2)}</TableCell>
+                                                    <TableCell className="text-right text-sm">₹{order.total.toFixed(2)}</TableCell>
                                                 </TableRow>
                                             )) : <TableRow><TableCell colSpan={4} className="text-center h-24">No orders found.</TableCell></TableRow>}
                                         </TableBody>
@@ -550,10 +522,10 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
                                         <TableBody>
                                             {userTransactions.length > 0 ? userTransactions.map(t => (
                                                 <TableRow key={t.id}>
-                                                    <TableCell className="font-mono text-xs">{t.transactionId}</TableCell>
+                                                    <TableCell className="font-mono text-sm">{t.transactionId}</TableCell>
                                                     <TableCell><Badge variant="outline" className="text-xs">{t.type}</Badge></TableCell>
                                                     <TableCell><Badge variant={t.status === 'Completed' ? 'success' : t.status === 'Processing' ? 'warning' : 'destructive'} className="text-xs">{t.status}</Badge></TableCell>
-                                                    <TableCell className={cn("text-right font-medium text-xs", t.amount > 0 ? "text-green-600" : "text-foreground")}>
+                                                    <TableCell className={cn("text-right font-medium text-sm", t.amount > 0 ? "text-green-600" : "text-foreground")}>
                                                         {t.amount > 0 ? '+' : ''}₹{t.amount.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}
                                                     </TableCell>
                                                 </TableRow>
@@ -571,7 +543,7 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
                                         <TableHeader><TableRow><TableHead>Product</TableHead><TableHead>Category</TableHead><TableHead className="text-right">Price</TableHead></TableRow></TableHeader>
                                         <TableBody>
                                             {userProducts.length > 0 ? userProducts.map(product => (
-                                                <TableRow key={product.id}><TableCell className="font-medium text-xs"><Link href={`/product/${product.key}`} className="hover:underline">{product.name}</Link></TableCell><TableCell className="text-xs">{product.category}</TableCell><TableCell className="text-right text-xs">₹{product.price.toLocaleString()}</TableCell></TableRow>
+                                                <TableRow key={product.id}><TableCell className="font-medium text-sm"><Link href={`/product/${product.key}`} className="hover:underline">{product.name}</Link></TableCell><TableCell className="text-sm">{product.category}</TableCell><TableCell className="text-right text-sm">₹{product.price.toLocaleString()}</TableCell></TableRow>
                                             )) : <TableRow><TableCell colSpan={3} className="text-center h-24">No products listed.</TableCell></TableRow>}
                                         </TableBody>
                                     </Table>
@@ -601,6 +573,5 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
         </Dialog>
     </main>
   );
-};
 
     
