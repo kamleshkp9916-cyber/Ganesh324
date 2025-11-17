@@ -6,7 +6,7 @@
 
 import { getFirebaseAdminApp } from '@/lib/firebase-server';
 import { getAuth } from 'firebase-admin/auth';
-import { genkit } from 'genkit';
+import { genkit, AuthError } from 'genkit';
 import { z } from 'zod';
 import { googleAI } from '@genkit-ai/google-genai';
 
@@ -23,11 +23,15 @@ export const createImpersonationToken = ai.defineFlow(
     inputSchema: z.string(),
     outputSchema: z.object({ token: z.string() }),
   },
-  async (uid) => {
+  async (uid, streamingCallback, auth) => {
+    // SECURITY CHECK: Ensure the user calling this flow is an admin.
+    if (auth?.claims?.role !== 'admin') {
+      throw new AuthError('You must be an admin to perform this action.');
+    }
+    
     const adminApp = getFirebaseAdminApp();
-    const auth = getAuth(adminApp);
-    const token = await auth.createCustomToken(uid);
+    const adminAuth = getAuth(adminApp);
+    const token = await adminAuth.createCustomToken(uid);
     return { token };
   }
 );
-
