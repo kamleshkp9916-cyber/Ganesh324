@@ -34,6 +34,10 @@ import {
   Receipt,
   MoreHorizontal,
   Clock,
+  MessageCircle,
+  Gavel,
+  Shield,
+  Notebook,
 } from "lucide-react"
 import { useEffect, useState, useMemo, useCallback } from "react";
 import Link from "next/link"
@@ -64,7 +68,6 @@ import {
 import { useAuth } from "@/hooks/use-auth"
 import { LoadingSpinner } from "@/components/ui/loading-spinner"
 import { getUserData, UserData, updateUserData, getMockSellers } from "@/lib/follow-data";
-import { getFirestoreDb } from "@/lib/firebase-db";
 import { getStatusFromTimeline, Order } from "@/lib/order-data";
 import { Transaction, getTransactions } from "@/lib/transaction-history";
 import Image from "next/image"
@@ -76,8 +79,11 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip, Legend } from "recharts"
 import { collection, query, where, getDocs, orderBy, onSnapshot, doc } from "firebase/firestore";
+import { getFirestoreDb } from "@/lib/firebase-db";
 import { format, parseISO } from "date-fns";
 import { liveSellers } from "@/lib/product-data"
+import { Textarea } from "../ui/textarea";
+import { Switch } from "../ui/switch";
 
 
 type Product = {
@@ -126,6 +132,7 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
   const { toast } = useToast();
   const [payouts, setPayouts] = useState<any[]>([]);
   const [revenueDetailView, setRevenueDetailView] = useState<string | null>(null);
+  const [adminNotes, setAdminNotes] = useState("");
 
 
   useEffect(() => {
@@ -144,6 +151,7 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
                 return;
             }
             setProfileData(fetchedUserData);
+            setAdminNotes((fetchedUserData as any).adminNotes || '');
 
             const db = getFirestoreDb();
             
@@ -234,6 +242,15 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
   const totalStreams = liveSellers.filter(s => s.id === profileData.uid).length;
   const isLive = liveSellers.some(s => s.id === profileData.uid);
   
+  const handleSaveAdminNotes = async () => {
+    try {
+        await updateUserData(userId, { adminNotes });
+        toast({ title: "Notes Saved", description: "Admin notes have been updated successfully." });
+    } catch(err) {
+        toast({ variant: 'destructive', title: "Save Failed", description: "Could not save admin notes." });
+    }
+  }
+
   const renderRevenueDetailView = () => {
         let title = '';
         let data: any[] = [];
@@ -349,42 +366,11 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
                  <div className="flex items-center justify-between gap-4">
                      <Button variant="outline" size="sm" onClick={() => router.back()} className="flex items-center gap-1">
                         <ArrowLeft className="h-4 w-4" />
-                        Back
+                        Back to Users
                     </Button>
                     <h1 className="text-xl font-semibold tracking-tight sm:grow-0">
                         User Profile
                     </h1>
-                    <div className="flex items-center gap-2">
-                        <Button variant="outline" asChild>
-                            <Link href={`/admin/messages?userId=${profileData.uid}&userName=${profileData.displayName}`}>
-                                <MessageSquare className="mr-2 h-4 w-4" />
-                                Message
-                            </Link>
-                        </Button>
-                        <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                                <Button variant="destructive">
-                                    <Ban className="mr-2 h-4 w-4" />
-                                    Terminate User
-                                </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                                <AlertDialogHeader>
-                                    <AlertDialogTitle>Terminate User Account</AlertDialogTitle>
-                                    <AlertDialogDescription>
-                                        You can temporarily suspend or permanently delete this user's account. Permanent deletion cannot be undone.
-                                    </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                    <Button variant="outline">Suspend for 7 days</Button>
-                                    <AlertDialogAction asChild>
-                                        <Button variant="destructive">Permanently Delete</Button>
-                                    </AlertDialogAction>
-                                </AlertDialogFooter>
-                            </AlertDialogContent>
-                        </AlertDialog>
-                    </div>
                 </div>
                 <div className="grid gap-6 md:grid-cols-3 lg:grid-cols-3">
                     <div className="grid auto-rows-max items-start gap-6 lg:col-span-1">
@@ -396,26 +382,17 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
                                         <AvatarFallback>{profileData.displayName?.charAt(0)}</AvatarFallback>
                                     </Avatar>
                                     <div>
-                                        <CardTitle className="flex items-center gap-2">{profileData.displayName}
-                                            {isLive && <Badge variant="destructive" className="flex items-center gap-1 animate-pulse"><RadioTower className="h-3 w-3"/> LIVE</Badge>}
-                                            {profileData.role === 'seller' && (
-                                            <Badge variant="secondary" className="flex items-center gap-1">
-                                                <Star className="h-3 w-3" /> {sellerAverageRating}
-                                            </Badge>
-                                        )}
-                                        </CardTitle>
-                                            <Badge variant={profileData.role === 'admin' ? 'destructive' : profileData.role === 'seller' ? 'secondary' : 'outline'}>{profileData.role}</Badge>
+                                        <CardTitle className="flex items-center gap-2">{profileData.displayName}</CardTitle>
+                                        <p className="text-sm text-muted-foreground">{profileData.publicId || profileData.uid}</p>
                                     </div>
                                 </div>
                             </CardHeader>
-                            <CardContent className="space-y-2 text-sm">
-                                <div className="flex items-center gap-2"><Mail className="h-4 w-4 text-muted-foreground" /> <span>{profileData.email}</span></div>
-                                <div className="flex items-center gap-2"><Phone className="h-4 w-4 text-muted-foreground" /> <span>{profileData.phone || 'N/A'}</span></div>
-                                 <div className="flex items-center gap-2"><Calendar className="h-4 w-4 text-muted-foreground" /> <span>Signup: {profileData.createdAt ? format(profileData.createdAt.toDate(), 'dd MMM, yyyy') : 'N/A'}</span></div>
-                                <div className="flex items-center gap-2"><Clock className="h-4 w-4 text-muted-foreground" /> <span>Last Active: {profileData.lastLogin ? format(profileData.lastLogin.toDate(), 'dd MMM, yyyy, p') : 'N/A'}</span></div>
-                                <div className="flex items-center gap-2"><MapPin className="h-4 w-4 text-muted-foreground" /> <span>IP Address: 192.168.1.1 (Mock)</span></div>
-                                 <div className="flex items-center gap-2"><ShieldCheck className="h-4 w-4 text-muted-foreground" /> <span>KYC: <Badge variant={profileData.kycStatus === 'verified' ? 'success' : 'warning'}>{profileData.kycStatus || 'pending'}</Badge></span></div>
-                                 <div className="flex items-center gap-2"><Receipt className="h-4 w-4 text-muted-foreground" /> <span>Flags: <Badge variant="outline">None</Badge></span></div>
+                             <CardContent className="space-y-2 text-sm">
+                                <div className="flex items-center justify-between"><span>Role:</span> <Badge variant={profileData.role === 'admin' ? 'destructive' : profileData.role === 'seller' ? 'secondary' : 'outline'}>{profileData.role}</Badge></div>
+                                <div className="flex items-center justify-between"><span>KYC:</span> <Badge variant={profileData.kycStatus === 'verified' ? 'success' : 'warning'}>{profileData.kycStatus || 'pending'}</Badge></div>
+                                <div className="flex items-center justify-between"><span>Live Status:</span> {isLive ? <Badge variant="destructive" className="animate-pulse">LIVE</Badge> : <Badge variant="outline">Offline</Badge>}</div>
+                                <div className="flex items-center justify-between"><span>Last Active:</span> <span>{profileData.lastLogin ? format(profileData.lastLogin.toDate(), 'dd MMM, p') : 'N/A'}</span></div>
+                                <div className="flex items-center justify-between"><span>Joined:</span> <span>{profileData.createdAt ? format(profileData.createdAt.toDate(), 'dd MMM, yyyy') : 'N/A'}</span></div>
                             </CardContent>
                         </Card>
                         <Card>
@@ -470,6 +447,45 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
                                         </div>
                                     </>
                                 )}
+                            </CardContent>
+                        </Card>
+                         <Card>
+                            <CardHeader>
+                                <CardTitle>Admin Controls</CardTitle>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                <div className="flex items-center justify-between">
+                                    <Label htmlFor="ban-user" className="flex flex-col space-y-1">
+                                        <span>Ban User</span>
+                                        <span className="font-normal leading-snug text-muted-foreground text-xs">
+                                            Prevent this user from logging in.
+                                        </span>
+                                    </Label>
+                                    <Switch id="ban-user" />
+                                </div>
+                                <div className="flex items-center justify-between">
+                                    <Label htmlFor="restrict-chat" className="flex flex-col space-y-1">
+                                        <span>Restrict Chat Ability</span>
+                                        <span className="font-normal leading-snug text-muted-foreground text-xs">
+                                            Block this user from sending messages.
+                                        </span>
+                                    </Label>
+                                    <Switch id="restrict-chat" />
+                                </div>
+                                 <AlertDialog>
+                                    <AlertDialogTrigger asChild>
+                                        <Button variant="outline" className="w-full">Remove Abusive Chat Messages</Button>
+                                    </AlertDialogTrigger>
+                                    <AlertDialogContent>
+                                        <AlertDialogHeader><AlertDialogTitle>Confirm Removal</AlertDialogTitle><AlertDialogDescription>This will permanently delete all chat messages sent by this user. This action cannot be undone.</AlertDialogDescription></AlertDialogHeader>
+                                        <AlertDialogFooter><AlertDialogCancel>Cancel</AlertDialogCancel><AlertDialogAction>Confirm & Delete</AlertDialogAction></AlertDialogFooter>
+                                    </AlertDialogContent>
+                                </AlertDialog>
+                                 <div className="space-y-2 pt-2">
+                                     <Label>Admin Notes</Label>
+                                     <Textarea placeholder="Add private notes about this user..." value={adminNotes} onChange={(e) => setAdminNotes(e.target.value)} />
+                                     <Button size="sm" onClick={handleSaveAdminNotes}>Save Notes</Button>
+                                </div>
                             </CardContent>
                         </Card>
                     </div>
