@@ -9,6 +9,9 @@ import {
   Menu,
   MoreHorizontal,
   Search,
+  Users,
+  Eye,
+  DollarSign,
 } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
@@ -63,6 +66,8 @@ interface Product {
     images: { file?: File; preview: string }[];
     status: "draft" | "active" | "archived";
     seller?: string;
+    views?: number;
+    sold?: number;
 }
 
 const initialProducts: Product[] = [
@@ -75,7 +80,9 @@ const initialProducts: Product[] = [
         stock: 15,
         images: [{ preview: "https://placehold.co/80x80.png" }],
         status: "active",
-        seller: "FashionFinds"
+        seller: "FashionFinds",
+        views: 12456,
+        sold: 125,
     },
     {
         id: 'prod_2',
@@ -86,7 +93,9 @@ const initialProducts: Product[] = [
         stock: 50,
         images: [{ preview: "https://placehold.co/80x80.png" }],
         status: "active",
-        seller: "GadgetGuru"
+        seller: "GadgetGuru",
+        views: 25890,
+        sold: 830,
     },
     {
         id: 'prod_3',
@@ -97,7 +106,9 @@ const initialProducts: Product[] = [
         stock: 0,
         images: [{ preview: "https://placehold.co/80x80.png" }],
         status: "archived",
-        seller: "FashionFinds"
+        seller: "FashionFinds",
+        views: 5600,
+        sold: 98,
     },
      {
         id: 'prod_4',
@@ -108,7 +119,9 @@ const initialProducts: Product[] = [
         stock: 30,
         images: [],
         status: "draft",
-        seller: "GadgetGuru"
+        seller: "GadgetGuru",
+        views: 18340,
+        sold: 450,
     },
 ];
 
@@ -126,6 +139,7 @@ const ProductTable = ({ products }: { products: Product[] }) => (
               <TableHead>Status</TableHead>
               <TableHead className="hidden md:table-cell">Price</TableHead>
               <TableHead className="hidden md:table-cell">Stock</TableHead>
+              <TableHead className="hidden lg:table-cell text-right">Analytics</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -172,10 +186,17 @@ const ProductTable = ({ products }: { products: Product[] }) => (
                 <TableCell className="hidden md:table-cell">
                   {product.stock}
                 </TableCell>
+                <TableCell className="hidden lg:table-cell text-right">
+                    <div className="flex flex-col items-end text-xs text-muted-foreground">
+                        <div className="flex items-center gap-1.5"><Eye className="h-3 w-3" /> {product.views?.toLocaleString() || 0} views</div>
+                        <div className="flex items-center gap-1.5"><Users className="h-3 w-3" /> {product.sold?.toLocaleString() || 0} sales</div>
+                        <div className="flex items-center gap-1.5"><DollarSign className="h-3 w-3" /> ₹{((product.sold || 0) * product.price).toLocaleString()} revenue</div>
+                    </div>
+                </TableCell>
               </TableRow>
             )) : (
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                   No active products found.
                 </TableCell>
               </TableRow>
@@ -198,7 +219,7 @@ export default function AdminProductsPage() {
     const debouncedSearchTerm = useDebounce(searchTerm, 300);
 
     const activeProducts = useMemo(() => {
-        let products = initialProducts.filter(p => p.status === 'active' && p.stock > 0);
+        let products = initialProducts.filter(p => p.status === 'active');
         if (debouncedSearchTerm) {
             products = products.filter(p => 
                 p.name.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
@@ -225,9 +246,9 @@ export default function AdminProductsPage() {
                 <CardHeader>
                     <div className="flex items-center justify-between">
                         <div>
-                            <CardTitle>Listed Products</CardTitle>
+                            <CardTitle>Products</CardTitle>
                             <CardDescription>
-                                A global view of all active, in-stock products on the platform.
+                                A global view of all active products on the platform.
                             </CardDescription>
                         </div>
                         <div className="flex items-center gap-2">
