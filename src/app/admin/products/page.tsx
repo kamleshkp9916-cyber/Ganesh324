@@ -14,6 +14,9 @@ import {
   DollarSign,
   ArrowLeft,
   Package,
+  AlertTriangle,
+  Send,
+  User,
 } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
@@ -56,6 +59,11 @@ import { useAuthActions } from "@/lib/auth"
 import { useDebounce } from "@/hooks/use-debounce";
 import { Input } from "@/components/ui/input"
 import { AdminLayout } from "@/components/admin/admin-layout"
+import { productDetails, productToSellerMapping } from "@/lib/product-data"
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Textarea } from "@/components/ui/textarea"
+import { Label } from "@/components/ui/label"
 
 
 interface Product {
@@ -68,69 +76,21 @@ interface Product {
     images: { file?: File; preview: string }[];
     status: "draft" | "active" | "archived";
     seller?: string;
+    sellerId?: string;
     views?: number;
     sold?: number;
     keywords?: string;
 }
 
-const initialProducts: Product[] = [
-    {
-        id: 'prod_1',
-        key: 'prod_1',
-        name: "Vintage Camera",
-        description: "A classic 35mm film camera from the 70s. Fully functional.",
-        price: 12500,
-        stock: 15,
-        images: [{ preview: "https://placehold.co/80x80.png" }],
-        status: "active",
-        seller: "FashionFinds",
-        views: 12456,
-        sold: 125,
-        keywords: "camera, vintage, retro, film, photography"
-    },
-    {
-        id: 'prod_2',
-        key: 'prod_2',
-        name: "Wireless Headphones",
-        description: "Noise-cancelling over-ear headphones with 20-hour battery life.",
-        price: 4999,
-        stock: 50,
-        images: [{ preview: "https://placehold.co/80x80.png" }],
-        status: "active",
-        seller: "GadgetGuru",
-        views: 25890,
-        sold: 830,
-        keywords: "audio, headphones, wireless, bluetooth, tech"
-    },
-    {
-        id: 'prod_3',
-        key: 'prod_3',
-        name: "Leather Backpack",
-        description: "Handmade genuine leather backpack, perfect for daily use.",
-        price: 6200,
-        stock: 0,
-        images: [{ preview: "https://placehold.co/80x80.png" }],
-        status: "archived",
-        seller: "FashionFinds",
-        views: 5600,
-        sold: 98,
-        keywords: "bag, leather, backpack, handmade, fashion"
-    },
-     {
-        id: 'prod_4',
-        key: 'prod_4',
-        name: "Smart Watch",
-        description: "Fitness tracker and smartwatch with a vibrant AMOLED display.",
-        price: 8750,
-        stock: 30,
-        images: [],
-        status: "draft",
-        seller: "GadgetGuru",
-        views: 18340,
-        sold: 450,
-        keywords: "watch, smart, fitness, tech, wearable"
-    },
-];
+const initialProducts: Product[] = Object.values(productDetails).map(p => ({
+    ...p,
+    id: p.key,
+    price: parseFloat(p.price.replace(/[^0-9.-]+/g, "")),
+    images: p.images.map(img => ({ preview: img })),
+    seller: productToSellerMapping[p.key as keyof typeof productToSellerMapping]?.name || 'N/A',
+    sellerId: productToSellerMapping[p.key as keyof typeof productToSellerMapping]?.uid || 'N/A',
+    status: p.stock > 0 ? 'active' : 'archived', // Simplified status logic
+}));
 
 const ProductTable = ({ products, onViewDetails }: { products: Product[], onViewDetails: (product: Product) => void }) => (
     <Card>
@@ -179,15 +139,15 @@ const ProductTable = ({ products, onViewDetails }: { products: Product[], onView
                 </TableCell>
                 <TableCell>
                     {product.seller ? (
-                         <span className="text-muted-foreground">
+                         <Link href={`/admin/users/${product.sellerId}`} onClick={(e) => e.stopPropagation()} className="text-muted-foreground hover:underline">
                             {product.seller}
-                         </span>
+                         </Link>
                     ): (
                         <span className="text-muted-foreground">N/A</span>
                     )}
                 </TableCell>
                 <TableCell>
-                  <Badge variant={'success'}>Active</Badge>
+                  <Badge variant={product.status === 'active' ? 'success' : 'outline'}>{product.status}</Badge>
                 </TableCell>
                 <TableCell className="hidden md:table-cell">
                   ₹{product.price.toLocaleString()}
@@ -221,7 +181,7 @@ const ProductTable = ({ products, onViewDetails }: { products: Product[], onView
     </Card>
 );
 
-const ProductDetailView = ({ product, onBack }: { product: Product, onBack: () => void }) => {
+const ProductDetailView = ({ product, onBack, onUpdateStatus }: { product: Product, onBack: () => void, onUpdateStatus: (id: string, status: 'active' | 'archived') => void }) => {
     const grossRevenue = (product.sold || 0) * product.price;
     const platformFee = grossRevenue * 0.03; // 3% platform fee
     const netRevenue = grossRevenue - platformFee;
@@ -275,7 +235,7 @@ const ProductDetailView = ({ product, onBack }: { product: Product, onBack: () =
                          <div className="grid grid-cols-2 gap-4 text-sm border-t pt-4">
                             <div><span className="font-semibold text-muted-foreground">Price:</span><br/> ₹{product.price.toLocaleString()}</div>
                             <div><span className="font-semibold text-muted-foreground">Stock:</span><br/> {product.stock}</div>
-                            <div><span className="font-semibold text-muted-foreground">Seller:</span><br/> {product.seller || 'N/A'}</div>
+                            <div><span className="font-semibold text-muted-foreground">Seller:</span><br/> <Link href={`/admin/users/${product.sellerId}`} className="text-primary hover:underline">{product.seller || 'N/A'}</Link></div>
                             <div><span className="font-semibold text-muted-foreground">Status:</span><br/> <Badge variant={product.status === 'active' ? 'success' : 'outline'}>{product.status}</Badge></div>
                         </div>
                          <Card className="bg-muted/40">
@@ -302,20 +262,49 @@ const ProductDetailView = ({ product, onBack }: { product: Product, onBack: () =
                                 <CardTitle className="text-base">Product Reports</CardTitle>
                                 <CardDescription>Reports submitted by users for this product.</CardDescription>
                             </CardHeader>
-                            <CardContent>
-                                <div className="space-y-2 text-sm">
-                                    {mockReports.map((report) => (
-                                        <div key={report.id} className="flex justify-between items-center p-2 bg-muted/50 rounded-md">
-                                            <div>
-                                                <p className="font-medium">{report.reason}</p>
-                                                <p className="text-xs text-muted-foreground">Reported by: {report.reportedBy}</p>
-                                            </div>
-                                            <Button variant="outline" size="sm">Review</Button>
+                            <CardContent className="space-y-2 text-sm">
+                                {mockReports.map((report) => (
+                                    <div key={report.id} className="flex justify-between items-center p-2 bg-muted/50 rounded-md">
+                                        <div>
+                                            <p className="font-medium">{report.reason}</p>
+                                            <p className="text-xs text-muted-foreground">Reported by: {report.reportedBy}</p>
                                         </div>
-                                    ))}
-                                    {mockReports.length === 0 && <p className="text-center text-muted-foreground text-xs py-4">No reports for this product.</p>}
-                                </div>
+                                    </div>
+                                ))}
+                                {mockReports.length === 0 && <p className="text-center text-muted-foreground text-xs py-4">No reports for this product.</p>}
                             </CardContent>
+                             <CardFooter className="flex justify-end gap-2 pt-4 border-t">
+                                <Dialog>
+                                    <DialogTrigger asChild>
+                                        <Button variant="secondary" size="sm">Request Correction</Button>
+                                    </DialogTrigger>
+                                    <DialogContent>
+                                        <DialogHeader>
+                                            <DialogTitle>Request Correction from Seller</DialogTitle>
+                                            <DialogDescription>Send a message to {product.seller} detailing the required changes.</DialogDescription>
+                                        </DialogHeader>
+                                        <div className="py-4">
+                                            <Label htmlFor="correction-message">Message</Label>
+                                            <Textarea id="correction-message" placeholder="e.g., 'Please update the product images to be more accurate...'"/>
+                                        </div>
+                                        <DialogFooter>
+                                            <DialogClose asChild>
+                                                <Button variant="ghost">Cancel</Button>
+                                            </DialogClose>
+                                            <Button><Send className="mr-2 h-4 w-4"/>Send Message</Button>
+                                        </DialogFooter>
+                                    </DialogContent>
+                                </Dialog>
+                                <AlertDialog>
+                                    <AlertDialogTrigger asChild>
+                                        <Button variant="destructive" size="sm">Suspend Product</Button>
+                                    </AlertDialogTrigger>
+                                    <AlertDialogContent>
+                                        <AlertDialogHeader><AlertDialogTitle>Are you sure?</AlertDialogTitle><AlertDialogDescription>This will archive the product and make it unavailable for purchase. The seller will be notified.</AlertDialogDescription></AlertDialogHeader>
+                                        <AlertDialogFooter><AlertDialogCancel>Cancel</AlertDialogCancel><AlertDialogAction onClick={() => onUpdateStatus(product.id, 'archived')}>Confirm Suspension</AlertDialogAction></AlertDialogFooter>
+                                    </AlertDialogContent>
+                                </AlertDialog>
+                            </CardFooter>
                         </Card>
                     </div>
                 </div>
@@ -327,12 +316,13 @@ const ProductDetailView = ({ product, onBack }: { product: Product, onBack: () =
 export default function AdminProductsPage() {
     const { user, userData, loading } = useAuth();
     const router = useRouter();
+    const [allProducts, setAllProducts] = useState(initialProducts);
     const [searchTerm, setSearchTerm] = useState("");
     const debouncedSearchTerm = useDebounce(searchTerm, 300);
     const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
     const activeProducts = useMemo(() => {
-        let products = initialProducts.filter(p => p.status === 'active');
+        let products = allProducts.filter(p => p.status === 'active');
         if (debouncedSearchTerm) {
             products = products.filter(p => 
                 p.name.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
@@ -341,7 +331,12 @@ export default function AdminProductsPage() {
             );
         }
         return products;
-    }, [debouncedSearchTerm]);
+    }, [allProducts, debouncedSearchTerm]);
+    
+    const handleUpdateStatus = (productId: string, status: 'active' | 'archived') => {
+        setAllProducts(prev => prev.map(p => p.id === productId ? {...p, status} : p));
+        setSelectedProduct(prev => prev && prev.id === productId ? {...prev, status} : prev);
+    }
 
     if (loading || userData?.role !== 'admin') {
         return <div className="flex h-screen items-center justify-center"><LoadingSpinner /></div>
@@ -356,7 +351,7 @@ export default function AdminProductsPage() {
         return (
             <AdminLayout>
                 <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8">
-                    <ProductDetailView product={selectedProduct} onBack={() => setSelectedProduct(null)} />
+                    <ProductDetailView product={selectedProduct} onBack={() => setSelectedProduct(null)} onUpdateStatus={handleUpdateStatus}/>
                 </main>
             </AdminLayout>
         );
@@ -370,3 +365,5 @@ export default function AdminProductsPage() {
     </AdminLayout>
   )
 }
+
+    
