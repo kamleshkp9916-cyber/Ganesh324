@@ -105,7 +105,7 @@ exports.createAdminUser = onCall(async (request) => {
         throw new HttpsError('permission-denied', 'You must be an admin to create other admins.');
     }
 
-    const { email, password, firstName, lastName, userId, phone } = request.data;
+    const { email, password, firstName, lastName, userId, phone, blockedPaths } = request.data;
     if (!email || !password || !firstName || !lastName) {
         throw new HttpsError('invalid-argument', 'Missing required user information.');
     }
@@ -137,6 +137,7 @@ exports.createAdminUser = onCall(async (request) => {
             bio: "Administrator Account",
             location: "",
             addresses: [],
+            blockedPaths: blockedPaths || [],
         });
 
         return { success: true, uid: userRecord.uid };

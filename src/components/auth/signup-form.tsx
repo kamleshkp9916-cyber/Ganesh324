@@ -6,7 +6,7 @@ import { useForm } from "react-hook-form";
 import * as z from "zod";
 import Link from "next/link";
 import { useState } from "react";
-import { Loader2 } from "lucide-react";
+import { Loader2, Shield } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -19,6 +19,8 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useAuthActions } from "@/lib/auth";
+import { Checkbox } from "../ui/checkbox";
+import { Separator } from "../ui/separator";
 
 const formSchema = z.object({
   firstName: z.string().min(1, { message: "Please enter your first name." }),
@@ -35,6 +37,22 @@ const formSchema = z.object({
   phone: z.string().regex(/^\+91 \d{10}$/, { message: "Please enter a valid 10-digit Indian phone number." }),
   password: z.string().min(8, { message: "Password must be at least 8 characters." }),
 });
+
+const navItems = [
+    { href: "/admin/dashboard", label: "Dashboard" },
+    { href: "/admin/orders", label: "Orders" },
+    { href: "/admin/revenue", label: "Revenue" },
+    { href: "/admin/transactions", label: "Transactions" },
+    { href: "/admin/payouts", label: "Payouts" },
+    { href: "/admin/users", label: "Users" },
+    { href: "/admin/kyc", label: "KYC" },
+    { href: "/admin/products", label: "Products" },
+    { href: "/admin/messages", label: "Messages" },
+    { href: "/admin/inquiries", label: "Inquiries" },
+    { href: "/admin/feed", label: "Feed" },
+    { href: "/admin/live-control", label: "Live Control" },
+    { href: "/admin/settings", label: "Settings" },
+];
 
 function GoogleIcon(props: React.SVGProps<SVGSVGElement>) {
     return (
@@ -74,7 +92,8 @@ function BotIcon(props: React.SVGProps<SVGSVGElement>) {
 export function SignupForm({ isAdminSignup = false }: { isAdminSignup?: boolean }) {
   const [isLoading, setIsLoading] = useState(false);
   const { handleCustomerSignUp, handleAdminSignUp, handleGoogleSignIn } = useAuthActions();
-  
+  const [blockedPaths, setBlockedPaths] = useState<string[]>([]);
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: { firstName: "", lastName: "", userId: "@", email: "", phone: "+91 ", password: "" },
@@ -85,15 +104,23 @@ export function SignupForm({ isAdminSignup = false }: { isAdminSignup?: boolean 
     await handleGoogleSignIn();
     setIsLoading(false);
   };
+  
+  const handlePermissionChange = (path: string, checked: boolean) => {
+    setBlockedPaths(prev => 
+        checked ? [...prev, path] : prev.filter(p => p !== path)
+    );
+  };
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
     try {
       if (isAdminSignup) {
-        await handleAdminSignUp(values);
+        await handleAdminSignUp({ ...values, blockedPaths });
       } else {
         await handleCustomerSignUp(values);
       }
+      form.reset();
+      setBlockedPaths([]);
     } catch (error) {
       // Error is already toasted in the auth action
     } finally {
@@ -208,19 +235,45 @@ export function SignupForm({ isAdminSignup = false }: { isAdminSignup?: boolean 
             </FormItem>
           )}
         />
+
+        {isAdminSignup && (
+          <div className="space-y-4 pt-4">
+              <Separator />
+               <div>
+                  <h3 className="text-lg font-medium">Role Permissions</h3>
+                  <p className="text-sm text-muted-foreground">
+                      Select the navigation items to <strong className="text-destructive">block</strong> for this user. Unchecked items will be accessible.
+                  </p>
+              </div>
+               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                   {navItems.map((item) => (
+                      <div key={item.href} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={item.href}
+                          checked={blockedPaths.includes(item.href)}
+                          onCheckedChange={(checked) => handlePermissionChange(item.href, !!checked)}
+                        />
+                        <label
+                          htmlFor={item.href}
+                          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                        >
+                          {item.label}
+                        </label>
+                      </div>
+                    ))}
+               </div>
+          </div>
+        )}
         
-        <Button type="submit" className="w-full font-semibold" disabled={isLoading}>
+        <Button type="submit" className="w-full font-semibold mt-4" disabled={isLoading}>
            {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "Create Account"}
         </Button>
         {!isAdminSignup && (
-          <Button variant="outline" className="w-full font-semibold" type="button" onClick={onGoogleSignIn} disabled={isLoading}>
-            <GoogleIcon className="mr-2" />
-            Get Started With Google
-          </Button>
-        )}
-
-        {!isAdminSignup && (
           <>
+            <Button variant="outline" className="w-full font-semibold" type="button" onClick={onGoogleSignIn} disabled={isLoading}>
+                <GoogleIcon className="mr-2" />
+                Get Started With Google
+            </Button>
             <div className="text-center text-xs text-muted-foreground">
                 By creating an account, you agree to our{" "}
                 <Link href="/terms-and-conditions" className="underline hover:text-primary">
