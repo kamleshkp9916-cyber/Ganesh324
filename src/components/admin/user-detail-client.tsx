@@ -365,50 +365,53 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
     <main className="flex-1 flex flex-col gap-4 p-4 md:gap-6 md:p-6">
         <Dialog onOpenChange={(open) => !open && setSelectedOrderForTimeline(null)}>
             <div className="flex flex-col gap-6">
-                <div className="flex items-start justify-between gap-4">
+                 <div className="flex items-start justify-between gap-4">
                      <Button variant="outline" size="sm" onClick={() => router.back()} className="flex items-center gap-1">
                         <ArrowLeft className="h-4 w-4" />
                         Back to Users
                     </Button>
                 </div>
                  <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-                    <Card className="xl:col-span-1">
+                    <Card>
                         <CardHeader>
-                            <div className="flex items-center justify-between">
+                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-4">
-                                    <Avatar className="h-16 w-16">
+                                    <Avatar className="h-20 w-20">
                                         <AvatarImage src={profileData.photoURL} />
-                                        <AvatarFallback>{profileData.displayName?.charAt(0)}</AvatarFallback>
+                                        <AvatarFallback className="text-2xl">{profileData.displayName?.charAt(0)}</AvatarFallback>
                                     </Avatar>
                                     <div>
-                                        <CardTitle className="text-xl">{profileData.displayName}</CardTitle>
+                                        <CardTitle className="text-lg">{profileData.displayName}</CardTitle>
                                         <p className="text-xs text-muted-foreground">{profileData.publicId || profileData.uid}</p>
                                     </div>
                                 </div>
-                                <Button asChild size="sm" className="h-7">
+                                <Button asChild size="sm" className="h-8">
                                     <Link href={`/admin/messages?userId=${profileData.uid}&userName=${profileData.displayName}`}>
-                                        <MessageSquare className="mr-2 h-3 w-3" /> Message
+                                        <MessageSquare className="mr-2 h-4 w-4" /> Message
                                     </Link>
                                 </Button>
                             </div>
                         </CardHeader>
                          <CardContent className="space-y-3 text-sm">
-                            <div className="font-semibold">Contact Information</div>
-                            <div className="flex items-center gap-2 text-muted-foreground"><Mail className="h-4 w-4" /> {profileData.email}</div>
-                            <div className="flex items-center gap-2 text-muted-foreground"><Phone className="h-4 w-4" /> {profileData.phone}</div>
-                            
-                            {profileData.addresses && profileData.addresses.length > 0 && (
-                                <div className="flex items-start gap-2 pt-2">
-                                    <MapPin className="h-4 w-4 text-muted-foreground mt-0.5" /> 
-                                    <address className="not-italic text-muted-foreground">
-                                        {profileData.addresses[0].village}, {profileData.addresses[0].district}, {profileData.addresses[0].city}, {profileData.addresses[0].state} - {profileData.addresses[0].pincode}
-                                    </address>
+                             <div>
+                                <h4 className="font-semibold mb-2 text-xs uppercase text-muted-foreground">Contact Information</h4>
+                                <div className="space-y-2 text-muted-foreground">
+                                    <div className="flex items-center gap-2"><Mail className="h-4 w-4" /> {profileData.email}</div>
+                                    <div className="flex items-center gap-2"><Phone className="h-4 w-4" /> {profileData.phone}</div>
+                                    {profileData.addresses && profileData.addresses.length > 0 && (
+                                        <div className="flex items-start gap-2 pt-1">
+                                            <MapPin className="h-4 w-4 mt-0.5" /> 
+                                            <address className="not-italic text-xs">
+                                                {profileData.addresses[0].village}, {profileData.addresses[0].district}, {profileData.addresses[0].city}, {profileData.addresses[0].state} - {profileData.addresses[0].pincode}
+                                            </address>
+                                        </div>
+                                    )}
                                 </div>
-                            )}
+                            </div>
                             
                             <Separator className="my-3"/>
                             
-                            <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+                            <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-xs">
                                 <span className="font-medium">Role:</span> <Badge variant={profileData.role === 'admin' ? 'destructive' : profileData.role === 'seller' ? 'secondary' : 'outline'}>{profileData.role}</Badge>
                                 <span className="font-medium">KYC:</span> <Badge variant={profileData.kycStatus === 'verified' ? 'success' : 'warning'}>{profileData.kycStatus || 'pending'}</Badge>
                                 <span className="font-medium">Live Status:</span> {isLive ? <Badge variant="destructive" className="animate-pulse">LIVE</Badge> : <Badge variant="outline">Offline</Badge>}
@@ -418,11 +421,11 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
                         </CardContent>
                     </Card>
 
-                    <Card className="xl:col-span-1">
+                    <Card>
                         <CardHeader>
                             <CardTitle className="text-base">{profileData.role === 'seller' ? "Seller Stats" : "User Stats"}</CardTitle>
                         </CardHeader>
-                         <CardContent className="space-y-3 text-sm">
+                         <CardContent className="space-y-2 text-sm">
                             {profileData.role === 'seller' ? (
                                 <>
                                     <div className="flex items-center justify-between"><span className="text-muted-foreground">Total Earnings</span><span className="font-semibold">₹{sellerRevenueData.totalEarnings.toLocaleString()}</span></div>
@@ -443,14 +446,14 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
                         </CardContent>
                     </Card>
 
-                    <Card className="xl:col-span-1">
+                    <Card>
                         <CardHeader>
                             <CardTitle className="text-base">Admin Controls</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
                             <div className="flex items-center justify-between">
                                 <Label htmlFor="ban-user" className="flex flex-col space-y-1">
-                                    <span className="font-medium">Ban User</span>
+                                    <span className="font-medium text-sm">Ban User</span>
                                     <span className="font-normal leading-snug text-muted-foreground text-xs">
                                         Prevent this user from logging in.
                                     </span>
@@ -459,7 +462,7 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
                             </div>
                             <div className="flex items-center justify-between">
                                 <Label htmlFor="restrict-chat" className="flex flex-col space-y-1">
-                                    <span className="font-medium">Restrict Chat Ability</span>
+                                    <span className="font-medium text-sm">Restrict Chat Ability</span>
                                     <span className="font-normal leading-snug text-muted-foreground text-xs">
                                         Block this user from sending messages.
                                     </span>
@@ -472,8 +475,7 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
                                 </AlertDialogTrigger>
                                 <AlertDialogContent>
                                     <AlertDialogHeader><AlertDialogTitle>Confirm Removal</AlertDialogTitle><AlertDialogDescription>This will permanently delete all chat messages sent by this user. This action cannot be undone.</AlertDialogDescription></AlertDialogHeader>
-                                    <AlertDialogFooter><AlertDialogCancel>Cancel</AlertDialogCancel><AlertDialogAction>Confirm & Delete</AlertDialogAction></AlertDialogFooter>
-                                </AlertDialogContent>
+                                    <AlertDialogFooter><AlertDialogCancel>Cancel</AlertDialogCancel><AlertDialogAction>Confirm & Delete</AlertDialogAction></AlertDialogContent>
                             </AlertDialog>
                         </CardContent>
                     </Card>
@@ -573,5 +575,6 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
         </Dialog>
     </main>
   );
+}
 
     
