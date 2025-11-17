@@ -75,6 +75,7 @@ const navItems = [
 
 const featuresItems = [
     { href: "/admin/live-control", icon: RadioTower, label: "Live Control" },
+    { href: "/admin/promotions", icon: Ticket, label: "Promotions" },
 ];
 
 const generalItems = [
@@ -391,5 +392,3 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
         </div>
     );
 }
-
-    
