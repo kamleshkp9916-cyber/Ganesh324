@@ -56,6 +56,7 @@ export interface UserData {
     accountNumber?: string;
     ifsc?: string;
     createdAt?: any;
+    blockedPaths?: string[];
 }
 
 const defaultUserData = (uid: string, defaults?: Partial<User>): Partial<UserData> => ({
@@ -144,6 +145,7 @@ export const createUserData = async (user: User, role: 'customer' | 'seller' | '
         ...defaultUserData(user.uid, user),
         role: userRole,
         createdAt: serverTimestamp(),
+        lastLogin: serverTimestamp(), // Set initial lastLogin timestamp
         // Customers are automatically KYC verified on signup
         kycStatus: userRole === 'customer' ? 'verified' : additionalData.kycStatus || 'pending',
         ...additionalData,
