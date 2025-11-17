@@ -89,7 +89,6 @@ import { getFirestoreDb } from "@/lib/firebase";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
 import { useDebounce } from "@/hooks/use-debounce";
-import { createImpersonationToken } from "@/ai/flows/impersonation-flow";
 import { AdminLayout } from "@/components/admin/admin-layout";
 import { useLocalStorage } from "@/hooks/use-local-storage";
 import { Separator } from "@/components/ui/separator";
@@ -166,42 +165,61 @@ const UserTable = ({ users, onViewDetails, onDelete }: { users: any[], onViewDet
 
     return (
         <>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {users.map((u, index) => (
-                    <Card key={index} className={cn("flex flex-col", u.role === 'admin' && 'bg-primary/5 border-primary/20')}>
-                        <CardContent className="p-6 flex-grow flex flex-col items-center text-center">
-                            <Avatar className="h-20 w-20 mb-4">
-                                <AvatarImage src={u.photoURL} alt={u.displayName} />
-                                <AvatarFallback className="text-2xl">{u.displayName.charAt(0)}</AvatarFallback>
-                            </Avatar>
-                            <p className="font-semibold text-lg">{u.name || u.displayName}</p>
-                            <p className="text-sm text-muted-foreground break-all">{u.email}</p>
-                            <Badge variant={u.role === 'admin' ? 'destructive' : u.role === 'seller' ? 'secondary' : 'outline'} className="mt-2 capitalize">{u.role}</Badge>
-                        </CardContent>
-                        <CardFooter className="p-2 border-t flex justify-center gap-1">
-                           <Button variant="outline" size="sm" onClick={() => onViewDetails(u)} className="flex-1">
-                                <Eye className="mr-2 h-4 w-4" />
-                                View
-                            </Button>
-                            <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                    <Button aria-haspopup="true" size="icon" variant="ghost" className="h-9 w-9">
-                                        <MoreHorizontal className="h-4 w-4" />
-                                        <span className="sr-only">Toggle menu</span>
+            <Table>
+                <TableHeader>
+                    <TableRow>
+                        <TableHead>User</TableHead>
+                        <TableHead>Role</TableHead>
+                        <TableHead className="hidden md:table-cell">Signup Date</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
+                    </TableRow>
+                </TableHeader>
+                <TableBody>
+                    {users.map((u, index) => (
+                        <TableRow key={index} className={u.role === 'admin' ? 'bg-primary/5' : ''}>
+                            <TableCell>
+                                <div className="flex items-center gap-3">
+                                    <Avatar>
+                                        <AvatarImage src={u.photoURL} alt={u.displayName} />
+                                        <AvatarFallback>{u.displayName.charAt(0)}</AvatarFallback>
+                                    </Avatar>
+                                    <div>
+                                        <div className="font-medium">{u.name || u.displayName}</div>
+                                        <div className="text-sm text-muted-foreground">{u.email}</div>
+                                    </div>
+                                </div>
+                            </TableCell>
+                            <TableCell>
+                                <Badge variant={u.role === 'admin' ? 'destructive' : u.role === 'seller' ? 'secondary' : 'outline'} className="capitalize">{u.role}</Badge>
+                            </TableCell>
+                            <TableCell className="hidden md:table-cell">{isMounted && u.createdAt ? new Date(u.createdAt.seconds * 1000).toLocaleDateString() : 'N/A'}</TableCell>
+                            <TableCell className="text-right">
+                                <div className="flex items-center justify-end gap-2">
+                                    <Button variant="outline" size="sm" onClick={() => onViewDetails(u)}>
+                                        <Eye className="mr-2 h-4 w-4" />
+                                        View
                                     </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                    <DropdownMenuItem className="text-destructive" onSelect={() => onDelete(u)}>
-                                        <Trash2 className="mr-2 h-4 w-4" />
-                                        Delete Account
-                                    </DropdownMenuItem>
-                                </DropdownMenuContent>
-                            </DropdownMenu>
-                        </CardFooter>
-                    </Card>
-                ))}
-            </div>
-            <div className="text-xs text-muted-foreground mt-6">
+                                    <DropdownMenu>
+                                        <DropdownMenuTrigger asChild>
+                                            <Button aria-haspopup="true" size="icon" variant="ghost">
+                                                <MoreHorizontal className="h-4 w-4" />
+                                                <span className="sr-only">Toggle menu</span>
+                                            </Button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent align="end">
+                                            <DropdownMenuItem className="text-destructive" onSelect={() => onDelete(u)}>
+                                                <Trash2 className="mr-2 h-4 w-4" />
+                                                Delete Account
+                                            </DropdownMenuItem>
+                                        </DropdownMenuContent>
+                                    </DropdownMenu>
+                                </div>
+                            </TableCell>
+                        </TableRow>
+                    ))}
+                </TableBody>
+            </Table>
+            <div className="text-xs text-muted-foreground mt-6 px-7">
                 Showing <strong>{users.length}</strong> of <strong>{users.length}</strong> users
             </div>
         </>
@@ -215,9 +233,7 @@ export default function AdminUsersPage() {
   const searchParams = useSearchParams();
   const [allUsersState, setAllUsersState] = useState<any[]>([]);
   const [userToDelete, setUserToDelete] = useState<any | null>(null);
-  const [userToPromote, setUserToPromote] = useState<any | null>(null);
   const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false);
-  const [isPromoteAlertOpen, setIsPromoteAlertOpen] = useState(false);
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || "");
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
@@ -265,11 +281,6 @@ export default function AdminUsersPage() {
       setIsDeleteAlertOpen(true);
   };
   
-    const handleMakeAdminClick = (userToPromote: any) => {
-      setUserToPromote(userToPromote);
-      setIsPromoteAlertOpen(true);
-  };
-
   const confirmDeleteUser = async () => {
       if (!userToDelete) return;
       toast({ title: `Deleting user ${userToDelete.displayName}...` });
@@ -280,15 +291,6 @@ export default function AdminUsersPage() {
       setIsDeleteAlertOpen(false);
       setUserToDelete(null);
   }
-  
-  const confirmMakeAdmin = async () => {
-      if (!userToPromote) return;
-      await updateUserData(userToPromote.uid, { role: 'admin' });
-      setAllUsersState(prev => prev.map(u => u.uid === userToPromote.uid ? { ...u, role: 'admin'} : u));
-      toast({ title: "Success!", description: `${userToPromote.displayName} is now an administrator.` });
-      setIsPromoteAlertOpen(false);
-      setUserToPromote(null);
-  };
   
   const handleViewDetails = (userToShow: any) => {
     router.push(`/admin/users/${userToShow.uid}`);
@@ -330,20 +332,6 @@ export default function AdminUsersPage() {
             </AlertDialogFooter>
         </AlertDialogContent>
     </AlertDialog>
-     <AlertDialog open={isPromoteAlertOpen} onOpenChange={setIsPromoteAlertOpen}>
-        <AlertDialogContent>
-            <AlertDialogHeader>
-                <AlertDialogTitle>Confirm Admin Promotion</AlertDialogTitle>
-                <AlertDialogDescription>
-                    Are you sure you want to grant administrator privileges to <strong className="px-1">{userToPromote?.displayName}</strong>? This action is irreversible.
-                </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction onClick={confirmMakeAdmin}>Confirm</AlertDialogAction>
-            </AlertDialogFooter>
-        </AlertDialogContent>
-    </AlertDialog>
     <Dialog open={!!selectedPayout} onOpenChange={(open) => !open && setSelectedPayout(null)}>
         {selectedPayout && (
             <PayoutSummaryDialog 
@@ -377,7 +365,7 @@ export default function AdminUsersPage() {
                         <CardDescription>Manage all customer accounts.</CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <UserTable users={customers} onViewDetails={handleViewDetails} onDelete={handleDeleteUserClick} onMakeAdmin={handleMakeAdminClick} onImpersonate={() => {}}/>
+                        <UserTable users={customers} onViewDetails={handleViewDetails} onDelete={handleDeleteUserClick} />
                     </CardContent>
                 </Card>
              </TabsContent>
@@ -388,7 +376,7 @@ export default function AdminUsersPage() {
                         <CardDescription>Manage all verified seller accounts.</CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <UserTable users={sellers} onViewDetails={handleViewDetails} onDelete={handleDeleteUserClick} onMakeAdmin={handleMakeAdminClick} onImpersonate={() => {}}/>
+                        <UserTable users={sellers} onViewDetails={handleViewDetails} onDelete={handleDeleteUserClick} />
                     </CardContent>
                 </Card>
              </TabsContent>
@@ -457,7 +445,5 @@ export default function AdminUsersPage() {
     </>
   )
 }
-
-    
 
     
