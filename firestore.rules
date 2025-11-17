@@ -20,9 +20,10 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == userId;
     }
 
-    // Helper function to check if the user has an 'admin' role via custom claims.
+    // Helper function to check if the user has an 'admin' role.
     function isAdmin() {
-      return isSignedIn() && request.auth.token.role == 'admin';
+      // Ensure the user is signed in and has a verified admin role in their own user document.
+      return isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
 
     /**
@@ -31,17 +32,29 @@ service cloud.firestore {
      */
     match /users/{userId} {
       allow create: if isOwner(userId) && request.resource.data.id == request.auth.uid;
+      // Allow a user to read their own document, or an admin to read any user document.
       allow read: if isOwner(userId) || isAdmin();
-      allow update: if isOwner(userId) || isAdmin();
-      allow delete: if isOwner(userId) || isAdmin(); // Allow admin to delete users
-      allow list: if isSignedIn(); // Allow any signed-in user to list other users (e.g., for profiles)
+      allow update: if isOwner(userId);
+      allow delete: if isOwner(userId);
+      allow list: if isAdmin();
 
+      /**
+       * @description Enforces access control for a seller's orders subcollection.
+       * @path /users/{userId}/orders/{orderId}
+       */
       match /orders/{orderId} {
+        // Only the seller (owner of the user document) or an admin can manage orders in this subcollection.
         allow read, write: if isOwner(userId) || isAdmin();
       }
 
+      /**
+       * @description Enforces access control for a seller's products subcollection.
+       * @path /users/{userId}/products/{productId}
+       */
       match /products/{productId} {
+          // Products are publicly readable.
           allow read, list: if true;
+          // Only the owner of the user document (the seller) can create, update, or delete their own products.
           allow create, update, delete: if isOwner(userId) && get(/databases/$(database)/documents/users/$(userId)).data.role == 'seller';
       }
     }
@@ -51,11 +64,20 @@ service cloud.firestore {
      * @path /orders/{orderId}
      */
     match /orders/{orderId} {
+      // Users can create orders for themselves.
       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+
+      // A user can read an order if they are the customer, the seller, OR an admin.
       allow get: if isSignedIn() && (resource.data.userId == request.auth.uid || resource.data.sellerId == request.auth.uid || isAdmin());
+      
+      // Customers can query their own orders.
+      // Sellers can query orders they are the seller for.
+      // Admins can list all orders.
       allow list: if (isSignedIn() && 
                     (request.query.where.userId == request.auth.uid || 
                      (request.query.where.sellerId != null && request.query.where.sellerId == request.auth.uid))) || isAdmin();
+
+      // Only an admin can update or delete orders directly.
       allow update, delete: if isAdmin();
     }
     
@@ -70,11 +92,6 @@ service cloud.firestore {
         allow read, update, delete: if isAdmin();
         // Sellers can read their own payout requests.
         allow list: if isSignedIn() && request.query.where.sellerId == request.auth.uid;
-    }
-
-    // Secure the counters collection so only backend functions can write to it.
-    match /_counters/{docId} {
-      allow read, write: if false;
     }
   }
 }
