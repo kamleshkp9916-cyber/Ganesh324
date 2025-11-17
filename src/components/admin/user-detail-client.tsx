@@ -31,7 +31,8 @@ import {
   Slash,
   Calendar,
   Ban,
-  Receipt, // Added Receipt
+  Receipt,
+  MoreHorizontal,
 } from "lucide-react"
 import { useEffect, useState, useMemo, useCallback } from "react";
 import Link from "next/link"
@@ -99,9 +100,6 @@ const mockOrders: Order[] = [
         orderDate: "2024-08-01T10:00:00.000Z",
         isReturnable: true,
         timeline: [{ status: "Delivered", date: "Aug 05, 2024", time: "02:00 PM", completed: true }],
-        paymentMethod: 'Credit Card',
-        refundStatus: 'N/A',
-        transactionId: 'txn_1a2b3c4d5e6f'
     },
 ];
 
@@ -233,7 +231,7 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
   const avgOrderValue = totalOrders > 0 ? totalSpent / totalOrders : 0;
   const sellerAverageRating = 4.8;
   const totalStreams = liveSellers.filter(s => s.id === profileData.uid).length;
-  const isLive = liveSellers.some(s => s.id === profileData.uid && s.status === 'live');
+  const isLive = liveSellers.some(s => s.id === profileData.uid);
   
   const renderRevenueDetailView = () => {
         let title = '';
@@ -412,20 +410,10 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
                             <CardContent className="space-y-2 text-sm">
                                 <div className="flex items-center gap-2"><Mail className="h-4 w-4 text-muted-foreground" /> <span>{profileData.email}</span></div>
                                 <div className="flex items-center gap-2"><Phone className="h-4 w-4 text-muted-foreground" /> <span>{profileData.phone || 'N/A'}</span></div>
-                                    <div className="flex items-start gap-2 pt-2">
-                                    <Home className="h-4 w-4 text-muted-foreground mt-1" /> 
-                                    <div>
-                                        <p className="font-semibold text-foreground">Address</p>
-                                        {profileData.addresses && profileData.addresses.length > 0 ? (
-                                            <address className="not-italic text-muted-foreground">
-                                                {profileData.addresses[0].name}<br/>
-                                                {profileData.addresses[0].village}, {profileData.addresses[0].district}<br/>
-                                                {profileData.addresses[0].city}, {profileData.addresses[0].state} - {profileData.addresses[0].pincode}<br/>
-                                                Phone: {profileData.addresses[0].phone}
-                                            </address>
-                                        ) : <p className="text-muted-foreground">No address on file.</p>}
-                                    </div>
-                                </div>
+                                <div className="flex items-center gap-2"><Calendar className="h-4 w-4 text-muted-foreground" /> <span>Signup: {profileData.createdAt ? format(profileData.createdAt.toDate(), 'dd MMM, yyyy') : 'N/A'}</span></div>
+                                <div className="flex items-center gap-2"><MapPin className="h-4 w-4 text-muted-foreground" /> <span>IP Address: 192.168.1.1 (Mock)</span></div>
+                                 <div className="flex items-center gap-2"><ShieldCheck className="h-4 w-4 text-muted-foreground" /> <span>KYC: <Badge variant={profileData.kycStatus === 'verified' ? 'success' : 'warning'}>{profileData.kycStatus || 'pending'}</Badge></span></div>
+                                 <div className="flex items-center gap-2"><Receipt className="h-4 w-4 text-muted-foreground" /> <span>Flags: <Badge variant="outline">None</Badge></span></div>
                             </CardContent>
                         </Card>
                         <Card>
@@ -565,5 +553,3 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
     </main>
   );
 };
-
-    
