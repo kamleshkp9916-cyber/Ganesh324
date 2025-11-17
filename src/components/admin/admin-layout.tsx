@@ -21,7 +21,7 @@ import {
   RadioTower,
   CreditCard,
   FileText,
-  Rss, // Added Rss icon
+  Rss,
   Loader2,
   Banknote,
 } from "lucide-react"
@@ -79,6 +79,12 @@ const generalItems = [
     { href: "/admin/settings", icon: Settings, label: "Settings" },
 ];
 
+const mockNotifications = [
+    { id: 1, title: 'New payout request', description: 'FashionFinds requested ₹52,340.50', href: '/admin/payouts', read: false },
+    { id: 2, title: 'Low Stock Warning', description: 'Vintage Camera has only 15 units left.', href: '/admin/products', read: false },
+    { id: 3, title: 'New Seller Application', description: 'Artisan Crafts needs KYC approval.', href: '/admin/kyc', read: true },
+];
+
 export function AdminLayout({ children }: { children: React.ReactNode }) {
     const { user } = useAuth();
     const { signOut } = useAuthActions();
@@ -89,6 +95,9 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
     const [searchResults, setSearchResults] = useState<UserData[]>([]);
     const [isSearching, setIsSearching] = useState(false);
     const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+    const [notifications, setNotifications] = useState(mockNotifications);
+
+    const unreadCount = useMemo(() => notifications.filter(n => !n.read).length, [notifications]);
 
     useEffect(() => {
         const searchUsers = async () => {
@@ -146,6 +155,10 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
         router.push(`/admin/users/${selectedUser.uid}`);
     }
 
+    const markAsRead = (id: number) => {
+        setNotifications(current => current.map(n => n.id === id ? { ...n, read: true } : n));
+    };
+
     return (
         <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
             <div className="hidden border-r bg-muted/40 md:block md:sticky md:top-0 h-screen">
@@ -155,10 +168,34 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
                             <ShieldCheck className="h-6 w-6 text-primary" />
                             <span className="">Nipher Admin</span>
                         </Link>
-                        <Button variant="outline" size="icon" className="ml-auto h-8 w-8">
-                            <Bell className="h-4 w-4" />
-                            <span className="sr-only">Toggle notifications</span>
-                        </Button>
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="outline" size="icon" className="ml-auto h-8 w-8 relative">
+                                    <Bell className="h-4 w-4" />
+                                    {unreadCount > 0 && (
+                                        <span className="absolute -top-1 -right-1 flex h-3 w-3">
+                                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                                            <span className="relative inline-flex rounded-full h-3 w-3 bg-primary"></span>
+                                        </span>
+                                    )}
+                                    <span className="sr-only">Toggle notifications</span>
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="w-80">
+                                <DropdownMenuLabel>Notifications</DropdownMenuLabel>
+                                <DropdownMenuSeparator />
+                                {notifications.length > 0 ? notifications.map(n => (
+                                    <DropdownMenuItem key={n.id} onSelect={() => { markAsRead(n.id); router.push(n.href); }} className={cn("flex-col items-start gap-1", !n.read && "bg-primary/5")}>
+                                        <div className="flex justify-between w-full">
+                                            <p className={cn("font-semibold", !n.read && "text-primary")}>{n.title}</p>
+                                        </div>
+                                        <p className="text-sm text-muted-foreground">{n.description}</p>
+                                    </DropdownMenuItem>
+                                )) : (
+                                    <p className="p-4 text-center text-sm text-muted-foreground">No new notifications.</p>
+                                )}
+                            </DropdownMenuContent>
+                        </DropdownMenu>
                     </div>
                     <div className="flex-1 overflow-y-auto">
                         <nav className="grid items-start px-2 text-sm font-medium lg:px-4">
