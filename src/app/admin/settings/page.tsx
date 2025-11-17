@@ -26,8 +26,6 @@ import { PoliciesSettings } from "@/components/settings/policies-settings";
 import { ContentModerationSettings } from "@/components/settings/content-moderation-settings";
 import { UserNotificationsSettings } from "@/components/settings/user-notifications";
 
-export const PAYOUT_REQUESTS_KEY = 'streamcart_payout_requests';
-
 export type SettingView = 'main' | 'categories' | 'promotions' | 'shipping' | 'policies' | 'moderation' | 'notifications' | 'payouts';
 
 const settingsLinks = [

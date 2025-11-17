@@ -18,7 +18,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { EditAddressForm } from '@/components/edit-address-form';
 import { productDetails } from '@/lib/product-data';
 import { UserData, updateUserData } from '@/lib/follow-data';
-import { COUPONS_KEY, SHIPPING_SETTINGS_KEY, ShippingSettings, Coupon } from '@/app/admin/settings/page';
+import { SHIPPING_SETTINGS_KEY, ShippingSettings } from '@/components/settings/shipping-settings';
+import { Coupon, COUPONS_KEY } from '@/components/settings/promotions-settings';
 import { useLocalStorage } from '@/hooks/use-local-storage';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
