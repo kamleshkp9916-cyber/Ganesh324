@@ -1,14 +1,13 @@
-
 "use client"
 
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { AdminLayout } from "@/components/admin/admin-layout";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuItem } from "@/components/ui/dropdown-menu";
-import { File, ListFilter, Search, Calendar as CalendarIcon, MoreVertical, Link as LinkIcon, Undo2 } from "lucide-react";
+import { File, ListFilter, Search, Calendar as CalendarIcon, MoreVertical, Link as LinkIcon, Undo2, Printer, Download, Package } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useDebounce } from "@/hooks/use-debounce";
 import { getTransactions, Transaction } from '@/lib/transaction-history';
@@ -29,9 +28,13 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import Link from 'next/link';
 import { Pagination, PaginationContent, PaginationItem, PaginationPrevious, PaginationNext } from '@/components/ui/pagination';
-
+import { Logo } from '@/components/logo';
+import { Separator } from '@/components/ui/separator';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 
 const RefundDialog = ({ transaction, onApprove, onReject }: { transaction: Transaction, onApprove: (id: string) => void, onReject: (id: string) => void }) => {
     const [reason, setReason] = useState("");
@@ -63,6 +66,75 @@ const RefundDialog = ({ transaction, onApprove, onReject }: { transaction: Trans
     )
 }
 
+const InvoiceComponent = React.forwardRef<HTMLDivElement, { transaction: Transaction, onPrint: () => void, onDownload: () => void }>(({ transaction, onPrint, onDownload }, ref) => {
+    return (
+        <DialogContent className="max-w-4xl p-0" id="printable-order">
+             <style>
+                {`
+                @media print {
+                    body * {
+                        visibility: hidden;
+                    }
+                    #printable-order, #printable-order * {
+                        visibility: visible;
+                    }
+                    #printable-order {
+                        position: absolute;
+                        left: 0;
+                        top: 0;
+                        width: 100%;
+                    }
+                    .no-print {
+                        display: none !important;
+                    }
+                }
+                `}
+            </style>
+            <div ref={ref} className="bg-background text-foreground p-8 rounded-lg">
+                 <div className="flex justify-between items-start mb-8">
+                    <div className="flex items-center gap-4">
+                        <Logo className="h-8 w-auto" />
+                        <div>
+                            <h1 className="text-2xl font-bold">Nipher</h1>
+                            <p className="text-sm text-muted-foreground">Invoice</p>
+                        </div>
+                    </div>
+                    <div className="text-right">
+                        <p className="text-sm text-muted-foreground">Invoice No.</p>
+                        <p className="font-semibold">{transaction.transactionId}</p>
+                        <p className="text-sm text-muted-foreground mt-2">Date</p>
+                        <p className="font-semibold">{format(parseISO(transaction.date), "dd MMM, yyyy")}</p>
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-8 mb-8">
+                    <Card className="p-4"><h2 className="text-sm font-semibold text-muted-foreground mb-2">Billed To</h2><p className="font-bold">{transaction.buyerName || 'N/A'}</p></Card>
+                    <Card className="p-4"><h2 className="text-sm font-semibold text-muted-foreground mb-2">Paid Via</h2><p className="font-bold">{transaction.paymentMethodDetails || 'N/A'}</p><p className="text-sm text-muted-foreground">Transaction {transaction.transactionId}</p></Card>
+                </div>
+                
+                 <Table>
+                    <TableHeader><TableRow><TableHead>Description</TableHead><TableHead className="text-right">Amount</TableHead></TableRow></TableHeader>
+                    <TableBody><TableRow><TableCell>{transaction.description}</TableCell><TableCell className="text-right">{new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(transaction.amount)}</TableCell></TableRow></TableBody>
+                </Table>
+                
+                 <div className="flex justify-end mt-8">
+                    <div className="w-full max-w-sm space-y-3">
+                        <div className="flex justify-between items-center font-bold text-lg"><span>Total Paid</span><span>{new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(transaction.amount)}</span></div>
+                    </div>
+                </div>
+                 <Separator className="my-8" />
+                 <p className="text-sm text-muted-foreground">If you have any questions about this invoice, contact support@nipher.in</p>
+            </div>
+            <div className="flex justify-end p-6 pt-0 gap-2 no-print">
+                <Button variant="outline" onClick={onPrint}><Printer className="mr-2 h-4 w-4"/> Print</Button>
+                <Button onClick={onDownload}><Download className="mr-2 h-4 w-4"/> Download PDF</Button>
+            </div>
+        </DialogContent>
+    );
+});
+InvoiceComponent.displayName = 'InvoiceComponent';
+
+
 export default function AdminTransactionsPage() {
     const [transactions, setTransactions] = useState<Transaction[]>([]);
     const [isClient, setIsClient] = useState(false);
@@ -73,6 +145,9 @@ export default function AdminTransactionsPage() {
     const { toast } = useToast();
     const [date, setDate] = React.useState<DateRange | undefined>(undefined);
     const [managingRefund, setManagingRefund] = useState<Transaction | null>(null);
+    const [viewingInvoice, setViewingInvoice] = useState<Transaction | null>(null);
+    const invoiceRef = useRef<HTMLDivElement>(null);
+
 
     const [currentPage, setCurrentPage] = useState(1);
     const TRANSACTIONS_PER_PAGE = 20;
@@ -96,6 +171,25 @@ export default function AdminTransactionsPage() {
         }
         setTransactions(storedTransactions);
     }, []);
+    
+    const handleDownload = async () => {
+        const input = invoiceRef.current;
+        if (input) {
+            html2canvas(input, { scale: 2, backgroundColor: null }).then(canvas => {
+                const imgData = canvas.toDataURL('image/png');
+                const pdf = new jsPDF('p', 'mm', 'a4');
+                const pdfWidth = pdf.internal.pageSize.getWidth();
+                const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+                pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+                pdf.save(`invoice-${viewingInvoice?.transactionId}.pdf`);
+            });
+        }
+    };
+    
+    const handlePrint = () => {
+        window.print();
+    }
+
 
     const handleApproveRefund = (id: string) => {
         setTransactions(prev => prev.map(t => t.transactionId === id ? { ...t, status: 'Completed' } : t));
@@ -191,6 +285,7 @@ export default function AdminTransactionsPage() {
 
     return (
         <AlertDialog>
+        <Dialog open={!!viewingInvoice} onOpenChange={(open) => !open && setViewingInvoice(null)}>
         <AdminLayout>
             <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8">
                 <Card>
@@ -306,7 +401,7 @@ export default function AdminTransactionsPage() {
                                         <TableRow key={t.id}>
                                             <TableCell>
                                                 <p className="font-mono text-xs">{t.transactionId}</p>
-                                                {t.orderId && <p className="text-xs text-muted-foreground">Order: <Link href={`/admin/orders/${t.orderId}`} className="hover:underline">{t.orderId}</Link></p>}
+                                                {t.orderId && <p className="text-xs text-muted-foreground">Order: <Link href={`/admin/orders?search=${t.orderId}`} className="hover:underline">{t.orderId}</Link></p>}
                                             </TableCell>
                                             <TableCell>{t.buyerName || 'N/A'}</TableCell>
                                             <TableCell className={cn("font-medium", t.amount > 0 ? 'text-green-600' : 'text-foreground')}>
@@ -337,9 +432,11 @@ export default function AdminTransactionsPage() {
                                                                 </DropdownMenuItem>
                                                             </AlertDialogTrigger>
                                                         )}
-                                                         <DropdownMenuItem asChild>
-                                                            <Link href={`/invoice/${t.transactionId}`}><LinkIcon className="mr-2 h-4 w-4" /> View Invoice</Link>
-                                                         </DropdownMenuItem>
+                                                         <DialogTrigger asChild>
+                                                            <DropdownMenuItem onSelect={() => setViewingInvoice(t)}>
+                                                                <LinkIcon className="mr-2 h-4 w-4" /> View Invoice
+                                                            </DropdownMenuItem>
+                                                         </DialogTrigger>
                                                     </DropdownMenuContent>
                                                 </DropdownMenu>
                                             </TableCell>
@@ -380,9 +477,9 @@ export default function AdminTransactionsPage() {
                 </Card>
             </main>
             {managingRefund && <RefundDialog transaction={managingRefund} onApprove={handleApproveRefund} onReject={handleRejectRefund} />}
+            {viewingInvoice && <InvoiceComponent ref={invoiceRef} transaction={viewingInvoice} onPrint={handlePrint} onDownload={handleDownload} />}
         </AdminLayout>
+        </Dialog>
         </AlertDialog>
     );
 }
-
-    
