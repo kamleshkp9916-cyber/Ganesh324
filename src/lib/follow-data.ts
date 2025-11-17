@@ -143,10 +143,10 @@ export const createUserData = async (user: User, role: 'customer' | 'seller' | '
 
     const userData: UserData = {
         ...defaultUserData(user.uid, user),
+        id: user.uid, // Add this line
         role: userRole,
         createdAt: serverTimestamp(),
-        lastLogin: serverTimestamp(), // Set initial lastLogin timestamp
-        // Customers are automatically KYC verified on signup
+        lastLogin: serverTimestamp(),
         kycStatus: userRole === 'customer' ? 'verified' : additionalData.kycStatus || 'pending',
         ...additionalData,
     } as UserData;
