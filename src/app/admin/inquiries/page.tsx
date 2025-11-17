@@ -68,12 +68,44 @@ import { cn } from "@/lib/utils"
 import { AdminLayout } from "@/components/admin/admin-layout"
 
 
+const mockInquiries: (Inquiry & { id: string })[] = [
+    {
+        id: 'inq_1',
+        name: 'Ganesh Prajapati',
+        email: 'ganesh@example.com',
+        subject: 'Question about order #MOCK5896',
+        message: 'Hi there, I was wondering when my vintage camera will be delivered. The tracking seems to be stuck. Thanks!',
+        createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+        isRead: false,
+    },
+    {
+        id: 'inq_2',
+        name: 'Jane Doe',
+        email: 'jane.d@example.com',
+        subject: 'Return Policy Question',
+        message: 'Hello, what is the return policy for electronics? I am thinking of buying the wireless headphones.',
+        createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+        isRead: true,
+    },
+    {
+        id: 'inq_3',
+        name: 'Peter Jones',
+        email: 'peter.j@example.com',
+        subject: 'Bulk order inquiry',
+        message: 'I would like to inquire about placing a bulk order for my company. Who should I speak to?',
+        createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+        isRead: true,
+    }
+];
+
+
 export default function AdminInquiriesPage() {
   const { user, userData, loading } = useAuth();
   const router = useRouter();
-  const [inquiries, setInquiries] = useState<(Inquiry & { id: string })[]>([]);
+  const [inquiries, setInquiries] = useState<(Inquiry & { id: string })[]>(mockInquiries);
   const [selectedInquiry, setSelectedInquiry] = useState<(Inquiry & { id: string }) | null>(null);
   const [replyingToInquiry, setReplyingToInquiry] = useState<(Inquiry & { id: string }) | null>(null);
+  const [isDataFetched, setIsDataFetched] = useState(false);
 
   useEffect(() => {
     if (!loading) {
@@ -81,13 +113,21 @@ export default function AdminInquiriesPage() {
             router.replace('/');
             return;
         }
-        const fetchInquiries = async () => {
-            const data = await getInquiries();
-            setInquiries(data);
-        };
-        fetchInquiries();
+        if (!isDataFetched) {
+            const fetchInquiries = async () => {
+                const data = await getInquiries();
+                // If fetched data is not empty, merge it with mock data
+                // In a real app, you'd likely replace mock data entirely
+                if (data.length > 0) {
+                    const combined = [...data, ...mockInquiries.filter(m => !data.some(d => d.id === m.id))];
+                    setInquiries(combined);
+                }
+                setIsDataFetched(true);
+            };
+            fetchInquiries();
+        }
     }
-  }, [loading, user, userData, router]);
+  }, [loading, user, userData, router, isDataFetched]);
 
   const handleViewInquiry = (inquiry: Inquiry & { id: string }) => {
     setSelectedInquiry(inquiry);
