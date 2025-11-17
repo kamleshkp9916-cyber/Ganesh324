@@ -145,7 +145,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
             try {
                 const [customerSnapshot, sellerSnapshot] = await Promise.all([
                     getDocs(customerQuery),
-                    getDocs(sellerSnapshot)
+                    getDocs(sellerQuery)
                 ]);
 
                 const customers = customerSnapshot.docs.map(doc => ({...doc.data(), uid: doc.id} as UserData));
