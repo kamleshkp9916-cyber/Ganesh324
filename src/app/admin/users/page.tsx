@@ -152,7 +152,7 @@ const PayoutSummaryDialog = ({ payout, onConfirm, onCancel }: { payout: any, onC
 };
 
 
-const UserTable = ({ users, onViewDetails, onDelete, onImpersonate, onMakeAdmin }: { users: any[], onViewDetails: (user: any) => void, onDelete: (user: any) => void, onImpersonate: (user: any) => void, onMakeAdmin: (user: any) => void }) => {
+const UserTable = ({ users, onViewDetails, onDelete, onImpersonate }: { users: any[], onViewDetails: (user: any) => void, onDelete: (user: any) => void, onImpersonate: (user: any) => void }) => {
     const [isMounted, setIsMounted] = useState(false);
     useEffect(() => setIsMounted(true), []);
 
@@ -195,12 +195,6 @@ const UserTable = ({ users, onViewDetails, onDelete, onImpersonate, onMakeAdmin 
                                         <LogIn className="mr-2 h-4 w-4" />
                                         Login as User
                                     </DropdownMenuItem>
-                                     {u.role !== 'admin' && (
-                                        <DropdownMenuItem onSelect={() => onMakeAdmin(u)}>
-                                            <ShieldAlert className="mr-2 h-4 w-4" />
-                                            Make Admin
-                                        </DropdownMenuItem>
-                                    )}
                                     <DropdownMenuSeparator />
                                     <DropdownMenuItem className="text-destructive" onSelect={() => onDelete(u)}>
                                         <Trash2 className="mr-2 h-4 w-4" />
@@ -396,7 +390,6 @@ export default function AdminUsersPage() {
                 <TabsList>
                     <TabsTrigger value="customers">Customers ({customers.length})</TabsTrigger>
                     <TabsTrigger value="sellers">Sellers ({sellers.length})</TabsTrigger>
-                    <TabsTrigger value="admins">Admins ({admins.length})</TabsTrigger>
                     <TabsTrigger value="payments">Payments</TabsTrigger>
                     <TabsTrigger value="payouts">Payouts</TabsTrigger>
                 </TabsList>
@@ -414,7 +407,7 @@ export default function AdminUsersPage() {
                         <CardDescription>Manage all customer accounts.</CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <UserTable users={customers} onViewDetails={handleViewDetails} onDelete={handleDeleteUserClick} onMakeAdmin={handleMakeAdminClick} onImpersonate={handleImpersonateUser}/>
+                        <UserTable users={customers} onViewDetails={handleViewDetails} onDelete={handleDeleteUserClick} onImpersonate={handleImpersonateUser}/>
                     </CardContent>
                 </Card>
              </TabsContent>
@@ -425,18 +418,7 @@ export default function AdminUsersPage() {
                         <CardDescription>Manage all verified seller accounts.</CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <UserTable users={sellers} onViewDetails={handleViewDetails} onDelete={handleDeleteUserClick} onMakeAdmin={handleMakeAdminClick} onImpersonate={handleImpersonateUser}/>
-                    </CardContent>
-                </Card>
-             </TabsContent>
-              <TabsContent value="admins">
-                <Card>
-                    <CardHeader className="px-7">
-                        <CardTitle>Administrators</CardTitle>
-                        <CardDescription>Manage all site administrators.</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <UserTable users={admins} onViewDetails={handleViewDetails} onDelete={handleDeleteUserClick} onMakeAdmin={handleMakeAdminClick} onImpersonate={handleImpersonateUser}/>
+                        <UserTable users={sellers} onViewDetails={handleViewDetails} onDelete={handleDeleteUserClick} onImpersonate={handleImpersonateUser}/>
                     </CardContent>
                 </Card>
              </TabsContent>
