@@ -239,6 +239,7 @@ export default function AdminUsersPage() {
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
   const [payoutRequests, setPayoutRequests] = useLocalStorage<any[]>(PAYOUT_REQUESTS_KEY, []);
   const [selectedPayout, setSelectedPayout] = useState<any | null>(null);
+  const [activeTab, setActiveTab] = useState("customers");
 
   useEffect(() => {
     if (typeof window !== 'undefined' && payoutRequests.length === 0) {
@@ -267,6 +268,50 @@ export default function AdminUsersPage() {
       (u.email && u.email.toLowerCase().includes(debouncedSearchTerm.toLowerCase()))
     );
   }, [allUsersState, debouncedSearchTerm]);
+  
+  const handleExport = () => {
+      let dataToExport: any[] = [];
+      let filename = "users.csv";
+      let headers = ["uid", "name", "email", "role"];
+
+      switch(activeTab) {
+          case 'customers':
+              dataToExport = customers;
+              filename = "customers_export.csv";
+              break;
+          case 'sellers':
+              dataToExport = sellers;
+              filename = "sellers_export.csv";
+              break;
+          case 'admins':
+              dataToExport = admins;
+              filename = "admins_export.csv";
+              break;
+          case 'payouts':
+              dataToExport = payoutRequests;
+              filename = "payouts_export.csv";
+              headers = ["id", "sellerName", "amount", "status", "requestedAt"];
+              break;
+          default:
+              toast({ title: "Export Failed", description: "No data to export for this tab.", variant: "destructive"});
+              return;
+      }
+
+      if (dataToExport.length === 0) {
+          toast({ title: "No Data", description: "There is no data to export in this view.", variant: "destructive"});
+          return;
+      }
+
+      const csvContent = "data:text/csv;charset=utf-8," 
+          + [headers.join(","), ...dataToExport.map(item => headers.map(header => JSON.stringify(item[header])).join(","))].join("\n");
+
+      const link = document.createElement("a");
+      link.setAttribute("href", encodeURI(csvContent));
+      link.setAttribute("download", filename);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+  };
 
   if (loading || !userData || userData.role !== 'admin') {
     return (
@@ -343,16 +388,15 @@ export default function AdminUsersPage() {
     </Dialog>
     <AdminLayout>
       <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
-        <Tabs defaultValue="customers">
+        <Tabs defaultValue="customers" value={activeTab} onValueChange={setActiveTab}>
             <div className="flex items-center justify-between">
                 <TabsList>
                     <TabsTrigger value="customers">Customers ({customers.length})</TabsTrigger>
                     <TabsTrigger value="sellers">Sellers ({sellers.length})</TabsTrigger>
-                    <TabsTrigger value="payments">Payments</TabsTrigger>
                     <TabsTrigger value="payouts">Payouts</TabsTrigger>
                 </TabsList>
                  <div className="flex gap-2">
-                    <Button size="sm" variant="outline" className="h-8 gap-1">
+                    <Button size="sm" variant="outline" className="h-8 gap-1" onClick={handleExport}>
                         <File className="h-3.5 w-3.5" />
                         <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">Export</span>
                     </Button>
@@ -445,5 +489,3 @@ export default function AdminUsersPage() {
     </>
   )
 }
-
-    
