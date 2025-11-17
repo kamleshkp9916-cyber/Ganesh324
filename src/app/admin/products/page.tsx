@@ -61,7 +61,7 @@ import { Input } from "@/components/ui/input"
 import { AdminLayout } from "@/components/admin/admin-layout"
 import { productDetails, productToSellerMapping } from "@/lib/product-data"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "@/components/ui/dialog"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 
@@ -79,7 +79,7 @@ interface Product {
     sellerId?: string;
     views?: number;
     sold?: number;
-    keywords?: string;
+    keywords?: string[];
 }
 
 const initialProducts: Product[] = Object.values(productDetails).map(p => ({
@@ -215,11 +215,11 @@ const ProductDetailView = ({ product, onBack, onUpdateStatus }: { product: Produ
                                 <ImageIcon className="h-16 w-16 text-muted-foreground" />
                             </div>
                         )}
-                        {product.keywords && (
+                        {product.keywords && Array.isArray(product.keywords) && (
                             <div className="mt-4">
                                 <h3 className="font-semibold mb-2">Keywords</h3>
                                 <div className="flex flex-wrap gap-2">
-                                    {product.keywords.split(',').map((kw, i) => (
+                                    {product.keywords.map((kw, i) => (
                                         <Badge key={i} variant="secondary">{kw.trim()}</Badge>
                                     ))}
                                 </div>
@@ -235,7 +235,10 @@ const ProductDetailView = ({ product, onBack, onUpdateStatus }: { product: Produ
                          <div className="grid grid-cols-2 gap-4 text-sm border-t pt-4">
                             <div><span className="font-semibold text-muted-foreground">Price:</span><br/> ₹{product.price.toLocaleString()}</div>
                             <div><span className="font-semibold text-muted-foreground">Stock:</span><br/> {product.stock}</div>
-                            <div><span className="font-semibold text-muted-foreground">Seller:</span><br/> <Link href={`/admin/users/${product.sellerId}`} className="text-primary hover:underline">{product.seller || 'N/A'}</Link></div>
+                            <div>
+                                <span className="font-semibold text-muted-foreground">Seller:</span><br/> 
+                                <Link href={`/admin/users/${product.sellerId}`} className="text-primary hover:underline">{product.seller || 'N/A'}</Link>
+                            </div>
                             <div><span className="font-semibold text-muted-foreground">Status:</span><br/> <Badge variant={product.status === 'active' ? 'success' : 'outline'}>{product.status}</Badge></div>
                         </div>
                          <Card className="bg-muted/40">
