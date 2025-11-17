@@ -203,6 +203,8 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
     const deliveredOrders = userOrders.filter(o => getStatusFromTimeline(o.timeline) === 'Delivered');
     const totalEarnings = deliveredOrders.reduce((sum, o) => sum + o.total, 0);
     const platformCommission = totalEarnings * 0.03;
+    const superChatEarnings = 1250; // Mock data
+    const superChatCommission = superChatEarnings * 0.16; // Mock data
     const totalWithdrawn = payouts.filter(p => p.status === 'paid').reduce((sum, p) => sum + p.amount, 0);
     const pendingPayouts = payouts.filter(p => p.status === 'pending').reduce((sum, p) => sum + p.amount, 0);
 
@@ -214,7 +216,7 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
     
     const chartData = Object.entries(monthlyRevenue).map(([name, revenue]) => ({ name, revenue }));
 
-    return { totalEarnings, platformCommission, totalWithdrawn, pendingPayouts, chartData };
+    return { totalEarnings, platformCommission, totalWithdrawn, pendingPayouts, chartData, superChatEarnings, superChatCommission };
   }, [userOrders, payouts]);
 
 
@@ -326,16 +328,18 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
 
   const renderRevenueView = () => (
     <div className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
             <button className="text-left w-full" onClick={() => setRevenueDetailView('earnings')}>
-                <Card className="hover:bg-muted/50 transition-colors"><CardHeader><CardTitle className="text-sm font-medium">Total Earnings</CardTitle><CardDescription className="text-xs">Gross revenue from sales</CardDescription></CardHeader><CardContent><p className="text-2xl font-bold">₹{sellerRevenueData.totalEarnings.toLocaleString()}</p></CardContent></Card>
+                <Card className="hover:bg-muted/50 transition-colors h-full"><CardHeader><CardTitle className="text-sm font-medium">Total Earnings</CardTitle><CardDescription className="text-xs">Gross revenue from sales</CardDescription></CardHeader><CardContent><p className="text-2xl font-bold">₹{sellerRevenueData.totalEarnings.toLocaleString()}</p></CardContent></Card>
             </button>
              <Card><CardHeader><CardTitle className="text-sm font-medium">Platform Commission</CardTitle><CardDescription className="text-xs">3% fee on earnings</CardDescription></CardHeader><CardContent><p className="text-2xl font-bold">₹{sellerRevenueData.platformCommission.toLocaleString()}</p></CardContent></Card>
+              <Card><CardHeader><CardTitle className="text-sm font-medium">Super Chat Earnings</CardTitle><CardDescription className="text-xs">Gross from Super Chats</CardDescription></CardHeader><CardContent><p className="text-2xl font-bold">₹{sellerRevenueData.superChatEarnings.toLocaleString()}</p></CardContent></Card>
+            <Card><CardHeader><CardTitle className="text-sm font-medium">Super Chat Fees</CardTitle><CardDescription className="text-xs">16% platform commission</CardDescription></CardHeader><CardContent><p className="text-2xl font-bold">₹{sellerRevenueData.superChatCommission.toLocaleString()}</p></CardContent></Card>
             <button className="text-left w-full" onClick={() => setRevenueDetailView('withdrawn')}>
-                <Card className="hover:bg-muted/50 transition-colors"><CardHeader><CardTitle className="text-sm font-medium">Total Withdrawn</CardTitle><CardDescription className="text-xs">All completed payouts</CardDescription></CardHeader><CardContent><p className="text-2xl font-bold">₹{sellerRevenueData.totalWithdrawn.toLocaleString()}</p></CardContent></Card>
+                <Card className="hover:bg-muted/50 transition-colors h-full"><CardHeader><CardTitle className="text-sm font-medium">Total Withdrawn</CardTitle><CardDescription className="text-xs">All completed payouts</CardDescription></CardHeader><CardContent><p className="text-2xl font-bold">₹{sellerRevenueData.totalWithdrawn.toLocaleString()}</p></CardContent></Card>
             </button>
              <button className="text-left w-full" onClick={() => setRevenueDetailView('pending')}>
-                <Card className="hover:bg-muted/50 transition-colors"><CardHeader><CardTitle className="text-sm font-medium">Pending Payouts</CardTitle><CardDescription className="text-xs">Awaiting admin approval</CardDescription></CardHeader><CardContent><p className="text-2xl font-bold">₹{sellerRevenueData.pendingPayouts.toLocaleString()}</p></CardContent></Card>
+                <Card className="hover:bg-muted/50 transition-colors h-full"><CardHeader><CardTitle className="text-sm font-medium">Pending Payouts</CardTitle><CardDescription className="text-xs">Awaiting admin approval</CardDescription></CardHeader><CardContent><p className="text-2xl font-bold">₹{sellerRevenueData.pendingPayouts.toLocaleString()}</p></CardContent></Card>
             </button>
         </div>
 
@@ -364,29 +368,31 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
     <main className="flex-1 flex flex-col gap-4 p-4 md:gap-6 md:p-6">
         <Dialog onOpenChange={(open) => !open && setSelectedOrderForTimeline(null)}>
             <div className="flex flex-col gap-6">
-                 <div className="flex items-start justify-between gap-4">
+                <div className="flex items-start justify-between gap-4">
                     <Button variant="outline" size="sm" onClick={() => router.back()} className="flex items-center gap-1">
                         <ArrowLeft className="h-4 w-4" />
                         Back to Users
-                    </Button>
-                    <Button asChild size="sm" className="h-8">
-                        <Link href={`/admin/messages?userId=${profileData.uid}&userName=${profileData.displayName}`}>
-                            <MessageSquare className="mr-2 h-4 w-4" /> Message
-                        </Link>
                     </Button>
                 </div>
                  
                 <Card>
                     <CardHeader>
-                        <div className="flex items-center gap-4">
-                            <Avatar className="h-16 w-16">
-                                <AvatarImage src={profileData.photoURL} />
-                                <AvatarFallback className="text-xl">{profileData.displayName?.charAt(0)}</AvatarFallback>
-                            </Avatar>
-                            <div>
-                                <CardTitle className="text-2xl">{profileData.displayName}</CardTitle>
-                                <p className="text-sm text-muted-foreground">{profileData.publicId || profileData.uid}</p>
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-4">
+                                <Avatar className="h-16 w-16">
+                                    <AvatarImage src={profileData.photoURL} />
+                                    <AvatarFallback className="text-xl">{profileData.displayName?.charAt(0)}</AvatarFallback>
+                                </Avatar>
+                                <div>
+                                    <CardTitle className="text-2xl">{profileData.displayName}</CardTitle>
+                                    <p className="text-sm text-muted-foreground">{profileData.publicId || profileData.uid}</p>
+                                </div>
                             </div>
+                             <Button asChild size="sm" className="h-8">
+                                <Link href={`/admin/messages?userId=${profileData.uid}&userName=${profileData.displayName}`}>
+                                    <MessageSquare className="mr-2 h-4 w-4" /> Message
+                                </Link>
+                            </Button>
                         </div>
                     </CardHeader>
                     <CardContent className="space-y-3 text-sm">
@@ -416,7 +422,7 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
                     </CardContent>
                 </Card>
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                      <Card>
                         <CardHeader><CardTitle className="text-lg">{profileData.role === 'seller' ? "Seller Stats" : "User Stats"}</CardTitle></CardHeader>
                         <CardContent className="space-y-2 text-sm">
@@ -469,8 +475,7 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
                                 </AlertDialogTrigger>
                                 <AlertDialogContent>
                                     <AlertDialogHeader><AlertDialogTitle>Are you sure?</AlertDialogTitle><AlertDialogDescription>This will permanently delete all chat messages sent by this user across the platform.</AlertDialogDescription></AlertDialogHeader>
-                                    <AlertDialogFooter><AlertDialogCancel>Cancel</AlertDialogCancel><AlertDialogAction>Confirm</AlertDialogAction></AlertDialogFooter>
-                                </AlertDialogContent>
+                                    <AlertDialogFooter><AlertDialogCancel>Cancel</AlertDialogCancel><AlertDialogAction>Confirm</AlertDialogAction></AlertDialogContent>
                             </AlertDialog>
                         </CardContent>
                     </Card>
@@ -563,3 +568,5 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
     </main>
   );
 }
+
+    
