@@ -143,7 +143,7 @@ export const createUserData = async (user: User, role: 'customer' | 'seller' | '
 
     const userData: UserData = {
         ...defaultUserData(user.uid, user),
-        id: user.uid, // Explicitly set the id field for the security rule
+        id: user.uid, // This is the crucial fix
         role: userRole,
         createdAt: serverTimestamp(),
         lastLogin: serverTimestamp(),
