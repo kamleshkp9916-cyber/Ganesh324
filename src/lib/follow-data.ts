@@ -4,7 +4,7 @@
 import { doc, getDoc, setDoc, updateDoc, collection, query, where, getDocs, writeBatch, increment, limit, serverTimestamp } from "firebase/firestore";
 import { getFirestoreDb } from "./firebase";
 import { User } from "firebase/auth";
-import { getFirebaseAuth } from "./firebase";
+import { getFirebaseAuth, errorEmitter, FirestorePermissionError } from "./firebase";
 
 
 export interface UserData {
@@ -154,7 +154,17 @@ export const createUserData = async (user: User, role: 'customer' | 'seller' | '
     delete (userData as any).password;
     delete (userData as any).confirmPassword;
 
-    await setDoc(userDocRef, userData, { merge: true });
+    // Use a non-blocking write with error handling
+    setDoc(userDocRef, userData, { merge: true }).catch(async (error) => {
+        const permissionError = new FirestorePermissionError({
+            path: userDocRef.path,
+            operation: 'create', // or 'write'
+            requestResourceData: userData,
+        });
+        errorEmitter.emit('permission-error', permissionError);
+        // We throw the original error as well so the calling function knows about the failure
+        throw error;
+    });
 };
 
 
