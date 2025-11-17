@@ -8,7 +8,7 @@ import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuItem } from "@/components/ui/dropdown-menu";
-import { File, ListFilter, Search, Calendar as CalendarIcon, MoreVertical, Link as LinkIcon, Undo2, Printer, Download, Package } from "lucide-react";
+import { File, ListFilter, Search, Calendar as CalendarIcon, MoreVertical, Link as LinkIcon, Undo2, Printer, Download, Package, Webhook, RefreshCw, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useDebounce } from "@/hooks/use-debounce";
 import { getTransactions, Transaction } from '@/lib/transaction-history';
@@ -16,7 +16,7 @@ import { useToast } from '@/hooks/use-toast';
 import { format, parseISO, isWithinInterval, addDays, type DateRange } from 'date-fns';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
-import { cn } from '@/lib/utils';
+import { cn } from "@/lib/utils";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -36,6 +36,7 @@ import { Separator } from '@/components/ui/separator';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const RefundDialog = ({ transaction, onApprove, onReject }: { transaction: Transaction, onApprove: (id: string) => void, onReject: (id: string) => void }) => {
     const [reason, setReason] = useState("");
@@ -236,6 +237,64 @@ const InvoiceComponent = React.forwardRef<HTMLDivElement, { transaction: Transac
 });
 InvoiceComponent.displayName = 'InvoiceComponent';
 
+const WebhookLog = () => {
+    const [logs, setLogs] = useState([
+        { id: 1, event: 'payment.captured', status: 'delivered', date: new Date(Date.now() - 3 * 60 * 1000) },
+        { id: 2, event: 'refund.issued', status: 'delivered', date: new Date(Date.now() - 5 * 60 * 1000) },
+        { id: 3, event: 'payment.initiated', status: 'failed', date: new Date(Date.now() - 10 * 60 * 1000) },
+        { id: 4, event: 'payment.captured', status: 'delivered', date: new Date(Date.now() - 12 * 60 * 1000) },
+    ]);
+    const { toast } = useToast();
+
+    const handleRetry = (logId: number) => {
+        toast({ title: `Retrying webhook ${logId}...`, description: "A request has been sent." });
+        // Simulate a successful retry
+        setTimeout(() => {
+            setLogs(prev => prev.map(log => log.id === logId ? { ...log, status: 'delivered' } : log));
+            toast({ title: "Webhook Delivered!", variant: "success" });
+        }, 1500);
+    };
+
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle>Webhook Log</CardTitle>
+                <CardDescription>A log of all outgoing payment-related webhooks.</CardDescription>
+            </CardHeader>
+            <CardContent>
+                <Table>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead>Event</TableHead>
+                            <TableHead>Status</TableHead>
+                            <TableHead>Timestamp</TableHead>
+                            <TableHead className="text-right">Actions</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {logs.map(log => (
+                            <TableRow key={log.id}>
+                                <TableCell className="font-mono text-xs">{log.event}</TableCell>
+                                <TableCell>
+                                    <Badge variant={log.status === 'delivered' ? 'success' : 'destructive'}>{log.status}</Badge>
+                                </TableCell>
+                                <TableCell>{format(log.date, 'dd MMM, yyyy, p')}</TableCell>
+                                <TableCell className="text-right">
+                                    {log.status === 'failed' && (
+                                        <Button size="sm" variant="outline" onClick={() => handleRetry(log.id)}>
+                                            <RefreshCw className="mr-2 h-3.5 w-3.5" /> Retry
+                                        </Button>
+                                    )}
+                                </TableCell>
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                </Table>
+            </CardContent>
+        </Card>
+    );
+};
+
 
 export default function AdminTransactionsPage() {
     const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -390,193 +449,204 @@ export default function AdminTransactionsPage() {
         <Dialog open={!!viewingInvoice} onOpenChange={(open) => !open && setViewingInvoice(null)}>
         <AdminLayout>
             <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8">
-                <Card>
-                    <CardHeader>
-                        <div className="flex items-start justify-between gap-4">
-                            <div>
-                                <CardTitle>Transactions</CardTitle>
-                                <CardDescription>A complete log of all financial transactions across the platform.</CardDescription>
-                            </div>
-                            <div className="flex items-center gap-2">
-                                 <Popover>
-                                    <PopoverTrigger asChild>
-                                      <Button
-                                        id="date"
-                                        variant={"outline"}
-                                        size="sm"
-                                        className={cn(
-                                          "h-8 gap-1 w-[240px] justify-start text-left font-normal",
-                                          !date && "text-muted-foreground"
-                                        )}
-                                      >
-                                        <CalendarIcon className="mr-2 h-3.5 w-3.5" />
-                                        {date?.from ? (
-                                          date.to ? (
-                                            <>
-                                              {format(date.from, "LLL dd, y")} -{" "}
-                                              {format(date.to, "LLL dd, y")}
-                                            </>
-                                          ) : (
-                                            format(date.from, "LLL dd, y")
-                                          )
-                                        ) : (
-                                          <span>Pick a date</span>
-                                        )}
-                                      </Button>
-                                    </PopoverTrigger>
-                                    <PopoverContent className="w-auto p-0" align="end">
-                                        <div className="p-2 border-b">
-                                            <Button variant="ghost" size="sm" className="w-full justify-start" onClick={() => setDate(undefined)}>Clear</Button>
-                                        </div>
-                                      <Calendar
-                                        initialFocus
-                                        mode="range"
-                                        defaultMonth={date?.from}
-                                        selected={date}
-                                        onSelect={setDate}
-                                        numberOfMonths={2}
-                                      />
-                                    </PopoverContent>
-                                  </Popover>
-                                <DropdownMenu>
-                                    <DropdownMenuTrigger asChild>
-                                        <Button variant="outline" size="sm" className="h-8 gap-1">
-                                            <ListFilter className="h-3.5 w-3.5" />
-                                            <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">Filter</span>
+                 <Tabs defaultValue="transactions">
+                    <TabsList className="grid w-full grid-cols-2">
+                        <TabsTrigger value="transactions">All Transactions</TabsTrigger>
+                        <TabsTrigger value="webhooks">Webhook Log</TabsTrigger>
+                    </TabsList>
+                    <TabsContent value="transactions" className="mt-4">
+                        <Card>
+                            <CardHeader>
+                                <div className="flex items-start justify-between gap-4">
+                                    <div>
+                                        <CardTitle>Transactions</CardTitle>
+                                        <CardDescription>A complete log of all financial transactions across the platform.</CardDescription>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <Popover>
+                                            <PopoverTrigger asChild>
+                                            <Button
+                                                id="date"
+                                                variant={"outline"}
+                                                size="sm"
+                                                className={cn(
+                                                "h-8 gap-1 w-[240px] justify-start text-left font-normal",
+                                                !date && "text-muted-foreground"
+                                                )}
+                                            >
+                                                <CalendarIcon className="mr-2 h-3.5 w-3.5" />
+                                                {date?.from ? (
+                                                date.to ? (
+                                                    <>
+                                                    {format(date.from, "LLL dd, y")} -{" "}
+                                                    {format(date.to, "LLL dd, y")}
+                                                    </>
+                                                ) : (
+                                                    format(date.from, "LLL dd, y")
+                                                )
+                                                ) : (
+                                                <span>Pick a date</span>
+                                                )}
+                                            </Button>
+                                            </PopoverTrigger>
+                                            <PopoverContent className="w-auto p-0" align="end">
+                                                <div className="p-2 border-b">
+                                                    <Button variant="ghost" size="sm" className="w-full justify-start" onClick={() => setDate(undefined)}>Clear</Button>
+                                                </div>
+                                            <Calendar
+                                                initialFocus
+                                                mode="range"
+                                                defaultMonth={date?.from}
+                                                selected={date}
+                                                onSelect={setDate}
+                                                numberOfMonths={2}
+                                            />
+                                            </PopoverContent>
+                                        </Popover>
+                                        <DropdownMenu>
+                                            <DropdownMenuTrigger asChild>
+                                                <Button variant="outline" size="sm" className="h-8 gap-1">
+                                                    <ListFilter className="h-3.5 w-3.5" />
+                                                    <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">Filter</span>
+                                                </Button>
+                                            </DropdownMenuTrigger>
+                                            <DropdownMenuContent align="end">
+                                                <DropdownMenuLabel>Filter by Status</DropdownMenuLabel>
+                                                <DropdownMenuSeparator />
+                                                <DropdownMenuRadioGroup value={statusFilter} onValueChange={setStatusFilter}>
+                                                    <DropdownMenuRadioItem value="All">All</DropdownMenuRadioItem>
+                                                    <DropdownMenuRadioItem value="Completed">Completed</DropdownMenuRadioItem>
+                                                    <DropdownMenuRadioItem value="Processing">Processing</DropdownMenuRadioItem>
+                                                    <DropdownMenuRadioItem value="Failed">Failed</DropdownMenuRadioItem>
+                                                </DropdownMenuRadioGroup>
+                                                <DropdownMenuSeparator />
+                                                <DropdownMenuLabel>Filter by Type</DropdownMenuLabel>
+                                                <DropdownMenuSeparator />
+                                                <DropdownMenuRadioGroup value={typeFilter} onValueChange={setTypeFilter}>
+                                                    <DropdownMenuRadioItem value="All">All</DropdownMenuRadioItem>
+                                                    <DropdownMenuRadioItem value="Order">Order</DropdownMenuRadioItem>
+                                                    <DropdownMenuRadioItem value="Refund">Refund</DropdownMenuRadioItem>
+                                                    <DropdownMenuRadioItem value="Deposit">Deposit</DropdownMenuRadioItem>
+                                                    <DropdownMenuRadioItem value="Withdrawal">Withdrawal</DropdownMenuRadioItem>
+                                                    <DropdownMenuRadioItem value="Bid">Bid</DropdownMenuRadioItem>
+                                                </DropdownMenuRadioGroup>
+                                            </DropdownMenuContent>
+                                        </DropdownMenu>
+                                        <Button size="sm" variant="outline" className="h-8 gap-1" onClick={handleExportCSV}>
+                                            <File className="h-3.5 w-3.5" />
+                                            <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">Export</span>
                                         </Button>
-                                    </DropdownMenuTrigger>
-                                    <DropdownMenuContent align="end">
-                                        <DropdownMenuLabel>Filter by Status</DropdownMenuLabel>
-                                        <DropdownMenuSeparator />
-                                        <DropdownMenuRadioGroup value={statusFilter} onValueChange={setStatusFilter}>
-                                            <DropdownMenuRadioItem value="All">All</DropdownMenuRadioItem>
-                                            <DropdownMenuRadioItem value="Completed">Completed</DropdownMenuRadioItem>
-                                            <DropdownMenuRadioItem value="Processing">Processing</DropdownMenuRadioItem>
-                                            <DropdownMenuRadioItem value="Failed">Failed</DropdownMenuRadioItem>
-                                        </DropdownMenuRadioGroup>
-                                        <DropdownMenuSeparator />
-                                        <DropdownMenuLabel>Filter by Type</DropdownMenuLabel>
-                                        <DropdownMenuSeparator />
-                                         <DropdownMenuRadioGroup value={typeFilter} onValueChange={setTypeFilter}>
-                                            <DropdownMenuRadioItem value="All">All</DropdownMenuRadioItem>
-                                            <DropdownMenuRadioItem value="Order">Order</DropdownMenuRadioItem>
-                                            <DropdownMenuRadioItem value="Refund">Refund</DropdownMenuRadioItem>
-                                            <DropdownMenuRadioItem value="Deposit">Deposit</DropdownMenuRadioItem>
-                                            <DropdownMenuRadioItem value="Withdrawal">Withdrawal</DropdownMenuRadioItem>
-                                            <DropdownMenuRadioItem value="Bid">Bid</DropdownMenuRadioItem>
-                                        </DropdownMenuRadioGroup>
-                                    </DropdownMenuContent>
-                                </DropdownMenu>
-                                <Button size="sm" variant="outline" className="h-8 gap-1" onClick={handleExportCSV}>
-                                    <File className="h-3.5 w-3.5" />
-                                    <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">Export</span>
-                                </Button>
-                            </div>
-                        </div>
-                        <div className="relative mt-4">
-                            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                            <Input
-                              type="search"
-                              placeholder="Search by ID, buyer, or description..."
-                              className="pl-8 sm:w-[300px] md:w-[200px] lg:w-full"
-                              value={searchTerm}
-                              onChange={(e) => setSearchTerm(e.target.value)}
-                            />
-                        </div>
-                    </CardHeader>
-                    <CardContent>
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>Transaction ID</TableHead>
-                                    <TableHead>Buyer</TableHead>
-                                    <TableHead>Amount</TableHead>
-                                    <TableHead>Status</TableHead>
-                                    <TableHead>Reason</TableHead>
-                                    <TableHead>Date</TableHead>
-                                    <TableHead className="text-right">Actions</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {isClient && paginatedTransactions.length > 0 ? (
-                                    paginatedTransactions.map(t => (
-                                        <TableRow key={t.id}>
-                                            <TableCell>
-                                                <p className="font-mono text-xs">{t.transactionId}</p>
-                                                {t.orderId && <p className="text-xs text-muted-foreground">Order: <Link href={`/admin/orders?search=${t.orderId}`} className="hover:underline">{t.orderId}</Link></p>}
-                                            </TableCell>
-                                            <TableCell>{t.buyerName || 'N/A'}</TableCell>
-                                            <TableCell className={cn("font-medium", t.amount > 0 ? 'text-green-600' : 'text-foreground')}>
-                                                {t.amount > 0 ? '+' : ''}{new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(t.amount)}
-                                            </TableCell>
-                                            <TableCell>
-                                                <Badge variant={t.status === 'Completed' ? 'success' : t.status === 'Processing' ? 'warning' : 'destructive'}>{t.status}</Badge>
-                                            </TableCell>
-                                             <TableCell className="text-xs">{t.reasonForFailure || '-'}</TableCell>
-                                            <TableCell>{format(parseISO(t.date), 'dd MMM, yyyy, p')}</TableCell>
-                                            <TableCell className="text-right">
-                                                <DropdownMenu>
-                                                    <DropdownMenuTrigger asChild>
-                                                        <Button size="icon" variant="ghost">
-                                                            <MoreVertical className="h-4 w-4" />
-                                                        </Button>
-                                                    </DropdownMenuTrigger>
-                                                    <DropdownMenuContent align="end">
-                                                        <DropdownMenuLabel>Details</DropdownMenuLabel>
-                                                        <DropdownMenuItem disabled>{t.paymentMethodDetails || 'No details'}</DropdownMenuItem>
-                                                        {t.refundId && <DropdownMenuItem disabled>Refund ID: {t.refundId}</DropdownMenuItem>}
-                                                        <DropdownMenuSeparator />
-                                                         {t.type === 'Refund' && t.status === 'Processing' && (
-                                                            <AlertDialogTrigger asChild>
-                                                                <DropdownMenuItem onSelect={(e) => { e.preventDefault(); setManagingRefund(t); }}>
-                                                                    <Undo2 className="mr-2 h-4 w-4"/>
-                                                                    Manage Refund
-                                                                </DropdownMenuItem>
-                                                            </AlertDialogTrigger>
-                                                        )}
-                                                         <DialogTrigger asChild>
-                                                            <DropdownMenuItem onSelect={() => setViewingInvoice(t)}>
-                                                                <LinkIcon className="mr-2 h-4 w-4" /> View Invoice
-                                                            </DropdownMenuItem>
-                                                         </DialogTrigger>
-                                                    </DropdownMenuContent>
-                                                </DropdownMenu>
-                                            </TableCell>
+                                    </div>
+                                </div>
+                                <div className="relative mt-4">
+                                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                                    <Input
+                                    type="search"
+                                    placeholder="Search by ID, buyer, or description..."
+                                    className="pl-8 sm:w-[300px] md:w-[200px] lg:w-full"
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    />
+                                </div>
+                            </CardHeader>
+                            <CardContent>
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead>Transaction ID</TableHead>
+                                            <TableHead>Buyer</TableHead>
+                                            <TableHead>Amount</TableHead>
+                                            <TableHead>Status</TableHead>
+                                            <TableHead>Reason</TableHead>
+                                            <TableHead>Date</TableHead>
+                                            <TableHead className="text-right">Actions</TableHead>
                                         </TableRow>
-                                    ))
-                                ) : (
-                                    <TableRow>
-                                        <TableCell colSpan={7} className="h-24 text-center">
-                                            {isClient ? 'No transactions found.' : 'Loading transactions...'}
-                                        </TableCell>
-                                    </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {isClient && paginatedTransactions.length > 0 ? (
+                                            paginatedTransactions.map(t => (
+                                                <TableRow key={t.id}>
+                                                    <TableCell>
+                                                        <p className="font-mono text-xs">{t.transactionId}</p>
+                                                        {t.orderId && <p className="text-xs text-muted-foreground">Order: <Link href={`/admin/orders?search=${t.orderId}`} className="hover:underline">{t.orderId}</Link></p>}
+                                                    </TableCell>
+                                                    <TableCell>{t.buyerName || 'N/A'}</TableCell>
+                                                    <TableCell className={cn("font-medium", t.amount > 0 ? 'text-green-600' : 'text-foreground')}>
+                                                        {t.amount > 0 ? '+' : ''}{new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(t.amount)}
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <Badge variant={t.status === 'Completed' ? 'success' : t.status === 'Processing' ? 'warning' : 'destructive'}>{t.status}</Badge>
+                                                    </TableCell>
+                                                    <TableCell className="text-xs">{t.reasonForFailure || '-'}</TableCell>
+                                                    <TableCell>{format(parseISO(t.date), 'dd MMM, yyyy, p')}</TableCell>
+                                                    <TableCell className="text-right">
+                                                        <DropdownMenu>
+                                                            <DropdownMenuTrigger asChild>
+                                                                <Button size="icon" variant="ghost">
+                                                                    <MoreVertical className="h-4 w-4" />
+                                                                </Button>
+                                                            </DropdownMenuTrigger>
+                                                            <DropdownMenuContent align="end">
+                                                                <DropdownMenuLabel>Details</DropdownMenuLabel>
+                                                                <DropdownMenuItem disabled>{t.paymentMethodDetails || 'No details'}</DropdownMenuItem>
+                                                                {t.refundId && <DropdownMenuItem disabled>Refund ID: {t.refundId}</DropdownMenuItem>}
+                                                                <DropdownMenuSeparator />
+                                                                {t.type === 'Refund' && t.status === 'Processing' && (
+                                                                    <AlertDialogTrigger asChild>
+                                                                        <DropdownMenuItem onSelect={(e) => { e.preventDefault(); setManagingRefund(t); }}>
+                                                                            <Undo2 className="mr-2 h-4 w-4"/>
+                                                                            Manage Refund
+                                                                        </DropdownMenuItem>
+                                                                    </AlertDialogTrigger>
+                                                                )}
+                                                                <DialogTrigger asChild>
+                                                                    <DropdownMenuItem onSelect={() => setViewingInvoice(t)}>
+                                                                        <LinkIcon className="mr-2 h-4 w-4" /> View Invoice
+                                                                    </DropdownMenuItem>
+                                                                </DialogTrigger>
+                                                            </DropdownMenuContent>
+                                                        </DropdownMenu>
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))
+                                        ) : (
+                                            <TableRow>
+                                                <TableCell colSpan={7} className="h-24 text-center">
+                                                    {isClient ? 'No transactions found.' : 'Loading transactions...'}
+                                                </TableCell>
+                                            </TableRow>
+                                        )}
+                                    </TableBody>
+                                </Table>
+                            </CardContent>
+                            <CardFooter>
+                                <div className="text-xs text-muted-foreground">
+                                    Showing <strong>{paginatedTransactions.length}</strong> of <strong>{filteredTransactions.length}</strong> transactions
+                                </div>
+                                {totalPages > 1 && (
+                                    <Pagination className="ml-auto mr-0 w-auto">
+                                        <PaginationContent>
+                                            <PaginationItem>
+                                                <Button variant="outline" onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1}>Previous</Button>
+                                            </PaginationItem>
+                                            <PaginationItem>
+                                                <span className="p-2 text-sm font-medium">
+                                                    Page {currentPage} of {totalPages}
+                                                </span>
+                                            </PaginationItem>
+                                            <PaginationItem>
+                                                <Button variant="outline" onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages}>Next</Button>
+                                            </PaginationItem>
+                                        </PaginationContent>
+                                    </Pagination>
                                 )}
-                            </TableBody>
-                        </Table>
-                    </CardContent>
-                    <CardFooter>
-                         <div className="text-xs text-muted-foreground">
-                            Showing <strong>{paginatedTransactions.length}</strong> of <strong>{filteredTransactions.length}</strong> transactions
-                        </div>
-                        {totalPages > 1 && (
-                            <Pagination className="ml-auto mr-0 w-auto">
-                                <PaginationContent>
-                                    <PaginationItem>
-                                        <Button variant="outline" onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1}>Previous</Button>
-                                    </PaginationItem>
-                                     <PaginationItem>
-                                        <span className="p-2 text-sm font-medium">
-                                            Page {currentPage} of {totalPages}
-                                        </span>
-                                    </PaginationItem>
-                                    <PaginationItem>
-                                        <Button variant="outline" onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages}>Next</Button>
-                                    </PaginationItem>
-                                </PaginationContent>
-                            </Pagination>
-                        )}
-                    </CardFooter>
-                </Card>
+                            </CardFooter>
+                        </Card>
+                    </TabsContent>
+                    <TabsContent value="webhooks">
+                        <WebhookLog />
+                    </TabsContent>
+                </Tabs>
             </main>
             {managingRefund && <RefundDialog transaction={managingRefund} onApprove={handleApproveRefund} onReject={handleRejectRefund} />}
             {viewingInvoice && <InvoiceComponent ref={invoiceRef} transaction={viewingInvoice} onPrint={handlePrint} onDownload={handleDownload} />}
