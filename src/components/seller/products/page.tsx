@@ -9,6 +9,7 @@ import {
   ImageIcon,
   MessageSquare,
   HelpCircle,
+  BarChart,
 } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
@@ -63,7 +64,9 @@ import { useToast } from "@/hooks/use-toast"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Textarea } from "@/components/ui/textarea"
 import { SellerHeader } from "@/components/seller/seller-header"
-import { collection, onSnapshot, query, where, deleteDoc, doc, getFirestore } from "firebase/firestore"
+import { collection, onSnapshot, query, where, deleteDoc, doc } from "firebase/firestore"
+import { getFirestoreDb } from "@/lib/firebase"
+
 
 const mockQandA = [
     { id: 1, question: "Does this camera come with a roll of film?", questioner: "Alice", answer: "Yes, it comes with one 24-exposure roll of color film to get you started!", answerer: "GadgetGuru" },
@@ -125,8 +128,38 @@ const ManageQnaDialog = ({ product }: { product: Product }) => {
     );
 };
 
+const ProductAnalyticsDialog = ({ product }: { product: Product }) => {
+    return (
+        <DialogContent className="max-w-2xl">
+            <DialogHeader>
+                <DialogTitle>Product Analytics: {product.name}</DialogTitle>
+                 <DialogDescription>
+                    An overview of this product's performance across the platform.
+                </DialogDescription>
+            </DialogHeader>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 py-4">
+                <Card>
+                    <CardHeader className="pb-2"><CardTitle className="text-sm font-medium">Views</CardTitle></CardHeader>
+                    <CardContent><p className="text-2xl font-bold">12,456</p></CardContent>
+                </Card>
+                 <Card>
+                    <CardHeader className="pb-2"><CardTitle className="text-sm font-medium">Adds to Cart</CardTitle></CardHeader>
+                    <CardContent><p className="text-2xl font-bold">890</p></CardContent>
+                </Card>
+                 <Card>
+                    <CardHeader className="pb-2"><CardTitle className="text-sm font-medium">Total Sales</CardTitle></CardHeader>
+                    <CardContent><p className="text-2xl font-bold">{product.sold || 45}</p></CardContent>
+                </Card>
+                 <Card>
+                    <CardHeader className="pb-2"><CardTitle className="text-sm font-medium">Revenue</CardTitle></CardHeader>
+                    <CardContent><p className="text-2xl font-bold">₹{((product.sold || 45) * product.price).toLocaleString()}</p></CardContent>
+                </Card>
+            </div>
+        </DialogContent>
+    );
+};
 
-const ProductTable = ({ products, onEdit, onDelete, onManageQna }: { products: Product[], onEdit: (product: Product) => void, onDelete: (productId: string) => void, onManageQna: (product: Product) => void }) => (
+const ProductTable = ({ products, onEdit, onDelete, onManageQna, onAnalytics }: { products: Product[], onEdit: (product: Product) => void, onDelete: (productId: string) => void, onManageQna: (product: Product) => void, onAnalytics: (product: Product) => void }) => (
     <Card>
       <CardContent className="p-0">
         <Table>
@@ -192,6 +225,7 @@ const ProductTable = ({ products, onEdit, onDelete, onManageQna }: { products: P
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                       <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                      <DropdownMenuItem onSelect={() => onAnalytics(product)}>Analytics</DropdownMenuItem>
                       <DropdownMenuItem onSelect={() => onEdit(product)}>Edit</DropdownMenuItem>
                       <DropdownMenuItem onSelect={() => onManageQna(product)}>Manage Q&A</DropdownMenuItem>
                       <DropdownMenuSeparator />
@@ -223,6 +257,7 @@ export default function SellerProductsPage() {
     const [isMounted, setIsMounted] = useState(false);
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [isQnaOpen, setIsQnaOpen] = useState(false);
+    const [isAnalyticsOpen, setIsAnalyticsOpen] = useState(false);
     const [selectedProduct, setSelectedProduct] = useState<Product | undefined>(undefined);
     const [editingProduct, setEditingProduct] = useState<Product | undefined>(undefined);
     const { user, loading } = useAuth();
@@ -233,7 +268,7 @@ export default function SellerProductsPage() {
     useEffect(() => {
         setIsMounted(true);
         if (user) {
-            const db = getFirestore();
+            const db = getFirestoreDb();
             const q = query(collection(db, "users", user.uid, "products"));
             const unsubscribe = onSnapshot(q, (querySnapshot) => {
                 const fetchedProducts: Product[] = [];
@@ -285,7 +320,7 @@ export default function SellerProductsPage() {
 
     const handleDeleteProduct = async (productId: string) => {
         if (!user) return;
-        const db = getFirestore();
+        const db = getFirestoreDb();
         try {
             await deleteDoc(doc(db, "users", user.uid, "products", productId));
             toast({
@@ -312,6 +347,11 @@ export default function SellerProductsPage() {
     const handleManageQna = (product: Product) => {
         setSelectedProduct(product);
         setIsQnaOpen(true);
+    };
+    
+    const handleAnalytics = (product: Product) => {
+        setSelectedProduct(product);
+        setIsAnalyticsOpen(true);
     };
 
     const handleStockFilterChange = (filter: 'inStock' | 'outOfStock') => {
@@ -418,16 +458,16 @@ export default function SellerProductsPage() {
                       </div>
                       <div className="mt-4">
                           <TabsContent value="all">
-                               <ProductTable products={allFilteredProducts} onEdit={handleEditProduct} onDelete={handleDeleteProduct} onManageQna={handleManageQna} />
+                               <ProductTable products={allFilteredProducts} onEdit={handleEditProduct} onDelete={handleDeleteProduct} onManageQna={handleManageQna} onAnalytics={handleAnalytics}/>
                           </TabsContent>
                           <TabsContent value="active">
-                              <ProductTable products={activeProducts} onEdit={handleEditProduct} onDelete={handleDeleteProduct} onManageQna={handleManageQna} />
+                              <ProductTable products={activeProducts} onEdit={handleEditProduct} onDelete={handleDeleteProduct} onManageQna={handleManageQna} onAnalytics={handleAnalytics}/>
                           </TabsContent>
                           <TabsContent value="draft">
-                              <ProductTable products={draftProducts} onEdit={handleEditProduct} onDelete={handleDeleteProduct} onManageQna={handleManageQna} />
+                              <ProductTable products={draftProducts} onEdit={handleEditProduct} onDelete={handleDeleteProduct} onManageQna={handleManageQna} onAnalytics={handleAnalytics}/>
                           </TabsContent>
                           <TabsContent value="archived">
-                              <ProductTable products={archivedProducts} onEdit={handleEditProduct} onDelete={handleDeleteProduct} onManageQna={handleManageQna} />
+                              <ProductTable products={archivedProducts} onEdit={handleEditProduct} onDelete={handleDeleteProduct} onManageQna={handleManageQna} onAnalytics={handleAnalytics}/>
                           </TabsContent>
                       </div>
                       </Tabs>
@@ -448,8 +488,9 @@ export default function SellerProductsPage() {
       <Dialog open={isQnaOpen} onOpenChange={setIsQnaOpen}>
         {selectedProduct && <ManageQnaDialog product={selectedProduct} />}
       </Dialog>
+      <Dialog open={isAnalyticsOpen} onOpenChange={setIsAnalyticsOpen}>
+        {selectedProduct && <ProductAnalyticsDialog product={selectedProduct} />}
+      </Dialog>
     </>
   )
 }
-
-    
