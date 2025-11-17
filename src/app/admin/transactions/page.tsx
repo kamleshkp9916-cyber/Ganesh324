@@ -68,6 +68,21 @@ const RefundDialog = ({ transaction, onApprove, onReject }: { transaction: Trans
 }
 
 const InvoiceComponent = React.forwardRef<HTMLDivElement, { transaction: Transaction, onPrint: () => void, onDownload: () => void }>(({ transaction, onPrint, onDownload }, ref) => {
+    
+    const getStatusInfo = () => {
+        switch(transaction.status) {
+            case 'Completed':
+                return { text: transaction.type === 'Refund' ? 'Refunded' : 'Paid', color: 'text-green-600 bg-green-500/10' };
+            case 'Processing':
+                return { text: 'Processing', color: 'text-amber-600 bg-amber-500/10' };
+            case 'Failed':
+                return { text: 'Failed', color: 'text-red-600 bg-red-500/10' };
+            default:
+                 return { text: 'Unknown', color: 'text-gray-600 bg-gray-500/10' };
+        }
+    }
+    const statusInfo = getStatusInfo();
+
     return (
         <DialogContent className="max-w-3xl p-0" id="printable-order">
              <style>
@@ -93,10 +108,13 @@ const InvoiceComponent = React.forwardRef<HTMLDivElement, { transaction: Transac
             </style>
              <ScrollArea className="max-h-[85vh]">
                 <div ref={ref} className="bg-background text-foreground p-8 rounded-lg">
-                    <div className="flex justify-between items-start mb-8">
+                     <div className="flex justify-between items-start mb-8">
                         <div>
                             <h1 className="text-3xl font-bold">INVOICE</h1>
                             <p className="text-muted-foreground">{transaction.transactionId}</p>
+                            <div className={cn("mt-2 font-semibold text-lg inline-flex items-center px-4 py-1 rounded-full", statusInfo.color)}>
+                                {statusInfo.text}
+                            </div>
                         </div>
                         <Logo className="h-10 w-auto" />
                     </div>
@@ -156,14 +174,35 @@ const InvoiceComponent = React.forwardRef<HTMLDivElement, { transaction: Transac
                             <div className="flex justify-between items-center"><span className="text-muted-foreground">Subtotal</span><span>{new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(Math.abs(transaction.amount))}</span></div>
                             <div className="flex justify-between items-center"><span className="text-muted-foreground">Tax (0%)</span><span>₹0.00</span></div>
                             <Separator />
-                            <div className="flex justify-between items-center font-bold text-lg"><span>Total</span><span>{new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(Math.abs(transaction.amount))}</span></div>
-                            <div className="flex justify-between items-center text-primary font-bold text-lg p-2 bg-primary/10 rounded-md"><span>Amount due</span><span>{new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(Math.abs(transaction.amount))}</span></div>
+                            <div className="flex justify-between items-center font-bold text-lg">
+                                <span>{transaction.type === 'Refund' ? 'Amount Refunded' : 'Total Paid'}</span>
+                                <span>{new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(Math.abs(transaction.amount))}</span>
+                            </div>
+                            {transaction.status === 'Failed' && (
+                                 <div className="flex justify-between items-center text-destructive font-bold text-lg p-2 bg-destructive/10 rounded-md"><span>Payment Failed</span></div>
+                            )}
                         </div>
                     </div>
 
                     <div className="mt-12 text-sm text-muted-foreground">
-                        <p className="font-semibold">Thank you for the business!</p>
-                        <p>Please pay within 15 days of receiving this invoice.</p>
+                        {transaction.status === 'Completed' ? (
+                            <>
+                                <p className="font-semibold">Payment Successful</p>
+                                <p>Thank you for your business!</p>
+                            </>
+                        ) : transaction.status === 'Failed' ? (
+                            <>
+                                <p className="font-semibold text-destructive">Payment Attempt Failed</p>
+                                <p>No funds were debited from your account.</p>
+                            </>
+                        ) : transaction.type === 'Refund' && transaction.status === 'Completed' ? (
+                            <>
+                                <p className="font-semibold">Refund Processed</p>
+                                <p>The amount has been returned to the original payment method.</p>
+                            </>
+                        ) : (
+                             <p>Please pay within 15 days of receiving this invoice.</p>
+                        )}
                     </div>
 
                     <Separator className="my-8" />
@@ -534,6 +573,5 @@ export default function AdminTransactionsPage() {
         </AlertDialog>
     );
 }
-    
 
     
