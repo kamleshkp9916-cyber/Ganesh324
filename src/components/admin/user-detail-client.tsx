@@ -86,6 +86,7 @@ import { liveSellers } from "@/lib/product-data"
 import { Textarea } from "../ui/textarea";
 import { Switch } from "../ui/switch";
 import { Label } from "../ui/label";
+import { Separator } from "../ui/separator";
 
 
 type Product = {
@@ -405,7 +406,7 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
                                     <div className="flex items-start gap-2 pt-2">
                                         <MapPin className="h-4 w-4 text-muted-foreground mt-0.5" /> 
                                         <address className="not-italic text-muted-foreground">
-                                             {profileData.addresses[0].village}, {profileData.addresses[0].city}, {profileData.addresses[0].state} - {profileData.addresses[0].pincode}
+                                             {profileData.addresses[0].village}, {profileData.addresses[0].district}, {profileData.addresses[0].city}, {profileData.addresses[0].state} - {profileData.addresses[0].pincode}
                                         </address>
                                     </div>
                                 )}
