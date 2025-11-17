@@ -175,17 +175,19 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
         setNotifications(current => current.map(n => n.id === id ? { ...n, read: true } : n));
     };
 
-    if (loading) {
+    useEffect(() => {
+        if (!loading && (!user || !userData || userData.role !== 'admin')) {
+            router.replace('/');
+        }
+    }, [user, userData, loading, router]);
+
+
+    if (loading || !user || !userData || userData.role !== 'admin') {
         return (
             <div className="flex items-center justify-center h-screen">
                 <LoadingSpinner />
             </div>
         );
-    }
-    
-    if (!user || !userData || userData.role !== 'admin') {
-        router.replace('/');
-        return null;
     }
 
     return (
