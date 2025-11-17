@@ -23,6 +23,7 @@ import {
   FileText,
   Rss, // Added Rss icon
   Loader2,
+  Banknote,
 } from "lucide-react"
 import { useState, useEffect, useMemo } from "react";
 import { Badge } from "@/components/ui/badge"
@@ -61,6 +62,7 @@ const navItems = [
     { href: "/admin/orders", icon: ShoppingCart, label: "Orders" },
     { href: "/admin/revenue", icon: LineChart, label: "Revenue" },
     { href: "/admin/transactions", icon: CreditCard, label: "Transactions" },
+    { href: "/admin/payouts", icon: Banknote, label: "Payouts" },
     { href: "/admin/users", icon: Users, label: "Users" },
     { href: "/admin/kyc", icon: Shield, label: "KYC" },
     { href: "/admin/products", icon: Package, label: "Products" },
