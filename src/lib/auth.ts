@@ -2,12 +2,13 @@
 "use client";
 
 import { GoogleAuthProvider, signInWithPopup, signOut as firebaseSignOut, sendPasswordResetEmail, User, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendEmailVerification, getAdditionalUserInfo, updateProfile, setPersistence, browserSessionPersistence } from "firebase/auth";
-import { getFirebaseAuth, getFirebaseStorage } from "./firebase";
+import { getFirebaseAuth, getFirestoreDb } from "./firebase";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 import { createUserData, updateUserData, UserData, getUserData } from "./follow-data";
 import { ref, uploadString, getDownloadURL, deleteObject } from "firebase/storage";
 import { getFunctions, httpsCallable } from "firebase/functions";
+import { getFirestore, collection, query, where, limit, getDocs } from "firebase/firestore";
 
 export function useAuthActions() {
     const router = useRouter();
