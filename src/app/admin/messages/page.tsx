@@ -21,7 +21,6 @@ import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-is-mobile';
 import { AdminLayout } from '@/components/admin/admin-layout';
 import { getFirestore, collection, query, where, getDocs, limit, doc, onSnapshot, orderBy } from 'firebase/firestore';
-import { getFirestoreDb } from "@/lib/firebase-db";
 import { Separator } from '@/components/ui/separator';
 
 
@@ -131,7 +130,7 @@ export default function AdminMessagePage() {
             return;
         }
         setIsSearching(true);
-        const db = getFirestoreDb();
+        const db = getFirestore();
         const usersRef = collection(db, "users");
         const q = query(
             usersRef,
@@ -264,3 +263,5 @@ export default function AdminMessagePage() {
     </AdminLayout>
   );
 }
+
+    

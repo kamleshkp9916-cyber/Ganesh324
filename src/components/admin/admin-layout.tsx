@@ -52,8 +52,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { useAuthActions } from "@/lib/auth"
 import { cn } from "@/lib/utils"
 import { useDebounce } from "@/hooks/use-debounce";
-import { getFirestoreDb } from "@/lib/firebase";
-import { collection, query, where, limit, getDocs } from "firebase/firestore";
+import { getFirestore, collection, query, where, limit, getDocs } from "firebase/firestore";
 import { UserData, getUserData } from "@/lib/follow-data";
 import { Popover, PopoverAnchor, PopoverContent } from "../ui/popover";
 import { ScrollArea } from "../ui/scroll-area";
@@ -123,11 +122,10 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
                 return;
             }
             setIsSearching(true);
-            const db = getFirestoreDb();
-            const usersRef = collection(db, "users");
+            const db = getFirestore();
 
             const customerQuery = query(
-                usersRef,
+                collection(db, "users"),
                 where("displayName", ">=", debouncedSearchTerm),
                 where("displayName", "<=", debouncedSearchTerm + '\uf8ff'),
                 where("role", "==", "customer"),
@@ -135,7 +133,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
             );
             
             const sellerQuery = query(
-                usersRef,
+                collection(db, "users"),
                 where("displayName", ">=", debouncedSearchTerm),
                 where("displayName", "<=", debouncedSearchTerm + '\uf8ff'),
                 where("role", "==", "seller"),
@@ -393,3 +391,5 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
         </div>
     );
 }
+
+    

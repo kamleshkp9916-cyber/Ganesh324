@@ -1,3 +1,4 @@
+
 "use client"
 
 import {
@@ -29,7 +30,6 @@ import { useRouter } from "next/navigation"
 import Link from "next/link"
 import React, { useState, useEffect, useMemo } from "react"
 import { getFirestore, collection, query, getDocs, orderBy, where } from "firebase/firestore"
-import { getFirestoreDb } from "@/lib/firebase"
 import { format } from "date-fns"
 
 import { Badge, BadgeProps } from "@/components/ui/badge"
@@ -195,7 +195,7 @@ export default function AdminOrdersPage() {
   const fetchOrders = async () => {
     if (!loading && userData?.role === 'admin') {
         setIsLoading(true);
-        const db = getFirestoreDb();
+        const db = getFirestore();
         const ordersRef = collection(db, "orders");
         let q = query(ordersRef, orderBy("orderDate", "desc"));
         
@@ -489,3 +489,5 @@ export default function AdminOrdersPage() {
     </AdminLayout>
   );
 }
+
+    

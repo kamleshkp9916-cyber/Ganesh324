@@ -103,10 +103,10 @@ import { getCart } from '@/lib/product-history';
 import { Dialog, DialogHeader, DialogTitle, DialogTrigger, DialogContent, DialogFooter, DialogClose, DialogDescription } from '@/components/ui/dialog';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { GoLiveDialog } from '@/components/go-live-dialog';
-import { collection, query, orderBy, onSnapshot, Timestamp, deleteDoc, doc, updateDoc, increment, addDoc, serverTimestamp, where, getDocs, runTransaction, limit, Unsubscribe } from "firebase/firestore";
-import { getFirestoreDb, getFirebaseStorage } from '@/lib/firebase';
+import { collection, query, orderBy, onSnapshot, Timestamp, deleteDoc, doc, updateDoc, increment, addDoc, serverTimestamp, where, getDocs, runTransaction, limit, Unsubscribe, getFirestore } from "firebase/firestore";
+import { getFirebaseStorage } from '@/lib/firebase-db';
 import { format, formatDistanceToNow, formatDistanceToNowStrict, isThisWeek, isThisYear } from 'date-fns';
-import { ref as storageRef, deleteObject } from 'firebase/storage';
+import { ref as storageRef, deleteObject, uploadString, getDownloadURL } from 'firebase/storage';
 import { isFollowing, toggleFollow, UserData, getUserByDisplayName, getFollowing, getOrCreateConversation } from '@/lib/follow-data';
 import { productDetails } from '@/lib/product-data';
 import { PromotionalCarousel } from '@/components/promotional-carousel';
@@ -565,7 +565,7 @@ function FeedPageContent() {
         setIsSuggestionLoading(true);
         const lowercasedTerm = debouncedSearchTerm.toLowerCase();
         
-        const db = getFirestoreDb();
+        const db = getFirestore();
         const usersRef = collection(db, "users");
         const userQuery = query(usersRef, 
             where("displayName", ">=", debouncedSearchTerm), 
@@ -761,7 +761,7 @@ function FeedPageContent() {
 
   const setupFeedListener = useCallback(() => {
         setIsLoadingFeed(true);
-        const db = getFirestoreDb();
+        const db = getFirestore();
         const postsQuery = query(collection(db, "posts"), orderBy("timestamp", "desc"));
         const unsubscribe = onSnapshot(postsQuery, (snapshot) => {
             const postsData = snapshot.docs.map(doc => ({
@@ -839,7 +839,7 @@ function FeedPageContent() {
     
     try {
         if (postToEdit) {
-            const db = getFirestoreDb();
+            const db = getFirestore();
             const postRef = doc(db, 'posts', postToEdit.id);
             
             const dataToUpdate: any = {
@@ -853,7 +853,7 @@ function FeedPageContent() {
             toast({ title: "Post Updated!", description: "Your changes have been saved." });
             
         } else {
-            const db = getFirestoreDb();
+            const db = getFirestore();
             const dataToSave: any = {
                 content: postData.content,
                 tags: Array.from(postData.content.matchAll(/#(\w+)/g) || []).map((match: any) => match[1]),
@@ -936,7 +936,7 @@ function FeedPageContent() {
   const handleDeletePost = async (post: any) => {
       if (!post || !post.id) return;
       setDeletingPostId(post.id);
-      const db = getFirestoreDb();
+      const db = getFirestore();
       const postRef = doc(db, 'posts', post.id);
 
       try {
@@ -1325,6 +1325,5 @@ export default function FeedPage() {
         </React.Suspense>
     )
 }
-    
 
     

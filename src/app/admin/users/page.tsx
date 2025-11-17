@@ -85,7 +85,6 @@ import { useAuthActions } from "@/lib/auth";
 import { useToast } from "@/hooks/use-toast"
 import { getUserData, UserData, updateUserData } from "@/lib/follow-data";
 import { getFirestore, collection, query, where, getDocs,getCountFromServer } from "firebase/firestore";
-import { getFirestoreDb } from "@/lib/firebase-db";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
 import { useDebounce } from "@/hooks/use-debounce";
@@ -183,7 +182,7 @@ export default function AdminUsersPage() {
   const [activeTab, setActiveTab] = useState("customers");
 
   const fetchUsers = async () => {
-    const db = getFirestoreDb();
+    const db = getFirestore();
     const usersRef = collection(db, "users");
     const allUsersQuery = query(usersRef);
     const allUsersSnapshot = await getDocs(allUsersQuery);
@@ -319,7 +318,7 @@ export default function AdminUsersPage() {
                         <CardDescription>Manage all customer accounts.</CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <UserTable users={customers} onViewDetails={handleViewDetails} onDelete={handleDeleteUserClick} />
+                        <UserTable users={customers} onViewDetails={handleViewDetails} onDelete={handleDeleteUserClick} onMakeAdmin={() => {}} onImpersonate={() => {}}/>
                     </CardContent>
                 </Card>
              </TabsContent>
@@ -330,7 +329,7 @@ export default function AdminUsersPage() {
                         <CardDescription>Manage all verified seller accounts.</CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <UserTable users={sellers} onViewDetails={handleViewDetails} onDelete={handleDeleteUserClick} />
+                        <UserTable users={sellers} onViewDetails={handleViewDetails} onDelete={handleDeleteUserClick} onMakeAdmin={() => {}} onImpersonate={() => {}}/>
                     </CardContent>
                 </Card>
              </TabsContent>
@@ -349,7 +348,7 @@ export default function AdminUsersPage() {
                         </Button>
                     </CardHeader>
                     <CardContent>
-                        <UserTable users={admins} onViewDetails={handleViewDetails} onDelete={handleDeleteUserClick} />
+                        <UserTable users={admins} onViewDetails={handleViewDetails} onDelete={handleDeleteUserClick} onMakeAdmin={() => {}} onImpersonate={() => {}}/>
                     </CardContent>
                 </Card>
             </TabsContent>
@@ -359,3 +358,5 @@ export default function AdminUsersPage() {
     </>
   )
 }
+
+    

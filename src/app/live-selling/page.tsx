@@ -106,8 +106,7 @@ import { getCart, addToCart, saveCart } from '@/lib/product-history';
 import { Dialog, DialogHeader, DialogTitle, DialogTrigger, DialogContent } from '@/components/ui/dialog';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { GoLiveDialog } from '@/components/go-live-dialog';
-import { collection, query, orderBy, onSnapshot, Timestamp, deleteDoc, doc, updateDoc, increment, addDoc, serverTimestamp, where, getDocs, runTransaction, limit } from "firebase/firestore";
-import { getFirestoreDb, getFirebaseStorage } from '@/lib/firebase';
+import { collection, query, orderBy, onSnapshot, Timestamp, deleteDoc, doc, updateDoc, increment, addDoc, serverTimestamp, where, getDocs, runTransaction, limit, getFirestore } from "firebase/firestore";
 import { format, formatDistanceToNow } from 'date-fns';
 import { ref as storageRef, deleteObject } from 'firebase/storage';
 import { isFollowing, toggleFollow, UserData, getUserByDisplayName } from '@/lib/follow-data';
@@ -118,7 +117,7 @@ import { Separator } from '@/components/ui/separator';
 import { ProductSearchWithStreams } from '@/components/ProductSearchWithStreams';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
-import { useIsMobile } from '@/hooks/use-mobile';
+import { useIsMobile } from '@/hooks/use-is-mobile';
 import { useLocalStorage } from '@/hooks/use-local-storage';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
@@ -446,7 +445,7 @@ export default function LiveSellingPage() {
 
     const sellersTimer = setTimeout(() => setIsLoadingSellers(false), 1000);
 
-    const db = getFirestoreDb();
+    const db = getFirestore();
     let postsQuery;
 
     if (activeTab === 'feeds') {
@@ -531,7 +530,7 @@ export default function LiveSellingPage() {
   const handleLikePost = async (postId: string) => {
     if (!handleAuthAction()) return;
 
-    const db = getFirestoreDb();
+    const db = getFirestore();
     const postRef = doc(db, 'posts', postId);
     const likeRef = doc(db, `posts/${postId}/likes`, user!.uid);
 
