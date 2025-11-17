@@ -43,9 +43,9 @@ service cloud.firestore {
       allow read: if isAdmin() || isOwner(userId);
       
       // A user can update their own document, but only from their latest login session.
-      // This also allows the 'updateLastLogin' Cloud Function to update the lastLogin field.
+      // A special exception is added to allow the beforeSignIn function to update ONLY the lastLogin field.
       allow update: if (isOwner(userId) && isLatestSessionForWrites(userId)) || 
-                     (request.auth.uid == userId && request.resource.data.keys().hasOnly(['lastLogin']));
+                     (request.resource.data.keys().hasOnly(['lastLogin']));
 
       // A user can delete their own document from their latest session.
       allow delete: if isOwner(userId) && isLatestSessionForWrites(userId);
