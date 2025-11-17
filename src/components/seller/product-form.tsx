@@ -67,6 +67,7 @@ export interface Product {
     status: 'active' | 'draft' | 'archived';
     listingType: 'general' | 'live-only';
     keyDetails?: string;
+    keywords?: string;
     weight?: number;
     length?: number;
     width?: number;
@@ -82,6 +83,7 @@ const productFormSchema = z.object({
   subcategory: z.string().optional().default(''),
   brand: z.string().optional().default(''),
   modelNumber: z.string().optional().default(''),
+  keywords: z.string().optional(),
   price: z.coerce.number().min(0, "Price must be a positive number."),
   discountPercentage: z.coerce.number().optional(),
   stock: z.coerce.number().int().min(0, "Stock cannot be negative."),
@@ -118,7 +120,7 @@ export function ProductForm({ onSave, productToEdit }: ProductFormProps) {
   const form = useForm<z.infer<typeof productFormSchema>>({
     resolver: zodResolver(productFormSchema),
     defaultValues: {
-      name: "", description: "", highlights: "", category: "", subcategory: "", brand: "", modelNumber: "",
+      name: "", description: "", highlights: "", category: "", subcategory: "", brand: "", modelNumber: "", keywords: "",
       price: 0, stock: 0, media: [], variants: [],
       listingType: 'general', status: 'active', keyDetails: "", discountPercentage: undefined,
       weight: undefined, length: undefined, width: undefined, height: undefined,
@@ -147,6 +149,7 @@ export function ProductForm({ onSave, productToEdit }: ProductFormProps) {
         variants: product.variants || [],
         availableSizes: product.availableSizes || "",
         availableColors: product.availableColors || "",
+        keywords: product.keywords || "",
       });
       setMedia(product.media || []);
       if(typeof product.highlightsImage === 'string') {
@@ -156,7 +159,7 @@ export function ProductForm({ onSave, productToEdit }: ProductFormProps) {
       }
     } else {
       form.reset({
-        name: "", description: "", highlights: "", category: "", subcategory: "", brand: "", modelNumber: "",
+        name: "", description: "", highlights: "", category: "", subcategory: "", brand: "", modelNumber: "", keywords: "",
         price: 0, stock: 0, media: [], variants: [],
         listingType: 'general', status: 'active', keyDetails: "", discountPercentage: undefined,
         weight: undefined, length: undefined, width: undefined, height: undefined,
@@ -356,6 +359,14 @@ export function ProductForm({ onSave, productToEdit }: ProductFormProps) {
                       </FormItem>
                   )} />
               </div>
+               <FormField control={form.control} name="keywords" render={({ field }) => (
+                    <FormItem>
+                        <FormLabel>Keywords</FormLabel>
+                        <FormControl><Input placeholder="e.g., shirt, casual, blue" {...field} /></FormControl>
+                        <FormDescription>Comma-separated keywords to improve searchability.</FormDescription>
+                        <FormMessage />
+                    </FormItem>
+                )} />
               <FormField control={form.control} name="media" render={() => (
                 <FormItem>
                   <FormLabel>Product Media</FormLabel>
