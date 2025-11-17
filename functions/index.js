@@ -4,7 +4,7 @@
 const admin = require('firebase-admin');
 const { onCall, HttpsError } = require("firebase-functions/v2/https");
 const { onRequest } = require('firebase-functions/v2/onRequest');
-const functions = require('firebase-functions'); // if you use env/secret config in firebase.json
+const functions = require('firebase-functions');
 const sgMail = require('@sendgrid/mail');
 const { onDocumentWritten } = require("firebase-functions/v2/firestore");
 
@@ -27,7 +27,24 @@ if (!admin.apps.length) {
 }
 
 /**
- * NEW: Firestore trigger to generate a public sequential ID for new users.
+ * Updates the `lastLogin` timestamp in the user's Firestore document
+ * whenever their ID token is refreshed (e.g., on sign-in).
+ * This is used for session management to enforce a single login.
+ */
+exports.updateLastLogin = functions.auth.user().beforeSignIn((user) => {
+    if (user.uid) {
+        return admin.firestore().collection('users').doc(user.uid).set({
+            lastLogin: admin.firestore.FieldValue.serverTimestamp()
+        }, { merge: true }).catch(err => {
+            console.error(`Failed to update lastLogin for user ${user.uid}:`, err);
+        });
+    }
+    return;
+});
+
+
+/**
+ * Firestore trigger to generate a public sequential ID for new users.
  */
 exports.generatePublicId = onDocumentWritten("users/{userId}", async (event) => {
     // Only act on document creation
@@ -80,9 +97,7 @@ exports.generatePublicId = onDocumentWritten("users/{userId}", async (event) => 
 
 
 /**
- * NEW: Callable function to create an admin user.
- * This function handles user creation, sets a custom claim for the 'admin' role,
- * and creates the corresponding user document in Firestore.
+ * Callable function to create an admin user.
  */
 exports.createAdminUser = onCall(async (request) => {
     // Check if the calling user is an admin.
@@ -117,7 +132,6 @@ exports.createAdminUser = onCall(async (request) => {
             phone: phone,
             role: 'admin',
             createdAt: admin.firestore.FieldValue.serverTimestamp(),
-            // Add any other default fields here
             followers: 0,
             following: 0,
             bio: "Administrator Account",

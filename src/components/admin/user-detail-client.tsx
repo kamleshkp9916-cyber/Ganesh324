@@ -1,5 +1,4 @@
 
-
 "use client"
 
 import {
@@ -34,6 +33,7 @@ import {
   Ban,
   Receipt,
   MoreHorizontal,
+  Clock,
 } from "lucide-react"
 import { useEffect, useState, useMemo, useCallback } from "react";
 import Link from "next/link"
@@ -75,7 +75,7 @@ import { useToast } from "@/hooks/use-toast";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip, Legend } from "recharts"
-import { collection, query, where, getDocs, orderBy, onSnapshot } from "firebase/firestore";
+import { collection, query, where, getDocs, orderBy, onSnapshot, doc } from "firebase/firestore";
 import { format, parseISO } from "date-fns";
 import { liveSellers } from "@/lib/product-data"
 
@@ -105,7 +105,7 @@ const mockOrders: Order[] = [
 ];
 
 const mockTransactions: Transaction[] = [
-    { id: 1, transactionId: 'txn_1a2b3c4d5e6f', type: 'Order', description: 'Mock Product 1', date: '2024-08-01', time: '10:00 AM', amount: -1999.00, status: 'Completed' },
+    { id: 1, transactionId: 'txn_1a2b3c4d5e6f', orderId: '#ORD5896', buyerName: 'Ganesh Prajapati', type: 'Order', description: 'Mock Product 1', date: '2024-08-01', time: '10:00 AM', amount: -1999.00, status: 'Completed' },
     { id: 2, transactionId: 'txn_xyz789', type: 'Deposit', description: 'Wallet Top-up', date: '2024-07-30', time: '03:45 PM', amount: 5000.00, status: 'Completed' },
 ];
 
@@ -411,7 +411,8 @@ export const UserDetailClient = ({ userId }: { userId: string }) => {
                             <CardContent className="space-y-2 text-sm">
                                 <div className="flex items-center gap-2"><Mail className="h-4 w-4 text-muted-foreground" /> <span>{profileData.email}</span></div>
                                 <div className="flex items-center gap-2"><Phone className="h-4 w-4 text-muted-foreground" /> <span>{profileData.phone || 'N/A'}</span></div>
-                                <div className="flex items-center gap-2"><Calendar className="h-4 w-4 text-muted-foreground" /> <span>Signup: {profileData.createdAt ? format(profileData.createdAt.toDate(), 'dd MMM, yyyy') : 'N/A'}</span></div>
+                                 <div className="flex items-center gap-2"><Calendar className="h-4 w-4 text-muted-foreground" /> <span>Signup: {profileData.createdAt ? format(profileData.createdAt.toDate(), 'dd MMM, yyyy') : 'N/A'}</span></div>
+                                <div className="flex items-center gap-2"><Clock className="h-4 w-4 text-muted-foreground" /> <span>Last Active: {profileData.lastLogin ? format(profileData.lastLogin.toDate(), 'dd MMM, yyyy, p') : 'N/A'}</span></div>
                                 <div className="flex items-center gap-2"><MapPin className="h-4 w-4 text-muted-foreground" /> <span>IP Address: 192.168.1.1 (Mock)</span></div>
                                  <div className="flex items-center gap-2"><ShieldCheck className="h-4 w-4 text-muted-foreground" /> <span>KYC: <Badge variant={profileData.kycStatus === 'verified' ? 'success' : 'warning'}>{profileData.kycStatus || 'pending'}</Badge></span></div>
                                  <div className="flex items-center gap-2"><Receipt className="h-4 w-4 text-muted-foreground" /> <span>Flags: <Badge variant="outline">None</Badge></span></div>
