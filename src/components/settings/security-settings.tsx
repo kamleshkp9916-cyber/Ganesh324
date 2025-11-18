@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
+import { Checkbox } from "../ui/checkbox";
 
 export function SecuritySettings() {
   const [isSaving, setIsSaving] = useState(false);
@@ -24,6 +25,12 @@ export function SecuritySettings() {
         setIsSaving(false);
     }, 1000);
   };
+  
+  const paymentGatewayUseCases = [
+      { id: "accept-payments", label: "Accept Customer Payments" },
+      { id: "process-payouts", label: "Process Seller Payouts" },
+      { id: "handle-refunds", label: "Handle Customer Refunds" },
+  ];
 
   return (
     <div className="space-y-6">
@@ -117,6 +124,44 @@ export function SecuritySettings() {
                          <div className="space-y-2">
                             <Label htmlFor="delivery-api-key">API Key</Label>
                             <Input id="delivery-api-key" type="password" />
+                        </div>
+                    </div>
+                </div>
+                 <div className="p-4 border rounded-lg space-y-4">
+                    <h4 className="font-semibold">Payment Gateway API</h4>
+                    <p className="text-xs text-muted-foreground -mt-3">Used for: Processing all platform payments, refunds, and payouts.</p>
+                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                         <div className="space-y-2">
+                            <Label htmlFor="payment-gateway">Provider</Label>
+                            <Select>
+                                <SelectTrigger id="payment-gateway">
+                                    <SelectValue placeholder="Select a provider" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="razorpay">Razorpay</SelectItem>
+                                    <SelectItem value="stripe">Stripe</SelectItem>
+                                    <SelectItem value="payu">PayU</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="pg-api-key">API Key</Label>
+                        <Input id="pg-api-key" placeholder="Key ID" type="password" />
+                    </div>
+                     <div className="space-y-2">
+                        <Label htmlFor="pg-api-secret">API Secret</Label>
+                        <Input id="pg-api-secret" placeholder="Key Secret" type="password" />
+                    </div>
+                     <div className="space-y-2 pt-2">
+                        <Label className="font-medium">Use For</Label>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                            {paymentGatewayUseCases.map(item => (
+                                <div key={item.id} className="flex items-center gap-2">
+                                <Checkbox id={`pg-${item.id}`} defaultChecked />
+                                <Label htmlFor={`pg-${item.id}`} className="text-sm font-normal">{item.label}</Label>
+                                </div>
+                            ))}
                         </div>
                     </div>
                 </div>
