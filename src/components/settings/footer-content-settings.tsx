@@ -10,19 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useLocalStorage } from "@/hooks/use-local-storage";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
-
-export const FOOTER_CONTENT_KEY = 'nipher_footer_content';
-
-export interface FooterContent {
-  description: string;
-  address: string;
-  phone: string;
-  email: string;
-  facebook: string;
-  twitter: string;
-  linkedin: string;
-  instagram: string;
-}
+import { FOOTER_CONTENT_KEY, type FooterContent } from "./keys";
 
 const defaultFooterContent: FooterContent = {
   description: "Your one-stop shop for live shopping. Discover, engage, and buy in real-time.",
@@ -63,6 +51,7 @@ export function FooterContentSettings() {
     <Card>
       <CardHeader>
         <CardTitle>Footer Content</CardTitle>
+        <CardDescription>Manage the contact information and social links in the site footer.</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="space-y-2">
