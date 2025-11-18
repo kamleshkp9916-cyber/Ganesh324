@@ -22,6 +22,7 @@ import {
   Pause,
   Volume2,
   VolumeX,
+  Send,
 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
@@ -165,6 +166,14 @@ const mockLiveStreams = [
     },
 ];
 
+const mockChatMessages = [
+    { id: 1, user: 'Ganesh', text: 'This looks amazing! 🔥', avatar: 'https://placehold.co/40x40.png' },
+    { id: 2, user: 'Alex', text: 'What is the material?', avatar: 'https://placehold.co/40x40.png' },
+    { id: 3, user: 'Jane', text: 'I just bought one! So excited. 🤩', avatar: 'https://placehold.co/40x40.png' },
+    { id: 4, user: 'FashionFinds', isSeller: true, text: 'Hey @Alex, it\'s 100% genuine leather!', avatar: 'https://placehold.co/40x40.png' },
+    { id: 5, user: 'Mike', text: 'Any discounts running?', avatar: 'https://placehold.co/40x40.png' },
+];
+
 const getHealthBadgeVariant = (health: string): BadgeProps['variant'] => {
     switch (health) {
         case 'Good': return 'success';
@@ -178,6 +187,7 @@ const MonitorDialog = ({ stream, onClose }: { stream: any, onClose: () => void }
     const videoRef = useRef<HTMLVideoElement>(null);
     const [isPaused, setIsPaused] = useState(true);
     const [isMuted, setIsMuted] = useState(true);
+    const [chatMessage, setChatMessage] = useState("");
 
     useEffect(() => {
         const video = videoRef.current;
@@ -209,85 +219,123 @@ const MonitorDialog = ({ stream, onClose }: { stream: any, onClose: () => void }
     const totalRevenue = (stream.revenue?.productSales || 0) + (stream.revenue?.superChats || 0);
 
     return (
-        <DialogContent className="max-w-4xl">
-            <DialogHeader>
-                <DialogTitle>Monitoring: {stream.seller.name}</DialogTitle>
-                <DialogDescription>
-                    Live feed from stream ID: {stream.streamId}
-                </DialogDescription>
-            </DialogHeader>
-            <ScrollArea className="max-h-[80vh]">
-                <div className="p-1 space-y-4">
-                     <div className="aspect-video bg-black rounded-lg overflow-hidden relative group">
-                        <video ref={videoRef} src={stream.streamUrl} className="w-full h-full object-cover" loop />
-                        <div className="absolute top-2 left-2 z-10 flex items-center gap-2">
-                            <Badge variant="destructive" className="live-pulse-beam">LIVE</Badge>
-                            <Badge variant="secondary" className="bg-black/50 text-white"><Users className="w-3 h-3 mr-1"/>{stream.viewers.toLocaleString()}</Badge>
-                        </div>
-                         <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4">
-                            <Button variant="ghost" size="icon" className="text-white h-16 w-16" onClick={handlePlayPause}>
-                                {isPaused ? <Play className="h-8 w-8 fill-white" /> : <Pause className="h-8 w-8 fill-white" />}
-                            </Button>
-                        </div>
-                        <div className="absolute bottom-2 right-2 z-10">
-                            <Button variant="ghost" size="icon" className="text-white h-8 w-8 bg-black/40 hover:bg-black/60" onClick={() => setIsMuted(prev => !prev)}>
-                                {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
-                            </Button>
-                        </div>
-                    </div>
-                    <div className="grid grid-cols-3 gap-4 text-sm">
-                        <div className="bg-muted p-3 rounded-lg">
-                            <p className="text-xs text-muted-foreground">Viewers</p>
-                            <p className="font-semibold text-lg">{stream.viewers}</p>
-                        </div>
-                        <div className="bg-muted p-3 rounded-lg">
-                            <p className="text-xs text-muted-foreground">Duration</p>
-                            <p className="font-semibold text-lg">{stream.duration}</p>
-                        </div>
-                        <div className="bg-muted p-3 rounded-lg">
-                            <p className="text-xs text-muted-foreground">Health</p>
-                            <p className="font-semibold text-lg">{stream.bitrateHealth}</p>
-                        </div>
-                    </div>
-                    <Separator />
-                    <div>
-                        <h4 className="font-semibold mb-2">Live Revenue</h4>
-                         <div className="grid grid-cols-3 gap-4 text-sm">
-                            <div className="bg-green-100 dark:bg-green-900/30 p-3 rounded-lg">
-                                <p className="text-xs text-green-800 dark:text-green-300">Product Sales</p>
-                                <p className="font-semibold text-lg">₹{stream.revenue.productSales.toLocaleString()}</p>
+        <DialogContent className="max-w-6xl p-0">
+            <div className="grid grid-cols-1 lg:grid-cols-3">
+                 <div className="lg:col-span-2 flex flex-col">
+                    <DialogHeader className="p-4 border-b">
+                        <DialogTitle>Monitoring: {stream.seller.name}</DialogTitle>
+                        <DialogDescription>
+                            Live feed from stream ID: {stream.streamId}
+                        </DialogDescription>
+                    </DialogHeader>
+                     <ScrollArea className="flex-grow max-h-[calc(80vh-100px)]">
+                        <div className="p-4 space-y-4">
+                             <div className="aspect-video bg-black rounded-lg overflow-hidden relative group">
+                                <video ref={videoRef} src={stream.streamUrl} className="w-full h-full object-cover" loop />
+                                <div className="absolute top-2 left-2 z-10 flex items-center gap-2">
+                                    <Badge variant="destructive" className="live-pulse-beam">LIVE</Badge>
+                                    <Badge variant="secondary" className="bg-black/50 text-white"><Users className="w-3 h-3 mr-1"/>{stream.viewers.toLocaleString()}</Badge>
+                                </div>
+                                 <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4">
+                                    <Button variant="ghost" size="icon" className="text-white h-16 w-16" onClick={handlePlayPause}>
+                                        {isPaused ? <Play className="h-8 w-8 fill-white" /> : <Pause className="h-8 w-8 fill-white" />}
+                                    </Button>
+                                </div>
+                                <div className="absolute bottom-2 right-2 z-10">
+                                    <Button variant="ghost" size="icon" className="text-white h-8 w-8 bg-black/40 hover:bg-black/60" onClick={() => setIsMuted(prev => !prev)}>
+                                        {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
+                                    </Button>
+                                </div>
                             </div>
-                            <div className="bg-yellow-100 dark:bg-yellow-900/30 p-3 rounded-lg">
-                                <p className="text-xs text-yellow-800 dark:text-yellow-300">Super Chats</p>
-                                <p className="font-semibold text-lg">₹{stream.revenue.superChats.toLocaleString()}</p>
+                            <div className="grid grid-cols-3 gap-4 text-sm">
+                                <div className="bg-muted p-3 rounded-lg">
+                                    <p className="text-xs text-muted-foreground">Viewers</p>
+                                    <p className="font-semibold text-lg">{stream.viewers}</p>
+                                </div>
+                                <div className="bg-muted p-3 rounded-lg">
+                                    <p className="text-xs text-muted-foreground">Duration</p>
+                                    <p className="font-semibold text-lg">{stream.duration}</p>
+                                </div>
+                                <div className="bg-muted p-3 rounded-lg">
+                                    <p className="text-xs text-muted-foreground">Health</p>
+                                    <p className="font-semibold text-lg">{stream.bitrateHealth}</p>
+                                </div>
                             </div>
-                             <div className="bg-blue-100 dark:bg-blue-900/30 p-3 rounded-lg">
-                                <p className="text-xs text-blue-800 dark:text-blue-300">Total Revenue</p>
-                                <p className="font-semibold text-lg">₹{totalRevenue.toLocaleString()}</p>
+                            <Separator />
+                            <div>
+                                <h4 className="font-semibold mb-2">Live Revenue</h4>
+                                 <div className="grid grid-cols-3 gap-4 text-sm">
+                                    <div className="bg-green-100 dark:bg-green-900/30 p-3 rounded-lg">
+                                        <p className="text-xs text-green-800 dark:text-green-300">Product Sales</p>
+                                        <p className="font-semibold text-lg">₹{stream.revenue.productSales.toLocaleString()}</p>
+                                    </div>
+                                    <div className="bg-yellow-100 dark:bg-yellow-900/30 p-3 rounded-lg">
+                                        <p className="text-xs text-yellow-800 dark:text-yellow-300">Super Chats</p>
+                                        <p className="font-semibold text-lg">₹{stream.revenue.superChats.toLocaleString()}</p>
+                                    </div>
+                                     <div className="bg-blue-100 dark:bg-blue-900/30 p-3 rounded-lg">
+                                        <p className="text-xs text-blue-800 dark:text-blue-300">Total Revenue</p>
+                                        <p className="font-semibold text-lg">₹{totalRevenue.toLocaleString()}</p>
+                                    </div>
+                                </div>
+                            </div>
+                             <div>
+                                <h4 className="font-semibold mb-2">Featured Products ({stream.products.length})</h4>
+                                <div className="space-y-2">
+                                    {stream.products.map((product: any) => (
+                                        <Link key={product.id} href={`/product/${product.id}`} target="_blank">
+                                            <Card className="hover:bg-muted/50 transition-colors">
+                                                <CardContent className="p-2 flex items-center gap-3">
+                                                    <Image src={product.image} alt={product.name} width={56} height={56} className="w-14 h-14 rounded-md" />
+                                                    <div className="flex-grow">
+                                                        <p className="font-medium text-sm">{product.name}</p>
+                                                        <p className="text-xs text-muted-foreground">₹{product.price.toLocaleString()}</p>
+                                                    </div>
+                                                     <Button variant="outline" size="sm">View Product</Button>
+                                                </CardContent>
+                                            </Card>
+                                        </Link>
+                                    ))}
+                                </div>
                             </div>
                         </div>
-                    </div>
-                     <div>
-                        <h4 className="font-semibold mb-2">Featured Products ({stream.products.length})</h4>
-                        <div className="space-y-2">
-                            {stream.products.map((product: any) => (
-                                <Link key={product.id} href={`/product/${product.id}`} target="_blank">
-                                    <Card className="hover:bg-muted/50 transition-colors">
-                                        <CardContent className="p-2 flex items-center gap-3">
-                                            <Image src={product.image} alt={product.name} width={56} height={56} className="w-14 h-14 rounded-md" />
-                                            <div className="flex-grow">
-                                                <p className="font-medium text-sm">{product.name}</p>
-                                                <p className="text-xs text-muted-foreground">₹{product.price.toLocaleString()}</p>
-                                            </div>
-                                             <Button variant="outline" size="sm">View Product</Button>
-                                        </CardContent>
-                                    </Card>
-                                </Link>
+                    </ScrollArea>
+                </div>
+                 <div className="lg:col-span-1 border-l flex flex-col max-h-[80vh]">
+                     <DialogHeader className="p-4 border-b">
+                        <DialogTitle>Live Chat</DialogTitle>
+                    </DialogHeader>
+                    <ScrollArea className="flex-grow">
+                         <div className="p-4 space-y-3">
+                            {mockChatMessages.map(msg => (
+                                <div key={msg.id} className="flex items-start gap-2 text-sm">
+                                    <Avatar className="h-7 w-7 mt-0.5">
+                                        <AvatarImage src={msg.avatar} />
+                                        <AvatarFallback>{msg.user.charAt(0)}</AvatarFallback>
+                                    </Avatar>
+                                    <div className="flex-grow">
+                                        <span className={cn("font-semibold", msg.isSeller && "text-primary")}>{msg.user}</span>
+                                        <p className="text-muted-foreground">{msg.text}</p>
+                                    </div>
+                                </div>
                             ))}
                         </div>
+                    </ScrollArea>
+                    <div className="p-4 border-t">
+                         <form className="flex items-center gap-2">
+                            <Input 
+                                placeholder="Send a message..." 
+                                className="flex-grow" 
+                                value={chatMessage}
+                                onChange={(e) => setChatMessage(e.target.value)}
+                            />
+                            <Button type="submit" size="icon" disabled={!chatMessage.trim()}>
+                                <Send className="h-4 w-4" />
+                            </Button>
+                        </form>
                     </div>
                 </div>
-            </ScrollArea>
+            </div>
              <DialogFooter className="p-4 border-t">
                 <DialogClose asChild>
                     <Button type="button" variant="secondary">Close</Button>
