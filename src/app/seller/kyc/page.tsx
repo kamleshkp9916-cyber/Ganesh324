@@ -245,14 +245,42 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
 
   const handleGenerateVerification = async () => {
     setVerif({ state: "PENDING", message: "Generating secure 0DIDit verification link..." });
-    const verificationLink = "https://0did.it/verify/mock-session-12345";
-    setQrCodeUrl(`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(verificationLink)}`);
     
-    setTimeout(() => {
-        setVerif({ state: "VERIFIED", message: "Verification successful on your mobile device. You can now proceed." });
-        toast({ title: "Verification Successful!", description: "You can proceed to the next step." });
-        setTimeout(() => next(), 1500);
-    }, 5000); 
+    // --- REAL-TIME INTEGRATION POINT ---
+    // 1. Make an API call to your backend to get the verification URL from 0DIDit.
+    //    const response = await fetch('/api/create-verification-session');
+    //    const { verificationLink, sessionId } = await response.json();
+    
+    // For this example, we'll simulate the API call.
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    const verificationLink = "https://0did.it/verify/mock-session-12345";
+    const sessionId = "mock-session-12345";
+
+    setQrCodeUrl(`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(verificationLink)}`);
+    setVerif({ state: "PENDING", message: "Scan the QR code with your phone to complete verification." });
+
+    // 2. Start polling your backend to check the verification status.
+    const pollInterval = setInterval(async () => {
+        try {
+            // --- REAL-TIME INTEGRATION POINT ---
+            //    const statusResponse = await fetch(`/api/check-verification-status?sessionId=${sessionId}`);
+            //    const { status } = await statusResponse.json();
+
+            // Simulate the API call result
+            const status = Math.random() < 0.2 ? 'VERIFIED' : 'PENDING'; // 20% chance of being verified each poll
+
+            if (status === 'VERIFIED') {
+                clearInterval(pollInterval);
+                setVerif({ state: "VERIFIED", message: "Verification successful! You can now proceed." });
+                toast({ title: "Verification Successful!", description: "Proceeding to the next step." });
+                setTimeout(() => next(), 1500);
+            }
+        } catch (error) {
+            console.error("Polling error:", error);
+            clearInterval(pollInterval);
+            setVerif({ state: "FAILED", message: "Could not confirm verification status. Please try again." });
+        }
+    }, 3000); // Poll every 3 seconds
   };
   
   const submit = async () => {
@@ -521,8 +549,8 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
 
                     {verif.state === 'PENDING' && (
                         <div className="flex flex-col items-center gap-4">
-                            <h3 className="font-semibold">Scan to Verify</h3>
-                            <p className="text-sm text-muted-foreground">Scan the QR code with your phone's camera to complete verification on the 0DIDit platform.</p>
+                            <h3 className="font-semibold">{qrCodeUrl ? "Scan to Verify" : "Generating..."}</h3>
+                            <p className="text-sm text-muted-foreground">{verif.message}</p>
                             {qrCodeUrl ? (
                                 <Image src={qrCodeUrl} alt="0DIDit Verification QR Code" width={250} height={250} className="rounded-lg border p-2" />
                             ) : (
@@ -775,3 +803,5 @@ export default function KYCPage() {
         </div>
     );
 }
+
+    
