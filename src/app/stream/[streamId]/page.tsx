@@ -1,4 +1,3 @@
-
 "use client";
 
 import {
@@ -97,36 +96,36 @@ import {
   DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription, DialogClose, DialogFooter } from '../ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription, DialogClose, DialogFooter } from '@/components/ui/dialog';
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { useAuth } from '@/hooks/use-auth';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { toggleFollow, getUserData, UserData, isFollowing } from '@/lib/follow-data';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "../ui/alert-dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { doc, Timestamp, onSnapshot } from 'firebase/firestore';
-import { getFirestoreDb } from '@/lib/firebase';
+import { getFirestoreDb } from '@/lib/firebase-db';
 import { Slider } from "@/components/ui/slider";
-import { FeedbackDialog } from "../feedback-dialog";
-import { Textarea } from "../ui/textarea";
+import { FeedbackDialog } from "@/components/feedback-dialog";
+import { Textarea } from "@/components/ui/textarea";
 import { categories } from "@/lib/categories";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "../ui/accordion";
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "../ui/carousel";
-import { Label } from "../ui/label";
-import { WithdrawForm } from "../settings-forms";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
-import { Switch } from "../ui/switch";
-import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
+import { Label } from "@/components/ui/label";
+import { WithdrawForm } from "@/components/settings-forms";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useInView } from "react-intersection-observer";
 import { useMiniPlayer } from "@/context/MiniPlayerContext";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "../ui/sheet";
-import { Skeleton } from "../ui/skeleton";
-import { useIsMobile } from "@/hooks/use-mobile";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "../ui/collapsible";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useIsMobile } from "@/hooks/use-is-mobile";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { format, formatDistanceToNow, isThisWeek, isThisYear, parseISO, parse } from 'date-fns';
-import { ProductShelfContent } from '../product-shelf-content';
+import { ProductShelfContent } from '@/components/product-shelf-content';
 
 
 const emojis = [
@@ -613,7 +612,7 @@ const RelatedContent = ({ relatedStreams, onAddToCart, onBuyNow, toast, getProdu
                         <div className="relative rounded-lg overflow-hidden aspect-video bg-muted w-full flex-shrink-0">
                             <div className="absolute top-2 left-2 z-10"><Badge variant="destructive">LIVE</Badge></div>
                             <div className="absolute top-2 right-2 z-10"><Badge variant="secondary" className="bg-black/50 text-white"><Users className="w-3 h-3 mr-1"/>{s.viewers.toLocaleString()}</Badge></div>
-                            <Image src={s.thumbnailUrl} alt={`Live stream from ${s.name}`} fill sizes="(max-width: 768px) 50vw, 33vw" className="object-cover w-full h-full transition-transform group-hover:scale-105" />
+                            <Image src={s.thumbnailUrl} alt={s.title} fill sizes="(max-width: 768px) 50vw, 33vw" className="object-cover w-full h-full transition-transform group-hover:scale-105" />
                         </div>
                         <div className="flex items-start gap-3 mt-2">
                             <Avatar>
@@ -1481,14 +1480,14 @@ const StreamPage = () => {
     }, [seller]);
 
     const relatedStreams = useMemo(() => {
-        if (!seller) return [];
+        if (!product) return [];
         let streams = liveSellers.filter(
-            s => s.category === seller.category && s.id !== streamId
+            s => s.category === product.category && s.productId !== product.key
         );
          if (streams.length > 50) {
             return streams.slice(0, 51);
         }
-        const fallbackStreams = liveSellers.filter(s => s.id !== streamId);
+        const fallbackStreams = liveSellers.filter(s => s.productId !== product.key);
         
         let i = 0;
         while(streams.length < 6 && i < fallbackStreams.length) {
@@ -1498,7 +1497,7 @@ const StreamPage = () => {
             i++;
         }
         return streams.slice(0,51);
-    }, [seller, streamId]);
+    }, [product]);
     
     const mockStreamData = {
         id: streamId,
@@ -2016,5 +2015,3 @@ const StreamPage = () => {
 };
 
 export default StreamPage;
-
-    
