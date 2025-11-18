@@ -102,7 +102,7 @@ import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { useAuth } from '@/hooks/use-auth';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { toggleFollow, getUserData, UserData, isFollowing } from '@/lib/follow-data';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { doc, Timestamp, onSnapshot } from 'firebase/firestore';
@@ -1169,22 +1169,26 @@ return (
 
         <aside className="relative h-full w-[384px] flex-shrink-0 flex flex-col overflow-hidden border-l">
              {isAdmin && props.seller && props.sellerData && (
-                <div className="p-4 border-b bg-primary/5 border-primary/20 shrink-0">
-                    <CardTitle className="text-base flex items-center gap-2 mb-2"><BarChart className="text-primary"/> Admin Stream Insights</CardTitle>
-                    <div className="space-y-1 text-sm">
-                        <div className="flex justify-between items-center">
-                            <span className="text-muted-foreground">Product Sales</span>
-                            <span className="font-semibold">₹12,500.00</span>
-                        </div>
+                 <div className="p-4 border-b bg-primary/5 border-primary/20 shrink-0">
+                    <CardHeader className="p-0">
+                        <CardTitle className="text-base flex items-center gap-2 mb-2"><BarChart className="text-primary"/> Admin Stream Insights</CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-0">
+                        <div className="space-y-1 text-sm">
                             <div className="flex justify-between items-center">
-                            <span className="text-muted-foreground">Super Chat Revenue</span>
-                            <span className="font-semibold">₹1,500.00</span>
+                                <span className="text-muted-foreground">Product Sales</span>
+                                <span className="font-semibold">₹12,500.00</span>
+                            </div>
+                                <div className="flex justify-between items-center">
+                                <span className="text-muted-foreground">Super Chat Revenue</span>
+                                <span className="font-semibold">₹1,500.00</span>
+                            </div>
+                            <div className="flex justify-between items-center font-bold text-base pt-1 border-t mt-1">
+                                <span>Total</span>
+                                <span>₹14,000.00</span>
+                            </div>
                         </div>
-                        <div className="flex justify-between items-center font-bold text-base pt-1 border-t mt-1">
-                            <span>Total</span>
-                            <span>₹14,000.00</span>
-                        </div>
-                    </div>
+                    </CardContent>
                 </div>
              )}
             <ChatPanel
@@ -1999,3 +2003,5 @@ const StreamPage = () => {
 };
 
 export default StreamPage;
+
+    
