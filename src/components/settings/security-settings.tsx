@@ -29,7 +29,7 @@ export function SecuritySettings() {
   const paymentGatewayUseCases = [
       { id: "accept-payments", label: "Accept Customer Payments" },
       { id: "process-payouts", label: "Process Seller Payouts" },
-      { id: "handle-refunds", label: "Handle Customer Refunds" },
+      { id: "handle-refunds", label: "Handle Customer Refunds (incl. cancelled orders)" },
   ];
 
   return (
