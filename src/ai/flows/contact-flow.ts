@@ -13,8 +13,12 @@ const InquirySchema = z.object({
   email: z.string().email(),
   subject: z.string(),
   message: z.string(),
-  createdAt: z.string().optional(), // Will be replaced by server timestamp
-  isRead: z.boolean().optional(),   // Will be set to false by default
+  createdAt: z.string().optional(),
+  category: z.enum(["Business", "Seller Onboarding", "Collaboration", "Legal", "Feedback", "Other"]).default("Other"),
+  priority: z.enum(["Low", "Medium", "High"]).default("Low"),
+  status: z.enum(["New", "Open", "Pending", "Closed"]).default("New"),
+  assigneeId: z.string().optional(),
+  isArchived: z.boolean().default(false),
 });
 
 export type Inquiry = z.infer<typeof InquirySchema>;
@@ -26,7 +30,6 @@ export async function submitInquiry(inquiryData: Omit<Inquiry, 'createdAt'>): Pr
   const docRef = await addDoc(collection(db, 'inquiries'), {
     ...validatedData,
     createdAt: serverTimestamp(),
-    isRead: false,
   });
 
   return { id: docRef.id };
@@ -52,8 +55,20 @@ export async function getInquiries(): Promise<(Inquiry & { id: string })[]> {
   });
 }
 
-export async function markInquiryRead(inquiryId: string): Promise<void> {
+export async function updateInquiry(inquiryId: string, updates: Partial<Inquiry>): Promise<void> {
     const db = getFirestore(getFirebaseAdminApp());
     const inquiryRef = doc(db, 'inquiries', inquiryId);
-    await updateDoc(inquiryRef, { isRead: true });
+    await updateDoc(inquiryRef, updates);
+}
+
+export async function convertInquiryToTicket(inquiryId: string): Promise<string> {
+    const db = getFirestore(getFirebaseAdminApp());
+    const inquiryRef = doc(db, 'inquiries', inquiryId);
+    
+    // In a real app, you'd create a new ticket in a 'tickets' collection.
+    // For this demo, we'll just update the inquiry status.
+    await updateDoc(inquiryRef, { status: "Open", isArchived: true });
+
+    // This would be the new ticket ID
+    return `TCK-${Date.now()}`;
 }

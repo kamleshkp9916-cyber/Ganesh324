@@ -79,6 +79,24 @@
         "timestamp": { "type": "string", "format": "date-time" }
       },
       "required": ["senderId", "timestamp"]
+    },
+    "Inquiry": {
+      "title": "Inquiry",
+      "type": "object",
+      "description": "Represents a customer inquiry from the contact form, which can be converted into a support ticket.",
+      "properties": {
+        "name": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "subject": { "type": "string" },
+        "message": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "category": { "type": "string", "enum": ["Business", "Seller Onboarding", "Collaboration", "Legal", "Feedback", "Other"] },
+        "priority": { "type": "string", "enum": ["Low", "Medium", "High"] },
+        "status": { "type": "string", "enum": ["New", "Open", "Pending", "Closed"] },
+        "isArchived": { "type": "boolean" },
+        "assigneeId": { "type": "string", "description": "The UID of the admin assigned to this inquiry." }
+      },
+      "required": ["name", "email", "subject", "message"]
     }
   },
   "auth": {
@@ -123,6 +141,16 @@
             "$ref": "#/backend/entities/Message"
           },
           "description": "Sub-collection storing all messages for a given conversation."
+        }
+      },
+      {
+        "path": "/inquiries/{inquiryId}",
+        "definition": {
+          "entityName": "Inquiry",
+          "schema": {
+            "$ref": "#/backend/entities/Inquiry"
+          },
+          "description": "Stores customer inquiries that can be converted to support tickets."
         }
       }
     ],
