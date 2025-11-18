@@ -169,6 +169,7 @@ const mockLiveStreams = [
 const initialChatMessages = [
     { id: 1, user: 'Ganesh', text: 'This looks amazing! 🔥', avatar: 'https://placehold.co/40x40.png' },
     { id: 2, user: 'Alex', text: 'What is the material?', avatar: 'https://placehold.co/40x40.png' },
+    { id: 5, type: 'super_chat', user: 'SuperFan99', amount: 500, text: 'Love your streams! Keep up the great work!', avatar: 'https://placehold.co/40x40.png' },
     { id: 3, user: 'Jane', text: 'I just bought one! So excited. 🤩', avatar: 'https://placehold.co/40x40.png' },
 ];
 
@@ -180,6 +181,23 @@ const getHealthBadgeVariant = (health: string): BadgeProps['variant'] => {
         default: return 'outline';
     }
 };
+
+const SuperChatMessage = ({ msg }: { msg: any }) => (
+    <div className="my-2 p-3 rounded-lg bg-gradient-to-r from-yellow-300 via-orange-400 to-red-500 text-black shadow-lg">
+        <div className="flex items-center justify-between mb-1">
+             <div className="flex items-center gap-2">
+                <Avatar className="h-7 w-7 border-2 border-white/50">
+                    <AvatarImage src={msg.avatar} />
+                    <AvatarFallback className="bg-yellow-500 text-black font-bold text-xs">{msg.user.charAt(0)}</AvatarFallback>
+                </Avatar>
+                <p className="font-bold text-sm">{msg.user}</p>
+             </div>
+             <p className="font-bold text-base">₹{msg.amount}</p>
+        </div>
+        <p className="text-sm font-medium">{msg.text}</p>
+    </div>
+);
+
 
 const MonitorDialog = ({ stream, onClose }: { stream: any, onClose: () => void }) => {
     const videoRef = useRef<HTMLVideoElement>(null);
@@ -248,7 +266,7 @@ const MonitorDialog = ({ stream, onClose }: { stream: any, onClose: () => void }
                             Live feed from stream ID: {stream.streamId}
                         </DialogDescription>
                     </DialogHeader>
-                     <ScrollArea className="flex-grow max-h-[calc(80vh-100px)]">
+                     <ScrollArea className="max-h-[calc(80vh-100px)]">
                         <div className="p-4 space-y-4">
                              <div className="aspect-video bg-black rounded-lg overflow-hidden relative group">
                                 <video ref={videoRef} src={stream.streamUrl} className="w-full h-full object-cover" loop />
@@ -327,7 +345,11 @@ const MonitorDialog = ({ stream, onClose }: { stream: any, onClose: () => void }
                     </DialogHeader>
                     <ScrollArea className="flex-grow" ref={chatContainerRef}>
                          <div className="p-4 space-y-3">
-                            {chatMessages.map(msg => (
+                            {chatMessages.map(msg => {
+                                if (msg.type === 'super_chat') {
+                                    return <SuperChatMessage key={msg.id} msg={msg} />
+                                }
+                                return (
                                 <div key={msg.id} className="flex items-start gap-2 text-sm">
                                     <Avatar className="h-7 w-7 mt-0.5">
                                         <AvatarImage src={msg.avatar} />
@@ -338,18 +360,19 @@ const MonitorDialog = ({ stream, onClose }: { stream: any, onClose: () => void }
                                         <p className="text-muted-foreground">{msg.text}</p>
                                     </div>
                                 </div>
-                            ))}
+                            )})}
                         </div>
                     </ScrollArea>
                     <div className="p-4 border-t">
                          <form className="flex items-center gap-2" onSubmit={handleSendMessage}>
                             <Input 
-                                placeholder="Send a message..." 
+                                placeholder="Admin chat is disabled"
                                 className="flex-grow" 
                                 value={chatMessage}
                                 onChange={(e) => setChatMessage(e.target.value)}
+                                disabled
                             />
-                            <Button type="submit" size="icon" disabled={!chatMessage.trim()}>
+                            <Button type="submit" size="icon" disabled>
                                 <Send className="h-4 w-4" />
                             </Button>
                         </form>
