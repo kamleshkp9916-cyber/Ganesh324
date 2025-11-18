@@ -15,11 +15,13 @@ import {
   ChevronDown,
   User,
   AlertTriangle,
+  Loader2,
 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import React, { useState, useEffect, useMemo } from "react"
+import React, { useState, useEffect, useMemo, useCallback } from "react"
 import { format, parseISO } from "date-fns"
+import { getFirestore, collection, query, where, getDocs } from 'firebase/firestore'
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -64,13 +66,11 @@ import {
 } from "@/components/ui/table"
 import { useAuth } from "@/hooks/use-auth"
 import { LoadingSpinner } from "@/components/ui/loading-spinner"
-import { useAuthActions } from "@/lib/auth"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import { getInquiries, updateInquiry, Inquiry, convertInquiryToTicket } from "@/ai/flows/contact-flow"
 import { cn } from "@/lib/utils"
 import { AdminLayout } from "@/components/admin/admin-layout"
 import { useToast } from "@/hooks/use-toast"
+import { initializeFirebase } from "@/firebase"
 
 
 const mockAdmins = [
@@ -84,25 +84,21 @@ export default function AdminInquiriesPage() {
   const [inquiries, setInquiries] = useState<(Inquiry & { id: string })[]>([]);
   const [selectedInquiry, setSelectedInquiry] = useState<(Inquiry & { id: string }) | null>(null);
   const [isDataFetched, setIsDataFetched] = useState(false);
+  const [isCheckingUser, setIsCheckingUser] = useState(false);
+  const [inquirerExists, setInquirerExists] = useState<boolean | null>(null);
   const { toast } = useToast();
 
-  const fetchInquiries = async () => {
+  const fetchInquiries = useCallback(async () => {
     const data = await getInquiries();
     setInquiries(data.filter(i => !i.isArchived));
     setIsDataFetched(true);
-  };
+  }, []);
   
   useEffect(() => {
-    if (!loading) {
-        if (userData?.role !== 'admin') {
-            router.replace('/');
-            return;
-        }
-        if (!isDataFetched) {
-            fetchInquiries();
-        }
+    if (!loading && userData?.role === 'admin' && !isDataFetched) {
+        fetchInquiries();
     }
-  }, [loading, user, userData, router, isDataFetched]);
+  }, [loading, userData, isDataFetched, fetchInquiries]);
   
   const handleUpdate = async (id: string, updates: Partial<Inquiry>) => {
     await updateInquiry(id, updates);
@@ -117,12 +113,29 @@ export default function AdminInquiriesPage() {
     router.push('/admin/tickets');
   }
 
-  const handleViewInquiry = (inquiry: Inquiry & { id: string }) => {
+  const handleViewInquiry = useCallback(async (inquiry: Inquiry & { id: string }) => {
     setSelectedInquiry(inquiry);
+    setIsCheckingUser(true);
+    setInquirerExists(null);
+
+    const { firestore } = initializeFirebase();
+    const usersRef = collection(firestore, 'users');
+    const q = query(usersRef, where("email", "==", inquiry.email));
+    
+    try {
+        const querySnapshot = await getDocs(q);
+        setInquirerExists(!querySnapshot.empty);
+    } catch (error) {
+        console.error("Error checking for user:", error);
+        setInquirerExists(false); // Assume doesn't exist on error
+    } finally {
+        setIsCheckingUser(false);
+    }
+
     if (inquiry.status === "New") {
         handleUpdate(inquiry.id, { status: "Open" });
     }
-  };
+  }, [handleUpdate]);
   
   if (loading || !isDataFetched) {
     return <AdminLayout><div className="flex items-center justify-center h-full"><LoadingSpinner /></div></AdminLayout>
@@ -157,11 +170,24 @@ export default function AdminInquiriesPage() {
                    <DialogClose asChild>
                       <Button type="button" variant="secondary">Close</Button>
                   </DialogClose>
-                  <Button asChild>
-                      <Link href={`/admin/messages?userId=${selectedInquiry.email}&userName=${encodeURIComponent(selectedInquiry.name)}`}>
-                        <MessageSquare className="mr-2 h-4 w-4" /> Reply via Message
-                      </Link>
-                   </Button>
+                   {isCheckingUser ? (
+                       <Button disabled>
+                           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                           Checking user...
+                       </Button>
+                   ) : inquirerExists ? (
+                       <Button asChild>
+                          <Link href={`/admin/messages?userId=${selectedInquiry.email}&userName=${encodeURIComponent(selectedInquiry.name)}`}>
+                            <MessageSquare className="mr-2 h-4 w-4" /> Reply via Message
+                          </Link>
+                       </Button>
+                   ) : (
+                       <Button asChild>
+                           <a href={`mailto:${selectedInquiry.email}?subject=Re: ${selectedInquiry.subject}`}>
+                               <Mail className="mr-2 h-4 w-4" /> Reply via Email
+                           </a>
+                       </Button>
+                   )}
               </DialogFooter>
             </>
           )}
