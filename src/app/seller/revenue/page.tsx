@@ -21,7 +21,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { SellerHeader } from "@/components/seller/seller-header";
 import { productDetails, productToSellerMapping } from "@/lib/product-data";
 import { getFirestore, collection, query, where, getDocs, orderBy, onSnapshot } from 'firebase/firestore';
-import { getFirestoreDb } from '@/lib/firebase';
+import { getFirestoreDb } from "@/lib/firebase-db";
 import { Order, getStatusFromTimeline } from '@/lib/order-data';
 import { useToast } from "@/hooks/use-toast";
 
@@ -55,11 +55,9 @@ export default function SellerRevenueDashboard() {
     setIsLoading(true);
     try {
         const db = getFirestoreDb();
-        const ordersRef = collection(db, "orders");
-        // Corrected query: Fetch orders where the current user is the seller.
-        const q = query(ordersRef, where("sellerId", "==", user.uid));
+        const ordersRef = collection(db, "users", user.uid, "orders");
         
-        const querySnapshot = await getDocs(q);
+        const querySnapshot = await getDocs(ordersRef);
         const fetchedOrders: Order[] = querySnapshot.docs.map(doc => ({
             ...(doc.data() as Order),
             orderId: doc.id
@@ -410,7 +408,7 @@ export default function SellerRevenueDashboard() {
                     <YAxis tickFormatter={(v) => "₹" + v} />
                     <Tooltip formatter={(v) => inr(Number(v))} />
                     <Legend />
-                    <Bar dataKey="revenue" fill="hsl(var(--primary))" />
+                    <Bar dataKey="revenue" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
                   </BarChart>
                 )}
               </ResponsiveContainer>
