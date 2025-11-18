@@ -75,6 +75,7 @@ export function SecuritySettings() {
             <CardContent className="space-y-6">
                  <div className="p-4 border rounded-lg space-y-4">
                     <h4 className="font-semibold">LiveKit Streaming API</h4>
+                    <p className="text-xs text-muted-foreground -mt-3">Used for: Live Streaming Video & Audio</p>
                     <div className="space-y-2">
                         <Label htmlFor="livekit-host">LiveKit Host URL</Label>
                         <Input id="livekit-host" placeholder="wss://your-project.livekit.cloud" />
@@ -90,6 +91,7 @@ export function SecuritySettings() {
                 </div>
                  <div className="p-4 border rounded-lg space-y-4">
                     <h4 className="font-semibold">0DIDit Verification API</h4>
+                     <p className="text-xs text-muted-foreground -mt-3">Used for: Seller KYC Verification</p>
                      <div className="space-y-2">
                         <Label htmlFor="didit-api-key">0DIDit API Key</Label>
                         <Input id="didit-api-key" placeholder="didit_api_key..." type="password" />
@@ -97,6 +99,7 @@ export function SecuritySettings() {
                 </div>
                  <div className="p-4 border rounded-lg space-y-4">
                     <h4 className="font-semibold">Delivery Partner API</h4>
+                     <p className="text-xs text-muted-foreground -mt-3">Used for: Order Fulfillment & Tracking</p>
                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                          <div className="space-y-2">
                             <Label htmlFor="delivery-partner">Partner</Label>
