@@ -42,6 +42,13 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription
+} from "@/components/ui/dialog"
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -78,10 +85,10 @@ import { defaultCategories } from "@/lib/categories"
 
 
 const mockLiveStreams = [
-    { id: 1, seller: { name: 'FashionFinds', avatarUrl: 'https://placehold.co/40x40.png' }, viewers: 1200, streamId: '1', duration: '00:45:12', bitrateHealth: 'Good', warnings: [], category: "Women", subcategory: "Dresses" },
-    { id: 2, seller: { name: 'GadgetGuru', avatarUrl: 'https://placehold.co/40x40.png' }, viewers: 2500, streamId: '2', duration: '01:12:30', bitrateHealth: 'Medium', warnings: ['Stream disconnect warning'], category: "Electronics", subcategory: "Smartphones" },
-    { id: 3, seller: { name: 'BeautyBox', avatarUrl: 'https://placehold.co/40x40.png' }, viewers: 3100, streamId: '4', duration: '00:15:45', bitrateHealth: 'Poor', warnings: ['Chat flood warning', 'Stream disconnect warning'], category: "Beauty", subcategory: "Skincare" },
-    { id: 4, seller: { name: 'HomeDecor', avatarUrl: 'https://placehold.co/40x40.png' }, viewers: 800, streamId: '5', duration: '02:30:00', bitrateHealth: 'Good', warnings: [], category: "Home", subcategory: "Decor" },
+    { id: 1, seller: { name: 'FashionFinds', avatarUrl: 'https://placehold.co/40x40.png' }, viewers: 1200, streamId: '1', duration: '00:45:12', bitrateHealth: 'Good', warnings: [], category: "Women", subcategory: "Dresses", streamUrl: "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4" },
+    { id: 2, seller: { name: 'GadgetGuru', avatarUrl: 'https://placehold.co/40x40.png' }, viewers: 2500, streamId: '2', duration: '01:12:30', bitrateHealth: 'Medium', warnings: ['Stream disconnect warning'], category: "Electronics", subcategory: "Smartphones", streamUrl: "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" },
+    { id: 3, seller: { name: 'BeautyBox', avatarUrl: 'https://placehold.co/40x40.png' }, viewers: 3100, streamId: '4', duration: '00:15:45', bitrateHealth: 'Poor', warnings: ['Chat flood warning', 'Stream disconnect warning'], category: "Beauty", subcategory: "Skincare", streamUrl: "https://storage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4" },
+    { id: 4, seller: { name: 'HomeDecor', avatarUrl: 'https://placehold.co/40x40.png' }, viewers: 800, streamId: '5', duration: '02:30:00', bitrateHealth: 'Good', warnings: [], category: "Home", subcategory: "Decor", streamUrl: "https://storage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4" },
 ];
 
 const getHealthBadgeVariant = (health: string): BadgeProps['variant'] => {
@@ -93,6 +100,40 @@ const getHealthBadgeVariant = (health: string): BadgeProps['variant'] => {
     }
 };
 
+const MonitorDialog = ({ stream, onClose }: { stream: any, onClose: () => void }) => {
+    if (!stream) return null;
+
+    return (
+        <DialogContent className="max-w-3xl">
+            <DialogHeader>
+                <DialogTitle>Monitoring: {stream.seller.name}</DialogTitle>
+                <DialogDescription>
+                    Live feed from stream ID: {stream.streamId}
+                </DialogDescription>
+            </DialogHeader>
+            <div className="py-4">
+                <div className="aspect-video bg-black rounded-lg overflow-hidden">
+                     <video src={stream.streamUrl} className="w-full h-full object-cover" controls autoPlay loop muted />
+                </div>
+                <div className="grid grid-cols-3 gap-4 mt-4 text-sm">
+                    <div className="bg-muted p-3 rounded-lg">
+                        <p className="text-xs text-muted-foreground">Viewers</p>
+                        <p className="font-semibold text-lg">{stream.viewers}</p>
+                    </div>
+                     <div className="bg-muted p-3 rounded-lg">
+                        <p className="text-xs text-muted-foreground">Duration</p>
+                        <p className="font-semibold text-lg">{stream.duration}</p>
+                    </div>
+                     <div className="bg-muted p-3 rounded-lg">
+                        <p className="text-xs text-muted-foreground">Health</p>
+                        <p className="font-semibold text-lg">{stream.bitrateHealth}</p>
+                    </div>
+                </div>
+            </div>
+        </DialogContent>
+    );
+};
+
 export default function AdminLiveControlPage() {
   const { user, userData, loading } = useAuth();
   const router = useRouter();
@@ -102,6 +143,7 @@ export default function AdminLiveControlPage() {
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
   const [categoryFilter, setCategoryFilter] = useState<string>("All");
   const [subcategoryFilter, setSubcategoryFilter] = useState<string>("All");
+  const [monitoringStream, setMonitoringStream] = useState<any | null>(null);
 
   const filteredStreams = useMemo(() => {
     return liveStreams.filter(stream => {
@@ -117,14 +159,6 @@ export default function AdminLiveControlPage() {
   }, [categoryFilter]);
 
 
-  const handleMonitorStream = (streamId: string) => {
-    router.push(`/stream/${streamId}`);
-    toast({
-      title: "Monitoring Stream",
-      description: `Joining stream ${streamId} as a hidden admin.`,
-    });
-  };
-
   const handleStopStream = (streamId: number, sellerName: string) => {
     setLiveStreams(prev => prev.filter(stream => stream.id !== streamId));
     toast({
@@ -139,6 +173,7 @@ export default function AdminLiveControlPage() {
   }
 
   return (
+    <Dialog open={!!monitoringStream} onOpenChange={(open) => !open && setMonitoringStream(null)}>
     <AdminLayout>
         <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8">
             <Card>
@@ -211,16 +246,16 @@ export default function AdminLiveControlPage() {
                             {filteredStreams.length > 0 ? filteredStreams.map(stream => (
                                 <TableRow key={stream.id}>
                                     <TableCell>
-                                        <Link href={`/stream/${stream.streamId}`} className="flex items-center gap-3 group">
+                                        <div className="flex items-center gap-3 group">
                                             <Avatar>
                                                 <AvatarImage src={stream.seller.avatarUrl} />
                                                 <AvatarFallback>{stream.seller.name.charAt(0)}</AvatarFallback>
                                             </Avatar>
                                             <div className="flex flex-col">
-                                                <span className="font-medium group-hover:underline">{stream.seller.name}</span>
+                                                <span className="font-medium">{stream.seller.name}</span>
                                                 <span className="text-xs text-muted-foreground">{stream.category} {stream.subcategory && `> ${stream.subcategory}`}</span>
                                             </div>
-                                        </Link>
+                                        </div>
                                     </TableCell>
                                     <TableCell className="text-center">
                                         <Badge variant="secondary" className="gap-1.5">
@@ -256,7 +291,7 @@ export default function AdminLiveControlPage() {
                                                 <Button size="icon" variant="ghost"><MoreVertical className="h-4 w-4" /></Button>
                                             </DropdownMenuTrigger>
                                             <DropdownMenuContent align="end">
-                                                <DropdownMenuItem onSelect={() => handleMonitorStream(stream.streamId)}>
+                                                <DropdownMenuItem onSelect={() => setMonitoringStream(stream)}>
                                                     <Eye className="mr-2 h-4 w-4" /> Monitor Stream
                                                 </DropdownMenuItem>
                                                 <DropdownMenuSeparator />
@@ -298,6 +333,10 @@ export default function AdminLiveControlPage() {
                 </CardFooter>
             </Card>
         </main>
+        <MonitorDialog stream={monitoringStream} onClose={() => setMonitoringStream(null)} />
     </AdminLayout>
+    </Dialog>
   )
 }
+
+    
