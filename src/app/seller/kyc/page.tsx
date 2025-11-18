@@ -28,7 +28,7 @@ import { Separator } from "@/components/ui/separator";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useAuthActions } from "@/lib/auth";
 import { getFirestore, collection, query, where, getDocs } from "firebase/firestore";
-import { getFirestoreDb } from "@/lib/firebase";
+import { getFirestoreDb } from "@/lib/firebase-db";
 
 const Section = ({ title, children, icon, hasError }: { title: string, children: React.ReactNode, icon: React.ReactNode, hasError?: boolean }) => (
   <Card className={`shadow-lg border rounded-2xl ${hasError ? 'border-destructive' : ''}`}>
