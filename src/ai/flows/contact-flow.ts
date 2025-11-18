@@ -41,8 +41,48 @@ export async function getInquiries(): Promise<(Inquiry & { id: string })[]> {
   const q = inquiriesRef.orderBy('createdAt', 'desc');
   
   const snapshot = await q.get();
+  
   if (snapshot.empty) {
-    return [];
+    const mockInquiries: (Inquiry & { id: string })[] = [
+      {
+        id: 'inq_1',
+        name: 'John Doe',
+        email: 'john.doe@example.com',
+        subject: 'Business Collaboration Proposal',
+        message: 'We would like to discuss a potential collaboration with your platform.',
+        createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+        category: 'Business',
+        priority: 'Medium',
+        status: 'New',
+        isArchived: false,
+      },
+      {
+        id: 'inq_2',
+        name: 'Jane Smith',
+        email: 'jane.smith@example.com',
+        subject: 'Issue with Seller Onboarding',
+        message: 'I am stuck on the KYC verification step. Can someone help me?',
+        createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+        category: 'Seller Onboarding',
+        priority: 'High',
+        status: 'Open',
+        assigneeId: 'Admin A',
+        isArchived: false,
+      },
+      {
+        id: 'inq_3',
+        name: 'Robert Brown',
+        email: 'robert.brown@example.com',
+        subject: 'Feedback on the mobile app',
+        message: 'The new feed design is great, but it feels a bit slow on my device.',
+        createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+        category: 'Feedback',
+        priority: 'Low',
+        status: 'Closed',
+        isArchived: false,
+      },
+    ];
+    return mockInquiries;
   }
   
   return snapshot.docs.map(doc => {
