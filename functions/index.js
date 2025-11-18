@@ -213,7 +213,7 @@ function normalizeRecipients(to) {
  * Main function: sendEmail
  */
 exports.sendEmail = onRequest(
-  { secrets: ['SENDGRID_KEY'] },
+  { secrets: ['SENDGRID_KEY', 'MAILERSEND_KEY'] },
   async (req, res) => {
     try {
       if (req.method !== 'POST') {
@@ -221,7 +221,7 @@ exports.sendEmail = onRequest(
       }
 
       const body = req.body || {};
-      const to = body.to || body.recipients || null; // accept different keys
+      const to = body.to || body.recipients || null;
       const subject = body.subject || null;
       const text = body.text || '';
       const html = body.html || '';
@@ -230,13 +230,47 @@ exports.sendEmail = onRequest(
         return res.status(400).json({ error: 'Missing required fields: to, subject, and text or html' });
       }
 
+      // --- MailerSend Integration ---
+      // To use MailerSend, uncomment this block and ensure your MAILERSEND_KEY secret is set.
+      /*
+      if (process.env.MAILERSEND_KEY) {
+        console.log('Sending email with MailerSend...');
+        const mailerSendBody = {
+          from: { email: process.env.SENDER_EMAIL || 'you@yourverifieddomain.com' },
+          to: normalizeRecipients(to),
+          subject: subject,
+          text: text,
+          html: html,
+        };
+
+        const response = await fetch('https://api.mailersend.com/v1/email', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${process.env.MAILERSEND_KEY}`,
+          },
+          body: JSON.stringify(mailerSendBody),
+        });
+
+        if (!response.ok) {
+          const errorBody = await response.json();
+          throw new Error(`MailerSend API Error: ${JSON.stringify(errorBody)}`);
+        }
+
+        console.log('MailerSend result:', response.status);
+        return res.status(200).json({ success: true, provider: 'MailerSend' });
+      }
+      */
+
+      // --- SendGrid Fallback ---
       const FROM_EMAIL = process.env.SENDER_EMAIL || 'kamleshkp9916@gmail.com';
 
       if (!process.env.SENDGRID_KEY) {
-        console.error('SENDGRID_KEY is not set in environment; aborting send.');
-        return res.status(500).json({ error: 'SendGrid API key not configured' });
+        console.error('SENDGRID_KEY is not set; aborting send.');
+        return res.status(500).json({ error: 'Email provider not configured' });
       }
 
+      console.log('Sending email with SendGrid...');
       const recipients = normalizeRecipients(to);
       const content = [];
       if (text && String(text).trim().length > 0) content.push({ type: 'text/plain', value: String(text) });
@@ -247,34 +281,32 @@ exports.sendEmail = onRequest(
       }
 
       let msg = { from: FROM_EMAIL, subject: subject, content: content };
-
       if (recipients.length === 1) {
         msg.to = recipients[0].email;
       } else {
         msg.personalizations = recipients.map((r) => ({ to: [r] }));
       }
-
       if (body.replyTo) msg.replyTo = { email: body.replyTo };
 
-      const result = await sgMail.send(msg, false); 
+      const result = await sgMail.send(msg, false);
       console.log('SendGrid result:', Array.isArray(result) ? result.map(r => r.statusCode) : result && result.statusCode);
-      return res.status(200).json({ success: true, debug: Array.isArray(result) ? result.map(r => r.statusCode) : result && result.statusCode });
+      return res.status(200).json({ success: true, provider: 'SendGrid', debug: Array.isArray(result) ? result.map(r => r.statusCode) : result && result.statusCode });
     } catch (err) {
-      let sgBody = null;
+      let apiBody = null;
       try {
         if (err && err.response && (err.response.body || err.response.data)) {
-          sgBody = err.response.body || err.response.data;
+          apiBody = err.response.body || err.response.data;
         }
       } catch (e) {
-        console.error('Failed to extract sendgrid body:', e && e.toString ? e.toString() : e);
+        console.error('Failed to extract API error body:', e && e.toString ? e.toString() : e);
       }
 
       console.error('sendEmail error:', err && err.toString ? err.toString() : err);
-      if (sgBody) console.error('SendGrid response body (debug):', JSON.stringify(sgBody, null, 2));
+      if (apiBody) console.error('API response body (debug):', JSON.stringify(apiBody, null, 2));
 
       return res.status(500).json({
         error: 'Email sending failed',
-        sendgrid_error: sgBody || (err && err.toString ? err.toString() : 'no sendgrid body available'),
+        api_error: apiBody || (err && err.toString ? err.toString() : 'no api body available'),
       });
     }
   }
@@ -411,5 +443,3 @@ exports.notifyDeliveryPartner = onRequest(async (req, res) => {
 
     res.status(200).json({ success: true, message: `Delivery partner notified for order ${orderId}` });
 });
-
-    
