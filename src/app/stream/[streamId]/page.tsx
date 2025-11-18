@@ -102,7 +102,7 @@ import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { useAuth } from '@/hooks/use-auth';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { toggleFollow, getUserData, UserData, isFollowing } from '@/lib/follow-data';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { doc, Timestamp, onSnapshot } from 'firebase/firestore';
@@ -1103,15 +1103,17 @@ return (
                               <Button variant="ghost" size="icon" className="w-10 h-10" onClick={props.handlePlayPause}>
                                   {props.isPaused ? <Play className="w-6 h-6 fill-current" /> : <Pause className="w-6 h-6 fill-current" />}
                               </Button>
-                              {!props.isPastStream && <Button
-                                variant="destructive"
-                                className="gap-1.5 h-8 text-xs sm:text-sm"
-                                onClick={props.handleGoLive}
-                                disabled={props.isLive}
-                            >
-                                <div className={cn("h-2 w-2 rounded-full bg-white", !props.isLive && "animate-pulse")} />
-                                {props.isLive ? 'LIVE' : 'Go Live'}
-                            </Button>}
+                              {!props.isPastStream && (
+                                <Button
+                                    variant="destructive"
+                                    className="gap-1.5 h-8 text-xs sm:text-sm"
+                                    onClick={props.handleGoLive}
+                                    disabled={props.isLive}
+                                >
+                                    <div className={cn("h-2 w-2 rounded-full bg-white", !props.isLive && "animate-pulse")} />
+                                    {props.isLive ? 'LIVE' : 'Go Live'}
+                                </Button>
+                              )}
                             <Button variant="ghost" size="icon" onClick={() => props.setIsMuted((prev: any) => !prev)}>
                                 {props.isMuted ? <VolumeX /> : <Volume2 />}
                             </Button>
@@ -1997,5 +1999,3 @@ const StreamPage = () => {
 };
 
 export default StreamPage;
-
-    
