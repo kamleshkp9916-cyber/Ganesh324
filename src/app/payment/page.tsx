@@ -35,7 +35,7 @@ import { format, addDays } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { collection, doc, writeBatch, serverTimestamp } from 'firebase/firestore';
-import { getFirestoreDb } from '@/lib/firebase';
+import { getFirestoreDb } from '@/lib/firebase-db';
 
 
 const defaultShippingSettings: ShippingSettings = {
