@@ -280,6 +280,53 @@ exports.sendEmail = onRequest(
   }
 );
 
+
+exports.sendVerificationCode = onCall(async (request) => {
+    const { email, phone, type } = request.data;
+    const code = Math.floor(1000 + Math.random() * 9000).toString(); // 4-digit code
+
+    // In a real app, you would store this code securely (e.g., in Firestore with an expiration)
+    // For this demo, we'll just send it. The client will use a mock '1234' for verification.
+    
+    if (type === 'email') {
+        if (!email) {
+            throw new HttpsError('invalid-argument', 'The function must be called with an email address.');
+        }
+
+        const msg = {
+            to: email,
+            from: process.env.SENDER_EMAIL || 'kamleshkp9916@gmail.com',
+            subject: 'Your Nipher Verification Code',
+            text: `Your verification code is: ${code}`,
+            html: `<strong>Your verification code is: ${code}</strong>`,
+        };
+        try {
+            await sgMail.send(msg);
+            return { success: true, message: "Verification code sent to email." };
+        } catch (error) {
+            console.error("Error sending verification email:", error);
+            throw new HttpsError('internal', 'Could not send verification email.');
+        }
+    } else if (type === 'phone') {
+        // Placeholder for SMS logic (e.g., using Twilio)
+        console.log(`Simulating sending OTP ${code} to phone number: ${phone}`);
+        return { success: true, message: "Verification code sent to phone (simulation)." };
+    } else {
+        throw new HttpsError('invalid-argument', 'Invalid verification type specified.');
+    }
+});
+
+exports.verifyCode = onCall(async (request) => {
+    const { code } = request.data;
+    // In a real app, you would retrieve the stored code and compare it.
+    if (code === '1234') {
+        return { success: true, message: "Code verified successfully." };
+    } else {
+        throw new HttpsError('invalid-argument', 'The provided code is incorrect.');
+    }
+});
+
+
 // Function to add a bank account
 exports.addBankAccount = onRequest(async (req, res) => {
     if (req.method !== 'POST') {
@@ -364,8 +411,3 @@ exports.notifyDeliveryPartner = onRequest(async (req, res) => {
 
     res.status(200).json({ success: true, message: `Delivery partner notified for order ${orderId}` });
 });
-
-    
-
-    
-
