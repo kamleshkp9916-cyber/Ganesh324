@@ -166,12 +166,10 @@ const mockLiveStreams = [
     },
 ];
 
-const mockChatMessages = [
+const initialChatMessages = [
     { id: 1, user: 'Ganesh', text: 'This looks amazing! 🔥', avatar: 'https://placehold.co/40x40.png' },
     { id: 2, user: 'Alex', text: 'What is the material?', avatar: 'https://placehold.co/40x40.png' },
     { id: 3, user: 'Jane', text: 'I just bought one! So excited. 🤩', avatar: 'https://placehold.co/40x40.png' },
-    { id: 4, user: 'FashionFinds', isSeller: true, text: 'Hey @Alex, it\'s 100% genuine leather!', avatar: 'https://placehold.co/40x40.png' },
-    { id: 5, user: 'Mike', text: 'Any discounts running?', avatar: 'https://placehold.co/40x40.png' },
 ];
 
 const getHealthBadgeVariant = (health: string): BadgeProps['variant'] => {
@@ -188,6 +186,9 @@ const MonitorDialog = ({ stream, onClose }: { stream: any, onClose: () => void }
     const [isPaused, setIsPaused] = useState(true);
     const [isMuted, setIsMuted] = useState(true);
     const [chatMessage, setChatMessage] = useState("");
+    const [chatMessages, setChatMessages] = useState(initialChatMessages);
+    const { user, userData } = useAuth();
+    const chatContainerRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         const video = videoRef.current;
@@ -207,11 +208,30 @@ const MonitorDialog = ({ stream, onClose }: { stream: any, onClose: () => void }
         }
     }, [stream]);
 
+    useEffect(() => {
+        chatContainerRef.current?.scrollTo({ top: chatContainerRef.current.scrollHeight, behavior: 'smooth' });
+    }, [chatMessages]);
+
     const handlePlayPause = () => {
         const video = videoRef.current;
         if (video) {
             video.paused ? video.play() : video.pause();
         }
+    };
+
+    const handleSendMessage = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!chatMessage.trim() || !user) return;
+
+        const newMessage = {
+            id: Date.now(),
+            user: userData?.displayName || 'Admin',
+            text: chatMessage,
+            avatar: user.photoURL || `https://placehold.co/40x40.png?text=A`,
+            isSeller: true, // Treat admin message as a special "seller" message for styling
+        };
+        setChatMessages(prev => [...prev, newMessage]);
+        setChatMessage("");
     };
 
     if (!stream) return null;
@@ -305,13 +325,13 @@ const MonitorDialog = ({ stream, onClose }: { stream: any, onClose: () => void }
                      <DialogHeader className="p-4 border-b">
                         <DialogTitle>Live Chat</DialogTitle>
                     </DialogHeader>
-                    <ScrollArea className="flex-grow">
+                    <ScrollArea className="flex-grow" ref={chatContainerRef}>
                          <div className="p-4 space-y-3">
-                            {mockChatMessages.map(msg => (
+                            {chatMessages.map(msg => (
                                 <div key={msg.id} className="flex items-start gap-2 text-sm">
                                     <Avatar className="h-7 w-7 mt-0.5">
                                         <AvatarImage src={msg.avatar} />
-                                        <AvatarFallback>{msg.user.charAt(0)}</AvatarFallback>
+                                        <AvatarFallback>{(msg.user || 'U').charAt(0)}</AvatarFallback>
                                     </Avatar>
                                     <div className="flex-grow">
                                         <span className={cn("font-semibold", msg.isSeller && "text-primary")}>{msg.user}</span>
@@ -322,7 +342,7 @@ const MonitorDialog = ({ stream, onClose }: { stream: any, onClose: () => void }
                         </div>
                     </ScrollArea>
                     <div className="p-4 border-t">
-                         <form className="flex items-center gap-2">
+                         <form className="flex items-center gap-2" onSubmit={handleSendMessage}>
                             <Input 
                                 placeholder="Send a message..." 
                                 className="flex-grow" 
