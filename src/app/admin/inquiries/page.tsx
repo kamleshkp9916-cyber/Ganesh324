@@ -157,6 +157,11 @@ export default function AdminInquiriesPage() {
                    <DialogClose asChild>
                       <Button type="button" variant="secondary">Close</Button>
                   </DialogClose>
+                  <Button asChild>
+                      <Link href={`/admin/messages?userId=${selectedInquiry.email}&userName=${encodeURIComponent(selectedInquiry.name)}`}>
+                        <MessageSquare className="mr-2 h-4 w-4" /> Reply via Message
+                      </Link>
+                   </Button>
               </DialogFooter>
             </>
           )}
