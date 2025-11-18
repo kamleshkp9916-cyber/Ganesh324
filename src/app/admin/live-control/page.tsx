@@ -18,10 +18,14 @@ import {
   Package,
   DollarSign,
   Star,
+  Play,
+  Pause,
+  Volume2,
+  VolumeX,
 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import React, { useState, useEffect, useMemo } from "react"
+import React, { useState, useEffect, useMemo, useRef } from "react"
 import { useToast } from "@/hooks/use-toast"
 import { Badge, BadgeProps } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -171,6 +175,35 @@ const getHealthBadgeVariant = (health: string): BadgeProps['variant'] => {
 };
 
 const MonitorDialog = ({ stream, onClose }: { stream: any, onClose: () => void }) => {
+    const videoRef = useRef<HTMLVideoElement>(null);
+    const [isPaused, setIsPaused] = useState(true);
+    const [isMuted, setIsMuted] = useState(true);
+
+    useEffect(() => {
+        const video = videoRef.current;
+        if (video) {
+            video.muted = true; // Start muted
+            const onPlay = () => setIsPaused(false);
+            const onPause = () => setIsPaused(true);
+            video.addEventListener('play', onPlay);
+            video.addEventListener('pause', onPause);
+            
+            video.play().catch(console.error);
+
+            return () => {
+                video.removeEventListener('play', onPlay);
+                video.removeEventListener('pause', onPause);
+            };
+        }
+    }, [stream]);
+
+    const handlePlayPause = () => {
+        const video = videoRef.current;
+        if (video) {
+            video.paused ? video.play() : video.pause();
+        }
+    };
+
     if (!stream) return null;
 
     const totalRevenue = (stream.revenue?.productSales || 0) + (stream.revenue?.superChats || 0);
@@ -185,8 +218,22 @@ const MonitorDialog = ({ stream, onClose }: { stream: any, onClose: () => void }
             </DialogHeader>
             <ScrollArea className="max-h-[80vh]">
                 <div className="p-1 space-y-4">
-                    <div className="aspect-video bg-black rounded-lg overflow-hidden">
-                        <video src={stream.streamUrl} className="w-full h-full object-cover" controls autoPlay loop muted />
+                     <div className="aspect-video bg-black rounded-lg overflow-hidden relative group">
+                        <video ref={videoRef} src={stream.streamUrl} className="w-full h-full object-cover" loop />
+                        <div className="absolute top-2 left-2 z-10 flex items-center gap-2">
+                            <Badge variant="destructive" className="live-pulse-beam">LIVE</Badge>
+                            <Badge variant="secondary" className="bg-black/50 text-white"><Users className="w-3 h-3 mr-1"/>{stream.viewers.toLocaleString()}</Badge>
+                        </div>
+                         <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4">
+                            <Button variant="ghost" size="icon" className="text-white h-16 w-16" onClick={handlePlayPause}>
+                                {isPaused ? <Play className="h-8 w-8 fill-white" /> : <Pause className="h-8 w-8 fill-white" />}
+                            </Button>
+                        </div>
+                        <div className="absolute bottom-2 right-2 z-10">
+                            <Button variant="ghost" size="icon" className="text-white h-8 w-8 bg-black/40 hover:bg-black/60" onClick={() => setIsMuted(prev => !prev)}>
+                                {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
+                            </Button>
+                        </div>
                     </div>
                     <div className="grid grid-cols-3 gap-4 text-sm">
                         <div className="bg-muted p-3 rounded-lg">
@@ -454,3 +501,5 @@ export default function AdminLiveControlPage() {
     </Dialog>
   )
 }
+
+    
