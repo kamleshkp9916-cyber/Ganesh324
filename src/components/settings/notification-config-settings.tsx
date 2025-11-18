@@ -14,6 +14,8 @@ import { Checkbox } from "../ui/checkbox";
 export function NotificationConfigSettings() {
   const [sendgridKey, setSendgridKey] = useState("");
   const [senderEmail, setSenderEmail] = useState("");
+  const [mailersendKey, setMailersendKey] = useState("");
+  const [mailersendSender, setMailersendSender] = useState("");
   const [twilioSid, setTwilioSid] = useState("");
   const [twilioAuthToken, setTwilioAuthToken] = useState("");
   const [twilioPhoneNumber, setTwilioPhoneNumber] = useState("");
@@ -24,7 +26,7 @@ export function NotificationConfigSettings() {
     setIsSaving(true);
     // In a real app, these values would be saved securely to your backend/environment variables.
     setTimeout(() => {
-        console.log("Saving Notification Settings:", { sendgridKey, senderEmail, twilioSid, twilioAuthToken, twilioPhoneNumber });
+        console.log("Saving Notification Settings:", { sendgridKey, senderEmail, mailersendKey, mailersendSender, twilioSid, twilioAuthToken, twilioPhoneNumber });
         toast({ title: "Settings Saved", description: "Your notification provider settings have been updated." });
         setIsSaving(false);
     }, 1000);
@@ -50,7 +52,7 @@ export function NotificationConfigSettings() {
       <CardHeader>
         <CardTitle>Notification Configuration</CardTitle>
         <CardDescription>
-          Manage API keys and settings for your SMS and email providers.
+          Manage API keys and settings for your SMS and email providers. Your keys are securely stored on the server and are not exposed here.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -59,22 +61,25 @@ export function NotificationConfigSettings() {
            <div className="space-y-4">
               <div className="space-y-1">
                 <Label htmlFor="sendgrid-key">SendGrid API Key</Label>
-                <Input id="sendgrid-key" type="password" placeholder="SG.********************************" value={sendgridKey} onChange={(e) => setSendgridKey(e.target.value)} />
+                <Input id="sendgrid-key" type="password" placeholder="Enter new key or leave blank to keep existing" value={sendgridKey} onChange={(e) => setSendgridKey(e.target.value)} />
               </div>
               <div className="space-y-1">
                 <Label htmlFor="sender-email">Default Sender Email</Label>
                 <Input id="sender-email" type="email" placeholder="you@yourdomain.com" value={senderEmail} onChange={(e) => setSenderEmail(e.target.value)} />
               </div>
-              <div className="space-y-2 pt-2">
-                <Label className="font-medium">Use For</Label>
-                <div className="grid grid-cols-2 gap-2">
-                  {emailUseCases.map(item => (
-                    <div key={item.id} className="flex items-center gap-2">
-                      <Checkbox id={`email-${item.id}`} defaultChecked />
-                      <Label htmlFor={`email-${item.id}`} className="text-sm font-normal">{item.label}</Label>
-                    </div>
-                  ))}
-                </div>
+          </div>
+        </div>
+
+        <div className="p-4 border rounded-lg">
+          <h4 className="font-semibold flex items-center gap-2 mb-4"><Mail className="h-5 w-5 text-primary" /> Email Provider (MailerSend)</h4>
+           <div className="space-y-4">
+              <div className="space-y-1">
+                <Label htmlFor="mailersend-key">MailerSend API Key</Label>
+                <Input id="mailersend-key" type="password" placeholder="Enter new key or leave blank to keep existing" value={mailersendKey} onChange={(e) => setMailersendKey(e.target.value)} />
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor="mailersend-sender">Default Sender Email</Label>
+                <Input id="mailersend-sender" type="email" placeholder="you@yourdomain.com" value={mailersendSender} onChange={(e) => setMailersendSender(e.target.value)} />
               </div>
           </div>
         </div>
@@ -90,22 +95,11 @@ export function NotificationConfigSettings() {
               </div>
               <div className="space-y-1">
                 <Label htmlFor="twilio-token">Twilio Auth Token</Label>
-                <Input id="twilio-token" type="password" value={twilioAuthToken} onChange={(e) => setTwilioAuthToken(e.target.value)} />
+                <Input id="twilio-token" type="password" placeholder="Enter new token or leave blank" value={twilioAuthToken} onChange={(e) => setTwilioAuthToken(e.target.value)} />
               </div>
               <div className="space-y-1">
                 <Label htmlFor="twilio-phone">Twilio Phone Number</Label>
                 <Input id="twilio-phone" placeholder="+15017122661" value={twilioPhoneNumber} onChange={(e) => setTwilioPhoneNumber(e.target.value)} />
-              </div>
-              <div className="space-y-2 pt-2">
-                <Label className="font-medium">Use For</Label>
-                <div className="grid grid-cols-2 gap-2">
-                  {smsUseCases.map(item => (
-                    <div key={item.id} className="flex items-center gap-2">
-                      <Checkbox id={`sms-${item.id}`} defaultChecked />
-                      <Label htmlFor={`sms-${item.id}`} className="text-sm font-normal">{item.label}</Label>
-                    </div>
-                  ))}
-                </div>
               </div>
            </div>
         </div>
