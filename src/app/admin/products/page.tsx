@@ -86,6 +86,8 @@ interface Product {
     sold?: number;
     keywords?: string[];
     createdAt?: string;
+    category?: string;
+    subcategory?: string;
 }
 
 const initialProducts: Product[] = Object.values(productDetails).map(p => ({
@@ -240,6 +242,8 @@ const ProductDetailView = ({ product, onBack, onUpdateStatus }: { product: Produ
                                 <Link href={`/admin/users/${product.sellerId}`} className="text-primary hover:underline">{product.seller || 'N/A'}</Link>
                             </div>
                             <div><span className="font-semibold text-muted-foreground">Status:</span><br/> <Badge variant={product.status === 'active' ? 'success' : 'outline'}>{product.status}</Badge></div>
+                             <div><span className="font-semibold text-muted-foreground">Category:</span><br/> {product.category || 'N/A'}</div>
+                            <div><span className="font-semibold text-muted-foreground">Sub-category:</span><br/> {product.subcategory || 'N/A'}</div>
                         </div>
                          <Card className="bg-muted/40">
                              <CardHeader className="pb-2">
