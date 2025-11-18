@@ -17,6 +17,9 @@ import {
   AlertTriangle,
   Send,
   User,
+  Trash2,
+  Edit,
+  BarChart,
 } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
@@ -37,6 +40,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
   DropdownMenuCheckboxItem,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
 } from "@/components/ui/dropdown-menu"
 import {
   Table,
@@ -80,6 +85,7 @@ interface Product {
     views?: number;
     sold?: number;
     keywords?: string[];
+    createdAt?: string;
 }
 
 const initialProducts: Product[] = Object.values(productDetails).map(p => ({
@@ -94,12 +100,6 @@ const initialProducts: Product[] = Object.values(productDetails).map(p => ({
 
 const ProductTable = ({ products, onViewDetails }: { products: Product[], onViewDetails: (product: Product) => void }) => (
     <Card>
-      <CardHeader>
-        <CardTitle>Products</CardTitle>
-        <CardDescription>
-            A global view of all active products on the platform. Click a row to see details.
-        </CardDescription>
-      </CardHeader>
       <CardContent className="p-0">
         <Table>
           <TableHeader>
@@ -166,7 +166,7 @@ const ProductTable = ({ products, onViewDetails }: { products: Product[], onView
             )) : (
               <TableRow>
                 <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
-                  No active products found.
+                  No products found.
                 </TableCell>
               </TableRow>
             )}
@@ -175,7 +175,7 @@ const ProductTable = ({ products, onViewDetails }: { products: Product[], onView
       </CardContent>
       <CardFooter>
         <div className="text-xs text-muted-foreground">
-          Showing <strong>{products.length}</strong> of <strong>{products.length}</strong> active products
+          Showing <strong>{products.length}</strong> of <strong>{products.length}</strong> products
         </div>
       </CardFooter>
     </Card>
@@ -323,9 +323,16 @@ export default function AdminProductsPage() {
     const [searchTerm, setSearchTerm] = useState("");
     const debouncedSearchTerm = useDebounce(searchTerm, 300);
     const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+    const [statusFilter, setStatusFilter] = useState('all');
+    const [sortOption, setSortOption] = useState('newest');
 
-    const activeProducts = useMemo(() => {
-        let products = allProducts.filter(p => p.status === 'active');
+    const filteredProducts = useMemo(() => {
+        let products = allProducts;
+        // Filter by status
+        if (statusFilter !== 'all') {
+            products = products.filter(p => p.status === statusFilter);
+        }
+        // Filter by search term
         if (debouncedSearchTerm) {
             products = products.filter(p => 
                 p.name.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
@@ -333,8 +340,20 @@ export default function AdminProductsPage() {
                 (p.seller && p.seller.toLowerCase().includes(debouncedSearchTerm.toLowerCase()))
             );
         }
+        // Sort
+        switch (sortOption) {
+            case 'newest':
+                products.sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
+                break;
+            case 'most-bought':
+                products.sort((a, b) => (b.sold || 0) - (a.sold || 0));
+                break;
+            case 'out-of-stock':
+                products = products.filter(p => p.stock === 0);
+                break;
+        }
         return products;
-    }, [allProducts, debouncedSearchTerm]);
+    }, [allProducts, debouncedSearchTerm, statusFilter, sortOption]);
     
     const handleUpdateStatus = (productId: string, status: 'active' | 'archived') => {
         setAllProducts(prev => prev.map(p => p.id === productId ? {...p, status} : p));
@@ -363,10 +382,58 @@ export default function AdminProductsPage() {
   return (
     <AdminLayout>
         <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8">
-            <ProductTable products={activeProducts} onViewDetails={setSelectedProduct} />
+             <Card>
+                <CardHeader>
+                    <div className="flex items-start justify-between gap-4">
+                        <div>
+                            <CardTitle>Products</CardTitle>
+                            <CardDescription>
+                                A global view of all products on the platform.
+                            </CardDescription>
+                        </div>
+                        <div className="flex items-center gap-2">
+                             <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button variant="outline" size="sm" className="h-8 gap-1">
+                                        <ListFilter className="h-3.5 w-3.5" />
+                                        <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">Sort & Filter</span>
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                    <DropdownMenuLabel>Sort by</DropdownMenuLabel>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuRadioGroup value={sortOption} onValueChange={setSortOption}>
+                                        <DropdownMenuRadioItem value="newest">Newest</DropdownMenuRadioItem>
+                                        <DropdownMenuRadioItem value="most-bought">Most Bought</DropdownMenuRadioItem>
+                                        <DropdownMenuRadioItem value="out-of-stock">Out of Stock</DropdownMenuRadioItem>
+                                    </DropdownMenuRadioGroup>
+                                    <DropdownMenuSeparator />
+                                     <DropdownMenuLabel>Filter by Status</DropdownMenuLabel>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuRadioGroup value={statusFilter} onValueChange={setStatusFilter}>
+                                        <DropdownMenuRadioItem value="all">All</DropdownMenuRadioItem>
+                                        <DropdownMenuRadioItem value="active">Active</DropdownMenuRadioItem>
+                                        <DropdownMenuRadioItem value="draft">Draft</DropdownMenuRadioItem>
+                                        <DropdownMenuRadioItem value="archived">Archived</DropdownMenuRadioItem>
+                                    </DropdownMenuRadioGroup>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                        </div>
+                    </div>
+                     <div className="relative mt-4">
+                        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                        <Input
+                        type="search"
+                        placeholder="Search by name, ID, or seller..."
+                        className="pl-8 w-full"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        />
+                    </div>
+                </CardHeader>
+                 <ProductTable products={filteredProducts} onViewDetails={setSelectedProduct} />
+            </Card>
         </main>
     </AdminLayout>
   )
 }
-
-    
