@@ -44,7 +44,7 @@ import {
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { collection, query, orderBy, onSnapshot, Timestamp, deleteDoc, doc, addDoc, serverTimestamp, updateDoc } from "firebase/firestore";
-import { getFirestoreDb, getFirebaseStorage } from '@/lib/firebase';
+import { getFirestoreDb, getFirebaseStorage } from '@/lib/firebase-db';
 import { formatDistanceToNow } from 'date-fns';
 import { useToast } from "@/hooks/use-toast";
 import { Input } from '@/components/ui/input';
