@@ -232,7 +232,7 @@ exports.sendEmail = onRequest(
 
       // --- MailerSend Integration ---
       // To use MailerSend, uncomment this block and ensure your MAILERSEND_KEY secret is set.
-      /*
+      
       if (process.env.MAILERSEND_KEY) {
         console.log('Sending email with MailerSend...');
         const mailerSendBody = {
@@ -260,7 +260,7 @@ exports.sendEmail = onRequest(
         console.log('MailerSend result:', response.status);
         return res.status(200).json({ success: true, provider: 'MailerSend' });
       }
-      */
+      
 
       // --- SendGrid Fallback ---
       const FROM_EMAIL = process.env.SENDER_EMAIL || 'kamleshkp9916@gmail.com';
