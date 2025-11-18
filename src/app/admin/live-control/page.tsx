@@ -209,7 +209,7 @@ const MonitorDialog = ({ stream, onClose }: { stream: any, onClose: () => void }
     const totalRevenue = (stream.revenue?.productSales || 0) + (stream.revenue?.superChats || 0);
 
     return (
-        <DialogContent className="max-w-3xl">
+        <DialogContent className="max-w-4xl">
             <DialogHeader>
                 <DialogTitle>Monitoring: {stream.seller.name}</DialogTitle>
                 <DialogDescription>
@@ -501,5 +501,3 @@ export default function AdminLiveControlPage() {
     </Dialog>
   )
 }
-
-    
