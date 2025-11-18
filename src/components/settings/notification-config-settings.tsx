@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Mail, MessageSquare } from "lucide-react";
 import { Separator } from "../ui/separator";
+import { Checkbox } from "../ui/checkbox";
 
 export function NotificationConfigSettings() {
   const [sendgridKey, setSendgridKey] = useState("");
@@ -28,6 +29,21 @@ export function NotificationConfigSettings() {
         setIsSaving(false);
     }, 1000);
   };
+  
+  const emailUseCases = [
+      { id: "pw-reset", label: "Password Resets" },
+      { id: "marketing", label: "Marketing Campaigns" },
+      { id: "abandoned-cart", label: "Abandoned Cart Reminders" },
+      { id: "login-alerts", label: "New Login Alerts" },
+      { id: "email-otp", label: "Email-based OTPs" },
+      { id: "logout-notification", label: "Logout Notifications" },
+  ];
+  
+   const smsUseCases = [
+      { id: "sms-otp", label: "Phone Number Verification (OTP)" },
+      { id: "order-updates", label: "Order Status Updates" },
+      { id: "delivery-notifications", label: "Delivery Notifications" },
+  ];
 
   return (
     <Card>
@@ -49,6 +65,17 @@ export function NotificationConfigSettings() {
                 <Label htmlFor="sender-email">Default Sender Email</Label>
                 <Input id="sender-email" type="email" placeholder="you@yourdomain.com" value={senderEmail} onChange={(e) => setSenderEmail(e.target.value)} />
               </div>
+              <div className="space-y-2 pt-2">
+                <Label className="font-medium">Use For</Label>
+                <div className="grid grid-cols-2 gap-2">
+                  {emailUseCases.map(item => (
+                    <div key={item.id} className="flex items-center gap-2">
+                      <Checkbox id={`email-${item.id}`} defaultChecked />
+                      <Label htmlFor={`email-${item.id}`} className="text-sm font-normal">{item.label}</Label>
+                    </div>
+                  ))}
+                </div>
+              </div>
           </div>
         </div>
 
@@ -68,6 +95,17 @@ export function NotificationConfigSettings() {
               <div className="space-y-1">
                 <Label htmlFor="twilio-phone">Twilio Phone Number</Label>
                 <Input id="twilio-phone" placeholder="+15017122661" value={twilioPhoneNumber} onChange={(e) => setTwilioPhoneNumber(e.target.value)} />
+              </div>
+              <div className="space-y-2 pt-2">
+                <Label className="font-medium">Use For</Label>
+                <div className="grid grid-cols-2 gap-2">
+                  {smsUseCases.map(item => (
+                    <div key={item.id} className="flex items-center gap-2">
+                      <Checkbox id={`sms-${item.id}`} defaultChecked />
+                      <Label htmlFor={`sms-${item.id}`} className="text-sm font-normal">{item.label}</Label>
+                    </div>
+                  ))}
+                </div>
               </div>
            </div>
         </div>
