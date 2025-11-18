@@ -7,6 +7,7 @@ export const CATEGORY_HUB_BANNER_KEY = 'streamcart_category_hub_banner';
 export const PAYOUT_REQUESTS_KEY = 'streamcart_payout_requests';
 export const PLATFORM_FEES_KEY = 'streamcart_platform_fees';
 export const ADDITIONAL_CHARGES_KEY = 'streamcart_additional_charges';
+export const FOOTER_CONTENT_KEY = 'nipher_footer_content';
 
 
 // Type definitions
@@ -61,4 +62,15 @@ export interface AdditionalCharge {
   type: 'fixed' | 'percentage';
   value: number;
   displayLocation: ('Cart Summary' | 'Payment Page' | 'Order Invoice')[];
+}
+
+export interface FooterContent {
+  description: string;
+  address: string;
+  phone: string;
+  email: string;
+  facebook: string;
+  twitter: string;
+  linkedin: string;
+  instagram: string;
 }
