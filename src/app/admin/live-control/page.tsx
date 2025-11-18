@@ -15,6 +15,9 @@ import {
   Clock,
   Signal,
   ListFilter,
+  Package,
+  DollarSign,
+  Star,
 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
@@ -46,7 +49,9 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogDescription
+  DialogDescription,
+  DialogFooter,
+  DialogClose,
 } from "@/components/ui/dialog"
 import {
   DropdownMenu,
@@ -82,13 +87,78 @@ import { useDebounce } from "@/hooks/use-debounce";
 import { AdminLayout } from "@/components/admin/admin-layout"
 import { cn } from "@/lib/utils"
 import { defaultCategories } from "@/lib/categories"
+import { Separator } from "@/components/ui/separator"
+import { ScrollArea } from "@/components/ui/scroll-area"
 
 
 const mockLiveStreams = [
-    { id: 1, seller: { name: 'FashionFinds', avatarUrl: 'https://placehold.co/40x40.png' }, viewers: 1200, streamId: '1', duration: '00:45:12', bitrateHealth: 'Good', warnings: [], category: "Women", subcategory: "Dresses", streamUrl: "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4" },
-    { id: 2, seller: { name: 'GadgetGuru', avatarUrl: 'https://placehold.co/40x40.png' }, viewers: 2500, streamId: '2', duration: '01:12:30', bitrateHealth: 'Medium', warnings: ['Stream disconnect warning'], category: "Electronics", subcategory: "Smartphones", streamUrl: "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" },
-    { id: 3, seller: { name: 'BeautyBox', avatarUrl: 'https://placehold.co/40x40.png' }, viewers: 3100, streamId: '4', duration: '00:15:45', bitrateHealth: 'Poor', warnings: ['Chat flood warning', 'Stream disconnect warning'], category: "Beauty", subcategory: "Skincare", streamUrl: "https://storage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4" },
-    { id: 4, seller: { name: 'HomeDecor', avatarUrl: 'https://placehold.co/40x40.png' }, viewers: 800, streamId: '5', duration: '02:30:00', bitrateHealth: 'Good', warnings: [], category: "Home", subcategory: "Decor", streamUrl: "https://storage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4" },
+    { 
+        id: 1, 
+        seller: { name: 'FashionFinds', avatarUrl: 'https://placehold.co/40x40.png' }, 
+        viewers: 1200, 
+        streamId: '1', 
+        duration: '00:45:12', 
+        bitrateHealth: 'Good', 
+        warnings: [], 
+        category: "Women", 
+        subcategory: "Dresses", 
+        streamUrl: "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4",
+        products: [
+            { id: 'prod_11', name: 'Denim Jacket', price: 3200.00, image: 'https://picsum.photos/seed/denim-jacket/200/200' },
+            { id: 'prod_12', name: 'Floral Maxi Dress', price: 2800.00, image: 'https://picsum.photos/seed/floral-dress/200/200' },
+        ],
+        revenue: { productSales: 18500, superChats: 1250 }
+    },
+    { 
+        id: 2, 
+        seller: { name: 'GadgetGuru', avatarUrl: 'https://placehold.co/40x40.png' }, 
+        viewers: 2500, 
+        streamId: '2', 
+        duration: '01:12:30', 
+        bitrateHealth: 'Medium', 
+        warnings: ['Stream disconnect warning'], 
+        category: "Electronics", 
+        subcategory: "Smartphones", 
+        streamUrl: "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
+        products: [
+            { id: 'prod_2', name: 'Wireless Headphones', price: 4999.00, image: 'https://picsum.photos/seed/headphones/200/200' },
+            { id: 'prod_4', name: 'Smart Watch', price: 8750.00, image: 'https://picsum.photos/seed/smart-watch/200/200' },
+        ],
+        revenue: { productSales: 45200, superChats: 3400 }
+    },
+    { 
+        id: 3, 
+        seller: { name: 'BeautyBox', avatarUrl: 'https://placehold.co/40x40.png' }, 
+        viewers: 3100, 
+        streamId: '4', 
+        duration: '00:15:45', 
+        bitrateHealth: 'Poor', 
+        warnings: ['Chat flood warning', 'Stream disconnect warning'], 
+        category: "Beauty", 
+        subcategory: "Skincare", 
+        streamUrl: "https://storage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
+        products: [
+            { id: 'prod_15', name: 'Vitamin C Serum', price: 2500.00, image: 'https://placehold.co/200x200.png?text=Serum' },
+            { id: 'prod_18', name: 'Hydrating Face Mask', price: 800.00, image: 'https://placehold.co/200x200.png?text=Mask' },
+        ],
+        revenue: { productSales: 9800, superChats: 800 }
+    },
+    { 
+        id: 4, 
+        seller: { name: 'HomeDecor', avatarUrl: 'https://placehold.co/40x40.png' }, 
+        viewers: 800, 
+        streamId: '5', 
+        duration: '02:30:00', 
+        bitrateHealth: 'Good', 
+        warnings: [], 
+        category: "Home", 
+        subcategory: "Decor", 
+        streamUrl: "https://storage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4",
+        products: [
+            { id: 'prod_3', name: 'Handcrafted Vase', price: 2100.00, image: 'https://placehold.co/200x200.png?text=Vase' },
+        ],
+        revenue: { productSales: 4200, superChats: 350 }
+    },
 ];
 
 const getHealthBadgeVariant = (health: string): BadgeProps['variant'] => {
@@ -103,6 +173,8 @@ const getHealthBadgeVariant = (health: string): BadgeProps['variant'] => {
 const MonitorDialog = ({ stream, onClose }: { stream: any, onClose: () => void }) => {
     if (!stream) return null;
 
+    const totalRevenue = (stream.revenue?.productSales || 0) + (stream.revenue?.superChats || 0);
+
     return (
         <DialogContent className="max-w-3xl">
             <DialogHeader>
@@ -111,25 +183,69 @@ const MonitorDialog = ({ stream, onClose }: { stream: any, onClose: () => void }
                     Live feed from stream ID: {stream.streamId}
                 </DialogDescription>
             </DialogHeader>
-            <div className="py-4">
-                <div className="aspect-video bg-black rounded-lg overflow-hidden">
-                     <video src={stream.streamUrl} className="w-full h-full object-cover" controls autoPlay loop muted />
+            <ScrollArea className="max-h-[80vh]">
+                <div className="p-1 space-y-4">
+                    <div className="aspect-video bg-black rounded-lg overflow-hidden">
+                        <video src={stream.streamUrl} className="w-full h-full object-cover" controls autoPlay loop muted />
+                    </div>
+                    <div className="grid grid-cols-3 gap-4 text-sm">
+                        <div className="bg-muted p-3 rounded-lg">
+                            <p className="text-xs text-muted-foreground">Viewers</p>
+                            <p className="font-semibold text-lg">{stream.viewers}</p>
+                        </div>
+                        <div className="bg-muted p-3 rounded-lg">
+                            <p className="text-xs text-muted-foreground">Duration</p>
+                            <p className="font-semibold text-lg">{stream.duration}</p>
+                        </div>
+                        <div className="bg-muted p-3 rounded-lg">
+                            <p className="text-xs text-muted-foreground">Health</p>
+                            <p className="font-semibold text-lg">{stream.bitrateHealth}</p>
+                        </div>
+                    </div>
+                    <Separator />
+                    <div>
+                        <h4 className="font-semibold mb-2">Live Revenue</h4>
+                         <div className="grid grid-cols-3 gap-4 text-sm">
+                            <div className="bg-green-100 dark:bg-green-900/30 p-3 rounded-lg">
+                                <p className="text-xs text-green-800 dark:text-green-300">Product Sales</p>
+                                <p className="font-semibold text-lg">₹{stream.revenue.productSales.toLocaleString()}</p>
+                            </div>
+                            <div className="bg-yellow-100 dark:bg-yellow-900/30 p-3 rounded-lg">
+                                <p className="text-xs text-yellow-800 dark:text-yellow-300">Super Chats</p>
+                                <p className="font-semibold text-lg">₹{stream.revenue.superChats.toLocaleString()}</p>
+                            </div>
+                             <div className="bg-blue-100 dark:bg-blue-900/30 p-3 rounded-lg">
+                                <p className="text-xs text-blue-800 dark:text-blue-300">Total Revenue</p>
+                                <p className="font-semibold text-lg">₹{totalRevenue.toLocaleString()}</p>
+                            </div>
+                        </div>
+                    </div>
+                     <div>
+                        <h4 className="font-semibold mb-2">Featured Products ({stream.products.length})</h4>
+                        <div className="space-y-2">
+                            {stream.products.map((product: any) => (
+                                <Link key={product.id} href={`/product/${product.id}`} target="_blank">
+                                    <Card className="hover:bg-muted/50 transition-colors">
+                                        <CardContent className="p-2 flex items-center gap-3">
+                                            <Image src={product.image} alt={product.name} width={56} height={56} className="w-14 h-14 rounded-md" />
+                                            <div className="flex-grow">
+                                                <p className="font-medium text-sm">{product.name}</p>
+                                                <p className="text-xs text-muted-foreground">₹{product.price.toLocaleString()}</p>
+                                            </div>
+                                             <Button variant="outline" size="sm">View Product</Button>
+                                        </CardContent>
+                                    </Card>
+                                </Link>
+                            ))}
+                        </div>
+                    </div>
                 </div>
-                <div className="grid grid-cols-3 gap-4 mt-4 text-sm">
-                    <div className="bg-muted p-3 rounded-lg">
-                        <p className="text-xs text-muted-foreground">Viewers</p>
-                        <p className="font-semibold text-lg">{stream.viewers}</p>
-                    </div>
-                     <div className="bg-muted p-3 rounded-lg">
-                        <p className="text-xs text-muted-foreground">Duration</p>
-                        <p className="font-semibold text-lg">{stream.duration}</p>
-                    </div>
-                     <div className="bg-muted p-3 rounded-lg">
-                        <p className="text-xs text-muted-foreground">Health</p>
-                        <p className="font-semibold text-lg">{stream.bitrateHealth}</p>
-                    </div>
-                </div>
-            </div>
+            </ScrollArea>
+             <DialogFooter className="p-4 border-t">
+                <DialogClose asChild>
+                    <Button type="button" variant="secondary">Close</Button>
+                </DialogClose>
+            </DialogFooter>
         </DialogContent>
     );
 };
@@ -333,10 +449,8 @@ export default function AdminLiveControlPage() {
                 </CardFooter>
             </Card>
         </main>
-        <MonitorDialog stream={monitoringStream} onClose={() => setMonitoringStream(null)} />
+        {monitoringStream && <MonitorDialog stream={monitoringStream} onClose={() => setMonitoringStream(null)} />}
     </AdminLayout>
     </Dialog>
   )
 }
-
-    
