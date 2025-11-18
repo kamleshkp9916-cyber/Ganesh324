@@ -11,8 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
 import { Checkbox } from "../ui/checkbox";
-import { useLocalStorage } from "@/hooks/use-local-storage";
-import { SECURITY_SETTINGS_KEY, type SecuritySettings } from "./keys";
+import { type SecuritySettings } from "./keys";
 
 const defaultSecuritySettings: SecuritySettings = {
   enforceAdmin2FA: false,
@@ -35,14 +34,23 @@ const defaultSecuritySettings: SecuritySettings = {
 };
 
 export function SecuritySettings() {
-  const [settings, setSettings] = useLocalStorage<SecuritySettings>(SECURITY_SETTINGS_KEY, defaultSecuritySettings);
+  // Form state is now managed locally. Data would be fetched from and saved to a secure backend.
   const [formState, setFormState] = useState<SecuritySettings>(defaultSecuritySettings);
   const [isSaving, setIsSaving] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
 
   useEffect(() => {
-    setFormState(settings);
-  }, [settings]);
+    // In a real app, you would fetch the non-sensitive settings from your backend here.
+    // e.g., fetch('/api/get-security-settings').then(res => res.json()).then(data => setFormState(data));
+    // For now, we'll simulate this with a timeout. The API keys would NOT be returned here.
+    setTimeout(() => {
+        // You can load previously saved non-sensitive settings if they exist,
+        // but API keys would remain as empty fields for security.
+        setFormState(defaultSecuritySettings);
+        setIsLoading(false);
+    }, 500);
+  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -75,13 +83,44 @@ export function SecuritySettings() {
       setFormState(prev => ({ ...prev, [name]: newUseCases }));
   }
 
-  const handleSave = () => {
+  const handleSave = async () => {
     setIsSaving(true);
-    setTimeout(() => {
-        setSettings(formState);
-        toast({ title: "Security Settings Saved" });
-        setIsSaving(false);
-    }, 1000);
+    
+    //
+    // ** THIS IS WHERE YOU WOULD CALL YOUR SECURE BACKEND FUNCTION **
+    //
+    // Example:
+    //
+    // try {
+    //   const response = await fetch('/api/admin/save-security-settings', {
+    //     method: 'POST',
+    //     headers: { 'Content-Type': 'application/json' },
+    //     body: JSON.stringify(formState),
+    //   });
+    //   if (!response.ok) throw new Error('Failed to save settings');
+    //   toast({ title: "Security Settings Saved" });
+    // } catch (error) {
+    //   toast({ title: "Save Failed", variant: "destructive" });
+    // }
+    //
+    
+    // Simulating the backend call for now.
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    console.log("Simulating save of security settings to backend:", formState);
+    toast({ title: "Security Settings Saved" });
+
+    // Important: After saving, clear the secret key fields from the form state for security.
+    setFormState(prev => ({
+        ...prev,
+        livekitApiKey: '',
+        livekitApiSecret: '',
+        diditApiKey: '',
+        deliveryApiKey: '',
+        pgApiKey: '',
+        pgApiSecret: '',
+    }));
+
+    setIsSaving(false);
   };
   
   const paymentGatewayUseCases = [
@@ -89,6 +128,15 @@ export function SecuritySettings() {
       { id: "process-payouts", label: "Process Seller Payouts" },
       { id: "handle-refunds", label: "Handle Customer Refunds (incl. cancelled orders)" },
   ];
+
+  if (isLoading) {
+      return (
+          <Card>
+              <CardHeader><CardTitle>Loading Security Settings...</CardTitle></CardHeader>
+              <CardContent><Loader2 className="animate-spin" /></CardContent>
+          </Card>
+      );
+  }
 
   return (
     <div className="space-y-6">
