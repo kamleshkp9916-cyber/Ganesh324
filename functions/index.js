@@ -275,10 +275,9 @@ exports.sendEmail = onRequest(
 
 exports.sendVerificationCode = onCall(async (request) => {
     const { email, phone, type } = request.data;
-    const code = Math.floor(100000 + Math.random() * 900000).toString(); // 6-digit code
+    const code = '123456'; // Use a fixed code for demo purposes
 
     // In a real app, you would store this code securely (e.g., in Firestore with an expiration)
-    // For this demo, we'll just send it. The client will use a mock for verification.
     
     if (type === 'email') {
         if (!email) {
@@ -287,19 +286,20 @@ exports.sendVerificationCode = onCall(async (request) => {
 
         const msg = {
             to: email,
-            from: process.env.SENDER_EMAIL || 'kamleshkp9916@gmail.com',
+            from: process.env.SENDER_EMAIL || 'you@yourverifieddomain.com', // Use a verified sender
             subject: 'Your Nipher Verification Code',
             text: `Your verification code is: ${code}`,
             html: `<strong>Your verification code is: ${code}</strong>`,
         };
         try {
-            // Using fetch to call the deployed sendEmail function
-            const functionUrl = `https://${process.env.GCLOUD_PROJECT}.cloudfunctions.net/sendEmail`;
-            await fetch(functionUrl, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(msg),
-            });
+            // Using fetch to call the deployed sendEmail function internally
+            // Note: This requires your function to be publicly accessible or IAM permissions to be set correctly.
+             const functionUrl = `https://${process.env.GCLOUD_PROJECT}.cloudfunctions.net/sendEmail`;
+             await fetch(functionUrl, {
+                 method: 'POST',
+                 headers: { 'Content-Type': 'application/json' },
+                 body: JSON.stringify(msg),
+             });
             return { success: true, message: "Verification code sent to email." };
         } catch (error) {
             console.error("Error sending verification email:", error);
@@ -307,6 +307,9 @@ exports.sendVerificationCode = onCall(async (request) => {
         }
     } else if (type === 'phone') {
         // Placeholder for SMS logic (e.g., using Twilio)
+        // In a real app, you would use the Twilio client here.
+        // const twilio = require('twilio')(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
+        // await twilio.messages.create({ body: `Your code is ${code}`, from: process.env.TWILIO_PHONE_NUMBER, to: phone });
         console.log(`Simulating sending OTP ${code} to phone number: ${phone}`);
         return { success: true, message: "Verification code sent to phone (simulation)." };
     } else {
@@ -317,7 +320,7 @@ exports.sendVerificationCode = onCall(async (request) => {
 exports.verifyCode = onCall(async (request) => {
     const { code } = request.data;
     // In a real app, you would retrieve the stored code and compare it.
-    if (code === '123456') { // Updated to 6 digits
+    if (code === '123456') {
         return { success: true, message: "Code verified successfully." };
     } else {
         throw new HttpsError('invalid-argument', 'The provided code is incorrect.');
