@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import {
@@ -100,7 +99,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription, DialogClose, DialogFooter } from '@/components/ui/dialog';
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { useAuth } from '@/hooks/use-auth';
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { toggleFollow, getUserData, UserData, isFollowing } from '@/lib/follow-data';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Progress } from "@/components/ui/progress";
@@ -184,6 +183,16 @@ const reportReasons = [
     { value: "other", label: "Other" },
 ];
 
+const stopReasons = [
+  { value: "guidelines", label: "Community Guideline Violation" },
+  { value: "prohibited", label: "Sale of Prohibited Items" },
+  { value: "scam", label: "Scam or Fraudulent Activity" },
+  { value: "copyright", label: "Copyright Infringement" },
+  { value: "technical", label: "Severe Technical Issues" },
+  { value: "other", label: "Other (specify below)" },
+];
+
+
 const qualityLevels = ["1080p", "720p", "480p", "360p", "144p"];
 
 const ReportDialog = ({ onSubmit }: { onSubmit: (reason: string, details: string) => void }) => {
@@ -228,6 +237,57 @@ const ReportDialog = ({ onSubmit }: { onSubmit: (reason: string, details: string
         </DialogContent>
     )
 };
+
+const StopStreamDialog = ({ onConfirm }: { onConfirm: (reason: string) => void }) => {
+  const [reason, setReason] = useState("");
+  const [otherDetails, setOtherDetails] = useState("");
+
+  const selectedReasonLabel = stopReasons.find(r => r.value === reason)?.label;
+
+  const handleSubmit = () => {
+    const finalReason = reason === 'other' ? otherDetails : selectedReasonLabel;
+    if (finalReason) {
+        onConfirm(finalReason);
+    }
+  };
+
+  return (
+    <AlertDialogContent>
+      <AlertDialogHeader>
+        <AlertDialogTitle>Are you sure you want to stop this stream?</AlertDialogTitle>
+        <AlertDialogDescription>
+          This action will immediately terminate the stream for the seller and all viewers. Please provide a reason.
+        </AlertDialogDescription>
+      </AlertDialogHeader>
+      <div className="py-4 space-y-4">
+        <RadioGroup value={reason} onValueChange={setReason}>
+          <div className="space-y-2">
+            {stopReasons.map(r => (
+              <div key={r.value} className="flex items-center">
+                <RadioGroupItem value={r.value} id={`stop-${r.value}`} />
+                <Label htmlFor={`stop-${r.value}`} className="ml-2 cursor-pointer">{r.label}</Label>
+              </div>
+            ))}
+          </div>
+        </RadioGroup>
+        {reason === 'other' && (
+          <Textarea 
+            placeholder="Please specify the reason for termination..." 
+            value={otherDetails}
+            onChange={(e) => setOtherDetails(e.target.value)}
+          />
+        )}
+      </div>
+      <AlertDialogFooter>
+        <AlertDialogCancel>Cancel</AlertDialogCancel>
+        <AlertDialogAction onClick={handleSubmit} disabled={!reason || (reason === 'other' && !otherDetails.trim())}>
+          Confirm & Stop Stream
+        </AlertDialogAction>
+      </AlertDialogFooter>
+    </AlertDialogContent>
+  );
+};
+
 
 const RatingDialog = ({ onRate, sellerName, initialRating }: { onRate: (rating: number) => void, sellerName: string, initialRating: number }) => {
     const [rating, setRating] = useState(initialRating || 0);
@@ -351,7 +411,7 @@ const ProductShelf = ({ sellerProducts, handleAddToCart, handleBuyNow, toast }: 
                                 <CardFooter className="p-2 grid grid-cols-1 gap-2">
                                     {product.stock > 0 ? (
                                         <>
-                                            <Button variant="outline" size="sm" className="w-full text-xs h-8" onClick={() => { handleAddToCart(product); }}><ShoppingBag className="mr-1 h-3 w-3" /> Cart</Button>
+                                            <Button variant="outline" size="sm" className="w-full text-xs h-8" onClick={() => { handleAddToCart(product); }}><ShoppingCart className="mr-1 h-3 w-3" /> Cart</Button>
                                             <Button size="sm" className="w-full text-xs h-8" onClick={() => { handleBuyNow(product); }}>Buy Now</Button>
                                         </>
                                     ) : (
@@ -765,6 +825,7 @@ const ChatPanel = ({
     const [replyingTo, setReplyingTo] = useState<any | null>(null);
     const scrollAreaRef = useRef<HTMLDivElement>(null);
     const isAdmin = userData?.role === 'admin';
+    const [isStopStreamOpen, setIsStopStreamOpen] = useState(false);
     
     useEffect(() => {
         const scrollArea = scrollAreaRef.current;
@@ -809,168 +870,164 @@ const ChatPanel = ({
     const suggestedEmojis = ['👋', '😂', '🔥', '❤️', '👍'];
 
     return (
-        <div className="flex flex-col h-full bg-background">
-            <header className="p-3 flex items-center justify-between border-b shrink-0">
-                <div className="flex items-center gap-2">
-                    <h3 className="font-bold text-base">Live Chat</h3>
-                    <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                        <Users className="w-4 h-4" />
-                        <span>{streamData.viewerCount.toLocaleString()}</span>
-                    </div>
-                </div>
-                <div className="flex items-center">
-                    <Popover>
-                        <PopoverTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-8 w-8 relative">
-                                <Pin className="h-4 w-4" />
-                                {pinnedMessages.length > 0 && <span className="absolute -top-0.5 -right-0.5 h-3 w-3 rounded-full bg-primary" />}
-                            </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-80 p-0" align="end">
-                            <div className="p-3 font-semibold text-sm border-b">Pinned Items</div>
-                            <ScrollArea className="h-64">
-                                <div className="p-2 space-y-1">
-                                    {pinnedMessages.length > 0 ? pinnedMessages.map((msg, index) => (
-                                        <div key={`pin-${msg.id || index}`} className="p-2 rounded-md bg-secondary/50 flex gap-3 text-sm">
-                                            {msg.type === 'offer' ? (
-                                                <div className="text-primary flex-shrink-0 mt-0.5">{msg.icon}</div>
-                                            ) : (
-                                                <Pin className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
-                                            )}
-                                            <div>
-                                                <p className="font-semibold text-primary">{msg.title}</p>
-                                                <p className="text-muted-foreground text-xs">{msg.description}</p>
-                                            </div>
-                                        </div>
-                                    )) : <p className="text-center text-xs text-muted-foreground p-4">No pinned items.</p>}
-                                </div>
-                            </ScrollArea>
-                        </PopoverContent>
-                    </Popover>
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-8 w-8">
-                                <MoreVertical className="h-4 w-4" />
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                             <AlertDialog>
-                                <AlertDialogTrigger asChild>
-                                    <DropdownMenuItem onSelect={(e) => e.preventDefault()} disabled={!isAdmin}>
-                                        <StopCircle className="mr-2 h-4 w-4" />
-                                        <span>Stop Stream</span>
-                                    </DropdownMenuItem>
-                                </AlertDialogTrigger>
-                                <AlertDialogContent>
-                                    <AlertDialogHeader>
-                                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                                        <AlertDialogDescription>This will immediately terminate the live stream for everyone. This action cannot be undone.</AlertDialogDescription>
-                                    </AlertDialogHeader>
-                                    <AlertDialogFooter>
-                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                        <AlertDialogAction onClick={handlers.onStopStream}>Confirm Stop</AlertDialogAction>
-                                    </AlertDialogFooter>
-                                </AlertDialogContent>
-                            </AlertDialog>
-                            {!isAdmin && <DropdownMenuItem onSelect={handlers.onReportStream}><Flag className="mr-2 h-4 w-4" /> Report Stream</DropdownMenuItem>}
-                            <DropdownMenuSeparator />
-                             <FeedbackDialog>
-                                <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                                    <MessageCircle className="mr-2 h-4 w-4" />
-                                    <span>Feedback</span>
-                                </DropdownMenuItem>
-                            </FeedbackDialog>
-                             <DropdownMenuItem><LifeBuoy className="mr-2 h-4 w-4" /> Help & Support</DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                    <Button variant="ghost" size="icon" className="md:hidden" onClick={onClose}>
-                        <X className="h-5 w-5" />
-                    </Button>
-                </div>
-            </header>
-            <ScrollArea className="flex-grow" ref={scrollAreaRef}>
-                <div className="p-2 space-y-1">
-                    {pinnedMessages.map((msg, index) => {
-                        if (msg.type !== 'offer') return null;
-                        return (
-                            <div key={`pin-${msg.id || index}`} className="p-3 rounded-lg bg-secondary border border-primary/20 flex gap-3 text-sm animate-in fade-in-0 slide-in-from-bottom-2">
-                                <Pin className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
-                                <div>
-                                    <p className="font-semibold text-primary">{msg.title}</p>
-                                    <p className="text-muted-foreground text-xs">{msg.description}</p>
-                                </div>
-                            </div>
-                        )
-                    })}
-                    {chatMessages.map((msg, index) => (
-                         msg.type === 'super_chat' ? <SuperChatMessage key={msg.id || index} msg={msg} /> :
-                         msg.type === 'post_share' ? <PostShareCard key={msg.id || index} msg={msg} handlers={localHandlers} /> :
-                         msg.type === 'product_promo' ? <ProductPromoCard key={msg.id || index} msg={msg} handlers={localHandlers} /> :
-                         msg.type === 'system' ? <div key={msg.id || index} className="text-center text-xs text-muted-foreground italic py-1">{msg.text}</div> :
-                         <ChatMessage key={msg.id || index} msg={msg} handlers={localHandlers} seller={seller} />
-                    ))}
-                </div>
-            </ScrollArea>
-            {!isPastStream && (
-                <footer className="p-2 border-t shrink-0">
-                    {replyingTo && (
-                        <div className="text-xs text-muted-foreground px-3 pt-1 pb-2 flex justify-between items-center">
-                            <span>Replying to @{replyingTo.user}</span>
-                            <button onClick={handleCancelReply}><X className="w-3 h-3" /></button>
+        <AlertDialog open={isStopStreamOpen} onOpenChange={setIsStopStreamOpen}>
+            <div className="flex flex-col h-full bg-background">
+                <header className="p-3 flex items-center justify-between border-b shrink-0">
+                    <div className="flex items-center gap-2">
+                        <h3 className="font-bold text-base">Live Chat</h3>
+                        <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                            <Users className="w-4 h-4" />
+                            <span>{streamData.viewerCount.toLocaleString()}</span>
                         </div>
-                    )}
-                     <div className="flex items-center gap-1.5 px-2 pb-2">
-                        {suggestedEmojis.map(emoji => (
-                            <Button key={emoji} variant="ghost" size="icon" className="h-7 w-7 text-lg" onClick={() => addEmoji(emoji)} disabled={isChatDisabled}>
-                                {emoji}
-                            </Button>
+                    </div>
+                    <div className="flex items-center">
+                        <Popover>
+                            <PopoverTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-8 w-8 relative">
+                                    <Pin className="h-4 w-4" />
+                                    {pinnedMessages.length > 0 && <span className="absolute -top-0.5 -right-0.5 h-3 w-3 rounded-full bg-primary" />}
+                                </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-80 p-0" align="end">
+                                <div className="p-3 font-semibold text-sm border-b">Pinned Items</div>
+                                <ScrollArea className="h-64">
+                                    <div className="p-2 space-y-1">
+                                        {pinnedMessages.length > 0 ? pinnedMessages.map((msg, index) => (
+                                            <div key={`pin-${msg.id || index}`} className="p-2 rounded-md bg-secondary/50 flex gap-3 text-sm">
+                                                {msg.type === 'offer' ? (
+                                                    <div className="text-primary flex-shrink-0 mt-0.5">{msg.icon}</div>
+                                                ) : (
+                                                    <Pin className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
+                                                )}
+                                                <div>
+                                                    <p className="font-semibold text-primary">{msg.title}</p>
+                                                    <p className="text-muted-foreground text-xs">{msg.description}</p>
+                                                </div>
+                                            </div>
+                                        )) : <p className="text-center text-xs text-muted-foreground p-4">No pinned items.</p>}
+                                    </div>
+                                </ScrollArea>
+                            </PopoverContent>
+                        </Popover>
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-8 w-8">
+                                    <MoreVertical className="h-4 w-4" />
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                                {isAdmin ? (
+                                    <AlertDialogTrigger asChild>
+                                        <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                                            <StopCircle className="mr-2 h-4 w-4 text-destructive" />
+                                            <span className="text-destructive">Stop Stream</span>
+                                        </DropdownMenuItem>
+                                    </AlertDialogTrigger>
+                                ) : (
+                                    <>
+                                        <DropdownMenuItem onSelect={handlers.onReportStream}><Flag className="mr-2 h-4 w-4" /> Report Stream</DropdownMenuItem>
+                                        <DropdownMenuSeparator />
+                                        <FeedbackDialog>
+                                            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                                                <MessageCircle className="mr-2 h-4 w-4" />
+                                                <span>Feedback</span>
+                                            </DropdownMenuItem>
+                                        </FeedbackDialog>
+                                        <DropdownMenuItem onSelect={() => router.push('/help')}><LifeBuoy className="mr-2 h-4 w-4" /> Help & Support</DropdownMenuItem>
+                                    </>
+                                )}
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                        <Button variant="ghost" size="icon" className="md:hidden" onClick={onClose}>
+                            <X className="h-5 w-5" />
+                        </Button>
+                    </div>
+                </header>
+                <ScrollArea className="flex-grow" ref={scrollAreaRef}>
+                    <div className="p-2 space-y-1">
+                        {pinnedMessages.map((msg, index) => {
+                            if (msg.type !== 'offer') return null;
+                            return (
+                                <div key={`pin-${msg.id || index}`} className="p-3 rounded-lg bg-secondary border border-primary/20 flex gap-3 text-sm animate-in fade-in-0 slide-in-from-bottom-2">
+                                    <Pin className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
+                                    <div>
+                                        <p className="font-semibold text-primary">{msg.title}</p>
+                                        <p className="text-muted-foreground text-xs">{msg.description}</p>
+                                    </div>
+                                </div>
+                            )
+                        })}
+                        {chatMessages.map((msg, index) => (
+                            msg.type === 'super_chat' ? <SuperChatMessage key={msg.id || index} msg={msg} /> :
+                            msg.type === 'post_share' ? <PostShareCard key={msg.id || index} msg={msg} handlers={localHandlers} /> :
+                            msg.type === 'product_promo' ? <ProductPromoCard key={msg.id || index} msg={msg} handlers={localHandlers} /> :
+                            msg.type === 'system' ? <div key={msg.id || index} className="text-center text-xs text-muted-foreground italic py-1">{msg.text}</div> :
+                            <ChatMessage key={msg.id || index} msg={msg} handlers={localHandlers} seller={seller} />
                         ))}
                     </div>
-                    <form onSubmit={handleSendMessage} className="flex items-center gap-2">
-                        <Avatar className="h-9 w-9">
-                            <AvatarImage src={user?.photoURL || undefined} />
-                            <AvatarFallback>{user?.displayName?.charAt(0)}</AvatarFallback>
-                        </Avatar>
-                        <div className="relative flex-grow">
-                            <Textarea
-                                placeholder={isChatDisabled ? "Chat is closed" : isAdmin ? "Admin monitoring (chat disabled)" : "Say something..."}
-                                value={newMessage}
-                                onChange={(e) => setNewMessage(e.target.value)}
-                                rows={1}
-                                className="flex-grow resize-none pr-10 min-h-[40px] rounded-full"
-                                onKeyDown={(e) => {
-                                    if (e.key === 'Enter' && !e.shiftKey) {
-                                        e.preventDefault();
-                                        handleSendMessage(e);
-                                    }
-                                }}
-                                disabled={isChatDisabled || isAdmin}
-                            />
-                            <Popover>
-                                <PopoverTrigger asChild>
-                                    <Button variant="ghost" size="icon" type="button" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 text-muted-foreground rounded-full" disabled={isChatDisabled || isAdmin}>
-                                        <Smile />
-                                    </Button>
-                                </PopoverTrigger>
-                                <PopoverContent className="w-80 h-64">
-                                   <div className="grid grid-cols-8 gap-1 h-full overflow-y-auto no-scrollbar">
-                                        {emojis.map((emoji, index) => (
-                                            <Button key={index} variant="ghost" size="icon" onClick={() => addEmoji(emoji)}>
-                                                {emoji}
-                                            </Button>
-                                        ))}
-                                   </div>
-                                </PopoverContent>
-                            </Popover>
+                </ScrollArea>
+                {!isPastStream && (
+                    <footer className="p-2 border-t shrink-0">
+                        {replyingTo && (
+                            <div className="text-xs text-muted-foreground px-3 pt-1 pb-2 flex justify-between items-center">
+                                <span>Replying to @{replyingTo.user}</span>
+                                <button onClick={handleCancelReply}><X className="w-3 h-3" /></button>
+                            </div>
+                        )}
+                        <div className="flex items-center gap-1.5 px-2 pb-2">
+                            {suggestedEmojis.map(emoji => (
+                                <Button key={emoji} variant="ghost" size="icon" className="h-7 w-7 text-lg" onClick={() => addEmoji(emoji)} disabled={isChatDisabled}>
+                                    {emoji}
+                                </Button>
+                            ))}
                         </div>
-                         {!isAdmin && <SuperChatDialog walletBalance={walletBalance} handlers={handlers} isSuperChatOpen={isSuperChatOpen} setIsSuperChatOpen={setIsSuperChatOpen} />}
-                        <Button type="submit" size="icon" disabled={!newMessage.trim() || isChatDisabled || isAdmin} className="rounded-full flex-shrink-0 h-11 w-11">
-                            <Send className="h-5 w-5" />
-                        </Button>
-                    </form>
-                </footer>
-            )}
-        </div>
+                        <form onSubmit={handleSendMessage} className="flex items-center gap-2">
+                            <Avatar className="h-9 w-9">
+                                <AvatarImage src={user?.photoURL || undefined} />
+                                <AvatarFallback>{user?.displayName?.charAt(0)}</AvatarFallback>
+                            </Avatar>
+                            <div className="relative flex-grow">
+                                <Textarea
+                                    placeholder={isChatDisabled ? "Chat is closed" : isAdmin ? "Admin monitoring (chat disabled)" : "Say something..."}
+                                    value={newMessage}
+                                    onChange={(e) => setNewMessage(e.target.value)}
+                                    rows={1}
+                                    className="flex-grow resize-none pr-10 min-h-[40px] rounded-full"
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter' && !e.shiftKey) {
+                                            e.preventDefault();
+                                            handleSendMessage(e);
+                                        }
+                                    }}
+                                    disabled={isChatDisabled || isAdmin}
+                                />
+                                <Popover>
+                                    <PopoverTrigger asChild>
+                                        <Button variant="ghost" size="icon" type="button" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 text-muted-foreground rounded-full" disabled={isChatDisabled || isAdmin}>
+                                            <Smile />
+                                        </Button>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-80 h-64">
+                                    <div className="grid grid-cols-8 gap-1 h-full overflow-y-auto no-scrollbar">
+                                            {emojis.map((emoji, index) => (
+                                                <Button key={index} variant="ghost" size="icon" onClick={() => addEmoji(emoji)}>
+                                                    {emoji}
+                                                </Button>
+                                            ))}
+                                    </div>
+                                    </PopoverContent>
+                                </Popover>
+                            </div>
+                            {!isAdmin && <SuperChatDialog walletBalance={walletBalance} handlers={handlers} isSuperChatOpen={isSuperChatOpen} setIsSuperChatOpen={setIsSuperChatOpen} />}
+                            <Button type="submit" size="icon" disabled={!newMessage.trim() || isChatDisabled || isAdmin} className="rounded-full flex-shrink-0 h-11 w-11">
+                                <Send className="h-5 w-5" />
+                            </Button>
+                        </form>
+                    </footer>
+                )}
+            </div>
+            <StopStreamDialog onConfirm={handlers.onStopStream} />
+        </AlertDialog>
     );
 };
 
@@ -1086,6 +1143,19 @@ return (
                         </div>
                     </div>
                 </div>
+                
+                 {props.isStreamEnded && (
+                    <div className="absolute inset-0 bg-black/70 flex flex-col items-center justify-center text-center p-4">
+                        <StopCircle className="w-16 h-16 text-destructive mb-4" />
+                        <h2 className="text-2xl font-bold">This stream has been terminated</h2>
+                        <p className="text-muted-foreground mt-2 max-w-md">
+                            Reason: {props.terminationReason}
+                        </p>
+                         <Button onClick={() => props.router.push('/live-selling')} className="mt-6">
+                            Explore Other Streams
+                        </Button>
+                    </div>
+                )}
             </div>
 
             <div className="p-4 space-y-6">
@@ -1209,6 +1279,19 @@ const MobileLayout = React.memo(({ user, userData, handlers, handleAddToCart, ha
                         </div>
                     </div>
                 </div>
+
+                 {props.isStreamEnded && (
+                    <div className="absolute inset-0 bg-black/80 flex flex-col items-center justify-center text-center p-8">
+                        <StopCircle className="w-12 h-12 text-destructive mb-4" />
+                        <h2 className="text-xl font-bold">This stream has been terminated</h2>
+                        <p className="text-muted-foreground mt-2 max-w-md">
+                            Reason: {props.terminationReason}
+                        </p>
+                         <Button onClick={() => props.router.push('/live-selling')} className="mt-6">
+                            Explore Other Streams
+                        </Button>
+                    </div>
+                )}
             </div>
             
             <div className="flex-1 overflow-hidden relative">
@@ -1276,6 +1359,7 @@ const StreamPage = () => {
     const [userRating, setUserRating] = useState<number>(0);
     
     const [isStreamEnded, setIsStreamEnded] = useState(false);
+    const [terminationReason, setTerminationReason] = useState<string | null>(null);
     
     const isAdmin = userData?.role === 'admin';
     const isChatDisabled = isStreamEnded || (isAdmin && !isPastStream);
@@ -1560,7 +1644,7 @@ const StreamPage = () => {
                     video.pause();
                     setChatMessages(prev => [...prev, { id: 'stream-end', type: 'system', text: 'The live stream has ended. Thank you for watching!' }]);
                     setTimeout(() => {
-                        // setIsChatDisabled(true); // Logic was here, now derived from isStreamEnded
+                        // isChatDisabled is now derived from isStreamEnded
                     }, 5 * 60 * 1000); // 5 minutes
                 }
             };
@@ -1737,13 +1821,14 @@ const StreamPage = () => {
         handleAuthAction(() => setIsReportOpen(true));
     }, [handleAuthAction]);
     
-    const onStopStream = useCallback(() => {
+    const onStopStream = useCallback((reason: string) => {
         toast({
             variant: "destructive",
             title: "Stream Stopped",
             description: "This live stream has been terminated by an administrator.",
         });
         setIsStreamEnded(true);
+        setTerminationReason(reason);
     }, [toast]);
     
     const handleAddToCart = useCallback((product: any) => {
@@ -1848,6 +1933,7 @@ const StreamPage = () => {
         activeQuality,
         setActiveQuality,
         isStreamEnded,
+        terminationReason
     };
 
     return (
