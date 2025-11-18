@@ -5,7 +5,6 @@ const admin = require('firebase-admin');
 const { onCall, HttpsError } = require("firebase-functions/v2/https");
 const { onRequest } = require('firebase-functions/v2/onRequest');
 const functions = require('firebase-functions');
-const sgMail = require('@sendgrid/mail');
 const { onDocumentWritten } = require("firebase-functions/v2/firestore");
 
 /**
@@ -190,16 +189,6 @@ exports.createAdminUser = onCall(async (request) => {
     }
 });
 
-
-/**
- * Configure SendGrid API key.
- */
-if (process.env.SENDGRID_KEY) {
-  sgMail.setApiKey(process.env.SENDGRID_KEY);
-} else {
-  console.warn('SENDGRID_KEY not set in env; send attempts will fail until it is configured.');
-}
-
 /**
  * Utility: normalize recipients.
  */
@@ -213,11 +202,16 @@ function normalizeRecipients(to) {
  * Main function: sendEmail
  */
 exports.sendEmail = onRequest(
-  { secrets: ['SENDGRID_KEY', 'MAILERSEND_KEY'] },
+  { secrets: ['MAILERSEND_KEY'] },
   async (req, res) => {
     try {
       if (req.method !== 'POST') {
         return res.status(405).json({ error: 'Use POST' });
+      }
+
+      if (!process.env.MAILERSEND_KEY) {
+        console.error('MAILERSEND_KEY is not set; aborting send.');
+        return res.status(500).json({ error: 'Email provider not configured' });
       }
 
       const body = req.body || {};
@@ -231,66 +225,32 @@ exports.sendEmail = onRequest(
       }
 
       // --- MailerSend Integration ---
-      // To use MailerSend, uncomment this block and ensure your MAILERSEND_KEY secret is set.
-      
-      if (process.env.MAILERSEND_KEY) {
-        console.log('Sending email with MailerSend...');
-        const mailerSendBody = {
-          from: { email: process.env.SENDER_EMAIL || 'you@yourverifieddomain.com' },
-          to: normalizeRecipients(to),
-          subject: subject,
-          text: text,
-          html: html,
-        };
+      console.log('Sending email with MailerSend...');
+      const mailerSendBody = {
+        from: { email: process.env.SENDER_EMAIL || 'you@yourverifieddomain.com' },
+        to: normalizeRecipients(to),
+        subject: subject,
+        text: text,
+        html: html,
+      };
 
-        const response = await fetch('https://api.mailersend.com/v1/email', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${process.env.MAILERSEND_KEY}`,
-          },
-          body: JSON.stringify(mailerSendBody),
-        });
+      const response = await fetch('https://api.mailersend.com/v1/email', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${process.env.MAILERSEND_KEY}`,
+        },
+        body: JSON.stringify(mailerSendBody),
+      });
 
-        if (!response.ok) {
-          const errorBody = await response.json();
-          throw new Error(`MailerSend API Error: ${JSON.stringify(errorBody)}`);
-        }
-
-        console.log('MailerSend result:', response.status);
-        return res.status(200).json({ success: true, provider: 'MailerSend' });
-      }
-      
-
-      // --- SendGrid Fallback ---
-      const FROM_EMAIL = process.env.SENDER_EMAIL || 'kamleshkp9916@gmail.com';
-
-      if (!process.env.SENDGRID_KEY) {
-        console.error('SENDGRID_KEY is not set; aborting send.');
-        return res.status(500).json({ error: 'Email provider not configured' });
+      if (!response.ok) {
+        const errorBody = await response.json();
+        throw new Error(`MailerSend API Error: ${JSON.stringify(errorBody)}`);
       }
 
-      console.log('Sending email with SendGrid...');
-      const recipients = normalizeRecipients(to);
-      const content = [];
-      if (text && String(text).trim().length > 0) content.push({ type: 'text/plain', value: String(text) });
-      if (html && String(html).trim().length > 0) content.push({ type: 'text/html', value: String(html) });
+      console.log('MailerSend result:', response.status);
+      return res.status(200).json({ success: true, provider: 'MailerSend' });
 
-      if (content.length === 0) {
-        return res.status(400).json({ error: 'Both text and html are empty after trimming' });
-      }
-
-      let msg = { from: FROM_EMAIL, subject: subject, content: content };
-      if (recipients.length === 1) {
-        msg.to = recipients[0].email;
-      } else {
-        msg.personalizations = recipients.map((r) => ({ to: [r] }));
-      }
-      if (body.replyTo) msg.replyTo = { email: body.replyTo };
-
-      const result = await sgMail.send(msg, false);
-      console.log('SendGrid result:', Array.isArray(result) ? result.map(r => r.statusCode) : result && result.statusCode);
-      return res.status(200).json({ success: true, provider: 'SendGrid', debug: Array.isArray(result) ? result.map(r => r.statusCode) : result && result.statusCode });
     } catch (err) {
       let apiBody = null;
       try {
@@ -333,7 +293,13 @@ exports.sendVerificationCode = onCall(async (request) => {
             html: `<strong>Your verification code is: ${code}</strong>`,
         };
         try {
-            await sgMail.send(msg);
+            // Using fetch to call the deployed sendEmail function
+            const functionUrl = `https://${process.env.GCLOUD_PROJECT}.cloudfunctions.net/sendEmail`;
+            await fetch(functionUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(msg),
+            });
             return { success: true, message: "Verification code sent to email." };
         } catch (error) {
             console.error("Error sending verification email:", error);
@@ -443,3 +409,5 @@ exports.notifyDeliveryPartner = onRequest(async (req, res) => {
 
     res.status(200).json({ success: true, message: `Delivery partner notified for order ${orderId}` });
 });
+
+    
