@@ -292,7 +292,7 @@ export default function AdminRevenuePage() {
                                     <div>
                                         <CardTitle>Seller Financials Overview</CardTitle>
                                         <CardDescription>
-                                            A summary of seller earnings, refunds, and cancellations.
+                                            A summary of financial data across all sellers, including their share of revenue, refunds, and cancellations.
                                         </CardDescription>
                                     </div>
                                 </div>
