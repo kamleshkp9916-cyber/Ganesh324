@@ -14,6 +14,8 @@ import {
     ArrowLeft,
     Banknote,
     Percent,
+    Bell,
+    Shield,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -27,14 +29,18 @@ import { PoliciesSettings } from "@/components/settings/policies-settings";
 import { ContentModerationSettings } from "@/components/settings/content-moderation-settings";
 import { UserNotificationsSettings } from "@/components/settings/user-notifications";
 import { PlatformFeeSettings } from "@/components/settings/platform-fees-settings";
+import { NotificationConfigSettings } from "@/components/settings/notification-config-settings";
+import { SecuritySettings } from "@/components/settings/security-settings";
 
-export type SettingView = 'main' | 'categories' | 'promotions' | 'shipping' | 'policies' | 'moderation' | 'notifications' | 'payouts' | 'fees';
+export type SettingView = 'main' | 'categories' | 'promotions' | 'shipping' | 'policies' | 'moderation' | 'notifications' | 'payouts' | 'fees' | 'notification-config' | 'security';
 
 const settingsLinks = [
     { id: 'categories', href: "#", icon: LayoutGrid, title: "Category Management", description: "Add, edit, or delete product categories and subcategories." },
     { id: 'promotions', href: "#", icon: Ticket, title: "Promotions & Coupons", description: "Manage promotional slides and discount codes." },
     { id: 'shipping', href: "#", icon: Truck, title: "Shipping & Delivery", description: "Configure flat-rate delivery charges." },
     { id: 'fees', href: "#", icon: Percent, title: "Platform Fees & Charges", description: "Set platform commission rates and other fees." },
+    { id: 'notification-config', href: "#", icon: Bell, title: "Notification Config", description: "Manage SMS, email, and push notification settings." },
+    { id: 'security', href: "#", icon: Shield, title: "Security", description: "Configure 2FA, IP ranges, password rules, and API keys." },
     { id: 'policies', href: "#", icon: FileText, title: "Content & Policies", description: "Edit your Terms of Service and Privacy Policy." },
     { id: 'moderation', href: "#", icon: Flag, title: "Content Moderation", description: "Review and act on content flagged by users." },
     { id: 'notifications', href: "#", icon: MessageSquare, title: "User Notifications", description: "Send announcements or warnings to users." },
@@ -60,6 +66,10 @@ export default function AdminSettingsHubPage() {
             return <UserNotificationsSettings />;
         case 'fees':
             return <PlatformFeeSettings />;
+        case 'notification-config':
+            return <NotificationConfigSettings />;
+        case 'security':
+            return <SecuritySettings />;
         default:
             return (
                 <Card>
