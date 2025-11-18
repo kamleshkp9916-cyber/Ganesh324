@@ -1,5 +1,4 @@
 
-
 export const PROMOTIONAL_SLIDES_KEY = 'streamcart_promotional_slides';
 export const COUPONS_KEY = 'streamcart_coupons';
 export const CATEGORY_BANNERS_KEY = 'streamcart_category_banners';
@@ -8,6 +7,7 @@ export const PAYOUT_REQUESTS_KEY = 'streamcart_payout_requests';
 export const PLATFORM_FEES_KEY = 'streamcart_platform_fees';
 export const ADDITIONAL_CHARGES_KEY = 'streamcart_additional_charges';
 export const FOOTER_CONTENT_KEY = 'nipher_footer_content';
+export const SECURITY_SETTINGS_KEY = 'nipher_security_settings';
 
 
 // Type definitions
@@ -74,3 +74,25 @@ export interface FooterContent {
   linkedin: string;
   instagram: string;
 }
+
+export interface SecuritySettings {
+  enforceAdmin2FA: boolean;
+  passwordComplexity: {
+    length: boolean;
+    uppercase: boolean;
+    number: boolean;
+    special: boolean;
+  };
+  livekitHost: string;
+  livekitApiKey: string;
+  livekitApiSecret: string;
+  diditApiKey: string;
+  deliveryPartner: string;
+  deliveryApiKey: string;
+  paymentGateway: string;
+  pgApiKey: string;
+  pgApiSecret: string;
+  pgUseCases: string[];
+}
+
+    
