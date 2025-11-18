@@ -28,7 +28,8 @@ import { Separator } from "@/components/ui/separator";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useAuthActions } from "@/lib/auth";
 import { getFirestore, collection, query, where, getDocs } from "firebase/firestore";
-import { getFirestoreDb } from "@/lib/firebase-db";
+import { getFirestoreDb, initializeFirebase } from "@/lib/firebase-db";
+import { getFunctions, httpsCallable } from 'firebase/functions';
 
 const Section = ({ title, children, icon, hasError }: { title: string, children: React.ReactNode, icon: React.ReactNode, hasError?: boolean }) => (
   <Card className={`shadow-lg border rounded-2xl ${hasError ? 'border-destructive' : ''}`}>
@@ -108,7 +109,7 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
   const [photoPreview, setPhotoPreview] = useState<string | null>(existingData?.photoURL || null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
-  const [selfiePreview, setSelfiePreview] = useState<string | null>(null);
+    const [selfiePreview, setSelfiePreview] = useState<string | null>(null);
   const selfieInputRef = useRef<HTMLInputElement>(null);
 
   const [emailError, setEmailError] = useState('');
@@ -244,43 +245,39 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
   const canSubmit = form.termsAccepted && verif.state === "VERIFIED";
 
   const handleGenerateVerification = async () => {
-    setVerif({ state: "PENDING", message: "Generating secure 0DIDit verification link..." });
-    
-    // --- REAL-TIME INTEGRATION POINT ---
-    // 1. Make an API call to your backend to get the verification URL from 0DIDit.
-    //    const response = await fetch('/api/create-verification-session');
-    //    const { verificationLink, sessionId } = await response.json();
-    
-    // For this example, we'll simulate the API call.
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    const verificationLink = "https://0did.it/verify/mock-session-12345";
-    const sessionId = "mock-session-12345";
-
-    setQrCodeUrl(`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(verificationLink)}`);
-    setVerif({ state: "PENDING", message: "Scan the QR code with your phone to complete verification." });
-
-    // 2. Start polling your backend to check the verification status.
-    const pollInterval = setInterval(async () => {
-        try {
-            // --- REAL-TIME INTEGRATION POINT ---
-            //    const statusResponse = await fetch(`/api/check-verification-status?sessionId=${sessionId}`);
-            //    const { status } = await statusResponse.json();
-
-            // Simulate the API call result
-            const status = Math.random() < 0.2 ? 'VERIFIED' : 'PENDING'; // 20% chance of being verified each poll
-
-            if (status === 'VERIFIED') {
+    setVerif({ state: "PENDING", message: "Contacting verification service..." });
+    try {
+        const { firebaseApp } = initializeFirebase();
+        const functions = getFunctions(firebaseApp);
+        const createOdiditSession = httpsCallable(functions, 'createOdiditSession');
+        
+        const response: any = await createOdiditSession({ userId: user?.uid });
+        const { verificationLink, sessionId } = response.data;
+        
+        setQrCodeUrl(`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(verificationLink)}`);
+        setVerif({ state: "PENDING", message: "Scan the QR code with your phone to complete verification." });
+        
+        const checkOdiditSession = httpsCallable(functions, 'checkOdiditSession');
+        const pollInterval = setInterval(async () => {
+            try {
+                const statusResponse: any = await checkOdiditSession({ sessionId });
+                if (statusResponse.data.status === 'VERIFIED') {
+                    clearInterval(pollInterval);
+                    setVerif({ state: "VERIFIED", message: "Verification successful! You can now proceed." });
+                    toast({ title: "Verification Successful!", description: "Proceeding to the next step." });
+                    setTimeout(() => next(), 1500);
+                }
+            } catch (error) {
+                console.error("Polling error:", error);
                 clearInterval(pollInterval);
-                setVerif({ state: "VERIFIED", message: "Verification successful! You can now proceed." });
-                toast({ title: "Verification Successful!", description: "Proceeding to the next step." });
-                setTimeout(() => next(), 1500);
+                setVerif({ state: "FAILED", message: "Could not confirm verification status. Please try again." });
             }
-        } catch (error) {
-            console.error("Polling error:", error);
-            clearInterval(pollInterval);
-            setVerif({ state: "FAILED", message: "Could not confirm verification status. Please try again." });
-        }
-    }, 3000); // Poll every 3 seconds
+        }, 3000);
+
+    } catch (error) {
+        console.error("Error creating 0DIDit session:", error);
+        setVerif({ state: "FAILED", message: "Could not start verification. Please try again." });
+    }
   };
   
   const submit = async () => {

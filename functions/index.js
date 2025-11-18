@@ -27,6 +27,47 @@ if (!admin.apps.length) {
 }
 
 /**
+ * Creates a verification session (placeholder for 0DIDit integration).
+ */
+exports.createOdiditSession = onCall(async (data) => {
+    // In a real implementation, you would use the 0DIDit API key from secrets
+    // to create a real session and return its details.
+    // const odiditApiKey = process.env.ODIDIT_API_KEY;
+    // const response = await fetch('https://api.0did.it/v1/sessions', { ... });
+    // const sessionData = await response.json();
+    
+    // For this example, we return a mock session.
+    const sessionId = `mock-session-${Date.now()}`;
+    const verificationLink = `https://0did.it/verify/${sessionId}`; // Example link
+    
+    // You might want to store this sessionId in Firestore against the user's profile
+    // to track the verification status.
+
+    return { verificationLink, sessionId };
+});
+
+/**
+ * Checks the status of a verification session (placeholder).
+ */
+exports.checkOdiditSession = onCall(async (data) => {
+    const { sessionId } = data;
+    if (!sessionId.startsWith('mock-session-')) {
+        throw new HttpsError('invalid-argument', 'Invalid session ID format.');
+    }
+
+    // In a real implementation, you would poll the 0DIDit API:
+    // const statusResponse = await fetch(`https://api.0did.it/v1/sessions/${sessionId}`);
+    // const statusData = await statusResponse.json();
+    // return { status: statusData.status };
+
+    // For this example, simulate a 20% chance of being verified on each check.
+    const isVerified = Math.random() < 0.2;
+    
+    return { status: isVerified ? 'VERIFIED' : 'PENDING' };
+});
+
+
+/**
  * Updates the `lastLogin` timestamp in the user's Firestore document
  * whenever their ID token is refreshed (e.g., on sign-in).
  * This is used for session management to enforce a single login.
@@ -327,3 +368,4 @@ exports.notifyDeliveryPartner = onRequest(async (req, res) => {
     
 
     
+
