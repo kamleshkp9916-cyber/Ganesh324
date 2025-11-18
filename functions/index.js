@@ -283,10 +283,10 @@ exports.sendEmail = onRequest(
 
 exports.sendVerificationCode = onCall(async (request) => {
     const { email, phone, type } = request.data;
-    const code = Math.floor(1000 + Math.random() * 9000).toString(); // 4-digit code
+    const code = Math.floor(100000 + Math.random() * 900000).toString(); // 6-digit code
 
     // In a real app, you would store this code securely (e.g., in Firestore with an expiration)
-    // For this demo, we'll just send it. The client will use a mock '1234' for verification.
+    // For this demo, we'll just send it. The client will use a mock for verification.
     
     if (type === 'email') {
         if (!email) {
@@ -319,7 +319,7 @@ exports.sendVerificationCode = onCall(async (request) => {
 exports.verifyCode = onCall(async (request) => {
     const { code } = request.data;
     // In a real app, you would retrieve the stored code and compare it.
-    if (code === '1234') {
+    if (code === '123456') { // Updated to 6 digits
         return { success: true, message: "Code verified successfully." };
     } else {
         throw new HttpsError('invalid-argument', 'The provided code is incorrect.');
