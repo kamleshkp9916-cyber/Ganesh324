@@ -72,6 +72,7 @@ import {
   MoreHorizontal,
   Banknote,
   DollarSign, // Added for Super Chat
+  BarChart, // Added for admin card
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -96,36 +97,36 @@ import {
   DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription, DialogClose, DialogFooter } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription, DialogClose, DialogFooter } from '../ui/dialog';
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { useAuth } from '@/hooks/use-auth';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { toggleFollow, getUserData, UserData, isFollowing } from '@/lib/follow-data';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "../ui/alert-dialog";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { doc, Timestamp, onSnapshot } from 'firebase/firestore';
 import { getFirestoreDb } from '@/lib/firebase';
 import { Slider } from "@/components/ui/slider";
-import { FeedbackDialog } from "@/components/feedback-dialog";
-import { Textarea } from "@/components/ui/textarea";
+import { FeedbackDialog } from "../feedback-dialog";
+import { Textarea } from "../ui/textarea";
 import { categories } from "@/lib/categories";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
-import { Label } from "@/components/ui/label";
-import { WithdrawForm } from "@/components/settings-forms";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "../ui/accordion";
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "../ui/carousel";
+import { Label } from "../ui/label";
+import { WithdrawForm } from "../settings-forms";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
+import { Switch } from "../ui/switch";
+import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
 import { useInView } from "react-intersection-observer";
 import { useMiniPlayer } from "@/context/MiniPlayerContext";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { Skeleton } from "@/components/ui/skeleton";
-import { useIsMobile } from "@/hooks/use-is-mobile";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "../ui/sheet";
+import { Skeleton } from "../ui/skeleton";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "../ui/collapsible";
 import { format, formatDistanceToNow, isThisWeek, isThisYear, parseISO, parse } from 'date-fns';
-import { ProductShelfContent } from '@/components/product-shelf-content';
+import { ProductShelfContent } from '../product-shelf-content';
 
 
 const emojis = [
@@ -1158,7 +1159,44 @@ return (
                 )}
             </div>
 
-            <div className="p-4 space-y-6">
+             <div className="p-4 space-y-6">
+                 {isAdmin && props.seller && props.sellerData && (
+                    <Card className="bg-primary/5 border-primary/20">
+                        <CardHeader className="pb-4">
+                            <CardTitle className="text-base flex items-center gap-2"><BarChart className="text-primary"/> Admin Stream Insights</CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <div className="flex items-center gap-4">
+                                <Avatar className="h-12 w-12">
+                                    <AvatarImage src={props.seller.avatarUrl} />
+                                    <AvatarFallback>{props.seller.name.charAt(0)}</AvatarFallback>
+                                </Avatar>
+                                <div>
+                                    <h4 className="font-semibold">{props.seller.name}</h4>
+                                    <p className="text-xs text-muted-foreground">{props.sellerData.followers} followers</p>
+                                </div>
+                            </div>
+                            <Separator />
+                            <div>
+                                <h5 className="font-semibold text-sm mb-2">Earnings From This Stream</h5>
+                                <div className="space-y-1 text-sm">
+                                    <div className="flex justify-between items-center">
+                                        <span className="text-muted-foreground">Product Sales</span>
+                                        <span className="font-semibold">₹12,500.00</span>
+                                    </div>
+                                     <div className="flex justify-between items-center">
+                                        <span className="text-muted-foreground">Super Chat Revenue</span>
+                                        <span className="font-semibold">₹1,500.00</span>
+                                    </div>
+                                    <div className="flex justify-between items-center font-bold text-base pt-1 border-t mt-2">
+                                        <span>Total</span>
+                                        <span>₹14,000.00</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+                 )}
                 <MemoizedStreamInfo {...props}/>
                 <MemoizedRelatedContent {...props} handleAddToCart={handleAddToCart} handleBuyNow={handleBuyNow} getProductsForSeller={props.getProductsForSeller} />
             </div>
@@ -1978,3 +2016,5 @@ const StreamPage = () => {
 };
 
 export default StreamPage;
+
+    
