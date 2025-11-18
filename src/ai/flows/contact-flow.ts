@@ -6,7 +6,7 @@
 
 import { z } from 'zod';
 import { getFirebaseAdminApp } from '@/lib/firebase-server';
-import { getFirestore, collection, addDoc, serverTimestamp, query, getDocs, orderBy, doc, updateDoc } from 'firebase-admin/firestore';
+import { getFirestore, serverTimestamp } from 'firebase-admin/firestore';
 
 const InquirySchema = z.object({
   name: z.string(),
@@ -27,7 +27,7 @@ export async function submitInquiry(inquiryData: Omit<Inquiry, 'createdAt'>): Pr
   const db = getFirestore(getFirebaseAdminApp());
   const validatedData = InquirySchema.omit({ createdAt: true }).parse(inquiryData);
 
-  const docRef = await addDoc(collection(db, 'inquiries'), {
+  const docRef = await db.collection('inquiries').add({
     ...validatedData,
     createdAt: serverTimestamp(),
   });
@@ -37,10 +37,10 @@ export async function submitInquiry(inquiryData: Omit<Inquiry, 'createdAt'>): Pr
 
 export async function getInquiries(): Promise<(Inquiry & { id: string })[]> {
   const db = getFirestore(getFirebaseAdminApp());
-  const inquiriesRef = collection(db, 'inquiries');
-  const q = query(inquiriesRef, orderBy('createdAt', 'desc'));
+  const inquiriesRef = db.collection('inquiries');
+  const q = inquiriesRef.orderBy('createdAt', 'desc');
   
-  const snapshot = await getDocs(q);
+  const snapshot = await q.get();
   if (snapshot.empty) {
     return [];
   }
@@ -57,17 +57,17 @@ export async function getInquiries(): Promise<(Inquiry & { id: string })[]> {
 
 export async function updateInquiry(inquiryId: string, updates: Partial<Inquiry>): Promise<void> {
     const db = getFirestore(getFirebaseAdminApp());
-    const inquiryRef = doc(db, 'inquiries', inquiryId);
-    await updateDoc(inquiryRef, updates);
+    const inquiryRef = db.collection('inquiries').doc(inquiryId);
+    await inquiryRef.update(updates);
 }
 
 export async function convertInquiryToTicket(inquiryId: string): Promise<string> {
     const db = getFirestore(getFirebaseAdminApp());
-    const inquiryRef = doc(db, 'inquiries', inquiryId);
+    const inquiryRef = db.collection('inquiries').doc(inquiryId);
     
     // In a real app, you'd create a new ticket in a 'tickets' collection.
     // For this demo, we'll just update the inquiry status.
-    await updateDoc(inquiryRef, { status: "Open", isArchived: true });
+    await inquiryRef.update({ status: "Open", isArchived: true });
 
     // This would be the new ticket ID
     return `TCK-${Date.now()}`;
