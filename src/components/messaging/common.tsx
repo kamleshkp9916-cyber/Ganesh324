@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -8,14 +7,14 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useAuth } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
-import { UserData, getUserData } from "@/lib/follow-data";
+import { UserData } from "@/lib/follow-data";
 import { ArrowLeft, Menu, MoreVertical, Search, Send, Trash2, CheckCheck, Check, Flag, Paperclip, FileText, PlusCircle, Home, Pin, Award, History, Gavel, ShoppingBag, X, Smile, Reply, TicketX } from "lucide-react";
 import { useEffect, useMemo, useRef, useState, useCallback, forwardRef } from "react";
 import { Skeleton } from "../ui/skeleton";
 import { useIsMobile } from "@/hooks/use-is-mobile";
 import { useSidebar } from "../ui/sidebar";
 import { onSnapshot, collection, query, orderBy, getFirestore, doc, Timestamp, addDoc, serverTimestamp, updateDoc, increment, getDoc } from 'firebase/firestore';
-import { getFirestoreDb } from "@/lib/firebase";
+import { getFirestoreDb } from "@/lib/firebase-db";
 import { format } from "date-fns";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from "../ui/dropdown-menu";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
@@ -433,3 +432,5 @@ export const ChatWindow = ({ conversation, userData, onBack, messages: initialMe
         </div>
     );
 };
+
+    
