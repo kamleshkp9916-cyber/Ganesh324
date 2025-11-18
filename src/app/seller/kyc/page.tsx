@@ -194,25 +194,42 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
     }
   }, [form.phone, existingData?.phone]);
 
-  const handleSendOtp = (type: 'email' | 'phone' | 'aadhaar') => {
-      setOtpSent(prev => ({...prev, [type]: true}));
-      toast({ title: `OTP Sent to your ${type}` });
+  const handleSendOtp = async (type: 'email' | 'phone') => {
+      const target = type === 'email' ? form.email : form.phone;
+      if (!target) return;
+      
+      const { firebaseApp } = initializeFirebase();
+      const functions = getFunctions(firebaseApp);
+      const sendCode = httpsCallable(functions, 'sendVerificationCode');
+
+      try {
+          await sendCode({ [type]: target, type });
+          setOtpSent(prev => ({...prev, [type]: true}));
+          toast({ title: `OTP Sent to your ${type}` });
+      } catch (error) {
+          console.error(`Error sending ${type} OTP:`, error);
+          toast({ variant: 'destructive', title: `Failed to send ${type} OTP` });
+      }
   };
 
-  const handleVerifyOtp = (type: 'email' | 'phone' | 'aadhaar') => {
-      const otp = type === 'email' ? form.emailOtp : type === 'phone' ? form.phoneOtp : form.aadhaarOtp;
-      if (otp !== '1234') { // Mock OTPs
-          toast({ variant: 'destructive', title: `Invalid ${type} OTP` });
-          return;
-      }
+  const handleVerifyOtp = async (type: 'email' | 'phone') => {
+      const otp = type === 'email' ? form.emailOtp : form.phoneOtp;
+      if (otp.length < 4) return;
+      
+      const { firebaseApp } = initializeFirebase();
+      const functions = getFunctions(firebaseApp);
+      const verifyCode = httpsCallable(functions, 'verifyCode');
+      
       setIsVerifying(prev => ({...prev, [type]: true }));
-      setTimeout(() => {
-          if(type !== 'aadhaar') {
-            setField(`${type}Verified`, true);
-          }
+      try {
+          await verifyCode({ code: otp, type });
+          setField(`${type}Verified`, true);
           toast({ title: `${type.charAt(0).toUpperCase() + type.slice(1)} Verified!` });
+      } catch (error: any) {
+          toast({ variant: 'destructive', title: `Invalid ${type} OTP`, description: error.message });
+      } finally {
           setIsVerifying(prev => ({ ...prev, [type]: false }));
-      }, 1000);
+      }
   };
 
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -800,5 +817,3 @@ export default function KYCPage() {
         </div>
     );
 }
-
-    
