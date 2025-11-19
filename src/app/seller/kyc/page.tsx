@@ -237,9 +237,9 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
   }, [form.pan]);
 
   const handleSendOtp = async (type: 'email' | 'phone') => {
-    const target = type === 'email' ? form.email : `+91 ${form.phone}`;
+    const target = type === 'email' ? form.email : form.phone; // Assuming form.phone is just the 10-digit number
     if (!target) return;
-    
+
     setIsVerifying(prev => ({...prev, [type]: true}));
     
     try {
@@ -262,7 +262,7 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
 
   const handleVerifyOtp = async (type: 'email' | 'phone') => {
     const otp = type === 'email' ? form.emailOtp : form.phoneOtp;
-    const target = type === 'email' ? form.email : `+91 ${form.phone}`;
+    const target = type === 'email' ? form.email : form.phone;
     
     setIsVerifying(prev => ({...prev, [type]: true}));
     
@@ -386,7 +386,6 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
 
   return (
     <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
-      <Progress value={progress} className="w-full xl:col-span-4 h-1"/>
       <div className="xl:col-span-1 space-y-3">
         <Card className="rounded-2xl">
           <CardHeader className="pb-3">
@@ -398,6 +397,7 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
                 <StepPill key={s.key} index={i + 1} label={s.label} active={current === i} complete={i < current} />
               ))}
             </div>
+             <Progress value={progress} className="w-full mt-2 h-1"/>
           </CardContent>
         </Card>
         <Card className="rounded-2xl">
@@ -454,20 +454,18 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
                   </div>
                   {!existingData && (
                     <>
-                    <div className="grid md:grid-cols-2 gap-4 items-start">
-                       <div className="flex flex-col gap-2">
-                          <label className="text-sm">Email</label>
-                          <div className="flex items-center gap-2">
-                              <Input value={form.email} onChange={(e) => { setEmailError(''); setField("email", e.target.value); }} onBlur={checkEmailExists} placeholder="you@shop.com" disabled={form.emailVerified} className="flex-grow"/>
-                              <Button type="button" onClick={() => handleSendOtp('email')} disabled={resendCooldown.email > 0 || form.emailVerified || !!emailError || !/.+@.+\..+/.test(form.email) || isVerifying.email} className="flex-shrink-0">
-                                  {isVerifying.email ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : form.emailVerified ? <Check className="mr-2 h-4 w-4"/> : <Send className="mr-2 h-4 w-4"/>}
-                                  {form.emailVerified ? 'Verified' : resendCooldown.email > 0 ? `Resend in ${resendCooldown.email}s` : 'Send OTP'}
-                              </Button>
-                          </div>
-                         {emailError ? <p className="text-xs text-destructive mt-1">{emailError}</p> : <p className="text-xs text-muted-foreground mt-1">This email will be used for login and official communication.</p>}
-                       </div>
+                    <div className="grid md:grid-cols-[1fr,auto] gap-2 items-end">
+                      <div className="space-y-1">
+                        <label className="text-sm">Email</label>
+                        <Input value={form.email} onChange={(e) => { setEmailError(''); setField("email", e.target.value); }} onBlur={checkEmailExists} placeholder="you@shop.com" disabled={form.emailVerified} className="flex-grow"/>
+                      </div>
+                      <Button type="button" onClick={() => handleSendOtp('email')} disabled={resendCooldown.email > 0 || form.emailVerified || !!emailError || !/.+@.+\..+/.test(form.email) || isVerifying.email} className="flex-shrink-0">
+                          {isVerifying.email ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : form.emailVerified ? <Check className="mr-2 h-4 w-4"/> : <Send className="mr-2 h-4 w-4"/>}
+                          {form.emailVerified ? 'Verified' : resendCooldown.email > 0 ? `Resend in ${resendCooldown.email}s` : 'Send OTP'}
+                      </Button>
+                       {emailError ? <p className="text-xs text-destructive mt-1 col-span-2">{emailError}</p> : <p className="text-xs text-muted-foreground mt-1 col-span-2">This email will be used for login and official communication.</p>}
                        {otpSent.email && !form.emailVerified && (
-                          <div className="flex items-end gap-2 pt-5">
+                          <div className="flex items-end gap-2 md:col-span-2">
                               <InputOTP maxLength={6} value={form.emailOtp} onChange={(val) => setField("emailOtp", val)}>
                                   <InputOTPGroup>
                                       <InputOTPSlot index={0} /><InputOTPSlot index={1} /><InputOTPSlot index={2} />
@@ -481,20 +479,18 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
                           </div>
                       )}
                     </div>
-                     <div className="grid md:grid-cols-2 gap-4 items-start">
-                        <div className="flex flex-col gap-2">
+                     <div className="grid md:grid-cols-[1fr,auto] gap-2 items-end">
+                        <div className="space-y-1">
                             <label className="text-sm">Phone</label>
-                            <div className="flex items-center gap-2">
-                                <Input value={form.phone} onChange={(e) => { setPhoneError(''); setField("phone", e.target.value.replace(/[^0-9]/g, "").slice(0,10)); }} onBlur={checkPhoneExists} placeholder="10‑digit mobile" disabled={form.phoneVerified} className="flex-grow"/>
-                                <Button type="button" onClick={() => handleSendOtp('phone')} disabled={resendCooldown.phone > 0 || form.phoneVerified || !!phoneError || form.phone.length !== 10 || isVerifying.phone} className="flex-shrink-0">
-                                {isVerifying.phone ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : form.phoneVerified ? <Check className="mr-2 h-4 w-4"/> : <Send className="mr-2 h-4 w-4"/>}
-                                {form.phoneVerified ? 'Verified' : resendCooldown.phone > 0 ? `Resend in ${resendCooldown.phone}s` : 'Send OTP'}
-                                </Button>
-                            </div>
-                            {phoneError ? <p className="text-xs text-destructive mt-1">{phoneError}</p> : <p className="text-xs text-muted-foreground mt-1">Used for verification and support communication.</p>}
+                            <Input value={form.phone} onChange={(e) => { setPhoneError(''); setField("phone", e.target.value.replace(/[^0-9]/g, "").slice(0,10)); }} onBlur={checkPhoneExists} placeholder="10‑digit mobile" disabled={form.phoneVerified} className="flex-grow"/>
                         </div>
+                        <Button type="button" onClick={() => handleSendOtp('phone')} disabled={resendCooldown.phone > 0 || form.phoneVerified || !!phoneError || form.phone.length !== 10 || isVerifying.phone} className="flex-shrink-0">
+                          {isVerifying.phone ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : form.phoneVerified ? <Check className="mr-2 h-4 w-4"/> : <Send className="mr-2 h-4 w-4"/>}
+                          {form.phoneVerified ? 'Verified' : resendCooldown.phone > 0 ? `Resend in ${resendCooldown.phone}s` : 'Send OTP'}
+                        </Button>
+                        {phoneError ? <p className="text-xs text-destructive mt-1 col-span-2">{phoneError}</p> : <p className="text-xs text-muted-foreground mt-1 col-span-2">Used for verification and support communication.</p>}
                         {otpSent.phone && !form.phoneVerified && (
-                            <div className="flex items-end gap-2 pt-5">
+                            <div className="flex items-end gap-2 md:col-span-2">
                                 <InputOTP maxLength={6} value={form.phoneOtp} onChange={(val) => setField("phoneOtp", val)}>
                                     <InputOTPGroup>
                                         <InputOTPSlot index={0} /><InputOTPSlot index={1} /><InputOTPSlot index={2} />
@@ -776,6 +772,10 @@ export default function KYCPage() {
         setIsClient(true);
     }, []);
     
+    const initialProgress = useMemo(() => {
+        return Math.round(((0 + 1) / (steps.length)) * 100);
+    }, []);
+    
     useEffect(() => {
         if (isClient && authReady) {
             if (user && userData?.role === 'seller' && userData?.verificationStatus === 'verified') {
@@ -836,7 +836,7 @@ export default function KYCPage() {
     if (userData?.verificationStatus === 'needs-resubmission') {
         return (
             <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white">
-                <Progress value={useMemo(() => Math.round(((0 + 1) / (steps.length)) * 100), [0])} className="w-full fixed top-0 left-0 right-0 h-1 z-50"/>
+                <Progress value={initialProgress} className="w-full fixed top-0 left-0 right-0 h-1 z-50"/>
                 <div className="max-w-7xl mx-auto space-y-6 p-6 md:p-10 pt-8">
                     <div className="flex items-center justify-between">
                         <Button asChild variant="ghost" className="-ml-4">
@@ -878,7 +878,7 @@ export default function KYCPage() {
     
     return (
         <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white">
-            <Progress value={useMemo(() => Math.round(((0 + 1) / (steps.length)) * 100), [0])} className="w-full fixed top-0 left-0 right-0 h-1 z-50"/>
+            <Progress value={initialProgress} className="w-full fixed top-0 left-0 right-0 h-1 z-50"/>
             <div className="max-w-7xl mx-auto space-y-6 p-6 md:p-10 pt-8">
                  <div className="flex items-center justify-between">
                   <Button asChild variant="ghost" className="-ml-4">
@@ -897,3 +897,5 @@ export default function KYCPage() {
         </div>
     );
 }
+
+    
