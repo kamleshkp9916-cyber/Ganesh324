@@ -76,7 +76,7 @@ function hashOtp(otp, salt) {
   return crypto.createHmac("sha256", salt).update(otp).digest("hex");
 }
 
-exports.sendVerificationCode = onCall(async (request) => {
+exports.sendVerificationCode = onCall({ secrets: ["MAILERSEND_KEY"] }, async (request) => {
     const { target, type } = request.data;
     if (!target || !type) {
         throw new HttpsError('invalid-argument', 'The function must be called with a "target" and "type" argument.');
@@ -479,3 +479,5 @@ exports.notifyDeliveryPartner = onRequest(async (req, res) => {
 
     res.status(200).json({ success: true, message: `Delivery partner notified for order ${orderId}` });
 });
+
+    
