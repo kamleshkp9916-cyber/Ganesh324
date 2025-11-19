@@ -92,5 +92,15 @@ service cloud.firestore {
         // Sellers can read their own payout requests.
         allow list: if isSignedIn() && request.query.where.sellerId == request.auth.uid;
     }
+
+    /**
+     * @description Manages OTP requests.
+     * Anyone can create an OTP request, but no one can read or update them.
+     * This prevents leaking OTPs or tampering with verification.
+     */
+    match /otp_requests/{requestId} {
+      allow create: if true;
+      allow read, update, delete, list: if false; // Secure: No one can read OTPs
+    }
   }
 }

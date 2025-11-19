@@ -1,10 +1,10 @@
 import { NextResponse } from 'next/server';
 import { MailerSend, EmailParams, Recipient } from 'mailersend';
 import crypto from 'crypto';
+import { getFirebaseAdminApp } from '@/lib/firebase-server';
+import { getFirestore } from 'firebase-admin/firestore';
 
 const OTP_TTL = 300; // 5 minutes
-// In a real app, this should be a persistent store like Redis or Firestore
-const otpStore = new Map();
 
 function generateOtp() {
   return String(Math.floor(100000 + Math.random() * 900000)); // 6-digit OTP
@@ -17,22 +17,32 @@ function hashOtp(otp: string, salt: string) {
 export async function POST(request: Request) {
   try {
     const { email, phone } = await request.json();
+    const target = email || phone;
+    const type = email ? 'email' : 'phone';
 
-    if (!email && !phone) {
+    if (!target) {
       return NextResponse.json({ error: "Email or phone is required" }, { status: 400 });
     }
 
+    const otp = generateOtp();
+    const salt = crypto.randomBytes(16).toString("hex");
+    const otpHash = hashOtp(otp, salt);
+    const expiresAt = new Date(Date.now() + OTP_TTL * 1000);
+
+    // Save the hashed OTP to Firestore instead of an in-memory map
+    const db = getFirestore(getFirebaseAdminApp());
+    await db.collection('otp_requests').doc(target).set({
+      type,
+      otpHash,
+      salt,
+      expiresAt,
+      attempts: 0,
+    });
+
     if (email) {
       const mailer = new MailerSend({
-        apiKey: process.env.MAILERSEND_KEY || "",
+        apiKey: process.env.MAILERSEND_API_KEY || "",
       });
-
-      const otp = generateOtp();
-      const salt = crypto.randomBytes(16).toString("hex");
-      const otpHash = hashOtp(otp, salt);
-      const expiresAt = Date.now() + OTP_TTL * 1000;
-
-      otpStore.set(email, { otpHash, salt, expiresAt, attempts: 0 });
 
       const params = new EmailParams()
         .setFrom({ email: 'no-reply@nipher.in', name: 'Nipher OTP' })
@@ -45,15 +55,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: true, message: "OTP sent to email." });
 
     } else if (phone) {
-      // SMS sending logic would go here
-      // For now, we just simulate success
-      console.log(`Simulating sending OTP to phone: ${phone}`);
-      const otp = '123456'; // Use fixed OTP for phone for now
-      const salt = crypto.randomBytes(16).toString("hex");
-      const otpHash = hashOtp(otp, salt);
-      const expiresAt = Date.now() + OTP_TTL * 1000;
-      otpStore.set(phone, { otpHash, salt, expiresAt, attempts: 0 });
-
+      // SMS sending logic would go here using a service like Twilio
+      console.log(`Simulating sending OTP ${otp} to phone: ${phone}`);
       return NextResponse.json({ success: true, message: "OTP sent to phone (simulation)." });
     }
 

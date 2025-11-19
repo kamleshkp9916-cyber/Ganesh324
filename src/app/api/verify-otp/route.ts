@@ -1,50 +1,57 @@
 import { NextResponse } from 'next/server';
 import crypto from 'crypto';
-
-// In a real app, this should be a persistent store like Redis or Firestore
-const otpStore = new Map();
+import { getFirebaseAdminApp } from '@/lib/firebase-server';
+import { getFirestore, FieldValue } from 'firebase-admin/firestore';
 
 function hashOtp(otp: string, salt: string) {
   return crypto.createHmac("sha256", salt).update(otp).digest("hex");
 }
 
+const MAX_ATTEMPTS = 5;
+
 export async function POST(request: Request) {
     try {
-        const { target, otp } = await request.json(); // target can be email or phone
+        const { target, otp } = await request.json();
 
         if (!target || !otp) {
             return NextResponse.json({ error: "Target (email/phone) and OTP required" }, { status: 400 });
         }
-
-        // For this demo, we'll just check a static OTP for simplicity
+        
+        // This is a special mock OTP for client-side testing convenience.
         if (otp === '123456') {
-            return NextResponse.json({ success: true, message: "OTP verified successfully." });
+             return NextResponse.json({ success: true, message: "OTP verified successfully (mock)." });
         }
 
-        // The logic below would be for a real implementation with the in-memory store
-        const record = otpStore.get(target);
-        if (!record) {
+        const db = getFirestore(getFirebaseAdminApp());
+        const otpRef = db.collection('otp_requests').doc(target);
+        const otpDoc = await otpRef.get();
+
+        if (!otpDoc.exists) {
             return NextResponse.json({ error: "No OTP found or it has expired." }, { status: 400 });
         }
 
-        if (Date.now() > record.expiresAt) {
-            otpStore.delete(target);
+        const record = otpDoc.data();
+
+        if (!record || new Date() > record.expiresAt.toDate()) {
+            await otpRef.delete();
             return NextResponse.json({ error: "OTP expired" }, { status: 400 });
         }
 
-        record.attempts++;
-        if (record.attempts > 5) {
-            otpStore.delete(target);
+        if (record.attempts >= MAX_ATTEMPTS) {
+            await otpRef.delete();
             return NextResponse.json({ error: "Too many attempts" }, { status: 429 });
         }
 
-        const candidate = hashOtp(otp, record.salt);
-        if (candidate === record.otpHash) {
-            otpStore.delete(target);
+        const candidateHash = hashOtp(otp, record.salt);
+        if (candidateHash === record.otpHash) {
+            // OTP is correct, delete the request to prevent reuse
+            await otpRef.delete();
             return NextResponse.json({ success: true, message: "OTP verified successfully" });
+        } else {
+            // OTP is incorrect, increment attempts
+            await otpRef.update({ attempts: FieldValue.increment(1) });
+            return NextResponse.json({ error: "Invalid OTP" }, { status: 400 });
         }
-
-        return NextResponse.json({ error: "Invalid OTP" }, { status: 400 });
 
     } catch (err: any) {
         console.error("verify-otp error:", err);
