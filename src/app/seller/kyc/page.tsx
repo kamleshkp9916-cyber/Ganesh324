@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import React, { useMemo, useState, useEffect, useCallback, useRef } from "react";
@@ -128,10 +127,11 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
       if (isFormDirty) {
         setForm(form);
         setIsFormDirty(false); // Reset dirty state after saving
+        toast({title: "Draft Saved!"});
       }
     }, 1500); // Save after 1.5 seconds of inactivity
     return () => clearTimeout(handler);
-  }, [form, isFormDirty, setForm]);
+  }, [form, isFormDirty, setForm, toast]);
 
 
   useEffect(() => {
@@ -175,15 +175,8 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
   }, [verif.state]);
 
   const canGoToStep = (stepIndex: number) => {
-    switch(stepIndex) {
-        case 0: return true;
-        case 1: return isStep1Valid;
-        case 2: return isStep1Valid && isStep2Valid;
-        case 3: return isStep1Valid && isStep2Valid && isStep3Valid;
-        case 4: return isStep1Valid && isStep2Valid && isStep3Valid && isStep4Valid;
-        case 5: return isStep1Valid && isStep2Valid && isStep3Valid && isStep4Valid && isStep5Valid;
-        default: return true;
-    }
+    // Temporarily enabled for UI review
+    return true;
   }
 
   const progress = useMemo(() => Math.round(((current) / (steps.length - 1)) * 100), [current]);
@@ -407,7 +400,7 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
           <CardContent className="space-y-2">
             <div className="flex items-center gap-2 text-sm">
                 <Badge>{existingData?.verificationStatus?.toUpperCase() || 'Draft'}</Badge>
-                 <Button variant="outline" size="sm" onClick={() => setForm(form)} disabled={!isFormDirty}>
+                 <Button variant="outline" size="sm" onClick={() => { setForm(form); toast({title: "Draft Saved!"}); }} disabled={!isFormDirty}>
                     <Save className="w-4 h-4 mr-2"/>
                     Save Draft
                 </Button>
@@ -459,8 +452,8 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
                     <div className="grid md:grid-cols-2 gap-4 items-start">
                        <div className="space-y-2">
                           <label className="text-sm">Email</label>
-                          <div className="flex items-end gap-2">
-                              <Input value={form.email} onChange={(e) => { setEmailError(''); setField("email", e.target.value); }} onBlur={checkEmailExists} placeholder="you@shop.com" disabled={form.emailVerified} />
+                          <div className="flex items-center gap-2">
+                              <Input value={form.email} onChange={(e) => { setEmailError(''); setField("email", e.target.value); }} onBlur={checkEmailExists} placeholder="you@shop.com" disabled={form.emailVerified} className="flex-grow"/>
                               <Button type="button" onClick={() => handleSendOtp('email')} disabled={resendCooldown.email > 0 || form.emailVerified || !!emailError || !/.+@.+\..+/.test(form.email) || isVerifying.email} className="flex-shrink-0">
                                   {isVerifying.email ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : form.emailVerified ? <Check className="mr-2 h-4 w-4"/> : <Send className="mr-2 h-4 w-4"/>}
                                   {form.emailVerified ? 'Verified' : resendCooldown.email > 0 ? `Resend in ${resendCooldown.email}s` : 'Send OTP'}
@@ -486,8 +479,8 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
                      <div className="grid md:grid-cols-2 gap-4 items-start">
                         <div className="space-y-2">
                             <label className="text-sm">Phone</label>
-                            <div className="flex items-end gap-2">
-                                <Input value={form.phone} onChange={(e) => { setPhoneError(''); setField("phone", e.target.value.replace(/[^0-9]/g, "").slice(0,10)); }} onBlur={checkPhoneExists} placeholder="10‑digit mobile" disabled={form.phoneVerified}/>
+                            <div className="flex items-center gap-2">
+                                <Input value={form.phone} onChange={(e) => { setPhoneError(''); setField("phone", e.target.value.replace(/[^0-9]/g, "").slice(0,10)); }} onBlur={checkPhoneExists} placeholder="10‑digit mobile" disabled={form.phoneVerified} className="flex-grow"/>
                                 <Button type="button" onClick={() => handleSendOtp('phone')} disabled={resendCooldown.phone > 0 || form.phoneVerified || !!phoneError || form.phone.length !== 10 || isVerifying.phone} className="flex-shrink-0">
                                 {isVerifying.phone ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : form.phoneVerified ? <Check className="mr-2 h-4 w-4"/> : <Send className="mr-2 h-4 w-4"/>}
                                 {form.phoneVerified ? 'Verified' : resendCooldown.phone > 0 ? `Resend in ${resendCooldown.phone}s` : 'Send OTP'}
