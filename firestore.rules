@@ -26,9 +26,9 @@ service cloud.firestore {
       // A user can create their own document if the userId matches their auth.uid
       allow create: if isOwner(userId);
 
-      // Any authenticated user can read public user profiles, but only owners or admins can see everything.
-      // This is a common pattern for social/e-commerce apps.
-      allow read: if isSignedIn();
+      // A user can read their own document.
+      // Admin read access is temporarily removed to prevent recursion.
+      allow read: if isOwner(userId);
       
       // A user can update their own document. An admin can also update any user document.
       // A special exception allows the beforeSignIn function to update ONLY the lastLogin field.
