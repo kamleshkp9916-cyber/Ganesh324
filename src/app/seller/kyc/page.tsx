@@ -223,32 +223,31 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
   }, [form.pan]);
 
   const handleSendOtp = async (type: 'email' | 'phone') => {
-      const target = type === 'email' ? form.email : form.phone;
+      const target = type === 'email' ? form.email : `+91${form.phone}`;
       if (!target) return;
+      
+      const { firebaseApp } = initializeFirebase();
+      const functions = getFunctions(firebaseApp);
+      const sendVerificationCode = httpsCallable(functions, 'sendVerificationCode');
 
       try {
-          const res = await fetch('/api/send-otp', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ [type]: target }),
-          });
-
-          if (!res.ok) {
-              throw new Error('Failed to send OTP');
+          const result = await sendVerificationCode({ target, type });
+          if ((result.data as any).success) {
+              setOtpSent(prev => ({...prev, [type]: true}));
+              setResendCooldown(prev => ({ ...prev, [type]: 60 }));
+              toast({ title: `OTP Sent to your ${type}` });
+          } else {
+              throw new Error((result.data as any).error || 'Failed to send OTP');
           }
-
-          setOtpSent(prev => ({...prev, [type]: true}));
-          setResendCooldown(prev => ({ ...prev, [type]: 60 }));
-          toast({ title: `OTP Sent to your ${type}` });
-      } catch (error) {
+      } catch (error: any) {
           console.error(`Error sending ${type} OTP:`, error);
-          toast({ variant: 'destructive', title: `Failed to send ${type} OTP` });
+          toast({ variant: 'destructive', title: `Failed to send ${type} OTP`, description: error.message });
       }
   };
 
   const handleVerifyOtp = async (type: 'email' | 'phone') => {
     const otp = type === 'email' ? form.emailOtp : form.phoneOtp;
-    const target = type === 'email' ? form.email : form.phone;
+    const target = type === 'email' ? form.email : `+91${form.phone}`;
     if (otp !== '123456') { // Static OTP check
         toast({ variant: "destructive", title: "Invalid OTP" });
         return;
@@ -400,10 +399,12 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
                     <div>
                       <label className="text-sm">Legal name</label>
                       <Input value={form.legalName} onChange={(e)=>setField("legalName", e.target.value)} placeholder="As per ID"/>
+                       <p className="text-xs text-muted-foreground mt-1">This name must match your legal documents (e.g., PAN card).</p>
                     </div>
                     <div>
                       <label className="text-sm">Shop display name</label>
                       <Input value={form.displayName} onChange={(e)=>setField("displayName", e.target.value)} placeholder="Unique store name"/>
+                        <p className="text-xs text-muted-foreground mt-1">This is the name customers will see.</p>
                     </div>
                   </div>
                   {!existingData && (
@@ -413,6 +414,7 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
                           <label className="text-sm">Email</label>
                           <Input value={form.email} onChange={(e) => { setEmailError(''); setField("email", e.target.value); }} onBlur={checkEmailExists} placeholder="you@shop.com" disabled={form.emailVerified} />
                            {emailError && <p className="text-xs text-destructive mt-1">{emailError}</p>}
+                           {!emailError && <p className="text-xs text-muted-foreground mt-1">This email will be used for login and official communication.</p>}
                         </div>
                         <Button type="button" onClick={() => handleSendOtp('email')} disabled={resendCooldown.email > 0 || form.emailVerified || !!emailError || !/.+@.+\..+/.test(form.email)}>
                             {form.emailVerified ? <Check className="mr-2 h-4 w-4"/> : <Send className="mr-2 h-4 w-4"/>}
@@ -439,6 +441,7 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
                           <label className="text-sm">Phone</label>
                           <Input value={form.phone} onChange={(e) => { setPhoneError(''); setField("phone", e.target.value.replace(/[^0-9]/g, "").slice(0,10)); }} onBlur={checkPhoneExists} placeholder="10‑digit mobile" disabled={form.phoneVerified}/>
                           {phoneError && <p className="text-xs text-destructive mt-1">{phoneError}</p>}
+                          {!phoneError && <p className="text-xs text-muted-foreground mt-1">Used for verification and support communication.</p>}
                         </div>
                         <Button type="button" onClick={() => handleSendOtp('phone')} disabled={resendCooldown.phone > 0 || form.phoneVerified || !!phoneError || form.phone.length !== 10}>
                            {form.phoneVerified ? <Check className="mr-2 h-4 w-4"/> : <Send className="mr-2 h-4 w-4"/>}
@@ -846,5 +849,3 @@ export default function KYCPage() {
         </div>
     );
 }
-
-    
