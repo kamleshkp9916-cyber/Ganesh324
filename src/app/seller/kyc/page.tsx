@@ -223,14 +223,14 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
   }, [form.pan]);
 
   const handleSendOtp = async (type: 'email' | 'phone') => {
-    const email = type === 'email' ? form.email : undefined;
-    if (type === 'email' && !email) return;
+    const target = type === 'email' ? form.email : form.phone;
+    if (!target) return;
 
     try {
-        await fetch("http://localhost:3000/send-otp", {
+        await fetch("/api/send-otp", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email }),
+          body: JSON.stringify({ email: form.email, phone: form.phone, type }),
         });
         setOtpSent(prev => ({...prev, [type]: true}));
         setResendCooldown(prev => ({ ...prev, [type]: 60 }));
@@ -243,13 +243,12 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
 
   const handleVerifyOtp = async (type: 'email' | 'phone') => {
     const otp = type === 'email' ? form.emailOtp : form.phoneOtp;
-    const email = type === 'email' ? form.email : undefined;
-
+    
     try {
-        const response = await fetch("http://localhost:3000/verify-otp", {
+        const response = await fetch("/api/verify-otp", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, otp }),
+          body: JSON.stringify({ email: form.email, phone: form.phone, otp, type }),
         });
         const data = await response.json();
         if (data.ok) {
