@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import React, { useMemo, useState, useEffect, useCallback, useRef } from "react";
@@ -28,9 +29,8 @@ import { Separator } from "@/components/ui/separator";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useAuthActions } from "@/lib/auth";
 import { getFirestore, collection, query, where, getDocs } from "firebase/firestore";
-import { getFirestoreDb } from "@/lib/firebase-db";
-import { getFunctions, httpsCallable } from 'firebase/functions';
 import { initializeFirebase } from "@/firebase";
+import { getFunctions, httpsCallable } from 'firebase/functions';
 import { useLocalStorage } from "@/hooks/use-local-storage";
 
 const SELLER_KYC_DRAFT_KEY = 'sellerKycDraft';
@@ -127,10 +127,13 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
     const handler = setTimeout(() => {
       if (isFormDirty) {
         setForm(form);
+        setIsFormDirty(false); // Reset dirty state after saving
+        toast({ title: "Draft Saved", description: "Your progress has been saved automatically." });
       }
-    }, 1000);
+    }, 1500); // Save after 1.5 seconds of inactivity
     return () => clearTimeout(handler);
-  }, [form, isFormDirty, setForm]);
+  }, [form, isFormDirty, setForm, toast]);
+
 
   useEffect(() => {
     let timer: NodeJS.Timeout;
@@ -247,17 +250,22 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
     
     setIsVerifying(prev => ({...prev, [type]: true}));
     
-    const functions = getFunctions(initializeFirebase().firebaseApp);
-    const sendCode = httpsCallable(functions, 'sendVerificationCode');
-
     try {
-        await sendCode({ type, target });
-        setOtpSent(prev => ({...prev, [type]: true}));
-        setResendCooldown(prev => ({ ...prev, [type]: 60 }));
-        toast({ title: `OTP Sent to your ${type}` });
+      const response = await fetch("/api/send-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type, target }),
+      });
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || `Failed to send ${type} OTP`);
+      }
+      setOtpSent(prev => ({...prev, [type]: true}));
+      setResendCooldown(prev => ({ ...prev, [type]: 60 }));
+      toast({ title: `OTP Sent to your ${type}` });
     } catch (error: any) {
-        console.error(`Error sending ${type} OTP:`, error);
-        toast({ variant: 'destructive', title: `Failed to send ${type} OTP`, description: error.message });
+      console.error(`Error sending ${type} OTP:`, error);
+      toast({ variant: 'destructive', title: `Failed to send ${type} OTP`, description: error.message });
     } finally {
       setIsVerifying(prev => ({...prev, [type]: false}));
     }
@@ -268,20 +276,23 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
     const target = type === 'email' ? form.email : `+91 ${form.phone}`;
     
     setIsVerifying(prev => ({...prev, [type]: true}));
-
-    const functions = getFunctions(initializeFirebase().firebaseApp);
-    const verifyCode = httpsCallable(functions, 'verifyCode');
     
     try {
-        const result: any = await verifyCode({ target, otp });
-        if (result.data.success) {
-            setField(`${type}Verified`, true);
-            toast({ title: `${type.charAt(0).toUpperCase() + type.slice(1)} Verified!` });
-        } else {
-            throw new Error(result.data.message || 'Invalid OTP');
-        }
+      const response = await fetch("/api/verify-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ target, otp }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Invalid OTP');
+      }
+
+      setField(`${type}Verified`, true);
+      toast({ title: `${type.charAt(0).toUpperCase() + type.slice(1)} Verified!` });
     } catch (error: any) {
-        toast({ variant: 'destructive', title: "Verification Failed", description: error.message });
+        toast({ variant: "destructive", title: "Verification Failed", description: error.message });
     } finally {
         setIsVerifying(prev => ({...prev, [type]: false}));
     }
@@ -451,8 +462,8 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
                   </div>
                   {!existingData && (
                     <>
-                    <div className="grid md:grid-cols-[1fr,auto] gap-2 items-end">
-                        <div>
+                    <div className="flex items-end gap-2">
+                        <div className="flex-grow space-y-1">
                           <label className="text-sm">Email</label>
                           <Input value={form.email} onChange={(e) => { setEmailError(''); setField("email", e.target.value); }} onBlur={checkEmailExists} placeholder="you@shop.com" disabled={form.emailVerified} />
                            {emailError && <p className="text-xs text-destructive mt-1">{emailError}</p>}
@@ -478,8 +489,8 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
                         </div>
                     )}
 
-                    <div className="grid md:grid-cols-[1fr,auto] gap-2 items-end">
-                        <div>
+                    <div className="flex items-end gap-2">
+                        <div className="flex-grow space-y-1">
                           <label className="text-sm">Phone</label>
                           <Input value={form.phone} onChange={(e) => { setPhoneError(''); setField("phone", e.target.value.replace(/[^0-9]/g, "").slice(0,10)); }} onBlur={checkPhoneExists} placeholder="10‑digit mobile" disabled={form.phoneVerified}/>
                           {phoneError && <p className="text-xs text-destructive mt-1">{phoneError}</p>}
@@ -891,5 +902,3 @@ export default function KYCPage() {
         </div>
     );
 }
-
-    
