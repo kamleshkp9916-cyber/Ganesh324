@@ -216,13 +216,18 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
   const handleSendOtp = async (type: 'email' | 'phone') => {
       const target = type === 'email' ? form.email : form.phone;
       if (!target) return;
-      
-      const { firebaseApp } = initializeFirebase();
-      const functions = getFunctions(firebaseApp);
-      const sendCode = httpsCallable(functions, 'sendVerificationCode');
 
       try {
-          await sendCode({ [type]: target, type });
+          const res = await fetch('/api/send-otp', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ [type]: target }),
+          });
+
+          if (!res.ok) {
+              throw new Error('Failed to send OTP');
+          }
+
           setOtpSent(prev => ({...prev, [type]: true}));
           setResendCooldown(prev => ({ ...prev, [type]: 60 }));
           toast({ title: `OTP Sent to your ${type}` });
@@ -232,14 +237,28 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
       }
   };
 
-  const handleVerifyOtp = (type: 'email' | 'phone') => {
+  const handleVerifyOtp = async (type: 'email' | 'phone') => {
     const otp = type === 'email' ? form.emailOtp : form.phoneOtp;
-    if (otp !== '123456') {
-        toast({ variant: "destructive", title: `Invalid ${type} OTP` });
-        return;
+    const target = type === 'email' ? form.email : form.phone;
+
+    try {
+        const res = await fetch('/api/verify-otp', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ target, otp }),
+        });
+
+        const result = await res.json();
+        if (!res.ok) {
+            throw new Error(result.error || 'Verification failed');
+        }
+
+        setField(`${type}Verified`, true);
+        toast({ title: `${type.charAt(0).toUpperCase() + type.slice(1)} Verified!` });
+
+    } catch (error: any) {
+        toast({ variant: "destructive", title: "Invalid OTP", description: error.message });
     }
-    setField(`${type}Verified`, true);
-    toast({ title: `${type.charAt(0).toUpperCase() + type.slice(1)} Verified!` });
   };
 
 
@@ -830,5 +849,3 @@ export default function KYCPage() {
         </div>
     );
 }
-
-    
