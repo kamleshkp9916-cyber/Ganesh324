@@ -179,7 +179,7 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
     return true;
   }
 
-  const progress = useMemo(() => Math.round(((current) / (steps.length - 1)) * 100), [current]);
+  const progress = useMemo(() => Math.round(((current + 1) / (steps.length)) * 100), [current]);
 
   const setField = (path: string, value: any) => {
     setIsFormDirty(true);
@@ -243,9 +243,11 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
     setIsVerifying(prev => ({...prev, [type]: true}));
     
     try {
-      const functions = getFunctions(initializeFirebase().firebaseApp);
-      const sendVerificationCode = httpsCallable(functions, 'sendVerificationCode');
-      await sendVerificationCode({ type, target });
+        await fetch("/api/send-otp", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ type, target }),
+        });
 
       setOtpSent(prev => ({...prev, [type]: true}));
       setResendCooldown(prev => ({ ...prev, [type]: 60 }));
@@ -265,12 +267,15 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
     setIsVerifying(prev => ({...prev, [type]: true}));
     
     try {
-      const functions = getFunctions(initializeFirebase().firebaseApp);
-      const verifyCode = httpsCallable(functions, 'verifyCode');
-      const result: any = await verifyCode({ target, otp });
+      const res = await fetch("/api/verify-otp", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: target, otp }),
+      });
+      const result = await res.json();
       
-      if (!result.data.success) {
-          throw new Error(result.data.message || 'Invalid OTP');
+      if (!result.ok) {
+          throw new Error(result.error || 'Invalid OTP');
       }
 
       setField(`${type}Verified`, true);
@@ -381,6 +386,7 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
 
   return (
     <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
+      <Progress value={progress} className="w-full xl:col-span-4 h-1"/>
       <div className="xl:col-span-1 space-y-3">
         <Card className="rounded-2xl">
           <CardHeader className="pb-3">
@@ -392,7 +398,6 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
                 <StepPill key={s.key} index={i + 1} label={s.label} active={current === i} complete={i < current} />
               ))}
             </div>
-             <Progress value={progress} className="w-full mt-2"/>
           </CardContent>
         </Card>
         <Card className="rounded-2xl">
@@ -450,7 +455,7 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
                   {!existingData && (
                     <>
                     <div className="grid md:grid-cols-2 gap-4 items-start">
-                       <div className="space-y-2">
+                       <div className="flex flex-col gap-2">
                           <label className="text-sm">Email</label>
                           <div className="flex items-center gap-2">
                               <Input value={form.email} onChange={(e) => { setEmailError(''); setField("email", e.target.value); }} onBlur={checkEmailExists} placeholder="you@shop.com" disabled={form.emailVerified} className="flex-grow"/>
@@ -477,7 +482,7 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
                       )}
                     </div>
                      <div className="grid md:grid-cols-2 gap-4 items-start">
-                        <div className="space-y-2">
+                        <div className="flex flex-col gap-2">
                             <label className="text-sm">Phone</label>
                             <div className="flex items-center gap-2">
                                 <Input value={form.phone} onChange={(e) => { setPhoneError(''); setField("phone", e.target.value.replace(/[^0-9]/g, "").slice(0,10)); }} onBlur={checkPhoneExists} placeholder="10‑digit mobile" disabled={form.phoneVerified} className="flex-grow"/>
@@ -830,8 +835,9 @@ export default function KYCPage() {
     
     if (userData?.verificationStatus === 'needs-resubmission') {
         return (
-            <div className="min-h-screen p-6 md:p-10 bg-gradient-to-br from-gray-50 to-white">
-                <div className="max-w-7xl mx-auto space-y-6">
+            <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white">
+                <Progress value={useMemo(() => Math.round(((0 + 1) / (steps.length)) * 100), [0])} className="w-full fixed top-0 left-0 right-0 h-1 z-50"/>
+                <div className="max-w-7xl mx-auto space-y-6 p-6 md:p-10 pt-8">
                     <div className="flex items-center justify-between">
                         <Button asChild variant="ghost" className="-ml-4">
                             <Link href="/live-selling">
@@ -871,8 +877,9 @@ export default function KYCPage() {
     }
     
     return (
-        <div className="min-h-screen p-6 md:p-10 bg-gradient-to-br from-gray-50 to-white">
-            <div className="max-w-7xl mx-auto space-y-6">
+        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white">
+            <Progress value={useMemo(() => Math.round(((0 + 1) / (steps.length)) * 100), [0])} className="w-full fixed top-0 left-0 right-0 h-1 z-50"/>
+            <div className="max-w-7xl mx-auto space-y-6 p-6 md:p-10 pt-8">
                  <div className="flex items-center justify-between">
                   <Button asChild variant="ghost" className="-ml-4">
                     <Link href="/live-selling">
