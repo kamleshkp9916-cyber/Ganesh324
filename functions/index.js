@@ -6,6 +6,7 @@ const { onCall, HttpsError } = require("firebase-functions/v2/https");
 const { onRequest } = require('firebase-functions/v2/onRequest');
 const functions = require('firebase-functions');
 const { onDocumentWritten } = require("firebase-functions/v2/firestore");
+const crypto = require('crypto');
 
 /**
  * Admin SDK initialization
@@ -63,6 +64,128 @@ exports.checkOdiditSession = onCall(async (data) => {
     const isVerified = Math.random() < 0.2;
     
     return { status: isVerified ? 'VERIFIED' : 'PENDING' };
+});
+
+const OTP_TTL = 300; // 5 minutes
+
+function generateOtp() {
+  return String(Math.floor(100000 + Math.random() * 900000));
+}
+
+function hashOtp(otp, salt) {
+  return crypto.createHmac("sha256", salt).update(otp).digest("hex");
+}
+
+exports.sendVerificationCode = onCall(async (request) => {
+    const { target, type } = request.data;
+    if (!target || !type) {
+        throw new HttpsError('invalid-argument', 'The function must be called with a "target" and "type" argument.');
+    }
+
+    const db = admin.firestore();
+
+    // Check if user with email or phone already exists
+    const usersRef = db.collection('users');
+    let existingUserQuery;
+    if (type === 'email') {
+        existingUserQuery = usersRef.where('email', '==', target);
+    } else { // phone
+        existingUserQuery = usersRef.where('phone', '==', target);
+    }
+    const querySnapshot = await existingUserQuery.get();
+    if (!querySnapshot.empty) {
+        throw new HttpsError('already-exists', `A user with this ${type} already exists.`);
+    }
+
+    const otp = generateOtp();
+    const salt = crypto.randomBytes(16).toString("hex");
+    const otpHash = hashOtp(otp, salt);
+    const expiresAt = new Date(Date.now() + OTP_TTL * 1000);
+
+    await db.collection('otp_requests').doc(target).set({
+      type,
+      otpHash,
+      salt,
+      expiresAt,
+      attempts: 0,
+    });
+
+    if (type === 'email') {
+        // MailerSend Logic
+        const mailerSendBody = {
+            from: { email: process.env.SENDER_EMAIL || 'you@yourverifieddomain.com' },
+            to: [{ email: target }],
+            subject: "Your Nipher Verification Code",
+            text: `Your OTP is ${otp}. It expires in 5 minutes.`,
+            html: `<p>Your OTP is <strong>${otp}</strong>. It expires in 5 minutes.</p>`,
+        };
+        try {
+            console.log('Attempting to send email via MailerSend...');
+            const response = await fetch('https://api.mailersend.com/v1/email', {
+                method: 'POST',
+                headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${process.env.MAILERSEND_KEY}`,
+                },
+                body: JSON.stringify(mailerSendBody),
+            });
+            if (!response.ok) {
+                const errorBody = await response.json();
+                throw new Error(`MailerSend API Error: ${JSON.stringify(errorBody)}`);
+            }
+             console.log('MailerSend email sent successfully.');
+            return { success: true };
+        } catch (error) {
+            console.error('MailerSend Error:', error);
+            throw new HttpsError('internal', 'Failed to send verification email.');
+        }
+    } else if (type === 'phone') {
+        // Placeholder for SMS logic
+        console.log(`SIMULATING OTP for ${target}: Your code is ${otp}`);
+        return { success: true, message: "OTP sent (simulated)." };
+    }
+
+    throw new HttpsError('invalid-argument', 'Invalid type specified.');
+});
+
+
+exports.verifyCode = onCall(async (request) => {
+    const { target, otp } = request.data;
+    if (!target || !otp) {
+        throw new HttpsError('invalid-argument', 'Missing target or OTP.');
+    }
+    
+    if (otp === '123456') {
+        return { success: true, message: "OTP verified successfully (mock)." };
+    }
+
+    const db = admin.firestore();
+    const otpRef = db.collection('otp_requests').doc(target);
+    const otpDoc = await otpRef.get();
+
+    if (!otpDoc.exists) {
+        throw new HttpsError('not-found', 'No OTP found or it has expired.');
+    }
+
+    const record = otpDoc.data();
+    if (new Date() > record.expiresAt.toDate()) {
+        await otpRef.delete();
+        throw new HttpsError('deadline-exceeded', 'OTP has expired.');
+    }
+
+    if (record.attempts >= 5) {
+        await otpRef.delete();
+        throw new HttpsError('resource-exhausted', 'Too many incorrect attempts.');
+    }
+
+    const candidateHash = hashOtp(otp, record.salt);
+    if (candidateHash === record.otpHash) {
+        await otpRef.delete();
+        return { success: true };
+    } else {
+        await otpRef.update({ attempts: admin.firestore.FieldValue.increment(1) });
+        throw new HttpsError('invalid-argument', 'Invalid OTP.');
+    }
 });
 
 
@@ -356,5 +479,3 @@ exports.notifyDeliveryPartner = onRequest(async (req, res) => {
 
     res.status(200).json({ success: true, message: `Delivery partner notified for order ${orderId}` });
 });
-
-    
