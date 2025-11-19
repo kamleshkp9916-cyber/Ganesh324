@@ -223,37 +223,44 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
   }, [form.pan]);
 
   const handleSendOtp = async (type: 'email' | 'phone') => {
-      const target = type === 'email' ? form.email : `+91${form.phone}`;
-      if (!target) return;
-      
-      const { firebaseApp } = initializeFirebase();
-      const functions = getFunctions(firebaseApp);
-      const sendVerificationCode = httpsCallable(functions, 'sendVerificationCode');
+    const email = type === 'email' ? form.email : undefined;
+    if (type === 'email' && !email) return;
 
-      try {
-          const result = await sendVerificationCode({ target, type });
-          if ((result.data as any).success) {
-              setOtpSent(prev => ({...prev, [type]: true}));
-              setResendCooldown(prev => ({ ...prev, [type]: 60 }));
-              toast({ title: `OTP Sent to your ${type}` });
-          } else {
-              throw new Error((result.data as any).error || 'Failed to send OTP');
-          }
-      } catch (error: any) {
-          console.error(`Error sending ${type} OTP:`, error);
-          toast({ variant: 'destructive', title: `Failed to send ${type} OTP`, description: error.message });
-      }
+    try {
+        await fetch("http://localhost:3000/send-otp", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email }),
+        });
+        setOtpSent(prev => ({...prev, [type]: true}));
+        setResendCooldown(prev => ({ ...prev, [type]: 60 }));
+        toast({ title: `OTP Sent to your ${type}` });
+    } catch (error: any) {
+        console.error(`Error sending ${type} OTP:`, error);
+        toast({ variant: 'destructive', title: `Failed to send ${type} OTP`, description: error.message });
+    }
   };
 
   const handleVerifyOtp = async (type: 'email' | 'phone') => {
     const otp = type === 'email' ? form.emailOtp : form.phoneOtp;
-    const target = type === 'email' ? form.email : `+91${form.phone}`;
-    if (otp !== '123456') { // Static OTP check
-        toast({ variant: "destructive", title: "Invalid OTP" });
-        return;
+    const email = type === 'email' ? form.email : undefined;
+
+    try {
+        const response = await fetch("http://localhost:3000/verify-otp", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, otp }),
+        });
+        const data = await response.json();
+        if (data.ok) {
+            setField(`${type}Verified`, true);
+            toast({ title: `${type.charAt(0).toUpperCase() + type.slice(1)} Verified!` });
+        } else {
+            throw new Error(data.error || 'Invalid OTP');
+        }
+    } catch (error: any) {
+        toast({ variant: 'destructive', title: "Verification Failed", description: error.message });
     }
-    setField(`${type}Verified`, true);
-    toast({ title: `${type.charAt(0).toUpperCase() + type.slice(1)} Verified!` });
   };
 
 
