@@ -128,11 +128,10 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
       if (isFormDirty) {
         setForm(form);
         setIsFormDirty(false); // Reset dirty state after saving
-        toast({ title: "Draft Saved", description: "Your progress has been saved automatically." });
       }
     }, 1500); // Save after 1.5 seconds of inactivity
     return () => clearTimeout(handler);
-  }, [form, isFormDirty, setForm, toast]);
+  }, [form, isFormDirty, setForm]);
 
 
   useEffect(() => {
@@ -400,7 +399,7 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
                 <StepPill key={s.key} index={i + 1} label={s.label} active={current === i} complete={i < current} />
               ))}
             </div>
-            <Progress value={progress} />
+             <Progress value={progress} className="w-full mt-2"/>
           </CardContent>
         </Card>
         <Card className="rounded-2xl">
@@ -457,35 +456,35 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
                   </div>
                   {!existingData && (
                     <>
-                    <div className="grid md:grid-cols-2 gap-4">
-                        <div>
-                            <label className="text-sm">Email</label>
-                             <div className="flex items-end gap-2">
-                                <Input value={form.email} onChange={(e) => { setEmailError(''); setField("email", e.target.value); }} onBlur={checkEmailExists} placeholder="you@shop.com" disabled={form.emailVerified} />
-                                <Button type="button" onClick={() => handleSendOtp('email')} disabled={resendCooldown.email > 0 || form.emailVerified || !!emailError || !/.+@.+\..+/.test(form.email) || isVerifying.email} className="flex-shrink-0">
-                                    {isVerifying.email ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : form.emailVerified ? <Check className="mr-2 h-4 w-4"/> : <Send className="mr-2 h-4 w-4"/>}
-                                    {form.emailVerified ? 'Verified' : resendCooldown.email > 0 ? `Resend in ${resendCooldown.email}s` : 'Send OTP'}
-                                </Button>
-                            </div>
-                           {emailError ? <p className="text-xs text-destructive mt-1">{emailError}</p> : <p className="text-xs text-muted-foreground mt-1">This email will be used for login and official communication.</p>}
-                        </div>
-                         {otpSent.email && !form.emailVerified && (
-                            <div className="flex items-center gap-2">
-                                <InputOTP maxLength={6} value={form.emailOtp} onChange={(val) => setField("emailOtp", val)}>
-                                    <InputOTPGroup>
-                                        <InputOTPSlot index={0} /><InputOTPSlot index={1} /><InputOTPSlot index={2} />
-                                        <InputOTPSlot index={3} /><InputOTPSlot index={4} /><InputOTPSlot index={5} />
-                                    </InputOTPGroup>
-                                </InputOTP>
-                                <Button type="button" variant="secondary" onClick={() => handleVerifyOtp('email')} disabled={form.emailOtp.length < 6 || isVerifying.email}>
-                                {isVerifying.email && <Loader2 className="mr-2 h-4 w-4 animate-spin"/>}
-                                Verify Email
-                                </Button>
-                            </div>
-                        )}
+                    <div className="grid md:grid-cols-2 gap-4 items-start">
+                       <div className="space-y-2">
+                          <label className="text-sm">Email</label>
+                          <div className="flex items-end gap-2">
+                              <Input value={form.email} onChange={(e) => { setEmailError(''); setField("email", e.target.value); }} onBlur={checkEmailExists} placeholder="you@shop.com" disabled={form.emailVerified} />
+                              <Button type="button" onClick={() => handleSendOtp('email')} disabled={resendCooldown.email > 0 || form.emailVerified || !!emailError || !/.+@.+\..+/.test(form.email) || isVerifying.email} className="flex-shrink-0">
+                                  {isVerifying.email ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : form.emailVerified ? <Check className="mr-2 h-4 w-4"/> : <Send className="mr-2 h-4 w-4"/>}
+                                  {form.emailVerified ? 'Verified' : resendCooldown.email > 0 ? `Resend in ${resendCooldown.email}s` : 'Send OTP'}
+                              </Button>
+                          </div>
+                         {emailError ? <p className="text-xs text-destructive mt-1">{emailError}</p> : <p className="text-xs text-muted-foreground mt-1">This email will be used for login and official communication.</p>}
+                       </div>
+                       {otpSent.email && !form.emailVerified && (
+                          <div className="flex items-end gap-2 pt-5">
+                              <InputOTP maxLength={6} value={form.emailOtp} onChange={(val) => setField("emailOtp", val)}>
+                                  <InputOTPGroup>
+                                      <InputOTPSlot index={0} /><InputOTPSlot index={1} /><InputOTPSlot index={2} />
+                                      <InputOTPSlot index={3} /><InputOTPSlot index={4} /><InputOTPSlot index={5} />
+                                  </InputOTPGroup>
+                              </InputOTP>
+                              <Button type="button" variant="secondary" onClick={() => handleVerifyOtp('email')} disabled={form.emailOtp.length < 6 || isVerifying.email}>
+                              {isVerifying.email && <Loader2 className="mr-2 h-4 w-4 animate-spin"/>}
+                              Verify Email
+                              </Button>
+                          </div>
+                      )}
                     </div>
-                    <div className="grid md:grid-cols-2 gap-4">
-                        <div>
+                     <div className="grid md:grid-cols-2 gap-4 items-start">
+                        <div className="space-y-2">
                             <label className="text-sm">Phone</label>
                             <div className="flex items-end gap-2">
                                 <Input value={form.phone} onChange={(e) => { setPhoneError(''); setField("phone", e.target.value.replace(/[^0-9]/g, "").slice(0,10)); }} onBlur={checkPhoneExists} placeholder="10‑digit mobile" disabled={form.phoneVerified}/>
@@ -497,7 +496,7 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
                             {phoneError ? <p className="text-xs text-destructive mt-1">{phoneError}</p> : <p className="text-xs text-muted-foreground mt-1">Used for verification and support communication.</p>}
                         </div>
                         {otpSent.phone && !form.phoneVerified && (
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-end gap-2 pt-5">
                                 <InputOTP maxLength={6} value={form.phoneOtp} onChange={(val) => setField("phoneOtp", val)}>
                                     <InputOTPGroup>
                                         <InputOTPSlot index={0} /><InputOTPSlot index={1} /><InputOTPSlot index={2} />
