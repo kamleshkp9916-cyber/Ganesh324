@@ -105,6 +105,7 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
   };
 
   const [form, setForm] = useLocalStorage<any>(SELLER_KYC_DRAFT_KEY, initialFormState);
+  const [isFormDirty, setIsFormDirty] = useState(false);
   
   const [verif, setVerif] = useState<{ state: "IDLE" | "PENDING" | "VERIFIED" | "FAILED", message: string }>({ state: existingData?.isNipherVerified ? 'VERIFIED' : "IDLE", message: existingData?.isNipherVerified ? 'Verification previously completed.' : '' });
   const [isVerifying, setIsVerifying] = useState({ email: false, phone: false, aadhaar: false, face: false });
@@ -121,6 +122,15 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
 
   const [otpSent, setOtpSent] = useState({ email: form.emailVerified || false, phone: form.phoneVerified || false });
   const [resendCooldown, setResendCooldown] = useState({ email: 0, phone: 0 });
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      if (isFormDirty) {
+        setForm(form);
+      }
+    }, 1000);
+    return () => clearTimeout(handler);
+  }, [form, isFormDirty, setForm]);
 
   useEffect(() => {
     let timer: NodeJS.Timeout;
@@ -177,6 +187,7 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
   const progress = useMemo(() => Math.round(((current) / (steps.length - 1)) * 100), [current]);
 
   const setField = (path: string, value: any) => {
+    setIsFormDirty(true);
     setForm((prev: any) => {
       const clone = structuredClone(prev);
       const parts = path.split(".");
@@ -193,7 +204,7 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
   const checkEmailExists = useCallback(async () => {
     if (!/.+@.+\..+/.test(form.email) || form.email === existingData?.email) return;
     const functions = getFunctions(initializeFirebase().firebaseApp);
-    const checkEmail = httpsCallable(functions, 'checkEmailExists'); // Assuming you have this function
+    const checkEmail = httpsCallable(functions, 'checkEmailExists');
     try {
         const result: any = await checkEmail({ email: form.email });
         if (result.data.exists) {
@@ -209,7 +220,7 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
   const checkPhoneExists = useCallback(async () => {
     if (!/^\d{10}$/.test(form.phone) || `+91 ${form.phone}` === existingData?.phone) return;
     const functions = getFunctions(initializeFirebase().firebaseApp);
-    const checkPhone = httpsCallable(functions, 'checkPhoneExists'); // Assuming you have this function
+    const checkPhone = httpsCallable(functions, 'checkPhoneExists');
     try {
         const result: any = await checkPhone({ phone: `+91 ${form.phone}` });
         if (result.data.exists) {
@@ -368,6 +379,11 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
     }
   };
 
+  const handleReset = () => {
+    localStorage.removeItem(SELLER_KYC_DRAFT_KEY);
+    window.location.reload();
+  };
+
   return (
     <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
       <div className="xl:col-span-1 space-y-3">
@@ -389,11 +405,8 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
           <CardContent className="space-y-2">
             <div className="flex items-center gap-2 text-sm">
                 <Badge>{existingData?.verificationStatus?.toUpperCase() || 'Draft'}</Badge>
-                <Button variant="outline" size="sm" onClick={() => setForm(form)}><Save className="w-4 h-4 mr-2"/>Save Draft</Button>
-                <Button variant="ghost" size="sm" onClick={() => {
-                    localStorage.removeItem(SELLER_KYC_DRAFT_KEY);
-                    window.location.reload();
-                }}>
+                <Button variant="outline" size="sm" onClick={() => setForm(form)} disabled={!isFormDirty}><Save className="w-4 h-4 mr-2"/>Save Draft</Button>
+                <Button variant="ghost" size="sm" onClick={handleReset}>
                     <RotateCcw className="w-4 h-4 mr-2"/>Reset
                 </Button>
             </div>
@@ -878,3 +891,5 @@ export default function KYCPage() {
         </div>
     );
 }
+
+    
