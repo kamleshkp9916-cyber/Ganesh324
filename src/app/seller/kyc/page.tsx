@@ -14,7 +14,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
-import { Check, AlertTriangle, Upload, ChevronLeft, ChevronRight, ShieldCheck, Building2, User2, MapPin, Banknote, FileSignature, ClipboardList, Eye, UserCheck, ShieldAlert, Gavel, Loader2, Send, Camera, QrCode, CheckCircle2 } from "lucide-react";
+import { Check, AlertTriangle, Upload, ChevronLeft, ChevronRight, ShieldCheck, Building2, User2, MapPin, Banknote, FileSignature, ClipboardList, Eye, UserCheck, ShieldAlert, Gavel, Loader2, Send, Camera, QrCode, CheckCircle2, Save, RotateCcw } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
@@ -31,6 +31,9 @@ import { getFirestore, collection, query, where, getDocs } from "firebase/firest
 import { getFirestoreDb } from "@/lib/firebase-db";
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import { initializeFirebase } from "@/firebase";
+import { useLocalStorage } from "@/hooks/use-local-storage";
+
+const SELLER_KYC_DRAFT_KEY = 'sellerKycDraft';
 
 const Section = ({ title, children, icon, hasError }: { title: string, children: React.ReactNode, icon: React.ReactNode, hasError?: boolean }) => (
   <Card className={`shadow-lg border rounded-2xl ${hasError ? 'border-destructive' : ''}`}>
@@ -78,8 +81,8 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
     confirmPassword: "",
     emailOtp: "",
     phoneOtp: "",
-    emailVerified: !!existingData?.email,
-    phoneVerified: !!existingData?.phone,
+    emailVerified: !!existingData?.emailVerified,
+    phoneVerified: !!existingData?.phoneVerified,
     categories: [],
     about: existingData?.about || "",
     bizType: existingData?.bizType || "Individual",
@@ -101,22 +104,22 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
     aadhaarOtp: "",
   };
 
-  const [form, setForm] = useState(initialFormState);
+  const [form, setForm] = useLocalStorage<any>(SELLER_KYC_DRAFT_KEY, initialFormState);
   
   const [verif, setVerif] = useState<{ state: "IDLE" | "PENDING" | "VERIFIED" | "FAILED", message: string }>({ state: existingData?.isNipherVerified ? 'VERIFIED' : "IDLE", message: existingData?.isNipherVerified ? 'Verification previously completed.' : '' });
   const [isVerifying, setIsVerifying] = useState({ email: false, phone: false, aadhaar: false, face: false });
   const [qrCodeUrl, setQrCodeUrl] = useState<string | null>(null);
-  const [photoPreview, setPhotoPreview] = useState<string | null>(existingData?.photoURL || null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(form.photoUrl || null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
-    const [selfiePreview, setSelfiePreview] = useState<string | null>(null);
+  const [selfiePreview, setSelfiePreview] = useState<string | null>(null);
   const selfieInputRef = useRef<HTMLInputElement>(null);
 
   const [emailError, setEmailError] = useState('');
   const [phoneError, setPhoneError] = useState('');
   const [panError, setPanError] = useState('');
 
-  const [otpSent, setOtpSent] = useState({ email: false, phone: false });
+  const [otpSent, setOtpSent] = useState({ email: form.emailVerified || false, phone: form.phoneVerified || false });
   const [resendCooldown, setResendCooldown] = useState({ email: 0, phone: 0 });
 
   useEffect(() => {
@@ -174,7 +177,7 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
   const progress = useMemo(() => Math.round(((current) / (steps.length - 1)) * 100), [current]);
 
   const setField = (path: string, value: any) => {
-    setForm((prev) => {
+    setForm((prev: any) => {
       const clone = structuredClone(prev);
       const parts = path.split(".");
       let node: any = clone;
@@ -189,28 +192,33 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
 
   const checkEmailExists = useCallback(async () => {
     if (!/.+@.+\..+/.test(form.email) || form.email === existingData?.email) return;
-    const db = getFirestoreDb();
-    const usersRef = collection(db, "users");
-    const q = query(usersRef, where("email", "==", form.email));
-    const querySnapshot = await getDocs(q);
-    if (!querySnapshot.empty) {
-      setEmailError("This email is already registered. Please use a different one.");
-    } else {
-      setEmailError("");
+    const functions = getFunctions(initializeFirebase().firebaseApp);
+    const checkEmail = httpsCallable(functions, 'checkEmailExists'); // Assuming you have this function
+    try {
+        const result: any = await checkEmail({ email: form.email });
+        if (result.data.exists) {
+            setEmailError("This email is already registered. Please use a different one.");
+        } else {
+            setEmailError("");
+        }
+    } catch (e) {
+        setEmailError("Could not validate email. Please try again.");
     }
   }, [form.email, existingData?.email]);
 
   const checkPhoneExists = useCallback(async () => {
-    const phone = `+91 ${form.phone}`;
-    if (!/^\d{10}$/.test(form.phone) || phone === existingData?.phone) return;
-    const db = getFirestoreDb();
-    const usersRef = collection(db, "users");
-    const q = query(usersRef, where("phone", "==", phone));
-    const querySnapshot = await getDocs(q);
-    if (!querySnapshot.empty) {
-      setPhoneError("This phone number is already registered. Please use a different one.");
-    } else {
-      setPhoneError("");
+    if (!/^\d{10}$/.test(form.phone) || `+91 ${form.phone}` === existingData?.phone) return;
+    const functions = getFunctions(initializeFirebase().firebaseApp);
+    const checkPhone = httpsCallable(functions, 'checkPhoneExists'); // Assuming you have this function
+    try {
+        const result: any = await checkPhone({ phone: `+91 ${form.phone}` });
+        if (result.data.exists) {
+            setPhoneError("This phone number is already registered. Please use a different one.");
+        } else {
+            setPhoneError("");
+        }
+    } catch (e) {
+        setPhoneError("Could not validate phone number. Please try again.");
     }
   }, [form.phone, existingData?.phone]);
 
@@ -225,19 +233,22 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
   const handleSendOtp = async (type: 'email' | 'phone') => {
     const target = type === 'email' ? form.email : `+91 ${form.phone}`;
     if (!target) return;
+    
+    setIsVerifying(prev => ({...prev, [type]: true}));
+    
+    const functions = getFunctions(initializeFirebase().firebaseApp);
+    const sendCode = httpsCallable(functions, 'sendVerificationCode');
 
     try {
-        await fetch("/api/send-otp", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ type, target }),
-        });
+        await sendCode({ type, target });
         setOtpSent(prev => ({...prev, [type]: true}));
         setResendCooldown(prev => ({ ...prev, [type]: 60 }));
         toast({ title: `OTP Sent to your ${type}` });
     } catch (error: any) {
         console.error(`Error sending ${type} OTP:`, error);
         toast({ variant: 'destructive', title: `Failed to send ${type} OTP`, description: error.message });
+    } finally {
+      setIsVerifying(prev => ({...prev, [type]: false}));
     }
   };
 
@@ -245,21 +256,23 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
     const otp = type === 'email' ? form.emailOtp : form.phoneOtp;
     const target = type === 'email' ? form.email : `+91 ${form.phone}`;
     
+    setIsVerifying(prev => ({...prev, [type]: true}));
+
+    const functions = getFunctions(initializeFirebase().firebaseApp);
+    const verifyCode = httpsCallable(functions, 'verifyCode');
+    
     try {
-        const response = await fetch("/api/verify-otp", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ target, otp }),
-        });
-        const data = await response.json();
-        if (data.ok) {
+        const result: any = await verifyCode({ target, otp });
+        if (result.data.success) {
             setField(`${type}Verified`, true);
             toast({ title: `${type.charAt(0).toUpperCase() + type.slice(1)} Verified!` });
         } else {
-            throw new Error(data.error || 'Invalid OTP');
+            throw new Error(result.data.message || 'Invalid OTP');
         }
     } catch (error: any) {
         toast({ variant: 'destructive', title: "Verification Failed", description: error.message });
+    } finally {
+        setIsVerifying(prev => ({...prev, [type]: false}));
     }
   };
 
@@ -374,7 +387,16 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
         <Card className="rounded-2xl">
           <CardHeader className="pb-2"><CardTitle>Application Status</CardTitle></CardHeader>
           <CardContent className="space-y-2">
-            <div className="flex items-center gap-2 text-sm"><Badge>{existingData?.verificationStatus?.toUpperCase() || 'Draft'}</Badge></div>
+            <div className="flex items-center gap-2 text-sm">
+                <Badge>{existingData?.verificationStatus?.toUpperCase() || 'Draft'}</Badge>
+                <Button variant="outline" size="sm" onClick={() => setForm(form)}><Save className="w-4 h-4 mr-2"/>Save Draft</Button>
+                <Button variant="ghost" size="sm" onClick={() => {
+                    localStorage.removeItem(SELLER_KYC_DRAFT_KEY);
+                    window.location.reload();
+                }}>
+                    <RotateCcw className="w-4 h-4 mr-2"/>Reset
+                </Button>
+            </div>
             <div className="text-xs text-muted-foreground">You can submit after finishing KYC and accepting terms.</div>
           </CardContent>
         </Card>
@@ -423,8 +445,8 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
                            {emailError && <p className="text-xs text-destructive mt-1">{emailError}</p>}
                            {!emailError && <p className="text-xs text-muted-foreground mt-1">This email will be used for login and official communication.</p>}
                         </div>
-                        <Button type="button" onClick={() => handleSendOtp('email')} disabled={resendCooldown.email > 0 || form.emailVerified || !!emailError || !/.+@.+\..+/.test(form.email)}>
-                            {form.emailVerified ? <Check className="mr-2 h-4 w-4"/> : <Send className="mr-2 h-4 w-4"/>}
+                        <Button type="button" onClick={() => handleSendOtp('email')} disabled={resendCooldown.email > 0 || form.emailVerified || !!emailError || !/.+@.+\..+/.test(form.email) || isVerifying.email}>
+                            {isVerifying.email ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : form.emailVerified ? <Check className="mr-2 h-4 w-4"/> : <Send className="mr-2 h-4 w-4"/>}
                             {form.emailVerified ? 'Verified' : resendCooldown.email > 0 ? `Resend in ${resendCooldown.email}s` : 'Send OTP'}
                         </Button>
                     </div>
@@ -450,8 +472,8 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
                           {phoneError && <p className="text-xs text-destructive mt-1">{phoneError}</p>}
                           {!phoneError && <p className="text-xs text-muted-foreground mt-1">Used for verification and support communication.</p>}
                         </div>
-                        <Button type="button" onClick={() => handleSendOtp('phone')} disabled={resendCooldown.phone > 0 || form.phoneVerified || !!phoneError || form.phone.length !== 10}>
-                           {form.phoneVerified ? <Check className="mr-2 h-4 w-4"/> : <Send className="mr-2 h-4 w-4"/>}
+                        <Button type="button" onClick={() => handleSendOtp('phone')} disabled={resendCooldown.phone > 0 || form.phoneVerified || !!phoneError || form.phone.length !== 10 || isVerifying.phone}>
+                           {isVerifying.phone ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : form.phoneVerified ? <Check className="mr-2 h-4 w-4"/> : <Send className="mr-2 h-4 w-4"/>}
                            {form.phoneVerified ? 'Verified' : resendCooldown.phone > 0 ? `Resend in ${resendCooldown.phone}s` : 'Send OTP'}
                         </Button>
                     </div>
