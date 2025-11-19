@@ -250,7 +250,7 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
         });
 
       setOtpSent(prev => ({...prev, [type]: true}));
-      setResendCooldown(prev => ({ ...prev, [type]: 60 }));
+      setResendCooldown(prev => ({ ...prev, [type]: RESEND_COOLDOWN }));
       toast({ title: `OTP Sent to your ${type}` });
     } catch (error: any) {
       console.error(`Error sending ${type} OTP:`, error);
@@ -897,5 +897,3 @@ export default function KYCPage() {
         </div>
     );
 }
-
-    
