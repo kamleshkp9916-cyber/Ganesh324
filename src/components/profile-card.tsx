@@ -17,7 +17,7 @@ import Image from 'next/image';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from '@/hooks/use-toast';
 import { toggleFollow, isFollowing as isFollowingBackend, UserData, updateUserData } from '@/lib/follow-data';
-import { getFirestoreDb } from '@/lib/firebase';
+import { getFirestoreDb } from '@/lib/firebase-db';
 import { collection, query, where, onSnapshot, orderBy } from 'firebase/firestore';
 import { formatDistanceToNow } from 'date-fns';
 import { productDetails } from '@/lib/product-data';
@@ -308,6 +308,13 @@ export function ProfileCard({ profileData, isOwnProfile, onAddressesUpdate, onFo
                                         {profileData.location && <div className="flex items-center gap-2"><MapPin className="h-4 w-4 text-muted-foreground" /> <span>{profileData.location}</span></div>}
                                         {profileData.email && <div className="flex items-center gap-2"><Mail className="h-4 w-4 text-muted-foreground" /> <a href={`mailto:${profileData.email}`} className="hover:underline">{profileData.email}</a></div>}
                                         {profileData.phone && <div className="flex items-center gap-2"><Phone className="h-4 w-4 text-muted-foreground" /> <span>{profileData.phone}</span></div>}
+                                        {profileData.role === 'seller' && (
+                                            <>
+                                                {profileData.bizType && <div className="flex items-center gap-2"><Briefcase className="h-4 w-4 text-muted-foreground" /> <span>{profileData.bizType}</span></div>}
+                                                {(profileData as any).supportEmail && <div className="flex items-center gap-2"><Mail className="h-4 w-4 text-muted-foreground" /> <a href={`mailto:${(profileData as any).supportEmail}`} className="hover:underline">{(profileData as any).supportEmail} (Support)</a></div>}
+                                                {(profileData as any).supportPhone && <div className="flex items-center gap-2"><Phone className="h-4 w-4 text-muted-foreground" /> <span>{(profileData as any).supportPhone} (Support)</span></div>}
+                                            </>
+                                        )}
                                         {profileData.addresses && profileData.addresses.length > 0 && 
                                             <div className="flex items-start gap-2 pt-2">
                                                 <Home className="h-4 w-4 text-muted-foreground mt-1" /> 
