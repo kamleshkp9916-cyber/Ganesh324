@@ -29,7 +29,7 @@ import { Loader2, Upload, Trash2, Camera, FileEdit, Video, ImageIcon, PlusCircle
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { getFirestoreDb, getFirebaseStorage } from "@/lib/firebase";
+import { getFirestoreDb, getFirebaseStorage } from "@/lib/firebase-db";
 import { collection, doc, setDoc, addDoc } from "firebase/firestore";
 import { ref, uploadString, getDownloadURL } from "firebase/storage";
 import { defaultCategories } from "@/lib/categories";
@@ -128,7 +128,7 @@ export function ProductForm({ onSave, productToEdit }: ProductFormProps) {
     },
   });
 
-  const { fields, append, remove } = useFieldArray({
+  const { fields, append, remove, update } = useFieldArray({
     control: form.control,
     name: "variants",
   });
@@ -254,6 +254,21 @@ export function ProductForm({ onSave, productToEdit }: ProductFormProps) {
     } else if (productToEdit?.highlightsImage) {
         productData.highlightsImage = productToEdit.highlightsImage;
     }
+    
+     // Upload variant images
+    if (productData.variants) {
+        productData.variants = await Promise.all(productData.variants.map(async (variant: any) => {
+            if (variant.image && variant.image.file) {
+                const filePath = `products/${user.uid}/variants/${Date.now()}_${variant.image.file.name}`;
+                const storageRef = ref(storage, filePath);
+                await uploadString(storageRef, variant.image.preview, 'data_url');
+                const downloadURL = await getDownloadURL(storageRef);
+                return { ...variant, image: { preview: downloadURL } };
+            }
+            return variant;
+        }));
+    }
+
 
     if (productToEdit?.id) {
         const productRef = doc(db, "users", user.uid, "products", productToEdit.id);
@@ -291,6 +306,18 @@ export function ProductForm({ onSave, productToEdit }: ProductFormProps) {
     }
   };
   
+    const handleVariantImageUpload = (index: number, event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                const result = reader.result as string;
+                update(index, { ...fields[index], image: { file, preview: result } });
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+  
   const renderStepContent = () => {
     switch (step) {
       case 1:
@@ -314,7 +341,7 @@ export function ProductForm({ onSave, productToEdit }: ProductFormProps) {
                <FormField control={form.control} name="highlights" render={({ field }) => (
                     <FormItem>
                         <FormLabel>Highlights</FormLabel>
-                        <FormControl><Textarea placeholder="Feature 1&#10;Feature 2&#10;Feature 3" {...field} /></FormControl>
+                        <FormControl><Textarea placeholder="Feature 1\nFeature 2\nFeature 3" {...field} /></FormControl>
                         <FormDescription>Enter each highlight on a new line.</FormDescription>
                         <FormMessage />
                     </FormItem>
@@ -418,27 +445,46 @@ export function ProductForm({ onSave, productToEdit }: ProductFormProps) {
                 <Separator />
                 <div>
                   <h3 className="font-semibold text-lg">Product Variants</h3>
-                  <FormDescription>Add variants if your product has different prices or stock for different sizes, colors, etc. This will override the simple options above.</FormDescription>
+                  <FormDescription>Add variants if your product has different prices, stock, or images for different sizes/colors. This will override the simple options above.</FormDescription>
                 </div>
                 <div className="space-y-4">
                   {fields.map((field, index) => (
-                    <div key={field.id} className="grid grid-cols-[1fr,1fr,1fr,1fr,auto] gap-2 items-end border p-3 rounded-lg">
-                      <FormField control={form.control} name={`variants.${index}.size`} render={({ field }) => (
-                          <FormItem><FormLabel className="text-xs">Size</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
-                      )} />
-                      <FormField control={form.control} name={`variants.${index}.color`} render={({ field }) => (
-                          <FormItem><FormLabel className="text-xs">Color</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
-                      )} />
-                      <FormField control={form.control} name={`variants.${index}.price`} render={({ field }) => (
-                          <FormItem><FormLabel className="text-xs">Price</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>
-                      )} />
-                      <FormField control={form.control} name={`variants.${index}.stock`} render={({ field }) => (
-                          <FormItem><FormLabel className="text-xs">Stock</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>
-                      )} />
-                      <Button type="button" variant="ghost" size="icon" onClick={() => remove(index)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                    <div key={field.id} className="grid grid-cols-1 md:grid-cols-[1fr,1fr,1fr,1fr,auto] gap-3 items-start border p-4 rounded-lg bg-muted/50">
+                       <div className="flex items-center gap-2 col-span-1 md:col-span-5">
+                            <div className="relative w-20 h-20 rounded-md border-2 border-dashed bg-background flex items-center justify-center text-muted-foreground overflow-hidden">
+                                {field.image?.preview ? (
+                                    <Image src={field.image.preview} alt="Variant preview" layout="fill" className="object-cover" />
+                                ) : (
+                                    <ImageIcon className="w-6 h-6"/>
+                                )}
+                                 <input
+                                    type="file"
+                                    accept="image/*"
+                                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                    onChange={(e) => handleVariantImageUpload(index, e)}
+                                />
+                            </div>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 flex-grow">
+                                <FormField control={form.control} name={`variants.${index}.size`} render={({ field: f }) => (
+                                    <FormItem><FormLabel className="text-xs">Size</FormLabel><FormControl><Input {...f} /></FormControl></FormItem>
+                                )} />
+                                <FormField control={form.control} name={`variants.${index}.color`} render={({ field: f }) => (
+                                    <FormItem><FormLabel className="text-xs">Color</FormLabel><FormControl><Input {...f} /></FormControl></FormItem>
+                                )} />
+                                <FormField control={form.control} name={`variants.${index}.price`} render={({ field: f }) => (
+                                    <FormItem><FormLabel className="text-xs">Price</FormLabel><FormControl><Input type="number" {...f} /></FormControl></FormItem>
+                                )} />
+                                <FormField control={form.control} name={`variants.${index}.stock`} render={({ field: f }) => (
+                                    <FormItem><FormLabel className="text-xs">Stock</FormLabel><FormControl><Input type="number" {...f} /></FormControl></FormItem>
+                                )} />
+                            </div>
+                        </div>
+                        <div className="col-span-1 md:col-span-5 flex justify-end">
+                             <Button type="button" variant="ghost" size="icon" onClick={() => remove(index)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                        </div>
                     </div>
                   ))}
-                  <Button type="button" variant="outline" size="sm" onClick={() => append({ size: '', color: '', price: 0, stock: 0 })}>
+                  <Button type="button" variant="outline" size="sm" onClick={() => append({ size: '', color: '', price: 0, stock: 0, image: null })}>
                     <PlusCircle className="mr-2 h-4 w-4"/> Add Variant
                   </Button>
                 </div>
