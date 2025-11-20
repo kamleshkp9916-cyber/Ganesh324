@@ -44,7 +44,7 @@ import { mockStreams, productDetails, productToSellerMapping } from '@/lib/produ
 import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/card';
 import Image from 'next/image';
-import { Badge } from '@/components/ui/badge';
+import { Badge, BadgeProps } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Input } from '@/components/ui/input';
@@ -71,8 +71,8 @@ import { GoLiveDialog } from '@/components/go-live-dialog';
 import { Dialog, DialogTrigger } from '@/components/ui/dialog';
 import { getCart, addToCart, saveCart } from '@/lib/product-history';
 import { cn } from '@/lib/utils';
-import { useIsMobile } from '@/hooks/use-mobile';
-import { Sheet, SheetContent } from '@/components/ui/sheet';
+import { useIsMobile } from '@/hooks/use-is-mobile';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { ProductShelfContent } from '@/components/product-shelf-content';
 import { useToast } from '@/hooks/use-toast';
 
@@ -252,7 +252,7 @@ export default function SubCategoryStreamPage() {
 
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon">
+                                <Button variant="ghost" size="icon" className="relative">
                                     <Avatar className="h-8 w-8">
                                         <AvatarImage src={user?.photoURL || undefined} alt={user?.displayName || 'User'}/>
                                         <AvatarFallback>{user?.displayName ? user.displayName.charAt(0).toUpperCase() : <User/>}</AvatarFallback>
@@ -510,4 +510,5 @@ export default function SubCategoryStreamPage() {
             </main>
         </div>
     );
-}
+
+    
