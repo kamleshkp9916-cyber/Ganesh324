@@ -21,7 +21,7 @@ import {
   Save,
   Bell,
   Loader2,
-  PlusCircle, // Added missing import
+  PlusCircle,
 } from "lucide-react";
 import { getFirestore, collection, onSnapshot, addDoc, setDoc, deleteDoc, doc, serverTimestamp, query, where } from 'firebase/firestore';
 import { getStorage, ref, uploadString, getDownloadURL, deleteObject } from "firebase/storage";
@@ -227,12 +227,12 @@ export default function SellerProductsPage() {
     const q = query(collection(db, 'users', user.uid, 'products'));
     
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      const fetched = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      } as Product));
-      setProducts(fetched);
-      localStorage.setItem('sellerProducts', JSON.stringify(fetched));
+      const fetchedProducts: Product[] = [];
+      snapshot.forEach((doc) => {
+          fetchedProducts.push({ id: doc.id, ...doc.data() } as Product);
+      });
+      setProducts(fetchedProducts);
+      localStorage.setItem('sellerProducts', JSON.stringify(fetchedProducts));
       setLoading(false);
     }, (error) => {
         console.error("Error fetching products:", error);
@@ -258,28 +258,29 @@ export default function SellerProductsPage() {
   const activeProducts = useMemo(() => filterProducts.filter(p => p.status === 'active'), [filterProducts]);
   const draftProducts = useMemo(() => filterProducts.filter(p => p.status === 'draft'), [filterProducts]);
   const archivedProducts = useMemo(() => filterProducts.filter(p => p.status === 'archived'), [filterProducts]);
+  const allFilteredProducts = useMemo(() => filterProductsByStock(products), [products, stockFilter]);
 
   if (loading) return <div className="flex h-screen items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-slate-400" /></div>;
   if (!user) return <div className="flex h-screen items-center justify-center text-slate-500">Please sign in to view dashboard.</div>;
 
   const handleSaveProduct = async (productData: Product) => {
     if (!user) return;
-    setIsSaving(true);
-    try {
-        const db = getFirestoreDb();
-        const storage = getStorage();
-        const colRef = collection(db, 'users', user.uid, 'products');
+    
+    const db = getFirestoreDb();
+    const storage = getStorage();
+    const colRef = collection(db, 'users', user.uid, 'products');
 
-        const uploadMedia = async (mediaItem: { type: 'video' | 'image'; file?: File; url: string }, productId: string) => {
-            if (mediaItem.file && mediaItem.url.startsWith('data:')) {
-                const filePath = `products/${user.uid}/${productId}/${mediaItem.file.name}`;
-                const storageRef = ref(storage, filePath);
-                const uploadResult = await uploadString(storageRef, mediaItem.url, 'data_url');
-                return getDownloadURL(uploadResult.ref);
-            }
-            return mediaItem.url; // Already a URL
-        };
-        
+    const uploadMedia = async (mediaItem: { type: 'video' | 'image'; file?: File; url: string }, productId: string) => {
+        if (mediaItem.file && mediaItem.url.startsWith('data:')) {
+            const filePath = `products/${user.uid}/${productId}/${mediaItem.file.name}`;
+            const storageRef = ref(storage, filePath);
+            const uploadResult = await uploadString(storageRef, mediaItem.url, 'data_url');
+            return getDownloadURL(uploadResult.ref);
+        }
+        return mediaItem.url;
+    };
+
+    try {
         let productId = editingProduct ? productData.id! : doc(colRef).id;
 
         const mediaUrls = await Promise.all(
@@ -291,27 +292,21 @@ export default function SellerProductsPage() {
             url: mediaUrls[index]
         }));
         
-        const dataToSave = {
+        const dataToSave: Omit<Product, 'id'> = {
             ...productData,
-            key: productId, // Use firestore generated key as our key
+            key: productId,
             media: finalMedia,
         };
 
         if (editingProduct) {
             await setDoc(doc(colRef, productId), { ...dataToSave, updatedAt: serverTimestamp() }, { merge: true });
-            toast({ title: "Success", description: "Product updated" });
         } else {
             await setDoc(doc(colRef, productId), { ...dataToSave, createdAt: serverTimestamp(), sold: 0 });
-            toast({ title: "Success", description: "Product created" });
         }
-
-        setIsFormOpen(false);
-        setEditingProduct(null);
+        
     } catch (error) {
-        console.error("Save error:", error);
-        toast({ title: "Error", description: "Failed to save product" });
-    } finally {
-        setIsSaving(false);
+        console.error("Error saving product:", error);
+        throw error; // Re-throw to be caught by the form
     }
   };
 
@@ -356,8 +351,15 @@ export default function SellerProductsPage() {
     });
   };
   
+  function filterProductsByStock(products: Product[]) {
+    if (stockFilter.length === 2 || stockFilter.length === 0) return products;
+    if (stockFilter[0] === 'inStock') return products.filter(p => p.stock > 0);
+    if (stockFilter[0] === 'outOfStock') return products.filter(p => p.stock === 0);
+    return [];
+  }
+  
   const handleExport = () => {
-    const dataToExport = filterProducts;
+    const dataToExport = allFilteredProducts;
     if (dataToExport.length === 0) {
         toast({ title: "No Data", description: "There is no data to export.", variant: "destructive"});
         return;
@@ -388,110 +390,110 @@ export default function SellerProductsPage() {
   
   return (
     <>
-        <div className="flex min-h-screen w-full flex-col bg-slate-50/50 font-sans text-slate-900">
-           <SellerHeader />
-           <main className="flex-1 p-4 sm:px-6 sm:py-8 max-w-7xl mx-auto w-full animate-in fade-in slide-in-from-bottom-4 duration-500">
-              <div className="grid gap-4 md:grid-cols-3 mb-8">
-                 <Card className="bg-white shadow-sm border-slate-200">
-                    <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
-                       <CardTitle className="text-sm font-medium text-muted-foreground">Total Products</CardTitle>
-                       <Package className="h-4 w-4 text-blue-600" />
-                    </CardHeader>
-                    <CardContent>
-                       <div className="text-2xl font-bold text-slate-900">{products.length}</div>
-                       <p className="text-xs text-muted-foreground mt-1">Across all categories</p>
-                    </CardContent>
-                 </Card>
-                 <Card className="bg-white shadow-sm border-slate-200">
-                    <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
-                       <CardTitle className="text-sm font-medium text-muted-foreground">Active Listings</CardTitle>
-                       <Eye className="h-4 w-4 text-green-600" />
-                    </CardHeader>
-                    <CardContent>
-                       <div className="text-2xl font-bold text-slate-900">{products.filter(p => p.status === 'active').length}</div>
-                       <p className="text-xs text-muted-foreground mt-1">Currently visible</p>
-                    </CardContent>
-                 </Card>
-                 <Card className="bg-white shadow-sm border-slate-200">
-                    <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
-                       <CardTitle className="text-sm font-medium text-muted-foreground">Low Stock</CardTitle>
-                       <ArrowUpRight className="h-4 w-4 text-orange-600" />
-                    </CardHeader>
-                    <CardContent>
-                       <div className="text-2xl font-bold text-slate-900">{products.filter(p => p.stock < 5 && p.stock > 0).length}</div>
-                       <p className="text-xs text-muted-foreground mt-1">Less than 5 units</p>
-                    </CardContent>
-                 </Card>
-              </div>
-
-              <div className="flex flex-col gap-6">
-                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                    <div>
-                       <h2 className="text-2xl font-bold tracking-tight text-slate-900">Inventory</h2>
-                       <p className="text-muted-foreground text-sm">Manage your products and stock levels.</p>
-                    </div>
-                    <div className="flex items-center gap-2 ml-auto">
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <Button variant="outline" size="sm" className="h-9 gap-1 bg-white">
-                                    <ListFilter className="h-3.5 w-3.5" />
-                                    <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">Filter</span>
-                                </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                                <DropdownMenuLabel>Filter by Stock</DropdownMenuLabel>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuCheckboxItem checked={stockFilter.includes('inStock')} onCheckedChange={() => handleStockFilterChange('inStock')}>
-                                    In Stock
-                                </DropdownMenuCheckboxItem>
-                                <DropdownMenuCheckboxItem checked={stockFilter.includes('outOfStock')} onCheckedChange={() => handleStockFilterChange('outOfStock')}>
-                                    Out of Stock
-                                </DropdownMenuCheckboxItem>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
-                        <Button size="sm" variant="outline" className="h-9 gap-1 bg-white" onClick={handleExport}>
-                            <File className="h-3.5 w-3.5" />
-                            <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">Export</span>
-                        </Button>
-                         <Button size="sm" className="h-9 gap-1 bg-slate-900 hover:bg-slate-800 text-white shadow-md" onClick={() => { setEditingProduct(undefined); setIsFormOpen(true); }}>
-                             <PlusCircle className="h-3.5 w-3.5" />
-                             <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">Add Product</span>
-                        </Button>
-                    </div>
-                 </div>
-
-                 <div className="w-full">
-                    <Tabs defaultValue="all" onValueChange={setActiveTab}>
-                      <TabsList>
-                          <TabsTrigger value="all">All</TabsTrigger>
-                          <TabsTrigger value="active">Active</TabsTrigger>
-                          <TabsTrigger value="draft">Draft</TabsTrigger>
-                          <TabsTrigger value="archived" className="hidden sm:flex">
-                              Archived
-                          </TabsTrigger>
-                      </TabsList>
-                      <div className="mt-4">
-                          <TabsContent value="all">
-                               <ProductTable products={filterProducts} onEdit={handleEditProduct} onDelete={handleDeleteProduct} onManageQna={handleManageQna} onAnalytics={handleAnalytics}/>
-                          </TabsContent>
-                          <TabsContent value="active">
-                              <ProductTable products={activeProducts} onEdit={handleEditProduct} onDelete={handleDeleteProduct} onManageQna={handleManageQna} onAnalytics={handleAnalytics}/>
-                          </TabsContent>
-                          <TabsContent value="draft">
-                              <ProductTable products={draftProducts} onEdit={handleEditProduct} onDelete={handleDeleteProduct} onManageQna={handleManageQna} onAnalytics={handleAnalytics}/>
-                          </TabsContent>
-                          <TabsContent value="archived">
-                              <ProductTable products={archivedProducts} onEdit={handleEditProduct} onDelete={handleDeleteProduct} onManageQna={handleManageQna} onAnalytics={handleAnalytics}/>
-                          </TabsContent>
-                      </div>
-                    </Tabs>
-                 </div>
-              </div>
-          </main>
-        </div>
-
         <Dialog open={isFormOpen} onOpenChange={handleOpenChange}>
-             <DialogContent className="sm:max-w-3xl h-[90vh] flex flex-col">
+            <div className="flex min-h-screen w-full flex-col bg-slate-50/50 font-sans text-slate-900">
+               <SellerHeader />
+               <main className="flex-1 p-4 sm:px-6 sm:py-8 max-w-7xl mx-auto w-full animate-in fade-in slide-in-from-bottom-4 duration-500">
+                  <div className="grid gap-4 md:grid-cols-3 mb-8">
+                     <Card className="bg-white shadow-sm border-slate-200">
+                        <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
+                           <CardTitle className="text-sm font-medium text-muted-foreground">Total Products</CardTitle>
+                           <Package className="h-4 w-4 text-blue-600" />
+                        </CardHeader>
+                        <CardContent>
+                           <div className="text-2xl font-bold text-slate-900">{products.length}</div>
+                           <p className="text-xs text-muted-foreground mt-1">Across all categories</p>
+                        </CardContent>
+                     </Card>
+                     <Card className="bg-white shadow-sm border-slate-200">
+                        <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
+                           <CardTitle className="text-sm font-medium text-muted-foreground">Active Listings</CardTitle>
+                           <Eye className="h-4 w-4 text-green-600" />
+                        </CardHeader>
+                        <CardContent>
+                           <div className="text-2xl font-bold text-slate-900">{products.filter(p => p.status === 'active').length}</div>
+                           <p className="text-xs text-muted-foreground mt-1">Currently visible</p>
+                        </CardContent>
+                     </Card>
+                     <Card className="bg-white shadow-sm border-slate-200">
+                        <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
+                           <CardTitle className="text-sm font-medium text-muted-foreground">Low Stock</CardTitle>
+                           <ArrowUpRight className="h-4 w-4 text-orange-600" />
+                        </CardHeader>
+                        <CardContent>
+                           <div className="text-2xl font-bold text-slate-900">{products.filter(p => p.stock < 5 && p.stock > 0).length}</div>
+                           <p className="text-xs text-muted-foreground mt-1">Less than 5 units</p>
+                        </CardContent>
+                     </Card>
+                  </div>
+
+                  <div className="flex flex-col gap-6">
+                     <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                        <div>
+                           <h2 className="text-2xl font-bold tracking-tight text-slate-900">Inventory</h2>
+                           <p className="text-muted-foreground text-sm">Manage your products and stock levels.</p>
+                        </div>
+                        <div className="flex items-center gap-2 ml-auto">
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button variant="outline" size="sm" className="h-9 gap-1 bg-white">
+                                        <ListFilter className="h-3.5 w-3.5" />
+                                        <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">Filter</span>
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                    <DropdownMenuLabel>Filter by Stock</DropdownMenuLabel>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuCheckboxItem checked={stockFilter.includes('inStock')} onCheckedChange={() => handleStockFilterChange('inStock')}>
+                                        In Stock
+                                    </DropdownMenuCheckboxItem>
+                                    <DropdownMenuCheckboxItem checked={stockFilter.includes('outOfStock')} onCheckedChange={() => handleStockFilterChange('outOfStock')}>
+                                        Out of Stock
+                                    </DropdownMenuCheckboxItem>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                            <Button size="sm" variant="outline" className="h-9 gap-1 bg-white" onClick={handleExport}>
+                                <File className="h-3.5 w-3.5" />
+                                <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">Export</span>
+                            </Button>
+                             <Button size="sm" className="h-9 gap-1" onClick={() => { setEditingProduct(undefined); setIsFormOpen(true); }}>
+                                 <PlusCircle className="h-3.5 w-3.5" />
+                                 <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">Add Product</span>
+                            </Button>
+                        </div>
+                     </div>
+
+                     <div className="w-full">
+                        <Tabs defaultValue="all" onValueChange={setActiveTab}>
+                          <TabsList>
+                              <TabsTrigger value="all">All</TabsTrigger>
+                              <TabsTrigger value="active">Active</TabsTrigger>
+                              <TabsTrigger value="draft">Draft</TabsTrigger>
+                              <TabsTrigger value="archived" className="hidden sm:flex">
+                                  Archived
+                              </TabsTrigger>
+                          </TabsList>
+                          <div className="mt-4">
+                              <TabsContent value="all">
+                                   <ProductTable products={allFilteredProducts} onEdit={handleEditProduct} onDelete={handleDeleteProduct} onManageQna={handleManageQna} onAnalytics={handleAnalytics}/>
+                              </TabsContent>
+                              <TabsContent value="active">
+                                  <ProductTable products={activeProducts} onEdit={handleEditProduct} onDelete={handleDeleteProduct} onManageQna={handleManageQna} onAnalytics={handleAnalytics}/>
+                              </TabsContent>
+                              <TabsContent value="draft">
+                                  <ProductTable products={draftProducts} onEdit={handleEditProduct} onDelete={handleDeleteProduct} onManageQna={handleManageQna} onAnalytics={handleAnalytics}/>
+                              </TabsContent>
+                              <TabsContent value="archived">
+                                  <ProductTable products={archivedProducts} onEdit={handleEditProduct} onDelete={handleDeleteProduct} onManageQna={handleManageQna} onAnalytics={handleAnalytics}/>
+                              </TabsContent>
+                          </div>
+                        </Tabs>
+                     </div>
+                  </div>
+              </main>
+            </div>
+
+            <DialogContent className="sm:max-w-3xl h-[90vh] flex flex-col">
                 <DialogHeader>
                     <DialogTitle>{editingProduct ? "Edit Product" : "Add New Product"}</DialogTitle>
                     <DialogDescription>
@@ -501,7 +503,6 @@ export default function SellerProductsPage() {
                 <ProductForm onSave={handleSaveProduct} productToEdit={editingProduct} onCancel={() => handleOpenChange(false)} isSaving={isSaving} />
             </DialogContent>
         </Dialog>
-        
         <Dialog open={isQnaOpen} onOpenChange={setIsQnaOpen}>
             {selectedProduct && <ManageQnaDialog product={selectedProduct} isOpen={isQnaOpen} onClose={() => setIsQnaOpen(false)} />}
         </Dialog>
