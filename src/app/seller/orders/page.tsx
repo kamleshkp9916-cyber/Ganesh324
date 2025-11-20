@@ -37,6 +37,7 @@ import {
   Download,
   ImageIcon // For return images placeholder
 } from 'lucide-react';
+import { SellerHeader } from '@/components/seller/seller-header';
 
 // --- Gemini API Helper ---
 
@@ -578,7 +579,7 @@ const OrderCard = ({ order, onGenerateLabel, onAccept, onDecline, onOpenAI, isEx
                                 onClick={(e) => { e.stopPropagation(); onRefund(order.id); }}
                                 className="flex-1 py-2 bg-orange-600 hover:bg-orange-700 text-white text-sm font-medium rounded flex items-center justify-center gap-2 shadow-sm transition-colors"
                                 >
-                                <RefreshCw className="w-4 h-4" /> Approve Return
+                                <RefreshCcw className="w-4 h-4" /> Approve Return
                                 </button>
                             </div>
                         ) : (
@@ -874,123 +875,106 @@ export default function App() {
         onClose={() => setInvoiceOrder(null)}
         order={invoiceOrder}
       />
-
-      {/* Top Navigation */}
-      <header className="bg-white border-b border-slate-200 sticky top-0 z-20 px-6 py-4 flex justify-between items-center shadow-sm">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold shadow-blue-200 shadow-lg">S</div>
-          <h1 className="text-xl font-bold tracking-tight text-slate-900">SellerHub</h1>
-        </div>
-        <div className="flex items-center gap-4">
-          <button className="p-2 hover:bg-slate-100 rounded-full relative transition-colors">
-            <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border border-white"></span>
-            <Bell className="text-slate-600 w-5 h-5" />
-          </button>
-          <div className="w-9 h-9 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold overflow-hidden border border-indigo-200 shadow-sm cursor-pointer hover:ring-2 hover:ring-offset-1 hover:ring-indigo-500 transition-all">
-            JD
-          </div>
-        </div>
-      </header>
-
-      <main className="max-w-7xl mx-auto p-6">
-        
-        <div className="mb-8 animate-in slide-in-from-top-4 duration-500">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
-                <div>
-                    <h2 className="text-2xl font-bold text-slate-900">Order Management</h2>
-                    <p className="text-slate-500 text-sm mt-1">Manage orders, generate labels, and track shipments.</p>
-                </div>
-                
-                {/* Tabs */}
-                <div className="flex bg-white p-1 rounded-lg border shadow-sm overflow-x-auto">
-                    <button 
-                        onClick={() => setActiveTab('active')}
-                        className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all whitespace-nowrap ${
-                            activeTab === 'active' 
-                            ? 'bg-slate-900 text-white shadow-md' 
-                            : 'text-slate-600 hover:bg-slate-50'
-                        }`}
-                    >
-                        <List className="w-4 h-4" /> Active Orders
-                    </button>
-                    <button 
-                        onClick={() => setActiveTab('returns')}
-                        className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all whitespace-nowrap ${
-                            activeTab === 'returns' 
-                            ? 'bg-slate-900 text-white shadow-md' 
-                            : 'text-slate-600 hover:bg-slate-50'
-                        }`}
-                    >
-                        <RotateCcw className="w-4 h-4" /> Returns <span className="ml-1 bg-orange-100 text-orange-800 px-1.5 py-0.5 rounded-full text-[10px]">1</span>
-                    </button>
-                    <button 
-                         onClick={() => setActiveTab('history')}
-                         className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all whitespace-nowrap ${
-                            activeTab === 'history' 
-                            ? 'bg-slate-900 text-white shadow-md' 
-                            : 'text-slate-600 hover:bg-slate-50'
-                        }`}
-                    >
-                        <History className="w-4 h-4" /> Order History
-                    </button>
-                </div>
-            </div>
-
-            {/* Filters */}
-            <div className="flex gap-3 w-full">
-                <div className="relative flex-1 group">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4 group-focus-within:text-blue-500 transition-colors" />
-                <input 
-                    type="text" 
-                    placeholder={`Search ${activeTab} orders...`}
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm transition-shadow shadow-sm bg-white"
-                />
-                </div>
-                <button className="flex items-center gap-2 px-4 py-2.5 border border-slate-300 bg-white rounded-lg hover:bg-slate-50 text-sm font-medium shadow-sm text-slate-700 transition-colors">
-                <Filter className="w-4 h-4" /> Filter
-                </button>
-            </div>
-        </div>
-
-        {/* Order List */}
-        <div className="space-y-4">
-          {filteredOrders.length > 0 ? (
-            filteredOrders.map((order) => (
-              <OrderCard 
-                key={order.id} 
-                order={order} 
-                onGenerateLabel={handleGenerateLabel}
-                onAccept={handleAccept}
-                onDecline={handleDecline}
-                onRefund={handleRefund}
-                onOpenAI={handleOpenAI}
-                onViewInvoice={setInvoiceOrder}
-                isExpanded={expandedOrderIds.has(order.id)}
-                toggleExpanded={toggleExpanded}
-              />
-            ))
-          ) : (
-            <div className="text-center py-16 bg-white rounded-xl border border-dashed border-slate-300 animate-in fade-in">
-              <div className="bg-slate-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Search className="w-8 h-8 text-slate-400" />
+      <div className="w-full">
+        <SellerHeader />
+        <main className="max-w-7xl mx-auto p-6">
+          <div className="mb-8 animate-in slide-in-from-top-4 duration-500">
+              <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+                  <div>
+                      <h2 className="text-2xl font-bold text-slate-900">Order Management</h2>
+                      <p className="text-slate-500 text-sm mt-1">Manage orders, generate labels, and track shipments.</p>
+                  </div>
+                  
+                  {/* Tabs */}
+                  <div className="flex bg-white p-1 rounded-lg border shadow-sm overflow-x-auto">
+                      <button 
+                          onClick={() => setActiveTab('active')}
+                          className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all whitespace-nowrap ${
+                              activeTab === 'active' 
+                              ? 'bg-slate-900 text-white shadow-md' 
+                              : 'text-slate-600 hover:bg-slate-50'
+                          }`}
+                      >
+                          <List className="w-4 h-4" /> Active Orders
+                      </button>
+                      <button 
+                          onClick={() => setActiveTab('returns')}
+                          className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all whitespace-nowrap ${
+                              activeTab === 'returns' 
+                              ? 'bg-slate-900 text-white shadow-md' 
+                              : 'text-slate-600 hover:bg-slate-50'
+                          }`}
+                      >
+                          <RotateCcw className="w-4 h-4" /> Returns <span className="ml-1 bg-orange-100 text-orange-800 px-1.5 py-0.5 rounded-full text-[10px]">1</span>
+                      </button>
+                      <button 
+                           onClick={() => setActiveTab('history')}
+                           className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all whitespace-nowrap ${
+                              activeTab === 'history' 
+                              ? 'bg-slate-900 text-white shadow-md' 
+                              : 'text-slate-600 hover:bg-slate-50'
+                          }`}
+                      >
+                          <History className="w-4 h-4" /> Order History
+                      </button>
+                  </div>
               </div>
-              <h3 className="text-lg font-medium text-slate-900 capitalize">No {activeTab} orders found</h3>
-              <p className="text-slate-500 text-sm mt-2">Try adjusting your search terms.</p>
-              {searchTerm && (
-                  <button 
-                    onClick={() => setSearchTerm("")}
-                    className="mt-4 text-blue-600 text-sm font-medium hover:underline"
-                  >
-                    Clear search
-                  </button>
-              )}
-            </div>
-          )}
-        </div>
 
-      </main>
+              {/* Filters */}
+              <div className="flex gap-3 w-full">
+                  <div className="relative flex-1 group">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4 group-focus-within:text-blue-500 transition-colors" />
+                  <input 
+                      type="text" 
+                      placeholder={`Search ${activeTab} orders...`}
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="w-full pl-10 pr-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm transition-shadow shadow-sm bg-white"
+                  />
+                  </div>
+                  <button className="flex items-center gap-2 px-4 py-2.5 border border-slate-300 bg-white rounded-lg hover:bg-slate-50 text-sm font-medium shadow-sm text-slate-700 transition-colors">
+                  <Filter className="w-4 h-4" /> Filter
+                  </button>
+              </div>
+          </div>
+
+          {/* Order List */}
+          <div className="space-y-4">
+            {filteredOrders.length > 0 ? (
+              filteredOrders.map((order) => (
+                <OrderCard 
+                  key={order.id} 
+                  order={order} 
+                  onGenerateLabel={handleGenerateLabel}
+                  onAccept={handleAccept}
+                  onDecline={handleDecline}
+                  onRefund={handleRefund}
+                  onOpenAI={handleOpenAI}
+                  onViewInvoice={setInvoiceOrder}
+                  isExpanded={expandedOrderIds.has(order.id)}
+                  toggleExpanded={toggleExpanded}
+                />
+              ))
+            ) : (
+              <div className="text-center py-16 bg-white rounded-xl border border-dashed border-slate-300 animate-in fade-in">
+                <div className="bg-slate-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Search className="w-8 h-8 text-slate-400" />
+                </div>
+                <h3 className="text-lg font-medium text-slate-900 capitalize">No {activeTab} orders found</h3>
+                <p className="text-slate-500 text-sm mt-2">Try adjusting your search terms.</p>
+                {searchTerm && (
+                    <button 
+                      onClick={() => setSearchTerm("")}
+                      className="mt-4 text-blue-600 text-sm font-medium hover:underline"
+                    >
+                      Clear search
+                    </button>
+                )}
+              </div>
+            )}
+          </div>
+        </main>
+      </div>
     </div>
   );
 }
