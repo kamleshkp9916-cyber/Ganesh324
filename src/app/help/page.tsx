@@ -3,7 +3,7 @@
 
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, LifeBuoy, MessageSquare, Mail, Wallet, Package, Ban, Truck } from 'lucide-react';
+import { ArrowLeft, LifeBuoy, MessageSquare, Mail, Wallet, Package, Ban, Truck, AlertTriangle } from 'lucide-react';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -76,6 +76,8 @@ const quickTopics = [
     { label: "When is my delivery?", icon: <Truck className="w-4 h-4 mr-2" /> },
     { label: "Unable to cancel order", icon: <Ban className="w-4 h-4 mr-2" /> },
     { label: "Product not received", icon: <Package className="w-4 h-4 mr-2" /> },
+    { label: "My payment failed", icon: <AlertTriangle className="w-4 h-4 mr-2" /> },
+    { label: "Item is different from description", icon: <MessageSquare className="w-4 h-4 mr-2" /> },
 ];
 
 export default function HelpPage() {
