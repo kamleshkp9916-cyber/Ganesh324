@@ -188,6 +188,11 @@ export function ProductForm({ onSave, productToEdit, onCancel, isSaving }: Produ
       const files = Array.from(event.target.files || []);
       if (files.length === 0) return;
       
+      if (media.length + files.length > 5) {
+        toast({ variant: 'destructive', title: 'Upload Limit', description: 'You can only upload a maximum of 5 files (images/videos).' });
+        return;
+      }
+      
       const newMediaItems = files.map(file => {
           return new Promise<{type: 'video' | 'image', file: File, url: string}>((resolve) => {
               const reader = new FileReader();
@@ -199,8 +204,9 @@ export function ProductForm({ onSave, productToEdit, onCancel, isSaving }: Produ
       });
 
       Promise.all(newMediaItems).then(items => {
-          setMedia(prev => [...prev, ...items]);
-          form.setValue('media', [...media, ...items]);
+          const updatedMedia = [...media, ...items];
+          setMedia(updatedMedia);
+          form.setValue('media', updatedMedia);
       });
   };
   
@@ -345,12 +351,21 @@ export function ProductForm({ onSave, productToEdit, onCancel, isSaving }: Produ
             <div className="space-y-6 py-4 px-6">
                 <div className="grid grid-cols-2 gap-4">
                   <FormField control={form.control} name="price" render={({ field }) => (
-                      <FormItem><FormLabel>Default Selling Price</FormLabel><FormControl><Input type="number" {...field} disabled={fields.length > 0} /></FormControl><FormMessage /></FormItem>
+                      <FormItem>
+                        <FormLabel>Default Selling Price</FormLabel>
+                        <FormControl><Input type="number" {...field} disabled={fields.length > 0} /></FormControl>
+                         <FormDescription className="text-xs">This will be used if no variant price is set.</FormDescription>
+                        <FormMessage />
+                      </FormItem>
                   )}/>
                   <FormField control={form.control} name="stock" render={({ field }) => (
-                      <FormItem><FormLabel>Default Stock</FormLabel><FormControl><Input type="number" {...field} disabled={fields.length > 0} /></FormControl><FormMessage /></FormItem>
+                      <FormItem>
+                        <FormLabel>Default Stock</FormLabel>
+                        <FormControl><Input type="number" {...field} disabled={fields.length > 0} /></FormControl>
+                         <FormDescription className="text-xs">This is the total stock if no variants are specified.</FormDescription>
+                        <FormMessage />
+                      </FormItem>
                   )}/>
-                  <p className="col-span-2 text-xs text-muted-foreground -mt-1">Default fields are disabled when variants are used. Price and stock must be set for each variant instead.</p>
                 </div>
                 <FormField control={form.control} name="discountPercentage" render={({ field }) => (
                     <FormItem><FormLabel>Discount Percentage (Optional)</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormDescription>Creates a "sale" effect by showing a higher original price.</FormDescription><FormMessage /></FormItem>
@@ -369,11 +384,11 @@ export function ProductForm({ onSave, productToEdit, onCancel, isSaving }: Produ
                 <Separator />
                 <div>
                   <h3 className="font-semibold text-lg">Product Variants</h3>
-                  <FormDescription>Use this if options like size or color have different prices, stock, or images. This will override the simple options above.</FormDescription>
+                  <FormDescription>Add variants if your product has different prices or stock for different sizes, colors, etc. This will override the simple options above.</FormDescription>
                 </div>
                  <div className="space-y-4">
                     {fields.map((field, index) => (
-                        <Card key={field.id} className="p-4 bg-muted/30">
+                         <Card key={field.id} className="p-4 bg-muted/30">
                             <div className="grid grid-cols-1 md:grid-cols-[auto,1fr] gap-4 items-start">
                                  <div className="space-y-1">
                                     <Label>Variant Image</Label>
