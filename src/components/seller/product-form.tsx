@@ -25,7 +25,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Loader2, Upload, Trash2, Camera, FileEdit, Video, ImageIcon, PlusCircle } from "lucide-react";
+import { Loader2, Upload, Trash2, Camera, FileEdit, Video, ImageIcon, PlusCircle, CheckCircle, AlertTriangle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -239,13 +239,19 @@ export function ProductForm({ onSave, productToEdit, onCancel, isSaving: isSavin
         setSaveProgress(prev => Math.min(prev + 10, 90));
     }, 150);
 
-    await onSave(data as Product);
-    
-    clearInterval(progressInterval);
-    setSaveProgress(100);
-    setTimeout(() => {
+    try {
+        await onSave(data as Product);
+        clearInterval(progressInterval);
+        setSaveProgress(100);
+        setTimeout(() => {
+            setIsSaving(false);
+            onCancel(); // Close dialog on success
+        }, 1000);
+    } catch(e) {
+        clearInterval(progressInterval);
         setIsSaving(false);
-    }, 500);
+        // Error toast is handled in parent
+    }
   };
   
     const handleVariantImageUpload = (index: number, event: React.ChangeEvent<HTMLInputElement>) => {
@@ -259,6 +265,26 @@ export function ProductForm({ onSave, productToEdit, onCancel, isSaving: isSavin
             reader.readAsDataURL(file);
         }
     };
+    
+    const handleNextStep = async () => {
+        let fieldsToValidate: (keyof z.infer<typeof productFormSchema>)[] = [];
+        if (step === 1) {
+            fieldsToValidate = ['name', 'description', 'category', 'media'];
+        } else if (step === 2) {
+             fieldsToValidate = ['price', 'stock'];
+        }
+
+        const isValid = await form.trigger(fieldsToValidate);
+        if (isValid) {
+            setStep(s => s + 1);
+        } else {
+             toast({
+                variant: "destructive",
+                title: "Incomplete Information",
+                description: "Please fill out all required fields before proceeding.",
+            });
+        }
+    }
   
   const renderStepContent = () => {
     switch (step) {
@@ -339,7 +365,7 @@ export function ProductForm({ onSave, productToEdit, onCancel, isSaving: isSavin
               <FormField control={form.control} name="media" render={() => (
                 <FormItem>
                   <FormLabel>Product Media</FormLabel>
-                  <FormDescription>Add up to 5 files (images/videos). The first item is the main display media. Recommended: 800x800px, max 5MB.</FormDescription>
+                  <FormDescription>Add up to 5 files (1 video max). The first item is the main display media. Recommended: 800x800px.</FormDescription>
                   <div className="grid grid-cols-3 md:grid-cols-5 gap-2">
                     {media.map((m, i) => (
                       <div key={i} className="relative aspect-square w-full rounded-md overflow-hidden group">
@@ -352,7 +378,7 @@ export function ProductForm({ onSave, productToEdit, onCancel, isSaving: isSavin
                   </div>
                   <div className="flex gap-2 pt-2">
                       <Button type="button" variant="outline" onClick={() => imageInputRef.current?.click()}><ImageIcon className="mr-2 h-4 w-4" /> Add Images</Button>
-                      <Button type="button" variant="outline" onClick={() => videoInputRef.current?.click()}><Video className="mr-2 h-4 w-4" /> Add Video</Button>
+                      <Button type="button" variant="outline" onClick={() => videoInputRef.current?.click()} disabled={media.some(m => m.type === 'video')}><Video className="mr-2 h-4 w-4" /> Add Video</Button>
                   </div>
                   <FormMessage />
                 </FormItem>
@@ -387,7 +413,7 @@ export function ProductForm({ onSave, productToEdit, onCancel, isSaving: isSavin
                 )}/>
                 <Separator />
                  <h3 className="font-semibold text-lg">Simple Options</h3>
-                 <FormDescription>For products where price and stock are the same for all options, e.g., different colors of the same bag.</FormDescription>
+                 <FormDescription>For products where price and stock are the same for all options (e.g., different colors of the same bag). Use variants for more complex products.</FormDescription>
                 <div className="grid grid-cols-2 gap-4">
                     <FormField control={form.control} name="availableSizes" render={({ field }) => (
                         <FormItem><FormLabel>Available Sizes</FormLabel><FormControl><Input placeholder="S, M, L, XL" {...field} /></FormControl><FormDescription className="text-xs">Comma-separated.</FormDescription><FormMessage /></FormItem>
@@ -400,7 +426,7 @@ export function ProductForm({ onSave, productToEdit, onCancel, isSaving: isSavin
                 <div>
                   <h3 className="font-semibold text-lg">Product Variants</h3>
                   <FormDescription>
-                    Use variants when different options (e.g., a Large, Red T-shirt) have a unique price, stock level, or image. This will override the simple options above.
+                    Use variants when different options (e.g., a Large, Red T-shirt) have a unique price, stock level, or image. This will override the simple options and default price/stock.
                   </FormDescription>
                 </div>
                  <div className="space-y-4">
@@ -445,7 +471,7 @@ export function ProductForm({ onSave, productToEdit, onCancel, isSaving: isSavin
                             </div>
                         </Card>
                     ))}
-                    <Button type="button" variant="outline" onClick={() => append({ size: "", color: "", price: productToEdit?.price || 0, stock: 0, image: null })}>
+                    <Button type="button" variant="outline" onClick={() => append({ size: "", color: "", price: 0, stock: 0 })}>
                         <PlusCircle className="mr-2 h-4 w-4"/> Add Variant
                     </Button>
                 </div>
@@ -514,17 +540,22 @@ export function ProductForm({ onSave, productToEdit, onCancel, isSaving: isSavin
         <div className="p-6 pt-4 border-t flex justify-between items-center mt-auto">
           <div>
               {step > 1 && (
-                  <Button type="button" variant="outline" onClick={() => setStep(step - 1)}>Back</Button>
+                  <Button type="button" variant="outline" onClick={() => setStep(step - 1)} disabled={isSaving}>Back</Button>
               )}
           </div>
           <div className="flex items-center gap-2">
             <span className="text-xs text-muted-foreground">Step {step} of 3</span>
             {step < 3 ? (
-                <Button type="button" onClick={() => setStep(step + 1)}>Next</Button>
+                <Button type="button" onClick={handleNextStep}>Next</Button>
             ) : (
                  <div className="w-48">
                     {isSaving ? (
-                        <Progress value={saveProgress} className="h-9 rounded-md" />
+                        <div className="relative h-9 w-full">
+                            <Progress value={saveProgress} className="h-full rounded-md" />
+                            <div className="absolute inset-0 flex items-center justify-center text-xs font-medium text-primary-foreground">
+                                {saveProgress < 100 ? `Saving... ${saveProgress}%` : <div className="flex items-center gap-1"><CheckCircle className="h-4 w-4"/> Saved!</div>}
+                            </div>
+                        </div>
                     ) : (
                         <Button type="submit" className="w-full">
                             {productToEdit ? "Update Product" : "Create Product"}
@@ -538,5 +569,3 @@ export function ProductForm({ onSave, productToEdit, onCancel, isSaving: isSavin
     </Form>
   );
 }
-
-    
