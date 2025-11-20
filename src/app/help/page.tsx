@@ -97,7 +97,7 @@ export default function HelpPage() {
               <div key={category.category}>
                 <h3 className="text-xl font-semibold mt-6 mb-2 border-b pb-2">{category.category}</h3>
                 {category.questions.map((item, index) => (
-                  <AccordionItem key={index} value={`${category.category}-${index}`}>
+                  <AccordionItem key={index} value={`${''}${category.category}-${index}`}>
                     <AccordionTrigger>{item.q}</AccordionTrigger>
                     <AccordionContent className="text-muted-foreground">
                       {item.a}
@@ -113,7 +113,7 @@ export default function HelpPage() {
               <p className="text-muted-foreground mb-6">If you couldn't find the answer you were looking for, here are a few ways to get in touch with us.</p>
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                    <Button asChild className="w-full sm:w-auto">
-                      <Link href="/message">
+                      <Link href="/contact">
                           <MessageSquare className="mr-2 h-4 w-4" />
                          Raise a Ticket
                       </Link>

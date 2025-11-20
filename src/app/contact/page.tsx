@@ -15,26 +15,32 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useAuth } from "@/hooks/use-auth";
 import { useEffect, useState } from "react";
 import { submitInquiry, Inquiry } from "@/ai/flows/contact-flow";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
-const InquirySchema = z.object({
+
+const ticketSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
   email: z.string().email({ message: "Please enter a valid email address." }),
+  category: z.string().min(1, { message: "Please select a category." }),
   subject: z.string().min(5, { message: "Subject must be at least 5 characters." }),
   message: z.string().min(10, { message: "Message must be at least 10 characters." }),
 });
 
+const ticketCategories = ["General Inquiry", "Technical Support", "Billing Issue", "Account Management", "Feedback"];
 
-export default function ContactPage() {
+
+export default function RaiseTicketPage() {
   const router = useRouter();
   const { toast } = useToast();
   const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
 
-  const form = useForm<z.infer<typeof InquirySchema>>({
-    resolver: zodResolver(InquirySchema),
+  const form = useForm<z.infer<typeof ticketSchema>>({
+    resolver: zodResolver(ticketSchema),
     defaultValues: {
       name: "",
       email: "",
+      category: "",
       subject: "",
       message: "",
     },
@@ -47,27 +53,33 @@ export default function ContactPage() {
     }
   }, [user, form]);
 
-  const onSubmit = async (values: z.infer<typeof InquirySchema>) => {
+  const onSubmit = async (values: z.infer<typeof ticketSchema>) => {
     setIsLoading(true);
     try {
-        await submitInquiry({
+        const inquiryData = {
             ...values,
-            isRead: false,
-        });
+            status: "New",
+            priority: "Medium",
+        } as Omit<Inquiry, 'createdAt'>;
+
+        await submitInquiry(inquiryData);
+        
         toast({
-            title: "Message Sent!",
-            description: "Thank you for contacting us. We will get back to you shortly.",
+            title: "Ticket Submitted!",
+            description: "Thank you for contacting support. We will get back to you shortly.",
         });
-        form.reset();
-        if (user) {
-            form.setValue("name", user.displayName || "");
-            form.setValue("email", user.email || "");
-        }
+        form.reset({
+            name: user?.displayName || "",
+            email: user?.email || "",
+            category: "",
+            subject: "",
+            message: "",
+        });
     } catch(error) {
         toast({
             variant: "destructive",
             title: "Submission Failed",
-            description: "There was an error sending your message. Please try again.",
+            description: "There was an error creating your ticket. Please try again.",
         });
     } finally {
         setIsLoading(false);
@@ -80,19 +92,65 @@ export default function ContactPage() {
         <Button variant="ghost" size="icon" onClick={() => router.back()}>
           <ArrowLeft className="h-6 w-6" />
         </Button>
-        <h1 className="text-xl font-bold">Contact Us</h1>
+        <h1 className="text-xl font-bold">Raise a Support Ticket</h1>
         <div className="w-10"></div>
       </header>
 
       <main className="flex-grow p-4 md:p-8 flex items-center justify-center">
         <Card className="w-full max-w-2xl">
             <CardHeader>
-                <CardTitle>Get in Touch</CardTitle>
-                <CardDescription>Have a question or feedback? Fill out the form below to contact a company executive.</CardDescription>
+                <CardTitle>Submit a Ticket</CardTitle>
+                <CardDescription>Our support team will get back to you as soon as possible.</CardDescription>
             </CardHeader>
             <CardContent>
                 <Form {...form}>
                     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                         <FormField
+                            control={form.control}
+                            name="category"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Category</FormLabel>
+                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                        <FormControl>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Select a category for your issue" />
+                                        </SelectTrigger>
+                                        </FormControl>
+                                        <SelectContent>
+                                        {ticketCategories.map(cat => <SelectItem key={cat} value={cat}>{cat}</SelectItem>)}
+                                        </SelectContent>
+                                    </Select>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={form.control}
+                            name="subject"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Subject</FormLabel>
+                                    <FormControl>
+                                        <Input placeholder="e.g., Issue with order #12345" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={form.control}
+                            name="message"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Please describe your issue in detail</FormLabel>
+                                    <FormControl>
+                                        <Textarea placeholder="The more details you provide, the faster we can help." {...field} rows={6}/>
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                              <FormField
                                 control={form.control}
@@ -101,7 +159,7 @@ export default function ContactPage() {
                                     <FormItem>
                                         <FormLabel>Full Name</FormLabel>
                                         <FormControl>
-                                            <Input placeholder="Your Name" {...field} />
+                                            <Input placeholder="Your Name" {...field} disabled />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -114,42 +172,16 @@ export default function ContactPage() {
                                     <FormItem>
                                         <FormLabel>Email Address</FormLabel>
                                         <FormControl>
-                                            <Input type="email" placeholder="your.email@example.com" {...field} />
+                                            <Input type="email" placeholder="your.email@example.com" {...field} disabled />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
                                 )}
                             />
                         </div>
-                        <FormField
-                            control={form.control}
-                            name="subject"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Subject</FormLabel>
-                                    <FormControl>
-                                        <Input placeholder="What is your message about?" {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                        <FormField
-                            control={form.control}
-                            name="message"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Your Message</FormLabel>
-                                    <FormControl>
-                                        <Textarea placeholder="Please describe your query in detail..." {...field} rows={6}/>
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
                         <Button type="submit" className="w-full" disabled={isLoading}>
                             {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
-                            Send Message
+                            Submit Ticket
                         </Button>
                     </form>
                 </Form>
