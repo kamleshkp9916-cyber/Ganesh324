@@ -26,22 +26,22 @@ service cloud.firestore {
       // A user can create their own document if the userId matches their auth.uid
       allow create: if isOwner(userId);
 
-      // A user can read their own document.
-      // Admin read access is temporarily removed to prevent recursion.
-      allow read: if isOwner(userId);
+      // A user can read their own document, or an admin can read any user document.
+      allow read: if isOwner(userId) || isAdmin();
       
-      // A user can update their own document. An admin can also update any user document.
-      // A special exception allows the beforeSignIn function to update ONLY the lastLogin field.
-      allow update: if isOwner(userId) || isAdmin() || (request.resource.data.keys().hasOnly(['lastLogin']));
+      // Allows a user to update their own document.
+      // Sellers can submit KYC info.
+      allow update: if isOwner(userId);
 
-      // A user can delete their own document. Admins can also delete users.
-      allow delete: if isOwner(userId) || isAdmin();
+      // Allows a user to delete their own document.
+      allow delete: if isOwner(userId);
 
-      // Only admins can list multiple user documents.
+      // Prevents listing of user documents by non-admins.
       allow list: if isAdmin();
 
-      /**
+       /**
        * @description Enforces access control for a seller's orders subcollection.
+       * @path /users/{userId}/orders/{orderId}
        */
       match /orders/{orderId} {
         // Only the seller (owner of the user document) or an admin can manage orders in this subcollection.
@@ -50,6 +50,7 @@ service cloud.firestore {
 
       /**
        * @description Enforces access control for a seller's products subcollection.
+       * @path /users/{userId}/products/{productId}
        */
       match /products/{productId} {
           // Products are publicly readable.
@@ -63,44 +64,25 @@ service cloud.firestore {
 
     /**
      * @description Enforces access control for the orders collection.
+     * @path /orders/{orderId}
      */
     match /orders/{orderId} {
       // Users can create orders for themselves.
       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
 
-      // A user can read an order if they are the customer or the seller, OR an admin.
+      // A user can read an order if they are the customer, the seller, OR an admin.
       allow get: if isSignedIn() && (resource.data.userId == request.auth.uid || resource.data.sellerId == request.auth.uid || isAdmin());
       
-      // Customers and sellers can query their own orders.
+      // Customers can query their own orders.
+      // Sellers can query orders they are the seller for.
       // Admins can list all orders.
       allow list: if (isSignedIn() && 
                     (request.query.where.userId == request.auth.uid || 
                      (request.query.where.sellerId != null && request.query.where.sellerId == request.auth.uid))) || isAdmin();
 
-      // Only an admin can update or delete orders directly.
+      // Users should not be able to update or delete orders directly.
+      // Updates should happen via Cloud Functions for status changes.
       allow update, delete: if isAdmin();
-    }
-    
-    /**
-     * @description Enforces access control for payout requests.
-     */
-    match /payouts/{payoutId} {
-        // A user can create a payout request for themselves.
-        allow create: if isSignedIn() && request.resource.data.sellerId == request.auth.uid;
-        // Admins can read, update (approve/deny), and delete payout requests.
-        allow read, update, delete: if isAdmin();
-        // Sellers can read their own payout requests.
-        allow list: if isSignedIn() && request.query.where.sellerId == request.auth.uid;
-    }
-
-    /**
-     * @description Manages OTP requests.
-     * Anyone can create an OTP request, but no one can read or update them.
-     * This prevents leaking OTPs or tampering with verification.
-     */
-    match /otp_requests/{requestId} {
-      allow create: if true;
-      allow read, update, delete, list: if false; // Secure: No one can read OTPs
     }
   }
 }

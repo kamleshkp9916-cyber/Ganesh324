@@ -88,8 +88,8 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
     regNo: existingData?.regNo || "",
     gstin: existingData?.gstin || "",
     incorporation: "",
-    supportEmail: "",
-    supportPhone: "",
+    supportEmail: (existingData as any)?.supportEmail || "",
+    supportPhone: (existingData as any)?.supportPhone || "",
     regAddr: existingData?.addresses?.find(a => a.type === 'registered') || { line1: "", line2: "", city: "", state: "", pin: "" },
     pickupAddr: existingData?.addresses?.find(a => a.type === 'pickup') || { same: true, line1: "", line2: "", city: "", state: "", pin: "" },
     serviceRegions: [],
@@ -176,7 +176,11 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
   }, [verif.state]);
 
   const canGoToStep = (stepIndex: number) => {
-    // Temporarily enabled for UI review
+    if(stepIndex === 1) return isStep1Valid;
+    if(stepIndex === 2) return isStep1Valid && isStep2Valid;
+    if(stepIndex === 3) return isStep1Valid && isStep2Valid && isStep3Valid;
+    if(stepIndex === 4) return isStep1Valid && isStep2Valid && isStep3Valid && isStep4Valid;
+    if(stepIndex === 5) return isStep1Valid && isStep2Valid && isStep3Valid && isStep4Valid && isStep5Valid;
     return true;
   }
 
@@ -244,11 +248,9 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
     setIsVerifying(prev => ({...prev, [type]: true}));
     
     try {
-        await fetch("/api/send-otp", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ type, target: type === 'phone' ? `+91${target}`: target }),
-        });
+        const functions = getFunctions(initializeFirebase().firebaseApp);
+        const sendOtpFunction = httpsCallable(functions, 'sendVerificationCode');
+        await sendOtpFunction({ type, target });
 
       setOtpSent(prev => ({...prev, [type]: true}));
       setResendCooldown(prev => ({ ...prev, [type]: RESEND_COOLDOWN }));
@@ -268,19 +270,16 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
     setIsVerifying(prev => ({...prev, [type]: true}));
     
     try {
-      const res = await fetch("/api/verify-otp", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email: target, otp }),
-      });
-      const result = await res.json();
-      
-      if (!result.ok) {
-          throw new Error(result.error || 'Invalid OTP');
-      }
+        const functions = getFunctions(initializeFirebase().firebaseApp);
+        const verifyCodeFunction = httpsCallable(functions, 'verifyCode');
+        const result: any = await verifyCodeFunction({ target, otp });
 
-      setField(`${type}Verified`, true);
-      toast({ title: `${type.charAt(0).toUpperCase() + type.slice(1)} Verified!` });
+        if (result.data.success) {
+            setField(`${type}Verified`, true);
+            toast({ title: `${type.charAt(0).toUpperCase() + type.slice(1)} Verified!` });
+        } else {
+            throw new Error(result.data.error || 'Invalid OTP');
+        }
     } catch (error: any) {
         toast({ variant: "destructive", title: "Verification Failed", description: error.message });
     } finally {
@@ -443,12 +442,12 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
                   </div>
                   <div className="grid md:grid-cols-2 gap-4">
                     <div>
-                      <label className="text-sm">Legal name</label>
+                      <label className="text-sm font-medium">Legal name</label>
                       <Input value={form.legalName} onChange={(e)=>setField("legalName", e.target.value)} placeholder="As per ID"/>
                        <p className="text-xs text-muted-foreground mt-1">This name must match your legal documents (e.g., PAN card).</p>
                     </div>
                     <div>
-                      <label className="text-sm">Shop display name</label>
+                      <label className="text-sm font-medium">Shop display name</label>
                       <Input value={form.displayName} onChange={(e)=>setField("displayName", e.target.value)} placeholder="Unique store name"/>
                         <p className="text-xs text-muted-foreground mt-1">This is the name customers will see.</p>
                     </div>
@@ -457,7 +456,7 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
                     <>
                     <div className="flex flex-col md:flex-row gap-2 items-end">
                       <div className="space-y-1 flex-grow">
-                        <label className="text-sm">Email</label>
+                        <label className="text-sm font-medium">Email</label>
                         <Input value={form.email} onChange={(e) => { setEmailError(''); setField("email", e.target.value); }} onBlur={checkEmailExists} placeholder="you@shop.com" disabled={form.emailVerified} className="flex-grow"/>
                          {emailError ? <p className="text-xs text-destructive mt-1">{emailError}</p> : <p className="text-xs text-muted-foreground mt-1">This email will be used for login and official communication.</p>}
                       </div>
@@ -482,7 +481,7 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
                     )}
                     <div className="flex flex-col md:flex-row gap-2 items-end">
                         <div className="space-y-1 flex-grow">
-                            <label className="text-sm">Phone</label>
+                            <label className="text-sm font-medium">Phone</label>
                             <Input value={form.phone} onChange={(e) => { setPhoneError(''); setField("phone", e.target.value.replace(/[^0-9]/g, "").slice(0,10)); }} onBlur={checkPhoneExists} placeholder="10‑digit mobile" disabled={form.phoneVerified} className="flex-grow"/>
                             {phoneError ? <p className="text-xs text-destructive mt-1">{phoneError}</p> : <p className="text-xs text-muted-foreground mt-1">Used for verification and support communication.</p>}
                         </div>
@@ -508,12 +507,12 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
                     
                     <div className="grid md:grid-cols-2 gap-4">
                         <div>
-                          <label className="text-sm">Password</label>
+                          <label className="text-sm font-medium">Password</label>
                           <Input type="password" value={form.password} onChange={(e)=>setField("password", e.target.value)} placeholder="Minimum 8 characters"/>
                            {form.password && form.password.length < 8 && <p className="text-xs text-destructive mt-1">Password must be at least 8 characters.</p>}
                         </div>
                          <div>
-                          <label className="text-sm">Confirm Password</label>
+                          <label className="text-sm font-medium">Confirm Password</label>
                           <Input type="password" value={form.confirmPassword} onChange={(e)=>setField("confirmPassword", e.target.value)} placeholder="Re-enter your password"/>
                           {form.confirmPassword && form.password !== form.confirmPassword && <p className="text-xs text-destructive mt-1">Passwords do not match.</p>}
                         </div>
@@ -522,7 +521,7 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
                   )}
 
                   <div>
-                    <label className="text-sm">About shop</label>
+                    <label className="text-sm font-medium">About shop</label>
                     <Textarea value={form.about} onChange={(e)=>setField("about", e.target.value)} placeholder="Short bio"/>
                   </div>
                 </div>
@@ -533,7 +532,7 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
               <Section title="Business Details" icon={<Building2 className="w-5 h-5"/>} hasError={existingData?.stepsToFix?.includes('biz')}>
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
-                    <label className="text-sm">Business type</label>
+                    <label className="text-sm font-medium">Business type *</label>
                     <Select value={form.bizType} onValueChange={(v)=>setField("bizType", v)}>
                       <SelectTrigger><SelectValue placeholder="Select"/></SelectTrigger>
                       <SelectContent>
@@ -553,11 +552,11 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
                     <Input value={form.gstin} onChange={(e)=>setField("gstin", e.target.value)} placeholder="Optional"/>
                   </div>
                   <div>
-                    <label className="text-sm">Support email</label>
+                    <label className="text-sm font-medium">Support email *</label>
                     <Input value={form.supportEmail} onChange={(e)=>setField("supportEmail", e.target.value)} placeholder="support@shop.com"/>
                   </div>
                   <div>
-                    <label className="text-sm">Support phone</label>
+                    <label className="text-sm font-medium">Support phone *</label>
                     <Input value={form.supportPhone} onChange={(e)=>setField("supportPhone", e.target.value.replace(/[^0-9]/g, "").slice(0,10))} placeholder="For buyers (10-digit)"/>
                   </div>
                 </div>
@@ -566,9 +565,10 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
 
             {steps[current].key === "addr" && (
               <Section title="Address & Pickup" icon={<MapPin className="w-5 h-5"/>} hasError={existingData?.stepsToFix?.includes('address')}>
+                 <p className="text-sm text-muted-foreground mb-4">Please provide an accurate address. This is mandatory for our delivery partners to arrange pickup for your products. Incorrect details may lead to delays or order cancellations.</p>
                 <div className="grid md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <div className="font-medium">Registered address</div>
+                    <div className="font-medium">Registered address *</div>
                     <Input placeholder="Line 1" value={form.regAddr.line1} onChange={(e)=>setField("regAddr.line1", e.target.value)}/>
                     <Input placeholder="Line 2" value={form.regAddr.line2} onChange={(e)=>setField("regAddr.line2", e.target.value)}/>
                     <div className="grid grid-cols-3 gap-2">
@@ -602,22 +602,22 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
               <Section title="Tax & Bank" icon={<Banknote className="w-5 h-5"/>} hasError={existingData?.stepsToFix?.includes('bank')}>
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
-                    <label className="text-sm">PAN</label>
+                    <label className="text-sm font-medium">PAN *</label>
                     <Input value={form.pan} onChange={(e)=>setField("pan", e.target.value.toUpperCase())} onBlur={checkPanExists} placeholder="ABCDE1234F"/>
                     {panError && <p className="text-xs text-destructive mt-1">{panError}</p>}
                     <p className="text-xs text-muted-foreground mt-1">Your PAN is used for identity verification and tax purposes. It will not be shared publicly.</p>
                   </div>
                   <div>
-                    <label className="text-sm">Account holder name</label>
+                    <label className="text-sm font-medium">Account holder name *</label>
                     <Input value={form.accountName} onChange={(e)=>setField("accountName", e.target.value)} placeholder="Must match legal name"/>
                      <p className="text-xs text-muted-foreground mt-1">Ensure this name matches the name on your bank account to avoid payout failures.</p>
                   </div>
                   <div>
-                    <label className="text-sm">Account number</label>
+                    <label className="text-sm font-medium">Account number *</label>
                     <Input value={form.accountNo} onChange={(e)=>setField("accountNo", e.target.value.replace(/[^0-9]/g, ""))} placeholder=""/>
                   </div>
                   <div>
-                    <label className="text-sm">IFSC</label>
+                    <label className="text-sm font-medium">IFSC *</label>
                     <Input value={form.ifsc} onChange={(e)=>setField("ifsc", e.target.value.toUpperCase())} placeholder="HDFC0000001"/>
                   </div>
                 </div>
@@ -923,5 +923,3 @@ export default function KYCPage() {
         </div>
     );
 }
-
-    
