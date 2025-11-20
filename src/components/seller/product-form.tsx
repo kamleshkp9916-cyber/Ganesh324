@@ -29,15 +29,16 @@ import { Loader2, Upload, Trash2, Camera, FileEdit, Video, ImageIcon, PlusCircle
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { getFirestoreDb, getFirebaseStorage } from "@/lib/firebase-db";
+import { getFirestoreDb } from "@/lib/firebase-db";
+import { getStorage, ref, uploadString, getDownloadURL, deleteObject } from "firebase/storage";
 import { collection, doc, setDoc, addDoc, serverTimestamp } from "firebase/firestore";
-import { ref, uploadString, getDownloadURL, deleteObject } from "firebase/storage";
 import { defaultCategories } from "@/lib/categories";
 import Image from "next/image";
 import { Separator } from "@/components/ui/separator";
 import { errorEmitter, FirestorePermissionError } from "@/firebase";
 import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
+import { Progress } from "@/components/ui/progress";
 
 const variantSchema = z.object({
     id: z.string().optional(),
@@ -110,11 +111,12 @@ interface ProductFormProps {
     isSaving: boolean;
 }
 
-export function ProductForm({ onSave, productToEdit, onCancel, isSaving }: ProductFormProps) {
+export function ProductForm({ onSave, productToEdit, onCancel, isSaving: isSavingProp }: ProductFormProps) {
   const { user } = useAuth();
   const { toast } = useToast();
   const [step, setStep] = useState(1);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveProgress, setSaveProgress] = useState(0);
   const [media, setMedia] = useState<{type: 'video' | 'image', file?: File, url: string}[]>([]);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
@@ -230,7 +232,20 @@ export function ProductForm({ onSave, productToEdit, onCancel, isSaving }: Produ
   };
   
   const processSubmit = async (data: z.infer<typeof productFormSchema>) => {
-    onSave(data as Product);
+    setIsSaving(true);
+    setSaveProgress(0);
+
+    const progressInterval = setInterval(() => {
+        setSaveProgress(prev => Math.min(prev + 10, 90));
+    }, 150);
+
+    await onSave(data as Product);
+    
+    clearInterval(progressInterval);
+    setSaveProgress(100);
+    setTimeout(() => {
+        setIsSaving(false);
+    }, 500);
   };
   
     const handleVariantImageUpload = (index: number, event: React.ChangeEvent<HTMLInputElement>) => {
@@ -324,7 +339,7 @@ export function ProductForm({ onSave, productToEdit, onCancel, isSaving }: Produ
               <FormField control={form.control} name="media" render={() => (
                 <FormItem>
                   <FormLabel>Product Media</FormLabel>
-                  <FormDescription>Add up to 5 images and 1 video. The first item is the main display media. Recommended: 800x800px, max 5MB.</FormDescription>
+                  <FormDescription>Add up to 5 files (images/videos). The first item is the main display media. Recommended: 800x800px, max 5MB.</FormDescription>
                   <div className="grid grid-cols-3 md:grid-cols-5 gap-2">
                     {media.map((m, i) => (
                       <div key={i} className="relative aspect-square w-full rounded-md overflow-hidden group">
@@ -385,7 +400,7 @@ export function ProductForm({ onSave, productToEdit, onCancel, isSaving }: Produ
                 <div>
                   <h3 className="font-semibold text-lg">Product Variants</h3>
                   <FormDescription>
-                    Use variants when different options (e.g., a Large, Red T-shirt) have a unique price, stock level, or image. This will override the simple options and default price/stock.
+                    Use variants when different options (e.g., a Large, Red T-shirt) have a unique price, stock level, or image. This will override the simple options above.
                   </FormDescription>
                 </div>
                  <div className="space-y-4">
@@ -430,7 +445,7 @@ export function ProductForm({ onSave, productToEdit, onCancel, isSaving }: Produ
                             </div>
                         </Card>
                     ))}
-                    <Button type="button" variant="outline" onClick={() => append({ size: '', color: '', price: 0, stock: 0, image: null })}>
+                    <Button type="button" variant="outline" onClick={() => append({ size: "", color: "", price: productToEdit?.price || 0, stock: 0, image: null })}>
                         <PlusCircle className="mr-2 h-4 w-4"/> Add Variant
                     </Button>
                 </div>
@@ -507,9 +522,15 @@ export function ProductForm({ onSave, productToEdit, onCancel, isSaving }: Produ
             {step < 3 ? (
                 <Button type="button" onClick={() => setStep(step + 1)}>Next</Button>
             ) : (
-                <Button type="submit" disabled={isSaving}>
-                    {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : productToEdit ? "Update Product" : "Create Product"}
-                </Button>
+                 <div className="w-48">
+                    {isSaving ? (
+                        <Progress value={saveProgress} className="h-9 rounded-md" />
+                    ) : (
+                        <Button type="submit" className="w-full">
+                            {productToEdit ? "Update Product" : "Create Product"}
+                        </Button>
+                    )}
+                </div>
             )}
           </div>
         </div>
@@ -517,3 +538,5 @@ export function ProductForm({ onSave, productToEdit, onCancel, isSaving }: Produ
     </Form>
   );
 }
+
+    
