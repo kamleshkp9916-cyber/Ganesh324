@@ -162,9 +162,7 @@ function RaiseTicketContent() {
                                             <SelectValue placeholder="Select a category for your issue" />
                                         </SelectTrigger>
                                         </FormControl>
-                                        <SelectContent>
-                                        {ticketCategories.map(cat => <SelectItem key={cat} value={cat}>{cat}</SelectItem>)}
-                                        </SelectContent>
+                                        <SelectContent>{ticketCategories.map(cat => <SelectItem key={cat} value={cat}>{cat}</SelectItem>)}</SelectContent>
                                     </Select>
                                     <FormMessage />
                                 </FormItem>
@@ -217,3 +215,7 @@ export default function RaiseTicketPage() {
     return (
         <Suspense fallback={<div className="flex items-center justify-center h-screen"><Loader2 className="h-8 w-8 animate-spin"/></div>}>
             <RaiseTicketContent />
+        </Suspense>
+    );
+}
+    
