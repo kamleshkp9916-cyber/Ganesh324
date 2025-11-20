@@ -21,7 +21,7 @@ service firebase.storage {
     // Product media: Public read. Seller write/delete. Admin delete.
     match /products/{userId}/{allPaths=**} {
       allow read: if true;
-      allow write: if (request.auth != null && request.auth.uid == userId && isSeller(userId)) || (request.method == 'delete' && isAdmin());
+      allow write: if (request.auth != null && request.auth.uid == userId && isSeller(userId)) || isAdmin();
     }
 
     // Posts media: only the authenticated user may write into their own folder
