@@ -36,6 +36,8 @@ import { defaultCategories } from "@/lib/categories";
 import Image from "next/image";
 import { Separator } from "@/components/ui/separator";
 import { errorEmitter, FirestorePermissionError } from "@/firebase";
+import { Card } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
 
 const variantSchema = z.object({
     id: z.string().optional(),
@@ -104,9 +106,11 @@ const productFormSchema = z.object({
 interface ProductFormProps {
     onSave: (product: Product) => void;
     productToEdit?: Product;
+    onCancel: () => void;
+    isSaving: boolean;
 }
 
-export function ProductForm({ onSave, productToEdit }: ProductFormProps) {
+export function ProductForm({ onSave, productToEdit, onCancel, isSaving }: ProductFormProps) {
   const { user } = useAuth();
   const { toast } = useToast();
   const [step, setStep] = useState(1);
@@ -220,90 +224,7 @@ export function ProductForm({ onSave, productToEdit }: ProductFormProps) {
   };
   
   const processSubmit = async (data: z.infer<typeof productFormSchema>) => {
-    if (!user) {
-        toast({ variant: 'destructive', title: "Authentication Error", description: "You must be logged in to create a product." });
-        return;
-    }
-    setIsLoading(true);
-
-    const db = getFirestoreDb();
-    const storage = getFirebaseStorage();
-
-    const productData: any = { ...data, sellerId: user.uid, media: [] };
-    
-    // Perform media uploads first
-    const mediaUrls = await Promise.all(
-        media.map(async (mediaFile) => {
-            if (mediaFile.file) {
-                const filePath = `products/${user.uid}/${Date.now()}_${mediaFile.file.name}`;
-                const storageRef = ref(storage, filePath);
-                await uploadString(storageRef, mediaFile.url, 'data_url');
-                const downloadURL = await getDownloadURL(storageRef);
-                return { type: mediaFile.type, url: downloadURL };
-            }
-            return { type: mediaFile.type, url: mediaFile.url };
-        })
-    );
-    productData.media = mediaUrls;
-    
-    if (data.highlightsImage && data.highlightsImage.file) {
-         const highlightsImagePath = `products/${user.uid}/highlights_${Date.now()}_${data.highlightsImage.file.name}`;
-         const storageRef = ref(storage, highlightsImagePath);
-         await uploadString(storageRef, data.highlightsImage.preview, 'data_url');
-         productData.highlightsImage = await getDownloadURL(storageRef);
-    } else if (productToEdit?.highlightsImage) {
-        productData.highlightsImage = productToEdit.highlightsImage;
-    }
-    
-     // Upload variant images
-    if (productData.variants) {
-        productData.variants = await Promise.all(productData.variants.map(async (variant: any) => {
-            if (variant.image && variant.image.file) {
-                const filePath = `products/${user.uid}/variants/${Date.now()}_${variant.image.file.name}`;
-                const storageRef = ref(storage, filePath);
-                await uploadString(storageRef, variant.image.preview, 'data_url');
-                const downloadURL = await getDownloadURL(storageRef);
-                return { ...variant, image: { preview: downloadURL } };
-            }
-            return variant;
-        }));
-    }
-
-
-    if (productToEdit?.id) {
-        const productRef = doc(db, "users", user.uid, "products", productToEdit.id);
-        setDoc(productRef, productData, { merge: true })
-            .then(() => {
-                onSave(productData as Product);
-                toast({ title: "Product Updated", description: "Your product has been saved successfully." });
-            })
-            .catch((error) => {
-                const permissionError = new FirestorePermissionError({
-                    path: productRef.path,
-                    operation: 'update',
-                    requestResourceData: productData
-                });
-                errorEmitter.emit('permission-error', permissionError);
-            })
-            .finally(() => setIsLoading(false));
-
-    } else {
-        const collectionRef = collection(db, "users", user.uid, "products");
-        addDoc(collectionRef, productData)
-            .then((docRef) => {
-                onSave({ ...productData, id: docRef.id } as Product);
-                toast({ title: "Product Created", description: "Your product has been saved successfully." });
-            })
-            .catch((error) => {
-                const permissionError = new FirestorePermissionError({
-                    path: collectionRef.path,
-                    operation: 'create',
-                    requestResourceData: productData
-                });
-                errorEmitter.emit('permission-error', permissionError);
-            })
-            .finally(() => setIsLoading(false));
-    }
+    onSave(data as Product);
   };
   
     const handleVariantImageUpload = (index: number, event: React.ChangeEvent<HTMLInputElement>) => {
@@ -448,7 +369,7 @@ export function ProductForm({ onSave, productToEdit }: ProductFormProps) {
                 <Separator />
                 <div>
                   <h3 className="font-semibold text-lg">Product Variants</h3>
-                  <FormDescription>Use this if options like size or color have different prices, stock, or images. This will override the default price and stock.</FormDescription>
+                  <FormDescription>Use this if options like size or color have different prices, stock, or images. This will override the simple options above.</FormDescription>
                 </div>
                  <div className="space-y-4">
                     {fields.map((field, index) => (
@@ -579,5 +500,3 @@ export function ProductForm({ onSave, productToEdit }: ProductFormProps) {
     </Form>
   );
 }
-
-    
