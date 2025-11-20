@@ -256,9 +256,9 @@ export default function SellerProductsPage() {
       return filtered;
   }, [products, activeTab, stockFilter]);
 
-  const activeProducts = useMemo(() => filterProducts.filter(p => p.status === 'active'), [filterProducts]);
-  const draftProducts = useMemo(() => filterProducts.filter(p => p.status === 'draft'), [filterProducts]);
-  const archivedProducts = useMemo(() => filterProducts.filter(p => p.status === 'archived'), [filterProducts]);
+  const activeProducts = useMemo(() => filterProductsByStock(products.filter(p => p.status === 'active')), [products, stockFilter]);
+  const draftProducts = useMemo(() => filterProductsByStock(products.filter(p => p.status === 'draft')), [products, stockFilter]);
+  const archivedProducts = useMemo(() => filterProductsByStock(products.filter(p => p.status === 'archived')), [products, stockFilter]);
   const allFilteredProducts = useMemo(() => filterProductsByStock(products), [products, stockFilter]);
 
   if (loading) return <div className="flex h-screen items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-slate-400" /></div>;
@@ -340,12 +340,13 @@ export default function SellerProductsPage() {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    toast({ title: "Export Started", description: "Your products CSV is downloading." });
   };
   
   return (
     <>
       <Dialog open={isFormOpen} onOpenChange={handleOpenChange}>
-        <div className="flex min-h-screen w-full flex-col bg-slate-50/50 font-sans text-slate-900">
+        <div className="flex min-h-screen w-full flex-col bg-muted/40 font-sans text-slate-900">
            <SellerHeader />
            <main className="flex-1 p-4 sm:px-6 sm:py-8 max-w-7xl mx-auto w-full animate-in fade-in slide-in-from-bottom-4 duration-500">
               <div className="grid gap-4 md:grid-cols-3 mb-8">
@@ -456,7 +457,7 @@ export default function SellerProductsPage() {
                     {editingProduct ? "Update the details of your product." : "Fill in the details to add a new product to your store."}
                 </DialogDescription>
             </DialogHeader>
-            <ProductForm onSave={handleSaveProduct} productToEdit={editingProduct} onCancel={() => handleOpenChange(false)} isSaving={false} />
+            <ProductForm productToEdit={editingProduct} onCancel={() => handleOpenChange(false)} />
         </DialogContent>
       </Dialog>
       <Dialog open={isQnaOpen} onOpenChange={setIsQnaOpen}>
