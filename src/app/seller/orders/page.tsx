@@ -85,7 +85,7 @@ import {
 } from "@/components/ui/table"
 import { Input } from "@/components/ui/input"
 import { useDebounce } from "@/hooks/use-debounce"
-import { getFirestoreDb } from "@/lib/firebase"
+import { getFirestoreDb } from "@/lib/firebase-db"
 import { collection, query, where, getDocs, orderBy, onSnapshot, doc, updateDoc } from 'firebase/firestore'
 
 type SellerOrder = Order & {
@@ -573,3 +573,26 @@ export default function SellerOrdersPage() {
     </Dialog>
   )
 }
+
+```
+- src/lib/firebase-db.ts:
+```ts
+"use client";
+
+import { initializeFirebase } from '@/firebase';
+import { getFirestore } from 'firebase/firestore';
+import { getStorage } from 'firebase/storage';
+import { getFunctions } from 'firebase/functions';
+
+// This function returns the singleton Firestore instance.
+export function getFirestoreDb() {
+    return initializeFirebase().firestore;
+}
+
+// This function returns the singleton Storage instance.
+export function getFirebaseStorage() {
+    return getStorage(initializeFirebase().firebaseApp);
+}
+
+export { initializeFirebase };
+```
