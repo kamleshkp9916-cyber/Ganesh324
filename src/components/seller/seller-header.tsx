@@ -38,6 +38,7 @@ const navLinks = [
     { href: "/seller/promotions", label: "Marketing", disabled: false },
     { href: "/seller/messages", label: "Messages", disabled: false },
     { href: "/seller/feed", label: "Feed", disabled: false },
+    { href: "/help", label: "Help/Support", disabled: false },
 ];
 
 export function SellerHeader() {
@@ -168,5 +169,3 @@ export function SellerHeader() {
     </header>
   );
 }
-
-    
