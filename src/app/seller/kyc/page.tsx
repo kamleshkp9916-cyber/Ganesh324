@@ -404,7 +404,7 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
         <Card className="rounded-2xl">
           <CardHeader className="pb-2"><CardTitle>Application Status</CardTitle></CardHeader>
           <CardContent className="space-y-2">
-            <div className="flex items-center gap-2 text-sm">
+            <div className="flex flex-wrap items-center gap-2 text-sm">
                 <Badge>{existingData?.verificationStatus?.toUpperCase() || 'Draft'}</Badge>
                  <Button variant="outline" size="sm" onClick={() => { setForm(form); toast({title: "Draft Saved!"}); }} disabled={!isFormDirty}>
                     <Save className="w-4 h-4 mr-2"/>
@@ -856,21 +856,21 @@ export default function KYCPage() {
             <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white">
                 <Progress value={initialProgress} className="w-full fixed top-0 left-0 right-0 h-1 z-50"/>
                 <div className="max-w-7xl mx-auto space-y-6 p-6 md:p-10 pt-8">
-                    <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
-                      <div className="xl:col-span-1">
-                          <div className="flex items-center justify-between">
-                              <Button asChild variant="ghost" className="-ml-4">
-                                  <Link href="/live-selling">
-                                  <ChevronLeft className="mr-2 h-4 w-4" />
-                                  Back to Shopping
-                                  </Link>
-                              </Button>
-                          </div>
-                      </div>
-                      <div className="xl:col-span-3 text-center">
-                          <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">Become a Seller</h1>
-                          <p className="text-sm text-muted-foreground">Complete the following steps to start selling on Nipher.</p>
-                      </div>
+                     <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
+                        <div className="xl:col-span-1">
+                             <div className="flex items-center justify-between">
+                                <Button asChild variant="ghost" className="-ml-4">
+                                    <Link href="/live-selling">
+                                    <ChevronLeft className="mr-2 h-4 w-4" />
+                                    Back to Shopping
+                                    </Link>
+                                </Button>
+                            </div>
+                        </div>
+                        <div className="xl:col-span-3 text-center">
+                            <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">Become a Seller</h1>
+                            <p className="text-sm text-muted-foreground">Complete the following steps to start selling on Nipher.</p>
+                        </div>
                     </div>
                     <Card className="border-amber-500 bg-amber-50">
                         <CardHeader className="text-center">
@@ -923,3 +923,5 @@ export default function KYCPage() {
         </div>
     );
 }
+
+    
