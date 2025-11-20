@@ -2,11 +2,11 @@
 "use client";
 
 import { useRouter } from 'next/navigation';
-import { Button, buttonVariants } from '@/components/ui/button';
-import { ArrowLeft, LifeBuoy, MessageSquare, Mail } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { ArrowLeft, LifeBuoy, MessageSquare, Mail, Wallet, Package, Ban, Truck } from 'lucide-react';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import Link from 'next/link';
-import { cn } from '@/lib/utils';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 const faqData = [
   {
@@ -71,6 +71,13 @@ const faqData = [
   },
 ];
 
+const quickTopics = [
+    { label: "Funds not credited", icon: <Wallet className="w-4 h-4 mr-2" /> },
+    { label: "When is my delivery?", icon: <Truck className="w-4 h-4 mr-2" /> },
+    { label: "Unable to cancel order", icon: <Ban className="w-4 h-4 mr-2" /> },
+    { label: "Product not received", icon: <Package className="w-4 h-4 mr-2" /> },
+];
+
 export default function HelpPage() {
   const router = useRouter();
 
@@ -85,41 +92,67 @@ export default function HelpPage() {
       </header>
 
       <main className="flex-grow p-4 md:p-8">
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-8">
-            <LifeBuoy className="h-16 w-16 mx-auto text-primary mb-4" />
-            <h2 className="text-3xl font-bold">How can we help you?</h2>
-            <p className="text-muted-foreground mt-2">Find answers to your questions below.</p>
-          </div>
+        <div className="max-w-6xl mx-auto">
+            <div className="text-center mb-8">
+                <LifeBuoy className="h-16 w-16 mx-auto text-primary mb-4" />
+                <h2 className="text-3xl font-bold">How can we help you?</h2>
+                <p className="text-muted-foreground mt-2">Find answers to your questions below or raise a ticket for support.</p>
+            </div>
+            
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div className="lg:col-span-2">
+                    <Accordion type="single" collapsible className="w-full">
+                        {faqData.map(category => (
+                        <div key={category.category}>
+                            <h3 className="text-xl font-semibold mt-6 mb-2 border-b pb-2">{category.category}</h3>
+                            {category.questions.map((item, index) => (
+                            <AccordionItem key={index} value={`${''}${category.category}-${index}`}>
+                                <AccordionTrigger>{item.q}</AccordionTrigger>
+                                <AccordionContent className="text-muted-foreground">
+                                {item.a}
+                                </AccordionContent>
+                            </AccordionItem>
+                            ))}
+                        </div>
+                        ))}
+                    </Accordion>
+                </div>
 
-          <Accordion type="single" collapsible className="w-full">
-            {faqData.map(category => (
-              <div key={category.category}>
-                <h3 className="text-xl font-semibold mt-6 mb-2 border-b pb-2">{category.category}</h3>
-                {category.questions.map((item, index) => (
-                  <AccordionItem key={index} value={`${''}${category.category}-${index}`}>
-                    <AccordionTrigger>{item.q}</AccordionTrigger>
-                    <AccordionContent className="text-muted-foreground">
-                      {item.a}
-                    </AccordionContent>
-                  </AccordionItem>
-                ))}
-              </div>
-            ))}
-          </Accordion>
-
-          <div className="mt-12 text-center p-6 border rounded-lg bg-card">
-              <h3 className="text-xl font-semibold mb-2">Still need help?</h3>
-              <p className="text-muted-foreground mb-6">If you couldn't find the answer you were looking for, here are a few ways to get in touch with us.</p>
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                   <Button asChild className="w-full sm:w-auto">
-                      <Link href="/contact">
-                          <MessageSquare className="mr-2 h-4 w-4" />
-                         Raise a Ticket
-                      </Link>
-                  </Button>
-              </div>
-          </div>
+                <div className="lg:col-span-1">
+                    <div className="sticky top-24">
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Quick Support Topics</CardTitle>
+                                <CardDescription>Get help with common issues faster.</CardDescription>
+                            </CardHeader>
+                            <CardContent className="space-y-2">
+                                {quickTopics.map(topic => (
+                                    <Button key={topic.label} asChild variant="outline" className="w-full justify-start">
+                                        <Link href={`/contact?subject=${encodeURIComponent(topic.label)}`}>
+                                            {topic.icon}
+                                            {topic.label}
+                                        </Link>
+                                    </Button>
+                                ))}
+                            </CardContent>
+                        </Card>
+                         <Card className="mt-6">
+                            <CardHeader>
+                                <CardTitle>Still need help?</CardTitle>
+                                <CardDescription>If you couldn't find an answer, raise a support ticket.</CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <Button asChild className="w-full">
+                                <Link href="/contact">
+                                    <MessageSquare className="mr-2 h-4 w-4" />
+                                    Raise a Ticket
+                                </Link>
+                                </Button>
+                            </CardContent>
+                        </Card>
+                    </div>
+                </div>
+            </div>
         </div>
       </main>
     </div>
