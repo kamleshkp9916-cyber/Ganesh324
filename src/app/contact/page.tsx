@@ -33,8 +33,8 @@ const ticketSchema = z.object({
 const ticketCategories = ["General Inquiry", "Technical Support", "Billing Issue", "Account Management", "Feedback", "Order Issue", "Payment Issue"];
 
 const mockTickets = [
-    { id: '#TCK-001', subject: "Where is my order?", status: 'Closed', category: 'Order Issue', lastUpdate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString() },
-    { id: '#TCK-002', subject: "Payment failed but amount deducted", status: 'Open', category: 'Payment Issue', lastUpdate: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString() },
+    { id: '#TCK-001', subject: "Where is my order?", status: 'Closed', category: 'Order Issue', lastUpdate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), userId: 'support' },
+    { id: '#TCK-002', subject: "Payment failed but amount deducted", status: 'Open', category: 'Payment Issue', lastUpdate: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(), userId: 'support' },
 ];
 
 
@@ -45,7 +45,7 @@ function RaiseTicketContent() {
     const { user } = useAuth();
     const [isLoading, setIsLoading] = useState(false);
     const [isFormOpen, setIsFormOpen] = useState(false);
-    const [tickets, setTickets] = useLocalStorage<(Inquiry & {id: string})[]>(TICKET_STORAGE_KEY, mockTickets);
+    const [tickets, setTickets] = useLocalStorage<(Inquiry & {id: string, userId?: string})[]>(TICKET_STORAGE_KEY, mockTickets);
 
     const subjectFromParams = searchParams.get('subject');
 
@@ -77,14 +77,14 @@ function RaiseTicketContent() {
                 priority: "Medium",
             } as Omit<Inquiry, 'createdAt' | 'id'>;
 
-            const newTicket = { ...inquiryData, id: `#TCK-${Date.now()}`, lastUpdate: new Date().toISOString() };
+            const newTicket = { ...inquiryData, id: `#TCK-${Date.now()}`, lastUpdate: new Date().toISOString(), userId: 'support' };
             setTickets(prev => [newTicket, ...prev]);
             
             toast({
                 title: "Ticket Submitted!",
                 description: "Thank you for contacting support. We will get back to you shortly.",
             });
-            form.reset({ category: "", subject: "", message: "" });
+            form.reset({ category: "General Inquiry", subject: "", message: "" });
             setIsFormOpen(false);
 
         } catch(error) {
@@ -122,7 +122,7 @@ function RaiseTicketContent() {
                     </CardHeader>
                     <CardContent className="space-y-3">
                         {tickets.map(ticket => (
-                             <Link key={ticket.id} href={`/message?ticketId=${encodeURIComponent(ticket.id)}&subject=${encodeURIComponent(ticket.subject)}`} className="block">
+                             <Link key={ticket.id} href={`/feed?tab=messages&userId=${ticket.userId || 'support'}&userName=Support&ticketId=${encodeURIComponent(ticket.id)}`} className="block">
                                 <div className="border p-4 rounded-lg flex items-center justify-between hover:bg-muted/50 transition-colors">
                                     <div>
                                         <p className="font-semibold">{ticket.subject}</p>
