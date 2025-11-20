@@ -20,6 +20,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { useLocalStorage } from "@/hooks/use-local-storage";
+import Link from 'next/link';
 
 const TICKET_STORAGE_KEY = 'user_support_tickets';
 
@@ -78,9 +79,6 @@ function RaiseTicketContent() {
 
             const newTicket = { ...inquiryData, id: `#TCK-${Date.now()}`, lastUpdate: new Date().toISOString() };
             setTickets(prev => [newTicket, ...prev]);
-
-            // The flow for submitting to admin backend would be here
-            // await submitInquiry(inquiryData);
             
             toast({
                 title: "Ticket Submitted!",
@@ -124,17 +122,19 @@ function RaiseTicketContent() {
                     </CardHeader>
                     <CardContent className="space-y-3">
                         {tickets.map(ticket => (
-                            <div key={ticket.id} className="border p-4 rounded-lg flex items-center justify-between">
-                                <div>
-                                    <p className="font-semibold">{ticket.subject}</p>
-                                    <p className="text-sm text-muted-foreground">{ticket.id} • Category: {ticket.category}</p>
-                                     <p className="text-xs text-muted-foreground mt-1 flex items-center gap-2">
-                                        <Clock className="h-3 w-3" />
-                                        Last updated: {format(new Date(ticket.lastUpdate), "dd MMM, yyyy")}
-                                    </p>
+                             <Link key={ticket.id} href={`/message?ticketId=${encodeURIComponent(ticket.id)}&subject=${encodeURIComponent(ticket.subject)}`} className="block">
+                                <div className="border p-4 rounded-lg flex items-center justify-between hover:bg-muted/50 transition-colors">
+                                    <div>
+                                        <p className="font-semibold">{ticket.subject}</p>
+                                        <p className="text-sm text-muted-foreground">{ticket.id} • Category: {ticket.category}</p>
+                                        <p className="text-xs text-muted-foreground mt-1 flex items-center gap-2">
+                                            <Clock className="h-3 w-3" />
+                                            Last updated: {format(new Date(ticket.lastUpdate), "dd MMM, yyyy")}
+                                        </p>
+                                    </div>
+                                    <Badge variant={ticket.status === 'Open' ? 'success' : 'outline'}>{ticket.status}</Badge>
                                 </div>
-                                <Badge variant={ticket.status === 'Open' ? 'success' : 'outline'}>{ticket.status}</Badge>
-                            </div>
+                            </Link>
                         ))}
                          {tickets.length === 0 && (
                             <div className="text-center py-12 text-muted-foreground">You have no support tickets.</div>
