@@ -105,13 +105,11 @@ const productFormSchema = z.object({
 
 
 interface ProductFormProps {
-    onSave: (product: Product) => void;
     productToEdit?: Product | null;
     onCancel: () => void;
-    isSaving: boolean;
 }
 
-export function ProductForm({ onSave, productToEdit, onCancel, isSaving: isSavingProp }: ProductFormProps) {
+export function ProductForm({ productToEdit, onCancel }: ProductFormProps) {
   const { user } = useAuth();
   const { toast } = useToast();
   const [step, setStep] = useState(1);
@@ -185,10 +183,61 @@ export function ProductForm({ onSave, productToEdit, onCancel, isSaving: isSavin
       const category = defaultCategories.find(c => c.name === selectedCategory);
       return category?.subcategories || [];
   }, [selectedCategory]);
+  
+  const onSave = async (productData: Product) => {
+    if (!user) {
+      toast({ variant: 'destructive', title: "Not Authenticated", description: "You must be logged in to save a product." });
+      throw new Error("User not authenticated");
+    }
+    
+    const db = getFirestoreDb();
+    const storage = getStorage();
+    const colRef = collection(db, 'users', user.uid, 'products');
+
+    let productId = productToEdit ? productData.id! : doc(colRef).id;
+    setSaveProgress(20);
+
+    const mediaUrls = await Promise.all(
+        (productData.media || []).map(async (item, index) => {
+            if (item.file && item.url.startsWith('data:')) {
+                const filePath = `products/${user.uid}/${productId}/${item.file.name}`;
+                const storageRef = ref(storage, filePath);
+                const uploadResult = await uploadString(storageRef, item.url, 'data_url');
+                setSaveProgress(prev => prev + (50 / (productData.media?.length || 1)));
+                return getDownloadURL(uploadResult.ref);
+            }
+            return item.url;
+        })
+    );
+    setSaveProgress(75);
+
+    const finalMedia = (productData.media || []).map((item, index) => ({
+        type: item.type,
+        url: mediaUrls[index]
+    }));
+    
+    const dataToSave: Omit<Product, 'id'> = {
+        ...productData,
+        key: productId,
+        media: finalMedia,
+    };
+
+    if (productToEdit) {
+        await setDoc(doc(colRef, productId), { ...dataToSave, updatedAt: serverTimestamp() }, { merge: true });
+    } else {
+        await setDoc(doc(colRef, productId), { ...dataToSave, createdAt: serverTimestamp(), sold: 0 });
+    }
+  };
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>, type: 'image' | 'video') => {
       const files = Array.from(event.target.files || []);
       if (files.length === 0) return;
+      
+      const videoCount = media.filter(m => m.type === 'video').length;
+      if (type === 'video' && (videoCount > 0 || files.length > 1)) {
+           toast({ variant: 'destructive', title: 'Upload Limit', description: 'You can only upload one video.' });
+          return;
+      }
       
       if (media.length + files.length > 5) {
         toast({ variant: 'destructive', title: 'Upload Limit', description: 'You can only upload a maximum of 5 files (images/videos).' });
@@ -236,21 +285,31 @@ export function ProductForm({ onSave, productToEdit, onCancel, isSaving: isSavin
     setSaveProgress(0);
 
     const progressInterval = setInterval(() => {
-        setSaveProgress(prev => Math.min(prev + 10, 90));
-    }, 150);
+        setSaveProgress(prev => Math.min(prev + 5, 15));
+    }, 100);
 
     try {
         await onSave(data as Product);
         clearInterval(progressInterval);
         setSaveProgress(100);
+        toast({
+            title: productToEdit ? "Product Updated!" : "Product Created!",
+            description: `"${data.name}" has been successfully saved.`,
+        });
         setTimeout(() => {
             setIsSaving(false);
-            onCancel(); // Close dialog on success
+            onCancel();
         }, 1000);
     } catch(e) {
+        console.error("Save error:", e);
         clearInterval(progressInterval);
+        setSaveProgress(0);
         setIsSaving(false);
-        // Error toast is handled in parent
+        toast({
+            variant: "destructive",
+            title: "Save Failed",
+            description: "There was an error saving your product. Please check your connection and try again.",
+        });
     }
   };
   
