@@ -20,9 +20,10 @@ import {
   X,
   Save,
   Bell,
-  Loader2
+  Loader2,
+  PlusCircle, // Added missing import
 } from "lucide-react";
-import { getFirestore, collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, query, where } from 'firebase/firestore';
+import { getFirestore, collection, onSnapshot, addDoc, setDoc, deleteDoc, doc, serverTimestamp, query, where } from 'firebase/firestore';
 import { getStorage, ref, uploadString, getDownloadURL, deleteObject } from "firebase/storage";
 
 import { Button } from "@/components/ui/button";
@@ -41,6 +42,7 @@ import { getFirestoreDb } from '@/lib/firebase-db';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuCheckboxItem } from '@/components/ui/dropdown-menu';
 
 
 const ManageQnaDialog = ({ product, isOpen, onClose }: { product: Product, isOpen: boolean, onClose: () => void }) => {
@@ -104,15 +106,103 @@ const ProductAnalyticsDialog = ({ product, isOpen, onClose }: { product: Product
             </div>
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
                 <Card><CardContent className="pt-6"><div className="text-2xl font-bold">12k</div><p className="text-xs text-muted-foreground">Views</p></CardContent></Card>
-                <Card><CardContent className="pt-6"><div className="text-2xl font-bold">890</div><p className="text-xs text-muted-foreground">Cart Adds</p></CardContent></Card>
-                <Card><CardContent className="pt-6"><div className="text-2xl font-bold">{product.stock < 5 ? 'High' : 'Med'}</div><p className="text-xs text-muted-foreground">Demand</p></CardContent></Card>
-                <Card><CardContent className="pt-6"><div className="text-2xl font-bold">₹{product.price}</div><p className="text-xs text-muted-foreground">Unit Price</p></CardContent></Card>
+                 <Card><CardContent className="pt-6"><div className="text-2xl font-bold">890</div><p className="text-xs text-muted-foreground">Cart Adds</p></CardContent></Card>
+                 <Card><CardContent className="pt-6"><div className="text-2xl font-bold">{product.stock && product.stock < 5 ? 'High' : 'Med'}</div><p className="text-xs text-muted-foreground">Demand</p></CardContent></Card>
+                 <Card><CardContent className="pt-6"><div className="text-2xl font-bold">₹{product.price}</div><p className="text-xs text-muted-foreground">Unit Price</p></CardContent></Card>
             </div>
         </div>
     </div>
   );
 };
 
+const ProductTable = ({ products, onEdit, onDelete, onManageQna, onAnalytics }: { products: Product[], onEdit: (product: Product) => void, onDelete: (productId: string) => void, onManageQna: (product: Product) => void, onAnalytics: (product: Product) => void }) => (
+    <Card>
+      <CardContent className="p-0">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="hidden w-[100px] sm:table-cell">
+                <span className="sr-only">Image</span>
+              </TableHead>
+              <TableHead>Name</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead className="hidden md:table-cell">Price</TableHead>
+              <TableHead className="hidden md:table-cell">Stock</TableHead>
+              <TableHead>
+                <span className="sr-only">Actions</span>
+              </TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {products.length > 0 ? products.map(product => (
+              <TableRow key={product.id}>
+                <TableCell className="hidden sm:table-cell">
+                  {product.media && product.media.length > 0 ? (
+                      <Image
+                        alt={product.name}
+                        className="aspect-square rounded-md object-cover"
+                        height="64"
+                        src={product.media[0].url}
+                        width="64"
+                      />
+                    ) : (
+                      <div className="w-16 h-16 bg-muted rounded-md flex items-center justify-center">
+                        <ImageIcon className="h-6 w-6 text-muted-foreground" />
+                      </div>
+                    )}
+                </TableCell>
+                <TableCell className="font-medium">
+                  {product.name}
+                </TableCell>
+                <TableCell>
+                  <Badge variant={product.status === 'active' ? 'outline' : 'secondary'}>{product.status}</Badge>
+                </TableCell>
+                <TableCell className="hidden md:table-cell">
+                  ₹{product.price.toLocaleString()}
+                </TableCell>
+                <TableCell className="hidden md:table-cell">
+                  {product.stock}
+                </TableCell>
+                <TableCell>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        aria-haspopup="true"
+                        size="icon"
+                        variant="ghost"
+                      >
+                        <MoreHorizontal className="h-4 w-4" />
+                        <span className="sr-only">Toggle menu</span>
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                      <DropdownMenuItem onSelect={() => onAnalytics(product)}>Analytics</DropdownMenuItem>
+                      <DropdownMenuItem onSelect={() => onEdit(product)}>Edit</DropdownMenuItem>
+                      <DropdownMenuItem onSelect={() => onManageQna(product)}>Manage Q&A</DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem className="text-destructive" onSelect={() => onDelete(product.id as string)}>Delete</DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </TableCell>
+              </TableRow>
+            )) : (
+              <TableRow>
+                <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                  No products found in this category.
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </CardContent>
+      <CardFooter>
+        <div className="text-xs text-muted-foreground">
+          Showing <strong>{products.length > 10 ? 10 : products.length}</strong> of <strong>{products.length}</strong> products
+        </div>
+      </CardFooter>
+    </Card>
+);
 
 export default function SellerProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -142,6 +232,7 @@ export default function SellerProductsPage() {
         ...doc.data()
       } as Product));
       setProducts(fetched);
+      localStorage.setItem('sellerProducts', JSON.stringify(fetched));
       setLoading(false);
     }, (error) => {
         console.error("Error fetching products:", error);
@@ -151,12 +242,32 @@ export default function SellerProductsPage() {
     return () => unsubscribe();
   }, [user]);
 
+  const filterProducts = useMemo(() => {
+      let filtered = products;
+      if (activeTab !== 'all') {
+          filtered = filtered.filter(p => p.status === activeTab);
+      }
+      
+      if (stockFilter.length === 1) {
+          if (stockFilter.includes('inStock')) filtered = filtered.filter(p => p.stock > 0);
+          if (stockFilter.includes('outOfStock')) filtered = filtered.filter(p => p.stock === 0);
+      }
+      return filtered;
+  }, [products, activeTab, stockFilter]);
+
+  const activeProducts = useMemo(() => filterProducts.filter(p => p.status === 'active'), [filterProducts]);
+  const draftProducts = useMemo(() => filterProducts.filter(p => p.status === 'draft'), [filterProducts]);
+  const archivedProducts = useMemo(() => filterProducts.filter(p => p.status === 'archived'), [filterProducts]);
+
+  if (loading) return <div className="flex h-screen items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-slate-400" /></div>;
+  if (!user) return <div className="flex h-screen items-center justify-center text-slate-500">Please sign in to view dashboard.</div>;
+
   const handleSaveProduct = async (productData: Product) => {
     if (!user) return;
     setIsSaving(true);
     try {
         const db = getFirestoreDb();
-        const storage = getFirebaseStorage();
+        const storage = getStorage();
         const colRef = collection(db, 'users', user.uid, 'products');
 
         const uploadMedia = async (mediaItem: { type: 'video' | 'image'; file?: File; url: string }, productId: string) => {
@@ -202,7 +313,7 @@ export default function SellerProductsPage() {
     } finally {
         setIsSaving(false);
     }
-};
+  };
 
   const handleDeleteProduct = async (productId: string) => {
       if(!user) return;
@@ -216,28 +327,17 @@ export default function SellerProductsPage() {
       }
   };
 
-  const filterProducts = useMemo(() => {
-      let filtered = products;
-      if (activeTab !== 'all') {
-          filtered = filtered.filter(p => p.status === activeTab);
-      }
-      
-      if (stockFilter.length === 1) {
-          if (stockFilter.includes('inStock')) filtered = filtered.filter(p => p.stock > 0);
-          if (stockFilter.includes('outOfStock')) filtered = filtered.filter(p => p.stock === 0);
-      }
-      return filtered;
-  }, [products, activeTab, stockFilter]);
-
-  if (loading) return <div className="flex h-screen items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-slate-400" /></div>;
-  if (!user) return <div className="flex h-screen items-center justify-center text-slate-500">Please sign in to view dashboard.</div>;
-
   const handleOpenChange = (open: boolean) => {
     if (!open) {
         setEditingProduct(null);
     }
     setIsFormOpen(open);
   }
+
+  const handleEditProduct = (product: Product) => {
+    setEditingProduct(product);
+    setIsFormOpen(true);
+  };
 
   const handleManageQna = (product: Product) => {
     setSelectedProduct(product);
@@ -257,9 +357,35 @@ export default function SellerProductsPage() {
   };
   
   const handleExport = () => {
-    // CSV export logic remains the same
-  };
+    const dataToExport = filterProducts;
+    if (dataToExport.length === 0) {
+        toast({ title: "No Data", description: "There is no data to export.", variant: "destructive"});
+        return;
+    }
 
+    const headers = ["ID", "Name", "Status", "Price", "Stock", "Category", "Sub-category", "Brand"];
+    const rows = dataToExport.map(p => [
+        p.id,
+        `"${p.name.replace(/"/g, '""')}"`,
+        p.status,
+        p.price,
+        p.stock,
+        p.category || "",
+        p.subcategory || "",
+        p.brand || ""
+    ]);
+
+    const csvContent = "data:text/csv;charset=utf-8," 
+        + [headers.join(","), ...rows.map(e => e.join(","))].join("\n");
+
+    const link = document.createElement("a");
+    link.setAttribute("href", encodeURI(csvContent));
+    link.setAttribute("download", `products_export_${new Date().toISOString()}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+  
   return (
     <>
         <div className="flex min-h-screen w-full flex-col bg-slate-50/50 font-sans text-slate-900">
@@ -305,31 +431,44 @@ export default function SellerProductsPage() {
                        <p className="text-muted-foreground text-sm">Manage your products and stock levels.</p>
                     </div>
                     <div className="flex items-center gap-2 ml-auto">
-                        <Dialog>
-                            <DialogTrigger asChild>
-                                <Button size="sm" className="h-9 gap-1">
-                                    <PlusCircle className="h-3.5 w-3.5" />
-                                    <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">Add Product</span>
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="outline" size="sm" className="h-9 gap-1 bg-white">
+                                    <ListFilter className="h-3.5 w-3.5" />
+                                    <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">Filter</span>
                                 </Button>
-                            </DialogTrigger>
-                            <DialogContent className="sm:max-w-3xl h-[90vh] flex flex-col">
-                                <DialogHeader>
-                                    <DialogTitle>Add New Product</DialogTitle>
-                                    <DialogDescription>Fill in the details to add a new product to your store.</DialogDescription>
-                                </DialogHeader>
-                                <ProductForm onSave={handleSaveProduct} onCancel={() => {}} isSaving={isSaving} />
-                            </DialogContent>
-                        </Dialog>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                                <DropdownMenuLabel>Filter by Stock</DropdownMenuLabel>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuCheckboxItem checked={stockFilter.includes('inStock')} onCheckedChange={() => handleStockFilterChange('inStock')}>
+                                    In Stock
+                                </DropdownMenuCheckboxItem>
+                                <DropdownMenuCheckboxItem checked={stockFilter.includes('outOfStock')} onCheckedChange={() => handleStockFilterChange('outOfStock')}>
+                                    Out of Stock
+                                </DropdownMenuCheckboxItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                        <Button size="sm" variant="outline" className="h-9 gap-1 bg-white" onClick={handleExport}>
+                            <File className="h-3.5 w-3.5" />
+                            <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">Export</span>
+                        </Button>
+                         <Button size="sm" className="h-9 gap-1 bg-slate-900 hover:bg-slate-800 text-white shadow-md" onClick={() => { setEditingProduct(undefined); setIsFormOpen(true); }}>
+                             <PlusCircle className="h-3.5 w-3.5" />
+                             <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">Add Product</span>
+                        </Button>
                     </div>
                  </div>
 
                  <div className="w-full">
-                    <Tabs defaultValue="all">
+                    <Tabs defaultValue="all" onValueChange={setActiveTab}>
                       <TabsList>
                           <TabsTrigger value="all">All</TabsTrigger>
                           <TabsTrigger value="active">Active</TabsTrigger>
                           <TabsTrigger value="draft">Draft</TabsTrigger>
-                          <TabsTrigger value="archived">Archived</TabsTrigger>
+                          <TabsTrigger value="archived" className="hidden sm:flex">
+                              Archived
+                          </TabsTrigger>
                       </TabsList>
                       <div className="mt-4">
                           <TabsContent value="all">
