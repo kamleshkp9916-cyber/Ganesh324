@@ -130,7 +130,7 @@ export default function HelpPage() {
                             <CardContent className="space-y-2">
                                 {quickTopics.map(topic => (
                                     <Button key={topic.label} asChild variant="outline" className="w-full justify-start">
-                                        <Link href={`/contact?subject=${encodeURIComponent(topic.label)}`}>
+                                        <Link href={`/tickets?subject=${encodeURIComponent(topic.label)}`}>
                                             {topic.icon}
                                             {topic.label}
                                         </Link>
@@ -141,13 +141,13 @@ export default function HelpPage() {
                          <Card className="mt-6">
                             <CardHeader>
                                 <CardTitle>Still need help?</CardTitle>
-                                <CardDescription>If you couldn't find an answer, raise a support ticket.</CardDescription>
+                                <CardDescription>If you couldn't find an answer, create a support ticket.</CardDescription>
                             </CardHeader>
                             <CardContent>
                                 <Button asChild className="w-full">
-                                <Link href="/contact">
+                                <Link href="/tickets">
                                     <MessageSquare className="mr-2 h-4 w-4" />
-                                    Raise a Ticket
+                                    Create a Support Ticket
                                 </Link>
                                 </Button>
                             </CardContent>
