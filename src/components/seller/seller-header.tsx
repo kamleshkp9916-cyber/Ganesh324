@@ -38,7 +38,7 @@ const navLinks = [
     { href: "/seller/promotions", label: "Marketing", disabled: false },
     { href: "/seller/messages", label: "Messages", disabled: false },
     { href: "/seller/feed", label: "Feed", disabled: false },
-    { href: "/help", label: "Help/Support", disabled: false },
+    { href: "/seller/support", label: "Help/Support", disabled: false },
 ];
 
 export function SellerHeader() {
@@ -94,7 +94,7 @@ export function SellerHeader() {
               className="flex items-center gap-2 text-lg font-semibold"
             >
               <Package2 className="h-6 w-6" />
-              <span className="sr-only">StreamCart</span>
+              <span className="">StreamCart Seller</span>
             </Link>
             {navLinks.map((link) => (
               <Link
@@ -157,7 +157,7 @@ export function SellerHeader() {
                 My Profile
             </DropdownMenuItem>
             <DropdownMenuItem onSelect={() => router.push('/seller/settings')}>Settings</DropdownMenuItem>
-            <DropdownMenuItem onSelect={() => router.push('/seller/messages?executive=true')}>
+            <DropdownMenuItem onSelect={() => router.push('/seller/support')}>
                 <LifeBuoy className="mr-2 h-4 w-4" />
                 Support
             </DropdownMenuItem>
