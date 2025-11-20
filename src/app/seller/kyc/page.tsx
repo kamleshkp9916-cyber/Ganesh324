@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useMemo, useState, useEffect, useCallback, useRef } from "react";
@@ -119,6 +118,7 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
   const [phoneError, setPhoneError] = useState('');
   const [panError, setPanError] = useState('');
 
+  const RESEND_COOLDOWN = 60;
   const [otpSent, setOtpSent] = useState({ email: form.emailVerified || false, phone: form.phoneVerified || false });
   const [resendCooldown, setResendCooldown] = useState({ email: 0, phone: 0 });
 
@@ -237,7 +237,7 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
   }, [form.pan]);
 
   const handleSendOtp = async (type: 'email' | 'phone') => {
-    const target = type === 'email' ? form.email : form.phone; // Assuming form.phone is just the 10-digit number
+    const target = type === 'email' ? form.email : form.phone;
     if (!target) return;
 
     setIsVerifying(prev => ({...prev, [type]: true}));
@@ -454,56 +454,56 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
                   </div>
                   {!existingData && (
                     <>
-                    <div className="grid md:grid-cols-[1fr,auto] gap-2 items-end">
-                      <div className="space-y-1">
+                    <div className="flex flex-col md:flex-row gap-2 items-end">
+                      <div className="space-y-1 flex-grow">
                         <label className="text-sm">Email</label>
                         <Input value={form.email} onChange={(e) => { setEmailError(''); setField("email", e.target.value); }} onBlur={checkEmailExists} placeholder="you@shop.com" disabled={form.emailVerified} className="flex-grow"/>
+                         {emailError ? <p className="text-xs text-destructive mt-1">{emailError}</p> : <p className="text-xs text-muted-foreground mt-1">This email will be used for login and official communication.</p>}
                       </div>
-                      <Button type="button" onClick={() => handleSendOtp('email')} disabled={resendCooldown.email > 0 || form.emailVerified || !!emailError || !/.+@.+\..+/.test(form.email) || isVerifying.email} className="flex-shrink-0">
+                      <Button type="button" onClick={() => handleSendOtp('email')} disabled={resendCooldown.email > 0 || form.emailVerified || !!emailError || !/.+@.+\..+/.test(form.email) || isVerifying.email} className="flex-shrink-0 w-full md:w-auto">
                           {isVerifying.email ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : form.emailVerified ? <Check className="mr-2 h-4 w-4"/> : <Send className="mr-2 h-4 w-4"/>}
                           {form.emailVerified ? 'Verified' : resendCooldown.email > 0 ? `Resend in ${resendCooldown.email}s` : 'Send OTP'}
                       </Button>
-                       {emailError ? <p className="text-xs text-destructive mt-1 col-span-2">{emailError}</p> : <p className="text-xs text-muted-foreground mt-1 col-span-2">This email will be used for login and official communication.</p>}
-                       {otpSent.email && !form.emailVerified && (
-                          <div className="flex items-end gap-2 md:col-span-2">
-                              <InputOTP maxLength={6} value={form.emailOtp} onChange={(val) => setField("emailOtp", val)}>
-                                  <InputOTPGroup>
-                                      <InputOTPSlot index={0} /><InputOTPSlot index={1} /><InputOTPSlot index={2} />
-                                      <InputOTPSlot index={3} /><InputOTPSlot index={4} /><InputOTPSlot index={5} />
-                                  </InputOTPGroup>
-                              </InputOTP>
-                              <Button type="button" variant="secondary" onClick={() => handleVerifyOtp('email')} disabled={form.emailOtp.length < 6 || isVerifying.email}>
-                              {isVerifying.email && <Loader2 className="mr-2 h-4 w-4 animate-spin"/>}
-                              Verify Email
-                              </Button>
-                          </div>
-                      )}
                     </div>
-                     <div className="grid md:grid-cols-[1fr,auto] gap-2 items-end">
-                        <div className="space-y-1">
+                     {otpSent.email && !form.emailVerified && (
+                        <div className="flex items-end gap-2">
+                            <InputOTP maxLength={6} value={form.emailOtp} onChange={(val) => setField("emailOtp", val)}>
+                                <InputOTPGroup>
+                                    <InputOTPSlot index={0} /><InputOTPSlot index={1} /><InputOTPSlot index={2} />
+                                    <InputOTPSlot index={3} /><InputOTPSlot index={4} /><InputOTPSlot index={5} />
+                                </InputOTPGroup>
+                            </InputOTP>
+                            <Button type="button" variant="secondary" onClick={() => handleVerifyOtp('email')} disabled={form.emailOtp.length < 6 || isVerifying.email}>
+                            {isVerifying.email && <Loader2 className="mr-2 h-4 w-4 animate-spin"/>}
+                            Verify Email
+                            </Button>
+                        </div>
+                    )}
+                    <div className="flex flex-col md:flex-row gap-2 items-end">
+                        <div className="space-y-1 flex-grow">
                             <label className="text-sm">Phone</label>
                             <Input value={form.phone} onChange={(e) => { setPhoneError(''); setField("phone", e.target.value.replace(/[^0-9]/g, "").slice(0,10)); }} onBlur={checkPhoneExists} placeholder="10‑digit mobile" disabled={form.phoneVerified} className="flex-grow"/>
+                            {phoneError ? <p className="text-xs text-destructive mt-1">{phoneError}</p> : <p className="text-xs text-muted-foreground mt-1">Used for verification and support communication.</p>}
                         </div>
-                        <Button type="button" onClick={() => handleSendOtp('phone')} disabled={resendCooldown.phone > 0 || form.phoneVerified || !!phoneError || form.phone.length !== 10 || isVerifying.phone} className="flex-shrink-0">
+                        <Button type="button" onClick={() => handleSendOtp('phone')} disabled={resendCooldown.phone > 0 || form.phoneVerified || !!phoneError || form.phone.length !== 10 || isVerifying.phone} className="flex-shrink-0 w-full md:w-auto">
                           {isVerifying.phone ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : form.phoneVerified ? <Check className="mr-2 h-4 w-4"/> : <Send className="mr-2 h-4 w-4"/>}
                           {form.phoneVerified ? 'Verified' : resendCooldown.phone > 0 ? `Resend in ${resendCooldown.phone}s` : 'Send OTP'}
                         </Button>
-                        {phoneError ? <p className="text-xs text-destructive mt-1 col-span-2">{phoneError}</p> : <p className="text-xs text-muted-foreground mt-1 col-span-2">Used for verification and support communication.</p>}
-                        {otpSent.phone && !form.phoneVerified && (
-                            <div className="flex items-end gap-2 md:col-span-2">
-                                <InputOTP maxLength={6} value={form.phoneOtp} onChange={(val) => setField("phoneOtp", val)}>
-                                    <InputOTPGroup>
-                                        <InputOTPSlot index={0} /><InputOTPSlot index={1} /><InputOTPSlot index={2} />
-                                        <InputOTPSlot index={3} /><InputOTPSlot index={4} /><InputOTPSlot index={5} />
-                                    </InputOTPGroup>
-                                </InputOTP>
-                                <Button type="button" variant="secondary" onClick={() => handleVerifyOtp('phone')} disabled={form.phoneOtp.length < 6 || isVerifying.phone}>
-                                {isVerifying.phone && <Loader2 className="mr-2 h-4 w-4 animate-spin"/>}
-                                Verify Phone
-                                </Button>
-                            </div>
-                        )}
                     </div>
+                    {otpSent.phone && !form.phoneVerified && (
+                        <div className="flex items-end gap-2">
+                            <InputOTP maxLength={6} value={form.phoneOtp} onChange={(val) => setField("phoneOtp", val)}>
+                                <InputOTPGroup>
+                                    <InputOTPSlot index={0} /><InputOTPSlot index={1} /><InputOTPSlot index={2} />
+                                    <InputOTPSlot index={3} /><InputOTPSlot index={4} /><InputOTPSlot index={5} />
+                                </InputOTPGroup>
+                            </InputOTP>
+                            <Button type="button" variant="secondary" onClick={() => handleVerifyOtp('phone')} disabled={form.phoneOtp.length < 6 || isVerifying.phone}>
+                            {isVerifying.phone && <Loader2 className="mr-2 h-4 w-4 animate-spin"/>}
+                            Verify Phone
+                            </Button>
+                        </div>
+                    )}
                     
                     <div className="grid md:grid-cols-2 gap-4">
                         <div>
@@ -671,22 +671,38 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
             )}
 
             {steps[current].key === "policies" && (
-                <Section title="Policies & Preview" icon={<FileSignature className="w-5 h-5"/>} hasError={existingData?.stepsToFix?.includes('policies')}>
-                  <div className="space-y-4">
-                    <div className="p-3 bg-gray-50 rounded-xl text-sm">
-                      By enabling auctions you agree to comply with platform rules and local regulations.
-                    </div>
+                <Section title="Policies &amp; Preview" icon={<FileSignature className="w-5 h-5"/>} hasError={existingData?.stepsToFix?.includes('policies')}>
+                  <div className="space-y-6">
+                     <Card>
+                        <CardHeader>
+                            <CardTitle className="text-base">Seller Policies</CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-3 text-sm text-muted-foreground">
+                            <p>By becoming a seller, you agree to adhere to the following community and platform rules:</p>
+                            <ul className="list-disc pl-5 space-y-2">
+                                <li><strong>Accurate Listings:</strong> You must provide truthful and accurate descriptions and photos for all your products. Misleading information is strictly prohibited.</li>
+                                <li><strong>Prohibited Items:</strong> You are not permitted to sell illegal items, counterfeit goods, weapons, adult content, or any other items listed in our Prohibited Items Policy.</li>
+                                <li><strong>Respectful Communication:</strong> All interactions with buyers and other users must be professional and respectful. Harassment, hate speech, or spam will not be tolerated.</li>
+                                <li><strong>Order Fulfillment:</strong> You are responsible for fulfilling orders in a timely manner. Excessive delays or cancellations may result in account suspension.</li>
+                                <li><strong>Authenticity:</strong> All products sold must be authentic. We have a zero-tolerance policy for counterfeit goods.</li>
+                            </ul>
+                            <p>Violation of these policies may result in content removal, account suspension, or a permanent ban from the platform. We reserve the right to update these policies at any time.</p>
+                        </CardContent>
+                    </Card>
+
                     <div className="flex items-center gap-3">
-                      <Switch checked={form.auctionEnabled} onCheckedChange={(v)=>setField("auctionEnabled", v)} />
-                      <span>Enable live auctions</span>
+                      <Switch checked={form.auctionEnabled} onCheckedChange={(v)=&gt;setField("auctionEnabled", v)} />
+                      <span>Enable live auctions (Feature coming soon)</span>
                     </div>
-                    <div className="flex items-center gap-3">
-                      <Switch checked={form.termsAccepted} onCheckedChange={(v)=>setField("termsAccepted", v)} />
-                      <span>I accept the Nipher Terms & Policies</span>
+
+                    <div className="flex items-center gap-3 pt-2">
+                      <Switch id="terms-switch" checked={form.termsAccepted} onCheckedChange={(v)=&gt;setField("termsAccepted", v)} />
+                      <label htmlFor="terms-switch" className="text-sm">I have read and agree to the &lt;Link href="/terms-and-conditions" target="_blank" className="text-primary underline"&gt;Seller Policies and Terms of Service&lt;/Link&gt;.</label>
                     </div>
-                    <div className="flex items-center justify-between">
-                        <div className="text-sm text-muted-foreground">Preview your storefront card with name and bio.</div>
-                        <Button variant="secondary" onClick={() => setIsPreviewOpen(true)}><Eye className="w-4 h-4 mr-2"/>Preview</Button>
+
+                    <div className="flex items-center justify-between pt-4 border-t">
+                        <div className="text-sm text-muted-foreground">Preview your storefront card.</div>
+                        <Button variant="secondary" onClick={() =&gt; setIsPreviewOpen(true)}&gt;&lt;Eye className="w-4 h-4 mr-2"/&gt;Preview&lt;/Button&gt;
                     </div>
                   </div>
                 </Section>
@@ -694,72 +710,72 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
             <div className="flex items-center justify-between mt-6">
                 <Button variant="outline" onClick={prev} className={current === 0 ? "invisible" : ""}>Back</Button>
               <div className="flex items-center gap-3">
-                {current < steps.length - 1 && (
-                  <Button onClick={next} disabled={!canGoToStep(current + 1)}>Next<ChevronRight className="w-4 h-4 ml-2"/></Button>
+                {current &lt; steps.length - 1 && (
+                  &lt;Button onClick={next} disabled={!canGoToStep(current + 1)}&gt;Next&lt;ChevronRight className="w-4 h-4 ml-2"/&gt;&lt;/Button&gt;
                 )}
                 {current === steps.length - 1 && (
-                  <Button disabled={!canSubmit} onClick={submit}>
+                  &lt;Button disabled={!canSubmit} onClick={submit}&gt;
                     Submit for Review
-                  </Button>
+                  &lt;/Button&gt;
                 )}
               </div>
             </div>
-          </motion.div>
-        </AnimatePresence>
-      </div>
+          &lt;/motion.div&gt;
+        &lt;/AnimatePresence&gt;
+      &lt;/div&gt;
 
-       <Sheet open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
-        <SheetContent side="bottom" className="h-[80vh] flex flex-col">
-            <SheetHeader className="text-left">
-                <SheetTitle>Application Preview</SheetTitle>
-                <SheetDescription>This is a summary of the information you have provided.</SheetDescription>
-            </SheetHeader>
-            <ScrollArea className="h-full mt-4">
-                <div className="space-y-6 pr-6">
-                    <div className="flex items-center gap-4">
-                        <Avatar className="h-20 w-20">
-                            <AvatarImage src={form.photoUrl} />
-                            <AvatarFallback>{form.displayName.charAt(0)}</AvatarFallback>
-                        </Avatar>
-                        <div>
-                            <h3 className="text-xl font-bold">{form.displayName}</h3>
-                            <p className="text-muted-foreground">{form.about}</p>
-                        </div>
-                    </div>
-                    <Separator />
-                    <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
-                        <h4 className="col-span-2 text-base font-semibold">Basic Information</h4>
-                        <div className="text-muted-foreground">Legal Name</div><div>{form.legalName}</div>
-                        <div className="text-muted-foreground">Email</div><div>{form.email}</div>
-                        <div className="text-muted-foreground">Phone</div><div>{form.phone}</div>
+       &lt;Sheet open={isPreviewOpen} onOpenChange={setIsPreviewOpen}&gt;
+        &lt;SheetContent side="bottom" className="h-[80vh] flex flex-col"&gt;
+            &lt;SheetHeader className="text-left"&gt;
+                &lt;SheetTitle&gt;Application Preview&lt;/SheetTitle&gt;
+                &lt;SheetDescription&gt;This is a summary of the information you have provided.&lt;/SheetDescription&gt;
+            &lt;/SheetHeader&gt;
+            &lt;ScrollArea className="h-full mt-4"&gt;
+                &lt;div className="space-y-6 pr-6"&gt;
+                    &lt;div className="flex items-center gap-4"&gt;
+                        &lt;Avatar className="h-20 w-20"&gt;
+                            &lt;AvatarImage src={form.photoUrl} /&gt;
+                            &lt;AvatarFallback&gt;{form.displayName.charAt(0)}&lt;/AvatarFallback&gt;
+                        &lt;/Avatar&gt;
+                        &lt;div&gt;
+                            &lt;h3 className="text-xl font-bold"&gt;{form.displayName}&lt;/h3&gt;
+                            &lt;p className="text-muted-foreground"&gt;{form.about}&lt;/p&gt;
+                        &lt;/div&gt;
+                    &lt;/div&gt;
+                    &lt;Separator /&gt;
+                    &lt;div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm"&gt;
+                        &lt;h4 className="col-span-2 text-base font-semibold"&gt;Basic Information&lt;/h4&gt;
+                        &lt;div className="text-muted-foreground"&gt;Legal Name&lt;/div&gt;&lt;div&gt;{form.legalName}&lt;/div&gt;
+                        &lt;div className="text-muted-foreground"&gt;Email&lt;/div&gt;&lt;div&gt;{form.email}&lt;/div&gt;
+                        &lt;div className="text-muted-foreground"&gt;Phone&lt;/div&gt;&lt;div&gt;{form.phone}&lt;/div&gt;
 
-                        <h4 className="col-span-2 text-base font-semibold mt-4">Business Details</h4>
-                        <div className="text-muted-foreground">Business Type</div><div>{form.bizType}</div>
-                        <div className="text-muted-foreground">Support Email</div><div>{form.supportEmail}</div>
-                        <div className="text-muted-foreground">Support Phone</div><div>{form.supportPhone}</div>
+                        &lt;h4 className="col-span-2 text-base font-semibold mt-4"&gt;Business Details&lt;/h4&gt;
+                        &lt;div className="text-muted-foreground"&gt;Business Type&lt;/div&gt;&lt;div&gt;{form.bizType}&lt;/div&gt;
+                        &lt;div className="text-muted-foreground"&gt;Support Email&lt;/div&gt;&lt;div&gt;{form.supportEmail}&lt;/div&gt;
+                        &lt;div className="text-muted-foreground"&gt;Support Phone&lt;/div&gt;&lt;div&gt;{form.supportPhone}&lt;/div&gt;
 
-                        <h4 className="col-span-2 text-base font-semibold mt-4">Address</h4>
-                        <div className="text-muted-foreground">Registered</div><div className="truncate">{form.regAddr.line1}, {form.regAddr.city}</div>
-                        <div className="text-muted-foreground">Pickup</div><div className="truncate">{form.pickupAddr.same ? 'Same as registered' : `${form.pickupAddr.line1}, ${form.pickupAddr.city}`}</div>
+                        &lt;h4 className="col-span-2 text-base font-semibold mt-4"&gt;Address&lt;/h4&gt;
+                        &lt;div className="text-muted-foreground"&gt;Registered&lt;/div&gt;&lt;div className="truncate"&gt;{form.regAddr.line1}, {form.regAddr.city}&lt;/div&gt;
+                        &lt;div className="text-muted-foreground"&gt;Pickup&lt;/div&gt;&lt;div className="truncate"&gt;{form.pickupAddr.same ? 'Same as registered' : `${form.pickupAddr.line1}, ${form.pickupAddr.city}`}&lt;/div&gt;
 
-                         <h4 className="col-span-2 text-base font-semibold mt-4">Bank & Tax</h4>
-                        <div className="text-muted-foreground">PAN</div><div>{form.pan}</div>
-                        <div className="text-muted-foreground">Account Holder</div><div>{form.accountName}</div>
-                        <div className="text-muted-foreground">Account No.</div><div>{form.accountNo}</div>
-                        <div className="text-muted-foreground">IFSC</div><div>{form.ifsc}</div>
+                         &lt;h4 className="col-span-2 text-base font-semibold mt-4"&gt;Bank &amp; Tax&lt;/h4&gt;
+                        &lt;div className="text-muted-foreground"&gt;PAN&lt;/div&gt;&lt;div&gt;{form.pan}&lt;/div&gt;
+                        &lt;div className="text-muted-foreground"&gt;Account Holder&lt;/div&gt;&lt;div&gt;{form.accountName}&lt;/div&gt;
+                        &lt;div className="text-muted-foreground"&gt;Account No.&lt;/div&gt;&lt;div&gt;{form.accountNo}&lt;/div&gt;
+                        &lt;div className="text-muted-foreground"&gt;IFSC&lt;/div&gt;&lt;div&gt;{form.ifsc}&lt;/div&gt;
 
-                        <h4 className="col-span-2 text-base font-semibold mt-4">Verification</h4>
-                        <div className="text-muted-foreground">Identity (0DIDit)</div><div>{verif.state === 'VERIFIED' ? <Badge variant="success">Verified</Badge> : <Badge variant="destructive">Not Verified</Badge>}</div>
+                        &lt;h4 className="col-span-2 text-base font-semibold mt-4"&gt;Verification&lt;/h4&gt;
+                        &lt;div className="text-muted-foreground"&gt;Identity (0DIDit)&lt;/div&gt;&lt;div&gt;{verif.state === 'VERIFIED' ? '&lt;Badge variant="success"&gt;Verified&lt;/Badge&gt;' : '&lt;Badge variant="destructive"&gt;Not Verified&lt;/Badge&gt;'}&lt;/div&gt;
 
-                        <h4 className="col-span-2 text-base font-semibold mt-4">Settings</h4>
-                        <div className="text-muted-foreground">Auctions</div><div>{form.auctionEnabled ? 'Enabled' : 'Disabled'}</div>
-                        <div className="text-muted-foreground">Terms Accepted</div><div>{form.termsAccepted ? 'Yes' : 'No'}</div>
-                    </div>
-                </div>
-            </ScrollArea>
-        </SheetContent>
-      </Sheet>
-    </div>
+                        &lt;h4 className="col-span-2 text-base font-semibold mt-4"&gt;Settings&lt;/h4&gt;
+                        &lt;div className="text-muted-foreground"&gt;Auctions&lt;/div&gt;&lt;div&gt;{form.auctionEnabled ? 'Enabled' : 'Disabled'}&lt;/div&gt;
+                        &lt;div className="text-muted-foreground"&gt;Terms Accepted&lt;/div&gt;&lt;div&gt;{form.termsAccepted ? 'Yes' : 'No'}&lt;/div&gt;
+                    &lt;/div&gt;
+                &lt;/div&gt;
+            &lt;/ScrollArea&gt;
+        &lt;/SheetContent&gt;
+      &lt;/Sheet&gt;
+    &lt;/div&gt;
   );
 }
 
@@ -768,132 +784,136 @@ export default function KYCPage() {
     const router = useRouter();
     const [isClient, setIsClient] = useState(false);
     
-    useEffect(() => {
+    useEffect(() =&gt; {
         setIsClient(true);
     }, []);
     
-    const initialProgress = useMemo(() => {
+    const initialProgress = useMemo(() =&gt; {
         return Math.round(((0 + 1) / (steps.length)) * 100);
     }, []);
     
-    useEffect(() => {
-        if (isClient && authReady) {
-            if (user && userData?.role === 'seller' && userData?.verificationStatus === 'verified') {
+    useEffect(() =&gt; {
+        if (isClient &amp;&amp; authReady) {
+            if (user &amp;&amp; userData?.role === 'seller' &amp;&amp; userData?.verificationStatus === 'verified') {
                 router.replace('/seller/dashboard');
             }
         }
     }, [isClient, user, userData, authReady, router]);
     
-    const handleSubmission = (data: any) => {
+    const handleSubmission = (data: any) =&gt; {
         router.refresh(); // This will re-trigger the check in useEffect
     };
 
     if (!isClient || !authReady) {
         return (
-            <div className="min-h-screen p-6 md:p-10 flex items-center justify-center">
-                <LoadingSpinner />
-            </div>
+            &lt;div className="min-h-screen p-6 md:p-10 flex items-center justify-center"&gt;
+                &lt;LoadingSpinner /&gt;
+            &lt;/div&gt;
         );
     }
     
     if (userData?.verificationStatus === 'pending') {
          return (
-             <div className="min-h-screen p-6 md:p-10 flex items-center justify-center">
-                <Card className="max-w-md text-center">
-                    <CardHeader>
-                        <CardTitle>Application Submitted</CardTitle>
-                        <CardDescription>Thank you for submitting your application. We are currently reviewing your details.</CardDescription>
-                    </CardHeader>
-                     <CardContent>
-                        <p className="text-sm">Estimated review time is <span className="font-bold">24 hours</span>. You will receive an email once your application has been reviewed.</p>
-                        <Button asChild className="mt-4"><Link href="/">Back to Login</Link></Button>
-                    </CardContent>
-                </Card>
-            </div>
+             &lt;div className="min-h-screen p-6 md:p-10 flex items-center justify-center"&gt;
+                &lt;Card className="max-w-md text-center"&gt;
+                    &lt;CardHeader&gt;
+                        &lt;CardTitle&gt;Application Submitted&lt;/CardTitle&gt;
+                        &lt;CardDescription&gt;Thank you for submitting your application. We are currently reviewing your details.&lt;/CardDescription&gt;
+                    &lt;/CardHeader&gt;
+                     &lt;CardContent&gt;
+                        &lt;p className="text-sm"&gt;Estimated review time is &lt;span className="font-bold"&gt;24 hours&lt;/span&gt;. You will receive an email once your application has been reviewed.&lt;/p&gt;
+                        &lt;Button asChild className="mt-4"&gt;&lt;Link href="/"&gt;Back to Login&lt;/Link&gt;&lt;/Button&gt;
+                    &lt;/CardContent&gt;
+                &lt;/Card&gt;
+            &lt;/div&gt;
          );
     }
 
     if (userData?.verificationStatus === 'rejected') {
         return (
-             <div className="min-h-screen p-6 md:p-10 flex items-center justify-center">
-                <Card className="max-w-md text-center border-destructive">
-                    <CardHeader>
-                        <CardTitle className="text-destructive">Application Rejected</CardTitle>
-                        <CardDescription>Unfortunately, your seller application could not be approved at this time.</CardDescription>
-                    </CardHeader>
-                     <CardContent>
-                        <div className="bg-destructive/10 p-3 rounded-md text-left">
-                            <p className="font-semibold">Reason for rejection:</p>
-                            <p className="text-sm">{userData.rejectionReason || "No reason provided."}</p>
-                        </div>
-                        <Button onClick={() => updateUserData(user!.uid, { verificationStatus: 'pending', rejectionReason: '' })} className="mt-4">Start New Application</Button>
-                    </CardContent>
-                </Card>
-            </div>
+             &lt;div className="min-h-screen p-6 md:p-10 flex items-center justify-center"&gt;
+                &lt;Card className="max-w-md text-center border-destructive"&gt;
+                    &lt;CardHeader&gt;
+                        &lt;CardTitle className="text-destructive"&gt;Application Rejected&lt;/CardTitle&gt;
+                        &lt;CardDescription&gt;Unfortunately, your seller application could not be approved at this time.&lt;/CardDescription&gt;
+                    &lt;/CardHeader&gt;
+                     &lt;CardContent&gt;
+                        &lt;div className="bg-destructive/10 p-3 rounded-md text-left"&gt;
+                            &lt;p className="font-semibold"&gt;Reason for rejection:&lt;/p&gt;
+                            &lt;p className="text-sm"&gt;{userData.rejectionReason || "No reason provided."}&lt;/p&gt;
+                        &lt;/div&gt;
+                        &lt;Button onClick={() =&gt; updateUserData(user!.uid, { verificationStatus: 'pending', rejectionReason: '' })} className="mt-4"&gt;Start New Application&lt;/Button&gt;
+                    &lt;/CardContent&gt;
+                &lt;/Card&gt;
+            &lt;/div&gt;
         );
     }
     
     if (userData?.verificationStatus === 'needs-resubmission') {
         return (
-            <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white">
-                <Progress value={initialProgress} className="w-full fixed top-0 left-0 right-0 h-1 z-50"/>
-                <div className="max-w-7xl mx-auto space-y-6 p-6 md:p-10 pt-8">
-                    <div className="flex items-center justify-between">
-                        <Button asChild variant="ghost" className="-ml-4">
-                            <Link href="/live-selling">
-                                <ChevronLeft className="mr-2 h-4 w-4" />
+            &lt;div className="min-h-screen bg-gradient-to-br from-gray-50 to-white"&gt;
+                &lt;Progress value={initialProgress} className="w-full fixed top-0 left-0 right-0 h-1 z-50"/&gt;
+                &lt;div className="max-w-7xl mx-auto space-y-6 p-6 md:p-10 pt-8"&gt;
+                    &lt;div className="flex items-center justify-between"&gt;
+                        &lt;Button asChild variant="ghost" className="-ml-4"&gt;
+                            &lt;Link href="/live-selling"&gt;
+                                &lt;ChevronLeft className="mr-2 h-4 w-4" /&gt;
                                 Back to Shopping
-                            </Link>
-                        </Button>
-                    </div>
-                    <div className="text-center">
-                        <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">Seller Application</h1>
-                    </div>
-                    <Card className="border-amber-500 bg-amber-50">
-                        <CardHeader className="text-center">
-                            <CardTitle className="text-amber-700">Resubmission Required</CardTitle>
-                            <CardDescription className="text-amber-600">
+                            &lt;/Link&gt;
+                        &lt;/Button&gt;
+                    &lt;/div&gt;
+                    &lt;div className="text-center"&gt;
+                        &lt;h1 className="text-2xl md:text-3xl font-extrabold tracking-tight"&gt;Seller Application&lt;/h1&gt;
+                    &lt;/div&gt;
+                    &lt;Card className="border-amber-500 bg-amber-50"&gt;
+                        &lt;CardHeader className="text-center"&gt;
+                            &lt;CardTitle className="text-amber-700"&gt;Resubmission Required&lt;/CardTitle&gt;
+                            &lt;CardDescription className="text-amber-600"&gt;
                                 An admin has reviewed your application and requires more information. Please review the feedback below, make the necessary changes, and re-submit.
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent className="text-center font-medium text-amber-800">
-                             <p>"{userData.resubmissionReason || 'No reason provided.'}"</p>
-                             {(userData as any).stepsToFix && (
-                                 <div className="mt-2 text-sm">
-                                    <p className="font-bold">Please correct the following sections:</p>
-                                    <div className="flex justify-center gap-2 mt-1">
-                                    {(userData as any).stepsToFix.map((stepKey: string) => (
-                                         <Badge key={stepKey} variant="warning">{steps.find(s => s.key === stepKey)?.label}</Badge>
-                                    ))}
-                                    </div>
-                                 </div>
+                            &lt;/CardDescription&gt;
+                        &lt;/CardHeader&gt;
+                        &lt;CardContent className="text-center font-medium text-amber-800"&gt;
+                             &lt;p&gt;"{userData.resubmissionReason || 'No reason provided.'}"&lt;/p&gt;
+                             {(userData as any).stepsToFix &amp;&amp; (
+                                 &lt;div className="mt-2 text-sm"&gt;
+                                    &lt;p className="font-bold"&gt;Please correct the following sections:&lt;/p&gt;
+                                    &lt;div className="flex justify-center gap-2 mt-1"&gt;
+                                    {(userData as any).stepsToFix.map((stepKey: string) =&gt; (
+                                         &lt;Badge key={stepKey} variant="warning"&gt;{steps.find(s =&gt; s.key === stepKey)?.label}&lt;/Badge&gt;
+                                    ))}&lt;/div&gt;
+                                 &lt;/div&gt;
                              )}
-                        </CardContent>
-                    </Card>
-                    <SellerWizard onSubmit={handleSubmission} existingData={userData} />
-                </div>
-            </div>
+                        &lt;/CardContent&gt;
+                    &lt;/Card&gt;
+                    &lt;SellerWizard onSubmit={handleSubmission} existingData={userData} /&gt;
+                &lt;/div&gt;
+            &lt;/div&gt;
         )
     }
     
     return (
-        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white">
-            <Progress value={initialProgress} className="w-full fixed top-0 left-0 right-0 h-1 z-50"/>
-            <div className="max-w-7xl mx-auto space-y-6 p-6 md:p-10 pt-8">
-                 <div className="flex items-center justify-between">
-                  <Button asChild variant="ghost" className="-ml-4">
-                    <Link href="/live-selling">
-                      <ChevronLeft className="mr-2 h-4 w-4" />
-                      Back to Shopping
-                    </Link>
-                  </Button>
-                </div>
-                <div className="text-center">
-                    <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">Become a Seller</h1>
-                    <p className="text-sm text-muted-foreground">Complete the following steps to start selling on Nipher.</p>
-                </div>
-                <SellerWizard onSubmit={handleSubmission} />
-            </div>
-        </div>
+        &lt;div className="min-h-screen bg-gradient-to-br from-gray-50 to-white"&gt;
+            &lt;Progress value={initialProgress} className="w-full fixed top-0 left-0 right-0 h-1 z-50"/&gt;
+            &lt;div className="max-w-7xl mx-auto space-y-6 p-6 md:p-10 pt-8"&gt;
+                 &lt;div className="grid grid-cols-1 xl:grid-cols-4 gap-6"&gt;
+                    &lt;div className="xl:col-span-1"&gt;
+                        &lt;div className="flex items-center justify-between"&gt;
+                            &lt;Button asChild variant="ghost" className="-ml-4"&gt;
+                                &lt;Link href="/live-selling"&gt;
+                                &lt;ChevronLeft className="mr-2 h-4 w-4" /&gt;
+                                Back to Shopping
+                                &lt;/Link&gt;
+                            &lt;/Button&gt;
+                        &lt;/div&gt;
+                    &lt;/div&gt;
+                    &lt;div className="xl:col-span-3 text-center"&gt;
+                        &lt;h1 className="text-2xl md:text-3xl font-extrabold tracking-tight"&gt;Become a Seller&lt;/h1&gt;
+                        &lt;p className="text-sm text-muted-foreground"&gt;Complete the following steps to start selling on Nipher.&lt;/p&gt;
+                    &lt;/div&gt;
+                &lt;/div&gt;
+                &lt;SellerWizard onSubmit={handleSubmission} /&gt;
+            &lt;/div&gt;
+        &lt;/div&gt;
     );
 }
+
