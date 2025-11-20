@@ -30,8 +30,8 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { getFirestoreDb, getFirebaseStorage } from "@/lib/firebase-db";
-import { collection, doc, setDoc, addDoc } from "firebase/firestore";
-import { ref, uploadString, getDownloadURL } from "firebase/storage";
+import { collection, doc, setDoc, addDoc, serverTimestamp } from "firebase/firestore";
+import { ref, uploadString, getDownloadURL, deleteObject } from "firebase/storage";
 import { defaultCategories } from "@/lib/categories";
 import Image from "next/image";
 import { Separator } from "@/components/ui/separator";
@@ -105,7 +105,7 @@ const productFormSchema = z.object({
 
 interface ProductFormProps {
     onSave: (product: Product) => void;
-    productToEdit?: Product;
+    productToEdit?: Product | null;
     onCancel: () => void;
     isSaving: boolean;
 }
@@ -137,7 +137,7 @@ export function ProductForm({ onSave, productToEdit, onCancel, isSaving }: Produ
     name: "variants",
   });
   
-  const setInitialValues = useCallback((product: Product | undefined) => {
+  const setInitialValues = useCallback((product: Product | null | undefined) => {
     if (product) {
       form.reset({
         ...product,
@@ -354,7 +354,7 @@ export function ProductForm({ onSave, productToEdit, onCancel, isSaving }: Produ
                       <FormItem>
                         <FormLabel>Default Selling Price</FormLabel>
                         <FormControl><Input type="number" {...field} disabled={fields.length > 0} /></FormControl>
-                         <FormDescription className="text-xs">This will be used if no variant price is set.</FormDescription>
+                         <FormDescription className="text-xs">Used if no variants are specified. Disabled when variants exist.</FormDescription>
                         <FormMessage />
                       </FormItem>
                   )}/>
@@ -362,7 +362,7 @@ export function ProductForm({ onSave, productToEdit, onCancel, isSaving }: Produ
                       <FormItem>
                         <FormLabel>Default Stock</FormLabel>
                         <FormControl><Input type="number" {...field} disabled={fields.length > 0} /></FormControl>
-                         <FormDescription className="text-xs">This is the total stock if no variants are specified.</FormDescription>
+                         <FormDescription className="text-xs">Total stock if no variants exist. Disabled when variants exist.</FormDescription>
                         <FormMessage />
                       </FormItem>
                   )}/>
@@ -372,7 +372,7 @@ export function ProductForm({ onSave, productToEdit, onCancel, isSaving }: Produ
                 )}/>
                 <Separator />
                  <h3 className="font-semibold text-lg">Simple Options</h3>
-                 <FormDescription>For products where price and stock are the same for all options.</FormDescription>
+                 <FormDescription>For products where price and stock are the same for all options, e.g., different colors of the same bag.</FormDescription>
                 <div className="grid grid-cols-2 gap-4">
                     <FormField control={form.control} name="availableSizes" render={({ field }) => (
                         <FormItem><FormLabel>Available Sizes</FormLabel><FormControl><Input placeholder="S, M, L, XL" {...field} /></FormControl><FormDescription className="text-xs">Comma-separated.</FormDescription><FormMessage /></FormItem>
@@ -384,7 +384,9 @@ export function ProductForm({ onSave, productToEdit, onCancel, isSaving }: Produ
                 <Separator />
                 <div>
                   <h3 className="font-semibold text-lg">Product Variants</h3>
-                  <FormDescription>Add variants if your product has different prices or stock for different sizes, colors, etc. This will override the simple options above.</FormDescription>
+                  <FormDescription>
+                    Use variants when different options (e.g., a Large, Red T-shirt) have a unique price, stock level, or image. This will override the simple options and default price/stock.
+                  </FormDescription>
                 </div>
                  <div className="space-y-4">
                     {fields.map((field, index) => (
@@ -442,16 +444,16 @@ export function ProductForm({ onSave, productToEdit, onCancel, isSaving }: Produ
                    <h3 className="font-semibold text-lg border-b pb-2 pt-4">Shipping Details</h3>
                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                         <FormField control={form.control} name="weight" render={({ field }) => (
-                            <FormItem><FormLabel>Weight (kg)</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>
+                            <FormItem><FormLabel>Weight (kg)</FormLabel><FormControl><Input type="number" {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>
                         )}/>
                          <FormField control={form.control} name="length" render={({ field }) => (
-                            <FormItem><FormLabel>Length (cm)</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>
+                            <FormItem><FormLabel>Length (cm)</FormLabel><FormControl><Input type="number" {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>
                         )}/>
                          <FormField control={form.control} name="width" render={({ field }) => (
-                            <FormItem><FormLabel>Width (cm)</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>
+                            <FormItem><FormLabel>Width (cm)</FormLabel><FormControl><Input type="number" {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>
                         )}/>
                          <FormField control={form.control} name="height" render={({ field }) => (
-                            <FormItem><FormLabel>Height (cm)</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>
+                            <FormItem><FormLabel>Height (cm)</FormLabel><FormControl><Input type="number" {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>
                         )}/>
                    </div>
                     <FormField control={form.control} name="keyDetails" render={({ field }) => (
@@ -505,8 +507,8 @@ export function ProductForm({ onSave, productToEdit, onCancel, isSaving }: Produ
             {step < 3 ? (
                 <Button type="button" onClick={() => setStep(step + 1)}>Next</Button>
             ) : (
-                <Button type="submit" disabled={isLoading}>
-                    {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : productToEdit ? "Update Product" : "Create Product"}
+                <Button type="submit" disabled={isSaving}>
+                    {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : productToEdit ? "Update Product" : "Create Product"}
                 </Button>
             )}
           </div>
