@@ -397,7 +397,7 @@ export function ProductForm({ onSave, productToEdit }: ProductFormProps) {
               <FormField control={form.control} name="media" render={() => (
                 <FormItem>
                   <FormLabel>Product Media</FormLabel>
-                  <FormDescription>Add images or a video. The first item will be the main display media. Recommended size: 800x800 pixels. Max 5MB per file.</FormDescription>
+                  <FormDescription>Add up to 5 images and 1 video. The first item is the main display media. Recommended: 800x800px, max 5MB.</FormDescription>
                   <div className="grid grid-cols-3 md:grid-cols-5 gap-2">
                     {media.map((m, i) => (
                       <div key={i} className="relative aspect-square w-full rounded-md overflow-hidden group">
@@ -422,14 +422,17 @@ export function ProductForm({ onSave, productToEdit }: ProductFormProps) {
         return (
            <ScrollArea className="h-[60vh]">
             <div className="space-y-6 py-4 px-6">
-                <FormField control={form.control} name="price" render={({ field }) => (
-                    <FormItem><FormLabel>Default Selling Price</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormDescription>This will be used if no variant price is set.</FormDescription><FormMessage /></FormItem>
-                )}/>
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField control={form.control} name="price" render={({ field }) => (
+                      <FormItem><FormLabel>Default Selling Price</FormLabel><FormControl><Input type="number" {...field} disabled={fields.length > 0} /></FormControl><FormMessage /></FormItem>
+                  )}/>
+                  <FormField control={form.control} name="stock" render={({ field }) => (
+                      <FormItem><FormLabel>Default Stock</FormLabel><FormControl><Input type="number" {...field} disabled={fields.length > 0} /></FormControl><FormMessage /></FormItem>
+                  )}/>
+                  <p className="col-span-2 text-xs text-muted-foreground -mt-1">Default fields are disabled when variants are used. Price and stock must be set for each variant instead.</p>
+                </div>
                 <FormField control={form.control} name="discountPercentage" render={({ field }) => (
                     <FormItem><FormLabel>Discount Percentage (Optional)</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormDescription>Creates a "sale" effect by showing a higher original price.</FormDescription><FormMessage /></FormItem>
-                )}/>
-                <FormField control={form.control} name="stock" render={({ field }) => (
-                    <FormItem><FormLabel>Default Stock</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormDescription>This is the total stock if no variants are specified.</FormDescription><FormMessage /></FormItem>
                 )}/>
                 <Separator />
                  <h3 className="font-semibold text-lg">Simple Options</h3>
@@ -445,48 +448,53 @@ export function ProductForm({ onSave, productToEdit }: ProductFormProps) {
                 <Separator />
                 <div>
                   <h3 className="font-semibold text-lg">Product Variants</h3>
-                  <FormDescription>Add variants if your product has different prices, stock, or images for different sizes/colors. This will override the simple options above.</FormDescription>
+                  <FormDescription>Use this if options like size or color have different prices, stock, or images. This will override the default price and stock.</FormDescription>
                 </div>
-                <div className="space-y-4">
-                  {fields.map((field, index) => (
-                    <div key={field.id} className="grid grid-cols-1 md:grid-cols-[1fr,1fr,1fr,1fr,auto] gap-3 items-start border p-4 rounded-lg bg-muted/50">
-                       <div className="flex items-center gap-2 col-span-1 md:col-span-5">
-                            <div className="relative w-20 h-20 rounded-md border-2 border-dashed bg-background flex items-center justify-center text-muted-foreground overflow-hidden">
-                                {field.image?.preview ? (
-                                    <Image src={field.image.preview} alt="Variant preview" layout="fill" className="object-cover" />
-                                ) : (
-                                    <ImageIcon className="w-6 h-6"/>
-                                )}
-                                 <input
-                                    type="file"
-                                    accept="image/*"
-                                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                                    onChange={(e) => handleVariantImageUpload(index, e)}
-                                />
+                 <div className="space-y-4">
+                    {fields.map((field, index) => (
+                        <Card key={field.id} className="p-4 bg-muted/30">
+                            <div className="grid grid-cols-1 md:grid-cols-[auto,1fr] gap-4 items-start">
+                                 <div className="space-y-1">
+                                    <Label>Variant Image</Label>
+                                    <div className="relative w-20 h-20 rounded-md border-2 border-dashed bg-background flex items-center justify-center text-muted-foreground overflow-hidden">
+                                        {fields[index]?.image?.preview ? (
+                                            <Image src={fields[index].image.preview} alt="Variant preview" layout="fill" className="object-cover" />
+                                        ) : (
+                                            <ImageIcon className="w-6 h-6"/>
+                                        )}
+                                        <input
+                                            type="file"
+                                            accept="image/*"
+                                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                            onChange={(e) => handleVariantImageUpload(index, e)}
+                                        />
+                                    </div>
+                                </div>
+                                <div className="grid grid-cols-2 gap-3 flex-grow">
+                                    <FormField control={form.control} name={`variants.${index}.size`} render={({ field: f }) => (
+                                        <FormItem><FormLabel className="text-xs">Size</FormLabel><FormControl><Input placeholder="e.g., L" {...f} /></FormControl></FormItem>
+                                    )} />
+                                    <FormField control={form.control} name={`variants.${index}.color`} render={({ field: f }) => (
+                                        <FormItem><FormLabel className="text-xs">Color</FormLabel><FormControl><Input placeholder="e.g., Blue" {...f} /></FormControl></FormItem>
+                                    )} />
+                                    <FormField control={form.control} name={`variants.${index}.price`} render={({ field: f }) => (
+                                        <FormItem><FormLabel className="text-xs">Price (₹)</FormLabel><FormControl><Input type="number" {...f} /></FormControl></FormItem>
+                                    )} />
+                                    <FormField control={form.control} name={`variants.${index}.stock`} render={({ field: f }) => (
+                                        <FormItem><FormLabel className="text-xs">Stock</FormLabel><FormControl><Input type="number" {...f} /></FormControl></FormItem>
+                                    )} />
+                                </div>
                             </div>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 flex-grow">
-                                <FormField control={form.control} name={`variants.${index}.size`} render={({ field: f }) => (
-                                    <FormItem><FormLabel className="text-xs">Size</FormLabel><FormControl><Input {...f} /></FormControl></FormItem>
-                                )} />
-                                <FormField control={form.control} name={`variants.${index}.color`} render={({ field: f }) => (
-                                    <FormItem><FormLabel className="text-xs">Color</FormLabel><FormControl><Input {...f} /></FormControl></FormItem>
-                                )} />
-                                <FormField control={form.control} name={`variants.${index}.price`} render={({ field: f }) => (
-                                    <FormItem><FormLabel className="text-xs">Price</FormLabel><FormControl><Input type="number" {...f} /></FormControl></FormItem>
-                                )} />
-                                <FormField control={form.control} name={`variants.${index}.stock`} render={({ field: f }) => (
-                                    <FormItem><FormLabel className="text-xs">Stock</FormLabel><FormControl><Input type="number" {...f} /></FormControl></FormItem>
-                                )} />
+                             <div className="col-span-full flex justify-end mt-2">
+                                <Button type="button" variant="ghost" size="sm" onClick={() => remove(index)}>
+                                    <Trash2 className="h-4 w-4 mr-2 text-destructive" />Remove Variant
+                                </Button>
                             </div>
-                        </div>
-                        <div className="col-span-1 md:col-span-5 flex justify-end">
-                             <Button type="button" variant="ghost" size="icon" onClick={() => remove(index)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
-                        </div>
-                    </div>
-                  ))}
-                  <Button type="button" variant="outline" size="sm" onClick={() => append({ size: '', color: '', price: 0, stock: 0, image: null })}>
-                    <PlusCircle className="mr-2 h-4 w-4"/> Add Variant
-                  </Button>
+                        </Card>
+                    ))}
+                    <Button type="button" variant="outline" onClick={() => append({ size: '', color: '', price: 0, stock: 0, image: null })}>
+                        <PlusCircle className="mr-2 h-4 w-4"/> Add Variant
+                    </Button>
                 </div>
             </div>
            </ScrollArea>
@@ -571,3 +579,5 @@ export function ProductForm({ onSave, productToEdit }: ProductFormProps) {
     </Form>
   );
 }
+
+    
