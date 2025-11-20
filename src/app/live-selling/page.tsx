@@ -117,7 +117,7 @@ import { Separator } from '@/components/ui/separator';
 import { ProductSearchWithStreams } from '@/components/ProductSearchWithStreams';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
-import { useIsMobile } from '@/hooks/use-is-mobile';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { useLocalStorage } from '@/hooks/use-local-storage';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
@@ -445,7 +445,7 @@ export default function LiveSellingPage() {
 
     const sellersTimer = setTimeout(() => setIsLoadingSellers(false), 1000);
 
-    const db = getFirestore();
+    const db = getFirestoreDb();
     let postsQuery;
 
     if (activeTab === 'feeds') {
@@ -530,7 +530,7 @@ export default function LiveSellingPage() {
   const handleLikePost = async (postId: string) => {
     if (!handleAuthAction()) return;
 
-    const db = getFirestore();
+    const db = getFirestoreDb();
     const postRef = doc(db, 'posts', postId);
     const likeRef = doc(db, `posts/${postId}/likes`, user!.uid);
 
@@ -744,6 +744,14 @@ export default function LiveSellingPage() {
                                     <DropdownMenuItem onSelect={() => router.push('/setting')}>
                                     <Settings className="mr-2 h-4 w-4" />
                                     <span>Settings</span>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onSelect={() => router.push('/help')}>
+                                    <LifeBuoy className="mr-2 h-4 w-4" />
+                                    <span>Help & Support</span>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onSelect={() => router.push('/privacy-and-security')}>
+                                    <Shield className="mr-2 h-4 w-4" />
+                                    <span>Privacy & Security</span>
                                 </DropdownMenuItem>
                                 <DropdownMenuSeparator />
                                 <DropdownMenuSub>
