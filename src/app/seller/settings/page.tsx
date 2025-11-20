@@ -10,7 +10,7 @@ import {
 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import React, { useState, useEffect, useMemo } from "react"
+import React, { useState, useEffect, useMemo, useCallback } from "react"
 import { format, differenceInDays, parseISO } from "date-fns"
 import { collection, query, where, onSnapshot, addDoc, serverTimestamp, orderBy, getDocs, runTransaction } from "firebase/firestore";
 
@@ -38,7 +38,7 @@ import { LoadingSpinner } from "@/components/ui/loading-spinner"
 import { useToast } from "@/hooks/use-toast"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { SellerHeader } from "@/components/seller/seller-header"
-import { getFirestoreDb } from "@/lib/firebase"
+import { getFirestoreDb } from "@/lib/firebase-db"
 import { Order, getStatusFromTimeline } from "@/lib/order-data"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -91,8 +91,8 @@ export default function SellerSettingsPage() {
       orderBy("requestedAt", "desc")
     );
 
-    const unsubscribe = onSnapshot(q, (querySnapshot) => {
-      const requests = querySnapshot.docs.map(doc => ({
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const requests = snapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data(),
         requestedAt: doc.data().requestedAt.toDate()
