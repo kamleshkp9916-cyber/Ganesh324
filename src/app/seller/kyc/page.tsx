@@ -176,12 +176,7 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
   }, [verif.state]);
 
   const canGoToStep = (stepIndex: number) => {
-    if(stepIndex === 1) return isStep1Valid;
-    if(stepIndex === 2) return isStep1Valid && isStep2Valid;
-    if(stepIndex === 3) return isStep1Valid && isStep2Valid && isStep3Valid;
-    if(stepIndex === 4) return isStep1Valid && isStep2Valid && isStep3Valid && isStep4Valid;
-    if(stepIndex === 5) return isStep1Valid && isStep2Valid && isStep3Valid && isStep4Valid && isStep5Valid;
-    return true;
+    return true; // Temporarily enabled for UI review
   }
 
   const progress = useMemo(() => Math.round(((current + 1) / (steps.length)) * 100), [current]);
@@ -386,38 +381,40 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
 
   return (
     <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
-      <div className="xl:col-span-1 space-y-3">
-        <Card className="rounded-2xl">
-          <CardHeader className="pb-3">
-            <CardTitle>Onboarding</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex flex-wrap gap-2">
-              {steps.map((s, i) => (
-                <StepPill key={s.key} index={i + 1} label={s.label} active={current === i} complete={i < current} />
-              ))}
+      <div className="xl:col-span-1 xl:sticky top-24 self-start">
+        <div className="space-y-3">
+            <Card className="rounded-2xl">
+            <CardHeader className="pb-3">
+                <CardTitle>Onboarding</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+                <div className="flex flex-wrap gap-2">
+                {steps.map((s, i) => (
+                    <StepPill key={s.key} index={i + 1} label={s.label} active={current === i} complete={i < current} />
+                ))}
+                </div>
+                <Progress value={progress} className="w-full mt-2 h-1"/>
+            </CardContent>
+            </Card>
+            <Card className="rounded-2xl">
+            <CardHeader className="pb-2"><CardTitle>Application Status</CardTitle></CardHeader>
+            <CardContent className="space-y-2">
+                <div className="flex flex-wrap items-center gap-2 text-sm">
+                    <Badge>{existingData?.verificationStatus?.toUpperCase() || 'Draft'}</Badge>
+                    <Button variant="outline" size="sm" onClick={() => { setForm(form); toast({title: "Draft Saved!"}); }} disabled={!isFormDirty}>
+                        <Save className="w-4 h-4 mr-2"/>
+                        Save Draft
+                    </Button>
+                    <Button variant="ghost" size="sm" onClick={handleReset}>
+                        <RotateCcw className="w-4 h-4 mr-2"/>Reset
+                    </Button>
+                </div>
+                <div className="text-xs text-muted-foreground">You can submit after finishing KYC and accepting terms.</div>
+            </CardContent>
+            </Card>
+            <div className="text-xs text-muted-foreground p-3 bg-gray-50 rounded-lg">
+                <strong>Privacy Note:</strong> We use 0DIDit for secure identity verification. We don't store your personal ID data, only the information necessary for you to use or sell products on the Nipher platform.
             </div>
-             <Progress value={progress} className="w-full mt-2 h-1"/>
-          </CardContent>
-        </Card>
-        <Card className="rounded-2xl">
-          <CardHeader className="pb-2"><CardTitle>Application Status</CardTitle></CardHeader>
-          <CardContent className="space-y-2">
-            <div className="flex flex-wrap items-center gap-2 text-sm">
-                <Badge>{existingData?.verificationStatus?.toUpperCase() || 'Draft'}</Badge>
-                 <Button variant="outline" size="sm" onClick={() => { setForm(form); toast({title: "Draft Saved!"}); }} disabled={!isFormDirty}>
-                    <Save className="w-4 h-4 mr-2"/>
-                    Save Draft
-                </Button>
-                <Button variant="ghost" size="sm" onClick={handleReset}>
-                    <RotateCcw className="w-4 h-4 mr-2"/>Reset
-                </Button>
-            </div>
-            <div className="text-xs text-muted-foreground">You can submit after finishing KYC and accepting terms.</div>
-          </CardContent>
-        </Card>
-         <div className="text-xs text-muted-foreground p-3 bg-gray-50 rounded-lg">
-            <strong>Privacy Note:</strong> We use 0DIDit for secure identity verification. We don't store your personal ID data, only the information necessary for you to use or sell products on the Nipher platform.
         </div>
       </div>
 
