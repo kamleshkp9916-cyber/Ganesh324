@@ -27,49 +27,9 @@ if (!admin.apps.length) {
   }
 }
 
-// --- onRequest Validation Functions with CORS ---
-
-exports.checkEmailExists = onRequest((req, res) => {
-  cors(req, res, async () => {
-    if (req.method !== 'POST') {
-      return res.status(405).json({ error: 'Method Not Allowed' });
-    }
-    try {
-      const { email } = req.body;
-      if (!email) {
-        return res.status(400).json({ error: 'The function must be called with an "email" argument.' });
-      }
-      const db = admin.firestore();
-      const usersRef = db.collection('users');
-      const querySnapshot = await usersRef.where('email', '==', email).limit(1).get();
-      return res.status(200).json({ exists: !querySnapshot.empty });
-    } catch (error) {
-      console.error("Error in checkEmailExists:", error);
-      return res.status(500).json({ error: 'Internal server error' });
-    }
-  });
-});
-
-exports.checkPhoneExists = onRequest((req, res) => {
-  cors(req, res, async () => {
-    if (req.method !== 'POST') {
-      return res.status(405).json({ error: 'Method Not Allowed' });
-    }
-    try {
-      const { phone } = req.body;
-      if (!phone) {
-        return res.status(400).json({ error: 'The function must be called with a "phone" argument.' });
-      }
-      const db = admin.firestore();
-      const usersRef = db.collection('users');
-      const querySnapshot = await usersRef.where('phone', '==', phone).limit(1).get();
-      return res.status(200).json({ exists: !querySnapshot.empty });
-    } catch (error) {
-      console.error("Error in checkPhoneExists:", error);
-      return res.status(500).json({ error: 'Internal server error' });
-    }
-  });
-});
+// --- DEPRECATED: These functions are now handled by Next.js API routes ---
+// exports.checkEmailExists = onRequest(...)
+// exports.checkPhoneExists = onRequest(...)
 
 // --- onCall Functions (for actions where security is handled by callable context) ---
 
