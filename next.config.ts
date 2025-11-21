@@ -6,6 +6,14 @@ const nextConfig: NextConfig = {
   allowedDevOrigins: ["https://*.cloudworkstations.dev"],
   experimental: {
   },
+  async rewrites() {
+    return [
+      {
+        source: '/api/functions/:path*',
+        destination: 'https://us-central1-streamcart-login.cloudfunctions.net/:path*',
+      },
+    ]
+  },
   serverExternalPackages: ['@genkit-ai/google-genai'],
   images: {
     remotePatterns: [
