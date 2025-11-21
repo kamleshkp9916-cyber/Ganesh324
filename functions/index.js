@@ -27,47 +27,47 @@ if (!admin.apps.length) {
   }
 }
 
-const checkEmailExistsImpl = async (req, res) => {
-    const { email } = req.body;
+const checkEmailExistsImpl = async (data) => {
+    const { email } = data;
     if (!email) {
-        return res.status(400).json({ error: { message: 'The function must be called with an "email" argument.' }});
+        throw new HttpsError('invalid-argument', 'The function must be called with an "email" argument.');
     }
     const db = admin.firestore();
     const usersRef = db.collection('users');
     const querySnapshot = await usersRef.where('email', '==', email).limit(1).get();
-    return res.status(200).json({ exists: !querySnapshot.empty });
+    return { exists: !querySnapshot.empty };
 };
 
-const checkPhoneExistsImpl = async (req, res) => {
-    const { phone } = req.body;
+const checkPhoneExistsImpl = async (data) => {
+    const { phone } = data;
     if (!phone) {
-        return res.status(400).json({ error: { message: 'The function must be called with a "phone" argument.' }});
+        throw new HttpsError('invalid-argument', 'The function must be called with a "phone" argument.');
     }
     const db = admin.firestore();
     const usersRef = db.collection('users');
     const querySnapshot = await usersRef.where('phone', '==', phone).limit(1).get();
-    return res.status(200).json({ exists: !querySnapshot.empty });
+    return { exists: !querySnapshot.empty };
 };
 
-const createOdiditSessionImpl = async (req, res) => {
+const createOdiditSessionImpl = async (data) => {
     const sessionId = `mock-session-${Date.now()}`;
     const verificationLink = `https://0did.it/verify/${sessionId}`;
-    return res.status(200).json({ verificationLink, sessionId });
+    return { verificationLink, sessionId };
 };
 
-const checkOdiditSessionImpl = async (req, res) => {
-    const { sessionId } = req.body;
+const checkOdiditSessionImpl = async (data) => {
+    const { sessionId } = data;
     if (!sessionId.startsWith('mock-session-')) {
-        return res.status(400).json({ error: { message: 'Invalid session ID format.' }});
+        throw new HttpsError('invalid-argument', 'Invalid session ID format.');
     }
     const isVerified = Math.random() < 0.2;
-    return res.status(200).json({ status: isVerified ? 'VERIFIED' : 'PENDING' });
+    return { status: isVerified ? 'VERIFIED' : 'PENDING' };
 };
 
-const sendVerificationCodeImpl = async (req, res) => {
-    const { target, type } = req.body;
+const sendVerificationCodeImpl = async (data) => {
+    const { target, type } = data;
     if (!target || !type) {
-        return res.status(400).json({ error: { message: 'The function must be called with a "target" and "type" argument.' }});
+        throw new HttpsError('invalid-argument', 'The function must be called with a "target" and "type" argument.');
     }
     const db = admin.firestore();
     const otp = String(Math.floor(100000 + Math.random() * 900000));
@@ -85,53 +85,45 @@ const sendVerificationCodeImpl = async (req, res) => {
     
     console.log(`SIMULATING OTP for ${target}: Your code is ${otp}`);
 
-    return res.status(200).json({ success: true });
+    return { success: true };
 };
 
-const verifyCodeImpl = async (req, res) => {
-    const { target, otp } = req.body;
+const verifyCodeImpl = async (data) => {
+    const { target, otp } = data;
     if (!target || !otp) {
-        return res.status(400).json({ error: { message: 'Missing target or OTP.' }});
+        throw new HttpsError('invalid-argument', 'Missing target or OTP.');
     }
-    if (otp === '123456') return res.status(200).json({ success: true }); // Mock success
+    if (otp === '123456') return { success: true }; // Mock success
     
     const db = admin.firestore();
     const otpRef = db.collection('otp_requests').doc(target);
     const otpDoc = await otpRef.get();
-    if (!otpDoc.exists) return res.status(404).json({ error: { message: 'No OTP found or expired.' }});
+    if (!otpDoc.exists) throw new HttpsError('not-found', 'No OTP found or expired.');
     
     await otpRef.delete();
-    return res.status(200).json({ success: true });
+    return { success: true };
 };
 
-const createAdminUserImpl = async (req, res) => {
-    // Auth check would need to be implemented differently for onRequest
-    // For now, assume it's protected or handled via API gateway
-    const { email, password, firstName, lastName } = req.body;
+const createAdminUserImpl = async (data, context) => {
+    if (context.auth?.token?.role !== 'admin') {
+        throw new HttpsError('permission-denied', 'You must be an admin.');
+    }
+    const { email, password, firstName, lastName } = data;
     if (!email || !password || !firstName || !lastName) {
-        return res.status(400).json({ error: { message: 'Missing required user information.' }});
+        throw new HttpsError('invalid-argument', 'Missing required user information.');
     }
-    return res.status(200).json({ success: true });
+    return { success: true };
 };
 
-// --- CORS Wrapper for onRequest functions ---
-const onRequestWithCors = (handler) => onRequest((req, res) => {
-  cors(req, res, () => {
-    if (req.method === 'OPTIONS') {
-      res.status(204).send('');
-      return;
-    }
-    handler(req, res);
-  });
-});
 
-exports.checkEmailExists = onRequestWithCors(checkEmailExistsImpl);
-exports.checkPhoneExists = onRequestWithCors(checkPhoneExistsImpl);
-exports.createOdiditSession = onRequestWithCors(createOdiditSessionImpl);
-exports.checkOdiditSession = onRequestWithCors(checkOdiditSessionImpl);
-exports.sendVerificationCode = onRequestWithCors(sendVerificationCodeImpl);
-exports.verifyCode = onRequestWithCors(verifyCodeImpl);
-exports.createAdminUser = onRequestWithCors(createAdminUserImpl);
+// Export the onCall functions
+exports.checkEmailExists = onCall(checkEmailExistsImpl);
+exports.checkPhoneExists = onCall(checkPhoneExistsImpl);
+exports.createOdiditSession = onCall(createOdiditSessionImpl);
+exports.checkOdiditSession = onCall(checkOdiditSessionImpl);
+exports.sendVerificationCode = onCall(sendVerificationCodeImpl);
+exports.verifyCode = onCall(verifyCodeImpl);
+exports.createAdminUser = onCall(createAdminUserImpl);
 
 
 // --- Existing onRequest and trigger functions ---
@@ -372,4 +364,3 @@ exports.notifyDeliveryPartner = onRequest(async (req, res) => {
     });
 });
 
-    
