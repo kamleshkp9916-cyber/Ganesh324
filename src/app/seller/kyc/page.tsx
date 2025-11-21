@@ -27,9 +27,6 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useAuthActions } from "@/lib/auth";
-import { getFirestore, collection, query, where, getDocs } from "firebase/firestore";
-import { initializeFirebase } from "@/firebase";
-import { getFunctions, httpsCallable } from 'firebase/functions';
 import { useLocalStorage } from "@/hooks/use-local-storage";
 
 const SELLER_KYC_DRAFT_KEY = 'sellerKycDraft';
@@ -112,7 +109,7 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
   const [photoPreview, setPhotoPreview] = useState<string | null>(form.photoUrl || null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
-  const [selfiePreview, setSelfiePreview] = useState<string | null>(null);
+    const [selfiePreview, setSelfiePreview] = useState<string | null>(null);
   const selfieInputRef = useRef<HTMLInputElement>(null);
 
   const [emailError, setEmailError] = useState('');
@@ -195,12 +192,6 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
       return clone;
     });
   };
-
-  const getFunction = (name: string) => {
-    const { firebaseApp } = initializeFirebase();
-    const functions = getFunctions(firebaseApp, 'us-central1');
-    return httpsCallable(functions, name);
-  };
   
   const checkEmailExists = useCallback(async () => {
     if (!/.+@.+\..+/.test(form.email) || form.email === existingData?.email) return;
@@ -260,12 +251,21 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
     setIsVerifying(prev => ({...prev, [type]: true}));
     
     try {
-        const sendOtpFunction = getFunction('sendVerificationCode');
-        await sendOtpFunction({ type, target });
+        const response = await fetch('https://us-central1-streamcart-login.cloudfunctions.net/sendVerificationCode', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ type, target })
+        });
+        if (!response.ok) throw new Error('Failed to send OTP.');
+        const result = await response.json();
 
-      setOtpSent(prev => ({...prev, [type]: true}));
-      setResendCooldown(prev => ({ ...prev, [type]: RESEND_COOLDOWN }));
-      toast({ title: `OTP Sent to your ${type}` });
+        if (result.success) {
+            setOtpSent(prev => ({...prev, [type]: true}));
+            setResendCooldown(prev => ({ ...prev, [type]: RESEND_COOLDOWN }));
+            toast({ title: `OTP Sent to your ${type}` });
+        } else {
+            throw new Error('Failed to send OTP.');
+        }
     } catch (error: any) {
       console.error(`Error sending ${type} OTP:`, error);
       toast({ variant: 'destructive', title: `Failed to send ${type} OTP`, description: error.message });
@@ -281,14 +281,19 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
     setIsVerifying(prev => ({...prev, [type]: true}));
     
     try {
-        const verifyCodeFunction = getFunction('verifyCode');
-        const result: any = await verifyCodeFunction({ target, otp });
+        const response = await fetch('https://us-central1-streamcart-login.cloudfunctions.net/verifyCode', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ target, otp })
+        });
+        if (!response.ok) throw new Error('Verification failed.');
+        const result = await response.json();
 
-        if (result.data.success) {
+        if (result.success) {
             setField(`${type}Verified`, true);
             toast({ title: `${type.charAt(0).toUpperCase() + type.slice(1)} Verified!` });
         } else {
-            throw new Error(result.data.error || 'Invalid OTP');
+            throw new Error(result.error?.message || 'Invalid OTP');
         }
     } catch (error: any) {
         toast({ variant: "destructive", title: "Verification Failed", description: error.message });
@@ -328,20 +333,30 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
   const canSubmit = form.termsAccepted && verif.state === "VERIFIED";
 
   const handleGenerateVerification = async () => {
-    const createOdiditSession = getFunction('createOdiditSession');
     setVerif({ state: "PENDING", message: "Contacting verification service..." });
     try {
-        const response: any = await createOdiditSession({ userId: user?.uid });
-        const { verificationLink, sessionId } = response.data;
+        const response = await fetch('https://us-central1-streamcart-login.cloudfunctions.net/createOdiditSession', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId: user?.uid })
+        });
+        if (!response.ok) throw new Error('Failed to create session');
+        const { verificationLink, sessionId } = await response.json();
         
         setQrCodeUrl(`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(verificationLink)}`);
         setVerif({ state: "PENDING", message: "Scan the QR code with your phone to complete verification." });
         
-        const checkOdiditSession = getFunction('checkOdiditSession');
         const pollInterval = setInterval(async () => {
             try {
-                const statusResponse: any = await checkOdiditSession({ sessionId });
-                if (statusResponse.data.status === 'VERIFIED') {
+                 const statusResponse = await fetch('https://us-central1-streamcart-login.cloudfunctions.net/checkOdiditSession', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ sessionId })
+                });
+                if (!statusResponse.ok) throw new Error('Failed to check session status');
+                const result = await statusResponse.json();
+
+                if (result.status === 'VERIFIED') {
                     clearInterval(pollInterval);
                     setVerif({ state: "VERIFIED", message: "Verification successful! You can now proceed." });
                     toast({ title: "Verification Successful!", description: "Proceeding to the next step." });
