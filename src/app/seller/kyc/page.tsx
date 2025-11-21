@@ -196,14 +196,23 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
     });
   };
 
+  const getFunction = (name: string) => {
+    const { firebaseApp } = initializeFirebase();
+    const functions = getFunctions(firebaseApp, 'us-central1');
+    return httpsCallable(functions, name);
+  };
+  
   const checkEmailExists = useCallback(async () => {
     if (!/.+@.+\..+/.test(form.email) || form.email === existingData?.email) return;
-    const { firebaseApp } = initializeFirebase();
-    const functions = getFunctions(firebaseApp);
-    const checkEmail = httpsCallable(functions, 'checkEmailExists');
     try {
-        const result: any = await checkEmail({ email: form.email });
-        if (result.data.exists) {
+        const response = await fetch('https://us-central1-streamcart-login.cloudfunctions.net/checkEmailExists', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: form.email })
+        });
+        if (!response.ok) throw new Error('Network response was not ok');
+        const result = await response.json();
+        if (result.exists) {
             setEmailError("This email is already registered. Please use a different one.");
         } else {
             setEmailError("");
@@ -216,12 +225,15 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
 
   const checkPhoneExists = useCallback(async () => {
     if (!/^\d{10}$/.test(form.phone) || `+91 ${form.phone}` === existingData?.phone) return;
-    const { firebaseApp } = initializeFirebase();
-    const functions = getFunctions(firebaseApp);
-    const checkPhone = httpsCallable(functions, 'checkPhoneExists');
     try {
-        const result: any = await checkPhone({ phone: `+91 ${form.phone}` });
-        if (result.data.exists) {
+        const response = await fetch('https://us-central1-streamcart-login.cloudfunctions.net/checkPhoneExists', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ phone: `+91 ${form.phone}` })
+        });
+        if (!response.ok) throw new Error('Network response was not ok');
+        const result = await response.json();
+        if (result.exists) {
             setPhoneError("This phone number is already registered. Please use a different one.");
         } else {
             setPhoneError("");
@@ -231,6 +243,7 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
         setPhoneError("Could not validate phone number. Please try again.");
     }
   }, [form.phone, existingData?.phone]);
+  
 
   const checkPanExists = useCallback(() => {
     if (!/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(form.pan)) {
@@ -241,15 +254,13 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
   }, [form.pan]);
 
   const handleSendOtp = async (type: 'email' | 'phone') => {
-    const target = type === 'email' ? form.email : form.phone;
+    const target = type === 'email' ? form.email : `+91${form.phone}`;
     if (!target) return;
 
     setIsVerifying(prev => ({...prev, [type]: true}));
     
     try {
-        const { firebaseApp } = initializeFirebase();
-        const functions = getFunctions(firebaseApp);
-        const sendOtpFunction = httpsCallable(functions, 'sendVerificationCode');
+        const sendOtpFunction = getFunction('sendVerificationCode');
         await sendOtpFunction({ type, target });
 
       setOtpSent(prev => ({...prev, [type]: true}));
@@ -265,14 +276,12 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
 
   const handleVerifyOtp = async (type: 'email' | 'phone') => {
     const otp = type === 'email' ? form.emailOtp : form.phoneOtp;
-    const target = type === 'email' ? form.email : form.phone;
+    const target = type === 'email' ? form.email : `+91${form.phone}`;
     
     setIsVerifying(prev => ({...prev, [type]: true}));
     
     try {
-        const { firebaseApp } = initializeFirebase();
-        const functions = getFunctions(firebaseApp);
-        const verifyCodeFunction = httpsCallable(functions, 'verifyCode');
+        const verifyCodeFunction = getFunction('verifyCode');
         const result: any = await verifyCodeFunction({ target, otp });
 
         if (result.data.success) {
@@ -319,9 +328,7 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
   const canSubmit = form.termsAccepted && verif.state === "VERIFIED";
 
   const handleGenerateVerification = async () => {
-    const { firebaseApp } = initializeFirebase();
-    const functions = getFunctions(firebaseApp);
-    const createOdiditSession = httpsCallable(functions, 'createOdiditSession');
+    const createOdiditSession = getFunction('createOdiditSession');
     setVerif({ state: "PENDING", message: "Contacting verification service..." });
     try {
         const response: any = await createOdiditSession({ userId: user?.uid });
@@ -330,7 +337,7 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
         setQrCodeUrl(`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(verificationLink)}`);
         setVerif({ state: "PENDING", message: "Scan the QR code with your phone to complete verification." });
         
-        const checkOdiditSession = httpsCallable(functions, 'checkOdiditSession');
+        const checkOdiditSession = getFunction('checkOdiditSession');
         const pollInterval = setInterval(async () => {
             try {
                 const statusResponse: any = await checkOdiditSession({ sessionId });
@@ -927,5 +934,3 @@ export default function KYCPage() {
         </div>
     );
 }
-
-    
