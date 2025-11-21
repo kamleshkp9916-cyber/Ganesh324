@@ -27,27 +27,51 @@ if (!admin.apps.length) {
   }
 }
 
-const checkEmailExistsImpl = async (data) => {
-    const { email } = data;
-    if (!email) {
-        throw new HttpsError('invalid-argument', 'The function must be called with an "email" argument.');
-    }
-    const db = admin.firestore();
-    const usersRef = db.collection('users');
-    const querySnapshot = await usersRef.where('email', '==', email).limit(1).get();
-    return { exists: !querySnapshot.empty };
-};
+// --- onRequest Validation Functions with CORS ---
 
-const checkPhoneExistsImpl = async (data) => {
-    const { phone } = data;
-    if (!phone) {
-        throw new HttpsError('invalid-argument', 'The function must be called with a "phone" argument.');
+exports.checkEmailExists = onRequest((req, res) => {
+  cors(req, res, async () => {
+    if (req.method !== 'POST') {
+      return res.status(405).json({ error: 'Method Not Allowed' });
     }
-    const db = admin.firestore();
-    const usersRef = db.collection('users');
-    const querySnapshot = await usersRef.where('phone', '==', phone).limit(1).get();
-    return { exists: !querySnapshot.empty };
-};
+    try {
+      const { email } = req.body;
+      if (!email) {
+        return res.status(400).json({ error: 'The function must be called with an "email" argument.' });
+      }
+      const db = admin.firestore();
+      const usersRef = db.collection('users');
+      const querySnapshot = await usersRef.where('email', '==', email).limit(1).get();
+      return res.status(200).json({ exists: !querySnapshot.empty });
+    } catch (error) {
+      console.error("Error in checkEmailExists:", error);
+      return res.status(500).json({ error: 'Internal server error' });
+    }
+  });
+});
+
+exports.checkPhoneExists = onRequest((req, res) => {
+  cors(req, res, async () => {
+    if (req.method !== 'POST') {
+      return res.status(405).json({ error: 'Method Not Allowed' });
+    }
+    try {
+      const { phone } = req.body;
+      if (!phone) {
+        return res.status(400).json({ error: 'The function must be called with a "phone" argument.' });
+      }
+      const db = admin.firestore();
+      const usersRef = db.collection('users');
+      const querySnapshot = await usersRef.where('phone', '==', phone).limit(1).get();
+      return res.status(200).json({ exists: !querySnapshot.empty });
+    } catch (error) {
+      console.error("Error in checkPhoneExists:", error);
+      return res.status(500).json({ error: 'Internal server error' });
+    }
+  });
+});
+
+// --- onCall Functions (for actions where security is handled by callable context) ---
 
 const createOdiditSessionImpl = async (data) => {
     const sessionId = `mock-session-${Date.now()}`;
@@ -117,8 +141,6 @@ const createAdminUserImpl = async (data, context) => {
 
 
 // Export the onCall functions
-exports.checkEmailExists = onCall(checkEmailExistsImpl);
-exports.checkPhoneExists = onCall(checkPhoneExistsImpl);
 exports.createOdiditSession = onCall(createOdiditSessionImpl);
 exports.checkOdiditSession = onCall(checkOdiditSessionImpl);
 exports.sendVerificationCode = onCall(sendVerificationCodeImpl);
@@ -363,4 +385,3 @@ exports.notifyDeliveryPartner = onRequest(async (req, res) => {
         res.status(200).json({ success: true, message: `Delivery partner notified for order ${orderId}` });
     });
 });
-
