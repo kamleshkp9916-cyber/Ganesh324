@@ -190,6 +190,7 @@ export function ProductForm({ productToEdit, onCancel }: ProductFormProps) {
       throw new Error("User not authenticated");
     }
     
+    // Initialize services inside the handler
     const db = getFirestoreDb();
     const storage = getStorage();
     const colRef = collection(db, 'users', user.uid, 'products');
@@ -292,14 +293,19 @@ export function ProductForm({ productToEdit, onCancel }: ProductFormProps) {
         await onSave(data as Product);
         clearInterval(progressInterval);
         setSaveProgress(100);
-        toast({
-            title: productToEdit ? "Product Updated!" : "Product Created!",
-            description: `"${data.name}" has been successfully saved.`,
+        
+        const successToastId = toast({
+            title: "Success!",
+            description: `"${data.name}" has been saved.`,
+            variant: 'default',
+            duration: 2000,
         });
+        
         setTimeout(() => {
             setIsSaving(false);
             onCancel();
-        }, 1000);
+        }, 1500);
+
     } catch(e) {
         console.error("Save error:", e);
         clearInterval(progressInterval);
