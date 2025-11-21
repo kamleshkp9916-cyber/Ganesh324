@@ -25,7 +25,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Loader2, Upload, Trash2, Camera, FileEdit, Video, ImageIcon, PlusCircle, CheckCircle, AlertTriangle } from "lucide-react";
+import { Loader2, Upload, Trash2, Camera, FileEdit, Video, ImageIcon, PlusCircle, CheckCircle, AlertTriangle, RotateCcw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -37,7 +37,7 @@ import { Separator } from "@/components/ui/separator";
 import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
-import { initializeFirebase } from "@/firebase";
+import { getFirestoreDb } from "@/lib/firebase-db";
 
 const variantSchema = z.object({
     id: z.string().optional(),
@@ -94,7 +94,7 @@ const productFormSchema = z.object({
   media: z.array(z.any()).min(1, "At least one image or video is required."),
   variants: z.array(variantSchema).optional().default([]),
   listingType: z.enum(['general', 'live-only']),
-  status: z.enum(['active', 'draft' | 'archived']),
+  status: z.enum(['active', 'draft', 'archived']),
   keyDetails: z.string().optional().default(''),
   weight: z.coerce.number().optional(),
   length: z.coerce.number().optional(),
@@ -183,50 +183,80 @@ export function ProductForm({ productToEdit, onCancel }: ProductFormProps) {
       return category?.subcategories || [];
   }, [selectedCategory]);
   
-  const onSave = async (productData: Product) => {
+  const processSubmit = async (data: z.infer<typeof productFormSchema>) => {
     if (!user) {
       toast({ variant: 'destructive', title: "Not Authenticated", description: "You must be logged in to save a product." });
-      throw new Error("User not authenticated");
+      return;
     }
+
+    setIsSaving(true);
+    setSaveProgress(10);
     
-    // Initialize services inside the handler
-    const { firestore: db, firebaseApp } = initializeFirebase();
-    const storage = getStorage(firebaseApp);
-    const colRef = collection(db, 'users', user.uid, 'products');
+    try {
+        const { getFirebaseStorage, getFirestoreDb } = await import('@/lib/firebase-db');
+        const storage = getFirebaseStorage();
+        const db = getFirestoreDb();
+        const colRef = collection(db, 'users', user.uid, 'products');
 
-    let productId = productToEdit ? productData.id! : doc(colRef).id;
-    setSaveProgress(20);
+        let productId = productToEdit?.id || doc(colRef).id;
+        setSaveProgress(20);
 
-    const mediaUrls = await Promise.all(
-        (productData.media || []).map(async (item, index) => {
-            if (item.file && item.url.startsWith('data:')) {
-                const filePath = `products/${user.uid}/${productId}/${item.file.name}`;
-                const storageRef = ref(storage, filePath);
-                const uploadResult = await uploadString(storageRef, item.url, 'data_url');
-                setSaveProgress(prev => prev + (50 / (productData.media?.length || 1)));
-                return getDownloadURL(uploadResult.ref);
-            }
-            return item.url;
-        })
-    );
-    setSaveProgress(75);
+        const mediaUrls = await Promise.all(
+            (data.media || []).map(async (item, index) => {
+                if (item.file && item.url.startsWith('data:')) {
+                    const filePath = `products/${user.uid}/${productId}/${item.file.name}`;
+                    const storageRef = ref(storage, filePath);
+                    const uploadResult = await uploadString(storageRef, item.url, 'data_url');
+                    setSaveProgress(prev => prev + (50 / (data.media?.length || 1)));
+                    return getDownloadURL(uploadResult.ref);
+                }
+                return item.url;
+            })
+        );
+        setSaveProgress(75);
 
-    const finalMedia = (productData.media || []).map((item, index) => ({
-        type: item.type,
-        url: mediaUrls[index]
-    }));
-    
-    const dataToSave: Omit<Product, 'id'> = {
-        ...productData,
-        key: productId,
-        media: finalMedia,
-    };
+        const finalMedia = (data.media || []).map((item, index) => ({
+            type: item.type,
+            url: mediaUrls[index]
+        }));
+        
+        const dataToSave: Omit<Product, 'id'> = {
+            ...data,
+            key: productId,
+            media: finalMedia,
+        };
 
-    const docRef = doc(colRef, productId);
-    if (productToEdit) {
-        await setDoc(docRef, { ...dataToSave, updatedAt: serverTimestamp() }, { merge: true });
-    } else {
-        await setDoc(docRef, { ...dataToSave, createdAt: serverTimestamp(), sold: 0 });
+        const docRef = doc(colRef, productId);
+        if (productToEdit) {
+            await setDoc(docRef, { ...dataToSave, updatedAt: serverTimestamp() }, { merge: true });
+        } else {
+            await setDoc(docRef, { ...dataToSave, createdAt: serverTimestamp(), sold: 0 });
+        }
+
+        clearInterval(progressInterval);
+        setSaveProgress(100);
+        
+        toast({
+            title: "Success!",
+            description: `"${data.name}" has been saved.`,
+            variant: 'default',
+        });
+        
+        setTimeout(() => {
+            setIsSaving(false);
+            onCancel();
+        }, 1500);
+
+    } catch(e) {
+        console.error("Save error:", e);
+        clearInterval(progressInterval);
+        setSaveProgress(0);
+        setIsSaving(false);
+        toast({
+            variant: "destructive",
+            title: "Save Failed",
+            description: "There was an error saving your product. Please check your connection and try again.",
+        });
     }
   };
 
@@ -281,55 +311,15 @@ export function ProductForm({ productToEdit, onCancel }: ProductFormProps) {
     form.setValue('media', newMedia);
   };
   
-  const processSubmit = async (data: z.infer<typeof productFormSchema>) => {
-    setIsSaving(true);
-    setSaveProgress(0);
-
-    const progressInterval = setInterval(() => {
-        setSaveProgress(prev => Math.min(prev + 5, 15));
-    }, 100);
-
-    try {
-        await onSave(data as Product);
-        clearInterval(progressInterval);
-        setSaveProgress(100);
-        
-        const successToastId = toast({
-            title: "Success!",
-            description: `"${data.name}" has been saved.`,
-            variant: 'default',
-            duration: 2000,
-        });
-        
-        setTimeout(() => {
-            setIsSaving(false);
-            onCancel();
-        }, 1500);
-
-    } catch(e) {
-        console.error("Save error:", e);
-        clearInterval(progressInterval);
-        setSaveProgress(0);
-        setIsSaving(false);
-        toast({
-            variant: "destructive",
-            title: "Save Failed",
-            description: "There was an error saving your product. Please check your connection and try again.",
-        });
-    }
+  const handleSaveAsDraft = () => {
+    form.setValue('status', 'draft');
+    form.handleSubmit(processSubmit)();
   };
-  
-    const handleVariantImageUpload = (index: number, event: React.ChangeEvent<HTMLInputElement>) => {
-        const file = event.target.files?.[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                const result = reader.result as string;
-                update(index, { ...fields[index], image: { file, preview: result } });
-            };
-            reader.readAsDataURL(file);
-        }
-    };
+    
+  const handleReset = () => {
+    setInitialValues(null); // Resets form to empty state
+    toast({ title: "Form Cleared", description: "You can start over." });
+  };
     
     const handleNextStep = async () => {
         let fieldsToValidate: (keyof z.infer<typeof productFormSchema>)[] = [];
@@ -572,9 +562,9 @@ export function ProductForm({ productToEdit, onCancel }: ProductFormProps) {
                   )} />
                    <FormField control={form.control} name="status" render={({ field }) => (
                         <FormItem className="space-y-3">
-                        <FormLabel>Status</FormLabel>
+                        <FormLabel>Initial Status</FormLabel>
                         <FormControl>
-                            <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex flex-col space-y-1">
+                            <RadioGroup onValueChange={(value) => field.onChange(value as 'active' | 'draft' | 'archived')} defaultValue={field.value} className="flex flex-col space-y-1">
                                 <FormItem className="flex items-center space-x-3 space-y-0">
                                     <FormControl><RadioGroupItem value="active" /></FormControl>
                                     <FormLabel className="font-normal">Active</FormLabel>
@@ -604,6 +594,11 @@ export function ProductForm({ productToEdit, onCancel }: ProductFormProps) {
         <input type="file" multiple accept="video/*" ref={videoInputRef} onChange={(e) => handleFileUpload(e, 'video')} className="hidden" />
         <div className="p-6 pt-4 border-t flex justify-between items-center mt-auto">
           <div>
+              {step === 1 && (
+                  <Button type="button" variant="outline" onClick={handleReset} disabled={isSaving}>
+                      <RotateCcw className="mr-2 h-4 w-4" /> Reset
+                  </Button>
+              )}
               {step > 1 && (
                   <Button type="button" variant="outline" onClick={() => setStep(step - 1)} disabled={isSaving}>Back</Button>
               )}
@@ -613,19 +608,22 @@ export function ProductForm({ productToEdit, onCancel }: ProductFormProps) {
             {step < 3 ? (
                 <Button type="button" onClick={handleNextStep}>Next</Button>
             ) : (
-                 <div className="w-48">
-                    {isSaving ? (
-                        <div className="relative h-9 w-full">
-                            <Progress value={saveProgress} className="h-full rounded-md" />
-                            <div className="absolute inset-0 flex items-center justify-center text-xs font-medium text-primary-foreground">
-                                {saveProgress < 100 ? `Saving... ${saveProgress}%` : <div className="flex items-center gap-1"><CheckCircle className="h-4 w-4"/> Saved!</div>}
+                 <div className="flex items-center gap-2">
+                    <Button type="button" variant="secondary" onClick={handleSaveAsDraft} disabled={isSaving}>Save as Draft</Button>
+                    <div className="w-48">
+                        {isSaving ? (
+                            <div className="relative h-9 w-full">
+                                <Progress value={saveProgress} className="h-full rounded-md" />
+                                <div className="absolute inset-0 flex items-center justify-center text-xs font-medium text-primary-foreground">
+                                    {saveProgress < 100 ? `Saving... ${saveProgress}%` : <div className="flex items-center gap-1"><CheckCircle className="h-4 w-4"/> Saved!</div>}
+                                </div>
                             </div>
-                        </div>
-                    ) : (
-                        <Button type="submit" className="w-full">
-                            {productToEdit ? "Update Product" : "Create Product"}
-                        </Button>
-                    )}
+                        ) : (
+                            <Button type="submit" className="w-full">
+                                {productToEdit ? "Update Product" : "Create Product"}
+                            </Button>
+                        )}
+                    </div>
                 </div>
             )}
           </div>
