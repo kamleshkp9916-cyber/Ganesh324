@@ -28,6 +28,8 @@ import { Separator } from "@/components/ui/separator";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useAuthActions } from "@/lib/auth";
 import { useLocalStorage } from "@/hooks/use-local-storage";
+import { getFunctions, httpsCallable } from "firebase/functions";
+import { getFirestoreDb } from "@/lib/firebase-db";
 
 const SELLER_KYC_DRAFT_KEY = 'sellerKycDraft';
 
@@ -196,14 +198,10 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
   const checkEmailExists = useCallback(async () => {
     if (!/.+@.+\..+/.test(form.email) || form.email === existingData?.email) return;
     try {
-        const response = await fetch('https://us-central1-streamcart-login.cloudfunctions.net/checkEmailExists', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email: form.email })
-        });
-        if (!response.ok) throw new Error('Network response was not ok');
-        const result = await response.json();
-        if (result.exists) {
+        const functions = getFunctions(getFirestoreDb().app);
+        const checkEmail = httpsCallable(functions, 'checkEmailExists');
+        const result: any = await checkEmail({ email: form.email });
+        if (result.data.exists) {
             setEmailError("This email is already registered. Please use a different one.");
         } else {
             setEmailError("");
@@ -217,14 +215,10 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
   const checkPhoneExists = useCallback(async () => {
     if (!/^\d{10}$/.test(form.phone) || `+91 ${form.phone}` === existingData?.phone) return;
     try {
-        const response = await fetch('https://us-central1-streamcart-login.cloudfunctions.net/checkPhoneExists', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ phone: `+91 ${form.phone}` })
-        });
-        if (!response.ok) throw new Error('Network response was not ok');
-        const result = await response.json();
-        if (result.exists) {
+        const functions = getFunctions(getFirestoreDb().app);
+        const checkPhone = httpsCallable(functions, 'checkPhoneExists');
+        const result: any = await checkPhone({ phone: `+91 ${form.phone}` });
+        if (result.data.exists) {
             setPhoneError("This phone number is already registered. Please use a different one.");
         } else {
             setPhoneError("");
@@ -234,7 +228,6 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
         setPhoneError("Could not validate phone number. Please try again.");
     }
   }, [form.phone, existingData?.phone]);
-  
 
   const checkPanExists = useCallback(() => {
     if (!/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(form.pan)) {
@@ -251,15 +244,11 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
     setIsVerifying(prev => ({...prev, [type]: true}));
     
     try {
-        const response = await fetch('https://us-central1-streamcart-login.cloudfunctions.net/sendVerificationCode', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ type, target })
-        });
-        if (!response.ok) throw new Error('Failed to send OTP.');
-        const result = await response.json();
+        const functions = getFunctions(getFirestoreDb().app);
+        const sendCode = httpsCallable(functions, 'sendVerificationCode');
+        const result: any = await sendCode({ type, target });
 
-        if (result.success) {
+        if (result.data.success) {
             setOtpSent(prev => ({...prev, [type]: true}));
             setResendCooldown(prev => ({ ...prev, [type]: RESEND_COOLDOWN }));
             toast({ title: `OTP Sent to your ${type}` });
@@ -281,19 +270,15 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
     setIsVerifying(prev => ({...prev, [type]: true}));
     
     try {
-        const response = await fetch('https://us-central1-streamcart-login.cloudfunctions.net/verifyCode', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ target, otp })
-        });
-        if (!response.ok) throw new Error('Verification failed.');
-        const result = await response.json();
+        const functions = getFunctions(getFirestoreDb().app);
+        const verifyCode = httpsCallable(functions, 'verifyCode');
+        const result: any = await verifyCode({ target, otp });
 
-        if (result.success) {
+        if (result.data.success) {
             setField(`${type}Verified`, true);
             toast({ title: `${type.charAt(0).toUpperCase() + type.slice(1)} Verified!` });
         } else {
-            throw new Error(result.error?.message || 'Invalid OTP');
+            throw new Error(result.data.error?.message || 'Invalid OTP');
         }
     } catch (error: any) {
         toast({ variant: "destructive", title: "Verification Failed", description: error.message });
@@ -335,28 +320,20 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
   const handleGenerateVerification = async () => {
     setVerif({ state: "PENDING", message: "Contacting verification service..." });
     try {
-        const response = await fetch('https://us-central1-streamcart-login.cloudfunctions.net/createOdiditSession', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ userId: user?.uid })
-        });
-        if (!response.ok) throw new Error('Failed to create session');
-        const { verificationLink, sessionId } = await response.json();
+        const functions = getFunctions(getFirestoreDb().app);
+        const createSession = httpsCallable(functions, 'createOdiditSession');
+        const response: any = await createSession({ userId: user?.uid });
+        const { verificationLink, sessionId } = response.data;
         
         setQrCodeUrl(`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(verificationLink)}`);
         setVerif({ state: "PENDING", message: "Scan the QR code with your phone to complete verification." });
         
         const pollInterval = setInterval(async () => {
             try {
-                 const statusResponse = await fetch('https://us-central1-streamcart-login.cloudfunctions.net/checkOdiditSession', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ sessionId })
-                });
-                if (!statusResponse.ok) throw new Error('Failed to check session status');
-                const result = await statusResponse.json();
+                 const checkSession = httpsCallable(functions, 'checkOdiditSession');
+                 const result: any = await checkSession({ sessionId });
 
-                if (result.status === 'VERIFIED') {
+                if (result.data.status === 'VERIFIED') {
                     clearInterval(pollInterval);
                     setVerif({ state: "VERIFIED", message: "Verification successful! You can now proceed." });
                     toast({ title: "Verification Successful!", description: "Proceeding to the next step." });
@@ -950,4 +927,3 @@ export default function KYCPage() {
     );
 }
 
-    
