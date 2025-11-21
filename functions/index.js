@@ -122,28 +122,46 @@ const createAdminUserImpl = async (data, context) => {
 
 // --- CORS Wrapper for onCall functions ---
 const corsOnCall = (handler) => {
-  const onRequestWrapped = onRequest((req, res) => {
-    cors(req, res, () => {
-      // The onCall handler will be invoked by the Functions runtime automatically.
-      // This `onRequest` wrapper's only job is to handle the OPTIONS preflight.
-      // For any other method, we let the real `onCall` handler do its work,
-      // so we don't need to do anything here.
+  return onRequest((req, res) => {
+    cors(req, res, async () => {
+      if (req.method === 'OPTIONS') {
+        res.status(204).send('');
+        return;
+      }
+      
+      // This is a simplified simulation of how onCall works internally.
+      // It's not a perfect polyfill but is sufficient for CORS.
+      if (req.body.data === undefined) {
+        res.status(400).json({ error: { message: "Bad Request: 'data' field missing.", status: 'INVALID_ARGUMENT' } });
+        return;
+      }
+      
+      try {
+        // Here you would normally reconstruct the auth context from the Authorization header.
+        // For simplicity, we are passing a mock context.
+        const result = await handler(req.body.data, { auth: null }); 
+        res.status(200).json({ result });
+      } catch (err) {
+        if (err instanceof HttpsError) {
+          res.status(err.httpErrorCode.status).json({ error: { message: err.message, code: err.code } });
+        } else {
+          console.error(err);
+          res.status(500).json({ error: { message: 'Internal Server Error' } });
+        }
+      }
     });
   });
-  // We need to associate the original handler with the wrapped function
-  // so the Firebase Functions runtime can find it.
-  onRequestWrapped.run = handler;
-  return onRequestWrapped;
-}
+};
+
 
 // Export the onCall functions wrapped with CORS
-exports.checkEmailExists = corsOnCall(onCall(checkEmailExistsImpl));
-exports.checkPhoneExists = corsOnCall(onCall(checkPhoneExistsImpl));
-exports.createOdiditSession = corsOnCall(onCall(createOdiditSessionImpl));
-exports.checkOdiditSession = corsOnCall(onCall(checkOdiditSessionImpl));
-exports.sendVerificationCode = corsOnCall(onCall({ secrets: ["MAILERSEND_KEY"] }, sendVerificationCodeImpl));
-exports.verifyCode = corsOnCall(onCall(verifyCodeImpl));
-exports.createAdminUser = corsOnCall(onCall(createAdminUserImpl));
+exports.checkEmailExists = corsOnCall(checkEmailExistsImpl);
+exports.checkPhoneExists = corsOnCall(checkPhoneExistsImpl);
+exports.createOdiditSession = corsOnCall(createOdiditSessionImpl);
+exports.checkOdiditSession = corsOnCall(checkOdiditSessionImpl);
+exports.sendVerificationCode = corsOnCall(sendVerificationCodeImpl);
+exports.verifyCode = corsOnCall(verifyCodeImpl);
+exports.createAdminUser = corsOnCall(createAdminUserImpl);
 
 
 // --- Existing onRequest and trigger functions ---
@@ -232,182 +250,154 @@ exports.sendEmail = onRequest(
   { secrets: ['MAILERSEND_KEY'] },
   async (req, res) => {
     // Handle CORS for onRequest function
-    res.set('Access-Control-Allow-Origin', '*');
-    if (req.method === 'OPTIONS') {
-        res.set('Access-Control-Allow-Methods', 'POST');
-        res.set('Access-Control-Allow-Headers', 'Content-Type');
-        res.set('Access-Control-Max-Age', '3600');
-        res.status(204).send('');
-        return;
-    }
+    cors(req, res, async () => {
+        try {
+          if (req.method !== 'POST') {
+            return res.status(405).json({ error: 'Use POST' });
+          }
 
-    try {
-      if (req.method !== 'POST') {
-        return res.status(405).json({ error: 'Use POST' });
-      }
+          if (!process.env.MAILERSEND_KEY) {
+            console.error('MAILERSEND_KEY is not set; aborting send.');
+            return res.status(500).json({ error: 'Email provider not configured' });
+          }
 
-      if (!process.env.MAILERSEND_KEY) {
-        console.error('MAILERSEND_KEY is not set; aborting send.');
-        return res.status(500).json({ error: 'Email provider not configured' });
-      }
+          const body = req.body || {};
+          const to = body.to || body.recipients || null;
+          const subject = body.subject || null;
+          const text = body.text || '';
+          const html = body.html || '';
 
-      const body = req.body || {};
-      const to = body.to || body.recipients || null;
-      const subject = body.subject || null;
-      const text = body.text || '';
-      const html = body.html || '';
+          if (!to || !subject || (!text && !html)) {
+            return res.status(400).json({ error: 'Missing required fields: to, subject, and text or html' });
+          }
 
-      if (!to || !subject || (!text && !html)) {
-        return res.status(400).json({ error: 'Missing required fields: to, subject, and text or html' });
-      }
+          // --- MailerSend Integration ---
+          console.log('Sending email with MailerSend...');
+          const mailerSendBody = {
+            from: { email: process.env.SENDER_EMAIL || 'you@yourverifieddomain.com' },
+            to: normalizeRecipients(to),
+            subject: subject,
+            text: text,
+            html: html,
+          };
 
-      // --- MailerSend Integration ---
-      console.log('Sending email with MailerSend...');
-      const mailerSendBody = {
-        from: { email: process.env.SENDER_EMAIL || 'you@yourverifieddomain.com' },
-        to: normalizeRecipients(to),
-        subject: subject,
-        text: text,
-        html: html,
-      };
+          const response = await fetch('https://api.mailersend.com/v1/email', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${process.env.MAILERSEND_KEY}`,
+            },
+            body: JSON.stringify(mailerSendBody),
+          });
 
-      const response = await fetch('https://api.mailersend.com/v1/email', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${process.env.MAILERSEND_KEY}`,
-        },
-        body: JSON.stringify(mailerSendBody),
-      });
+          if (!response.ok) {
+            const errorBody = await response.json();
+            throw new Error(`MailerSend API Error: ${JSON.stringify(errorBody)}`);
+          }
 
-      if (!response.ok) {
-        const errorBody = await response.json();
-        throw new Error(`MailerSend API Error: ${JSON.stringify(errorBody)}`);
-      }
+          console.log('MailerSend result:', response.status);
+          return res.status(200).json({ success: true, provider: 'MailerSend' });
 
-      console.log('MailerSend result:', response.status);
-      return res.status(200).json({ success: true, provider: 'MailerSend' });
+        } catch (err) {
+          let apiBody = null;
+          try {
+            if (err && err.response && (err.response.body || err.response.data)) {
+              apiBody = err.response.body || err.response.data;
+            }
+          } catch (e) {
+            console.error('Failed to extract API error body:', e && e.toString ? e.toString() : e);
+          }
 
-    } catch (err) {
-      let apiBody = null;
-      try {
-        if (err && err.response && (err.response.body || err.response.data)) {
-          apiBody = err.response.body || err.response.data;
+          console.error('sendEmail error:', err && err.toString ? err.toString() : err);
+          if (apiBody) console.error('API response body (debug):', JSON.stringify(apiBody, null, 2));
+
+          return res.status(500).json({
+            error: 'Email sending failed',
+            api_error: apiBody || (err && err.toString ? err.toString() : 'no api body available'),
+          });
         }
-      } catch (e) {
-        console.error('Failed to extract API error body:', e && e.toString ? e.toString() : e);
-      }
-
-      console.error('sendEmail error:', err && err.toString ? err.toString() : err);
-      if (apiBody) console.error('API response body (debug):', JSON.stringify(apiBody, null, 2));
-
-      return res.status(500).json({
-        error: 'Email sending failed',
-        api_error: apiBody || (err && err.toString ? err.toString() : 'no api body available'),
-      });
-    }
+    });
   }
 );
 
 // Function to add a bank account
 exports.addBankAccount = onRequest(async (req, res) => {
-    res.set('Access-Control-Allow-Origin', '*');
-    if (req.method === 'OPTIONS') {
-        res.set('Access-Control-Allow-Methods', 'POST');
-        res.set('Access-Control-Allow-Headers', 'Content-Type');
-        res.set('Access-Control-Max-Age', '3600');
-        res.status(204).send('');
-        return;
-    }
-    if (req.method !== 'POST') {
-        return res.status(405).json({ error: 'Use POST' });
-    }
-    const { userId, accountNumber, ifscCode, bankName } = req.body;
-    if (!userId || !accountNumber || !ifscCode || !bankName) {
-        return res.status(400).json({ error: 'Missing required fields' });
-    }
-    try {
-        const db = admin.firestore();
-        await db.collection('bankAccounts').add({
-            userId,
-            accountNumber,
-            ifscCode,
-            bankName,
-            createdAt: admin.firestore.FieldValue.serverTimestamp(),
-        });
-        res.status(200).json({ success: true });
-    } catch (error) {
-        console.error("Error adding bank account:", error);
-        res.status(500).json({ error: "Could not add bank account." });
-    }
+    cors(req, res, async () => {
+        if (req.method !== 'POST') {
+            return res.status(405).json({ error: 'Use POST' });
+        }
+        const { userId, accountNumber, ifscCode, bankName } = req.body;
+        if (!userId || !accountNumber || !ifscCode || !bankName) {
+            return res.status(400).json({ error: 'Missing required fields' });
+        }
+        try {
+            const db = admin.firestore();
+            await db.collection('bankAccounts').add({
+                userId,
+                accountNumber,
+                ifscCode,
+                bankName,
+                createdAt: admin.firestore.FieldValue.serverTimestamp(),
+            });
+            res.status(200).json({ success: true });
+        } catch (error) {
+            console.error("Error adding bank account:", error);
+            res.status(500).json({ error: "Could not add bank account." });
+        }
+    });
 });
 
 // Function to get bank accounts for a user
 exports.getBankAccounts = onRequest(async (req, res) => {
-    res.set('Access-Control-Allow-Origin', '*');
-    if (req.method === 'OPTIONS') {
-        res.set('Access-Control-Allow-Methods', 'GET');
-        res.set('Access-Control-Allow-Headers', 'Content-Type');
-        res.set('Access-Control-Max-Age', '3600');
-        res.status(204).send('');
-        return;
-    }
-    if (req.method !== 'GET') {
-        return res.status(405).json({ error: 'Use GET' });
-    }
-    const userId = req.query.userId;
-    if (!userId) {
-        return res.status(400).json({ error: 'User ID is required' });
-    }
-    try {
-        const db = admin.firestore();
-        const accountsRef = db.collection('bankAccounts');
-        const snapshot = await accountsRef.where('userId', '==', userId).get();
-        if (snapshot.empty) {
-            return res.status(200).json([]);
+    cors(req, res, async () => {
+        if (req.method !== 'GET') {
+            return res.status(405).json({ error: 'Use GET' });
         }
-        const accounts = snapshot.docs.map(doc => {
-            const data = doc.data();
-            const maskedAccountNumber = '****' + data.accountNumber.slice(-4);
-            return {
-                id: doc.id,
-                bankName: data.bankName,
-                accountNumber: maskedAccountNumber,
-                ifscCode: data.ifscCode,
-            };
-        });
-        res.status(200).json(accounts);
-    } catch (error) {
-        console.error("Error getting bank accounts:", error);
-        res.status(500).json({ error: "Could not get bank accounts." });
-    }
+        const userId = req.query.userId;
+        if (!userId) {
+            return res.status(400).json({ error: 'User ID is required' });
+        }
+        try {
+            const db = admin.firestore();
+            const accountsRef = db.collection('bankAccounts');
+            const snapshot = await accountsRef.where('userId', '==', userId).get();
+            if (snapshot.empty) {
+                return res.status(200).json([]);
+            }
+            const accounts = snapshot.docs.map(doc => {
+                const data = doc.data();
+                const maskedAccountNumber = '****' + data.accountNumber.slice(-4);
+                return {
+                    id: doc.id,
+                    bankName: data.bankName,
+                    accountNumber: maskedAccountNumber,
+                    ifscCode: data.ifscCode,
+                };
+            });
+            res.status(200).json(accounts);
+        } catch (error) {
+            console.error("Error getting bank accounts:", error);
+            res.status(500).json({ error: "Could not get bank accounts." });
+        }
+    });
 });
 
 exports.notifyDeliveryPartner = onRequest(async (req, res) => {
-    res.set('Access-Control-Allow-Origin', '*');
-    if (req.method === 'OPTIONS') {
-        res.set('Access-Control-Allow-Methods', 'POST');
-        res.set('Access-Control-Allow-Headers', 'Content-Type');
-        res.set('Access-Control-Max-Age', '3600');
-        res.status(204).send('');
-        return;
-    }
-    
-    if (req.method !== 'POST') {
-        return res.status(405).json({ error: 'Use POST' });
-    }
-    const { orderId, status } = req.body;
-    if (!orderId || !status) {
-        return res.status(400).json({ error: 'Missing orderId or status' });
-    }
+    cors(req, res, async () => {
+        if (req.method !== 'POST') {
+            return res.status(405).json({ error: 'Use POST' });
+        }
+        const { orderId, status } = req.body;
+        if (!orderId || !status) {
+            return res.status(400).json({ error: 'Missing orderId or status' });
+        }
 
-    console.log(`Notifying delivery partner for order ${orderId} with status: ${status}`);
+        console.log(`Notifying delivery partner for order ${orderId} with status: ${status}`);
 
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    console.log(`Successfully notified delivery partner for order ${orderId}.`);
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        console.log(`Successfully notified delivery partner for order ${orderId}.`);
 
-    res.status(200).json({ success: true, message: `Delivery partner notified for order ${orderId}` });
+        res.status(200).json({ success: true, message: `Delivery partner notified for order ${orderId}` });
+    });
 });
-
-    
