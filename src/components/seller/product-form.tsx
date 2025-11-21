@@ -29,8 +29,8 @@ import { Loader2, Upload, Trash2, Camera, FileEdit, Video, ImageIcon, PlusCircle
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { getFirestore, collection, doc, setDoc, addDoc, serverTimestamp } from "firebase/firestore";
-import { getStorage, ref, uploadString, getDownloadURL, deleteObject } from "firebase/storage";
+import { collection, doc, setDoc, addDoc, serverTimestamp } from "firebase/firestore";
+import { getStorage, ref, uploadString, getDownloadURL } from "firebase/storage";
 import { defaultCategories } from "@/lib/categories";
 import Image from "next/image";
 import { Separator } from "@/components/ui/separator";
@@ -138,8 +138,10 @@ export function ProductForm({ productToEdit, onCancel }: ProductFormProps) {
   
   const setInitialValues = useCallback((product: Product | null | undefined) => {
     if (product) {
+      const productMedia = product.media || [];
       form.reset({
         ...product,
+        media: productMedia,
         price: product.price || 0,
         stock: product.stock || 0,
         listingType: product.listingType || 'general',
@@ -154,7 +156,7 @@ export function ProductForm({ productToEdit, onCancel }: ProductFormProps) {
         availableColors: product.availableColors || "",
         keywords: product.keywords || "",
       });
-      setMedia(product.media || []);
+      setMedia(productMedia);
       if(typeof product.highlightsImage === 'string') {
         setHighlightsImagePreview(product.highlightsImage);
       } else {
@@ -182,7 +184,7 @@ export function ProductForm({ productToEdit, onCancel }: ProductFormProps) {
       const category = defaultCategories.find(c => c.name === selectedCategory);
       return category?.subcategories || [];
   }, [selectedCategory]);
-  
+
   const processSubmit = async (data: z.infer<typeof productFormSchema>) => {
     if (!user) {
       toast({ variant: 'destructive', title: "Not Authenticated", description: "You must be logged in to save a product." });
@@ -193,9 +195,8 @@ export function ProductForm({ productToEdit, onCancel }: ProductFormProps) {
     setSaveProgress(10);
     
     try {
-        const { getFirebaseStorage, getFirestoreDb } = await import('@/lib/firebase-db');
-        const storage = getFirebaseStorage();
         const db = getFirestoreDb();
+        const storage = getStorage();
         const colRef = collection(db, 'users', user.uid, 'products');
 
         let productId = productToEdit?.id || doc(colRef).id;
@@ -206,9 +207,9 @@ export function ProductForm({ productToEdit, onCancel }: ProductFormProps) {
                 if (item.file && item.url.startsWith('data:')) {
                     const filePath = `products/${user.uid}/${productId}/${item.file.name}`;
                     const storageRef = ref(storage, filePath);
-                    const uploadResult = await uploadString(storageRef, item.url, 'data_url');
+                    await uploadString(storageRef, item.url, 'data_url');
                     setSaveProgress(prev => prev + (50 / (data.media?.length || 1)));
-                    return getDownloadURL(uploadResult.ref);
+                    return getDownloadURL(storageRef);
                 }
                 return item.url;
             })
@@ -233,7 +234,6 @@ export function ProductForm({ productToEdit, onCancel }: ProductFormProps) {
             await setDoc(docRef, { ...dataToSave, createdAt: serverTimestamp(), sold: 0 });
         }
 
-        clearInterval(progressInterval);
         setSaveProgress(100);
         
         toast({
@@ -249,7 +249,6 @@ export function ProductForm({ productToEdit, onCancel }: ProductFormProps) {
 
     } catch(e) {
         console.error("Save error:", e);
-        clearInterval(progressInterval);
         setSaveProgress(0);
         setIsSaving(false);
         toast({
@@ -259,8 +258,8 @@ export function ProductForm({ productToEdit, onCancel }: ProductFormProps) {
         });
     }
   };
-
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>, type: 'image' | 'video') => {
+  
+    const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>, type: 'image' | 'video') => {
       const files = Array.from(event.target.files || []);
       if (files.length === 0) return;
       
@@ -323,6 +322,7 @@ export function ProductForm({ productToEdit, onCancel }: ProductFormProps) {
     
     const handleNextStep = async () => {
         let fieldsToValidate: (keyof z.infer<typeof productFormSchema>)[] = [];
+        form.setValue('media', media);
         if (step === 1) {
             fieldsToValidate = ['name', 'description', 'category', 'media'];
         } else if (step === 2) {
@@ -500,7 +500,14 @@ export function ProductForm({ productToEdit, onCancel }: ProductFormProps) {
                                             type="file"
                                             accept="image/*"
                                             className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                                            onChange={(e) => handleVariantImageUpload(index, e)}
+                                            onChange={(e) => {
+                                                const file = e.target.files?.[0];
+                                                if (file) {
+                                                    const reader = new FileReader();
+                                                    reader.onload = () => update(index, { ...fields[index], image: { file, preview: reader.result as string }});
+                                                    reader.readAsDataURL(file);
+                                                }
+                                            }}
                                         />
                                     </div>
                                 </div>
