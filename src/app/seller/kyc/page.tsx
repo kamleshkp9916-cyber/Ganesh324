@@ -198,7 +198,7 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
   const checkEmailExists = useCallback(async () => {
     if (!/.+@.+\..+/.test(form.email) || form.email === existingData?.email) return;
     try {
-        const response = await fetch('https://us-central1-streamcart-login.cloudfunctions.net/checkEmailExists', {
+        const response = await fetch('/api/functions/checkEmailExists', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email: form.email }),
@@ -219,7 +219,7 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
   const checkPhoneExists = useCallback(async () => {
     if (!/^\d{10}$/.test(form.phone) || `+91 ${form.phone}` === existingData?.phone) return;
     try {
-        const response = await fetch('https://us-central1-streamcart-login.cloudfunctions.net/checkPhoneExists', {
+        const response = await fetch('/api/functions/checkPhoneExists', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ phone: `+91 ${form.phone}` }),
