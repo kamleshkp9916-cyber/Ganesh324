@@ -12,31 +12,30 @@ service firebase.storage {
         return request.auth != null && get(/databases/(default)/documents/users/$(userId)).data.role == 'seller';
     }
 
-    // Avatars (one file per user)
-    match /avatars/{uid} {
+    // Avatars: Logged-in users can write to their own avatar path. Public read.
+    match /profile-pictures/{uid} {
       allow read: if true;
       allow write: if request.auth != null && request.auth.uid == uid;
     }
 
-    // Product media: Public read. Seller write/delete. Admin delete.
+    // Product media: Public read. Only the seller who owns the directory can write.
     match /products/{userId}/{allPaths=**} {
       allow read: if true;
-      allow write: if (request.auth != null && request.auth.uid == userId && isSeller(userId)) || isAdmin();
+      allow write: if request.auth != null && request.auth.uid == userId && isSeller(userId);
     }
 
-    // Posts media: only the authenticated user may write into their own folder
+    // Posts media: only the authenticated user may write into their own folder. Public read.
     match /posts/{userId}/{allPaths=**} {
       allow read: if true;
       allow write: if request.auth != null && request.auth.uid == userId;
     }
     
-    // Seller documents (e.g. KYC)
+    // Seller documents (e.g. KYC): Only the user can read/write their own documents.
     match /seller-documents/{userId}/{allPaths=**} {
-      allow read: if request.auth != null && request.auth.uid == userId;
-      allow write: if request.auth != null && request.auth.uid == userId;
+      allow read, write: if request.auth != null && request.auth.uid == userId;
     }
 
-    // Fallback: deny all other writes
+    // Fallback: deny all other writes but allow public reads.
     match /{allPaths=**} {
       allow read: if true;
       allow write: if false;
