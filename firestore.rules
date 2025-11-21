@@ -26,9 +26,13 @@ service cloud.firestore {
         allow read, write: if isOwner(userId) || isAdmin();
       }
 
+      // Corrected Rule:
+      // - No longer uses isOwner(), which was redundant.
+      // - Directly checks if the request auth UID matches the path's userId.
+      // - Verifies the user has the 'seller' role.
       match /products/{productId} {
-          allow read, list: if true;
-          allow create, update, delete: if isOwner(userId) && get(/databases/$(database)/documents/users/$(userId)).data.role == 'seller';
+          allow read: if true;
+          allow create, update, delete: if request.auth.uid == userId && get(/databases/$(database)/documents/users/$(userId)).data.role == 'seller';
       }
     }
 
