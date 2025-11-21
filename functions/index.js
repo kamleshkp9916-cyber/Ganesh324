@@ -27,30 +27,6 @@ if (!admin.apps.length) {
   }
 }
 
-// Helper to wrap onCall functions with CORS
-const withCors = (fn) => onRequest((req, res) => {
-    cors(req, res, () => {
-        // onCall functions expect a specific request format, which we don't need to replicate here.
-        // We just need to handle the preflight OPTIONS request.
-        // For the actual POST request, the Firebase client SDK will call the function correctly.
-        // This is a common pattern for handling CORS with onCall functions in some environments.
-        if (req.method === 'OPTIONS') {
-            res.status(204).send('');
-            return;
-        }
-
-        // For non-OPTIONS requests, we let the original function logic handle it.
-        // This is a simplified wrapper. The actual onCall handler is triggered separately by the Functions runtime.
-        // The presence of this onRequest wrapper with CORS ensures preflight checks pass.
-        // In a real complex scenario, you might invoke the function manually, but for `httpsCallable`,
-        // just handling the OPTIONS preflight is often enough.
-        // For robustness, we will just end the request here for non-OPTIONS calls to this wrapper,
-        // as the `onCall` endpoint is separate.
-        res.status(405).send('Method Not Allowed for CORS wrapper');
-    });
-});
-
-
 const checkEmailExistsImpl = async (data) => {
     const { email } = data;
     if (!email) {
@@ -144,14 +120,30 @@ const createAdminUserImpl = async (data, context) => {
     return { success: true };
 };
 
-// Export the onCall functions
-exports.checkEmailExists = onCall(checkEmailExistsImpl);
-exports.checkPhoneExists = onCall(checkPhoneExistsImpl);
-exports.createOdiditSession = onCall(createOdiditSessionImpl);
-exports.checkOdiditSession = onCall(checkOdiditSessionImpl);
-exports.sendVerificationCode = onCall({ secrets: ["MAILERSEND_KEY"] }, sendVerificationCodeImpl);
-exports.verifyCode = onCall(verifyCodeImpl);
-exports.createAdminUser = onCall(createAdminUserImpl);
+// --- CORS Wrapper for onCall functions ---
+const corsOnCall = (handler) => {
+  const onRequestWrapped = onRequest((req, res) => {
+    cors(req, res, () => {
+      // The onCall handler will be invoked by the Functions runtime automatically.
+      // This `onRequest` wrapper's only job is to handle the OPTIONS preflight.
+      // For any other method, we let the real `onCall` handler do its work,
+      // so we don't need to do anything here.
+    });
+  });
+  // We need to associate the original handler with the wrapped function
+  // so the Firebase Functions runtime can find it.
+  onRequestWrapped.run = handler;
+  return onRequestWrapped;
+}
+
+// Export the onCall functions wrapped with CORS
+exports.checkEmailExists = corsOnCall(onCall(checkEmailExistsImpl));
+exports.checkPhoneExists = corsOnCall(onCall(checkPhoneExistsImpl));
+exports.createOdiditSession = corsOnCall(onCall(createOdiditSessionImpl));
+exports.checkOdiditSession = corsOnCall(onCall(checkOdiditSessionImpl));
+exports.sendVerificationCode = corsOnCall(onCall({ secrets: ["MAILERSEND_KEY"] }, sendVerificationCodeImpl));
+exports.verifyCode = corsOnCall(onCall(verifyCodeImpl));
+exports.createAdminUser = corsOnCall(onCall(createAdminUserImpl));
 
 
 // --- Existing onRequest and trigger functions ---
