@@ -198,7 +198,8 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
 
   const checkEmailExists = useCallback(async () => {
     if (!/.+@.+\..+/.test(form.email) || form.email === existingData?.email) return;
-    const functions = getFunctions(initializeFirebase().firebaseApp);
+    const { firebaseApp } = initializeFirebase();
+    const functions = getFunctions(firebaseApp);
     const checkEmail = httpsCallable(functions, 'checkEmailExists');
     try {
         const result: any = await checkEmail({ email: form.email });
@@ -208,13 +209,15 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
             setEmailError("");
         }
     } catch (e) {
+        console.error("Email validation error:", e);
         setEmailError("Could not validate email. Please try again.");
     }
   }, [form.email, existingData?.email]);
 
   const checkPhoneExists = useCallback(async () => {
     if (!/^\d{10}$/.test(form.phone) || `+91 ${form.phone}` === existingData?.phone) return;
-    const functions = getFunctions(initializeFirebase().firebaseApp);
+    const { firebaseApp } = initializeFirebase();
+    const functions = getFunctions(firebaseApp);
     const checkPhone = httpsCallable(functions, 'checkPhoneExists');
     try {
         const result: any = await checkPhone({ phone: `+91 ${form.phone}` });
@@ -224,6 +227,7 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
             setPhoneError("");
         }
     } catch (e) {
+        console.error("Phone validation error:", e);
         setPhoneError("Could not validate phone number. Please try again.");
     }
   }, [form.phone, existingData?.phone]);
@@ -243,7 +247,8 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
     setIsVerifying(prev => ({...prev, [type]: true}));
     
     try {
-        const functions = getFunctions(initializeFirebase().firebaseApp);
+        const { firebaseApp } = initializeFirebase();
+        const functions = getFunctions(firebaseApp);
         const sendOtpFunction = httpsCallable(functions, 'sendVerificationCode');
         await sendOtpFunction({ type, target });
 
@@ -265,7 +270,8 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
     setIsVerifying(prev => ({...prev, [type]: true}));
     
     try {
-        const functions = getFunctions(initializeFirebase().firebaseApp);
+        const { firebaseApp } = initializeFirebase();
+        const functions = getFunctions(firebaseApp);
         const verifyCodeFunction = httpsCallable(functions, 'verifyCode');
         const result: any = await verifyCodeFunction({ target, otp });
 
@@ -313,7 +319,8 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
   const canSubmit = form.termsAccepted && verif.state === "VERIFIED";
 
   const handleGenerateVerification = async () => {
-    const functions = getFunctions(initializeFirebase().firebaseApp);
+    const { firebaseApp } = initializeFirebase();
+    const functions = getFunctions(firebaseApp);
     const createOdiditSession = httpsCallable(functions, 'createOdiditSession');
     setVerif({ state: "PENDING", message: "Contacting verification service..." });
     try {
@@ -920,3 +927,5 @@ export default function KYCPage() {
         </div>
     );
 }
+
+    
