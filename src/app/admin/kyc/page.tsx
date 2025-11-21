@@ -21,62 +21,7 @@ import { getFirestore, collection, query, where, getDocs, updateDoc, doc } from 
 import { AdminLayout } from "@/components/admin/admin-layout";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-
-const mockApplications: UserData[] = [
-    {
-        uid: 'mock-seller-1',
-        displayName: 'Retro Finds',
-        legalName: 'Retro Finds Co.',
-        email: 'retro@example.com',
-        phone: '+91 9876543210',
-        about: 'Selling unique vintage items from the 70s and 80s.',
-        photoURL: 'https://placehold.co/128x128.png?text=R',
-        bizType: 'Sole Proprietor',
-        regNo: 'U123456789',
-        gstin: '27ABCDE1234F1Z5',
-        addresses: [{ id: 1, type: 'registered', line1: '123 Vintage Lane', city: 'Mumbai', state: 'Maharashtra', pin: '400001' }],
-        pan: 'ABCDE1234F',
-        ifsc: 'HDFC0000001',
-        accountNo: '123456789012',
-        accountName: 'Retro Finds Co.',
-        isNipherVerified: true,
-        termsAccepted: true,
-        verificationStatus: 'pending',
-        role: 'seller',
-        followers: 120,
-        following: 30,
-        bio: 'Vintage collectibles and more.',
-        location: 'Mumbai, India',
-        color: '#ffffff'
-    },
-    {
-        uid: 'mock-seller-2',
-        displayName: 'Artisan Crafts',
-        legalName: 'Artisan Crafts LLP',
-        email: 'artisan@example.com',
-        phone: '+91 9876543211',
-        about: 'Handmade crafts and home decor items.',
-        photoURL: 'https://placehold.co/128x128.png?text=A',
-        bizType: 'Partnership',
-        regNo: 'LLP98765',
-        gstin: '29HIJKL5678G1Z9',
-        addresses: [{ id: 1, type: 'registered', line1: '456 Craft Avenue', city: 'Bengaluru', state: 'Karnataka', pin: '560001' }],
-        pan: 'GHIJK5678L',
-        ifsc: 'ICIC0000002',
-        accountNo: '987654321098',
-        accountName: 'Artisan Crafts LLP',
-        isNipherVerified: false,
-        termsAccepted: true,
-        verificationStatus: 'pending',
-        role: 'seller',
-        followers: 450,
-        following: 80,
-        bio: 'Unique handmade goods.',
-        location: 'Bengaluru, India',
-        color: '#ffffff'
-    },
-];
-
+import { getFirestoreDb } from "@/lib/firebase-db";
 
 const steps = [
   { key: "basic", label: "Basic Info", icon: <User2 className="w-5 h-5"/> },
@@ -99,10 +44,24 @@ function AdminPanel() {
 
   const fetchApplications = useCallback(async () => {
     setIsLoading(true);
-    // Use mock data for now
-    setApplications(mockApplications);
-    setIsLoading(false);
-  }, []);
+    const db = getFirestoreDb();
+    const usersRef = collection(db, "users");
+    const q = query(usersRef, where("role", "==", "seller"), where("verificationStatus", "==", "pending"));
+    try {
+        const querySnapshot = await getDocs(q);
+        const pendingApps = querySnapshot.docs.map(doc => ({ ...doc.data(), uid: doc.id } as UserData));
+        setApplications(pendingApps);
+    } catch (error) {
+        console.error("Error fetching KYC applications:", error);
+        toast({
+            variant: "destructive",
+            title: "Failed to fetch applications",
+            description: "Could not retrieve seller applications from the database."
+        });
+    } finally {
+        setIsLoading(false);
+    }
+  }, [toast]);
   
   useEffect(() => {
     fetchApplications();
@@ -161,9 +120,13 @@ function AdminPanel() {
     setFinalDecision(null);
     setReason('');
     setFixSteps([]);
-    setCurrentAppIndex(prev => (prev + 1) % applications.length);
-     if (currentAppIndex >= applications.length - 1) {
-        fetchApplications(); // Refresh list when we're at the end
+    if (currentAppIndex >= applications.length - 1) {
+        // We're at the end, remove the current one and go back to start
+        setApplications(prev => prev.filter((_, i) => i !== currentAppIndex));
+        setCurrentAppIndex(0);
+    } else {
+        // Just remove the current one, the next one will shift into its place
+        setApplications(prev => prev.filter((_, i) => i !== currentAppIndex));
     }
   }
 
@@ -177,6 +140,7 @@ function AdminPanel() {
         <CardHeader><CardTitle>Seller Applications</CardTitle></CardHeader>
         <CardContent className="space-y-3">
           <div className="text-sm text-center py-12 text-muted-foreground">No applications pending review.</div>
+           <Button onClick={fetchApplications}>Refresh</Button>
         </CardContent>
       </Card>
     );
@@ -252,7 +216,7 @@ function AdminPanel() {
               <div className="text-lg font-semibold">{application.legalName || "—"}</div>
               <div className="text-sm">{application.email} • {application.phone}</div>
               <div className="text-sm">PAN: {application.pan || "—"}</div>
-              <div className="text-sm">IFSC: {application.ifsc || "—"}</div>
+              <div className="text-sm">IFSC: {(application as any).ifsc || "—"}</div>
             </div>
             <div className="lg:col-span-2">
               <Tabs value={tab} onValueChange={setTab}>
@@ -270,7 +234,7 @@ function AdminPanel() {
                   <div>GSTIN: {application.gstin || "—"}</div>
                 </TabsContent>
                 <TabsContent value="address" className="pt-4 text-sm space-y-2">
-                  {application.addresses.map((addr: any) => (
+                  {(application.addresses || []).map((addr: any) => (
                       <div key={addr.id}>
                           <p className="font-semibold capitalize">{addr.type} Address:</p>
                           <p>{addr.line1}, {addr.city}, {addr.state} - {addr.pin}</p>
@@ -278,9 +242,9 @@ function AdminPanel() {
                   ))}
                 </TabsContent>
                 <TabsContent value="bank" className="pt-4 text-sm space-y-2">
-                  <div>Account No: {application.accountNo || "—"}</div>
-                  <div>IFSC: {application.ifsc || "—"}</div>
-                  <div>Account Holder: {application.accountName || "—"}</div>
+                  <div>Account No: {(application as any).accountNo || "—"}</div>
+                  <div>IFSC: {(application as any).ifsc || "—"}</div>
+                  <div>Account Holder: {(application as any).accountName || "—"}</div>
                   <div>PAN: {application.pan || "—"}</div>
                 </TabsContent>
                 <TabsContent value="kyc" className="pt-4 text-sm space-y-3">
@@ -358,5 +322,3 @@ export default function AdminKycPage() {
     </AdminLayout>
   );
 }
-
-    
