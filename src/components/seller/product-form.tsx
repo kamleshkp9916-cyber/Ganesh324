@@ -29,16 +29,15 @@ import { Loader2, Upload, Trash2, Camera, FileEdit, Video, ImageIcon, PlusCircle
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { getFirestoreDb } from "@/lib/firebase-db";
+import { getFirestore, collection, doc, setDoc, addDoc, serverTimestamp } from "firebase/firestore";
 import { getStorage, ref, uploadString, getDownloadURL, deleteObject } from "firebase/storage";
-import { collection, doc, setDoc, addDoc, serverTimestamp } from "firebase/firestore";
 import { defaultCategories } from "@/lib/categories";
 import Image from "next/image";
 import { Separator } from "@/components/ui/separator";
-import { errorEmitter, FirestorePermissionError } from "@/firebase";
 import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
+import { initializeFirebase } from "@/firebase";
 
 const variantSchema = z.object({
     id: z.string().optional(),
@@ -191,8 +190,8 @@ export function ProductForm({ productToEdit, onCancel }: ProductFormProps) {
     }
     
     // Initialize services inside the handler
-    const db = getFirestoreDb();
-    const storage = getStorage();
+    const { firestore: db, firebaseApp } = initializeFirebase();
+    const storage = getStorage(firebaseApp);
     const colRef = collection(db, 'users', user.uid, 'products');
 
     let productId = productToEdit ? productData.id! : doc(colRef).id;
@@ -223,10 +222,11 @@ export function ProductForm({ productToEdit, onCancel }: ProductFormProps) {
         media: finalMedia,
     };
 
+    const docRef = doc(colRef, productId);
     if (productToEdit) {
-        await setDoc(doc(colRef, productId), { ...dataToSave, updatedAt: serverTimestamp() }, { merge: true });
+        await setDoc(docRef, { ...dataToSave, updatedAt: serverTimestamp() }, { merge: true });
     } else {
-        await setDoc(doc(colRef, productId), { ...dataToSave, createdAt: serverTimestamp(), sold: 0 });
+        await setDoc(docRef, { ...dataToSave, createdAt: serverTimestamp(), sold: 0 });
     }
   };
 

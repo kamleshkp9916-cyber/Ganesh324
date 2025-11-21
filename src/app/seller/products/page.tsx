@@ -25,7 +25,6 @@ import {
   BarChart,
 } from "lucide-react";
 import { getFirestore, collection, onSnapshot, addDoc, setDoc, deleteDoc, doc, serverTimestamp, query, where } from 'firebase/firestore';
-import { getStorage, ref, uploadString, getDownloadURL, deleteObject } from "firebase/storage";
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -108,9 +107,9 @@ const ProductAnalyticsDialog = ({ product, isOpen, onClose }: { product: Product
             </div>
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
                 <Card><CardContent className="pt-6"><div className="text-2xl font-bold">12k</div><p className="text-xs text-muted-foreground">Views</p></CardContent></Card>
-                 <Card><CardContent className="pt-6"><div className="text-2xl font-bold">890</div><p className="text-xs text-muted-foreground">Cart Adds</p></CardContent></Card>
-                 <Card><CardContent className="pt-6"><div className="text-2xl font-bold">{product.stock && product.stock < 5 ? 'High' : 'Med'}</div><p className="text-xs text-muted-foreground">Demand</p></CardContent></Card>
-                 <Card><CardContent className="pt-6"><div className="text-2xl font-bold">₹{product.price}</div><p className="text-xs text-muted-foreground">Unit Price</p></CardContent></Card>
+                 <Card><CardContent className="pt-6"><div className="text-2xl font-bold">890</div><p className="text-xs text-muted-foreground">Adds to Cart</p></CardContent></Card>
+                 <Card><CardContent className="pt-6"><div className="text-2xl font-bold">{product.sold || 45}</div><p className="text-xs text-muted-foreground">Total Sales</p></CardContent></Card>
+                 <Card><CardContent className="pt-6"><div className="text-2xl font-bold">₹{((product.sold || 45) * product.price).toLocaleString()}</div><p className="text-xs text-muted-foreground">Revenue</p></CardContent></Card>
             </div>
         </div>
     </div>
@@ -139,7 +138,7 @@ const ProductTable = ({ products, onEdit, onDelete, onManageQna, onAnalytics }: 
             {products.length > 0 ? products.map(product => (
               <TableRow key={product.id}>
                 <TableCell className="hidden sm:table-cell">
-                  {product.media && product.media.length > 0 ? (
+                  {(product.media && product.media.length > 0) ? (
                       <Image
                         alt={product.name}
                         className="aspect-square rounded-md object-cover"
@@ -207,141 +206,142 @@ const ProductTable = ({ products, onEdit, onDelete, onManageQna, onAnalytics }: 
 );
 
 export default function SellerProductsPage() {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
-  const { user } = useAuth();
-  
-  const [isFormOpen, setIsFormOpen] = useState(false);
-  const [isQnaOpen, setIsQnaOpen] = useState(false);
-  const [isAnalyticsOpen, setIsAnalyticsOpen] = useState(false);
-  const [selectedProduct, setSelectedProduct] = useState<Product | undefined>(undefined);
-  const [editingProduct, setEditingProduct] = useState<Product | undefined>(undefined);
-  const [activeTab, setActiveTab] = useState('all');
-  const [stockFilter, setStockFilter] = useState(['inStock', 'outOfStock']);
+    const [products, setProducts] = useState<Product[]>([]);
+    const [isMounted, setIsMounted] = useState(false);
+    const [isFormOpen, setIsFormOpen] = useState(false);
+    const [isQnaOpen, setIsQnaOpen] = useState(false);
+    const [isAnalyticsOpen, setIsAnalyticsOpen] = useState(false);
+    const [selectedProduct, setSelectedProduct] = useState<Product | undefined>(undefined);
+    const [editingProduct, setEditingProduct] = useState<Product | undefined>(undefined);
+    const { user, loading } = useAuth();
+    const router = useRouter();
+    const [activeTab, setActiveTab] = useState('all');
+    const [stockFilter, setStockFilter] = useState(['inStock', 'outOfStock']);
+    const { toast } = useToast();
 
-  const { toast } = useToast();
+    useEffect(() => {
+        setIsMounted(true);
+        if (user) {
+            const db = getFirestoreDb();
+            const q = query(collection(db, "users", user.uid, "products"));
+            const unsubscribe = onSnapshot(q, (querySnapshot) => {
+                const fetchedProducts: Product[] = [];
+                querySnapshot.forEach((doc) => {
+                    fetchedProducts.push({ id: doc.id, ...doc.data() } as Product);
+                });
+                setProducts(fetchedProducts);
+                localStorage.setItem('sellerProducts', JSON.stringify(fetchedProducts));
+            });
+            return () => unsubscribe();
+        }
+    }, [user]);
 
-  useEffect(() => {
-    if (!user) return;
-    setLoading(true);
-    const db = getFirestoreDb();
-    const q = query(collection(db, 'users', user.uid, 'products'));
+    const filterProductsByStock = (products: Product[]) => {
+        if (stockFilter.length === 2 || stockFilter.length === 0) {
+            return products;
+        }
+        if (stockFilter.includes('inStock')) {
+            return products.filter(p => p.stock > 0);
+        }
+        if (stockFilter.includes('outOfStock')) {
+            return products.filter(p => p.stock === 0);
+        }
+        return [];
+    };
+
+    const activeProducts = useMemo(() => filterProductsByStock(products.filter(p => p.status === 'active')), [products, stockFilter]);
+    const draftProducts = useMemo(() => filterProductsByStock(products.filter(p => p.status === 'draft')), [products, stockFilter]);
+    const archivedProducts = useMemo(() => filterProductsByStock(products.filter(p => p.status === 'archived')), [products, stockFilter]);
+    const allFilteredProducts = useMemo(() => filterProductsByStock(products), [products, stockFilter]);
+
+    if (!isMounted || loading) {
+        return <div className="flex h-screen items-center justify-center"><LoadingSpinner /></div>
+    }
+
+    if (!user) {
+        router.push('/');
+        return null;
+    }
     
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const fetchedProducts: Product[] = [];
-      snapshot.forEach((doc) => {
-          fetchedProducts.push({ id: doc.id, ...doc.data() } as Product);
-      });
-      setProducts(fetchedProducts);
-      localStorage.setItem('sellerProducts', JSON.stringify(fetchedProducts));
-      setLoading(false);
-    }, (error) => {
-        console.error("Error fetching products:", error);
-        setLoading(false);
-    });
+    const handleEditProduct = (product: Product) => {
+        setEditingProduct(product);
+        setIsFormOpen(true);
+    };
 
-    return () => unsubscribe();
-  }, [user]);
+    const handleDeleteProduct = async (productId: string) => {
+        if (!user) return;
+        if (!confirm("Are you sure you want to delete this product? This action cannot be undone.")) return;
 
-  const filterProducts = useMemo(() => {
-      let filtered = products;
-      if (activeTab !== 'all') {
-          filtered = filtered.filter(p => p.status === activeTab);
-      }
-      
-      if (stockFilter.length === 1) {
-          if (stockFilter.includes('inStock')) filtered = filtered.filter(p => p.stock > 0);
-          if (stockFilter.includes('outOfStock')) filtered = filtered.filter(p => p.stock === 0);
-      }
-      return filtered;
-  }, [products, activeTab, stockFilter]);
+        const db = getFirestoreDb();
+        try {
+            await deleteDoc(doc(db, "users", user.uid, "products", productId));
+            toast({
+                title: "Product Deleted",
+                description: "The product has been successfully removed.",
+            });
+        } catch (error) {
+            console.error("Error deleting product:", error);
+            toast({
+                variant: 'destructive',
+                title: "Error",
+                description: "Could not delete the product.",
+            });
+        }
+    };
 
-  const activeProducts = useMemo(() => filterProductsByStock(products.filter(p => p.status === 'active')), [products, stockFilter]);
-  const draftProducts = useMemo(() => filterProductsByStock(products.filter(p => p.status === 'draft')), [products, stockFilter]);
-  const archivedProducts = useMemo(() => filterProductsByStock(products.filter(p => p.status === 'archived')), [products, stockFilter]);
-  const allFilteredProducts = useMemo(() => filterProductsByStock(products), [products, stockFilter]);
-
-  if (loading) return <div className="flex h-screen items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-slate-400" /></div>;
-  if (!user) return <div className="flex h-screen items-center justify-center text-slate-500">Please sign in to view dashboard.</div>;
-
-  const handleDeleteProduct = async (productId: string) => {
-      if(!user) return;
-      if(!confirm("Are you sure you want to delete this product?")) return;
-
-      try {
-          await deleteDoc(doc(getFirestoreDb(), 'users', user.uid, 'products', productId));
-          toast({ title: "Deleted", description: "Product removed" });
-      } catch (e) {
-          console.error("Delete error:", e);
-      }
-  };
-
-  const handleOpenChange = (open: boolean) => {
-    if (!open) {
-        setEditingProduct(undefined);
-    }
-    setIsFormOpen(open);
-  }
-
-  const handleEditProduct = (product: Product) => {
-    setEditingProduct(product);
-    setIsFormOpen(true);
-  };
-
-  const handleManageQna = (product: Product) => {
-    setSelectedProduct(product);
-    setIsQnaOpen(true);
-  };
-  
-  const handleAnalytics = (product: Product) => {
-    setSelectedProduct(product);
-    setIsAnalyticsOpen(true);
-  };
-
-  const handleStockFilterChange = (filter: 'inStock' | 'outOfStock') => {
-    setStockFilter(prev => {
-        const newFilters = prev.includes(filter) ? prev.filter(f => f !== filter) : [...prev, filter];
-        return newFilters.length === 0 ? ['inStock', 'outOfStock'] : newFilters;
-    });
-  };
-  
-  function filterProductsByStock(products: Product[]) {
-    if (stockFilter.length === 2 || stockFilter.length === 0) return products;
-    if (stockFilter[0] === 'inStock') return products.filter(p => p.stock > 0);
-    if (stockFilter[0] === 'outOfStock') return products.filter(p => p.stock === 0);
-    return [];
-  }
-  
-  const handleExport = () => {
-    const dataToExport = allFilteredProducts;
-    if (dataToExport.length === 0) {
-        toast({ title: "No Data", description: "There is no data to export.", variant: "destructive"});
-        return;
+    const handleOpenChange = (open: boolean) => {
+        if (!open) {
+            setEditingProduct(undefined);
+        }
+        setIsFormOpen(open);
     }
 
-    const headers = ["ID", "Name", "Status", "Price", "Stock", "Category", "Sub-category", "Brand"];
-    const rows = dataToExport.map(p => [
-        p.id,
-        `"${p.name.replace(/"/g, '""')}"`,
-        p.status,
-        p.price,
-        p.stock,
-        p.category || "",
-        p.subcategory || "",
-        p.brand || ""
-    ]);
+    const handleManageQna = (product: Product) => {
+        setSelectedProduct(product);
+        setIsQnaOpen(true);
+    };
+    
+    const handleAnalytics = (product: Product) => {
+        setSelectedProduct(product);
+        setIsAnalyticsOpen(true);
+    };
 
-    const csvContent = "data:text/csv;charset=utf-8," 
-        + [headers.join(","), ...rows.map(e => e.join(","))].join("\n");
+    const handleStockFilterChange = (filter: 'inStock' | 'outOfStock') => {
+        setStockFilter(prev => {
+            const newFilters = prev.includes(filter) ? prev.filter(f => f !== filter) : [...prev, filter];
+            return newFilters.length === 0 ? ['inStock', 'outOfStock'] : newFilters;
+        });
+    };
+  
+    const handleExport = () => {
+        if (allFilteredProducts.length === 0) {
+            toast({ title: "No Data", description: "There is no data to export.", variant: "destructive"});
+            return;
+        }
 
-    const link = document.createElement("a");
-    link.setAttribute("href", encodeURI(csvContent));
-    link.setAttribute("download", `products_export_${new Date().toISOString()}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    toast({ title: "Export Started", description: "Your products CSV is downloading." });
-  };
+        const headers = ["ID", "Name", "Status", "Price", "Stock", "Category", "Sub-category", "Brand"];
+        const rows = allFilteredProducts.map(p => [
+            p.id,
+            `"${p.name.replace(/"/g, '""')}"`,
+            p.status,
+            p.price,
+            p.stock,
+            p.category || "",
+            p.subcategory || "",
+            p.brand || ""
+        ]);
+
+        const csvContent = "data:text/csv;charset=utf-8," 
+            + [headers.join(","), ...rows.map(e => e.join(","))].join("\n");
+
+        const link = document.createElement("a");
+        link.setAttribute("href", encodeURI(csvContent));
+        link.setAttribute("download", `products_export_${new Date().toISOString()}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        toast({ title: "Export Started", description: "Your products CSV is downloading." });
+    };
   
   return (
     <>
@@ -411,10 +411,14 @@ export default function SellerProductsPage() {
                             <File className="h-3.5 w-3.5" />
                             <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">Export</span>
                         </Button>
-                         <Button size="sm" className="h-9 gap-1" onClick={() => { setEditingProduct(undefined); setIsFormOpen(true); }}>
-                             <PlusCircle className="h-3.5 w-3.5" />
-                             <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">Add Product</span>
-                        </Button>
+                         <DialogTrigger asChild>
+                          <Button size="sm" className="h-9 gap-1">
+                              <PlusCircle className="h-3.5 w-3.5" />
+                              <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+                              Add Product
+                              </span>
+                          </Button>
+                        </DialogTrigger>
                     </div>
                  </div>
 
