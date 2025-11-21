@@ -26,6 +26,28 @@ if (!admin.apps.length) {
   }
 }
 
+exports.checkEmailExists = onCall(async (request) => {
+    const { email } = request.data;
+    if (!email) {
+        throw new HttpsError('invalid-argument', 'The function must be called with an "email" argument.');
+    }
+    const db = admin.firestore();
+    const usersRef = db.collection('users');
+    const querySnapshot = await usersRef.where('email', '==', email).limit(1).get();
+    return { exists: !querySnapshot.empty };
+});
+
+exports.checkPhoneExists = onCall(async (request) => {
+    const { phone } = request.data;
+    if (!phone) {
+        throw new HttpsError('invalid-argument', 'The function must be called with a "phone" argument.');
+    }
+    const db = admin.firestore();
+    const usersRef = db.collection('users');
+    const querySnapshot = await usersRef.where('phone', '==', phone).limit(1).get();
+    return { exists: !querySnapshot.empty };
+});
+
 /**
  * Creates a verification session (placeholder for 0DIDit integration).
  */
@@ -75,28 +97,6 @@ function generateOtp() {
 function hashOtp(otp, salt) {
   return crypto.createHmac("sha256", salt).update(otp).digest("hex");
 }
-
-exports.checkEmailExists = onCall(async (request) => {
-    const { email } = request.data;
-    if (!email) {
-        throw new HttpsError('invalid-argument', 'The function must be called with an "email" argument.');
-    }
-    const db = admin.firestore();
-    const usersRef = db.collection('users');
-    const querySnapshot = await usersRef.where('email', '==', email).limit(1).get();
-    return { exists: !querySnapshot.empty };
-});
-
-exports.checkPhoneExists = onCall(async (request) => {
-    const { phone } = request.data;
-    if (!phone) {
-        throw new HttpsError('invalid-argument', 'The function must be called with a "phone" argument.');
-    }
-    const db = admin.firestore();
-    const usersRef = db.collection('users');
-    const querySnapshot = await usersRef.where('phone', '==', phone).limit(1).get();
-    return { exists: !querySnapshot.empty };
-});
 
 exports.sendVerificationCode = onCall({ secrets: ["MAILERSEND_KEY"] }, async (request) => {
     const { target, type } = request.data;
