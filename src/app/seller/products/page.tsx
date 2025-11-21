@@ -25,6 +25,7 @@ import {
   BarChart,
 } from "lucide-react";
 import { getFirestore, collection, onSnapshot, addDoc, setDoc, deleteDoc, doc, serverTimestamp, query, where } from 'firebase/firestore';
+import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -262,7 +263,7 @@ export default function SellerProductsPage() {
         router.push('/');
         return null;
     }
-    
+
     const handleEditProduct = (product: Product) => {
         setEditingProduct(product);
         setIsFormOpen(true);
@@ -461,15 +462,17 @@ export default function SellerProductsPage() {
                     {editingProduct ? "Update the details of your product." : "Fill in the details to add a new product to your store."}
                 </DialogDescription>
             </DialogHeader>
-            <ProductForm productToEdit={editingProduct} onCancel={() => handleOpenChange(false)} />
+            <ProductForm onCancel={() => handleOpenChange(false)} productToEdit={editingProduct} />
         </DialogContent>
       </Dialog>
       <Dialog open={isQnaOpen} onOpenChange={setIsQnaOpen}>
-        {selectedProduct && <ManageQnaDialog product={selectedProduct} isOpen={isQnaOpen} onClose={() => setIsQnaOpen(false)} />}
+        {selectedProduct && <ManageQnaDialog product={selectedProduct} />}
       </Dialog>
       <Dialog open={isAnalyticsOpen} onOpenChange={setIsAnalyticsOpen}>
-        {selectedProduct && <ProductAnalyticsDialog product={selectedProduct} isOpen={isAnalyticsOpen} onClose={() => setIsAnalyticsOpen(false)} />}
+        {selectedProduct && <ProductAnalyticsDialog product={selectedProduct} />}
       </Dialog>
     </>
   )
 }
+
+    
