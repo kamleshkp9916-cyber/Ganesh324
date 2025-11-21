@@ -2,9 +2,9 @@
 import type {NextConfig} from 'next';
 
 const nextConfig: NextConfig = {
+  // This allows requests from the Firebase Studio development environment.
+  allowedDevOrigins: ["https://*.cloudworkstations.dev"],
   experimental: {
-    // This allows requests from the Firebase Studio development environment.
-    allowedDevOrigins: ["https://*.cloudworkstations.dev"],
   },
   serverExternalPackages: ['@genkit-ai/google-genai'],
   images: {
