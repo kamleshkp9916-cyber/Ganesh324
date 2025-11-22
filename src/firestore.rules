@@ -12,6 +12,7 @@ service cloud.firestore {
     }
 
     function isSeller(userId) {
+      // Check the role of the user trying to write.
       return isSignedIn() && get(/databases/$(database)/documents/users/$(userId)).data.role == 'seller';
     }
 
@@ -30,9 +31,10 @@ service cloud.firestore {
         allow read, write: if isOwner(userId) || isAdmin();
       }
 
-      // Sellers can manage their own products. Anyone can read them.
+      // Sellers can manage their own products within their own user document.
       match /products/{productId} {
-          allow read, list: if true;
+          allow read: if true;
+          // Only the owner of the user document who is also a seller can write.
           allow create, update, delete: if isOwner(userId) && isSeller(userId);
       }
     }
