@@ -871,9 +871,9 @@ export default function KYCPage() {
                         <div className="xl:col-span-1">
                              <div className="flex items-center justify-between">
                                 <Button asChild variant="ghost" className="-ml-4">
-                                    <Link href="/live-selling">
+                                    <Link href="/">
                                     <ChevronLeft className="mr-2 h-4 w-4" />
-                                    Back to Shopping
+                                    Back to Login
                                     </Link>
                                 </Button>
                             </div>
@@ -917,9 +917,9 @@ export default function KYCPage() {
                     <div className="xl:col-span-1">
                         <div className="flex items-center justify-between">
                             <Button asChild variant="ghost" className="-ml-4">
-                                <Link href="/live-selling">
+                                <Link href="/">
                                 <ChevronLeft className="mr-2 h-4 w-4" />
-                                Back to Shopping
+                                Back to Login
                                 </Link>
                             </Button>
                         </div>
