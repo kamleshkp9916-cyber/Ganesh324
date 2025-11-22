@@ -107,8 +107,6 @@ interface ProductFormProps {
     onCancel: () => void;
 }
 
-// Moved outside the component to prevent re-creation on every render.
-// This is the key fix for the "double-tap" input issue.
 const initialFormValues = {
   name: "", description: "", highlights: "", category: "", subcategory: "", brand: "", modelNumber: "", keywords: "",
   price: 0, stock: 0, media: [], variants: [],
@@ -143,8 +141,6 @@ export function ProductForm({ productToEdit, onCancel }: ProductFormProps) {
   });
   
   useEffect(() => {
-    // This effect now correctly handles resetting the form for new products
-    // or populating it for editing, preventing state leakage between modes.
     if (productToEdit) {
       const productMedia = productToEdit.media || [];
       form.reset({
