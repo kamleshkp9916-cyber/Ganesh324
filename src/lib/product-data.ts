@@ -56,7 +56,7 @@ export const productDetails = {
     'prod_53': { id: 53, key: 'prod_53', name: 'Lace Peplum Dress', brand: 'Urban Threads', category: 'Women', subcategory: 'Dresses', price: '₹4,800.00', images: ['https://picsum.photos/seed/dress-16/800/800'], hint: 'lace dress', description: 'A dress featuring a delicate lace overlay and a peplum waist.', size: 'S', color: 'White', highlights: "Lace detailing\nPeplum waist", createdAt: new Date().toISOString(), stock: 35, sold: 85 },
     'prod_54': { id: 54, key: 'prod_54', name: 'Plaid Shirt Dress', brand: 'Casual Co.', category: 'Women', subcategory: 'Dresses', price: '₹2,700.00', images: ['https://picsum.photos/seed/dress-17/800/800'], hint: 'plaid dress', description: 'A cozy plaid shirt dress, perfect for fall.', size: 'M', color: 'Red Plaid', highlights: "Soft flannel fabric\nRoll-tab sleeves", createdAt: new Date().toISOString(), stock: 55, sold: 125 },
     'prod_55': { id: 55, key: 'prod_55', name: 'Sequined Slip Dress', brand: 'NightLife', category: 'Women', subcategory: 'Dresses', price: '₹6,200.00', images: ['https://picsum.photos/seed/dress-18/800/800'], hint: 'sequin dress', description: 'A dazzling sequined slip dress for a night of dancing.', size: 'S', color: 'Silver', highlights: "All-over sequins\nAdjustable straps", createdAt: new Date().toISOString(), stock: 22, sold: 55 },
-    'prod_56': { id: 56, key: 'prod_56', name: 'Knit Midi Dress', brand: 'CozyHome', category: 'Women', subcategory: 'Dresses', price: '₹3,400.00', images: ['https://picsum.photos/seed/dress-19/800/800'], hint: 'knit dress', description: 'A comfortable and chic knit midi dress.', size: 'L', color: 'Oatmeal', highlights: "Ribbed knit fabric\nBody-hugging fit", createdAt: new Date().toISOString(), stock: 65, sold: 135 },
+    'prod_56': { id: 56, key: 'prod_56', name: 'Knit Midi Dress', brand: 'CozyHome', category: 'Women', subcategory: 'Dresses', price: '₹3,400.00', images: ['https://picsum.photos/seed/dress-19/800/800'], hint: 'knit dress', description: 'A comfortable and chic knit midi dress.', size: 'L', color: 'Oatmeal', highlights: "Ribbed knit fabric\nBody-hugging fit", createdAt: new Date().toISOString(), stock: 40, sold: 85 },
     'prod_57': { id: 57, key: 'prod_57', name: 'Cut-Out Mini Dress', brand: 'NightLife', category: 'Women', subcategory: 'Dresses', price: '₹3,900.00', images: ['https://picsum.photos/seed/dress-20/800/800'], hint: 'cut-out dress', description: 'A daring mini dress with trendy cut-out details.', size: 'XS', color: 'Black', highlights: "Waist cut-outs\nStretchy fabric", createdAt: new Date().toISOString(), stock: 48, sold: 115 },
     'prod_58': { id: 58, key: 'prod_58', name: 'Smocked Midi Dress', brand: 'Summer Bloom', category: 'Women', subcategory: 'Dresses', price: '₹3,100.00', images: ['https://picsum.photos/seed/dress-21/800/800'], hint: 'smocked dress', description: 'A dress with a comfortable smocked bodice and flowy skirt.', size: 'M', color: 'Pastel Blue', highlights: "Smocked top\nPuff sleeves", createdAt: new Date().toISOString(), stock: 70, sold: 150 },
     'prod_59': { id: 59, key: 'prod_59', name: 'Bohemian Maxi Dress', brand: 'Boho Chic', category: 'Women', subcategory: 'Dresses', price: '₹4,000.00', images: ['https://picsum.photos/seed/dress-22/800/800'], hint: 'boho dress', description: 'A free-spirited bohemian maxi dress with tassel details.', size: 'L', color: 'Terracotta', highlights: "Paisley print\nTassel ties", createdAt: new Date().toISOString(), stock: 42, sold: 90 },
@@ -176,91 +176,3 @@ export const mockStreams = [
 ];
 
     
-```
-- src/lib/types.ts:
-```ts
-
-import { SVGProps } from 'react';
-
-export type IconSvgProps = SVGProps<SVGSVGElement> & {
-  size?: number;
-};
-
-```
-- tailwind.config.js:
-```js
-const { fontFamily } = require("tailwindcss/defaultTheme")
-
-/** @type {import('tailwindcss').Config} */
-module.exports = {
-  darkMode: ["class"],
-  content: [
-    './pages/**/*.{ts,tsx}',
-    './components/**/*.{ts,tsx}',
-    './app/**/*.{ts,tsx}',
-    './src/**/*.{ts,tsx}',
-	],
-  theme: {
-    container: {
-      center: true,
-      padding: "2rem",
-      screens: {
-        "2xl": "1400px",
-      },
-    },
-    extend: {
-      fontFamily: {
-        sans: ["var(--font-sans)", ...fontFamily.sans],
-      },
-      keyframes: {
-        "accordion-down": {
-          from: { height: 0 },
-          to: { height: "var(--radix-accordion-content-height)" },
-        },
-        "accordion-up": {
-          from: { height: "var(--radix-accordion-content-height)" },
-          to: { height: 0 },
-        },
-      },
-      animation: {
-        "accordion-down": "accordion-down 0.2s ease-out",
-        "accordion-up": "accordion-up 0.2s ease-out",
-      },
-    },
-  },
-  plugins: [require("tailwindcss-animate")],
-}
-
-```
-- tsconfig.js:
-```js
-
-{
-  "compilerOptions": {
-    "target": "ES2017",
-    "lib": ["dom", "dom.iterable", "esnext"],
-    "allowJs": true,
-    "skipLibCheck": true,
-    "strict": true,
-    "noEmit": true,
-    "esModuleInterop": true,
-    "module": "esnext",
-    "moduleResolution": "bundler",
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "jsx": "preserve",
-    "incremental": true,
-    "plugins": [
-      {
-        "name": "next"
-      }
-    ],
-    "paths": {
-      "@/*": ["./src/*"]
-    }
-  },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
-  "exclude": ["node_modules"]
-}
-
-```
