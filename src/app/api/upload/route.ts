@@ -26,8 +26,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'File or filePath is missing' }, { status: 400 });
     }
     
-    if (!filePath.startsWith(`products/${userId}/`)) {
-        return NextResponse.json({ error: 'Invalid file path' }, { status: 403 });
+    // Corrected Validation: Ensure the path starts with `products/` and contains the user's ID.
+    // This is more flexible than the previous implementation.
+    const pathParts = filePath.split('/');
+    if (pathParts[0] !== 'products' || pathParts[1] !== userId) {
+        return NextResponse.json({ error: 'Invalid file path. Permission denied.' }, { status: 403 });
     }
 
     const buffer = Buffer.from(await file.arrayBuffer());
@@ -39,6 +42,7 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    // The public URL doesn't need to be signed if the bucket rules are public read.
     const publicUrl = `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/${encodeURIComponent(filePath)}?alt=media`;
 
     return NextResponse.json({ url: publicUrl });
