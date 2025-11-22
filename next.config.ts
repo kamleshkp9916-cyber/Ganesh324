@@ -7,14 +7,6 @@ const nextConfig: NextConfig = {
   experimental: {
     webpack: (config) => {
       config.watchOptions.poll = 300;
-      // This is the fix for the embla-carousel-react issue.
-      // It ensures that the correct module is resolved by webpack.
-      config.resolve.alias = {
-        ...config.resolve.alias,
-        'embla-carousel-react': require.resolve(
-          'embla-carousel-react/embla-carousel-react.modern.js'
-        ),
-      };
       return config;
     },
     developmentServerSniff: false,
