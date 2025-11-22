@@ -124,6 +124,16 @@
         }
       },
       {
+        "path": "/users/{userId}/products/{productId}",
+        "definition": {
+          "entityName": "Product",
+          "schema": {
+            "$ref": "#/backend/entities/Product"
+          },
+          "description": "Sub-collection storing all products for a given seller."
+        }
+      },
+      {
         "path": "/conversations/{conversationId}",
         "definition": {
           "entityName": "Conversation",
