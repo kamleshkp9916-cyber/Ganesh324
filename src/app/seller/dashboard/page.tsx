@@ -76,7 +76,7 @@ import { useAuthActions } from "@/lib/auth";
 import { GoLiveDialog } from "@/components/go-live-dialog";
 import { SellerHeader } from "@/components/seller/seller-header";
 import { getFirestore, collection, query, where, getDocs, orderBy } from 'firebase/firestore';
-import { getFirestoreDb } from '@/lib/firebase';
+import { getFirestoreDb } from '@/lib/firebase-db';
 import { getStatusFromTimeline, Order } from '@/lib/order-data';
 
 
