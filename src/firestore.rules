@@ -11,6 +11,10 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == userId;
     }
 
+    function isSeller(userId) {
+      return isSignedIn() && get(/databases/$(database)/documents/users/$(userId)).data.role == 'seller';
+    }
+
     function isAdmin() {
       return isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
@@ -26,9 +30,10 @@ service cloud.firestore {
         allow read, write: if isOwner(userId) || isAdmin();
       }
 
+      // Sellers can manage their own products. Anyone can read them.
       match /products/{productId} {
-        allow read, list: if true;
-        allow create, update, delete: if isOwner(userId) && get(/databases/$(database)/documents/users/$(userId)).data.role == 'seller';
+          allow read, list: if true;
+          allow create, update, delete: if isOwner(userId) && isSeller(userId);
       }
     }
 

@@ -192,7 +192,9 @@ export function ProductForm({ productToEdit, onCancel }: ProductFormProps) {
     try {
         const db = getFirestoreDb();
         const colRef = collection(db, 'users', user.uid, 'products');
-        const productId = productToEdit?.id || doc(colRef).id;
+        const docRef = productToEdit?.id ? doc(colRef, productToEdit.id) : doc(colRef);
+        const productId = docRef.id;
+
         setSaveProgress(20);
 
         const idToken = await user.getIdToken();
@@ -238,7 +240,6 @@ export function ProductForm({ productToEdit, onCancel }: ProductFormProps) {
             media: finalMedia,
         };
 
-        const docRef = doc(colRef, productId);
         if (productToEdit) {
             await setDoc(docRef, { ...dataToSave, updatedAt: serverTimestamp() }, { merge: true });
         } else {
@@ -326,7 +327,7 @@ export function ProductForm({ productToEdit, onCancel }: ProductFormProps) {
     form.handleSubmit(processSubmit)();
   };
     
-  const handleReset = () => {
+    const handleReset = () => {
     form.reset(initialFormValues);
     setMedia([]);
     setHighlightsImagePreview(null);
