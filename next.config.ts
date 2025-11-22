@@ -55,12 +55,4 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: 'https',
-        hostname: 'api.qrserver.com',
-        port: '',
-        pathname: '/**',
-      }
-    ],
-  },
-};
-
-export default nextConfig;
+        hostname: 'api.
