@@ -139,42 +139,38 @@ export function ProductForm({ productToEdit, onCancel }: ProductFormProps) {
     name: "variants",
   });
   
-  const setInitialValues = useCallback((product: Product | null | undefined) => {
-    if (product) {
-      const productMedia = product.media || [];
+  useEffect(() => {
+    if (productToEdit) {
+      const productMedia = productToEdit.media || [];
       form.reset({
-        ...product,
+        ...productToEdit,
         media: productMedia,
-        price: product.price || 0,
-        stock: product.stock || 0,
-        listingType: product.listingType || 'general',
-        status: product.status || 'active',
-        discountPercentage: product.discountPercentage ?? undefined,
-        weight: product.weight ?? undefined,
-        length: product.length ?? undefined,
-        width: product.width ?? undefined,
-        height: product.height ?? undefined,
-        variants: product.variants || [],
-        availableSizes: product.availableSizes || "",
-        availableColors: product.availableColors || "",
-        keywords: product.keywords || "",
+        price: productToEdit.price || 0,
+        stock: productToEdit.stock || 0,
+        listingType: productToEdit.listingType || 'general',
+        status: productToEdit.status || 'active',
+        discountPercentage: productToEdit.discountPercentage ?? undefined,
+        weight: productToEdit.weight ?? undefined,
+        length: productToEdit.length ?? undefined,
+        width: productToEdit.width ?? undefined,
+        height: productToEdit.height ?? undefined,
+        variants: productToEdit.variants || [],
+        availableSizes: productToEdit.availableSizes || "",
+        availableColors: productToEdit.availableColors || "",
+        keywords: productToEdit.keywords || "",
       });
       setMedia(productMedia);
-      if(typeof product.highlightsImage === 'string') {
-        setHighlightsImagePreview(product.highlightsImage);
+      if(typeof productToEdit.highlightsImage === 'string') {
+        setHighlightsImagePreview(productToEdit.highlightsImage);
       } else {
-        setHighlightsImagePreview(product.highlightsImage?.preview || null);
+        setHighlightsImagePreview(productToEdit.highlightsImage?.preview || null);
       }
     } else {
       form.reset(initialFormValues);
       setMedia([]);
       setHighlightsImagePreview(null);
     }
-  }, [form, initialFormValues]);
-
-  useEffect(() => {
-    setInitialValues(productToEdit);
-  }, [productToEdit, setInitialValues]);
+  }, [productToEdit, form, initialFormValues]);
 
   const selectedCategory = form.watch("category");
   const subcategories = useMemo(() => {
@@ -330,7 +326,9 @@ export function ProductForm({ productToEdit, onCancel }: ProductFormProps) {
   };
     
   const handleReset = () => {
-    setInitialValues(null); // Resets form to empty state
+    form.reset(initialFormValues);
+    setMedia([]);
+    setHighlightsImagePreview(null);
     toast({ title: "Form Cleared", description: "You can start over." });
   };
     
