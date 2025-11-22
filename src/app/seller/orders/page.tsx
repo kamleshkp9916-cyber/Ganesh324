@@ -1,75 +1,30 @@
 
 "use client";
 
-import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import {
-  Bell,
-  Search,
-  Filter,
-  Calendar,
-  MoreVertical,
-  Mail,
-  Phone,
-  CreditCard,
-  Truck,
-  MapPin,
-  Package,
-  Copy,
-  Printer,
-  CheckCircle2,
-  AlertCircle,
-  ArrowRight,
-  Box,
-  XCircle,
-  Check,
-  X,
-  Sparkles,
-  Loader2,
-  MessageSquare,
-  ChevronDown,
-  ChevronUp,
-  History,
-  List,
-  RotateCcw,
-  RefreshCcw,
-  DollarSign,
-  FileText, // For Invoice
-  Download,
-  ImageIcon // For return images placeholder
-} from 'lucide-react';
-import { SellerHeader } from '@/components/seller/seller-header';
-import { getUserData } from '@/lib/follow-data';
+import React, { useEffect, useMemo, useState, useCallback, useRef } from "react";
+import { Card, CardHeader, CardTitle, CardContent, CardFooter, CardDescription } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Badge, BadgeProps } from "@/components/ui/badge";
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu";
+import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
+import { ArrowLeft, Calendar as CalendarIcon, Download, Filter, TrendingUp, TrendingDown, RefreshCcw, CircleDollarSign, PackageCheck, Undo2, Wallet, Search, ChevronDown, Plus, ShoppingBag, Menu, Package2, CircleUser, Loader2, MoreVertical, Mail, Phone, Truck, MapPin, Copy, Printer, FileText, CheckCircle2, AlertCircle, XCircle, Box, X, Sparkles, Gavel, History, List, RotateCcw } from "lucide-react";
+import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, BarChart, Bar, CartesianGrid, Legend } from "recharts";
+import { format, differenceInDays, parseISO } from "date-fns";
+import { useRouter } from "next/navigation";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import Link from "next/link";
+import { useAuth } from "@/hooks/use-auth";
+import { useAuthActions } from "@/lib/auth";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { SellerHeader } from "@/components/seller/seller-header";
+import { productDetails, productToSellerMapping } from "@/lib/product-data";
+import { getFirestore, collection, query, where, getDocs, orderBy, onSnapshot } from 'firebase/firestore';
+import { getFirestoreDb } from "@/lib/firebase-db";
+import { Order, getStatusFromTimeline } from '@/lib/order-data';
+import { useToast } from "@/hooks/use-toast";
 
-// --- Gemini API Helper ---
-
-const callGemini = async (prompt: any) => {
-  const apiKey = ""; // Auto-injected by environment
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`;
-  
-  const payload = {
-    contents: [{ parts: [{ text: prompt }] }]
-  };
-
-  let delay = 1000;
-  for (let i = 0; i < 5; i++) {
-    try {
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-      
-      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-      
-      const data = await response.json();
-      return data.candidates?.[0]?.content?.parts?.[0]?.text || "No response generated.";
-    } catch (error) {
-      if (i === 4) return "Error: Unable to reach Gemini API after multiple attempts. Please try again.";
-      await new Promise(r => setTimeout(r, delay));
-      delay *= 2;
-    }
-  }
-};
 
 // --- Mock Data ---
 
@@ -252,13 +207,13 @@ const InvoiceModal = ({ isOpen, onClose, order }: {isOpen: boolean, onClose: () 
                     {/* Bill To / Ship To */}
                     <div className="grid grid-cols-2 gap-8 mb-8">
                         <div>
-                            <h3 className="font-bold text-slate-400 uppercase text-xs tracking-wider mb-2">Bill To</h3>
+                            <h2 className="font-bold text-slate-400 uppercase text-xs tracking-wider mb-2">Bill To</h2>
                             <p className="font-bold text-slate-900">{order.customer.name}</p>
                             <p className="text-slate-600">{order.customer.email}</p>
                             <p className="text-slate-600">{order.customer.phone}</p>
                         </div>
                         <div>
-                            <h3 className="font-bold text-slate-400 uppercase text-xs tracking-wider mb-2">Ship To</h3>
+                            <h2 className="font-bold text-slate-400 uppercase text-xs tracking-wider mb-2">Ship To</h2>
                             {order.shipping.address.map((line: string, i: number) => (
                                 <p key={i} className="text-slate-600">{line}</p>
                             ))}
@@ -416,7 +371,7 @@ const OrderCard = ({ order, onGenerateLabel, onAccept, onDecline, onOpenAI, isEx
           <span className="text-lg font-bold text-slate-900">#{order.id}</span>
           <StatusBadge status={order.status} />
           <span className="hidden sm:flex items-center gap-1 text-sm text-slate-500">
-            <Calendar className="w-3 h-3" /> {order.date}
+            <CalendarIcon className="w-3 h-3" /> {order.date}
           </span>
           {!isExpanded && (
              <span className="text-sm text-slate-500 font-medium ml-4 border-l pl-4">
@@ -483,7 +438,7 @@ const OrderCard = ({ order, onGenerateLabel, onAccept, onDecline, onOpenAI, isEx
                 <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Payment</h3>
                 <div className="flex justify-between items-center">
                   <div className="flex items-center gap-2 text-sm font-medium text-slate-700">
-                    <CreditCard className="w-4 h-4" /> {order.customer.paymentMethod}
+                    {order.customer.paymentMethod}
                   </div>
                   <span className="text-lg font-bold text-slate-900">{inr(order.totals.total)}</span>
                 </div>
@@ -755,20 +710,7 @@ export default function App() {
   
   useEffect(() => {
     setIsClient(true);
-    const fetchAndEnhanceOrders = async () => {
-        const enhancedOrders = await Promise.all(INITIAL_ORDERS.map(async (order) => {
-            const customerData = await getUserData(order.customer.name);
-            return {
-                ...order,
-                customer: {
-                    ...order.customer,
-                    ...customerData,
-                }
-            };
-        }));
-        setOrders(enhancedOrders);
-    };
-    fetchAndEnhanceOrders();
+    setOrders(INITIAL_ORDERS);
   }, []);
 
   // Filter Logic
@@ -875,13 +817,19 @@ export default function App() {
         Keep it under 80 words.`;
     }
 
-    const result = await callGemini(prompt);
-    
-    setGeminiState(prev => ({
-        ...prev,
-        isLoading: false,
-        content: result || ""
-    }));
+    // This is where you would make the API call to Gemini
+    // For this example, we'll simulate the call and response
+    setTimeout(() => {
+        const mockResponses: any = {
+            email: "Dear Alex Robinson,\n\nThank you for your order! We are currently preparing your items (Sony WH-1000XM5, Samsung Galaxy S24 Ultra) for shipment. You will receive a notification with tracking details as soon as it's on its way.\n\nBest regards,\nSellerHub Support",
+            packaging: "• Use anti-static bags for both the headphones and smartphone.\n• Wrap each item securely in bubble wrap (min 2 inches).\n• Place in a rigid, new cardboard box with cushioning.\n• Seal all seams securely with packing tape."
+        };
+        setGeminiState(prev => ({
+            ...prev,
+            isLoading: false,
+            content: mockResponses[type] || ""
+        }));
+    }, 1500);
   };
 
   const closeGeminiModal = () => {
@@ -1007,5 +955,3 @@ export default function App() {
     </div>
   );
 }
-
-    
