@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useRouter, useParams, useSearchParams } from 'next/navigation';
@@ -71,7 +70,7 @@ import { GoLiveDialog } from '@/components/go-live-dialog';
 import { Dialog, DialogTrigger } from '@/components/ui/dialog';
 import { getCart, addToCart, saveCart } from '@/lib/product-history';
 import { cn } from '@/lib/utils';
-import { useIsMobile } from '@/hooks/use-mobile';
+import { useIsMobile } from '@/hooks/use-is-mobile';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { ProductShelfContent } from '@/components/product-shelf-content';
 import { useToast } from '@/hooks/use-toast';
