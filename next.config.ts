@@ -9,6 +9,7 @@ const nextConfig: NextConfig = {
       config.watchOptions.poll = 300;
       return config;
     },
+    developmentServerSniff: false,
   },
   async rewrites() {
     return [
