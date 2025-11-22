@@ -19,6 +19,7 @@ service firebase.storage {
     }
 
     // Product media: Public read. Only the seller who owns the directory can write.
+    // This rule allows a seller to write files inside a folder named after their user ID.
     match /products/{userId}/{allPaths=**} {
       allow read: if true;
       allow write: if request.auth != null && request.auth.uid == userId && isSeller(userId);
