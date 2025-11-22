@@ -191,76 +191,74 @@ function normalizeRecipients(to) {
  * Main function: sendEmail
  */
 exports.sendEmail = onRequest(
-  { secrets: ['MAILERSEND_KEY'] },
+  { secrets: ['MAILERSEND_KEY'], cors: true }, // Enable CORS directly on the function
   async (req, res) => {
-    // Handle CORS for onRequest function
-    cors(req, res, async () => {
-        try {
-          if (req.method !== 'POST') {
-            return res.status(405).json({ error: 'Use POST' });
-          }
+    // The cors middleware is no longer needed here since it's handled by the function config
+    try {
+      if (req.method !== 'POST') {
+        return res.status(405).json({ error: 'Use POST' });
+      }
 
-          if (!process.env.MAILERSEND_KEY) {
-            console.error('MAILERSEND_KEY is not set; aborting send.');
-            return res.status(500).json({ error: 'Email provider not configured' });
-          }
+      if (!process.env.MAILERSEND_KEY) {
+        console.error('MAILERSEND_KEY is not set; aborting send.');
+        return res.status(500).json({ error: 'Email provider not configured' });
+      }
 
-          const body = req.body || {};
-          const to = body.to || body.recipients || null;
-          const subject = body.subject || null;
-          const text = body.text || '';
-          const html = body.html || '';
+      const body = req.body || {};
+      const to = body.to || body.recipients || null;
+      const subject = body.subject || null;
+      const text = body.text || '';
+      const html = body.html || '';
 
-          if (!to || !subject || (!text && !html)) {
-            return res.status(400).json({ error: 'Missing required fields: to, subject, and text or html' });
-          }
+      if (!to || !subject || (!text && !html)) {
+        return res.status(400).json({ error: 'Missing required fields: to, subject, and text or html' });
+      }
 
-          // --- MailerSend Integration ---
-          console.log('Sending email with MailerSend...');
-          const mailerSendBody = {
-            from: { email: process.env.SENDER_EMAIL || 'you@yourverifieddomain.com' },
-            to: normalizeRecipients(to),
-            subject: subject,
-            text: text,
-            html: html,
-          };
+      // --- MailerSend Integration ---
+      console.log('Sending email with MailerSend...');
+      const mailerSendBody = {
+        from: { email: process.env.SENDER_EMAIL || 'you@yourverifieddomain.com' },
+        to: normalizeRecipients(to),
+        subject: subject,
+        text: text,
+        html: html,
+      };
 
-          const response = await fetch('https://api.mailersend.com/v1/email', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${process.env.MAILERSEND_KEY}`,
-            },
-            body: JSON.stringify(mailerSendBody),
-          });
+      const response = await fetch('https://api.mailersend.com/v1/email', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${process.env.MAILERSEND_KEY}`,
+        },
+        body: JSON.stringify(mailerSendBody),
+      });
 
-          if (!response.ok) {
-            const errorBody = await response.json();
-            throw new Error(`MailerSend API Error: ${JSON.stringify(errorBody)}`);
-          }
+      if (!response.ok) {
+        const errorBody = await response.json();
+        throw new Error(`MailerSend API Error: ${JSON.stringify(errorBody)}`);
+      }
 
-          console.log('MailerSend result:', response.status);
-          return res.status(200).json({ success: true, provider: 'MailerSend' });
+      console.log('MailerSend result:', response.status);
+      return res.status(200).json({ success: true, provider: 'MailerSend' });
 
-        } catch (err) {
-          let apiBody = null;
-          try {
-            if (err && err.response && (err.response.body || err.response.data)) {
-              apiBody = err.response.body || err.response.data;
-            }
-          } catch (e) {
-            console.error('Failed to extract API error body:', e && e.toString ? e.toString() : e);
-          }
-
-          console.error('sendEmail error:', err && err.toString ? err.toString() : err);
-          if (apiBody) console.error('API response body (debug):', JSON.stringify(apiBody, null, 2));
-
-          return res.status(500).json({
-            error: 'Email sending failed',
-            api_error: apiBody || (err && err.toString ? err.toString() : 'no api body available'),
-          });
+    } catch (err) {
+      let apiBody = null;
+      try {
+        if (err && err.response && (err.response.body || err.response.data)) {
+          apiBody = err.response.body || err.response.data;
         }
-    });
+      } catch (e) {
+        console.error('Failed to extract API error body:', e && e.toString ? e.toString() : e);
+      }
+
+      console.error('sendEmail error:', err && err.toString ? err.toString() : err);
+      if (apiBody) console.error('API response body (debug):', JSON.stringify(apiBody, null, 2));
+
+      return res.status(500).json({
+        error: 'Email sending failed',
+        api_error: apiBody || (err && err.toString ? err.toString() : 'no api body available'),
+      });
+    }
   }
 );
 

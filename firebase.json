@@ -9,6 +9,15 @@
       "firebase.json",
       "**/.*",
       "**/node_modules/**"
+    ],
+    "frameworksBackend": {
+      "region": "us-central1"
+    },
+    "rewrites": [
+      {
+        "source": "/api/functions/sendEmail",
+        "function": "sendEmail"
+      }
     ]
   },
   "functions": [
@@ -25,4 +34,3 @@
     }
   ]
 }
-
