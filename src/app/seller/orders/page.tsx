@@ -9,7 +9,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Badge, BadgeProps } from "@/components/ui/badge";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
-import { ArrowLeft, Calendar as CalendarIcon, Download, Filter, TrendingUp, TrendingDown, RefreshCcw, CircleDollarSign, PackageCheck, Undo2, Wallet, Search, ChevronDown, Plus, ShoppingBag, Menu, Package2, CircleUser, Loader2, MoreVertical, Mail, Phone, Truck, MapPin, Copy, Printer, FileText, CheckCircle2, AlertCircle, XCircle, Box, X, Sparkles, Gavel, History, List, RotateCcw } from "lucide-react";
+import { ArrowLeft, Calendar as CalendarIcon, Download, Filter, TrendingUp, TrendingDown, RefreshCcw, CircleDollarSign, PackageCheck, Undo2, Wallet, Search, ChevronDown, Plus, ShoppingBag, Menu, Package2, CircleUser, Loader2, MoreVertical, Mail, Phone, Truck, MapPin, Copy, Printer, FileText, CheckCircle2, AlertCircle, XCircle, Box, X, Sparkles, Gavel, History, List, RotateCcw, Package } from "lucide-react";
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, BarChart, Bar, CartesianGrid, Legend } from "recharts";
 import { format, differenceInDays, parseISO } from "date-fns";
 import { useRouter } from "next/navigation";
@@ -670,7 +670,7 @@ const OrderCard = ({ order, onGenerateLabel, onAccept, onDecline, onOpenAI, isEx
                       <span>Subtotal</span><span>{inr(order.totals.subtotal)}</span>
                   </div>
                   <div className="flex justify-between text-sm text-slate-500">
-                      <span>Shipping</span><span>{inr(order.totals.shipping)}</span>
+                      <span>Shipping ({order.shipping.carrier})</span><span>{inr(order.totals.shipping)}</span>
                   </div>
                    {order.coupon && (
                       <div className="flex justify-between text-sm text-green-600">
@@ -821,8 +821,8 @@ export default function App() {
     // For this example, we'll simulate the call and response
     setTimeout(() => {
         const mockResponses: any = {
-            email: "Dear Alex Robinson,\n\nThank you for your order! We are currently preparing your items (Sony WH-1000XM5, Samsung Galaxy S24 Ultra) for shipment. You will receive a notification with tracking details as soon as it's on its way.\n\nBest regards,\nSellerHub Support",
-            packaging: "• Use anti-static bags for both the headphones and smartphone.\n• Wrap each item securely in bubble wrap (min 2 inches).\n• Place in a rigid, new cardboard box with cushioning.\n• Seal all seams securely with packing tape."
+            email: "Dear Alex Robinson,\\n\\nThank you for your order! We are currently preparing your items (Sony WH-1000XM5, Samsung Galaxy S24 Ultra) for shipment. You will receive a notification with tracking details as soon as it's on its way.\\n\\nBest regards,\\nSellerHub Support",
+            packaging: "• Use anti-static bags for both the headphones and smartphone.\\n• Wrap each item securely in bubble wrap (min 2 inches).\\n• Place in a rigid, new cardboard box with cushioning.\\n• Seal all seams securely with packing tape."
         };
         setGeminiState(prev => ({
             ...prev,
