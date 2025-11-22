@@ -86,7 +86,7 @@ export function useAuthActions() {
         }
     };
 
-    const handleEmailSignIn = async (values: any) => {
+    const handleEmailSignIn = async (values: any): Promise<boolean> => {
         const { auth } = initializeFirebase();
         try {
             await signInWithEmailAndPassword(auth, values.email, values.password);
@@ -94,7 +94,7 @@ export function useAuthActions() {
                 title: "Logged In!",
                 description: "Welcome back!",
             });
-            // AuthRedirector will handle the navigation
+            return true;
         } catch (error: any) {
              let errorMessage = "An unknown error occurred.";
             switch (error.code) {
@@ -117,6 +117,7 @@ export function useAuthActions() {
                 description: errorMessage,
                 variant: "destructive",
             });
+            return false;
         }
     };
 
