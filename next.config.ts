@@ -5,6 +5,10 @@ const nextConfig: NextConfig = {
   // This allows requests from the Firebase Studio development environment.
   allowedDevOrigins: ["https://*.cloudworkstations.dev"],
   experimental: {
+    webpack: (config) => {
+      config.watchOptions.poll = 300;
+      return config;
+    },
   },
   async rewrites() {
     return [
@@ -36,7 +40,8 @@ const nextConfig: NextConfig = {
         pathname: '/**',
       },
       {
-        protocol: 'https',
+        protocol: 'https'
+,
         hostname: 'plus.unsplash.com',
         port: '',
         pathname: '/**',
