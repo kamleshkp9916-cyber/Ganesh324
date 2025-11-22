@@ -197,6 +197,7 @@ export function ProductForm({ productToEdit, onCancel }: ProductFormProps) {
     try {
         const db = getFirestoreDb();
         const storage = getStorage();
+        // CORRECTED: Point to the subcollection under the seller's user document
         const colRef = collection(db, 'users', user.uid, 'products');
 
         let productId = productToEdit?.id || doc(colRef).id;
