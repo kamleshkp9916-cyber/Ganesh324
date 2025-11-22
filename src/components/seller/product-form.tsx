@@ -37,6 +37,7 @@ import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { getFirestoreDb } from "@/lib/firebase-db";
+import { getStorage, ref, uploadBytesResumable, getDownloadURL, deleteObject } from "firebase/storage";
 
 const variantSchema = z.object({
     id: z.string().optional(),
@@ -196,37 +197,36 @@ export function ProductForm({ productToEdit, onCancel }: ProductFormProps) {
         const productId = docRef.id;
 
         setSaveProgress(20);
-
-        const idToken = await user.getIdToken();
+        const storage = getStorage();
 
         const uploadedMediaUrls = await Promise.all(
             media.map(async (item) => {
                 if (item.file && item.url.startsWith('data:')) {
                     const filePath = `products/${user.uid}/${productId}/${item.file.name}`;
-                    const formData = new FormData();
-                    formData.append('file', item.file);
-                    formData.append('filePath', filePath);
+                    const storageRef = ref(storage, filePath);
+                    const uploadTask = uploadBytesResumable(storageRef, item.file);
 
-                    const response = await fetch('/api/upload', {
-                        method: 'POST',
-                        headers: {
-                            'Authorization': `Bearer ${idToken}`,
-                        },
-                        body: formData,
+                    return new Promise<string>((resolve, reject) => {
+                        uploadTask.on('state_changed',
+                            (snapshot) => {
+                                const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                                // You might want a more granular progress update logic here
+                            },
+                            (error) => {
+                                console.error("Upload failed:", error);
+                                reject(error);
+                            },
+                            async () => {
+                                const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+                                resolve(downloadURL);
+                            }
+                        );
                     });
-
-                    if (!response.ok) {
-                        const errorData = await response.json();
-                        throw new Error(`Upload failed: ${errorData.error || response.statusText}`);
-                    }
-                    
-                    const result = await response.json();
-                    setSaveProgress(prev => prev + (50 / media.length));
-                    return result.url;
                 }
                 return item.url;
             })
         );
+        
         setSaveProgress(75);
 
         const finalMedia = media.map((item, index) => ({
