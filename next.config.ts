@@ -1,10 +1,16 @@
 
 import type {NextConfig} from 'next';
 
+const assetPrefix = process.env.FIREBASE_APP_HOST
+  ? `https://${process.env.FIREBASE_APP_HOST}`
+  : undefined;
+
 const nextConfig: NextConfig = {
+  assetPrefix,
   // This allows requests from the Firebase Studio development environment.
   allowedDevOrigins: ["https://*.cloudworkstations.dev"],
   experimental: {
+    // Polling is no longer needed with the assetPrefix fix.
     webpack: (config) => {
       config.watchOptions.poll = 300;
       return config;
