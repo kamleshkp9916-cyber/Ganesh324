@@ -120,15 +120,19 @@ export function ProductForm({ productToEdit, onCancel }: ProductFormProps) {
   const highlightsImageInputRef = useRef<HTMLInputElement>(null);
   const [highlightsImagePreview, setHighlightsImagePreview] = useState<string | null>(null);
 
+  const initialFormValues = useMemo(() => ({
+    name: "", description: "", highlights: "", category: "", subcategory: "", brand: "", modelNumber: "", keywords: "",
+    price: 0, stock: 0, media: [], variants: [],
+    listingType: 'general' as 'general' | 'live-only', 
+    status: 'active' as 'active' | 'draft' | 'archived', 
+    keyDetails: "", discountPercentage: undefined,
+    weight: undefined, length: undefined, width: undefined, height: undefined,
+    availableSizes: "", availableColors: "",
+  }), []);
+
   const form = useForm<z.infer<typeof productFormSchema>>({
     resolver: zodResolver(productFormSchema),
-    defaultValues: {
-      name: "", description: "", highlights: "", category: "", subcategory: "", brand: "", modelNumber: "", keywords: "",
-      price: 0, stock: 0, media: [], variants: [],
-      listingType: 'general', status: 'active', keyDetails: "", discountPercentage: undefined,
-      weight: undefined, length: undefined, width: undefined, height: undefined,
-      availableSizes: "", availableColors: "",
-    },
+    defaultValues: productToEdit || initialFormValues,
   });
 
   const { fields, append, remove, update } = useFieldArray({
@@ -163,17 +167,11 @@ export function ProductForm({ productToEdit, onCancel }: ProductFormProps) {
         setHighlightsImagePreview(product.highlightsImage?.preview || null);
       }
     } else {
-      form.reset({
-        name: "", description: "", highlights: "", category: "", subcategory: "", brand: "", modelNumber: "", keywords: "",
-        price: 0, stock: 0, media: [], variants: [],
-        listingType: 'general', status: 'active', keyDetails: "", discountPercentage: undefined,
-        weight: undefined, length: undefined, width: undefined, height: undefined,
-        availableSizes: "", availableColors: "",
-      });
+      form.reset(initialFormValues);
       setMedia([]);
       setHighlightsImagePreview(null);
     }
-  }, [form]);
+  }, [form, initialFormValues]);
 
   useEffect(() => {
     setInitialValues(productToEdit);
@@ -197,19 +195,18 @@ export function ProductForm({ productToEdit, onCancel }: ProductFormProps) {
     try {
         const db = getFirestoreDb();
         const storage = getStorage();
-        // CORRECTED: Point to the subcollection under the seller's user document
         const colRef = collection(db, 'users', user.uid, 'products');
 
         let productId = productToEdit?.id || doc(colRef).id;
         setSaveProgress(20);
 
         const mediaUrls = await Promise.all(
-            (data.media || []).map(async (item, index) => {
+            (media || []).map(async (item, index) => {
                 if (item.file && item.url.startsWith('data:')) {
                     const filePath = `products/${user.uid}/${productId}/${item.file.name}`;
                     const storageRef = ref(storage, filePath);
                     await uploadString(storageRef, item.url, 'data_url');
-                    setSaveProgress(prev => prev + (50 / (data.media?.length || 1)));
+                    setSaveProgress(prev => prev + (50 / (media.length || 1)));
                     return getDownloadURL(storageRef);
                 }
                 return item.url;
@@ -217,7 +214,7 @@ export function ProductForm({ productToEdit, onCancel }: ProductFormProps) {
         );
         setSaveProgress(75);
 
-        const finalMedia = (data.media || []).map((item, index) => ({
+        const finalMedia = (media || []).map((item, index) => ({
             type: item.type,
             url: mediaUrls[index]
         }));
@@ -322,13 +319,9 @@ export function ProductForm({ productToEdit, onCancel }: ProductFormProps) {
   };
     
     const handleNextStep = async () => {
-        let fieldsToValidate: (keyof z.infer<typeof productFormSchema>)[] = [];
         form.setValue('media', media);
-        if (step === 1) {
-            fieldsToValidate = ['name', 'description', 'category', 'media'];
-        } else if (step === 2) {
-             fieldsToValidate = ['price', 'stock'];
-        }
+        const fieldsToValidate: (keyof z.infer<typeof productFormSchema>)[] =
+          step === 1 ? ['name', 'description', 'category', 'media'] : ['price', 'stock'];
 
         const isValid = await form.trigger(fieldsToValidate);
         if (isValid) {
@@ -640,3 +633,5 @@ export function ProductForm({ productToEdit, onCancel }: ProductFormProps) {
     </Form>
   );
 }
+
+    
