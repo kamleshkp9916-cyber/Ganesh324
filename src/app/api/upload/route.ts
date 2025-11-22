@@ -6,13 +6,13 @@ import { getAuth } from 'firebase-admin/auth';
 
 export async function POST(request: NextRequest) {
   try {
-    const adminApp = getFirebaseAdminApp();
+    const adminApp = await getFirebaseAdminApp();
     const bucket = getStorage(adminApp).bucket();
 
     // Verify user authentication via Authorization header
     const authorization = request.headers.get("Authorization");
     if (!authorization?.startsWith("Bearer ")) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized: Missing or invalid token." }, { status: 401 });
     }
     const idToken = authorization.split("Bearer ")[1];
     const decodedToken = await getAuth(adminApp).verifyIdToken(idToken);
@@ -49,8 +49,8 @@ export async function POST(request: NextRequest) {
 
   } catch (error: any) {
     console.error('Upload Error:', error);
-     if (error.code === 'auth/id-token-expired') {
-        return NextResponse.json({ error: 'Authentication token expired. Please log in again.' }, { status: 401 });
+     if (error.code === 'auth/id-token-expired' || error.code === 'auth/argument-error') {
+        return NextResponse.json({ error: 'Authentication token expired or invalid. Please log in again.' }, { status: 401 });
     }
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
