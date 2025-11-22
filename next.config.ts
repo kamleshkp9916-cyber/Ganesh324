@@ -13,14 +13,6 @@ const nextConfig: NextConfig = {
     // Polling is no longer needed with the assetPrefix fix.
     developmentServerSniff: false,
   },
-  async rewrites() {
-    return [
-      {
-        source: '/api/functions/:path*',
-        destination: 'https://us-central1-streamcart-login.cloudfunctions.net/:path*',
-      },
-    ]
-  },
   serverExternalPackages: ['@genkit-ai/google-genai'],
   images: {
     remotePatterns: [
