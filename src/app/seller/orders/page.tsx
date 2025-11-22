@@ -38,6 +38,7 @@ import {
   ImageIcon // For return images placeholder
 } from 'lucide-react';
 import { SellerHeader } from '@/components/seller/seller-header';
+import { getUserData } from '@/lib/follow-data';
 
 // --- Gemini API Helper ---
 
