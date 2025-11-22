@@ -254,19 +254,19 @@ export function ProductForm({ productToEdit, onCancel }: ProductFormProps) {
         });
         
         setTimeout(() => {
-            setIsSaving(false);
             onCancel();
         }, 1500);
 
     } catch(e: any) {
         console.error("Save error:", e);
-        setSaveProgress(0);
-        setIsSaving(false);
         toast({
             variant: "destructive",
             title: "Save Failed",
             description: e.message || "There was an error saving your product. Please check your connection and try again.",
         });
+    } finally {
+        setIsSaving(false);
+        setSaveProgress(0);
     }
   };
   
