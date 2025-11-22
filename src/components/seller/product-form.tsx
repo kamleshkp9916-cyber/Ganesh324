@@ -107,6 +107,19 @@ interface ProductFormProps {
     onCancel: () => void;
 }
 
+// Moved outside the component to prevent re-creation on every render.
+// This is the key fix for the "double-tap" input issue.
+const initialFormValues = {
+  name: "", description: "", highlights: "", category: "", subcategory: "", brand: "", modelNumber: "", keywords: "",
+  price: 0, stock: 0, media: [], variants: [],
+  listingType: 'general' as 'general' | 'live-only', 
+  status: 'active' as 'active' | 'draft' | 'archived', 
+  keyDetails: "", discountPercentage: undefined,
+  weight: undefined, length: undefined, width: undefined, height: undefined,
+  availableSizes: "", availableColors: "",
+};
+
+
 export function ProductForm({ productToEdit, onCancel }: ProductFormProps) {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -119,16 +132,6 @@ export function ProductForm({ productToEdit, onCancel }: ProductFormProps) {
   const highlightsImageInputRef = useRef<HTMLInputElement>(null);
   const [highlightsImagePreview, setHighlightsImagePreview] = useState<string | null>(null);
 
-  const initialFormValues = useMemo(() => ({
-    name: "", description: "", highlights: "", category: "", subcategory: "", brand: "", modelNumber: "", keywords: "",
-    price: 0, stock: 0, media: [], variants: [],
-    listingType: 'general' as 'general' | 'live-only', 
-    status: 'active' as 'active' | 'draft' | 'archived', 
-    keyDetails: "", discountPercentage: undefined,
-    weight: undefined, length: undefined, width: undefined, height: undefined,
-    availableSizes: "", availableColors: "",
-  }), []);
-
   const form = useForm<z.infer<typeof productFormSchema>>({
     resolver: zodResolver(productFormSchema),
     defaultValues: initialFormValues,
@@ -140,9 +143,12 @@ export function ProductForm({ productToEdit, onCancel }: ProductFormProps) {
   });
   
   useEffect(() => {
+    // This effect now correctly handles resetting the form for new products
+    // or populating it for editing, preventing state leakage between modes.
     if (productToEdit) {
       const productMedia = productToEdit.media || [];
       form.reset({
+        ...initialFormValues, // Start with a clean slate
         ...productToEdit,
         media: productMedia,
         price: productToEdit.price || 0,
@@ -170,7 +176,7 @@ export function ProductForm({ productToEdit, onCancel }: ProductFormProps) {
       setMedia([]);
       setHighlightsImagePreview(null);
     }
-  }, [productToEdit, form, initialFormValues]);
+  }, [productToEdit, form]);
 
   const selectedCategory = form.watch("category");
   const subcategories = useMemo(() => {
@@ -220,7 +226,6 @@ export function ProductForm({ productToEdit, onCancel }: ProductFormProps) {
                     setSaveProgress(prev => prev + (50 / media.length));
                     return result.url;
                 }
-                // If it's not a new file (i.e., from editing), return its existing URL
                 return item.url;
             })
         );
@@ -399,7 +404,7 @@ export function ProductForm({ productToEdit, onCancel }: ProductFormProps) {
                   <FormField control={form.control} name="category" render={({ field }) => (
                       <FormItem>
                           <FormLabel>Category</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <Select onValueChange={field.onChange} value={field.value}>
                               <FormControl><SelectTrigger><SelectValue placeholder="Select a category" /></SelectTrigger></FormControl>
                               <SelectContent>{defaultCategories.map(c => <SelectItem key={c.name} value={c.name}>{c.name}</SelectItem>)}</SelectContent>
                           </Select>
@@ -409,7 +414,7 @@ export function ProductForm({ productToEdit, onCancel }: ProductFormProps) {
                    <FormField control={form.control} name="subcategory" render={({ field }) => (
                       <FormItem>
                           <FormLabel>Sub-category</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!selectedCategory}>
+                          <Select onValueChange={field.onChange} value={field.value} disabled={!selectedCategory}>
                               <FormControl><SelectTrigger><SelectValue placeholder="Select a sub-category" /></SelectTrigger></FormControl>
                               <SelectContent>{subcategories.map(s => <SelectItem key={s.name} value={s.name}>{s.name}</SelectItem>)}</SelectContent>
                           </Select>
