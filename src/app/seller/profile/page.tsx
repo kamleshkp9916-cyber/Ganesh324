@@ -4,7 +4,7 @@
 import { useAuth } from '@/hooks/use-auth.tsx';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Button, buttonVariants } from '@/components/ui/button';
-import { ArrowLeft, MoreHorizontal, Edit, Share2, Flag, MessageSquare, LifeBuoy } from 'lucide-react';
+import { ArrowLeft, MoreHorizontal, Edit, Share2, Flag, MessageSquare, LifeBuoy, Shield } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import {
@@ -212,7 +212,7 @@ export default function SellerProfilePage() {
                         </DropdownMenuItem>
                          <DropdownMenuSeparator />
                         <FeedbackDialog>
-                            <DropdownMenuItem onSelect={(e) => { e.preventDefault(); handleAuthAction(() => {}); }}>
+                            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
                                 <MessageCircle className="mr-2 h-4 w-4" />
                                 <span>Feedback</span>
                             </DropdownMenuItem>
@@ -220,6 +220,10 @@ export default function SellerProfilePage() {
                          <DropdownMenuItem onSelect={() => handleAuthAction(() => router.push('/help'))}>
                             <LifeBuoy className="mr-2 h-4 w-4" />
                             <span>Help & Support</span>
+                        </DropdownMenuItem>
+                         <DropdownMenuItem onSelect={() => handleAuthAction(() => router.push('/privacy-and-security'))}>
+                            <Shield className="mr-2 h-4 w-4" />
+                            <span>Privacy & Security</span>
                         </DropdownMenuItem>
                     </DropdownMenuContent>
                 </DropdownMenu>
@@ -237,9 +241,9 @@ export default function SellerProfilePage() {
             </main>
             <div className="p-4 border-t sticky bottom-0 bg-background">
                  <Button asChild className="w-full">
-                     <Link href="/message?executive=true">
+                     <Link href="/tickets">
                         <MessageSquare className="mr-2 h-4 w-4" />
-                        Realtime Support
+                        Help & Support
                     </Link>
                 </Button>
             </div>
