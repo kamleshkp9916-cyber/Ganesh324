@@ -18,7 +18,7 @@ import {
   FormDescription,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Checkbox } from "@/components/ui/checkbox";
+import { Checkbox } from "../ui/checkbox";
 import { useAuthActions } from "@/lib/auth";
 
 const loginSchema = z.object({
@@ -60,6 +60,7 @@ function GoogleIcon(props: React.SVGProps<SVGSVGElement>) {
 export function LoginForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [failedAttempts, setFailedAttempts] = useState(0);
   const { handleEmailSignIn, handleGoogleSignIn } = useAuthActions();
 
   const form = useForm<z.infer<typeof loginSchema>>({
@@ -69,7 +70,10 @@ export function LoginForm() {
 
   async function onSubmit(values: z.infer<typeof loginSchema>) {
     setIsLoading(true);
-    await handleEmailSignIn(values);
+    const success = await handleEmailSignIn(values);
+    if (!success) {
+        setFailedAttempts(prev => prev + 1);
+    }
     setIsLoading(false);
   }
   
@@ -122,9 +126,11 @@ export function LoginForm() {
                 </div>
               </FormControl>
               <FormMessage />
-               <FormDescription className="text-xs text-muted-foreground">
-                For security, 3 incorrect attempts will lock your account for 24 hours.
-              </FormDescription>
+              {failedAttempts > 0 && (
+                <FormDescription className="text-xs text-destructive/80">
+                    For security, 3 incorrect attempts will lock your account for 24 hours.
+                </FormDescription>
+              )}
             </FormItem>
           )}
         />
