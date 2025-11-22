@@ -264,6 +264,11 @@ export default function SellerProductsPage() {
         return null;
     }
 
+    const handleSaveProduct = (product: Product) => {
+        setIsFormOpen(false);
+        setEditingProduct(undefined);
+    };
+    
     const handleEditProduct = (product: Product) => {
         setEditingProduct(product);
         setIsFormOpen(true);
@@ -454,25 +459,22 @@ export default function SellerProductsPage() {
               </div>
           </main>
         </div>
-
         <DialogContent className="sm:max-w-3xl h-[90vh] flex flex-col">
-            <DialogHeader>
-                <DialogTitle>{editingProduct ? "Edit Product" : "Add New Product"}</DialogTitle>
-                <DialogDescription>
-                    {editingProduct ? "Update the details of your product." : "Fill in the details to add a new product to your store."}
-                </DialogDescription>
-            </DialogHeader>
-            <ProductForm onCancel={() => handleOpenChange(false)} productToEdit={editingProduct} />
+          <DialogHeader>
+              <DialogTitle>{editingProduct ? "Edit Product" : "Add New Product"}</DialogTitle>
+              <DialogDescription>
+                  {editingProduct ? "Update the details of your product." : "Fill in the details to add a new product to your store."}
+              </DialogDescription>
+          </DialogHeader>
+          <ProductForm onSave={handleSaveProduct} onCancel={() => handleOpenChange(false)} productToEdit={editingProduct} />
         </DialogContent>
       </Dialog>
       <Dialog open={isQnaOpen} onOpenChange={setIsQnaOpen}>
-        {selectedProduct && <ManageQnaDialog product={selectedProduct} />}
+        {selectedProduct && <ManageQnaDialog product={selectedProduct} onClose={() => setIsQnaOpen(false)} />}
       </Dialog>
       <Dialog open={isAnalyticsOpen} onOpenChange={setIsAnalyticsOpen}>
-        {selectedProduct && <ProductAnalyticsDialog product={selectedProduct} />}
+        {selectedProduct && <ProductAnalyticsDialog product={selectedProduct} onClose={() => setIsAnalyticsOpen(false)} />}
       </Dialog>
     </>
   )
 }
-
-    
