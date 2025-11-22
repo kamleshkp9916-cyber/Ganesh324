@@ -15,6 +15,7 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
+  FormDescription,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -121,6 +122,9 @@ export function LoginForm() {
                 </div>
               </FormControl>
               <FormMessage />
+               <FormDescription className="text-xs text-muted-foreground">
+                For security, 3 incorrect attempts will lock your account for 24 hours.
+              </FormDescription>
             </FormItem>
           )}
         />
