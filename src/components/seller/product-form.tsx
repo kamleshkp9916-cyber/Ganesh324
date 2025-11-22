@@ -30,7 +30,6 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { collection, doc, setDoc, addDoc, serverTimestamp } from "firebase/firestore";
-import { getStorage, ref, uploadString, getDownloadURL } from "firebase/storage";
 import { defaultCategories } from "@/lib/categories";
 import Image from "next/image";
 import { Separator } from "@/components/ui/separator";
@@ -132,7 +131,7 @@ export function ProductForm({ productToEdit, onCancel }: ProductFormProps) {
 
   const form = useForm<z.infer<typeof productFormSchema>>({
     resolver: zodResolver(productFormSchema),
-    defaultValues: productToEdit || initialFormValues,
+    defaultValues: initialFormValues,
   });
 
   const { fields, append, remove, update } = useFieldArray({
@@ -194,29 +193,46 @@ export function ProductForm({ productToEdit, onCancel }: ProductFormProps) {
     
     try {
         const db = getFirestoreDb();
-        const storage = getStorage();
         const colRef = collection(db, 'users', user.uid, 'products');
-
-        let productId = productToEdit?.id || doc(colRef).id;
+        const productId = productToEdit?.id || doc(colRef).id;
         setSaveProgress(20);
 
-        const mediaUrls = await Promise.all(
-            (media || []).map(async (item, index) => {
+        const idToken = await user.getIdToken();
+
+        const uploadedMediaUrls = await Promise.all(
+            media.map(async (item) => {
                 if (item.file && item.url.startsWith('data:')) {
                     const filePath = `products/${user.uid}/${productId}/${item.file.name}`;
-                    const storageRef = ref(storage, filePath);
-                    await uploadString(storageRef, item.url, 'data_url');
-                    setSaveProgress(prev => prev + (50 / (media.length || 1)));
-                    return getDownloadURL(storageRef);
+                    const formData = new FormData();
+                    formData.append('file', item.file);
+                    formData.append('filePath', filePath);
+
+                    const response = await fetch('/api/upload', {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${idToken}`,
+                        },
+                        body: formData,
+                    });
+
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(`Upload failed: ${errorData.error || response.statusText}`);
+                    }
+                    
+                    const result = await response.json();
+                    setSaveProgress(prev => prev + (50 / media.length));
+                    return result.url;
                 }
+                // If it's not a new file (i.e., from editing), return its existing URL
                 return item.url;
             })
         );
         setSaveProgress(75);
 
-        const finalMedia = (media || []).map((item, index) => ({
+        const finalMedia = media.map((item, index) => ({
             type: item.type,
-            url: mediaUrls[index]
+            url: uploadedMediaUrls[index]
         }));
         
         const dataToSave: Omit<Product, 'id'> = {
@@ -245,14 +261,14 @@ export function ProductForm({ productToEdit, onCancel }: ProductFormProps) {
             onCancel();
         }, 1500);
 
-    } catch(e) {
+    } catch(e: any) {
         console.error("Save error:", e);
         setSaveProgress(0);
         setIsSaving(false);
         toast({
             variant: "destructive",
             title: "Save Failed",
-            description: "There was an error saving your product. Please check your connection and try again.",
+            description: e.message || "There was an error saving your product. Please check your connection and try again.",
         });
     }
   };
@@ -633,5 +649,3 @@ export function ProductForm({ productToEdit, onCancel }: ProductFormProps) {
     </Form>
   );
 }
-
-    
