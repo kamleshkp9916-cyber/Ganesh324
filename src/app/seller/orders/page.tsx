@@ -206,13 +206,14 @@ const INITIAL_ORDERS = [
   }
 ];
 
+// --- Utilities ---
+const inr = (n: number) => new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 2 }).format(n);
+
 // --- Components ---
 
 const InvoiceModal = ({ isOpen, onClose, order }: {isOpen: boolean, onClose: () => void, order: any}) => {
     if (!isOpen || !order) return null;
     
-    const inr = (n: number) => new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 2 }).format(n);
-
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 print:p-0 print:bg-white print:absolute print:inset-0">
             <div className="bg-white rounded-lg shadow-2xl w-full max-w-3xl overflow-hidden border border-slate-200 max-h-[90vh] overflow-y-auto">
@@ -294,7 +295,7 @@ const InvoiceModal = ({ isOpen, onClose, order }: {isOpen: boolean, onClose: () 
                                 <span>{inr(order.totals.subtotal)}</span>
                             </div>
                             <div className="flex justify-between text-slate-600">
-                                <span>Shipping (FedEx)</span>
+                                <span>Shipping ({order.shipping.carrier})</span>
                                 <span>{inr(order.totals.shipping)}</span>
                             </div>
                             <div className="flex justify-between font-bold text-slate-900 text-lg pt-2 border-t border-slate-200">
@@ -419,7 +420,7 @@ const OrderCard = ({ order, onGenerateLabel, onAccept, onDecline, onOpenAI, isEx
           </span>
           {!isExpanded && (
              <span className="text-sm text-slate-500 font-medium ml-4 border-l pl-4">
-               {order.customer.name} • ${order.totals.total.toFixed(2)}
+               {order.customer.name} • {inr(order.totals.total)}
              </span>
           )}
         </div>
@@ -484,7 +485,7 @@ const OrderCard = ({ order, onGenerateLabel, onAccept, onDecline, onOpenAI, isEx
                   <div className="flex items-center gap-2 text-sm font-medium text-slate-700">
                     <CreditCard className="w-4 h-4" /> {order.customer.paymentMethod}
                   </div>
-                  <span className="text-lg font-bold text-slate-900">${order.totals.total.toFixed(2)}</span>
+                  <span className="text-lg font-bold text-slate-900">{inr(order.totals.total)}</span>
                 </div>
               </div>
             </div>
@@ -704,21 +705,27 @@ const OrderCard = ({ order, onGenerateLabel, onAccept, onDecline, onOpenAI, isEx
                       <p className="text-sm font-medium text-slate-900 truncate">{item.name}</p>
                       <p className="text-xs text-slate-500">Qty: {item.qty}</p>
                     </div>
-                    <div className="text-sm font-semibold text-slate-900">${item.price.toFixed(2)}</div>
+                    <div className="text-sm font-semibold text-slate-900">{inr(item.price)}</div>
                   </div>
                 ))}
               </div>
               
               <div className="mt-auto pt-4 border-t border-slate-200 space-y-2">
-                <div className="flex justify-between text-sm text-slate-500">
-                  <span>Subtotal</span><span>${order.totals.subtotal.toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between text-sm text-slate-500">
-                  <span>Shipping</span><span>${order.totals.shipping.toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between text-base font-bold text-slate-900 pt-2">
-                  <span>Total</span><span>${order.totals.total.toFixed(2)}</span>
-                </div>
+                  <div className="flex justify-between text-sm text-slate-500">
+                      <span>Subtotal</span><span>{inr(order.totals.subtotal)}</span>
+                  </div>
+                  <div className="flex justify-between text-sm text-slate-500">
+                      <span>Shipping</span><span>{inr(order.totals.shipping)}</span>
+                  </div>
+                   {order.coupon && (
+                      <div className="flex justify-between text-sm text-green-600">
+                          <span>Coupon ({order.coupon.code})</span>
+                          <span>-{inr(order.coupon.discount)}</span>
+                      </div>
+                  )}
+                  <div className="flex justify-between text-base font-bold text-slate-900 pt-2">
+                      <span>Total</span><span>{inr(order.totals.total)}</span>
+                  </div>
               </div>
             </div>
 
@@ -729,11 +736,12 @@ const OrderCard = ({ order, onGenerateLabel, onAccept, onDecline, onOpenAI, isEx
 };
 
 export default function App() {
-  const [orders, setOrders] = useState(INITIAL_ORDERS);
+  const [orders, setOrders] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [filteredOrders, setFilteredOrders] = useState<any[]>([]);
   const [expandedOrderIds, setExpandedOrderIds] = useState(new Set([INITIAL_ORDERS[1].id, INITIAL_ORDERS[3].id])); 
   const [activeTab, setActiveTab] = useState('active');
+  const [isClient, setIsClient] = useState(false);
   
   // Modal States
   const [invoiceOrder, setInvoiceOrder] = useState(null);
@@ -744,6 +752,24 @@ export default function App() {
     isLoading: false,
     title: ""
   });
+  
+  useEffect(() => {
+    setIsClient(true);
+    const fetchAndEnhanceOrders = async () => {
+        const enhancedOrders = await Promise.all(INITIAL_ORDERS.map(async (order) => {
+            const customerData = await getUserData(order.customer.name);
+            return {
+                ...order,
+                customer: {
+                    ...order.customer,
+                    ...customerData,
+                }
+            };
+        }));
+        setOrders(enhancedOrders);
+    };
+    fetchAndEnhanceOrders();
+  }, []);
 
   // Filter Logic
   useEffect(() => {
@@ -981,3 +1007,5 @@ export default function App() {
     </div>
   );
 }
+
+    
