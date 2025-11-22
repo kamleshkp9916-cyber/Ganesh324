@@ -1,8 +1,10 @@
 
+'use server';
+
 import * as admin from 'firebase-admin';
 
 // This function is for the Genkit flows (server-side)
-export function getFirebaseAdminApp() {
+export async function getFirebaseAdminApp() {
   if (admin.apps.length > 0 && admin.apps[0]) {
     return admin.apps[0];
   }
