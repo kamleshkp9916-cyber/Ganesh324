@@ -9,10 +9,6 @@ const nextConfig: NextConfig = {
   assetPrefix,
   // This allows requests from the Firebase Studio development environment.
   allowedDevOrigins: ["https://*.cloudworkstations.dev", "https://*.firebase.studio"],
-  experimental: {
-    // Polling is no longer needed with the assetPrefix fix.
-    developmentServerSniff: false,
-  },
   serverExternalPackages: ['@genkit-ai/google-genai'],
   images: {
     remotePatterns: [
