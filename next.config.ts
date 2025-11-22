@@ -8,13 +8,9 @@ const assetPrefix = process.env.FIREBASE_APP_HOST
 const nextConfig: NextConfig = {
   assetPrefix,
   // This allows requests from the Firebase Studio development environment.
-  allowedDevOrigins: ["https://*.cloudworkstations.dev"],
+  allowedDevOrigins: ["https://*.cloudworkstations.dev", "https://*.firebase.studio"],
   experimental: {
     // Polling is no longer needed with the assetPrefix fix.
-    webpack: (config) => {
-      config.watchOptions.poll = 300;
-      return config;
-    },
     developmentServerSniff: false,
   },
   async rewrites() {
