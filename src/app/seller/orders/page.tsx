@@ -92,10 +92,10 @@ const INITIAL_ORDERS = [
       isLabelGenerated: true
     },
     items: [
-      { id: 1, name: "Sony WH-1000XM5", qty: 1, price: 349.00, img: "https://images.unsplash.com/photo-1618366712010-f4ae9c647dcb?w=150&q=80" },
-      { id: 2, name: "Samsung Galaxy S24 Ultra", qty: 1, price: 900.00, img: "https://images.unsplash.com/photo-1610945265078-3858e0b5528b?w=150&q=80" }
+      { id: 1, name: "Sony WH-1000XM5", qty: 1, price: 34900.00, img: "https://images.unsplash.com/photo-1618366712010-f4ae9c647dcb?w=150&q=80" },
+      { id: 2, name: "Samsung Galaxy S24 Ultra", qty: 1, price: 90000.00, img: "https://images.unsplash.com/photo-1610945265078-3858e0b5528b?w=150&q=80" }
     ],
-    totals: { subtotal: 1249.00, shipping: 0.00, total: 1249.00 }
+    totals: { subtotal: 124900.00, shipping: 0.00, total: 124900.00 }
   },
   {
     id: "ORD-2024-RET-001",
@@ -124,9 +124,9 @@ const INITIAL_ORDERS = [
         ]
     },
     items: [
-      { id: 7, name: "Gaming Monitor 27\"", qty: 1, price: 320.00, img: "https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?w=150&q=80" }
+      { id: 7, name: "Gaming Monitor 27\"", qty: 1, price: 32000.00, img: "https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?w=150&q=80" }
     ],
-    totals: { subtotal: 320.00, shipping: 0.00, total: 320.00 }
+    totals: { subtotal: 32000.00, shipping: 0.00, total: 32000.00 }
   },
   {
     id: "ORD-2024-002",
@@ -146,9 +146,9 @@ const INITIAL_ORDERS = [
       isLabelGenerated: false
     },
     items: [
-      { id: 3, name: "Mechanical Keycaps Set", qty: 1, price: 89.50, img: "https://images.unsplash.com/photo-1595225476474-87563907a212?w=150&q=80" }
+      { id: 3, name: "Mechanical Keycaps Set", qty: 1, price: 8950.00, img: "https://images.unsplash.com/photo-1595225476474-87563907a212?w=150&q=80" }
     ],
-    totals: { subtotal: 89.50, shipping: 0.00, total: 89.50 }
+    totals: { subtotal: 8950.00, shipping: 0.00, total: 8950.00 }
   },
   {
     id: "ORD-2024-CNCL-099",
@@ -173,9 +173,9 @@ const INITIAL_ORDERS = [
         date: "Nov 10, 2025"
     },
     items: [
-      { id: 6, name: "Bluetooth Speaker", qty: 1, price: 120.00, img: "https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=150&q=80" }
+      { id: 6, name: "Bluetooth Speaker", qty: 1, price: 12000.00, img: "https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=150&q=80" }
     ],
-    totals: { subtotal: 120.00, shipping: 0.00, total: 120.00 }
+    totals: { subtotal: 12000.00, shipping: 0.00, total: 12000.00 }
   },
   {
     id: "ORD-2024-CNCL-100",
@@ -200,9 +200,9 @@ const INITIAL_ORDERS = [
         date: "Nov 09, 2025"
     },
     items: [
-      { id: 8, name: "Vintage Lamp", qty: 1, price: 85.00, img: "https://images.unsplash.com/photo-1507473888900-52a11b6f8d93?w=150&q=80" }
+      { id: 8, name: "Vintage Lamp", qty: 1, price: 8500.00, img: "https://images.unsplash.com/photo-1507473888900-52a11b6f8d93?w=150&q=80" }
     ],
-    totals: { subtotal: 85.00, shipping: 15.00, total: 100.00 }
+    totals: { subtotal: 8500.00, shipping: 1500.00, total: 10000.00 }
   }
 ];
 
@@ -210,6 +210,8 @@ const INITIAL_ORDERS = [
 
 const InvoiceModal = ({ isOpen, onClose, order }: {isOpen: boolean, onClose: () => void, order: any}) => {
     if (!isOpen || !order) return null;
+    
+    const inr = (n: number) => new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 2 }).format(n);
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 print:p-0 print:bg-white print:absolute print:inset-0">
@@ -230,7 +232,7 @@ const InvoiceModal = ({ isOpen, onClose, order }: {isOpen: boolean, onClose: () 
                 </div>
 
                 {/* Invoice Content */}
-                <div className="p-8 bg-white text-slate-800 font-mono text-sm" id="invoice-content">
+                <div className="p-8 bg-white text-slate-800 font-sans text-sm" id="invoice-content">
                     {/* Invoice Header */}
                     <div className="flex justify-between items-start mb-8 pb-8 border-b-2 border-slate-800">
                         <div>
@@ -277,8 +279,8 @@ const InvoiceModal = ({ isOpen, onClose, order }: {isOpen: boolean, onClose: () 
                                 <tr key={item.id} className="border-b border-slate-50">
                                     <td className="py-4 text-slate-700">{item.name}</td>
                                     <td className="py-4 text-center text-slate-600">{item.qty}</td>
-                                    <td className="py-4 text-right text-slate-600">${item.price.toFixed(2)}</td>
-                                    <td className="py-4 text-right font-bold text-slate-800">${(item.price * item.qty).toFixed(2)}</td>
+                                    <td className="py-4 text-right text-slate-600">{inr(item.price)}</td>
+                                    <td className="py-4 text-right font-bold text-slate-800">{inr(item.price * item.qty)}</td>
                                 </tr>
                             ))}
                         </tbody>
@@ -289,15 +291,15 @@ const InvoiceModal = ({ isOpen, onClose, order }: {isOpen: boolean, onClose: () 
                         <div className="w-64 space-y-2">
                             <div className="flex justify-between text-slate-600">
                                 <span>Subtotal</span>
-                                <span>${order.totals.subtotal.toFixed(2)}</span>
+                                <span>{inr(order.totals.subtotal)}</span>
                             </div>
                             <div className="flex justify-between text-slate-600">
                                 <span>Shipping (FedEx)</span>
-                                <span>${order.totals.shipping.toFixed(2)}</span>
+                                <span>{inr(order.totals.shipping)}</span>
                             </div>
                             <div className="flex justify-between font-bold text-slate-900 text-lg pt-2 border-t border-slate-200">
                                 <span>Total</span>
-                                <span>${order.totals.total.toFixed(2)}</span>
+                                <span>{inr(order.totals.total)}</span>
                             </div>
                         </div>
                     </div>
