@@ -29,6 +29,16 @@ if (!admin.apps.length) {
 // --- onCall Functions ---
 
 const createOdiditSessionImpl = async (data) => {
+    // In a real app, you would use this API key to make a request to the 0DIDit service.
+    // This is just a simulation.
+    if (!process.env.ODIDIT_API_KEY) {
+        console.error("ODIDIT_API_KEY is not set.");
+        throw new HttpsError('internal', 'The verification service is not configured.');
+    }
+    
+    // Simulate using the API key for a request
+    console.log("Using ODIDIT_API_KEY to create a session.");
+    
     const sessionId = `mock-session-${Date.now()}`;
     const verificationLink = `https://0did.it/verify/${sessionId}`;
     return { verificationLink, sessionId };
@@ -119,7 +129,7 @@ const updateLastLoginImpl = async (data, context) => {
 };
 
 // Export the onCall functions
-exports.createOdiditSession = onCall(createOdiditSessionImpl);
+exports.createOdiditSession = onCall({ secrets: ["ODIDIT_API_KEY"] }, createOdiditSessionImpl);
 exports.checkOdiditSession = onCall(checkOdiditSessionImpl);
 exports.sendVerificationCode = onCall(sendVerificationCodeImpl);
 exports.verifyCode = onCall(verifyCodeImpl);
