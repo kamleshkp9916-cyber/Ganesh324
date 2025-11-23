@@ -33,6 +33,7 @@ import { getFirestoreDb } from "@/lib/firebase-db";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const SELLER_KYC_DRAFT_KEY = 'sellerKycDraft';
+const SELLER_KYC_STEP_KEY = 'sellerKycStep';
 
 const Section = ({ title, children, icon, hasError }: { title: string, children: React.ReactNode, icon: React.ReactNode, hasError?: boolean }) => (
   <Card className={`shadow-lg border rounded-2xl ${hasError ? 'border-destructive' : ''}`}>
@@ -67,7 +68,10 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
   const { user } = useAuth();
   const { toast } = useToast();
   const { handleSellerSignUp } = useAuthActions();
-  const [current, setCurrent] = useState(existingData?.stepsToFix?.[0] ? steps.findIndex(s => s.key === existingData.stepsToFix[0]) : 0);
+  
+  const getInitialStep = () => existingData?.stepsToFix?.[0] ? steps.findIndex(s => s.key === existingData.stepsToFix[0]) : 0;
+  
+  const [current, setCurrent] = useLocalStorage<number>(SELLER_KYC_STEP_KEY, getInitialStep());
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   
   const initialFormState = {
@@ -373,6 +377,7 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
 
   const handleReset = () => {
     localStorage.removeItem(SELLER_KYC_DRAFT_KEY);
+    localStorage.removeItem(SELLER_KYC_STEP_KEY);
     window.location.reload();
   };
 
@@ -917,3 +922,5 @@ export default function KYCPage() {
         </div>
     );
 }
+
+    
