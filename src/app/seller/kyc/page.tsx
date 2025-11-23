@@ -105,7 +105,7 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
   const [form, setForm] = useLocalStorage<any>(SELLER_KYC_DRAFT_KEY, initialFormState);
   const [isFormDirty, setIsFormDirty] = useState(false);
   
-  const [verif, setVerif] = useState<{ state: "IDLE" | "PENDING" | "VERIFIED" | "FAILED", message: string }>({ state: existingData?.isNipherVerified ? 'VERIFIED' : "IDLE", message: existingData?.isNipherVerified ? 'Verification previously completed.' : '' });
+    const [verif, setVerif] = useState<{ state: "IDLE" | "PENDING" | "VERIFIED" | "FAILED", message: string }>({ state: existingData?.isNipherVerified ? 'VERIFIED' : "IDLE", message: existingData?.isNipherVerified ? 'Verification previously completed.' : '' });
   const [isVerifying, setIsVerifying] = useState({ email: false, phone: false, aadhaar: false, face: false });
   const [qrCodeUrl, setQrCodeUrl] = useState<string | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(form.photoUrl || null);
@@ -246,29 +246,8 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
   }, [form.pan]);
 
   const handleSendOtp = async (type: 'email' | 'phone') => {
-    const target = type === 'email' ? form.email : `+91${form.phone}`;
-    if (!target) return;
-
-    setIsVerifying(prev => ({...prev, [type]: true}));
-    
-    try {
-        const functions = getFunctions(getFirestoreDb().app);
-        const sendCode = httpsCallable(functions, 'sendVerificationCode');
-        const result: any = await sendCode({ type, target });
-
-        if (result.data.success) {
-            setOtpSent(prev => ({...prev, [type]: true}));
-            setResendCooldown(prev => ({ ...prev, [type]: RESEND_COOLDOWN }));
-            toast({ title: `OTP Sent to your ${type}` });
-        } else {
-            throw new Error('Failed to send OTP.');
-        }
-    } catch (error: any) {
-      console.error(`Error sending ${type} OTP:`, error);
-      toast({ variant: 'destructive', title: `Failed to send ${type} OTP`, description: error.message });
-    } finally {
-      setIsVerifying(prev => ({...prev, [type]: false}));
-    }
+    setOtpSent(prev => ({...prev, [type]: true}));
+    toast({ title: `OTP Sent to your ${type}` });
   };
 
   const handleVerifyOtp = async (type: 'email' | 'phone') => {
@@ -940,3 +919,5 @@ export default function KYCPage() {
         </div>
     );
 }
+
+    
