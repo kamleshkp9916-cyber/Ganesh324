@@ -101,11 +101,11 @@ const createAdminUserImpl = async (data, context) => {
 
 
 // Export the onCall functions
-exports.createOdiditSession = onCall(createOdiditSessionImpl);
-exports.checkOdiditSession = onCall(checkOdiditSessionImpl);
-exports.sendVerificationCode = onCall(sendVerificationCodeImpl);
-exports.verifyCode = onCall(verifyCodeImpl);
-exports.createAdminUser = onCall(createAdminUserImpl);
+exports.createOdiditSession = onCall({ cors: true }, createOdiditSessionImpl);
+exports.checkOdiditSession = onCall({ cors: true }, checkOdiditSessionImpl);
+exports.sendVerificationCode = onCall({ cors: true }, sendVerificationCodeImpl);
+exports.verifyCode = onCall({ cors: true }, verifyCodeImpl);
+exports.createAdminUser = onCall({ cors: true }, createAdminUserImpl);
 
 
 // --- Existing onRequest and trigger functions ---
