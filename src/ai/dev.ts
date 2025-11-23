@@ -5,15 +5,19 @@
  *
  * It is not used in production.
  */
-import { nextDev } from '@genkit-ai/next';
-import { defineDevApp } from 'genkit';
 
-export default defineDevApp({
-  plugins: [
-    nextDev({
-      appPath: '.',
-      watch: ['.'],
-      ignore: ['.next/**'],
-    }),
-  ],
-});
+// Disabling this for now to resolve server startup issues.
+// import { nextDev } from '@genkit-ai/next';
+// import { defineDevApp } from 'genkit';
+
+// export default defineDevApp({
+//   plugins: [
+//     nextDev({
+//       appPath: '.',
+//       watch: ['.'],
+//       ignore: ['.next/**'],
+//     }),
+//   ],
+// });
+
+export default {};
