@@ -1,8 +1,5 @@
 
 {
-  "firestore": {
-    "rules": "firestore.rules"
-  },
   "hosting": {
     "source": ".",
     "ignore": [
@@ -12,25 +9,6 @@
     ],
     "frameworksBackend": {
       "region": "us-central1"
-    },
-    "rewrites": [
-      {
-        "source": "/api/functions/sendEmail",
-        "function": "sendEmail"
-      }
-    ]
-  },
-  "functions": [
-    {
-      "source": "functions",
-      "codebase": "default",
-      "ignore": [
-        "node_modules",
-        ".git",
-        "firebase-debug.log",
-        "firebase-debug.*.log",
-        "*.local"
-      ]
     }
-  ]
+  }
 }
