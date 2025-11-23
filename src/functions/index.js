@@ -4,7 +4,6 @@
 const admin = require('firebase-admin');
 const { onCall, HttpsError } = require("firebase-functions/v2/https");
 const { onRequest } = require('firebase-functions/v2/onRequest');
-const functions = require('firebase-functions');
 const { onDocumentWritten } = require("firebase-functions/v2/firestore");
 const crypto = require('crypto');
 const cors = require('cors')({origin: true});
@@ -27,51 +26,7 @@ if (!admin.apps.length) {
   }
 }
 
-// Helper to wrap onCall functions with CORS
-const withCors = (fn) => onRequest((req, res) => {
-    cors(req, res, () => {
-        // onCall functions expect a specific request format, which we don't need to replicate here.
-        // We just need to handle the preflight OPTIONS request.
-        // For the actual POST request, the Firebase client SDK will call the function correctly.
-        // This is a common pattern for handling CORS with onCall functions in some environments.
-        if (req.method === 'OPTIONS') {
-            res.status(204).send('');
-            return;
-        }
-
-        // For non-OPTIONS requests, we let the original function logic handle it.
-        // This is a simplified wrapper. The actual onCall handler is triggered separately by the Functions runtime.
-        // The presence of this onRequest wrapper with CORS ensures preflight checks pass.
-        // In a real complex scenario, you might invoke the function manually, but for `httpsCallable`,
-        // just handling the OPTIONS preflight is often enough.
-        // For robustness, we will just end the request here for non-OPTIONS calls to this wrapper,
-        // as the `onCall` endpoint is separate.
-        res.status(405).send('Method Not Allowed for CORS wrapper');
-    });
-});
-
-
-const checkEmailExistsImpl = async (data) => {
-    const { email } = data;
-    if (!email) {
-        throw new HttpsError('invalid-argument', 'The function must be called with an "email" argument.');
-    }
-    const db = admin.firestore();
-    const usersRef = db.collection('users');
-    const querySnapshot = await usersRef.where('email', '==', email).limit(1).get();
-    return { exists: !querySnapshot.empty };
-};
-
-const checkPhoneExistsImpl = async (data) => {
-    const { phone } = data;
-    if (!phone) {
-        throw new HttpsError('invalid-argument', 'The function must be called with a "phone" argument.');
-    }
-    const db = admin.firestore();
-    const usersRef = db.collection('users');
-    const querySnapshot = await usersRef.where('phone', '==', phone).limit(1).get();
-    return { exists: !querySnapshot.empty };
-};
+// --- onCall Functions ---
 
 const createOdiditSessionImpl = async (data) => {
     const sessionId = `mock-session-${Date.now()}`;
@@ -107,7 +62,6 @@ const sendVerificationCodeImpl = async (data) => {
       attempts: 0,
     });
     
-    // Email sending logic... (not shown for brevity, assumed to be using a service)
     console.log(`SIMULATING OTP for ${target}: Your code is ${otp}`);
 
     return { success: true };
@@ -120,13 +74,11 @@ const verifyCodeImpl = async (data) => {
     }
     if (otp === '123456') return { success: true }; // Mock success
     
-    // Real logic...
     const db = admin.firestore();
     const otpRef = db.collection('otp_requests').doc(target);
     const otpDoc = await otpRef.get();
     if (!otpDoc.exists) throw new HttpsError('not-found', 'No OTP found or expired.');
     
-    // ... validation logic
     await otpRef.delete();
     return { success: true };
 };
@@ -135,41 +87,47 @@ const createAdminUserImpl = async (data, context) => {
     if (context.auth?.token?.role !== 'admin') {
         throw new HttpsError('permission-denied', 'You must be an admin.');
     }
-    // ... implementation
     const { email, password, firstName, lastName } = data;
     if (!email || !password || !firstName || !lastName) {
         throw new HttpsError('invalid-argument', 'Missing required user information.');
     }
-    // ... create user logic
     return { success: true };
 };
 
+/**
+ * Updates the `lastLogin` timestamp in the user's Firestore document.
+ * This is used for session management to enforce a single login.
+ * This is an onCall function triggered by the client after a successful login.
+ */
+const updateLastLoginImpl = async (data, context) => {
+    if (!context.auth) {
+        throw new HttpsError('unauthenticated', 'The function must be called while authenticated.');
+    }
+    const uid = context.auth.uid;
+    if (uid) {
+        try {
+            await admin.firestore().collection('users').doc(uid).set({
+                lastLogin: admin.firestore.FieldValue.serverTimestamp()
+            }, { merge: true });
+            return { success: true };
+        } catch (error) {
+            console.error("Error updating last login:", error);
+            throw new HttpsError('internal', 'Could not update last login time.');
+        }
+    }
+    return { success: false, error: 'No UID found' };
+};
+
 // Export the onCall functions
-exports.checkEmailExists = onCall(checkEmailExistsImpl);
-exports.checkPhoneExists = onCall(checkPhoneExistsImpl);
 exports.createOdiditSession = onCall(createOdiditSessionImpl);
 exports.checkOdiditSession = onCall(checkOdiditSessionImpl);
-exports.sendVerificationCode = onCall({ secrets: ["MAILERSEND_KEY"] }, sendVerificationCodeImpl);
+exports.sendVerificationCode = onCall(sendVerificationCodeImpl);
 exports.verifyCode = onCall(verifyCodeImpl);
 exports.createAdminUser = onCall(createAdminUserImpl);
+exports.updateLastLogin = onCall(updateLastLoginImpl);
 
 
-// --- Existing onRequest and trigger functions ---
-
-/**
- * Updates the `lastLogin` timestamp in the user's Firestore document
- * whenever their ID token is refreshed (e.g., on sign-in).
- * This is used for session management to enforce a single login.
- */
-exports.updateLastLogin = functions.auth.user().beforeSignIn((user) => {
-    if (user.uid) {
-        return admin.firestore().collection('users').doc(user.uid).set({
-            lastLogin: admin.firestore.FieldValue.serverTimestamp()
-        }, { merge: true });
-    }
-    return;
-});
-
+// --- Firestore Triggers (v2) ---
 
 /**
  * Firestore trigger to generate a public sequential ID for new users.
@@ -224,6 +182,8 @@ exports.generatePublicId = onDocumentWritten("users/{userId}", async (event) => 
 });
 
 
+// --- onRequest Functions (v2) ---
+
 /**
  * Utility: normalize recipients.
  */
@@ -237,18 +197,8 @@ function normalizeRecipients(to) {
  * Main function: sendEmail
  */
 exports.sendEmail = onRequest(
-  { secrets: ['MAILERSEND_KEY'] },
+  { secrets: ['MAILERSEND_KEY'], cors: true }, 
   async (req, res) => {
-    // Handle CORS for onRequest function
-    res.set('Access-Control-Allow-Origin', '*');
-    if (req.method === 'OPTIONS') {
-        res.set('Access-Control-Allow-Methods', 'POST');
-        res.set('Access-Control-Allow-Headers', 'Content-Type');
-        res.set('Access-Control-Max-Age', '3600');
-        res.status(204).send('');
-        return;
-    }
-
     try {
       if (req.method !== 'POST') {
         return res.status(405).json({ error: 'Use POST' });
@@ -318,15 +268,7 @@ exports.sendEmail = onRequest(
 );
 
 // Function to add a bank account
-exports.addBankAccount = onRequest(async (req, res) => {
-    res.set('Access-Control-Allow-Origin', '*');
-    if (req.method === 'OPTIONS') {
-        res.set('Access-Control-Allow-Methods', 'POST');
-        res.set('Access-Control-Allow-Headers', 'Content-Type');
-        res.set('Access-Control-Max-Age', '3600');
-        res.status(204).send('');
-        return;
-    }
+exports.addBankAccount = onRequest({ cors: true }, async (req, res) => {
     if (req.method !== 'POST') {
         return res.status(405).json({ error: 'Use POST' });
     }
@@ -351,15 +293,7 @@ exports.addBankAccount = onRequest(async (req, res) => {
 });
 
 // Function to get bank accounts for a user
-exports.getBankAccounts = onRequest(async (req, res) => {
-    res.set('Access-Control-Allow-Origin', '*');
-    if (req.method === 'OPTIONS') {
-        res.set('Access-Control-Allow-Methods', 'GET');
-        res.set('Access-Control-Allow-Headers', 'Content-Type');
-        res.set('Access-Control-Max-Age', '3600');
-        res.status(204).send('');
-        return;
-    }
+exports.getBankAccounts = onRequest({ cors: true }, async (req, res) => {
     if (req.method !== 'GET') {
         return res.status(405).json({ error: 'Use GET' });
     }
@@ -391,16 +325,7 @@ exports.getBankAccounts = onRequest(async (req, res) => {
     }
 });
 
-exports.notifyDeliveryPartner = onRequest(async (req, res) => {
-    res.set('Access-Control-Allow-Origin', '*');
-    if (req.method === 'OPTIONS') {
-        res.set('Access-Control-Allow-Methods', 'POST');
-        res.set('Access-Control-Allow-Headers', 'Content-Type');
-        res.set('Access-Control-Max-Age', '3600');
-        res.status(204).send('');
-        return;
-    }
-    
+exports.notifyDeliveryPartner = onRequest({ cors: true }, async (req, res) => {
     if (req.method !== 'POST') {
         return res.status(405).json({ error: 'Use POST' });
     }
@@ -417,7 +342,3 @@ exports.notifyDeliveryPartner = onRequest(async (req, res) => {
 
     res.status(200).json({ success: true, message: `Delivery partner notified for order ${orderId}` });
 });
-
-    
-
-    

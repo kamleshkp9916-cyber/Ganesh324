@@ -2,13 +2,26 @@
 "use client";
 
 import { GoogleAuthProvider, signInWithPopup, signOut as firebaseSignOut, sendPasswordResetEmail, User, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendEmailVerification, getAdditionalUserInfo, updateProfile, setPersistence, browserSessionPersistence } from "firebase/auth";
-import { initializeFirebase } from "@/firebase"; // Changed import
+import { initializeFirebase } from '@/firebase'; // Changed import
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 import { createUserData, updateUserData, UserData, getUserData } from "./follow-data";
 import { getStorage, ref, uploadString, getDownloadURL, deleteObject } from "firebase/storage";
 import { getFunctions, httpsCallable } from "firebase/functions";
 import { getFirestoreDb } from "./firebase-db";
+
+async function triggerUpdateLastLogin() {
+    const { auth } = initializeFirebase();
+    if (!auth.currentUser) return;
+
+    try {
+        const functions = getFunctions(auth.app);
+        const updateLastLogin = httpsCallable(functions, 'updateLastLogin');
+        await updateLastLogin();
+    } catch (error) {
+        console.error("Could not update last login time via function:", error);
+    }
+}
 
 export function useAuthActions() {
     const router = useRouter();
@@ -72,7 +85,7 @@ export function useAuthActions() {
             if (additionalUserInfo?.isNewUser) {
                 await createUserData(user, 'customer');
             }
-            
+            await triggerUpdateLastLogin();
             toast({
                 title: "Signed In!",
                 description: "Welcome!",
@@ -92,6 +105,7 @@ export function useAuthActions() {
         try {
             await setPersistence(auth, browserSessionPersistence);
             await signInWithEmailAndPassword(auth, values.email, values.password);
+            await triggerUpdateLastLogin();
              toast({
                 title: "Logged In!",
                 description: "Welcome back!",
@@ -126,11 +140,9 @@ export function useAuthActions() {
     const handleCustomerSignUp = async (values: any) => {
         const { auth } = initializeFirebase();
         try {
-            const db = getFirestoreDb();
-            const functions = getFunctions(db.app);
-
             // Check if email or phone exists via API routes
             const emailRes = await fetch('/api/check-email', { method: 'POST', body: JSON.stringify({ email: values.email }) });
+            if (!emailRes.ok) throw new Error('Email check failed');
             const emailData = await emailRes.json();
             if (emailData.exists) {
                 toast({ title: "Sign Up Failed", description: "This email is already registered.", variant: "destructive" });
@@ -138,6 +150,7 @@ export function useAuthActions() {
             }
 
             const phoneRes = await fetch('/api/check-phone', { method: 'POST', body: JSON.stringify({ phone: values.phone }) });
+            if (!phoneRes.ok) throw new Error('Phone check failed');
             const phoneData = await phoneRes.json();
             if (phoneData.exists) {
                 toast({ title: "Sign Up Failed", description: "This phone number is already registered.", variant: "destructive" });

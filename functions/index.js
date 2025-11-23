@@ -187,9 +187,8 @@ function normalizeRecipients(to) {
  * Main function: sendEmail
  */
 exports.sendEmail = onRequest(
-  { secrets: ['MAILERSEND_KEY'], cors: true }, // Enable CORS directly on the function
+  { secrets: ['MAILERSEND_KEY'], cors: true }, 
   async (req, res) => {
-    // The cors middleware is no longer needed here since it's handled by the function config
     try {
       if (req.method !== 'POST') {
         return res.status(405).json({ error: 'Use POST' });
