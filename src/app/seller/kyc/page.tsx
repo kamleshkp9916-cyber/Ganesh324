@@ -252,20 +252,17 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
 
   const handleVerifyOtp = async (type: 'email' | 'phone') => {
     const otp = type === 'email' ? form.emailOtp : form.phoneOtp;
-    if (otp === '123456') {
+    if (otp === '123456') { // OTP Bypass
         setField(`${type}Verified`, true);
         toast({ title: `${type.charAt(0).toUpperCase() + type.slice(1)} Verified!` });
         return;
     }
-
-    const target = type === 'email' ? form.email : `+91${form.phone}`;
     
     setIsVerifying(prev => ({...prev, [type]: true}));
-    
     try {
         const functions = getFunctions(getFirestoreDb().app);
         const verifyCode = httpsCallable(functions, 'verifyCode');
-        const result: any = await verifyCode({ target, otp });
+        const result: any = await verifyCode({ target: type === 'email' ? form.email : `+91${form.phone}`, otp });
 
         if (result.data.success) {
             setField(`${type}Verified`, true);
@@ -919,5 +916,3 @@ export default function KYCPage() {
         </div>
     );
 }
-
-    
