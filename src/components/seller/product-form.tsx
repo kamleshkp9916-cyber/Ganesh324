@@ -29,7 +29,7 @@ import { Loader2, Upload, Trash2, Camera, FileEdit, Video, ImageIcon, PlusCircle
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { collection, doc, setDoc, addDoc, serverTimestamp } from "firebase/firestore";
+import { collection, doc, setDoc, addDoc, serverTimestamp, writeBatch } from "firebase/firestore";
 import { defaultCategories } from "@/lib/categories";
 import Image from "next/image";
 import { Separator } from "@/components/ui/separator";
@@ -193,12 +193,16 @@ export function ProductForm({ productToEdit, onSave, onCancel }: ProductFormProp
     
     try {
         const db = getFirestoreDb();
-        const colRef = collection(db, 'users', user.uid, 'products');
-        const docRef = productToEdit?.id ? doc(colRef, productToEdit.id) : doc(colRef);
-        const productId = docRef.id;
+        const storage = getStorage();
+        const batch = writeBatch(db);
+
+        const isEditing = !!productToEdit?.id;
+        const productId = isEditing ? productToEdit.id! : doc(collection(db, 'products')).id;
+        
+        const sellerProductRef = doc(db, 'users', user.uid, 'products', productId);
+        const globalProductRef = doc(db, 'products', productId);
 
         setSaveProgress(20);
-        const storage = getStorage();
 
         const uploadedMediaUrls = await Promise.all(
             media.map(async (item) => {
@@ -209,14 +213,8 @@ export function ProductForm({ productToEdit, onSave, onCancel }: ProductFormProp
 
                     return new Promise<string>((resolve, reject) => {
                         uploadTask.on('state_changed',
-                            (snapshot) => {
-                                const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-                                // You might want a more granular progress update logic here
-                            },
-                            (error) => {
-                                console.error("Upload failed:", error);
-                                reject(error);
-                            },
+                            null, // progress can be handled here if needed
+                            (error) => reject(error),
                             async () => {
                                 const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
                                 resolve(downloadURL);
@@ -235,24 +233,35 @@ export function ProductForm({ productToEdit, onSave, onCancel }: ProductFormProp
             url: uploadedMediaUrls[index]
         }));
         
-        const dataToSave: Omit<Product, 'id'> = {
+        const dataToSave = {
             ...data,
             key: productId,
             media: finalMedia,
+            sellerId: user.uid, // Ensure seller ID is saved
+            updatedAt: serverTimestamp(),
         };
 
-        if (productToEdit) {
-            await setDoc(docRef, { ...dataToSave, updatedAt: serverTimestamp() }, { merge: true });
+        if (isEditing) {
+            batch.set(sellerProductRef, dataToSave, { merge: true });
+            batch.set(globalProductRef, dataToSave, { merge: true });
         } else {
-            await setDoc(docRef, { ...dataToSave, createdAt: serverTimestamp(), sold: 0 });
+            const finalDataWithCreation = {
+                ...dataToSave,
+                createdAt: serverTimestamp(),
+                sold: 0,
+            };
+            batch.set(sellerProductRef, finalDataWithCreation);
+            batch.set(globalProductRef, finalDataWithCreation);
         }
+        
+        await batch.commit();
 
         setSaveProgress(100);
         toast({
-            title: productToEdit ? "Product Updated!" : "Product Created!",
+            title: isEditing ? "Product Updated!" : "Product Created!",
             description: `${data.name} has been saved successfully.`
         });
-        onSave(dataToSave as Product);
+        onSave({ ...dataToSave, id: productId } as Product);
 
     } catch(e: any) {
         console.error("Save error:", e);
@@ -645,5 +654,3 @@ export function ProductForm({ productToEdit, onSave, onCancel }: ProductFormProp
     </Form>
   );
 }
-
-    
