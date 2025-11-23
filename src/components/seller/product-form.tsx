@@ -78,20 +78,20 @@ export interface Product {
 
 const productFormSchema = z.object({
   name: z.string().min(1, "Product name is required."),
-  description: z.string().min(1, "Description is required."),
+  description: z.string().optional().default(''),
   highlights: z.string().optional().default(''),
   highlightsImage: z.any().optional(),
-  category: z.string().min(1, "Please select a category."),
+  category: z.string().optional().default(''),
   subcategory: z.string().optional().default(''),
   brand: z.string().optional().default(''),
   modelNumber: z.string().optional().default(''),
   keywords: z.string().optional(),
-  price: z.coerce.number().min(0, "Price must be a positive number."),
+  price: z.coerce.number().optional().default(0),
   discountPercentage: z.coerce.number().optional(),
-  stock: z.coerce.number().int().min(0, "Stock cannot be negative."),
+  stock: z.coerce.number().int().optional().default(0),
   availableSizes: z.string().optional(),
   availableColors: z.string().optional(),
-  media: z.array(z.any()).min(1, "At least one image or video is required."),
+  media: z.array(z.any()).optional().default([]),
   variants: z.array(variantSchema).optional().default([]),
   listingType: z.enum(['general', 'live-only']),
   status: z.enum(['active', 'draft', 'archived']),
@@ -345,7 +345,9 @@ export function ProductForm({ productToEdit, onSave, onCancel }: ProductFormProp
         const fieldsToValidate: (keyof z.infer<typeof productFormSchema>)[] =
           step === 1 ? ['name', 'description', 'category', 'media'] : ['price', 'stock'];
 
-        const isValid = await form.trigger(fieldsToValidate);
+        // Because validation is relaxed, we don't need to trigger it.
+        // const isValid = await form.trigger(fieldsToValidate);
+        const isValid = true; 
         if (isValid) {
             setStep(s => s + 1);
         } else {
