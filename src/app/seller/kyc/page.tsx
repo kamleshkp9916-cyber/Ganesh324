@@ -30,6 +30,7 @@ import { useAuthActions } from "@/lib/auth";
 import { useLocalStorage } from "@/hooks/use-local-storage";
 import { getFunctions, httpsCallable } from "firebase/functions";
 import { getFirestoreDb } from "@/lib/firebase-db";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const SELLER_KYC_DRAFT_KEY = 'sellerKycDraft';
 
@@ -916,3 +917,4 @@ export default function KYCPage() {
         </div>
     );
 }
+
