@@ -5,8 +5,8 @@
  */
 
 import { z } from 'zod';
-import { getFirebaseAdminApp } from '@/lib/firebase-server';
 import { getFirestore, serverTimestamp } from 'firebase-admin/firestore';
+import * as admin from 'firebase-admin';
 
 const InquirySchema = z.object({
   name: z.string(),
@@ -24,7 +24,7 @@ const InquirySchema = z.object({
 export type Inquiry = z.infer<typeof InquirySchema>;
 
 export async function submitInquiry(inquiryData: Omit<Inquiry, 'createdAt'>): Promise<{ id: string }> {
-  const db = getFirestore(getFirebaseAdminApp());
+  const db = getAdminFirestore();
   const validatedData = InquirySchema.omit({ createdAt: true }).parse(inquiryData);
 
   const docRef = await db.collection('inquiries').add({
@@ -36,7 +36,7 @@ export async function submitInquiry(inquiryData: Omit<Inquiry, 'createdAt'>): Pr
 }
 
 export async function getInquiries(): Promise<(Inquiry & { id: string })[]> {
-  const db = getFirestore(getFirebaseAdminApp());
+  const db = getAdminFirestore();
   const inquiriesRef = db.collection('inquiries');
   const q = inquiriesRef.orderBy('createdAt', 'desc');
   
@@ -96,13 +96,13 @@ export async function getInquiries(): Promise<(Inquiry & { id: string })[]> {
 }
 
 export async function updateInquiry(inquiryId: string, updates: Partial<Inquiry>): Promise<void> {
-    const db = getFirestore(getFirebaseAdminApp());
+    const db = getAdminFirestore();
     const inquiryRef = db.collection('inquiries').doc(inquiryId);
     await inquiryRef.update(updates);
 }
 
 export async function convertInquiryToTicket(inquiryId: string): Promise<string> {
-    const db = getFirestore(getFirebaseAdminApp());
+    const db = getAdminFirestore();
     const inquiryRef = db.collection('inquiries').doc(inquiryId);
     
     // In a real app, you'd create a new ticket in a 'tickets' collection.

@@ -22,6 +22,7 @@ import Link from "next/link"
 import React, { useState, useEffect, useMemo, useCallback } from "react"
 import { format, parseISO } from "date-fns"
 import { getFirestore, collection, query, where, getDocs } from 'firebase/firestore'
+import { getFirestoreDb } from '@/lib/firebase-db';
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -70,7 +71,7 @@ import { getInquiries as getInquiriesOnServer, updateInquiry, Inquiry, convertIn
 import { cn } from "@/lib/utils"
 import { AdminLayout } from "@/components/admin/admin-layout"
 import { useToast } from "@/hooks/use-toast"
-import { initializeFirebase } from "@/firebase"
+
 
 // Server-side action to fetch data
 async function getInquiries() {
@@ -104,11 +105,11 @@ export default function AdminInquiriesPage() {
     }
   }, [loading, userData, isDataFetched, fetchInquiries]);
   
-  const handleUpdate = async (id: string, updates: Partial<Inquiry>) => {
+  const handleUpdate = useCallback(async (id: string, updates: Partial<Inquiry>) => {
     await updateInquiry(id, updates);
     fetchInquiries(); // Re-fetch to update the UI
     toast({ title: "Inquiry Updated", description: "The inquiry has been updated successfully." });
-  };
+  }, [fetchInquiries, toast]);
   
   const handleConvertToTicket = async (id: string) => {
     const ticketId = await convertInquiryToTicket(id);
@@ -122,8 +123,8 @@ export default function AdminInquiriesPage() {
     setIsCheckingUser(true);
     setInquirerExists(null);
 
-    const { firestore } = initializeFirebase();
-    const usersRef = collection(firestore, 'users');
+    const db = getFirestoreDb();
+    const usersRef = collection(db, 'users');
     const q = query(usersRef, where("email", "==", inquiry.email));
     
     try {

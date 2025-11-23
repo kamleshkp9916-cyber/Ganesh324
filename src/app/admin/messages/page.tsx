@@ -21,6 +21,7 @@ import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-is-mobile';
 import { AdminLayout } from '@/components/admin/admin-layout';
 import { getFirestore, collection, query, where, getDocs, limit, doc, onSnapshot, orderBy } from 'firebase/firestore';
+import { getFirestoreDb } from '@/lib/firebase-db';
 import { Separator } from '@/components/ui/separator';
 
 // Server-side action to fetch data, keeping server code on the server.
@@ -47,6 +48,8 @@ export default function AdminMessagePage() {
   const isMobile = useIsMobile();
   const [searchResults, setSearchResults] = useState<UserData[]>([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [messages, setMessages] = useState<Message[]>([]);
+
 
   const preselectUserId = searchParams.get('userId');
   const preselectUserName = searchParams.get('userName');
@@ -139,7 +142,7 @@ export default function AdminMessagePage() {
             return;
         }
         setIsSearching(true);
-        const db = getFirestore();
+        const db = getFirestoreDb();
         const usersRef = collection(db, "users");
         const q = query(
             usersRef,
@@ -163,7 +166,6 @@ export default function AdminMessagePage() {
     setSelectedConversation(convo);
     setIsChatLoading(true);
     const chatHistory = await getMessages(convo.conversationId);
-    // @ts-ignore
     setMessages(chatHistory);
     setIsChatLoading(false);
   }

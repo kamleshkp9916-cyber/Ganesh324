@@ -10,8 +10,8 @@
  */
 
 import { z } from 'genkit';
-import { getFirebaseAdminApp } from '@/lib/firebase-server';
 import { getFirestore, Timestamp, FieldValue, Filter, doc, collection, query, where, getDocs as adminGetDocs, orderBy, addDoc, updateDoc, increment, getDoc } from 'firebase-admin/firestore';
+import * as admin from 'firebase-admin';
 import { UserData } from '@/lib/follow-data';
 import { Message, Conversation } from '@/components/messaging/common';
 import { format } from 'date-fns';
@@ -22,7 +22,7 @@ function getConversationId(userId1: string, userId2: string): string {
 }
 
 export async function getOrCreateConversation(currentUserId: string, otherUserId: string, currentUserData: UserData, otherUserData: UserData): Promise<string> {
-    const db = getFirestore(getFirebaseAdminApp());
+    const db = getAdminFirestore();
     const conversationId = getConversationId(currentUserId, otherUserId);
     const conversationRef = db.collection('conversations').doc(conversationId);
     
@@ -56,7 +56,7 @@ export async function getOrCreateConversation(currentUserId: string, otherUserId
 
 
 export async function getConversations(currentUserId: string): Promise<Conversation[]> {
-    const db = getFirestore(getFirebaseAdminApp());
+    const db = getAdminFirestore();
     const conversationsRef = db.collection('conversations');
     const q = conversationsRef.where('participants', 'array-contains', currentUserId);
     
@@ -85,7 +85,7 @@ export async function getConversations(currentUserId: string): Promise<Conversat
 }
 
 export async function getMessages(conversationId: string): Promise<Message[]> {
-    const db = getFirestore(getFirebaseAdminApp());
+    const db = getAdminFirestore();
     const messagesRef = collection(db, `conversations/${conversationId}/messages`);
     const q = query(messagesRef, orderBy("timestamp", "asc"));
     
@@ -109,7 +109,7 @@ export async function sendMessage(
   senderId: string,
   message: { text?: string; imageUrl?: string },
 ): Promise<void> {
-    const db = getFirestore(getFirebaseAdminApp());
+    const db = getAdminFirestore();
     const conversationRef = doc(db, 'conversations', conversationId);
     const messagesRef = collection(conversationRef, 'messages');
 
@@ -138,7 +138,7 @@ export async function updateOrderStatus(orderId: string, newStatus: string): Pro
   console.log(`Updating order ${orderId} to status: ${newStatus}`);
   // In a real app, you would update the order in Firestore here.
   // For example:
-  // const db = getFirestore(getFirebaseAdminApp());
+  // const db = getAdminFirestore();
   // const orderRef = doc(db, 'orders', orderId);
   // await updateDoc(orderRef, {
   //     timeline: FieldValue.arrayUnion({
