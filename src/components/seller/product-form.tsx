@@ -194,13 +194,14 @@ export function ProductForm({ productToEdit, onSave, onCancel }: ProductFormProp
     try {
         const db = getFirestoreDb();
         const storage = getStorage();
-        const batch = writeBatch(db);
 
         const isEditing = !!productToEdit?.id;
         const productId = isEditing ? productToEdit.id! : doc(collection(db, 'products')).id;
         
         const sellerProductRef = doc(db, 'users', user.uid, 'products', productId);
         const globalProductRef = doc(db, 'products', productId);
+        
+        const batch = writeBatch(db);
 
         setSaveProgress(20);
 
@@ -233,7 +234,7 @@ export function ProductForm({ productToEdit, onSave, onCancel }: ProductFormProp
             url: uploadedMediaUrls[index]
         }));
         
-        const dataToSave = {
+        const dataToSave: Omit<Product, 'id'> & { [key: string]: any } = {
             ...data,
             key: productId,
             media: finalMedia,
