@@ -1,21 +1,16 @@
 
 "use client";
 
-import { initializeFirebase } from '@/firebase';
+import { getFirebaseApp } from '@/firebase/config';
 import { getFirestore } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
-import { getFunctions } from 'firebase/functions';
 
 // This function returns the singleton Firestore instance.
 export function getFirestoreDb() {
-    return getFirestore(initializeFirebase().firebaseApp);
+    return getFirestore(getFirebaseApp());
 }
 
 // This function returns the singleton Storage instance.
 export function getFirebaseStorage() {
-    return getStorage(initializeFirebase().firebaseApp);
+    return getStorage(getFirebaseApp());
 }
-
-export { initializeFirebase };
-    
-

@@ -66,12 +66,16 @@ import {
 } from "@/components/ui/table"
 import { useAuth } from "@/hooks/use-auth"
 import { LoadingSpinner } from "@/components/ui/loading-spinner"
-import { getInquiries, updateInquiry, Inquiry, convertInquiryToTicket } from "@/ai/flows/contact-flow"
+import { getInquiries as getInquiriesOnServer, updateInquiry, Inquiry, convertInquiryToTicket } from "@/ai/flows/contact-flow"
 import { cn } from "@/lib/utils"
 import { AdminLayout } from "@/components/admin/admin-layout"
 import { useToast } from "@/hooks/use-toast"
 import { initializeFirebase } from "@/firebase"
 
+// Server-side action to fetch data
+async function getInquiries() {
+    return getInquiriesOnServer();
+}
 
 const mockAdmins = [
     { id: 'admin1', name: 'Admin A' },
@@ -133,7 +137,7 @@ export default function AdminInquiriesPage() {
     }
 
     if (inquiry.status === "New") {
-        handleUpdate(inquiry.id, { status: "Open" });
+        await handleUpdate(inquiry.id, { status: "Open" });
     }
   }, [handleUpdate]);
   

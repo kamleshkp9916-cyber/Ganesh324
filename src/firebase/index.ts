@@ -1,33 +1,7 @@
 'use client';
 
-import { firebaseConfig } from '@/firebase/config';
-import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
-import { getFirestore, initializeFirestore, memoryLocalCache } from 'firebase/firestore';
-
-let app: FirebaseApp;
-
-if (getApps().length === 0) {
-  try {
-    app = initializeApp();
-  } catch (e) {
-    app = initializeApp(firebaseConfig);
-  }
-} else {
-  app = getApp();
-}
-
-const auth = getAuth(app);
-const firestore = getFirestore(app);
-
-// IMPORTANT: DO NOT MODIFY THIS FUNCTION
-export function initializeFirebase() {
-  return {
-    firebaseApp: app,
-    auth: auth,
-    firestore: firestore,
-  };
-}
+// This file serves as a central "barrel" for exporting all necessary Firebase hooks and providers.
+// By importing from here, components can get access to everything they need from a single place.
 
 export * from './provider';
 export * from './client-provider';

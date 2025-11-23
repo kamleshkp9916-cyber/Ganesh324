@@ -15,13 +15,22 @@ import { Sheet, SheetTrigger, SheetContent, SheetHeader, SheetTitle } from '@/co
 import { useAuthActions } from '@/lib/auth';
 import { useDebounce } from '@/hooks/use-debounce';
 import { ChatWindow, ConversationList, Conversation, Message } from '@/components/messaging/common';
-import { getConversations, getOrCreateConversation, getMessages } from '@/ai/flows/chat-flow';
+import { getConversations as getConversationsOnServer, getOrCreateConversation, getMessages as getMessagesOnServer } from '@/ai/flows/chat-flow';
 import { getUserByDisplayName, UserData, getUserData } from '@/lib/follow-data';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-is-mobile';
 import { AdminLayout } from '@/components/admin/admin-layout';
 import { getFirestore, collection, query, where, getDocs, limit, doc, onSnapshot, orderBy } from 'firebase/firestore';
 import { Separator } from '@/components/ui/separator';
+
+// Server-side action to fetch data, keeping server code on the server.
+async function getConversations(userId: string) {
+    return getConversationsOnServer(userId);
+}
+
+async function getMessages(conversationId: string) {
+    return getMessagesOnServer(conversationId);
+}
 
 
 export default function AdminMessagePage() {
@@ -150,8 +159,13 @@ export default function AdminMessagePage() {
   }, [debouncedSearchTerm]);
 
 
-  const handleSelectConversation = (convo: Conversation) => {
+  const handleSelectConversation = async (convo: Conversation) => {
     setSelectedConversation(convo);
+    setIsChatLoading(true);
+    const chatHistory = await getMessages(convo.conversationId);
+    // @ts-ignore
+    setMessages(chatHistory);
+    setIsChatLoading(false);
   }
   
   const handleSelectUserFromSearch = async (targetUser: UserData) => {
@@ -249,6 +263,7 @@ export default function AdminMessagePage() {
                             userData={userData}
                             onBack={() => preselectUserId ? router.back() : setSelectedConversation(null)}
                             showBackButton={!!preselectUserId}
+                            messages={messages}
                         />
                     ) : (
                         <div className="hidden md:flex flex-col items-center justify-center h-full text-muted-foreground">
@@ -263,5 +278,3 @@ export default function AdminMessagePage() {
     </AdminLayout>
   );
 }
-
-    

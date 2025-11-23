@@ -2,7 +2,7 @@
 "use client";
 
 import { GoogleAuthProvider, signInWithPopup, signOut as firebaseSignOut, sendPasswordResetEmail, User, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendEmailVerification, getAdditionalUserInfo, updateProfile, setPersistence, browserSessionPersistence } from "firebase/auth";
-import { initializeFirebase } from '@/firebase'; // Changed import
+import { useFirebase } from '@/firebase'; // Changed import
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 import { createUserData, updateUserData, UserData, getUserData } from "./follow-data";
@@ -10,8 +10,7 @@ import { getStorage, ref, uploadString, getDownloadURL, deleteObject } from "fir
 import { getFunctions, httpsCallable } from "firebase/functions";
 import { getFirestoreDb } from "./firebase-db";
 
-async function triggerUpdateLastLogin() {
-    const { auth } = initializeFirebase();
+async function triggerUpdateLastLogin(auth: import("firebase/auth").Auth) {
     if (!auth.currentUser) return;
 
     try {
@@ -26,9 +25,9 @@ async function triggerUpdateLastLogin() {
 export function useAuthActions() {
     const router = useRouter();
     const { toast } = useToast();
+    const { auth, firebaseApp } = useFirebase();
     
     const signOut = async (isSeller = false) => {
-        const { auth } = initializeFirebase();
         try {
             await firebaseSignOut(auth);
             
@@ -56,7 +55,6 @@ export function useAuthActions() {
     };
     
     const sendPasswordResetLink = async (email: string) => {
-        const { auth } = initializeFirebase();
         try {
             await sendPasswordResetEmail(auth, email);
             toast({
@@ -75,7 +73,6 @@ export function useAuthActions() {
     };
 
     const handleGoogleSignIn = async () => {
-        const { auth } = initializeFirebase();
         const provider = new GoogleAuthProvider();
         try {
             const result = await signInWithPopup(auth, provider);
@@ -85,7 +82,7 @@ export function useAuthActions() {
             if (additionalUserInfo?.isNewUser) {
                 await createUserData(user, 'customer');
             }
-            await triggerUpdateLastLogin();
+            await triggerUpdateLastLogin(auth);
             toast({
                 title: "Signed In!",
                 description: "Welcome!",
@@ -101,11 +98,10 @@ export function useAuthActions() {
     };
 
     const handleEmailSignIn = async (values: any): Promise<boolean> => {
-        const { auth } = initializeFirebase();
         try {
             await setPersistence(auth, browserSessionPersistence);
             await signInWithEmailAndPassword(auth, values.email, values.password);
-            await triggerUpdateLastLogin();
+            await triggerUpdateLastLogin(auth);
              toast({
                 title: "Logged In!",
                 description: "Welcome back!",
@@ -138,7 +134,6 @@ export function useAuthActions() {
     };
 
     const handleCustomerSignUp = async (values: any) => {
-        const { auth } = initializeFirebase();
         try {
             // Check if email or phone exists via API routes
             const emailRes = await fetch('/api/check-email', { method: 'POST', body: JSON.stringify({ email: values.email }) });
@@ -190,7 +185,6 @@ export function useAuthActions() {
     };
     
     const handleAdminSignUp = async (values: any) => {
-        const { auth } = initializeFirebase();
         const functions = getFunctions(auth.app);
         const createAdmin = httpsCallable(functions, 'createAdminUser');
         try {
@@ -211,7 +205,6 @@ export function useAuthActions() {
     };
     
     const handleSellerSignUp = async (values: any) => {
-        const { auth } = initializeFirebase();
         let user: User | null = auth.currentUser;
         
         try {
@@ -260,7 +253,6 @@ export function useAuthActions() {
     };
     
     const updateUserProfile = async (user: User, data: Partial<UserData>) => {
-        const { firebaseApp } = initializeFirebase();
         const storage = getStorage(firebaseApp);
         const { displayName } = data;
         let { photoURL } = data;
