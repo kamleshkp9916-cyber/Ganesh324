@@ -35,7 +35,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from '@/components/ui/dialog';
 import { useToast } from "@/hooks/use-toast";
-import { useAuth } from '@/hooks/use-auth';
+import { useAuth } from "@/hooks/use-auth";
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { SellerHeader } from '@/components/seller/seller-header';
 import { Product, ProductForm } from '@/components/seller/product-form';
@@ -47,6 +47,14 @@ import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuIte
 import Image from 'next/image';
 
 
+const mockQandA = [
+    { id: 1, question: "Does this camera come with a roll of film?", questioner: "Alice", answer: "Yes, it comes with one 24-exposure roll of color film to get you started!", answerer: "GadgetGuru" },
+    { id: 2, question: "Is the battery for the light meter included?", questioner: "Bob", answer: "It is! We include a fresh battery so you can start shooting right away.", answerer: "GadgetGuru" },
+    { id: 3, question: "What is the warranty on this?", questioner: "Charlie", answer: "We offer a 6-month warranty on all our refurbished vintage cameras.", answerer: "GadgetGuru" },
+    { id: 4, question: "Can you ship this to the UK?", questioner: "Diana", answer: null, answerer: null },
+    { id: 5, question: "Is the camera strap original?", questioner: "Eve", answer: "This one comes with a new, high-quality leather strap, not the original.", answerer: "GadgetGuru" },
+];
+
 const ManageQnaDialog = ({ product, isOpen, onClose }: { product: Product, isOpen: boolean, onClose: () => void }) => {
   const [qna, setQna] = useState([
       { id: 1, question: "Does this come with warranty?", questioner: "Alice", answer: "Yes, 1 year.", answerer: "Seller" },
@@ -56,64 +64,72 @@ const ManageQnaDialog = ({ product, isOpen, onClose }: { product: Product, isOpe
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-       <div className="bg-white w-full max-w-2xl h-[80vh] rounded-lg shadow-xl flex flex-col overflow-hidden animate-in fade-in zoom-in duration-200">
-          <div className="p-6 border-b bg-slate-50 flex justify-between items-start">
-            <div>
-                <h2 className="text-xl font-semibold flex items-center gap-2">
-                    <MessageSquare className="w-5 h-5 text-blue-600" />
-                    Q&A Management
-                </h2>
-                <p className="text-sm text-slate-500">Questions for <span className="font-semibold text-slate-900">{product.name}</span></p>
-            </div>
-            <button onClick={onClose} className="text-slate-400 hover:text-slate-600"><X className="w-5 h-5" /></button>
-          </div>
-          <div className="flex-grow overflow-y-auto bg-slate-50/50 p-6 space-y-4">
-            {qna.map(item => (
-                <div key={item.id} className="bg-white p-4 rounded-lg shadow-sm border">
-                    <p className="font-medium text-slate-900">{item.question}</p>
-                    <p className="text-xs text-slate-500 mb-2">Asked by {item.questioner}</p>
-                    {item.answer ? (
-                        <div className="bg-blue-50 p-3 rounded text-sm text-blue-800">{item.answer}</div>
-                    ) : (
-                        <div className="flex gap-2 mt-2">
-                            <Input placeholder="Type answer..." className="h-8 text-xs" />
-                            <Button size="sm" className="h-8">Reply</Button>
+    <DialogContent className="max-w-2xl h-[80vh] flex flex-col">
+        <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+                <MessageSquare className="w-5 h-5 text-blue-600" />
+                Q&A Management
+            </DialogTitle>
+            <DialogDescription>Questions for <span className="font-semibold text-slate-900">{product.name}</span></DialogDescription>
+        </DialogHeader>
+        <div className="flex-grow overflow-hidden">
+            <ScrollArea className="h-full pr-6">
+                <div className="space-y-6">
+                    {qna.map(item => (
+                        <div key={item.id} className="text-sm">
+                            <div className="flex items-center gap-2 font-semibold">
+                                <HelpCircle className="w-4 h-4 text-primary" />
+                                <p>{item.question}</p>
+                            </div>
+                            <p className="text-xs text-slate-500 mb-2 pl-6">Asked by {item.questioner}</p>
+                            <div className="pl-6 mt-2">
+                                {item.answer ? (
+                                    <p className="text-slate-700 bg-slate-50 p-3 rounded-md border"><strong>Your Answer:</strong> {item.answer}</p>
+                                ) : (
+                                    <form className="flex gap-2 mt-2" onSubmit={(e) => {
+                                        e.preventDefault();
+                                        const formData = new FormData(e.currentTarget);
+                                        const answer = formData.get('answer') as string;
+                                        setQna(qna.map(q => q.id === item.id ? { ...q, answer } : q));
+                                        (e.target as HTMLFormElement).reset();
+                                    }}>
+                                        <Textarea name="answer" placeholder="Type answer..." className="flex-grow" rows={2} />
+                                        <Button type="submit" size="sm">Answer</Button>
+                                    </form>
+                                )}
+                            </div>
                         </div>
-                    )}
+                    ))}
+                     {qna.length === 0 && (
+                        <p className="text-center text-slate-500 py-8">No questions for this product yet.</p>
+                     )}
                 </div>
-            ))}
-          </div>
-       </div>
-    </div>
+            </ScrollArea>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose}>Close</Button>
+        </DialogFooter>
+    </DialogContent>
   );
 };
 
 const ProductAnalyticsDialog = ({ product, isOpen, onClose }: { product: Product, isOpen: boolean, onClose: () => void }) => {
   if (!isOpen) return null;
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-        <div className="bg-white w-full max-w-4xl rounded-lg shadow-xl p-6 animate-in fade-in zoom-in duration-200">
-            <div className="flex justify-between items-start mb-6">
-                <div className="flex items-center gap-3">
-                    <div className="p-2 bg-slate-100 rounded-md">
-                        <Package className="w-5 h-5 text-slate-700" />
-                    </div>
-                    <div>
-                        <h2 className="text-xl font-semibold">Analytics Overview</h2>
-                        <p className="text-sm text-slate-500">Performance for {product.name}</p>
-                    </div>
-                </div>
-                <button onClick={onClose}><X className="w-5 h-5 text-slate-400" /></button>
-            </div>
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-                <Card><CardContent className="pt-6"><div className="text-2xl font-bold">12k</div><p className="text-xs text-muted-foreground">Views</p></CardContent></Card>
-                 <Card><CardContent className="pt-6"><div className="text-2xl font-bold">890</div><p className="text-xs text-muted-foreground">Adds to Cart</p></CardContent></Card>
-                 <Card><CardContent className="pt-6"><div className="text-2xl font-bold">{product.sold || 45}</div><p className="text-xs text-muted-foreground">Total Sales</p></CardContent></Card>
-                 <Card><CardContent className="pt-6"><div className="text-2xl font-bold">₹{((product.sold || 45) * product.price).toLocaleString()}</div><p className="text-xs text-muted-foreground">Revenue</p></CardContent></Card>
-            </div>
+    <DialogContent className="max-w-2xl">
+        <DialogHeader>
+            <DialogTitle>Product Analytics: {product.name}</DialogTitle>
+             <DialogDescription>
+                An overview of this product's performance across the platform.
+            </DialogDescription>
+        </DialogHeader>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 py-4">
+            <Card><CardContent className="pt-6"><div className="text-2xl font-bold">12k</div><p className="text-xs text-muted-foreground">Views</p></CardContent></Card>
+             <Card><CardContent className="pt-6"><div className="text-2xl font-bold">890</div><p className="text-xs text-muted-foreground">Adds to Cart</p></CardContent></Card>
+             <Card><CardContent className="pt-6"><div className="text-2xl font-bold">{product.sold || 45}</div><p className="text-xs text-muted-foreground">Total Sales</p></CardContent></Card>
+             <Card><CardContent className="pt-6"><div className="text-2xl font-bold">₹{((product.sold || 45) * product.price).toLocaleString()}</div><p className="text-xs text-muted-foreground">Revenue</p></CardContent></Card>
         </div>
-    </div>
+    </DialogContent>
   );
 };
 
@@ -231,7 +247,6 @@ export default function SellerProductsPage() {
                     fetchedProducts.push({ id: doc.id, ...doc.data() } as Product);
                 });
                 setProducts(fetchedProducts);
-                localStorage.setItem('sellerProducts', JSON.stringify(fetchedProducts));
             });
             return () => unsubscribe();
         }
@@ -352,84 +367,58 @@ export default function SellerProductsPage() {
   return (
     <>
       <Dialog open={isFormOpen} onOpenChange={handleOpenChange}>
-        <div className="flex min-h-screen w-full flex-col bg-muted/40 font-sans text-slate-900">
+        <div className="flex min-h-screen w-full flex-col bg-muted/40">
            <SellerHeader />
-           <main className="flex-1 p-4 sm:px-6 sm:py-8 max-w-7xl mx-auto w-full animate-in fade-in slide-in-from-bottom-4 duration-500">
-              <div className="grid gap-4 md:grid-cols-3 mb-8">
-                 <Card className="bg-white shadow-sm border-slate-200">
-                    <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
-                       <CardTitle className="text-sm font-medium text-muted-foreground">Total Products</CardTitle>
-                       <Package className="h-4 w-4 text-blue-600" />
-                    </CardHeader>
-                    <CardContent>
-                       <div className="text-2xl font-bold text-slate-900">{products.length}</div>
-                       <p className="text-xs text-muted-foreground mt-1">Across all categories</p>
-                    </CardContent>
-                 </Card>
-                 <Card className="bg-white shadow-sm border-slate-200">
-                    <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
-                       <CardTitle className="text-sm font-medium text-muted-foreground">Active Listings</CardTitle>
-                       <Eye className="h-4 w-4 text-green-600" />
-                    </CardHeader>
-                    <CardContent>
-                       <div className="text-2xl font-bold text-slate-900">{products.filter(p => p.status === 'active').length}</div>
-                       <p className="text-xs text-muted-foreground mt-1">Currently visible</p>
-                    </CardContent>
-                 </Card>
-                 <Card className="bg-white shadow-sm border-slate-200">
-                    <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
-                       <CardTitle className="text-sm font-medium text-muted-foreground">Low Stock</CardTitle>
-                       <ArrowUpRight className="h-4 w-4 text-orange-600" />
-                    </CardHeader>
-                    <CardContent>
-                       <div className="text-2xl font-bold text-slate-900">{products.filter(p => p.stock < 5 && p.stock > 0).length}</div>
-                       <p className="text-xs text-muted-foreground mt-1">Less than 5 units</p>
-                    </CardContent>
-                 </Card>
-              </div>
-
-              <div className="flex flex-col gap-6">
-                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                    <div>
-                       <h2 className="text-2xl font-bold tracking-tight text-slate-900">Inventory</h2>
-                       <p className="text-muted-foreground text-sm">Manage your products and stock levels.</p>
-                    </div>
-                    <div className="flex items-center gap-2 ml-auto">
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <Button variant="outline" size="sm" className="h-9 gap-1 bg-white">
+          <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8">
+              <Card>
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <CardTitle>Products</CardTitle>
+                            <CardDescription>
+                            Manage your products and view their sales performance.
+                            </CardDescription>
+                        </div>
+                         <div className="ml-auto flex items-center gap-2">
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                <Button variant="outline" size="sm" className="h-8 gap-1">
                                     <ListFilter className="h-3.5 w-3.5" />
-                                    <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">Filter</span>
+                                    <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+                                    Filter
+                                    </span>
                                 </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                                <DropdownMenuLabel>Filter by Stock</DropdownMenuLabel>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuCheckboxItem checked={stockFilter.includes('inStock')} onCheckedChange={() => handleStockFilterChange('inStock')}>
-                                    In Stock
-                                </DropdownMenuCheckboxItem>
-                                <DropdownMenuCheckboxItem checked={stockFilter.includes('outOfStock')} onCheckedChange={() => handleStockFilterChange('outOfStock')}>
-                                    Out of Stock
-                                </DropdownMenuCheckboxItem>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
-                        <Button size="sm" variant="outline" className="h-9 gap-1 bg-white" onClick={handleExport}>
-                            <File className="h-3.5 w-3.5" />
-                            <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">Export</span>
-                        </Button>
-                         <DialogTrigger asChild>
-                          <Button size="sm" className="h-9 gap-1">
-                              <PlusCircle className="h-3.5 w-3.5" />
-                              <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                              Add Product
-                              </span>
-                          </Button>
-                        </DialogTrigger>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                    <DropdownMenuLabel>Filter by Stock</DropdownMenuLabel>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuCheckboxItem checked={stockFilter.includes('inStock')} onCheckedChange={() => handleStockFilterChange('inStock')}>
+                                        In Stock
+                                    </DropdownMenuCheckboxItem>
+                                    <DropdownMenuCheckboxItem checked={stockFilter.includes('outOfStock')} onCheckedChange={() => handleStockFilterChange('outOfStock')}>
+                                        Out of Stock
+                                    </DropdownMenuCheckboxItem>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                            <Button size="sm" variant="outline" className="h-8 gap-1" onClick={handleExport}>
+                                <File className="h-3.5 w-3.5" />
+                                <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+                                Export
+                                </span>
+                            </Button>
+                             <DialogTrigger asChild>
+                              <Button size="sm" className="h-8 gap-1">
+                                  <PlusCircle className="h-3.5 w-3.5" />
+                                  <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+                                  Add Product
+                                  </span>
+                              </Button>
+                            </DialogTrigger>
+                        </div>
                     </div>
-                 </div>
-
-                 <div className="w-full">
-                    <Tabs defaultValue="all" onValueChange={setActiveTab}>
+                  </CardHeader>
+                  <CardContent>
+                      <Tabs defaultValue="all" onValueChange={setActiveTab}>
                       <div className="flex items-center gap-4">
                           <TabsList>
                           <TabsTrigger value="all">All</TabsTrigger>
@@ -454,9 +443,9 @@ export default function SellerProductsPage() {
                               <ProductTable products={archivedProducts} onEdit={handleEditProduct} onDelete={handleDeleteProduct} onManageQna={handleManageQna} onAnalytics={handleAnalytics}/>
                           </TabsContent>
                       </div>
-                    </Tabs>
-                 </div>
-              </div>
+                      </Tabs>
+                  </CardContent>
+              </Card>
           </main>
         </div>
         <DialogContent className="sm:max-w-3xl h-[90vh] flex flex-col">
@@ -470,10 +459,10 @@ export default function SellerProductsPage() {
         </DialogContent>
       </Dialog>
       <Dialog open={isQnaOpen} onOpenChange={setIsQnaOpen}>
-        {selectedProduct && <ManageQnaDialog product={selectedProduct} onClose={() => setIsQnaOpen(false)} />}
+        {selectedProduct && <ManageQnaDialog product={selectedProduct} isOpen={isQnaOpen} onClose={() => setIsQnaOpen(false)} />}
       </Dialog>
       <Dialog open={isAnalyticsOpen} onOpenChange={setIsAnalyticsOpen}>
-        {selectedProduct && <ProductAnalyticsDialog product={selectedProduct} onClose={() => setIsAnalyticsOpen(false)} />}
+        {selectedProduct && <ProductAnalyticsDialog product={selectedProduct} isOpen={isAnalyticsOpen} onClose={() => setIsAnalyticsOpen(false)} />}
       </Dialog>
     </>
   )

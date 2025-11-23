@@ -120,7 +120,7 @@ const initialFormValues = {
 };
 
 
-export function ProductForm({ productToEdit, onCancel }: ProductFormProps) {
+export function ProductForm({ productToEdit, onSave, onCancel }: ProductFormProps) {
   const { user } = useAuth();
   const { toast } = useToast();
   const [step, setStep] = useState(1);
@@ -248,8 +248,11 @@ export function ProductForm({ productToEdit, onCancel }: ProductFormProps) {
         }
 
         setSaveProgress(100);
-        
-        onSave(dataToSave);
+        toast({
+            title: productToEdit ? "Product Updated!" : "Product Created!",
+            description: `${data.name} has been saved successfully.`
+        });
+        onSave(dataToSave as Product);
 
     } catch(e: any) {
         console.error("Save error:", e);
@@ -427,7 +430,7 @@ export function ProductForm({ productToEdit, onCancel }: ProductFormProps) {
                   <div className="grid grid-cols-3 md:grid-cols-5 gap-2">
                     {media.map((m, i) => (
                       <div key={i} className="relative aspect-square w-full rounded-md overflow-hidden group">
-                        {m.type === 'image' ? <Image src={m.url} alt={`media ${''}${i}`} fill sizes="100px" className="object-cover" /> : <video src={m.url} className="object-cover w-full h-full" />}
+                        {m.type === 'image' ? <Image src={m.url} alt={`media ${i}`} fill sizes="100px" className="object-cover" /> : <video src={m.url} className="object-cover w-full h-full" />}
                         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                           <Button variant="destructive" size="icon" className="h-8 w-8" onClick={() => removeMedia(i)}><Trash2 className="w-4 h-4" /></Button>
                         </div>
@@ -642,3 +645,5 @@ export function ProductForm({ productToEdit, onCancel }: ProductFormProps) {
     </Form>
   );
 }
+
+    

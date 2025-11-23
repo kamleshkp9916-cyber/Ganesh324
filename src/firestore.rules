@@ -31,7 +31,7 @@ service cloud.firestore {
         allow read, write: if isOwner(userId) || isAdmin();
       }
 
-      // Sellers can manage their own products within their own user document.
+      // Sellers can manage their own products within their own user document subcollection.
       match /products/{productId} {
           allow read: if true;
           // Only the owner of the user document who is also a seller can write.
