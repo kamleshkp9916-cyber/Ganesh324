@@ -2,12 +2,13 @@
 "use client";
 
 import { GoogleAuthProvider, signInWithPopup, signOut as firebaseSignOut, sendPasswordResetEmail, User, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendEmailVerification, getAdditionalUserInfo, updateProfile, setPersistence, browserSessionPersistence } from "firebase/auth";
-import { initializeFirebase } from "@/firebase";
+import { initializeFirebase } from "@/firebase"; // Changed import
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 import { createUserData, updateUserData, UserData, getUserData } from "./follow-data";
 import { getStorage, ref, uploadString, getDownloadURL, deleteObject } from "firebase/storage";
 import { getFunctions, httpsCallable } from "firebase/functions";
+import { getFirestoreDb } from "./firebase-db";
 
 export function useAuthActions() {
     const router = useRouter();
@@ -89,6 +90,7 @@ export function useAuthActions() {
     const handleEmailSignIn = async (values: any): Promise<boolean> => {
         const { auth } = initializeFirebase();
         try {
+            await setPersistence(auth, browserSessionPersistence);
             await signInWithEmailAndPassword(auth, values.email, values.password);
              toast({
                 title: "Logged In!",
@@ -124,6 +126,24 @@ export function useAuthActions() {
     const handleCustomerSignUp = async (values: any) => {
         const { auth } = initializeFirebase();
         try {
+            const db = getFirestoreDb();
+            const functions = getFunctions(db.app);
+
+            // Check if email or phone exists via API routes
+            const emailRes = await fetch('/api/check-email', { method: 'POST', body: JSON.stringify({ email: values.email }) });
+            const emailData = await emailRes.json();
+            if (emailData.exists) {
+                toast({ title: "Sign Up Failed", description: "This email is already registered.", variant: "destructive" });
+                return;
+            }
+
+            const phoneRes = await fetch('/api/check-phone', { method: 'POST', body: JSON.stringify({ phone: values.phone }) });
+            const phoneData = await phoneRes.json();
+            if (phoneData.exists) {
+                toast({ title: "Sign Up Failed", description: "This phone number is already registered.", variant: "destructive" });
+                return;
+            }
+            
             const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
             const user = userCredential.user;
             const displayName = `${values.firstName} ${values.lastName}`;
@@ -157,7 +177,8 @@ export function useAuthActions() {
     };
     
     const handleAdminSignUp = async (values: any) => {
-        const functions = getFunctions();
+        const { auth } = initializeFirebase();
+        const functions = getFunctions(auth.app);
         const createAdmin = httpsCallable(functions, 'createAdminUser');
         try {
             await createAdmin(values);
@@ -189,16 +210,12 @@ export function useAuthActions() {
 
             if (!user) throw new Error("User authentication failed.");
             
-            const displayName = `${values.firstName} ${values.lastName}`;
+            const displayName = values.displayName;
             await updateProfile(user, { displayName: displayName });
 
             const sellerData: Partial<UserData> = {
                 ...values,
                 role: 'seller',
-                verificationStatus: 'verified', // Auto-verify
-                displayName: displayName,
-                followers: 0,
-                following: 0,
             };
         
             delete (sellerData as any).password;

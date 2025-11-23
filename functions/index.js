@@ -27,10 +27,6 @@ if (!admin.apps.length) {
   }
 }
 
-// --- DEPRECATED: These functions are now handled by Next.js API routes ---
-// exports.checkEmailExists = onRequest(...)
-// exports.checkPhoneExists = onRequest(...)
-
 // --- onCall Functions (for actions where security is handled by callable context) ---
 
 const createOdiditSessionImpl = async (data) => {
@@ -101,11 +97,11 @@ const createAdminUserImpl = async (data, context) => {
 
 
 // Export the onCall functions
-exports.createOdiditSession = onCall({ cors: true }, createOdiditSessionImpl);
-exports.checkOdiditSession = onCall({ cors: true }, checkOdiditSessionImpl);
-exports.sendVerificationCode = onCall({ cors: true }, sendVerificationCodeImpl);
-exports.verifyCode = onCall({ cors: true }, verifyCodeImpl);
-exports.createAdminUser = onCall({ cors: true }, createAdminUserImpl);
+exports.createOdiditSession = onCall(createOdiditSessionImpl);
+exports.checkOdiditSession = onCall(checkOdiditSessionImpl);
+exports.sendVerificationCode = onCall(sendVerificationCodeImpl);
+exports.verifyCode = onCall(verifyCodeImpl);
+exports.createAdminUser = onCall(createAdminUserImpl);
 
 
 // --- Existing onRequest and trigger functions ---
@@ -263,83 +259,77 @@ exports.sendEmail = onRequest(
 );
 
 // Function to add a bank account
-exports.addBankAccount = onRequest(async (req, res) => {
-    cors(req, res, async () => {
-        if (req.method !== 'POST') {
-            return res.status(405).json({ error: 'Use POST' });
-        }
-        const { userId, accountNumber, ifscCode, bankName } = req.body;
-        if (!userId || !accountNumber || !ifscCode || !bankName) {
-            return res.status(400).json({ error: 'Missing required fields' });
-        }
-        try {
-            const db = admin.firestore();
-            await db.collection('bankAccounts').add({
-                userId,
-                accountNumber,
-                ifscCode,
-                bankName,
-                createdAt: admin.firestore.FieldValue.serverTimestamp(),
-            });
-            res.status(200).json({ success: true });
-        } catch (error) {
-            console.error("Error adding bank account:", error);
-            res.status(500).json({ error: "Could not add bank account." });
-        }
-    });
+exports.addBankAccount = onRequest({ cors: true }, async (req, res) => {
+    if (req.method !== 'POST') {
+        return res.status(405).json({ error: 'Use POST' });
+    }
+    const { userId, accountNumber, ifscCode, bankName } = req.body;
+    if (!userId || !accountNumber || !ifscCode || !bankName) {
+        return res.status(400).json({ error: 'Missing required fields' });
+    }
+    try {
+        const db = admin.firestore();
+        await db.collection('bankAccounts').add({
+            userId,
+            accountNumber,
+            ifscCode,
+            bankName,
+            createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        });
+        res.status(200).json({ success: true });
+    } catch (error) {
+        console.error("Error adding bank account:", error);
+        res.status(500).json({ error: "Could not add bank account." });
+    }
 });
 
 // Function to get bank accounts for a user
-exports.getBankAccounts = onRequest(async (req, res) => {
-    cors(req, res, async () => {
-        if (req.method !== 'GET') {
-            return res.status(405).json({ error: 'Use GET' });
+exports.getBankAccounts = onRequest({ cors: true }, async (req, res) => {
+    if (req.method !== 'GET') {
+        return res.status(405).json({ error: 'Use GET' });
+    }
+    const userId = req.query.userId;
+    if (!userId) {
+        return res.status(400).json({ error: 'User ID is required' });
+    }
+    try {
+        const db = admin.firestore();
+        const accountsRef = db.collection('bankAccounts');
+        const snapshot = await accountsRef.where('userId', '==', userId).get();
+        if (snapshot.empty) {
+            return res.status(200).json([]);
         }
-        const userId = req.query.userId;
-        if (!userId) {
-            return res.status(400).json({ error: 'User ID is required' });
-        }
-        try {
-            const db = admin.firestore();
-            const accountsRef = db.collection('bankAccounts');
-            const snapshot = await accountsRef.where('userId', '==', userId).get();
-            if (snapshot.empty) {
-                return res.status(200).json([]);
-            }
-            const accounts = snapshot.docs.map(doc => {
-                const data = doc.data();
-                const maskedAccountNumber = '****' + data.accountNumber.slice(-4);
-                return {
-                    id: doc.id,
-                    bankName: data.bankName,
-                    accountNumber: maskedAccountNumber,
-                    ifscCode: data.ifscCode,
-                };
-            });
-            res.status(200).json(accounts);
-        } catch (error) {
-            console.error("Error getting bank accounts:", error);
-            res.status(500).json({ error: "Could not get bank accounts." });
-        }
-    });
+        const accounts = snapshot.docs.map(doc => {
+            const data = doc.data();
+            const maskedAccountNumber = '****' + data.accountNumber.slice(-4);
+            return {
+                id: doc.id,
+                bankName: data.bankName,
+                accountNumber: maskedAccountNumber,
+                ifscCode: data.ifscCode,
+            };
+        });
+        res.status(200).json(accounts);
+    } catch (error) {
+        console.error("Error getting bank accounts:", error);
+        res.status(500).json({ error: "Could not get bank accounts." });
+    }
 });
 
-exports.notifyDeliveryPartner = onRequest(async (req, res) => {
-    cors(req, res, async () => {
-        if (req.method !== 'POST') {
-            return res.status(405).json({ error: 'Use POST' });
-        }
-        const { orderId, status } = req.body;
-        if (!orderId || !status) {
-            return res.status(400).json({ error: 'Missing orderId or status' });
-        }
+exports.notifyDeliveryPartner = onRequest({ cors: true }, async (req, res) => {
+    if (req.method !== 'POST') {
+        return res.status(405).json({ error: 'Use POST' });
+    }
+    const { orderId, status } = req.body;
+    if (!orderId || !status) {
+        return res.status(400).json({ error: 'Missing orderId or status' });
+    }
 
-        console.log(`Notifying delivery partner for order ${orderId} with status: ${status}`);
+    console.log(`Notifying delivery partner for order ${orderId} with status: ${status}`);
 
-        await new Promise(resolve => setTimeout(resolve, 500));
-        
-        console.log(`Successfully notified delivery partner for order ${orderId}.`);
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    console.log(`Successfully notified delivery partner for order ${orderId}.`);
 
-        res.status(200).json({ success: true, message: `Delivery partner notified for order ${orderId}` });
-    });
+    res.status(200).json({ success: true, message: `Delivery partner notified for order ${orderId}` });
 });

@@ -1,0 +1,44 @@
+{
+  "mcpServers": {
+    "github": {
+      "command": "/workspace/mcp-bin/mcp-github",
+      "args": ["--token", "${GITHUB_TOKEN}"],
+      "description": "Local GitHub adapter (create-issue, repo-info)"
+    },
+    "http": {
+      "command": "/workspace/mcp-bin/mcp-http",
+      "args": [],
+      "description": "Local HTTP adapter (get, post)"
+    },
+    "firestore": {
+      "command": "/workspace/mcp-bin/mcp-firestore",
+      "args": ["--project", "${GCP_PROJECT_ID}"],
+      "description": "Firestore helper (stub)"
+    },
+    "cloudFunctions": {
+      "command": "/workspace/mcp-bin/mcp-cloudfunctions",
+      "args": ["--project", "${GCP_PROJECT_ID}"],
+      "description": "Cloud Functions helper (stub)"
+    },
+    "cloudRun": {
+      "command": "/workspace/mcp-bin/mcp-cloudrun",
+      "args": ["--project", "${GCP_PROJECT_ID}"],
+      "description": "Cloud Run helper (stub)"
+    },
+    "browser": {
+      "command": "/workspace/mcp-bin/mcp-browser",
+      "args": ["--headless"],
+      "description": "Local browser adapter stub (headless)."
+    },
+    "googleSearch": {
+      "command": "/workspace/mcp-bin/mcp-google_search",
+      "args": ["--api-key", "${GOOGLE_API_KEY}"],
+      "description": "Google Search stub"
+    }
+  },
+  "metadata": {
+    "name": "streamcart-mcp-project",
+    "createdBy": "you",
+    "screenshot": "/mnt/data/be3b7bb9-fd2c-4f3a-a0d5-ad4b687b42ee.png"
+  }
+}
