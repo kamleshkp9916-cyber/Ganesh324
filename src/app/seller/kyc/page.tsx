@@ -464,75 +464,70 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
                         <p className="text-xs text-muted-foreground mt-1">This is the name customers will see.</p>
                     </div>
                   </div>
-                  
-                  {isNewRegistration && (
-                    <>
-                      <div className="flex flex-col md:flex-row gap-2 items-end">
-                        <div className="space-y-1 flex-grow">
-                          <label className="text-sm font-medium">Email</label>
-                          <Input value={form.email} onChange={(e) => { setEmailError(''); setField("email", e.target.value); }} onBlur={checkEmailExists} placeholder="you@shop.com" disabled={form.emailVerified} className="flex-grow"/>
-                           {emailError ? <p className="text-xs text-destructive mt-1">{emailError}</p> : <p className="text-xs text-muted-foreground mt-1">This email will be used for login and official communication.</p>}
-                        </div>
-                        <Button type="button" onClick={() => handleSendOtp('email')} disabled={resendCooldown.email > 0 || form.emailVerified || !!emailError || !/.+@.+\..+/.test(form.email) || isVerifying.email} className="flex-shrink-0 w-full md:w-auto">
-                            {isVerifying.email ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : form.emailVerified ? <Check className="mr-2 h-4 w-4"/> : <Send className="mr-2 h-4 w-4"/>}
-                            {form.emailVerified ? 'Verified' : resendCooldown.email > 0 ? `Resend in ${resendCooldown.email}s` : 'Send OTP'}
-                        </Button>
-                      </div>
-                      {otpSent.email && !form.emailVerified && (
-                          <div className="flex items-end gap-2">
-                              <InputOTP maxLength={6} value={form.emailOtp} onChange={(val) => setField("emailOtp", val)}>
-                                  <InputOTPGroup>
-                                      <InputOTPSlot index={0} /><InputOTPSlot index={1} /><InputOTPSlot index={2} />
-                                      <InputOTPSlot index={3} /><InputOTPSlot index={4} /><InputOTPSlot index={5} />
-                                  </InputOTPGroup>
-                              </InputOTP>
-                              <Button type="button" variant="secondary" onClick={() => handleVerifyOtp('email')} disabled={form.emailOtp.length < 6 || isVerifying.email}>
-                              {isVerifying.email && <Loader2 className="mr-2 h-4 w-4 animate-spin"/>}
-                              Verify Email
-                              </Button>
-                          </div>
-                      )}
-                      <div className="flex flex-col md:flex-row gap-2 items-end">
-                          <div className="space-y-1 flex-grow">
-                              <label className="text-sm font-medium">Phone</label>
-                              <Input value={form.phone} onChange={(e) => { setPhoneError(''); setField("phone", e.target.value.replace(/[^0-9]/g, "").slice(0,10)); }} onBlur={checkPhoneExists} placeholder="10‑digit mobile" disabled={form.phoneVerified} className="flex-grow"/>
-                              {phoneError ? <p className="text-xs text-destructive mt-1">{phoneError}</p> : <p className="text-xs text-muted-foreground mt-1">Used for verification and support communication.</p>}
-                          </div>
-                          <Button type="button" onClick={() => handleSendOtp('phone')} disabled={resendCooldown.phone > 0 || form.phoneVerified || !!phoneError || form.phone.length !== 10 || isVerifying.phone} className="flex-shrink-0 w-full md:w-auto">
-                            {isVerifying.phone ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : form.phoneVerified ? <Check className="mr-2 h-4 w-4"/> : <Send className="mr-2 h-4 w-4"/>}
-                            {form.phoneVerified ? 'Verified' : resendCooldown.phone > 0 ? `Resend in ${resendCooldown.phone}s` : 'Send OTP'}
+                  <div className="flex flex-col md:flex-row gap-2 items-end">
+                    <div className="space-y-1 flex-grow">
+                      <label className="text-sm font-medium">Email</label>
+                      <Input value={form.email} onChange={(e) => { setEmailError(''); setField("email", e.target.value); }} onBlur={checkEmailExists} placeholder="you@shop.com" disabled={form.emailVerified} className="flex-grow"/>
+                       {emailError ? <p className="text-xs text-destructive mt-1">{emailError}</p> : <p className="text-xs text-muted-foreground mt-1">This email will be used for login and official communication.</p>}
+                    </div>
+                    <Button type="button" onClick={() => handleSendOtp('email')} disabled={resendCooldown.email > 0 || form.emailVerified || !!emailError || !/.+@.+\..+/.test(form.email) || isVerifying.email} className="flex-shrink-0 w-full md:w-auto">
+                        {isVerifying.email ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : form.emailVerified ? <Check className="mr-2 h-4 w-4"/> : <Send className="mr-2 h-4 w-4"/>}
+                        {form.emailVerified ? 'Verified' : resendCooldown.email > 0 ? `Resend in ${resendCooldown.email}s` : 'Send OTP'}
+                    </Button>
+                  </div>
+                  {otpSent.email && !form.emailVerified && (
+                      <div className="flex items-end gap-2">
+                          <InputOTP maxLength={6} value={form.emailOtp} onChange={(val) => setField("emailOtp", val)}>
+                              <InputOTPGroup>
+                                  <InputOTPSlot index={0} /><InputOTPSlot index={1} /><InputOTPSlot index={2} />
+                                  <InputOTPSlot index={3} /><InputOTPSlot index={4} /><InputOTPSlot index={5} />
+                              </InputOTPGroup>
+                          </InputOTP>
+                          <Button type="button" variant="secondary" onClick={() => handleVerifyOtp('email')} disabled={form.emailOtp.length < 6 || isVerifying.email}>
+                          {isVerifying.email && <Loader2 className="mr-2 h-4 w-4 animate-spin"/>}
+                          Verify Email
                           </Button>
                       </div>
-                      {otpSent.phone && !form.phoneVerified && (
-                          <div className="flex items-end gap-2">
-                              <InputOTP maxLength={6} value={form.phoneOtp} onChange={(val) => setField("phoneOtp", val)}>
-                                  <InputOTPGroup>
-                                      <InputOTPSlot index={0} /><InputOTPSlot index={1} /><InputOTPSlot index={2} />
-                                      <InputOTPSlot index={3} /><InputOTPSlot index={4} /><InputOTPSlot index={5} />
-                                  </InputOTPGroup>
-                              </InputOTP>
-                              <Button type="button" variant="secondary" onClick={() => handleVerifyOtp('phone')} disabled={form.phoneOtp.length < 6 || isVerifying.phone}>
-                              {isVerifying.phone && <Loader2 className="mr-2 h-4 w-4 animate-spin"/>}
-                              Verify Phone
-                              </Button>
-                          </div>
-                      )}
-                      
-                      <div className="grid md:grid-cols-2 gap-4">
-                          <div>
-                            <label className="text-sm font-medium">Password</label>
-                            <Input type="password" value={form.password} onChange={(e)=>setField("password", e.target.value)} placeholder="Minimum 8 characters"/>
-                             {form.password && form.password.length < 8 && <p className="text-xs text-destructive mt-1">Password must be at least 8 characters.</p>}
-                          </div>
-                           <div>
-                            <label className="text-sm font-medium">Confirm Password</label>
-                            <Input type="password" value={form.confirmPassword} onChange={(e)=>setField("confirmPassword", e.target.value)} placeholder="Re-enter your password"/>
-                            {form.confirmPassword && form.password !== form.confirmPassword && <p className="text-xs text-destructive mt-1">Passwords do not match.</p>}
-                          </div>
-                      </div>
-                    </>
                   )}
-                  
+                  <div className="flex flex-col md:flex-row gap-2 items-end">
+                      <div className="space-y-1 flex-grow">
+                          <label className="text-sm font-medium">Phone</label>
+                          <Input value={form.phone} onChange={(e) => { setPhoneError(''); setField("phone", e.target.value.replace(/[^0-9]/g, "").slice(0,10)); }} onBlur={checkPhoneExists} placeholder="10‑digit mobile" disabled={form.phoneVerified} className="flex-grow"/>
+                          {phoneError ? <p className="text-xs text-destructive mt-1">{phoneError}</p> : <p className="text-xs text-muted-foreground mt-1">Used for verification and support communication.</p>}
+                      </div>
+                      <Button type="button" onClick={() => handleSendOtp('phone')} disabled={resendCooldown.phone > 0 || form.phoneVerified || !!phoneError || form.phone.length !== 10 || isVerifying.phone} className="flex-shrink-0 w-full md:w-auto">
+                        {isVerifying.phone ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : form.phoneVerified ? <Check className="mr-2 h-4 w-4"/> : <Send className="mr-2 h-4 w-4"/>}
+                        {form.phoneVerified ? 'Verified' : resendCooldown.phone > 0 ? `Resend in ${resendCooldown.phone}s` : 'Send OTP'}
+                      </Button>
+                  </div>
+                  {otpSent.phone && !form.phoneVerified && (
+                      <div className="flex items-end gap-2">
+                          <InputOTP maxLength={6} value={form.phoneOtp} onChange={(val) => setField("phoneOtp", val)}>
+                              <InputOTPGroup>
+                                  <InputOTPSlot index={0} /><InputOTPSlot index={1} /><InputOTPSlot index={2} />
+                                  <InputOTPSlot index={3} /><InputOTPSlot index={4} /><InputOTPSlot index={5} />
+                              </InputOTPGroup>
+                          </InputOTP>
+                          <Button type="button" variant="secondary" onClick={() => handleVerifyOtp('phone')} disabled={form.phoneOtp.length < 6 || isVerifying.phone}>
+                          {isVerifying.phone && <Loader2 className="mr-2 h-4 w-4 animate-spin"/>}
+                          Verify Phone
+                          </Button>
+                      </div>
+                  )}
+                  {isNewRegistration && (
+                    <div className="grid md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="text-sm font-medium">Password</label>
+                          <Input type="password" value={form.password} onChange={(e)=>setField("password", e.target.value)} placeholder="Minimum 8 characters"/>
+                           {form.password && form.password.length < 8 && <p className="text-xs text-destructive mt-1">Password must be at least 8 characters.</p>}
+                        </div>
+                         <div>
+                          <label className="text-sm font-medium">Confirm Password</label>
+                          <Input type="password" value={form.confirmPassword} onChange={(e)=>setField("confirmPassword", e.target.value)} placeholder="Re-enter your password"/>
+                          {form.confirmPassword && form.password !== form.confirmPassword && <p className="text-xs text-destructive mt-1">Passwords do not match.</p>}
+                        </div>
+                    </div>
+                  )}
                   <div>
                     <label className="text-sm font-medium">About shop</label>
                     <Textarea value={form.about} onChange={(e)=>setField("about", e.target.value)} placeholder="Short bio"/>
@@ -685,7 +680,7 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
             )}
             
             {steps[current].key === "policies" && (
-                <Section title="Policies & Preview" icon={<FileSignature className="w-5 h-5"/>} hasError={(existingData as any)?.stepsToFix?.includes('policies')}>
+                <Section title="Policies & Preview" icon={<FileSignature className="w-5 h-5"/>} hasError={existingData?.stepsToFix?.includes('policies')}>
                   <div className="space-y-6">
                      <Card>
                         <CardHeader>
@@ -795,152 +790,152 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
 }
 
 export default function KYCPage() {
-  const { user, userData, authReady } = useAuth();
-  const { initiateAnonymousSignIn } = useAuthActions();
-  const router = useRouter();
-  const [isClient, setIsClient] = useState(false);
-  
-  useEffect(() => {
-    setIsClient(true);
-    if (typeof window !== 'undefined' && authReady) {
-        const isAnonymousSessionActive = sessionStorage.getItem('isAnonymousSessionActive') === 'true';
-        if (!user && !isAnonymousSessionActive) {
-            initiateAnonymousSignIn();
+    const { user, userData, authReady } = useAuth();
+    const { initiateAnonymousSignIn } = useAuthActions();
+    const router = useRouter();
+    const [isClient, setIsClient] = useState(false);
+    
+    useEffect(() => {
+        setIsClient(true);
+        if (typeof window !== 'undefined' && authReady) {
+            const isAnonymousSessionActive = sessionStorage.getItem('isAnonymousSessionActive') === 'true';
+            if (!user && !isAnonymousSessionActive) {
+                initiateAnonymousSignIn();
+            }
         }
+    }, [user, authReady, initiateAnonymousSignIn]);
+    
+    const initialProgress = useMemo(() => {
+        return Math.round(((0 + 1) / (steps.length)) * 100);
+    }, []);
+    
+    useEffect(() => {
+        if (isClient && authReady) {
+            if (user && userData?.role === 'seller' && userData?.verificationStatus === 'verified') {
+                router.replace('/seller/dashboard');
+            }
+        }
+    }, [isClient, user, userData, authReady, router]);
+    
+    const handleSubmission = (data: any) => {
+        router.refresh(); // This will re-trigger the check in useEffect
+    };
+
+    if (!isClient || !authReady) {
+        return (
+            <div className="min-h-screen p-6 md:p-10 flex items-center justify-center">
+                <LoadingSpinner />
+            </div>
+        );
     }
-  }, [isClient, user, authReady, initiateAnonymousSignIn]);
-  
-  const initialProgress = useMemo(() => {
-      return Math.round(((0 + 1) / (steps.length)) * 100);
-  }, []);
-  
-  useEffect(() => {
-      if (isClient && authReady) {
-          if (user && userData?.role === 'seller' && userData?.verificationStatus === 'verified') {
-              router.replace('/seller/dashboard');
-          }
-      }
-  }, [isClient, user, userData, authReady, router]);
-  
-  const handleSubmission = (data: any) => {
-      router.refresh(); // This will re-trigger the check in useEffect
-  };
+    
+    if (userData?.verificationStatus === 'pending') {
+         return (
+             <div className="min-h-screen p-6 md:p-10 flex items-center justify-center">
+                <Card className="max-w-md text-center">
+                    <CardHeader>
+                        <CardTitle>Application Submitted</CardTitle>
+                        <CardDescription>Thank you for submitting your application. We are currently reviewing your details.</CardDescription>
+                    </CardHeader>
+                     <CardContent>
+                        <p className="text-sm">Estimated review time is <strong>24 hours</strong>. You will receive an email once your application has been reviewed.</p>
+                        <Button asChild className="mt-4"><Link href="/">Back to Login</Link></Button>
+                    </CardContent>
+                </Card>
+            </div>
+         );
+    }
 
-  if (!isClient || !authReady) {
-      return (
-          <div className="min-h-screen p-6 md:p-10 flex items-center justify-center">
-              <LoadingSpinner />
-          </div>
-      );
-  }
-  
-  if (userData?.verificationStatus === 'pending') {
-       return (
-           <div className="min-h-screen p-6 md:p-10 flex items-center justify-center">
-              <Card className="max-w-md text-center">
-                  <CardHeader>
-                      <CardTitle>Application Submitted</CardTitle>
-                      <CardDescription>Thank you for submitting your application. We are currently reviewing your details.</CardDescription>
-                  </CardHeader>
-                   <CardContent>
-                      <p className="text-sm">Estimated review time is <strong>24 hours</strong>. You will receive an email once your application has been reviewed.</p>
-                      <Button asChild className="mt-4"><Link href="/">Back to Login</Link></Button>
-                  </CardContent>
-              </Card>
-          </div>
-       );
-  }
-
-  if (userData?.verificationStatus === 'rejected') {
-      return (
-           <div className="min-h-screen p-6 md:p-10 flex items-center justify-center">
-              <Card className="max-w-md text-center border-destructive">
-                  <CardHeader>
-                      <CardTitle className="text-destructive">Application Rejected</CardTitle>
-                      <CardDescription>Unfortunately, your seller application could not be approved at this time.</CardDescription>
-                  </CardHeader>
-                   <CardContent>
-                      <div className="bg-destructive/10 p-3 rounded-md text-left">
-                          <p className="font-semibold">Reason for rejection:</p>
-                          <p className="text-sm">{userData.rejectionReason || "No reason provided."}</p>
-                      </div>
-                      <Button onClick={() => updateUserData(user!.uid, { verificationStatus: 'pending', rejectionReason: '' })} className="mt-4">Start New Application</Button>
-                  </CardContent>
-              </Card>
-          </div>
-      );
-  }
-  
-  if (userData?.verificationStatus === 'needs-resubmission') {
-      return (
-          <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white">
-              <Progress value={initialProgress} className="w-full fixed top-0 left-0 right-0 h-1 z-50"/>
-              <div className="max-w-7xl mx-auto space-y-6 p-6 md:p-10 pt-8">
-                   <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
-                      <div className="xl:col-span-1">
-                           <div className="flex items-center justify-between">
-                              <Button asChild variant="ghost" className="-ml-4">
-                                  <Link href="/">
-                                  <ChevronLeft className="mr-2 h-4 w-4" />
-                                  Back to Login
-                                  </Link>
-                              </Button>
-                          </div>
-                      </div>
-                      <div className="xl:col-span-3 text-center">
-                          <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">Become a Seller</h1>
-                          <p className="text-sm text-muted-foreground">Complete the following steps to start selling on Nipher.</p>
-                      </div>
-                  </div>
-                  <Card className="border-amber-500 bg-amber-50">
-                      <CardHeader className="text-center">
-                          <CardTitle className="text-amber-700">Resubmission Required</CardTitle>
-                          <CardDescription className="text-amber-600">
-                              An admin has reviewed your application and requires more information. Please review the feedback below, make the necessary changes, and re-submit.
-                          </CardDescription>
-                      </CardHeader>
-                      <CardContent className="text-center font-medium text-amber-800">
-                           <p>"{userData.resubmissionReason || 'No reason provided.'}"</p>
-                           {(userData as any).stepsToFix && (
-                               <div className="mt-2 text-sm">
-                                  <p className="font-bold">Please correct the following sections:</p>
-                                  <div className="flex justify-center gap-2 mt-1">
-                                  {(userData as any).stepsToFix.map((stepKey: string) => (
-                                       <Badge key={stepKey} variant="warning">{steps.find(s => s.key === stepKey)?.label}</Badge>
-                                  ))}</div>
-                               </div>
-                           )}
-                      </CardContent>
-                  </Card>
-                  <SellerWizard onSubmit={handleSubmission} existingData={userData} />
-              </div>
-          </div>
-      )
-  }
-  
-  return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white">
-          <Progress value={initialProgress} className="w-full fixed top-0 left-0 right-0 h-1 z-50"/>
-          <div className="max-w-7xl mx-auto space-y-6 p-6 md:p-10 pt-8">
-               <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
-                  <div className="xl:col-span-1">
-                      <div className="flex items-center justify-between">
-                          <Button asChild variant="ghost" className="-ml-4">
-                              <Link href="/">
-                              <ChevronLeft className="mr-2 h-4 w-4" />
-                              Back to Login
-                              </Link>
-                          </Button>
-                      </div>
-                  </div>
-                  <div className="xl:col-span-3 text-center">
-                      <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">Become a Seller</h1>
-                      <p className="text-sm text-muted-foreground">Complete the following steps to start selling on Nipher.</p>
-                  </div>
-              </div>
-              <SellerWizard onSubmit={handleSubmission} />
-          </div>
-      </div>
-  );
+    if (userData?.verificationStatus === 'rejected') {
+        return (
+             <div className="min-h-screen p-6 md:p-10 flex items-center justify-center">
+                <Card className="max-w-md text-center border-destructive">
+                    <CardHeader>
+                        <CardTitle className="text-destructive">Application Rejected</CardTitle>
+                        <CardDescription>Unfortunately, your seller application could not be approved at this time.</CardDescription>
+                    </CardHeader>
+                     <CardContent>
+                        <div className="bg-destructive/10 p-3 rounded-md text-left">
+                            <p className="font-semibold">Reason for rejection:</p>
+                            <p className="text-sm">{userData.rejectionReason || "No reason provided."}</p>
+                        </div>
+                        <Button onClick={() => updateUserData(user!.uid, { verificationStatus: 'pending', rejectionReason: '' })} className="mt-4">Start New Application</Button>
+                    </CardContent>
+                </Card>
+            </div>
+        );
+    }
+    
+    if (userData?.verificationStatus === 'needs-resubmission') {
+        return (
+            <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white">
+                <Progress value={initialProgress} className="w-full fixed top-0 left-0 right-0 h-1 z-50"/>
+                <div className="max-w-7xl mx-auto space-y-6 p-6 md:p-10 pt-8">
+                     <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
+                        <div className="xl:col-span-1">
+                             <div className="flex items-center justify-between">
+                                <Button asChild variant="ghost" className="-ml-4">
+                                    <Link href="/">
+                                    <ChevronLeft className="mr-2 h-4 w-4" />
+                                    Back to Login
+                                    </Link>
+                                </Button>
+                            </div>
+                        </div>
+                        <div className="xl:col-span-3 text-center">
+                            <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">Become a Seller</h1>
+                            <p className="text-sm text-muted-foreground">Complete the following steps to start selling on Nipher.</p>
+                        </div>
+                    </div>
+                    <Card className="border-amber-500 bg-amber-50">
+                        <CardHeader className="text-center">
+                            <CardTitle className="text-amber-700">Resubmission Required</CardTitle>
+                            <CardDescription className="text-amber-600">
+                                An admin has reviewed your application and requires more information. Please review the feedback below, make the necessary changes, and re-submit.
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent className="text-center font-medium text-amber-800">
+                             <p>"{userData.resubmissionReason || 'No reason provided.'}"</p>
+                             {(userData as any).stepsToFix && (
+                                 <div className="mt-2 text-sm">
+                                    <p className="font-bold">Please correct the following sections:</p>
+                                    <div className="flex justify-center gap-2 mt-1">
+                                    {(userData as any).stepsToFix.map((stepKey: string) => (
+                                         <Badge key={stepKey} variant="warning">{steps.find(s => s.key === stepKey)?.label}</Badge>
+                                    ))}</div>
+                                 </div>
+                             )}
+                        </CardContent>
+                    </Card>
+                    <SellerWizard onSubmit={handleSubmission} existingData={userData} />
+                </div>
+            </div>
+        )
+    }
+    
+    return (
+        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white">
+            <Progress value={initialProgress} className="w-full fixed top-0 left-0 right-0 h-1 z-50"/>
+            <div className="max-w-7xl mx-auto space-y-6 p-6 md:p-10 pt-8">
+                 <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
+                    <div className="xl:col-span-1">
+                        <div className="flex items-center justify-between">
+                            <Button asChild variant="ghost" className="-ml-4">
+                                <Link href="/">
+                                <ChevronLeft className="mr-2 h-4 w-4" />
+                                Back to Login
+                                </Link>
+                            </Button>
+                        </div>
+                    </div>
+                    <div className="xl:col-span-3 text-center">
+                        <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">Become a Seller</h1>
+                        <p className="text-sm text-muted-foreground">Complete the following steps to start selling on Nipher.</p>
+                    </div>
+                </div>
+                <SellerWizard onSubmit={handleSubmission} />
+            </div>
+        </div>
+    );
 }
 

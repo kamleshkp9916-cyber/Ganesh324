@@ -144,8 +144,8 @@ const createOdiditSessionImpl = async (data) => {
     console.log("Using ODIDIT_API_KEY to create a session.");
     
     const sessionId = `mock-session-${Date.now()}`;
-    const verificationLink = `https://0did.it/verify/${sessionId}`;
-    return { verificationLink, sessionId };
+    const qrCodeUrl = await QRCode.toDataURL(`https://0did.it/verify/${sessionId}`);
+    return { qrCodeUrl, sessionId };
 };
 
 const checkOdiditSessionImpl = async (data) => {
@@ -204,6 +204,7 @@ const createAdminUserImpl = async (data, context) => {
     if (!email || !password || !firstName || !lastName) {
         throw new HttpsError('invalid-argument', 'Missing required user information.');
     }
+    // Logic to create admin user would go here...
     return { success: true };
 };
 
