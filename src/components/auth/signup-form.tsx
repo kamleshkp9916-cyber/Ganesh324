@@ -18,7 +18,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { useAuthActions } from "@/lib/auth";
+import { useAuthActions } from "@/hooks/use-auth";
 import { Checkbox } from "../ui/checkbox";
 import { Separator } from "../ui/separator";
 

@@ -17,7 +17,7 @@ import {
   FormMessage,
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
-import { useAuthActions } from "@/lib/auth"
+import { useAuthActions } from "@/hooks/use-auth"
 
 
 const emailSchema = z.object({
@@ -64,5 +64,3 @@ export function ForgotPasswordForm() {
     </Form>
   )
 }
-
-    

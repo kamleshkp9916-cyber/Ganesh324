@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "../ui/checkbox";
-import { useAuthActions } from "@/lib/auth";
+import { useAuthActions } from "@/hooks/use-auth";
 
 const loginSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address." }),
