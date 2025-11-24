@@ -3,9 +3,8 @@
 
 import { GoogleAuthProvider, signInWithPopup, signOut as firebaseSignOut, sendPasswordResetEmail, User, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendEmailVerification, getAdditionalUserInfo, updateProfile, setPersistence, browserSessionPersistence, Auth } from "firebase/auth";
 import { FirebaseApp } from "firebase/app";
-import { useRouter } from "next/navigation";
-import { useToast } from "@/hooks/use-toast";
-import { createUserData, updateUserData, UserData, getUserData } from "./follow-data";
+import type { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
+import { createUserData, updateUserData, UserData } from "./follow-data";
 import { getStorage, ref, uploadString, getDownloadURL, deleteObject } from "firebase/storage";
 import { getFunctions, httpsCallable } from "firebase/functions";
 import { getFirestoreDb } from "./firebase-db";
@@ -22,11 +21,14 @@ async function triggerUpdateLastLogin(auth: Auth) {
     }
 }
 
-// This function is NOT a hook anymore. It's a factory that returns an object of functions.
-export function getAuthActions(auth: Auth, firebaseApp: FirebaseApp) {
-    const router = useRouter();
-    const { toast } = useToast();
-
+// This is now a pure factory function that takes all dependencies as arguments.
+// It does NOT call any hooks itself.
+export function getAuthActions(
+    auth: Auth, 
+    firebaseApp: FirebaseApp,
+    router: AppRouterInstance,
+    toast: (options: { title: string, description?: string, variant?: 'default' | 'destructive' }) => void
+) {
     const signOut = async (isSeller = false) => {
         try {
             await firebaseSignOut(auth);
@@ -327,7 +329,4 @@ export function getAuthActions(auth: Auth, firebaseApp: FirebaseApp) {
     };
 }
 
-export function useAuthActions() {
-  const { auth, firebaseApp } = useFirebase();
-  return useMemo(() => getAuthActions(auth, firebaseApp), [auth, firebaseApp]);
-}
+    

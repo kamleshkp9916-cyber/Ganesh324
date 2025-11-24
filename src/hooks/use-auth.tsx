@@ -4,9 +4,11 @@
 import { useEffect, useState, createContext, useContext, useMemo } from 'react';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { doc, onSnapshot } from 'firebase/firestore';
-import { FirebaseContext } from '@/firebase/provider';
+import { FirebaseContext, useFirebase } from '@/firebase/provider';
 import { createUserData, getUserData, UserData } from "@/lib/follow-data";
 import { getAuthActions } from '@/lib/auth';
+import { useRouter } from 'next/navigation';
+import { useToast } from '@/hooks/use-toast';
 
 interface AuthContextType {
   user: User | null;
@@ -24,14 +26,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [userData, setUserData] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
   const [authReady, setAuthReady] = useState(false);
+  
+  // Hooks are now at the top level of the component
+  const router = useRouter();
+  const { toast } = useToast();
 
   // Initialize auth actions, ensuring context is available
   const actions = useMemo(() => {
     if (firebaseContext?.auth && firebaseContext?.firebaseApp) {
-      return getAuthActions(firebaseContext.auth, firebaseContext.firebaseApp);
+      // Pass the hook results as arguments to the factory function
+      return getAuthActions(firebaseContext.auth, firebaseContext.firebaseApp, router, toast);
     }
-    return null; // Return null if context is not ready
-  }, [firebaseContext]);
+    return null;
+  }, [firebaseContext, router, toast]);
 
   useEffect(() => {
     if (!firebaseContext || !firebaseContext.auth || !firebaseContext.firestore) {
@@ -107,7 +114,11 @@ export const useAuthActions = () => {
         throw new Error('useAuthActions must be used within an AuthProvider');
     }
     if (!context.actions) {
-        throw new Error('Auth actions are not yet available.');
+        // This can happen during initial render before context is ready
+        // You might want to handle this gracefully in components, e.g. by disabling buttons.
+        return getAuthActions({} as any, {} as any, {} as any, () => {}); // Return a dummy object
     }
     return context.actions;
 }
+
+    
