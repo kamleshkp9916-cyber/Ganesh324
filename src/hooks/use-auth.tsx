@@ -4,17 +4,19 @@
 import { useEffect, useState, createContext, useContext, useMemo } from 'react';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { doc, onSnapshot } from 'firebase/firestore';
-import { FirebaseContext } from '@/firebase/provider'; // Corrected import
+import { FirebaseContext, useFirebase } from '@/firebase/provider';
 import { createUserData, getUserData, UserData } from "@/lib/follow-data";
+import { getAuthActions } from '@/lib/auth';
 
 interface AuthContextType {
   user: User | null;
   userData: UserData | null;
   loading: boolean;
   authReady: boolean;
+  actions: ReturnType<typeof getAuthActions>;
 }
 
-const AuthContext = createContext<AuthContextType>({ user: null, userData: null, loading: true, authReady: false });
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const firebaseContext = useContext(FirebaseContext);
@@ -23,9 +25,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [authReady, setAuthReady] = useState(false);
 
+  // Initialize auth actions
+  const actions = useMemo(() => {
+    if (firebaseContext?.auth && firebaseContext?.firebaseApp) {
+      return getAuthActions(firebaseContext.auth, firebaseContext.firebaseApp);
+    }
+    // Return a dummy object if firebase is not ready, though this should not happen in practice
+    return {} as ReturnType<typeof getAuthActions>; 
+  }, [firebaseContext]);
+
   useEffect(() => {
     if (!firebaseContext || !firebaseContext.auth || !firebaseContext.firestore) {
-      // Firebase services are not available yet.
       return;
     }
     
@@ -58,7 +68,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setAuthReady(true);
         });
         
-        // Return the firestore listener unsubscribe function
         return () => unsubscribeFirestore();
       } else {
         setUser(null);
@@ -71,7 +80,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => unsubscribeAuth();
   }, [firebaseContext]);
 
-  const value = useMemo(() => ({ user, userData, loading, authReady }), [user, userData, loading, authReady]);
+  const value = useMemo(() => ({ user, userData, loading, authReady, actions }), [user, userData, loading, authReady, actions]);
+
+  if (!firebaseContext) {
+      return <div>Loading Firebase...</div>;
+  }
 
   return (
     <AuthContext.Provider value={value}>
@@ -87,3 +100,12 @@ export const useAuth = () => {
   }
   return context;
 };
+
+// A new hook specifically for getting the actions
+export const useAuthActions = () => {
+    const context = useContext(AuthContext);
+    if (!context) {
+        throw new Error('useAuthActions must be used within an AuthProvider');
+    }
+    return context.actions;
+}

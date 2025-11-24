@@ -1,8 +1,8 @@
 
 "use client";
 
-import { GoogleAuthProvider, signInWithPopup, signOut as firebaseSignOut, sendPasswordResetEmail, User, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendEmailVerification, getAdditionalUserInfo, updateProfile, setPersistence, browserSessionPersistence } from "firebase/auth";
-import { useFirebase } from '@/firebase';
+import { GoogleAuthProvider, signInWithPopup, signOut as firebaseSignOut, sendPasswordResetEmail, User, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendEmailVerification, getAdditionalUserInfo, updateProfile, setPersistence, browserSessionPersistence, Auth } from "firebase/auth";
+import { FirebaseApp } from "firebase/app";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 import { createUserData, updateUserData, UserData, getUserData } from "./follow-data";
@@ -10,7 +10,7 @@ import { getStorage, ref, uploadString, getDownloadURL, deleteObject } from "fir
 import { getFunctions, httpsCallable } from "firebase/functions";
 import { getFirestoreDb } from "./firebase-db";
 
-async function triggerUpdateLastLogin(auth: import("firebase/auth").Auth) {
+async function triggerUpdateLastLogin(auth: Auth) {
     if (!auth.currentUser) return;
 
     try {
@@ -22,11 +22,11 @@ async function triggerUpdateLastLogin(auth: import("firebase/auth").Auth) {
     }
 }
 
-export function useAuthActions() {
+// This function is NOT a hook anymore. It's a factory that returns an object of functions.
+export function getAuthActions(auth: Auth, firebaseApp: FirebaseApp) {
     const router = useRouter();
     const { toast } = useToast();
-    const { auth, firebaseApp } = useFirebase();
-    
+
     const signOut = async (isSeller = false) => {
         try {
             await firebaseSignOut(auth);
@@ -35,10 +35,8 @@ export function useAuthActions() {
                 sessionStorage.setItem('sellerSignedOut', 'true');
             }
 
-            // Force a full page reload to the login page
             window.location.href = '/';
 
-            // Toast will likely not be seen, but it's good practice to leave it.
             toast({
                 title: "Signed Out",
                 description: "You have been successfully signed out.",
@@ -135,7 +133,6 @@ export function useAuthActions() {
 
     const handleCustomerSignUp = async (values: any) => {
         try {
-            // Check if email or phone exists via API routes
             const emailRes = await fetch('/api/check-email', { method: 'POST', body: JSON.stringify({ email: values.email }) });
             if (!emailRes.ok) throw new Error('Email check failed');
             const emailData = await emailRes.json();
@@ -318,7 +315,19 @@ export function useAuthActions() {
         }
     };
 
-    return { signOut, sendPasswordResetLink, handleGoogleSignIn, handleEmailSignIn, handleCustomerSignUp, handleAdminSignUp, handleSellerSignUp, updateUserProfile };
+    return { 
+        signOut, 
+        sendPasswordResetLink, 
+        handleGoogleSignIn, 
+        handleEmailSignIn, 
+        handleCustomerSignUp, 
+        handleAdminSignUp, 
+        handleSellerSignUp, 
+        updateUserProfile 
+    };
 }
 
-    
+export function useAuthActions() {
+  const { auth, firebaseApp } = useFirebase();
+  return useMemo(() => getAuthActions(auth, firebaseApp), [auth, firebaseApp]);
+}
