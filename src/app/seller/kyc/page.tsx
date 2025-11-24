@@ -826,14 +826,6 @@ export default function KYCPage() {
         return Math.round(((0 + 1) / (steps.length)) * 100);
     }, []);
     
-    useEffect(() => {
-        if (isClient && authReady) {
-            if (user && !user.isAnonymous && userData?.role === 'seller' && userData?.verificationStatus === 'verified') {
-                router.replace('/seller/dashboard');
-            }
-        }
-    }, [isClient, user, userData, authReady, router]);
-    
     const handleSubmission = (data: any) => {
         router.refresh(); // This will re-trigger the check in useEffect
     };
