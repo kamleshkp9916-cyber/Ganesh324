@@ -105,13 +105,12 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
     termsAccepted: existingData?.termsAccepted || false,
     aadhaarNumber: "",
     aadhaarOtp: "",
-    isNipherVerified: existingData?.isNipherVerified || false,
   };
 
   const [form, setForm] = useLocalStorage<any>(SELLER_KYC_DRAFT_KEY, initialFormState);
   const [isFormDirty, setIsFormDirty] = useState(false);
   
-    const [verif, setVerif] = useState<{ state: "IDLE" | "PENDING" | "VERIFIED" | "FAILED", message: string }>({ state: existingData?.isNipherVerified ? 'VERIFIED' : "IDLE", message: existingData?.isNipherVerified ? 'Verification previously completed.' : '' });
+    const [verif, setVerif] = useState<{ state: "IDLE" | "PENDING" | "VERIFIED" | "FAILED", message: string }>({ state: existingData?.kycStatus === 'verified' ? 'VERIFIED' : "IDLE", message: existingData?.kycStatus === 'verified' ? 'Verification previously completed.' : '' });
   const [isVerifying, setIsVerifying] = useState({ email: false, phone: false, aadhaar: false, face: false });
   const [qrCodeUrl, setQrCodeUrl] = useState<string | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(form.photoUrl || null);
@@ -209,24 +208,21 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
     });
   };
   
-  const checkUserExists = async (field: 'email' | 'phone', value: string): Promise<boolean> => {
+  const checkUserExists = useCallback(async (field: 'email' | 'phone', value: string): Promise<boolean> => {
     try {
-      const response = await fetch('/api/check-user-exists', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ field, value }),
-      });
-      if (!response.ok) {
-        throw new Error('Network response was not ok.');
-      }
-      const data = await response.json();
-      return data.exists;
+      const functions = getFunctions(getFirestoreDb().app);
+      const checkUser = httpsCallable(functions, 'checkUserExists');
+      const result: any = await checkUser({ field, value });
+      return result.data.exists;
     } catch (e) {
-      console.error("Email validation error:", e);
-      setEmailError("Could not validate email. Please try again.");
-      return false; // Assume not exists on error to avoid blocking user
+      console.error("User existence check error:", e);
+      // To avoid blocking the user on a network error, we'll conservatively say it doesn't exist.
+      // A more robust implementation might show a network error message.
+      toast({ variant: 'destructive', title: "Validation Error", description: "Could not validate user details. Please check your connection." });
+      return false;
     }
-  };
+  }, [toast]);
+
 
   const checkEmailExists = useCallback(async () => {
     if (!/.+@.+\..+/.test(form.email) || form.email === existingData?.email) return;
@@ -236,18 +232,18 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
     } else {
       setEmailError("");
     }
-  }, [form.email, existingData?.email]);
+  }, [form.email, existingData?.email, checkUserExists]);
 
   const checkPhoneExists = useCallback(async () => {
-    const fullPhone = `+91${form.phone}`;
-    if (!/^\d{10}$/.test(form.phone) || fullPhone === existingData?.phone) return;
-    const exists = await checkUserExists('phone', fullPhone);
+    const phoneWithCountry = `+91${form.phone}`;
+    if (!/^\d{10}$/.test(form.phone) || phoneWithCountry === existingData?.phone) return;
+    const exists = await checkUserExists('phone', phoneWithCountry);
     if (exists) {
       setPhoneError("This phone number is already registered. Please use a different one.");
     } else {
       setPhoneError("");
     }
-  }, [form.phone, existingData?.phone]);
+  }, [form.phone, existingData?.phone, checkUserExists]);
 
   const checkPanExists = useCallback(() => {
     if (!/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(form.pan)) {
@@ -337,7 +333,7 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
     try {
         const functions = getFunctions(getFirestoreDb().app);
         const verifyFlow = httpsCallable(functions, 'verifyFlow');
-        const response: any = await verifyFlow({ action: 'startVerification', userId: user.uid });
+        const response: any = await verifyFlow({ action: 'startVerification', userId: user.uid, email: user.email });
         const { sessionId, qrDataUrl } = response.data;
         
         setQrCodeUrl(qrDataUrl);
@@ -375,6 +371,7 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
 
     const finalData = {
         ...restOfForm,
+        kycStatus: "pending",
         isNipherVerified: verif.state === "VERIFIED",
         addresses: [
             {...form.regAddr, id: 1, type: 'registered' },
@@ -811,13 +808,7 @@ export default function KYCPage() {
     
     useEffect(() => {
         setIsClient(true);
-        if (typeof window !== 'undefined' && authReady) {
-            const isAnonymousSessionActive = sessionStorage.getItem('isAnonymousSessionActive') === 'true';
-            if (!user && !isAnonymousSessionActive) {
-                initiateAnonymousSignIn();
-            }
-        }
-    }, [user, authReady, initiateAnonymousSignIn]);
+    }, []);
     
     const initialProgress = useMemo(() => {
         return Math.round(((0 + 1) / (steps.length)) * 100);
@@ -952,5 +943,3 @@ export default function KYCPage() {
         </div>
     );
 }
-
-    

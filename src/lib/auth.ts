@@ -74,6 +74,7 @@ export function getAuthActions(
     const handleGoogleSignIn = async () => {
         const provider = new GoogleAuthProvider();
         try {
+            await setPersistence(auth, browserSessionPersistence);
             const result = await signInWithPopup(auth, provider);
             const user = result.user;
             
@@ -135,15 +136,15 @@ export function getAuthActions(
     const handleCustomerSignUp = async (values: any) => {
         try {
             const functions = getFunctions(getFirestoreDb().app);
-            const checkEmail = httpsCallable(functions, 'checkEmailExists');
-            const emailResult: any = await checkEmail({ email: values.email });
+            const checkUser = httpsCallable(functions, 'checkUserExists');
+
+            const emailResult: any = await checkUser({ field: 'email', value: values.email });
             if (emailResult.data.exists) {
                 toast({ title: "Sign Up Failed", description: "This email is already registered.", variant: "destructive" });
                 return;
             }
             
-            const checkPhone = httpsCallable(functions, 'checkPhoneExists');
-            const phoneResult: any = await checkPhone({ phone: values.phone });
+            const phoneResult: any = await checkUser({ field: 'phone', value: values.phone });
             if (phoneResult.data.exists) {
                 toast({ title: "Sign Up Failed", description: "This phone number is already registered.", variant: "destructive" });
                 return;
@@ -202,13 +203,24 @@ export function getAuthActions(
     };
     
     const handleSellerSignUp = async (values: any) => {
-        const currentUser = auth.currentUser;
+        let currentUser = auth.currentUser;
+    
+        // If there's no user, or the user is not anonymous, start an anonymous session.
         if (!currentUser || !currentUser.isAnonymous) {
-            toast({ variant: 'destructive', title: "Authentication Error", description: "No valid anonymous session found. Please refresh." });
-            throw new Error("User is not anonymous or not logged in.");
+            try {
+                await signInAnonymously(auth);
+                currentUser = auth.currentUser;
+                if (!currentUser) {
+                    throw new Error("Failed to create an anonymous session.");
+                }
+            } catch (error) {
+                 toast({ variant: 'destructive', title: "Session Error", description: "Could not start a temporary session. Please refresh." });
+                 return;
+            }
         }
-
+    
         try {
+            // Link the new email/password credential to the existing anonymous account.
             const credential = EmailAuthProvider.credential(values.email, values.password);
             const userCredential = await linkWithCredential(currentUser, credential);
             const user = userCredential.user;
@@ -219,13 +231,12 @@ export function getAuthActions(
             const sellerData: Partial<UserData> = {
                 ...values,
                 role: 'seller',
-                email: user.email, // Ensure email is updated from the new credential
+                email: user.email,
             };
         
             delete (sellerData as any).password;
             delete (sellerData as any).confirmPassword;
             
-            // This will now update the existing anonymous user's document with the full data
             await updateUserData(user.uid, sellerData as UserData);
             
             toast({
