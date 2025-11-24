@@ -26,12 +26,11 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { useAuthActions } from "@/lib/auth";
+import { useAuthActions } from "@/hooks/use-auth";
 import { useLocalStorage } from "@/hooks/use-local-storage";
 import { getFunctions, httpsCallable } from "firebase/functions";
 import { getFirestoreDb } from "@/lib/firebase-db";
 import { Skeleton } from "@/components/ui/skeleton";
-import { signInAnonymously } from "firebase/auth";
 
 const SELLER_KYC_DRAFT_KEY = 'sellerKycDraft';
 const SELLER_KYC_STEP_KEY = 'sellerKycStep';
@@ -66,7 +65,7 @@ const steps = [
 ];
 
 function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => void, existingData?: UserData | null }) {
-  const { user } = useAuth();
+  const { user, authReady } = useAuth();
   const { toast } = useToast();
   const { handleSellerSignUp } = useAuthActions();
   
@@ -156,13 +155,14 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
     return () => clearTimeout(timer);
   }, [resendCooldown.phone]);
 
+  const isNewRegistration = !user || user.isAnonymous;
+
   const isStep1Valid = useMemo(() => {
-    const isNewUser = !existingData && !user?.email; // A way to check if it's a completely new registration
-    const passwordValid = isNewUser ? (form.password.length >= 8 && form.password === form.confirmPassword) : true;
-    const verificationValid = isNewUser ? (form.emailVerified && form.phoneVerified) : true;
+    const passwordValid = isNewRegistration ? (form.password.length >= 8 && form.password === form.confirmPassword) : true;
+    const verificationValid = isNewRegistration ? (form.emailVerified && form.phoneVerified) : true;
 
     return form.legalName && form.displayName && /.+@.+\..+/.test(form.email) && /^\d{10}$/.test(form.phone) && form.photoUrl && passwordValid && verificationValid && !emailError && !phoneError;
-  }, [form, emailError, phoneError, existingData, user]);
+  }, [form, emailError, phoneError, isNewRegistration]);
 
 
   const isStep2Valid = useMemo(() => {
@@ -263,17 +263,23 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
 
   const handleSendOtp = async (type: 'email' | 'phone') => {
     setOtpSent(prev => ({...prev, [type]: true}));
-    toast({ title: `OTP Sent to your ${type}` });
+    const target = type === 'email' ? form.email : `+91${form.phone}`;
+    try {
+        const functions = getFunctions(getFirestoreDb().app);
+        const sendCode = httpsCallable(functions, 'sendVerificationCode');
+        await sendCode({ target, type });
+        toast({ title: `OTP Sent to your ${type}` });
+        setResendCooldown(prev => ({...prev, [type]: RESEND_COOLDOWN}));
+    } catch (error: any) {
+        toast({ variant: "destructive", title: "Failed to Send OTP", description: error.message });
+        setOtpSent(prev => ({...prev, [type]: false}));
+    }
   };
 
   const handleVerifyOtp = async (type: 'email' | 'phone') => {
     const otp = type === 'email' ? form.emailOtp : form.phoneOtp;
-    if (otp === '123456') { // OTP Bypass
-        setField(`${type}Verified`, true);
-        toast({ title: `${type.charAt(0).toUpperCase() + type.slice(1)} Verified!` });
-        return;
-    }
-    
+    if (otp.length < 6) return;
+
     setIsVerifying(prev => ({...prev, [type]: true}));
     try {
         const functions = getFunctions(getFirestoreDb().app);
@@ -330,7 +336,7 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
     }
     setVerif({ state: "PENDING", message: "Contacting verification service..." });
     try {
-        const functions = getFunctions();
+        const functions = getFunctions(getFirestoreDb().app);
         const verifyFlow = httpsCallable(functions, 'verifyFlow');
         const response: any = await verifyFlow({ action: 'startVerification', userId: user.uid });
         const { sessionId, qrDataUrl } = response.data;
@@ -398,9 +404,6 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
     localStorage.removeItem(SELLER_KYC_STEP_KEY);
     window.location.reload();
   };
-
-  // Determine if this is a fresh registration or an existing user (customer) upgrading
-  const isNewRegistration = !user || user.isAnonymous;
 
   return (
     <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
@@ -472,8 +475,6 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
                         <p className="text-xs text-muted-foreground mt-1">This is the name customers will see.</p>
                     </div>
                   </div>
-                  {/* OTP flow is only for brand new sign-ups */}
-                  {isNewRegistration && (
                     <>
                     <div className="flex flex-col md:flex-row gap-2 items-end">
                       <div className="space-y-1 flex-grow">
@@ -540,7 +541,7 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
                         </div>
                     </div>
                     </>
-                  )}
+                  
 
                   <div>
                     <label className="text-sm font-medium">About shop</label>
@@ -654,7 +655,10 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
                             <div className="p-3 rounded-xl bg-gray-50 text-sm max-w-md mx-auto">
                                 Verify your identity using 0DIDit for a secure and fast verification process. You will be prompted to scan a QR code with your phone.
                             </div>
-                            <Button onClick={handleGenerateVerification} disabled={!user}>Generate Verification Link</Button>
+                            <Button onClick={handleGenerateVerification} disabled={!authReady || !user}>
+                                {(!authReady || !user) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                Generate Verification Link
+                            </Button>
                         </>
                     )}
 
@@ -805,13 +809,13 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
 
 export default function KYCPage() {
     const { user, userData, authReady } = useAuth();
+    const { initiateAnonymousSignIn } = useAuthActions();
     const router = useRouter();
     const [isClient, setIsClient] = useState(false);
-    const { initiateAnonymousSignIn } = useAuthActions();
     
     useEffect(() => {
         setIsClient(true);
-        if (!user && authReady) {
+        if (authReady && !user) {
             initiateAnonymousSignIn();
         }
     }, [isClient, user, authReady, initiateAnonymousSignIn]);
@@ -944,7 +948,7 @@ export default function KYCPage() {
                         <p className="text-sm text-muted-foreground">Complete the following steps to start selling on Nipher.</p>
                     </div>
                 </div>
-                <SellerWizard onSubmit={handleSubmission} existingData={user?.isAnonymous ? null : userData} />
+                <SellerWizard onSubmit={handleSubmission} />
             </div>
         </div>
     );
