@@ -105,12 +105,13 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
     termsAccepted: existingData?.termsAccepted || false,
     aadhaarNumber: "",
     aadhaarOtp: "",
+    isNipherVerified: existingData?.isNipherVerified || false,
   };
 
   const [form, setForm] = useLocalStorage<any>(SELLER_KYC_DRAFT_KEY, initialFormState);
   const [isFormDirty, setIsFormDirty] = useState(false);
   
-    const [verif, setVerif] = useState<{ state: "IDLE" | "PENDING" | "VERIFIED" | "FAILED", message: string }>({ state: (existingData as any)?.isNipherVerified ? 'VERIFIED' : "IDLE", message: (existingData as any)?.isNipherVerified ? 'Verification previously completed.' : '' });
+    const [verif, setVerif] = useState<{ state: "IDLE" | "PENDING" | "VERIFIED" | "FAILED", message: string }>({ state: existingData?.isNipherVerified ? 'VERIFIED' : "IDLE", message: existingData?.isNipherVerified ? 'Verification previously completed.' : '' });
   const [isVerifying, setIsVerifying] = useState({ email: false, phone: false, aadhaar: false, face: false });
   const [qrCodeUrl, setQrCodeUrl] = useState<string | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(form.photoUrl || null);
@@ -208,45 +209,47 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
     });
   };
   
+  const checkUserExists = async (field: 'email' | 'phone', value: string) => {
+    try {
+      const res = await fetch('/api/check-user', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ field, value }),
+      });
+      if (!res.ok) {
+        throw new Error('Network response was not ok.');
+      }
+      const data = await res.json();
+      return data.exists;
+    } catch (e) {
+      console.error("Validation error:", e);
+      toast({
+        variant: "destructive",
+        title: "Validation Error",
+        description: `Could not validate ${field}. Please try again.`
+      });
+      return false; // Assume not exists on error to avoid blocking user
+    }
+  };
+
   const checkEmailExists = useCallback(async () => {
     if (!/.+@.+\..+/.test(form.email) || form.email === existingData?.email) return;
-    try {
-        const res = await fetch('/api/check-email', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email: form.email }),
-        });
-        if (!res.ok) throw new Error('Network response was not ok.');
-        const data = await res.json();
-        if (data.exists) {
-            setEmailError("This email is already registered. Please use a different one.");
-        } else {
-            setEmailError("");
-        }
-    } catch (e) {
-        console.error("Email validation error:", e);
-        setEmailError("Could not validate email. Please try again.");
+    const exists = await checkUserExists('email', form.email);
+    if (exists) {
+      setEmailError("This email is already registered. Please use a different one.");
+    } else {
+      setEmailError("");
     }
   }, [form.email, existingData?.email]);
 
   const checkPhoneExists = useCallback(async () => {
-    if (!/^\d{10}$/.test(form.phone) || `+91 ${form.phone}` === existingData?.phone) return;
-    try {
-        const res = await fetch('/api/check-phone', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ phone: `+91 ${form.phone}` }),
-        });
-        if (!res.ok) throw new Error('Network response was not ok.');
-        const data = await res.json();
-        if (data.exists) {
-            setPhoneError("This phone number is already registered. Please use a different one.");
-        } else {
-            setPhoneError("");
-        }
-    } catch (e) {
-        console.error("Phone validation error:", e);
-        setPhoneError("Could not validate phone number. Please try again.");
+    const fullPhone = `+91 ${form.phone}`;
+    if (!/^\d{10}$/.test(form.phone) || fullPhone === existingData?.phone) return;
+    const exists = await checkUserExists('phone', fullPhone);
+    if (exists) {
+      setPhoneError("This phone number is already registered. Please use a different one.");
+    } else {
+      setPhoneError("");
     }
   }, [form.phone, existingData?.phone]);
 
@@ -953,5 +956,3 @@ export default function KYCPage() {
         </div>
     );
 }
-
-    

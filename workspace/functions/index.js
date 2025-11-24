@@ -26,39 +26,20 @@ function makeId(len = 12) {
   return s;
 }
 
-exports.checkEmailExists = onRequest({ cors: true }, async (req, res) => {
-    if (req.method !== 'POST') {
-        return res.status(405).json({ error: 'Method Not Allowed' });
-    }
-    try {
-        const { email } = req.body;
-        if (!email) {
-            return res.status(400).json({ error: 'Email is required' });
-        }
-        const usersRef = db.collection('users');
-        const querySnapshot = await usersRef.where('email', '==', email).limit(1).get();
-        return res.status(200).json({ exists: !querySnapshot.empty });
-    } catch (error) {
-        console.error("Error in checkEmailExists:", error);
-        return res.status(500).json({ error: "Internal Server Error" });
-    }
-});
+exports.checkUserExists = onCall(async (request) => {
+    const { field, value } = request.data;
 
-exports.checkPhoneExists = onRequest({ cors: true }, async (req, res) => {
-    if (req.method !== 'POST') {
-        return res.status(405).json({ error: 'Method Not Allowed' });
+    if (!field || !value) {
+        throw new HttpsError('invalid-argument', 'The function must be called with "field" and "value" arguments.');
     }
+
     try {
-        const { phone } = req.body;
-        if (!phone) {
-            return res.status(400).json({ error: 'Phone number is required' });
-        }
         const usersRef = db.collection('users');
-        const querySnapshot = await usersRef.where('phone', '==', phone).limit(1).get();
-        return res.status(200).json({ exists: !querySnapshot.empty });
+        const querySnapshot = await usersRef.where(field, '==', value).limit(1).get();
+        return { exists: !querySnapshot.empty };
     } catch (error) {
-        console.error("Error in checkPhoneExists:", error);
-        return res.status(500).json({ error: "Internal Server Error" });
+        console.error("Error in checkUserExists:", error);
+        throw new HttpsError('internal', 'An error occurred while checking user existence.');
     }
 });
 
@@ -287,5 +268,3 @@ exports.notifyDeliveryPartner = onRequest({ cors: true }, async (req, res) => {
 
     res.status(200).json({ success: true, message: `Delivery partner notified for order ${orderId}` });
 });
-
-    
