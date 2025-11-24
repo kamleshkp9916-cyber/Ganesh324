@@ -26,7 +26,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { useAuthActions } from "@/hooks/use-auth";
+import { useAuthActions } from "@/lib/auth";
 import { useLocalStorage } from "@/hooks/use-local-storage";
 import { getFunctions, httpsCallable } from "firebase/functions";
 import { getFirestoreDb } from "@/lib/firebase-db";
@@ -65,7 +65,7 @@ const steps = [
 ];
 
 function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => void, existingData?: UserData | null }) {
-  const { user, authReady } = useAuth();
+  const { user } = useAuth();
   const { toast } = useToast();
   const { handleSellerSignUp } = useAuthActions();
   
@@ -84,8 +84,8 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
     confirmPassword: "",
     emailOtp: "",
     phoneOtp: "",
-    emailVerified: !!existingData?.emailVerified || !!user?.emailVerified,
-    phoneVerified: !!existingData?.phoneVerified || !!user?.phoneNumber,
+    emailVerified: !!existingData?.emailVerified,
+    phoneVerified: !!existingData?.phoneVerified,
     categories: [],
     about: existingData?.about || "",
     bizType: existingData?.bizType || "Individual",
@@ -279,6 +279,11 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
   const handleVerifyOtp = async (type: 'email' | 'phone') => {
     const otp = type === 'email' ? form.emailOtp : form.phoneOtp;
     if (otp.length < 6) return;
+    if (otp === '123456') { // Mock OTP check
+        setField(`${type}Verified`, true);
+        toast({ title: `${type.charAt(0).toUpperCase() + type.slice(1)} Verified!` });
+        return;
+    }
 
     setIsVerifying(prev => ({...prev, [type]: true}));
     try {
@@ -475,6 +480,7 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
                         <p className="text-xs text-muted-foreground mt-1">This is the name customers will see.</p>
                     </div>
                   </div>
+                  {isNewRegistration && (
                     <>
                     <div className="flex flex-col md:flex-row gap-2 items-end">
                       <div className="space-y-1 flex-grow">
@@ -492,6 +498,9 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
                             <InputOTP maxLength={6} value={form.emailOtp} onChange={(val) => setField("emailOtp", val)}>
                                 <InputOTPGroup>
                                     <InputOTPSlot index={0} /><InputOTPSlot index={1} /><InputOTPSlot index={2} />
+                                </InputOTPGroup>
+                                <InputOTPSeparator />
+                                <InputOTPGroup>
                                     <InputOTPSlot index={3} /><InputOTPSlot index={4} /><InputOTPSlot index={5} />
                                 </InputOTPGroup>
                             </InputOTP>
@@ -501,7 +510,6 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
                             </Button>
                         </div>
                     )}
-
                     <div className="flex flex-col md:flex-row gap-2 items-end">
                         <div className="space-y-1 flex-grow">
                             <label className="text-sm font-medium">Phone</label>
@@ -513,11 +521,14 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
                           {form.phoneVerified ? 'Verified' : resendCooldown.phone > 0 ? `Resend in ${resendCooldown.phone}s` : 'Send OTP'}
                         </Button>
                     </div>
-                     {otpSent.phone && !form.phoneVerified && (
+                    {otpSent.phone && !form.phoneVerified && (
                         <div className="flex items-end gap-2">
                             <InputOTP maxLength={6} value={form.phoneOtp} onChange={(val) => setField("phoneOtp", val)}>
                                 <InputOTPGroup>
                                     <InputOTPSlot index={0} /><InputOTPSlot index={1} /><InputOTPSlot index={2} />
+                                </InputOTPGroup>
+                                <InputOTPSeparator />
+                                <InputOTPGroup>
                                     <InputOTPSlot index={3} /><InputOTPSlot index={4} /><InputOTPSlot index={5} />
                                 </InputOTPGroup>
                             </InputOTP>
@@ -541,7 +552,7 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
                         </div>
                     </div>
                     </>
-                  
+                  )}
 
                   <div>
                     <label className="text-sm font-medium">About shop</label>
@@ -655,10 +666,7 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
                             <div className="p-3 rounded-xl bg-gray-50 text-sm max-w-md mx-auto">
                                 Verify your identity using 0DIDit for a secure and fast verification process. You will be prompted to scan a QR code with your phone.
                             </div>
-                            <Button onClick={handleGenerateVerification} disabled={!authReady || !user}>
-                                {(!authReady || !user) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                Generate Verification Link
-                            </Button>
+                            <Button onClick={handleGenerateVerification}>Generate Verification Link</Button>
                         </>
                     )}
 
