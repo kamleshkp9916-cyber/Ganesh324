@@ -15,7 +15,7 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Check, AlertTriangle, Upload, ChevronLeft, ChevronRight, ShieldCheck, Building2, User2, MapPin, Banknote, FileSignature, ClipboardList, Eye, UserCheck, ShieldAlert, Gavel, Loader2, Send, Camera, QrCode, CheckCircle2, Save, RotateCcw } from "lucide-react";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth, useAuthActions } from "@/hooks/use-auth";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
@@ -26,7 +26,6 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { useAuthActions } from "@/hooks/use-auth";
 import { useLocalStorage } from "@/hooks/use-local-storage";
 import { getFunctions, httpsCallable } from "firebase/functions";
 import { getFirestoreDb } from "@/lib/firebase-db";
@@ -84,8 +83,8 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
     confirmPassword: "",
     emailOtp: "",
     phoneOtp: "",
-    emailVerified: !!existingData?.email,
-    phoneVerified: !!existingData?.phone,
+    emailVerified: !!existingData?.emailVerified,
+    phoneVerified: !!existingData?.phoneVerified,
     categories: [],
     about: existingData?.about || "",
     bizType: existingData?.bizType || "Individual",
@@ -112,7 +111,7 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
   
   const [verif, setVerif] = useState<{ state: "IDLE" | "PENDING" | "VERIFIED" | "FAILED", message: string }>({ state: (existingData as any)?.isNipherVerified ? 'VERIFIED' : "IDLE", message: (existingData as any)?.isNipherVerified ? 'Verification previously completed.' : '' });
   const [isVerifying, setIsVerifying] = useState({ email: false, phone: false, aadhaar: false, face: false });
-  const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
+  const [qrCodeUrl, setQrCodeUrl] = useState<string | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(form.photoUrl || null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
@@ -161,7 +160,6 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
     const passwordValid = isNewRegistration ? (form.password.length >= 8 && form.password === form.confirmPassword) : true;
     return form.legalName && form.displayName && /.+@.+\..+/.test(form.email) && /^\d{10}$/.test(form.phone) && form.photoUrl && passwordValid && form.emailVerified && form.phoneVerified && !emailError && !phoneError;
   }, [form, emailError, phoneError, isNewRegistration]);
-
 
   const isStep2Valid = useMemo(() => {
     return form.bizType && /.+@.+\..+/.test(form.supportEmail) && /^\d{10}$/.test(form.supportPhone);
@@ -212,10 +210,14 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
   const checkEmailExists = useCallback(async () => {
     if (!/.+@.+\..+/.test(form.email) || form.email === existingData?.email) return;
     try {
-        const functions = getFunctions(getFirestoreDb().app);
-        const checkEmail = httpsCallable(functions, 'checkEmailExists');
-        const result: any = await checkEmail({ email: form.email });
-        if (result.data.exists) {
+        const response = await fetch('/api/check-email', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: form.email }),
+        });
+        if (!response.ok) throw new Error('Network response was not ok.');
+        const result = await response.json();
+        if (result.exists) {
             setEmailError("This email is already registered. Please use a different one.");
         } else {
             setEmailError("");
@@ -229,10 +231,14 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
   const checkPhoneExists = useCallback(async () => {
     if (!/^\d{10}$/.test(form.phone) || `+91 ${form.phone}` === existingData?.phone) return;
     try {
-        const functions = getFunctions(getFirestoreDb().app);
-        const checkPhone = httpsCallable(functions, 'checkPhoneExists');
-        const result: any = await checkPhone({ phone: `+91 ${form.phone}` });
-        if (result.data.exists) {
+        const response = await fetch('/api/check-phone', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ phone: `+91 ${form.phone}` }),
+        });
+        if (!response.ok) throw new Error('Network response was not ok.');
+        const result = await response.json();
+        if (result.exists) {
             setPhoneError("This phone number is already registered. Please use a different one.");
         } else {
             setPhoneError("");
@@ -254,9 +260,12 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
   const handleSendOtp = async (type: 'email' | 'phone') => {
     setOtpSent(prev => ({...prev, [type]: true}));
     try {
-        const functions = getFunctions(getFirestoreDb().app);
-        const sendCode = httpsCallable(functions, 'sendVerificationCode');
-        await sendCode({ target: type === 'email' ? form.email : `+91${form.phone}`, type });
+        const response = await fetch('/api/send-otp', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ type, target: type === 'email' ? form.email : `+91${form.phone}` }),
+        });
+        if (!response.ok) throw new Error("Server error");
         toast({ title: `OTP Sent to your ${type}` });
         setResendCooldown(prev => ({...prev, [type]: RESEND_COOLDOWN}));
     } catch (error: any) {
@@ -271,15 +280,18 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
     
     setIsVerifying(prev => ({...prev, [type]: true}));
     try {
-        const functions = getFunctions(getFirestoreDb().app);
-        const verifyCode = httpsCallable(functions, 'verifyCode');
-        const result: any = await verifyCode({ target: type === 'email' ? form.email : `+91${form.phone}`, otp });
+        const response = await fetch('/api/verify-otp', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: form.email, otp }), // Using email as key for both for simplicity here
+        });
 
-        if (result.data.success) {
+        const result = await response.json();
+        if (response.ok) {
             setField(`${type}Verified`, true);
             toast({ title: `${type.charAt(0).toUpperCase() + type.slice(1)} Verified!` });
         } else {
-            throw new Error(result.data.error?.message || 'Invalid OTP');
+            throw new Error(result.error || 'Invalid OTP');
         }
     } catch (error: any) {
         toast({ variant: "destructive", title: "Verification Failed", description: error.message });
@@ -330,7 +342,7 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
         const response: any = await verifyFlow({ action: 'startVerification', userId: user.uid });
         const { sessionId, qrDataUrl } = response.data;
         
-        setQrDataUrl(qrDataUrl);
+        setQrCodeUrl(qrDataUrl);
         setVerif({ state: "PENDING", message: "Scan the QR code with your phone to complete verification." });
         
         const pollInterval = setInterval(async () => {
@@ -464,6 +476,78 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
                         <p className="text-xs text-muted-foreground mt-1">This is the name customers will see.</p>
                     </div>
                   </div>
+                   {!existingData && (
+                    <>
+                    <div className="flex flex-col md:flex-row gap-2 items-end">
+                      <div className="space-y-1 flex-grow">
+                        <label className="text-sm font-medium">Email</label>
+                        <Input value={form.email} onChange={(e) => { setEmailError(''); setField("email", e.target.value); }} onBlur={checkEmailExists} placeholder="you@shop.com" disabled={form.emailVerified} className="flex-grow"/>
+                         {emailError ? <p className="text-xs text-destructive mt-1">{emailError}</p> : <p className="text-xs text-muted-foreground mt-1">This email will be used for login and official communication.</p>}
+                      </div>
+                      <Button type="button" onClick={() => handleSendOtp('email')} disabled={resendCooldown.email > 0 || form.emailVerified || !!emailError || !/.+@.+\..+/.test(form.email) || isVerifying.email} className="flex-shrink-0 w-full md:w-auto">
+                          {isVerifying.email ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : form.emailVerified ? <Check className="mr-2 h-4 w-4"/> : <Send className="mr-2 h-4 w-4"/>}
+                          {form.emailVerified ? 'Verified' : resendCooldown.email > 0 ? `Resend in ${resendCooldown.email}s` : 'Send OTP'}
+                      </Button>
+                    </div>
+                     {otpSent.email && !form.emailVerified && (
+                        <div className="flex items-end gap-2">
+                            <InputOTP maxLength={6} value={form.emailOtp} onChange={(val) => setField("emailOtp", val)}>
+                                <InputOTPGroup>
+                                    <InputOTPSlot index={0} /><InputOTPSlot index={1} /><InputOTPSlot index={2} />
+                                    <InputOTPSlot index={3} /><InputOTPSlot index={4} /><InputOTPSlot index={5} />
+                                </InputOTPGroup>
+                            </InputOTP>
+                            <Button type="button" variant="secondary" onClick={() => handleVerifyOtp('email')} disabled={form.emailOtp.length < 6 || isVerifying.email}>
+                            {isVerifying.email && <Loader2 className="mr-2 h-4 w-4 animate-spin"/>}
+                            Verify Email
+                            </Button>
+                        </div>
+                    )}
+                    <div className="flex flex-col md:flex-row gap-2 items-end">
+                        <div className="space-y-1 flex-grow">
+                            <label className="text-sm font-medium">Phone</label>
+                            <Input value={form.phone} onChange={(e) => { setPhoneError(''); setField("phone", e.target.value.replace(/[^0-9]/g, "").slice(0,10)); }} onBlur={checkPhoneExists} placeholder="10‑digit mobile" disabled={form.phoneVerified} className="flex-grow"/>
+                            {phoneError ? <p className="text-xs text-destructive mt-1">{phoneError}</p> : <p className="text-xs text-muted-foreground mt-1">Used for verification and support communication.</p>}
+                        </div>
+                        <Button type="button" onClick={() => handleSendOtp('phone')} disabled={resendCooldown.phone > 0 || form.phoneVerified || !!phoneError || form.phone.length !== 10 || isVerifying.phone} className="flex-shrink-0 w-full md:w-auto">
+                          {isVerifying.phone ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : form.phoneVerified ? <Check className="mr-2 h-4 w-4"/> : <Send className="mr-2 h-4 w-4"/>}
+                          {form.phoneVerified ? 'Verified' : resendCooldown.phone > 0 ? `Resend in ${resendCooldown.phone}s` : 'Send OTP'}
+                        </Button>
+                    </div>
+                    {otpSent.phone && !form.phoneVerified && (
+                        <div className="flex items-end gap-2">
+                            <InputOTP maxLength={6} value={form.phoneOtp} onChange={(val) => setField("phoneOtp", val)}>
+                                <InputOTPGroup>
+                                    <InputOTPSlot index={0} /><InputOTPSlot index={1} /><InputOTPSlot index={2} />
+                                    <InputOTPSlot index={3} /><InputOTPSlot index={4} /><InputOTPSlot index={5} />
+                                </InputOTPGroup>
+                            </InputOTP>
+                            <Button type="button" variant="secondary" onClick={() => handleVerifyOtp('phone')} disabled={form.phoneOtp.length < 6 || isVerifying.phone}>
+                            {isVerifying.phone && <Loader2 className="mr-2 h-4 w-4 animate-spin"/>}
+                            Verify Phone
+                            </Button>
+                        </div>
+                    )}
+                    
+                    <div className="grid md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="text-sm font-medium">Password</label>
+                          <Input type="password" value={form.password} onChange={(e)=>setField("password", e.target.value)} placeholder="Minimum 8 characters"/>
+                           {form.password && form.password.length < 8 && <p className="text-xs text-destructive mt-1">Password must be at least 8 characters.</p>}
+                        </div>
+                         <div>
+                          <label className="text-sm font-medium">Confirm Password</label>
+                          <Input type="password" value={form.confirmPassword} onChange={(e)=>setField("confirmPassword", e.target.value)} placeholder="Re-enter your password"/>
+                          {form.confirmPassword && form.password !== form.confirmPassword && <p className="text-xs text-destructive mt-1">Passwords do not match.</p>}
+                        </div>
+                    </div>
+                    </>
+                  )}
+
+                  <div>
+                    <label className="text-sm font-medium">About shop</label>
+                    <Textarea value={form.about} onChange={(e)=>setField("about", e.target.value)} placeholder="Short bio"/>
+                  </div>
                 </div>
               </Section>
             )}
@@ -578,10 +662,10 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
 
                     {verif.state === 'PENDING' && (
                         <div className="flex flex-col items-center gap-4">
-                            <h3 className="font-semibold">{qrDataUrl ? "Scan to Verify" : "Generating..."}</h3>
+                            <h3 className="font-semibold">{qrCodeUrl ? "Scan to Verify" : "Generating..."}</h3>
                             <p className="text-sm text-muted-foreground">{verif.message}</p>
-                            {qrDataUrl ? (
-                                <Image src={qrDataUrl} alt="0DIDit Verification QR Code" width={250} height={250} className="rounded-lg border p-2" />
+                            {qrCodeUrl ? (
+                                <Image src={qrCodeUrl} alt="0DIDit Verification QR Code" width={250} height={250} className="rounded-lg border p-2" />
                             ) : (
                                 <Skeleton className="w-[250px] h-[250px]" />
                             )}
@@ -870,3 +954,5 @@ export default function KYCPage() {
         </div>
     );
 }
+
+    
