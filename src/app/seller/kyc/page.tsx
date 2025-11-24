@@ -464,74 +464,6 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
                         <p className="text-xs text-muted-foreground mt-1">This is the name customers will see.</p>
                     </div>
                   </div>
-                  <div className="flex flex-col md:flex-row gap-2 items-end">
-                    <div className="space-y-1 flex-grow">
-                      <label className="text-sm font-medium">Email</label>
-                      <Input value={form.email} onChange={(e) => { setEmailError(''); setField("email", e.target.value); }} onBlur={checkEmailExists} placeholder="you@shop.com" disabled={form.emailVerified} className="flex-grow"/>
-                       {emailError ? <p className="text-xs text-destructive mt-1">{emailError}</p> : <p className="text-xs text-muted-foreground mt-1">This email will be used for login and official communication.</p>}
-                    </div>
-                    <Button type="button" onClick={() => handleSendOtp('email')} disabled={resendCooldown.email > 0 || form.emailVerified || !!emailError || !/.+@.+\..+/.test(form.email) || isVerifying.email} className="flex-shrink-0 w-full md:w-auto">
-                        {isVerifying.email ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : form.emailVerified ? <Check className="mr-2 h-4 w-4"/> : <Send className="mr-2 h-4 w-4"/>}
-                        {form.emailVerified ? 'Verified' : resendCooldown.email > 0 ? `Resend in ${resendCooldown.email}s` : 'Send OTP'}
-                    </Button>
-                  </div>
-                  {otpSent.email && !form.emailVerified && (
-                      <div className="flex items-end gap-2">
-                          <InputOTP maxLength={6} value={form.emailOtp} onChange={(val) => setField("emailOtp", val)}>
-                              <InputOTPGroup>
-                                  <InputOTPSlot index={0} /><InputOTPSlot index={1} /><InputOTPSlot index={2} />
-                                  <InputOTPSlot index={3} /><InputOTPSlot index={4} /><InputOTPSlot index={5} />
-                              </InputOTPGroup>
-                          </InputOTP>
-                          <Button type="button" variant="secondary" onClick={() => handleVerifyOtp('email')} disabled={form.emailOtp.length < 6 || isVerifying.email}>
-                          {isVerifying.email && <Loader2 className="mr-2 h-4 w-4 animate-spin"/>}
-                          Verify Email
-                          </Button>
-                      </div>
-                  )}
-                  <div className="flex flex-col md:flex-row gap-2 items-end">
-                      <div className="space-y-1 flex-grow">
-                          <label className="text-sm font-medium">Phone</label>
-                          <Input value={form.phone} onChange={(e) => { setPhoneError(''); setField("phone", e.target.value.replace(/[^0-9]/g, "").slice(0,10)); }} onBlur={checkPhoneExists} placeholder="10‑digit mobile" disabled={form.phoneVerified} className="flex-grow"/>
-                          {phoneError ? <p className="text-xs text-destructive mt-1">{phoneError}</p> : <p className="text-xs text-muted-foreground mt-1">Used for verification and support communication.</p>}
-                      </div>
-                      <Button type="button" onClick={() => handleSendOtp('phone')} disabled={resendCooldown.phone > 0 || form.phoneVerified || !!phoneError || form.phone.length !== 10 || isVerifying.phone} className="flex-shrink-0 w-full md:w-auto">
-                        {isVerifying.phone ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : form.phoneVerified ? <Check className="mr-2 h-4 w-4"/> : <Send className="mr-2 h-4 w-4"/>}
-                        {form.phoneVerified ? 'Verified' : resendCooldown.phone > 0 ? `Resend in ${resendCooldown.phone}s` : 'Send OTP'}
-                      </Button>
-                  </div>
-                  {otpSent.phone && !form.phoneVerified && (
-                      <div className="flex items-end gap-2">
-                          <InputOTP maxLength={6} value={form.phoneOtp} onChange={(val) => setField("phoneOtp", val)}>
-                              <InputOTPGroup>
-                                  <InputOTPSlot index={0} /><InputOTPSlot index={1} /><InputOTPSlot index={2} />
-                                  <InputOTPSlot index={3} /><InputOTPSlot index={4} /><InputOTPSlot index={5} />
-                              </InputOTPGroup>
-                          </InputOTP>
-                          <Button type="button" variant="secondary" onClick={() => handleVerifyOtp('phone')} disabled={form.phoneOtp.length < 6 || isVerifying.phone}>
-                          {isVerifying.phone && <Loader2 className="mr-2 h-4 w-4 animate-spin"/>}
-                          Verify Phone
-                          </Button>
-                      </div>
-                  )}
-                  {isNewRegistration && (
-                    <div className="grid md:grid-cols-2 gap-4">
-                        <div>
-                          <label className="text-sm font-medium">Password</label>
-                          <Input type="password" value={form.password} onChange={(e)=>setField("password", e.target.value)} placeholder="Minimum 8 characters"/>
-                           {form.password && form.password.length < 8 && <p className="text-xs text-destructive mt-1">Password must be at least 8 characters.</p>}
-                        </div>
-                         <div>
-                          <label className="text-sm font-medium">Confirm Password</label>
-                          <Input type="password" value={form.confirmPassword} onChange={(e)=>setField("confirmPassword", e.target.value)} placeholder="Re-enter your password"/>
-                          {form.confirmPassword && form.password !== form.confirmPassword && <p className="text-xs text-destructive mt-1">Passwords do not match.</p>}
-                        </div>
-                    </div>
-                  )}
-                  <div>
-                    <label className="text-sm font-medium">About shop</label>
-                    <Textarea value={form.about} onChange={(e)=>setField("about", e.target.value)} placeholder="Short bio"/>
-                  </div>
                 </div>
               </Section>
             )}
@@ -938,4 +870,3 @@ export default function KYCPage() {
         </div>
     );
 }
-
