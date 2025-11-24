@@ -26,7 +26,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { useAuthActions } from "@/lib/auth";
+import { useAuthActions } from "@/hooks/use-auth";
 import { useLocalStorage } from "@/hooks/use-local-storage";
 import { getFunctions, httpsCallable } from "firebase/functions";
 import { getFirestoreDb } from "@/lib/firebase-db";
@@ -156,7 +156,8 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
   }, [resendCooldown.phone]);
 
   const isStep1Valid = useMemo(() => {
-    return form.legalName && form.displayName && /.+@.+\..+/.test(form.email) && /^\d{10}$/.test(form.phone) && form.emailVerified && form.phoneVerified && form.photoUrl && (!!existingData || (form.password.length >= 8 && form.password === form.confirmPassword)) && !emailError && !phoneError;
+    const passwordValid = !existingData ? (form.password.length >= 8 && form.password === form.confirmPassword) : true;
+    return form.legalName && form.displayName && /.+@.+\..+/.test(form.email) && /^\d{10}$/.test(form.phone) && form.photoUrl && passwordValid && form.emailVerified && form.phoneVerified && !emailError && !phoneError;
   }, [form, emailError, phoneError, existingData]);
 
   const isStep2Valid = useMemo(() => {
@@ -203,7 +204,7 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
   const checkEmailExists = useCallback(async () => {
     if (!/.+@.+\..+/.test(form.email) || form.email === existingData?.email) return;
     try {
-        const response = await fetch('/api/check-email', {
+        const response = await fetch('https://us-central1-streamcart-login.cloudfunctions.net/checkEmailExists', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email: form.email }),
@@ -224,7 +225,7 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
   const checkPhoneExists = useCallback(async () => {
     if (!/^\d{10}$/.test(form.phone) || `+91 ${form.phone}` === existingData?.phone) return;
     try {
-        const response = await fetch('/api/check-phone', {
+        const response = await fetch('https://us-central1-streamcart-login.cloudfunctions.net/checkPhoneExists', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ phone: `+91 ${form.phone}` }),
@@ -252,7 +253,16 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
 
   const handleSendOtp = async (type: 'email' | 'phone') => {
     setOtpSent(prev => ({...prev, [type]: true}));
-    toast({ title: `OTP Sent to your ${type}` });
+    try {
+        const functions = getFunctions(getFirestoreDb().app);
+        const sendCode = httpsCallable(functions, 'sendVerificationCode');
+        await sendCode({ type, target: type === 'email' ? form.email : `+91${form.phone}` });
+        toast({ title: `OTP Sent to your ${type}` });
+        setResendCooldown(prev => ({...prev, [type]: RESEND_COOLDOWN}));
+    } catch (error: any) {
+        toast({ variant: "destructive", title: "Failed to Send OTP", description: error.message });
+        setOtpSent(prev => ({...prev, [type]: false}));
+    }
   };
 
   const handleVerifyOtp = async (type: 'email' | 'phone') => {
@@ -782,12 +792,19 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
 
 export default function KYCPage() {
     const { user, userData, authReady } = useAuth();
+    const { initiateAnonymousSignIn } = useAuthActions();
     const router = useRouter();
     const [isClient, setIsClient] = useState(false);
     
     useEffect(() => {
         setIsClient(true);
-    }, []);
+        if (typeof window !== 'undefined' && authReady) {
+            const isAnonymousSessionActive = sessionStorage.getItem('isAnonymousSessionActive') === 'true';
+            if (!user && !isAnonymousSessionActive) {
+                initiateAnonymousSignIn();
+            }
+        }
+    }, [user, authReady, initiateAnonymousSignIn]);
     
     const initialProgress = useMemo(() => {
         return Math.round(((0 + 1) / (steps.length)) * 100);
@@ -922,4 +939,3 @@ export default function KYCPage() {
         </div>
     );
 }
-
