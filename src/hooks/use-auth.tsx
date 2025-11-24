@@ -4,7 +4,7 @@
 import { useEffect, useState, createContext, useContext, useMemo } from 'react';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { doc, onSnapshot } from 'firebase/firestore';
-import { FirebaseContext, useFirebase } from '@/firebase/provider';
+import { FirebaseContext } from '@/firebase/provider';
 import { createUserData, getUserData, UserData } from "@/lib/follow-data";
 import { getAuthActions } from '@/lib/auth';
 
@@ -13,7 +13,7 @@ interface AuthContextType {
   userData: UserData | null;
   loading: boolean;
   authReady: boolean;
-  actions: ReturnType<typeof getAuthActions>;
+  actions: ReturnType<typeof getAuthActions> | null;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -25,13 +25,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [authReady, setAuthReady] = useState(false);
 
-  // Initialize auth actions
+  // Initialize auth actions, ensuring context is available
   const actions = useMemo(() => {
     if (firebaseContext?.auth && firebaseContext?.firebaseApp) {
       return getAuthActions(firebaseContext.auth, firebaseContext.firebaseApp);
     }
-    // Return a dummy object if firebase is not ready, though this should not happen in practice
-    return {} as ReturnType<typeof getAuthActions>; 
+    return null; // Return null if context is not ready
   }, [firebaseContext]);
 
   useEffect(() => {
@@ -106,6 +105,9 @@ export const useAuthActions = () => {
     const context = useContext(AuthContext);
     if (!context) {
         throw new Error('useAuthActions must be used within an AuthProvider');
+    }
+    if (!context.actions) {
+        throw new Error('Auth actions are not yet available.');
     }
     return context.actions;
 }
