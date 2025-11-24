@@ -4,7 +4,8 @@
 import { doc, getDoc, setDoc, updateDoc, collection, query, where, getDocs, writeBatch, increment, limit, serverTimestamp } from "firebase/firestore";
 import { initializeFirebase } from "@/firebase"; // Changed import
 import { User } from "firebase/auth";
-import { errorEmitter, FirestorePermissionError } from "@/firebase";
+import { errorEmitter } from "@/firebase/error-emitter";
+import { FirestorePermissionError } from "@/firebase/errors";
 
 
 export interface UserData {
