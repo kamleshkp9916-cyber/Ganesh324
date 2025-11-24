@@ -212,14 +212,10 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
   const checkEmailExists = useCallback(async () => {
     if (!/.+@.+\..+/.test(form.email) || form.email === existingData?.email) return;
     try {
-        const response = await fetch('/api/check-email', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email: form.email }),
-        });
-        if (!response.ok) throw new Error('Network response was not ok.');
-        const result = await response.json();
-        if (result.exists) {
+        const functions = getFunctions(getFirestoreDb().app);
+        const checkEmail = httpsCallable(functions, 'checkEmailExists');
+        const result: any = await checkEmail({ email: form.email });
+        if (result.data.exists) {
             setEmailError("This email is already registered. Please use a different one.");
         } else {
             setEmailError("");
@@ -233,14 +229,10 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
   const checkPhoneExists = useCallback(async () => {
     if (!/^\d{10}$/.test(form.phone) || `+91 ${form.phone}` === existingData?.phone) return;
     try {
-        const response = await fetch('/api/check-phone', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ phone: `+91 ${form.phone}` }),
-        });
-        if (!response.ok) throw new Error('Network response was not ok.');
-        const result = await response.json();
-        if (result.exists) {
+        const functions = getFunctions(getFirestoreDb().app);
+        const checkPhone = httpsCallable(functions, 'checkPhoneExists');
+        const result: any = await checkPhone({ phone: `+91 ${form.phone}` });
+        if (result.data.exists) {
             setPhoneError("This phone number is already registered. Please use a different one.");
         } else {
             setPhoneError("");
@@ -277,12 +269,7 @@ function SellerWizard({ onSubmit, existingData }: { onSubmit: (data: any) => voi
   const handleVerifyOtp = async (type: 'email' | 'phone') => {
     const otp = type === 'email' ? form.emailOtp : form.phoneOtp;
     if (otp.length < 6) return;
-    if (otp === '123456') { // Mock OTP check
-        setField(`${type}Verified`, true);
-        toast({ title: `${type.charAt(0).toUpperCase() + type.slice(1)} Verified!` });
-        return;
-    }
-
+    
     setIsVerifying(prev => ({...prev, [type]: true}));
     try {
         const functions = getFunctions(getFirestoreDb().app);
@@ -776,14 +763,28 @@ export default function KYCPage() {
     
     useEffect(() => {
         setIsClient(true);
-        if (authReady && !user) {
-            initiateAnonymousSignIn();
+    }, []);
+
+    useEffect(() => {
+        if (isClient && authReady) {
+            const isAnonymousSessionActive = sessionStorage.getItem('isAnonymousSessionActive') === 'true';
+            if (!user && !isAnonymousSessionActive) {
+                initiateAnonymousSignIn();
+            }
         }
     }, [isClient, user, authReady, initiateAnonymousSignIn]);
     
     const initialProgress = useMemo(() => {
         return Math.round(((0 + 1) / (steps.length)) * 100);
     }, []);
+    
+    useEffect(() => {
+        if (isClient && authReady) {
+            if (user && userData?.role === 'seller' && userData?.verificationStatus === 'verified') {
+                router.replace('/seller/dashboard');
+            }
+        }
+    }, [isClient, user, userData, authReady, router]);
     
     const handleSubmission = (data: any) => {
         router.refresh(); // This will re-trigger the check in useEffect
@@ -797,14 +798,6 @@ export default function KYCPage() {
         );
     }
     
-    if (user && !user.isAnonymous && userData?.role !== 'seller') {
-        // A registered customer is trying to access the KYC page.
-        // You might want to guide them to an "Upgrade to Seller" flow
-        // or just redirect them. For now, redirecting.
-        router.replace('/live-selling');
-        return null;
-    }
-
     if (userData?.verificationStatus === 'pending') {
          return (
              <div className="min-h-screen p-6 md:p-10 flex items-center justify-center">
@@ -914,5 +907,3 @@ export default function KYCPage() {
         </div>
     );
 }
-
-    

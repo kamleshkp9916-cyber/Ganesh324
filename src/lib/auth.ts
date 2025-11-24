@@ -30,6 +30,7 @@ export function getAuthActions(
     const signOut = async (isSeller = false) => {
         try {
             await firebaseSignOut(auth);
+            sessionStorage.removeItem('isAnonymousSessionActive');
             
             if (isSeller) {
                 sessionStorage.setItem('sellerSignedOut', 'true');
@@ -133,18 +134,17 @@ export function getAuthActions(
 
     const handleCustomerSignUp = async (values: any) => {
         try {
-            const emailRes = await fetch('/api/check-email', { method: 'POST', body: JSON.stringify({ email: values.email }) });
-            if (!emailRes.ok) throw new Error('Email check failed');
-            const emailData = await emailRes.json();
-            if (emailData.exists) {
+            const functions = getFunctions(getFirestoreDb().app);
+            const checkEmail = httpsCallable(functions, 'checkEmailExists');
+            const emailResult: any = await checkEmail({ email: values.email });
+            if (emailResult.data.exists) {
                 toast({ title: "Sign Up Failed", description: "This email is already registered.", variant: "destructive" });
                 return;
             }
-
-            const phoneRes = await fetch('/api/check-phone', { method: 'POST', body: JSON.stringify({ phone: values.phone }) });
-            if (!phoneRes.ok) throw new Error('Phone check failed');
-            const phoneData = await phoneRes.json();
-            if (phoneData.exists) {
+            
+            const checkPhone = httpsCallable(functions, 'checkPhoneExists');
+            const phoneResult: any = await checkPhone({ phone: values.phone });
+            if (phoneResult.data.exists) {
                 toast({ title: "Sign Up Failed", description: "This phone number is already registered.", variant: "destructive" });
                 return;
             }
@@ -253,10 +253,12 @@ export function getAuthActions(
     
     const initiateAnonymousSignIn = async () => {
         try {
-            if (auth.currentUser) return; // Already logged in (even anonymously)
+            if (auth.currentUser) return;
+            sessionStorage.setItem('isAnonymousSessionActive', 'true');
             await signInAnonymously(auth);
         } catch (error) {
             console.error("Anonymous sign-in failed:", error);
+            sessionStorage.removeItem('isAnonymousSessionActive');
             toast({
                 title: "Session Error",
                 description: "Could not start a temporary session. Please refresh the page.",
@@ -343,5 +345,3 @@ export function getAuthActions(
         updateUserProfile 
     };
 }
-
-    

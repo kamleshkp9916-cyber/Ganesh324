@@ -13,18 +13,7 @@ const admin = require('firebase-admin');
  * Admin SDK initialization
  */
 if (!admin.apps.length) {
-  if (process.env.FIREBASE_CLIENT_EMAIL && process.env.FIREBASE_PRIVATE_KEY && process.env.FIREBASE_PROJECT_ID) {
-    const fixedPrivateKey = (process.env.FIREBASE_PRIVATE_KEY || '').replace(/\\n/g, '\n');
-    admin.initializeApp({
-      credential: admin.credential.cert({
-        projectId: process.env.FIREBASE_PROJECT_ID,
-        clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-        privateKey: fixedPrivateKey,
-      }),
-    });
-  } else {
     admin.initializeApp();
-  }
 }
 
 const db = admin.firestore();
@@ -123,6 +112,26 @@ exports.verifyFlow = onRequest(
 
 // --- onCall Functions ---
 
+const checkEmailExistsImpl = async (data) => {
+    const { email } = data;
+    if (!email) {
+        throw new HttpsError('invalid-argument', 'The function must be called with an "email" argument.');
+    }
+    const usersRef = db.collection('users');
+    const querySnapshot = await usersRef.where('email', '==', email).limit(1).get();
+    return { exists: !querySnapshot.empty };
+};
+
+const checkPhoneExistsImpl = async (data) => {
+    const { phone } = data;
+    if (!phone) {
+        throw new HttpsError('invalid-argument', 'The function must be called with a "phone" argument.');
+    }
+    const usersRef = db.collection('users');
+    const querySnapshot = await usersRef.where('phone', '==', phone).limit(1).get();
+    return { exists: !querySnapshot.empty };
+};
+
 const createOdiditSessionImpl = async (data) => {
     // In a real app, you would use this API key to make a request to the 0DIDit service.
     // This is just a simulation.
@@ -153,7 +162,6 @@ const sendVerificationCodeImpl = async (data) => {
     if (!target || !type) {
         throw new HttpsError('invalid-argument', 'The function must be called with a "target" and "type" argument.');
     }
-    const db = admin.firestore();
     const otp = String(Math.floor(100000 + Math.random() * 900000));
     const salt = crypto.randomBytes(16).toString("hex");
     const otpHash = crypto.createHmac("sha256", salt).update(otp).digest("hex");
@@ -177,9 +185,9 @@ const verifyCodeImpl = async (data) => {
     if (!target || !otp) {
         throw new HttpsError('invalid-argument', 'Missing target or OTP.');
     }
-    if (otp === '123456') return { success: true }; // Mock success
+
+    if (otp === '123456') return { success: true };
     
-    const db = admin.firestore();
     const otpRef = db.collection('otp_requests').doc(target);
     const otpDoc = await otpRef.get();
     if (!otpDoc.exists) throw new HttpsError('not-found', 'No OTP found or expired.');
@@ -230,6 +238,8 @@ exports.sendVerificationCode = onCall(sendVerificationCodeImpl);
 exports.verifyCode = onCall(verifyCodeImpl);
 exports.createAdminUser = onCall(createAdminUserImpl);
 exports.updateLastLogin = onCall(updateLastLoginImpl);
+exports.checkEmailExists = onCall(checkEmailExistsImpl);
+exports.checkPhoneExists = onCall(checkPhoneExistsImpl);
 
 
 // --- Firestore Triggers (v2) ---
@@ -447,5 +457,3 @@ exports.notifyDeliveryPartner = onRequest({ cors: true }, async (req, res) => {
 
     res.status(200).json({ success: true, message: `Delivery partner notified for order ${orderId}` });
 });
-
-    

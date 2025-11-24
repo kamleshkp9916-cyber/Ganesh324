@@ -1,5 +1,6 @@
 
-import { getFirebaseAdminApp } from './firebase-server';
+
+import { getFirebaseAdminApp } from './firebase-server-utils';
 import { cookies } from 'next/headers';
 import { UserData } from './follow-data';
 

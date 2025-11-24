@@ -16,9 +16,11 @@ function getFirebaseAdminApp(): App {
         !process.env.FIREBASE_CLIENT_EMAIL ||
         !process.env.FIREBASE_PRIVATE_KEY
     ) {
-        throw new Error(
-            "Firebase server environment variables are not set. Ensure FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, and FIREBASE_PRIVATE_KEY are available."
-        );
+        // In a production environment, this should throw an error.
+        // For local development, we might have a fallback but it's better to enforce it.
+        console.error("Firebase server environment variables are not set.");
+        // We can't initialize without credentials, so we throw.
+        throw new Error("Firebase server environment variables are not fully configured.");
     }
 
     // The private key needs to have its newlines restored.
@@ -43,4 +45,3 @@ export const updateUserDataOnServer = async (uid: string, updates: Partial<UserD
     const userDocRef = db.collection("users").doc(uid);
     await userDocRef.update(updates);
 };
-
